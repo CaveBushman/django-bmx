@@ -1,0 +1,80 @@
+{% extends 'pages/base.html' %} {% block title %} Detail klubu {% endblock title %}
+{% block content %}
+
+<h1 class="text-center main-header" style="margin-bottom: 2rem">{{club.team_name}}</h1>
+
+<div class="container">
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                Adresa: {{club.street}}, {{club.zip_code}} {{club.city}}, {{club.region}}
+            </div>
+
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">
+                Kontaktní osoba: {{club.contact_person}}
+            </div>
+            <div class="col-sm">
+                Kontaktní e-mail: {{club.contact_email}}
+            </div>
+            <div class="col-sm">
+                Kontaktní telefon: {{club.contact_phone}}
+            </div>
+        </div>
+
+        <br>
+        Počet jezdců: {{riders_of_club_count}}
+        <br>
+        {% if club.have_track%}
+        <div class="d-flex p-2 bd-highlight justify-content-center">
+            <iframe style="border:none" src="https://frame.mapy.cz/s/{{club.track_id}}" width="100%" height="400"
+                    frameborder="0"></iframe>
+        </div>
+        {% endif %}
+    </div>
+    <br>
+    {% if events %}
+    <h1 class="text-center main-header" style="margin-bottom: 2rem; margin-top: 1rem">Seznam závodů pořádaných klubem tento rok</h1>
+
+    <table class="table" style="margin-bottom: 4rem">
+    <thead>
+      <tr>
+        <th scope="col">Datum</th>
+        <th scope="col">Název</th>
+        <th scope="col">Pořadatel</th>
+        <th scope="col">Druh</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events%}
+      {% if event.event_type == 'Mistrovství ČR jednotlivců' or event.event_type == "Mistrovství ČR družstev" %}
+            <tr class="table-danger">
+        {% elif event.event_type == 'Český pohár' %}
+             <tr class="table-primary">
+        {% elif event.event_type == 'Česká liga' %}
+            <tr class="table-success">
+        {% elif event.event_type == 'Moravská liga' %}
+            <tr class="table-info">
+        {% else %}
+            <tr class="table-warning">
+        {% endif %}
+
+        <th scope="row">{{event.date}}</th>
+        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
+        <td>{{event.organizer}}</td>
+        <td>{{event.event_type}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+    {% endif %}
+</div>
+
+
+{% endblock content %}

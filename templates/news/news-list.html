@@ -1,0 +1,56 @@
+{% extends 'pages/base.html' %} {% block title %} Novinky {% endblock title %}
+{% block content %}
+
+<h1 class=" text-center main-header" style="margin-bottom: 2rem">Novinky</h1>
+
+
+<section class="news">
+  <div class="container">
+    {% for news in news %}
+    <div class="row mb-2 card-white">
+      <div class="col-md-12">
+        <div
+          class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative"
+        >
+          <div class="col p-4 d-flex flex-column position-static">
+            {% if news.focus == 'Administrativa'%}
+            <strong class="d-inline-block mb-2 text-danger">{{ news.focus }}</strong>
+            {% elif news.focus == 'Závody' %}
+            <strong class="d-inline-block mb-2 text-success">{{ news.focus }}</strong>
+            {% else %}
+            <strong class="d-inline-block mb-2 text-primary">{{ news.focus }}</strong>
+            {% endif %}
+            <h3 class="mb-0">{{ news.title }}</h3>
+            <div class="mb-1 text-muted">{{ news.created }}</div>
+            <p class="card-text mb-auto " style = 'text-align: justify; padding: 1rem 1rem 1rem 0rem;'>
+              {{ news.perex }}
+            </p>
+            {% if news.content %}
+            <a href="{% url 'news:news-detail' news.id %}" class="stretched-link">Pokračovat ve čtení</a>
+            {% endif %}
+          </div>
+          <div class="col-auto d-none d-lg-block">
+            <svg
+              class="bd-placeholder-img"
+              width="400"
+              height="250"
+              xmlns="http://www.w3.org/2000/svg"
+              role="img"
+              aria-label="Placeholder: Thumbnail"
+              preserveAspectRatio="xMidYMid slice"
+              focusable="false"
+            >
+              <title>Placeholder</title>
+              <rect width="100%" height="100%" fill="#55595c" />
+              <text x="5%" y="90%" fill="#fff" dy=".3em">#jedemnavsechny</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+
+{% endblock content %}

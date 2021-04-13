@@ -1,0 +1,35 @@
+{% extends 'pages/base.html' %} {% block title %} Výsledky závodu {% endblock title %}
+{% block content %}
+
+<h1 class="text-center main-header">Výsledky závodu: {{event.name}}</h1>
+
+<div class="container">
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Místo</th>
+            <th scope="col">Kategorie</th>
+            <th scope="col">Jméno</th>
+            <th scope="col">Příjmení</th>
+            <th scope="col">UCI ID</th>
+            <th scope="col">Klub</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for result in results %}
+        <tr>
+            <th scope="row">{{result.place}}</th>
+            <td>{{result.category}}</td>
+            <td>{{result.first_name}}</td>
+            <td>{{result.last_name}}</td>
+            <td>{{result.rider}}</td>
+            <td>{{result.club}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock content %}

@@ -1,0 +1,63 @@
+{% extends 'pages/base.html' %} {% block title %}Administrace závodu{% endblock title %}
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <div class = "text-center event-admin-header">Administrace závodu: {{event.name}}</div>
+</div>
+
+<div class="container">
+
+
+    <form method = "POST">
+    {% csrf_token %}
+<div class="d-flex justify-content-between bd-highlight event-admin-flex">
+    {% if request.user.is_authenticated %}
+        <div class="p-2 bd-highlight"><a
+            href="{% url 'event:upload-result' event.id %}"
+            class="btn btn-info"
+            tabindex="-1"
+            role="button"
+            aria-disabled="true">Nahrát výsledky závodu</a></div>
+        <div class="p-2 bd-highlight"></div>
+        <div class="p-2 bd-highlight"></div>
+    {% endif %}
+</div>
+
+<table class="table table-borderless align-middle table-event-admin">
+  <tbody>
+    <tr>
+      <th scope="row">Registrovaní jezdci na závod - BEM FILE</th>
+      <td>Aktuální ke dni:</td>
+      <td> {{event.bem_entries_created}}</td>
+      <td><button
+            href="#"
+            class="btn btn-outline-info"
+            tabindex="-1"
+            role="button"
+            name="btn-bem-file"
+            aria-disabled="true">Vytvořit/aktualizovat startovku pro BEM</button></td>
+        <td><a href="../../{{event.bem_entries}}" class="btn btn-outline-success" download>Stáhnout</a></td>
+    </tr>
+    <tr>
+      <th scope="row">Riders list - BEM FILE</th>
+      <td>Aktuální ke dni:</td>
+      <td>{{event.bem_riders_created}}</td>
+      <td><button
+            href="#"
+            class="btn btn-outline-info"
+            tabindex="-1"
+            role="button"
+            name="btn-riders-list"
+            aria-disabled="true">Vytvořit/aktualizovat riders list pro BEM</button></td>
+      <td><a href="../../{{event.bem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
+    </tr>
+    <tr>
+      <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
+      <td><button type="button" class="btn btn-warning">Odešli notifikaci</button></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<form>
+{% endblock content %}

@@ -1,0 +1,41 @@
+{% extends 'pages/base.html' %} {% block title %} Nahrání výsledků závodu {% endblock title %}
+{% load static %}
+{% block content %}
+
+<h1 class="text-center main-header">Výsledky závodu: {{event.name}}</h1>
+
+<div class="container">
+
+    {% if request.user.is_authenticated %}
+
+    <h5>Datum závodu: {{event.date}}</h5>
+    <h5>Pořadatel: {{event.organizer}}</h5>
+    <h5>Typ závodu: {{event.event_type}}</h5>
+
+    <form method="POST" class="form-group" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="result_file" class="form-label">Vyber soubor s výsledkami</label>
+            <input class="form-control" type="file" id="result_file" name="result_file" required>
+        </div>
+        <button type="text" class="btn btn-info" id="blur" >Nahraj výsledky</button>
+    </form>
+
+    {% endif %}
+</div>
+
+    <div class="spinner div container position-absolute top-50 start-50 translate-middle" id = "spinner">
+
+    <div class="d-flex flex-column bd-highlight mb-3 justify-content-center">
+        <div class="p-2 bd-highlight text-center"><div class="spinner-border ms-auto text-success" style="width: 10rem; height: 10rem;" role="status" aria-hidden="true"></div></div>
+        <div class="p-2 bd-highlight"><h1 class = "spinner-header text-center align-middle">PRACUJI.</h1></div>
+        <div class="p-2 bd-highlight"><h5 class = "spinner-text text-center">Zpracovávám výsledky a přepočítávám ranking. Chvilku strpení prosím. Po zpracování budete přesměrováni na homepage.</h5></div>
+    </div>
+
+
+       
+    </div>
+
+</div>
+<script src="{% static 'js/show_spinner.js' %}"></script>
+{% endblock content %}

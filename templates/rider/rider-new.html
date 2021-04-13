@@ -1,0 +1,142 @@
+{% extends 'pages/base.html' %} {% block title %} Žádost o startovní číslo 
+{% endblock title %} 
+{% load static %}
+{% block content %}
+
+<div class="uciid-container">
+      <div class="img-and-text">
+        <div>
+          <div class="logo"><img src="{% static 'images/riders/uci-logo.svg' %}" alt="logo" /></div>
+          <div class="foto"><img src="{% static 'images/riders/uni.jpeg' %}" alt="" /></div>
+        </div>
+        <div class="text-container">
+          <div class="nadpis">
+            <h2>LICENCE ČLENA ČESKÉHO SVAZU CYKLISTIKY</h2>
+          </div>
+          <div class="text">
+            <label for="uciid-input">Sem zadejte svoje UCI ID, které naleznete na licenci</label>
+          </div>
+        </div>
+      </div>
+      <div id="message" class="container alert-container">
+        {% if alert %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{alert_text}}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif%}
+      </div>
+      <form method = "POST">
+        {% csrf_token %}
+
+      <div class="inputs-container">
+      <div class="d-flex flex-row bd-highlight mb- justify-content-center flex-wrap">
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num1"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num2"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num3"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num4"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num5"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num6"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num7"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num8"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num9"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num10"
+        /></div>
+        <div class="p-2 bd-highlight"><input
+          type="number"
+          class="input uciid-input"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num11"
+        /></div>
+      </div>
+      </div>
+      <div class="d-flex flex-column bd-highlight mb-3">
+        <div class="p-2 bd-highlight"><button type="submit" name="submit" class ="btn btn-primary btn-licence">Další krok</button></div>
+      </div>
+  </form>
+
+</div>
+<script src="{% static 'js/licence.js' %}"></script>
+{% endblock content %}

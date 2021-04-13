@@ -1,0 +1,510 @@
+import json
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Event, Result, Entry
+from rider.models import Rider
+from django.shortcuts import render
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from django.views.decorators.csrf import csrf_exempt
+import pandas as pd
+from .result import GetResult
+from .func import *
+from .entry import EntryClass, is_registration_open, SendConfirmEmail
+from datetime import date, datetime
+from ranking.ranking import RankingCount, RankPositionCount, Categories
+import re
+from django.core import serializers
+from django.http import JsonResponse, HttpResponse
+from openpyxl import Workbook
+import stripe
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+endpoint_secret = 'whsec_DXwaMbmEKvJzk8SVlZ0Fgz2CGzMMEtj'
+
+
+# Create your views here.
+
+def EventsListView(request):
+    events = Event.objects.filter(date__year=date.today().year).order_by('date')
+    year = date.today().year
+    next_year = int(year) + 1
+    last_year = int(year) - 1
+    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
+
+    return render(request, 'event/events-list.html', data)
+
+
+def EventsListByYearView(request, pk):
+    events = Event.objects.filter(date__year=pk).order_by('date')
+    year = pk
+    next_year = int(year) + 1
+    last_year = int(year) - 1
+    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
+
+    return render(request, 'event/events-list.html', data)
+
+
+def EventDetailViews(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+    categories = Categories.get_categories()
+    riders=""
+    select_category=""
+    alert = False
+    riders_sum = 0
+    reg_open = is_registration_open(pk)
+
+    if 'categoryInput' in request.POST:
+        select_category = request.POST['categoryInput']
+        if re.search("Cruiser", select_category):
+            cruiser = 1
+        else:
+            cruiser = 0
+        if cruiser:
+            entries_24 = Entry.objects.filter(event=event.id, class_24 = select_category[8:], payment_complete=True)
+            list_24=[]
+            for entry_24 in entries_24:
+                list_24.append(entry_24.rider)
+                print(list_24)
+            riders = Rider.objects.filter(uci_id__in = list_24)
+            print(riders)
+
+        else:
+            entries_20 = Entry.objects.filter(event=event.id, class_20 = select_category, payment_complete=True)
+            list_20=[]
+            for entry_20 in entries_20:
+                list_20.append(entry_20.rider)
+            riders = Rider.objects.filter(uci_id__in = list_20)
+
+        riders_sum = riders.count()
+        if  riders_sum == 0:
+            alert = True
+        
+    data = {'event': event, 'categories':categories, 'riders': riders, 'alert': alert, 'select_category': select_category, 'riders_sum': riders_sum, 'reg_open': reg_open}
+    return render(request, 'event/event-detail.html', data)
+
+
+def UploadResultViews(request, pk):
+    if request.method == "POST" and request.FILES['result_file']:
+        result_file = request.FILES['result_file']
+        result_file_name = result_file.name
+        fs = FileSystemStorage('static/results')
+        filename = fs.save(result_file_name, result_file)
+        uploaded_file_url = fs.url(filename)
+        event = Event.objects.get(id=pk)
+        ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
+        data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
+        for i in range(1, len(data.index)):
+            uci_id = str(data.iloc[i][1])
+            category = data.iloc[i][4]
+            place = str(data.iloc[i][0])
+            first_name = data.iloc[i][2]
+            last_name = data.iloc[i][3]
+            club = data.iloc[i][6]
+            result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
+                               last_name, club, event.organizer.team_name, event.event_type)
+            result.write_result()
+        event.results_uploaded = 1
+        event.results_path_to_file = uploaded_file_url
+        event.save()
+        RankingCount.set_ranking_points()
+
+        ranking = RankPositionCount()
+        ranking.count_ranking_position()
+
+        return redirect('event:events')
+
+    else:
+        event = Event.objects.filter(id=pk)
+        event = event[0]
+        data = {'event': event}
+        return render(request, 'event/upload_results.html', data)
+
+
+def ResultsView(request, pk):
+    event = Event.objects.filter(id=pk)
+    event = event[0]
+    results = Result.objects.filter(event=pk)
+    data = {'results': results, 'event': event}
+    return render(request, 'event/results.html', data)
+
+
+def EntryView(request, pk):
+    event = Event.objects.get(id=pk)
+    riders = Rider.objects.filter(is_active=True, is_approwe=True)
+    sum_fee = 0
+    if request.POST:
+        event = Event.objects.get(id=event.id)
+        riders_20 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_20'))
+        riders_24 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_24'))
+        sum_20 = riders_20.count()
+        sum_24 = riders_24.count()
+        for rider_20 in riders_20:
+            if re.search("Elite", rider_20.class_20):
+                sum_fee += event.fee_elite
+            elif re.search("Men", rider_20.class_20) or re.search("Women", rider_20.class_20):
+                sum_fee += event.fee_men_women
+            elif re.search("Junior", rider_20.class_20):
+                sum_fee += event.fee_junior
+            else:
+                sum_fee += event.fee_boys_girls
+
+        # add fees for cruiser
+        sum_fee += event.fee_cruiser * sum_24
+
+        # convert to json format (need for sessions)
+        sum_fee_json = json.dumps({'sum_fee': sum_fee})
+        event_json = json.dumps({'event': event.id})
+
+        # save sessions
+        request.session['sum_fee'] = sum_fee_json
+        request.session['event'] = event_json
+        request.session['riders_20'] = serializers.serialize('json', riders_20)
+        request.session['riders_24'] = serializers.serialize('json', riders_24)
+
+        data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
+                'sum_24': sum_24}
+        return render(request, 'event/entry_2.html', data)
+
+    # disable riders, who was registered in event
+    for rider in riders:
+        was_registered = Entry.objects.filter(event=event.id, rider=rider.uci_id, payment_complete=True)
+
+        if was_registered.count() == 1:
+            if was_registered[0].is_20:
+                rider.class_20 += 'registered'
+            if was_registered[0].is_24:
+                rider.class_24 += "registered"
+        elif was_registered.count() >= 2:
+            rider.class_20 += 'registered'
+            rider.class_24 += "registered"
+
+    data = {'event': event, 'riders': riders}
+    return render(request, 'event/entry.html', data)
+
+
+def ConfirmView(request):
+    
+
+    event = json.loads(request.session['event'])
+    riders_20 = json.loads(request.session['riders_20'])
+    riders_24 = json.loads(request.session['riders_24'])
+
+    if request.method == "POST":
+
+        # data for checkout session
+        line_items = []
+        this_event = Event.objects.get(id=event['event'])
+        for rider_20 in riders_20:
+            if re.search("Elite", rider_20['fields']['class_20']):
+                fee = this_event.fee_elite
+            elif re.search("Men", rider_20['fields']['class_20']) or re.search("Women", rider_20['fields']['class_20']):
+                fee = this_event.fee_men_women
+            elif re.search("Junior", rider_20['fields']['class_20']):
+                fee = this_event.fee_junior
+            else:
+                fee = this_event.fee_boys_girls
+            line_items += {
+                'price_data': {
+                    'currency': 'czk',
+                    'unit_amount': fee * 100,
+                    'product_data': {
+                        'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
+                            'first_name'] + ", " + rider_20['fields']['class_20'],
+                        'images': [],
+                        'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
+                    },
+                },
+                'quantity': 1,
+            },
+        for rider_24 in riders_24:
+            fee = this_event.fee_cruiser
+            line_items += {
+                'price_data': {
+                    'currency': 'czk',
+                    'unit_amount': fee * 100,
+                    'product_data': {
+                        'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
+                            'first_name'] + ", " + rider_24['fields']['class_20'] + "(Cruiser)",
+                        'images': [],
+                        'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
+                    },
+                },
+                'quantity': 1,
+            },
+
+        try:
+            print(settings.YOUR_DOMAIN)
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url= settings.YOUR_DOMAIN + '/event/success',
+                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
+            )
+
+            # TODO: Need last check for registration in the same time
+
+            # save entry riders to database
+            for rider_20 in riders_20:
+                entry = EntryClass(transaction_id=checkout_session.id, event=event['event'],
+                                   rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
+                                   class_20=rider_20['fields']['class_20'], class_24="")
+                entry.save()
+            for rider_24 in riders_24:
+                entry = EntryClass(transaction_id=checkout_session.id, event=event['event'],
+                                   rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
+                                   class_24=rider_24['fields']['class_24'], class_20="")
+                entry.save()
+            del entry
+            return JsonResponse({'id': checkout_session.id})
+        except Exception as e:
+            return JsonResponse(error=str(e)), 403
+
+
+def SuccessView(request):
+    transactions = Entry.objects.filter(transaction_date__year=date.today().year,
+                                        transaction_date__month=date.today().month,
+                                        transaction_date__day=date.today().day,
+                                        payment_complete=False,)
+    transactions_to_email = []
+
+    # check, if fees was paid
+    for transaction in transactions:
+        confirm = stripe.checkout.Session.retrieve(
+            transaction.transaction_id, )
+        if confirm['payment_status'] == "paid":
+            transaction.payment_complete = True
+            transaction.save()
+            # fill list for confirm transaction via email
+            if transaction.transaction_id not in transactions_to_email:
+                transactions_to_email.append(transaction.transaction_id)
+   
+    # clear duplitates
+    transactions_to_email = set(transactions_to_email)
+    
+
+    for transaction_to_email in transactions_to_email:
+        print(f" Posílám e-amil o transakcích {transaction_to_email}")
+        SendConfirmEmail(transaction_to_email).send_email_about_registration()
+
+    return render(request, 'event/success.html')
+
+
+def CancelView(request):
+    print(request.POST)
+    return render(request, 'event/cancel.html')
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    print(payload)
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    # Passed signature verification
+    return HttpResponse(status=200)
+
+def EventAdminView(request, pk):
+    """ Method for Event admin page """
+    event = Event.objects.get(id=pk)
+
+    if 'btn-bem-file' in request.POST:
+        print("Vytvoř startovku")
+        file_name = f'static/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        wb = Workbook()
+        ws = wb.active
+        ws.title="BEM5_EXT"
+        ws = excel_first_line(ws)
+
+        entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
+        x = 2
+        for entry_20 in entries_20:
+            rider = Rider.objects.get(uci_id=entry_20.rider)
+            ws.cell(x,1,rider.uci_id)
+            ws.cell(x,2,rider.uci_id)
+            ws.cell(x,3,rider.uci_id)
+            ws.cell(x,4,rider.uci_id)
+            ws.cell(x,5,rider.uci_id)
+            ws.cell(x,6,expire_licence())
+            ws.cell(x,7,"BMX RACE")
+
+            ws.cell(x,8,str(rider.date_of_birth).replace('-', '/'))
+            ws.cell(x,9,rider.first_name)
+            ws.cell(x,10,rider.last_name)
+            ws.cell(x,11,gender_resolve(rider.gender))
+            ws.cell(x,12,team_name_resolve(rider.club))
+            ws.cell(x,13,"CZE")
+            ws.cell(x,14,"CZE")
+            ws.cell(x,15,rider.class_20)
+            ws.cell(x,16,"")
+            ws.cell(x,17,"")
+            ws.cell(x,18,"")
+            ws.cell(x,19,rider.plate)
+            ws.cell(x,20,rider.plate)
+            ws.cell(x,21,"")
+            ws.cell(x,22,"")
+            ws.cell(x,23,"")
+            ws.cell(x,24,"")
+            ws.cell(x,25,"")
+            ws.cell(x,26,"")
+            ws.cell(x,27,rider.transponder_20)
+            ws.cell(x,28,rider.transponder_24)
+            ws.cell(x,29,"")
+            ws.cell(x,30,"")
+            ws.cell(x,31,"T1")
+            ws.cell(x,32,"")
+            ws.cell(x,33,"")
+            ws.cell(x,34,"")
+            ws.cell(x,35,"")
+            ws.cell(x,36,"")
+            ws.cell(x,37,"")
+            ws.cell(x,38,"")
+            ws.cell(x,39,"")
+            ws.cell(x,40,"")
+            ws.cell(x,41,"")
+            ws.cell(x,42,"")
+            ws.cell(x,43,"")
+            ws.cell(x,44,"")
+
+            x += 1
+        del entries_20
+
+        entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
+        for entry_24 in entries_24:
+            rider = Rider.objects.get(uci_id=entry_24.rider)
+            ws.cell(x,1,rider.uci_id)
+            ws.cell(x,2,rider.uci_id)
+            ws.cell(x,3,rider.uci_id)
+            ws.cell(x,4,rider.uci_id)
+            ws.cell(x,5,rider.uci_id)
+            ws.cell(x,6,expire_licence())
+            ws.cell(x,7,"BMX RACE")
+
+            ws.cell(x,8,str(rider.date_of_birth).replace('-', '/'))
+            ws.cell(x,9,rider.first_name)
+            ws.cell(x,10,rider.last_name)
+            ws.cell(x,11,gender_resolve(rider.gender))
+            ws.cell(x,12,team_name_resolve(rider.club))
+            ws.cell(x,13,"CZE")
+            ws.cell(x,14,"CZE")
+            ws.cell(x,15,"")
+            ws.cell(x,16,"Cruiser " +rider.class_24)
+            ws.cell(x,17,"")
+            ws.cell(x,18,"")
+            ws.cell(x,19,"")
+            ws.cell(x,20,rider.plate)
+            ws.cell(x,21,"")
+            ws.cell(x,22,"")
+            ws.cell(x,23,"")
+            ws.cell(x,24,"")
+            ws.cell(x,25,"")
+            ws.cell(x,26,"")
+            ws.cell(x,27,rider.transponder_20)
+            ws.cell(x,28,rider.transponder_24)
+            ws.cell(x,29,"")
+            ws.cell(x,30,"")
+            ws.cell(x,31,"")
+            ws.cell(x,32,"T2")
+            ws.cell(x,33,"")
+            ws.cell(x,34,"")
+            ws.cell(x,35,"")
+            ws.cell(x,36,"")
+            ws.cell(x,37,"")
+            ws.cell(x,38,"")
+            ws.cell(x,39,"")
+            ws.cell(x,40,"")
+            ws.cell(x,41,"")
+            ws.cell(x,42,"")
+            ws.cell(x,43,"")
+            ws.cell(x,44,"")
+            
+            x += 1
+        del entries_24
+
+        # TODO: Add foreign riders
+
+        wb.save(file_name)
+        event.bem_entries = file_name
+        event.bem_entries_created = datetime.now()
+        event.save()
+
+    if 'btn-riders-list' in request.POST:
+        print("Vytvoř riders list")
+        file_name = f'static/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        wb = Workbook()
+        ws = wb.active
+        ws.title="BEM5_EXT"
+        ws = excel_first_line(ws)
+
+        riders = Rider.objects.filter(is_active=True, is_approwe=True, is_20=True)
+        x = 2
+        for rider in riders:
+            ws.cell(x,1,rider.uci_id)
+            ws.cell(x,2,rider.uci_id)
+            ws.cell(x,3,rider.uci_id)
+            ws.cell(x,4,rider.uci_id)
+            ws.cell(x,5,rider.uci_id)
+            ws.cell(x,6,expire_licence())
+            ws.cell(x,7,"BMX RACE")
+
+            ws.cell(x,8,str(rider.date_of_birth).replace('-', '/'))
+            ws.cell(x,9,rider.first_name)
+            ws.cell(x,10,rider.last_name)
+            ws.cell(x,11,gender_resolve(rider.gender))
+            ws.cell(x,12,team_name_resolve(rider.club))
+            ws.cell(x,13,"CZE")
+            ws.cell(x,14,"CZE")
+            ws.cell(x,15,rider.class_20)
+            ws.cell(x,16,rider.class_24)
+            ws.cell(x,17,"")
+            ws.cell(x,18,"")
+            ws.cell(x,19,rider.plate)
+            ws.cell(x,20,rider.plate)
+            ws.cell(x,21,"")
+            ws.cell(x,22,"")
+            ws.cell(x,23,"")
+            ws.cell(x,24,"")
+            ws.cell(x,25,"")
+            ws.cell(x,26,"")
+            ws.cell(x,27,rider.transponder_20)
+            ws.cell(x,28,rider.transponder_24)
+            ws.cell(x,29,"")
+            ws.cell(x,30,"")
+            ws.cell(x,31,"T1")
+            ws.cell(x,32,"T2")
+            ws.cell(x,33,"")
+            ws.cell(x,34,"")
+            ws.cell(x,35,"")
+            ws.cell(x,36,"")
+            ws.cell(x,37,"")
+            ws.cell(x,38,"")
+            ws.cell(x,39,"")
+            ws.cell(x,40,"")
+            ws.cell(x,41,"")
+            ws.cell(x,42,"")
+            ws.cell(x,43,"")
+            ws.cell(x,44,"")
+
+            x += 1
+        del riders
+
+        wb.save(file_name)
+        event.bem_riders_list = file_name
+        event.bem_riders_created = datetime.now()
+        event.save()
+
+
+    data = {'event':event}
+    return render(request, 'event/event-admin.html', data)

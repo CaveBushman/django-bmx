@@ -1,0 +1,65 @@
+{% extends 'pages/base.html' %} {% block title %} Potvrzení přihlášky {% endblock title %}
+{% block content %}
+
+<h1 class="text-center main-header" style="margin-bottom: 3rem">Potvrzení přihlášky na {{event.name}}</h1>
+
+<section>
+    <div class="container">
+        <h5 style="margin-bottom: 1.5rem">Datum konání závodu: {{event.date}}</h5>
+        <table class="table table-borderless">
+            <thead>
+            <tr>
+                <th scope="col">Příjmení</th>
+                <th scope="col">Jméno</th>
+                <th scope="col">Star. č.</th>
+                <th scope="col">UCI ID</th>
+                <th scope="col">Kategorie</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if riders_20 %}
+            <tr>
+                <th colspan="5" class="table-info" >Do kategorie Challenge, Junior, Under 23 a Elite přihlašujete: ( Celkem {{sum_20}} )</th>
+            </tr>
+            {% for rider_20 in riders_20 %}
+            <tr>
+                <th scope="row">{{ rider_20.last_name|upper }}</th>
+                <td>{{ rider_20.first_name }}</td>
+                <td>{{rider_20.plate}}</td>
+                <td>{{rider_20.uci_id}}</td>
+                <td>{{rider_20.class_20}}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+
+            {% if riders_24 %}
+            <tr>
+                <th colspan="5" class="table-info">Do kategorie Cruiser přihlašujete: ( Celkem {{sum_24}} )</th>
+            </tr>
+            {% for rider_24 in riders_24 %}
+            <tr>
+                <th scope="row">{{ rider_24.last_name|upper }}</th>
+                <td>{{ rider_24.first_name }}</td>
+                <td>{{rider_24.plate}}</td>
+                <td>{{rider_24.uci_id}}</td>
+                <td>{{rider_24.class_24}}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="container" style = "margin-top: 3rem">
+    <h5>Celkové startovné: {{sum_fee}} CZK.</h5>
+
+{% csrf_token %}
+<div class="d-flex flex-row-reverse bd-highlight">
+    <div class="p-2 bd-highlight">
+        <button type="button" class="btn btn-primary" id="checkout-button">Přejít k placení</button>
+    </div>
+</div>
+    </div>
+
+{% endblock content %}

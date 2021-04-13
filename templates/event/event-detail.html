@@ -1,0 +1,206 @@
+{% extends 'pages/base.html' %} {% block title %} Detail závodu {% endblock title %}
+{% block content %}
+
+<h1 class="text-center main-header">{{event.name}}</h1>
+
+<div class="container">
+
+
+<div class="d-flex flex-row-reverse bd-highlight">
+
+{% if event.results_uploaded %}
+<div class="p-2 bd-highlight"><a
+            href="{% url 'event:results' event.id %}"
+            class="btn btn-outline-success"
+            tabindex="-1"
+            role="button"
+            aria-disabled="true"
+            >Zobrazit výsledky závodu</a></div>
+{% endif %}
+
+{% if request.user.is_superuser %}
+        <div class="p-2 bd-highlight"><a
+            href="{% url 'event:event-admin' event.id %}"
+            class="btn btn-outline-info"
+            tabindex="-1"
+            role="button"
+            aria-disabled="true">Administrace závodu</a></div>
+{% endif %}
+</div>
+    <p><span class = "event-date">Datum : {{event.date}}</span></p>
+    <p><span class = "event-date">Pořadatel : {{event.organizer}}</span></p>
+
+{% if event.canceled %}
+<div class="alert alert-danger h4 text-center" role="alert">
+  POZOR! Závod je zrušen.
+</div>
+
+{% endif %}
+    <div class="event-detail-header">Základní informace</div>
+    <div class="container-date">
+        <div class="row">
+            <div class="col col-info"><i class="fas fa-calendar-day fa-lg info-icon"></i></div>
+            <div class="col col-info"><i class="far fa-map fa-lg info-icon"></i></div>
+            <div class="col col-info"><i class="fas fa-biking fa-lg info-icon"></i></div>
+            <div class="w-100"></div>
+            <div class="col col-info"><i class="fas fa-user fa-lg info-icon"></i>PCP: {{event.pcp}}</div>
+            <div class="col col-info"><i class="far fa-user fa-lg info-icon"></i>PCP ASSIST.: {{event.pcp_assist}}</div>
+            <div class="col col-info"><i class="fas fa-user-tie fa-lg info-icon"></i>ŘEDITEL: {{event.director}} </div>
+        </div>
+    </div>
+
+{% if not event.results_uploaded and not event.canceled %}
+    <div class="registration">
+        <div class="event-header">
+            Možnosti přihlášení do závodu
+        </div>
+        <div class="event-content">
+            <div class="row row-registration">
+                <div class="col col-reg">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
+                <div class="col col-reg">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
+                {% if reg_open %}
+                <div class="col col-reg"><a
+                        href="{% url 'event:entry' event.id %}"
+                        class="btn btn-warning"
+                        tabindex="-1"
+                        role="button"
+                        aria-disabled="true"
+                >Přihlásit do závodu</a></div>
+                {% else %}
+                <div class="col col-reg"><a
+                    href="{% url 'event:entry' event.id %}"
+                    class="btn btn-warning disabled"
+                    tabindex="-1"
+                    role="button"
+                    aria-disabled="true"
+            >Přihlásit do závodu</a></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+    <div class="race-sys">
+        <div class="event-header">
+            Systém závodů
+        </div>
+        <div class="event-content">{{event.system}}</div>
+        {% if event.is_uci_race %}
+        <div class="alert alert-danger" role="alert">POZOR! Tento závod je zapsán v kalendáři
+            UCI, proto Junior a Elite kategorie pojedou podle pravidel UCI a nikoliv platných prováděcích pokynů!
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="classes">
+        <div class="event-header">
+            Kategorie
+        </div>
+        <div class="event-content"> xxx</div>
+    </div>
+
+    <div class="fees">
+        <div class="event-header">
+            Startovné
+        </div>
+        <div class="event-content">
+            <div class="row row-fees">
+                <div class="col">BOYS/GIRLS: <b>{{event.fee_boys_girls}} CZK </b></div>
+                <div class="col">MEN/WOMEN: <b>{{event.fee_men_women}} CZK </b></div>
+                <div class="col">JUNIOR: <b>{{event.fee_junior}} CZK </b></div>
+                <div class="col">ELITE: <b>{{event.fee_elite}} CZK </b></div>
+                <div class="col">CRUISER: <b>{{event.fee_cruiser}} CZK </b></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="prices">
+        <div class="event-header">
+            Ceny
+        </div>
+        <div class="event-content">{{event.prices}}</div>
+    </div>
+
+    <div class="timeschedule">
+        <div class="event-header">
+            Časový harmonogram
+        </div>
+        <div class="event-content">{{event.timeschedule}}</div>
+    </div>
+
+    <div class="note">
+        <div class="event-header">
+            Poznámky: (ubytování....)
+        </div>
+        <div class="event-content">{{event.notes}}</div>
+    </div>
+
+    <!-- Seznam přihlášených -->
+    {% if event.results_uploaded  == 0 %}
+    <div class="entries">
+        <div class="event-header">
+            Seznam přihlášených
+        </div>
+        <div *ngFor="let riderEntry of registered">
+            <app-entries-item [riderEntry]="riderEntry"></app-entries-item>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="container">
+            <div class="row" style = "margin-top: 2rem; margin-bottom: 2rem">
+                <div class="col-sm">
+                    <select class="form-select" aria-label="Default select example" name="categoryInput">
+                        <option selected>Vyber kategorii:</option>
+                        {% for category in categories %}
+                        <option value="{{category}}">{{category}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm">
+                    <button type="submit" class="btn btn-success" name="submit">Zobraz seznam</button>
+                </div>
+             </div> 
+        </div>
+    </form>
+    {% endif %}
+   
+    {% if riders %}
+    <h1 class="text-center main-header" style="margin-top: 2rem">{{select_category}}</h1>
+    <h4>Celkem přihlášeno jezdců: {{riders_sum}} </h4>
+    <table class="table table-hover" id="myTable">
+      <thead>
+        <tr>
+          <th scope="col">Start.č.</th>
+          <th scope="col">Příjmení</th>
+          <th scope="col">Jméno</th>
+          <th scope="col">Klub</th>
+          <th scope="col">UCI ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rider in riders %}
+        <tr>
+          <td scope="row">{{rider.plate}}</td>
+          <td>{{rider.last_name|upper}}</td>
+          <td>{{rider.first_name}}</td>
+          <td>{{rider.club}}</td>
+          <td>{{rider.uci_id}}</td>
+        </tr>
+              {% endfor%}
+        </tbody>
+        </table>
+    {% else %}
+    <h1 class="text-center main-header" style="margin-top: 2rem">{{select_category}}</h1>
+    {% if alert %}
+    <div class="alert alert-info" role="alert">
+ Do této kategorie není dosud nikdo přihlášen.
+</div>
+    {% endif %}
+    {% endif %}
+
+</div>
+{% endblock content %}
+
+

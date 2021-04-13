@@ -1,0 +1,91 @@
+{% extends 'pages/base.html' %} {% block title %} Kalendář závodů {% endblock title %} {% block content %}
+
+<h1 class="text-center main-header">Kalendář závodů</h1>
+
+<div class="container" style = "margin-bottom: 3rem">
+
+<div class="d-flex flex-row bd-highlight mb-3 justify-content-center">
+
+  <div class="p-2 bd-highlight">
+  <nav aria-label="Page navigation example">
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link" href="#" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item"><a class="page-link" href="{% url 'event:events-by-year' last_year %}">{{last_year}}</a></li>
+    <li class="page-item"><a class="page-link" href="#">{{year}}</a></li>
+    <li class="page-item"><a class="page-link" href="{% url 'event:events-by-year' next_year %}">{{next_year}}</a></li>
+    <li class="page-item">
+      <a class="page-link" href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+  </div>
+
+</div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Datum</th>
+        <th scope="col">Název</th>
+        <th scope="col">Pořadatel</th>
+        <th scope="col">Druh</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events%} 
+      {% if event.event_type == 'Mistrovství ČR jednotlivců' or event.event_type == "Mistrovství ČR družstev" %}
+            <tr class="table-danger">
+        {% elif event.event_type == 'Český pohár' %}
+             <tr class="table-primary">
+        {% elif event.event_type == 'Česká liga' %}
+            <tr class="table-success">
+        {% elif event.event_type == 'Moravská liga' %}
+            <tr class="table-info">
+        {% elif event.event_type == 'Mezinárodní závod' %}
+            <tr class="table-secondary">
+        {% else %}
+            <tr class="table-warning">
+        {% endif %}
+
+        {% if event.canceled %}
+          <tr class="table-light text-decoration-line-through">
+        {% endif %}
+
+        <th scope="row">{{event.date}}</th>
+        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
+        <td>{{event.organizer}}</td>
+        <td>{{event.event_type}}</td>
+        <td>
+          {% if event.results_uploaded %}
+                    <a
+            href="{% url 'event:results' event.id %}"
+            class="btn btn-outline-success btn-sm"
+            tabindex="-1"
+            role="button"
+            aria-disabled="true"
+            >Výsledky</a>
+
+          {% else %}
+            <a
+            href="{% url 'event:event-detail' event.id %}"
+            class="btn btn-outline-secondary btn-sm disabled"
+            tabindex="-1"
+            role="button"
+            aria-disabled="true"
+            >Výsledky</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock content %}

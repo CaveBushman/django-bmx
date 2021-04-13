@@ -1,0 +1,139 @@
+{% extends 'pages/base.html' %} {% block title %} Přihlášení na závody 
+{% endblock title %} {% load static %} {% block content %}
+
+<h1 class="text-center main-header">Přihlášení na {{event.name}}</h1>
+<br /><br />
+
+<div class="container">
+  <table class="table" style="margin-bottom: 3rem">
+    <thead>
+      <tr>
+        <th scope="col">BOYS/GIRLS</th>
+        <th scope="col">MEN/WOMEN</th>
+        <th scope="col">JUNIOR</th>
+        <th scope="col">ELITE</th>
+        <th scope="col">CRUISER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td scope="row">{{event.fee_boys_girls}},- CZK</td>
+        <td>{{event.fee_men_women}},- CZK</td>
+        <td>{{event.fee_junior}},- CZK</td>
+        <td>{{event.fee_elite}},- CZK</td>
+        <td>{{event.fee_cruiser}},- CZK</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm">
+        <input
+          class="form-control"
+          type="text"
+          placeholder="Napiš příjmení jezdce"
+          aria-label="default input example"
+          onkeyup="searchByLastName()"
+          id="inputLastName"
+        />
+      </div>
+      <div class="col-sm"></div>
+      <div class="col-sm">
+        <input
+          class="form-control"
+          type="text"
+          placeholder="Napiš klub"
+          aria-label="default input example"
+          onkeyup="searchByClub()"
+          id="inputClub"
+        />
+      </div>
+    </div>
+  </div>
+  <br />
+  <form method="POST">
+    {% csrf_token %}
+
+    <table class="table table-hover" id="myTable">
+      <thead>
+        <tr>
+          <th scope="col">Start.č.</th>
+          <th scope="col">Příjmení</th>
+          <th scope="col">Jméno</th>
+          <th scope="col">Klub</th>
+          <th scope="col">UCI ID</th>
+          <th scope="col">20"</th>
+          <th scope="col">Cruiser</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rider in riders %}
+        <tr>
+          <td scope="row">{{rider.plate}}</td>
+          <td>{{rider.last_name}}</td>
+          <td>{{rider.first_name}}</td>
+          <td>{{rider.club}}</td>
+          <td>{{rider.uci_id}}</td>
+
+          {% if 'registered' in rider.class_20 %}
+          <td class = "table-success">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="{{rider.uci_id}}"
+              id="checkbox_20"
+              name="checkbox_20"
+              checked
+              disabled
+            />
+            {{rider.class_20|slice:":-10" }}
+          </td>
+          {% else %}
+          <td>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="{{rider.uci_id}}"
+              id="checkbox_20"
+              name="checkbox_20"
+            />
+            {{rider.class_20}}
+          </td>
+          {% endif %} {% if 'registered' in rider.class_24 %}
+          <td class = "table-success" >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="{{rider.uci_id}}"
+              id="checkbox_24"
+              name="checkbox_24"
+              checked
+              disabled
+            />{{rider.class_24|slice:":-10" }}
+          </td>
+          {% else %}
+          <td>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="{{rider.uci_id}}"
+              id="checkbox_24"
+              name="checkbox_24"
+            />
+            {{rider.class_24}}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="#" class="arrow" id="to-top">^</a>
+    <button type="submit" class="arrow" id="to-bottom">
+      Přejít ke kontrole přihlášky
+    </button>
+  </form>
+</div>
+<script src="{% static 'js/entry.js' %}"></script>
+<script src="{% static 'js/arrow.js' %}"></script>
+{% endblock content %}
