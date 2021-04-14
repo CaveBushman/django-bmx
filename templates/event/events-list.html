@@ -32,12 +32,11 @@
     <thead>
       <tr>
         <th scope="col">Datum</th>
-        <th scope="col"></th>
         <th scope="col">Název</th>
         <th scope="col">Pořadatel</th>
         <th scope="col">Druh</th>
         <th scope="col"></th>
-
+        <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
@@ -75,7 +74,7 @@
                 {% else %}
                 <div class="col col-reg"><a
                     href="{% url 'event:entry' event.id %}"
-                    class="btn btn-warning disabled"
+                    class="btn btn-secondary disabled"
                     tabindex="-1"
                     role="button"
                     aria-disabled="true"
