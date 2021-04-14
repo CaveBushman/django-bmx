@@ -1,4 +1,5 @@
 import json
+import os
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Event, Result, Entry
 from rider.models import Rider
@@ -294,8 +295,6 @@ def EventAdminView(request, pk):
     """ Method for Event admin page """
     event = Event.objects.get(id=pk)
 
-    print(request.POST)
-
     if 'btn-upload-result' in request.POST:
 
         if 'result-file' not in request.FILES:
@@ -333,6 +332,28 @@ def EventAdminView(request, pk):
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
+    if 'btn-delete-xls' in request.POST:
+        print("Mažu XLS výsledky")
+
+        os.remove(f"static/results/{event.results_path_to_file}")
+        Result.objects.filter(event=pk).delete()
+
+        RankingCount.set_ranking_points()
+        RankPositionCount().count_ranking_position()
+
+        event.results_uploaded=False
+        event.save()
+
+        return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+    if 'btn-delete-pdf' in request.POST:
+        print("Mažu PDF výsledky")
+        event.results_uploaded = False
+        event.full_results_path =""
+        event.full_results_uploaded=None
+        event.save()
+
+        return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-bem-file' in request.POST:
         print("Vytvoř startovku")
