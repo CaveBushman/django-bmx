@@ -2,8 +2,9 @@ import json
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Event, Result, Entry
 from rider.models import Rider
-from django.shortcuts import render
+from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
+from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
@@ -29,7 +30,7 @@ def EventsListView(request):
     year = date.today().year
     next_year = int(year) + 1
     last_year = int(year) - 1
-    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
+    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year, 'reg_open': 1}
 
     return render(request, 'event/events-list.html', data)
 
@@ -319,6 +320,46 @@ def stripe_webhook(request):
 def EventAdminView(request, pk):
     """ Method for Event admin page """
     event = Event.objects.get(id=pk)
+
+    print(request.POST)
+
+    if 'btn-upload-result' in request.POST:
+
+        if 'result-file' not in request.FILES:
+            print("CHYBA")
+            messages.error(request, "Musíš vybrat soubor s výsledky závodu")
+ 
+            return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+        else:
+            result_file = request.FILES.get('result-file')
+            result_file_name = result_file.name
+            fs = FileSystemStorage('static/results')
+            filename = fs.save(result_file_name, result_file)
+            uploaded_file_url = fs.url(filename)
+            event = Event.objects.get(id=pk)
+            ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
+            data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
+            for i in range(1, len(data.index)):
+                uci_id = str(data.iloc[i][1])
+                category = data.iloc[i][4]
+                place = str(data.iloc[i][0])
+                first_name = data.iloc[i][2]
+                last_name = data.iloc[i][3]
+                club = data.iloc[i][6]
+                result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
+                                last_name, club, event.organizer.team_name, event.event_type)
+                result.write_result()
+            event.results_uploaded = 1
+            event.results_path_to_file = uploaded_file_url
+            event.save()
+            RankingCount.set_ranking_points()
+
+            ranking = RankPositionCount()
+            ranking.count_ranking_position()
+
+            return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
 
     if 'btn-bem-file' in request.POST:
         print("Vytvoř startovku")

@@ -8,11 +8,15 @@
 
 <div class="container">
 
+ {% if request.user.is_superuser %}
 
-    <form method = "POST">
+    <h5>Datum závodu: {{event.date}}</h5>
+    <h5>Pořadatel: {{event.organizer}}</h5>
+    <h5>Typ závodu: {{event.event_type}}</h5>
+
+    <form method = "POST" class="form-group" enctype="multipart/form-data">
     {% csrf_token %}
-<div class="d-flex justify-content-between bd-highlight event-admin-flex">
-    {% if request.user.is_authenticated %}
+    <div class="d-flex justify-content-between bd-highlight event-admin-flex">
         <div class="p-2 bd-highlight"><a
             href="{% url 'event:upload-result' event.id %}"
             class="btn btn-info"
@@ -21,8 +25,17 @@
             aria-disabled="true">Nahrát výsledky závodu</a></div>
         <div class="p-2 bd-highlight"></div>
         <div class="p-2 bd-highlight"></div>
-    {% endif %}
-</div>
+    </div>
+
+        <div id="message" class="container alert-container">
+      {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+      {% endif %}
+    </div>
 
 <table class="table table-borderless align-middle table-event-admin">
   <tbody>
@@ -45,12 +58,18 @@
       <td>{{event.bem_riders_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info"
+            class="btn btn-outline-info blur"
             tabindex="-1"
             role="button"
             name="btn-riders-list"
             aria-disabled="true">Vytvořit/aktualizovat riders list pro BEM</button></td>
       <td><a href="../../{{event.bem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
+    </tr>
+    <tr>
+      <th scope="row">Výsledky závodu</th>
+      <td><label for="result-file" class="form-label">Vyber soubor</label></td>
+      <td colspan = "2"><input class="form-control" type="file" name="result-file"></td>
+      <td><button type="text" class="btn btn-info blur" name = "btn-upload-result" value = "btn-upload-result">Nahraj výsledky</button></td>
     </tr>
     <tr>
       <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
@@ -60,4 +79,16 @@
 </table>
 </div>
 <form>
+
+<div class="spinner div container position-absolute top-50 start-50 translate-middle" id="spinner">
+    <div class="d-flex flex-column bd-highlight mb-3 justify-content-center">
+        <div class="p-2 bd-highlight text-center"><div class="spinner-border ms-auto text-success" style="width: 10rem; height: 10rem;" role="status" aria-hidden="true"></div></div>
+        <div class="p-2 bd-highlight"><h1 class = "spinner-header text-center align-middle">PRACUJI.</h1></div>
+        <div class="p-2 bd-highlight"><h5 class = "spinner-text text-center">Prosím o chvilku strpení.</h5></div>
+    </div>
+</div>
+
+<script src = "{% static 'js/show_spinner.js' %}"></script>
+{% endif %}
+
 {% endblock content %}
