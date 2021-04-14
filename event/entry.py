@@ -93,11 +93,3 @@ class SendConfirmEmail:
             from_email = "bmx@ceskysvazcyklistiky.cz",
             recipient_list = [recipient],
         )
-
-
-def is_registration_open(event_id):
-    event = Event.objects.get(id=event_id)
-    this_date = date.today()
-    if (this_date > event.reg_open_from) and (this_date < event.reg_open_to):
-        return True
-    return False

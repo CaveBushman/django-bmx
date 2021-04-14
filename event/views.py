@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
 from .result import GetResult
 from .func import *
-from .entry import EntryClass, is_registration_open, SendConfirmEmail
+from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
 import re
@@ -27,10 +27,15 @@ endpoint_secret = 'whsec_DXwaMbmEKvJzk8SVlZ0Fgz2CGzMMEtj'
 
 def EventsListView(request):
     events = Event.objects.filter(date__year=date.today().year).order_by('date')
+
+    for event in events:
+        event.reg_open = is_registration_open(event.id)
+        event.save()
+
     year = date.today().year
     next_year = int(year) + 1
     last_year = int(year) - 1
-    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year, 'reg_open': 1}
+    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
 
     return render(request, 'event/events-list.html', data)
 

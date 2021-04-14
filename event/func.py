@@ -1,6 +1,7 @@
 
 from datetime import date
 from club.models import Club
+from event.models import Event
 
 def expire_licence():
     year = date.today().year
@@ -17,7 +18,7 @@ def gender_resolve(rider):
         return "F"
 
 def excel_first_line(ws):
-
+    
     ws.cell(1,1,"Licence_num")
     ws.cell(1,2,"UCI_ID")
     ws.cell(1,3,"UCIcode")
@@ -64,3 +65,10 @@ def excel_first_line(ws):
     ws.cell(1,44,"Other Suspension")
     
     return ws
+
+def is_registration_open(event_id):
+    event = Event.objects.get(id=event_id)
+    this_date = date.today()
+    if (this_date > event.reg_open_from) and (this_date < event.reg_open_to):
+        return True
+    return False

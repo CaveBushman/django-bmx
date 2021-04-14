@@ -64,7 +64,7 @@
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer}}</a></td>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.event_type}}</a></td>
-        <td>   {% if reg_open %}
+        <td>{% if event.reg_open %}
                 <div class="col col-reg"><a
                         href="{% url 'event:entry' event.id %}"
                         class="btn btn-warning"
@@ -85,7 +85,7 @@
           {% if event.results_uploaded %}
                     <a
             href="{% url 'event:results' event.id %}"
-            class="btn btn-outline-success btn-sm"
+            class="btn btn-success btn"
             tabindex="-1"
             role="button"
             aria-disabled="true"
@@ -94,7 +94,7 @@
           {% else %}
             <a
             href="{% url 'event:event-detail' event.id %}"
-            class="btn btn-outline-secondary btn-sm disabled"
+            class="btn btn-secondary btn disabled"
             tabindex="-1"
             role="button"
             aria-disabled="true"
