@@ -30,6 +30,7 @@ def EventsListView(request):
 
     for event in events:
         event.reg_open = is_registration_open(event.id)
+        print(event.reg_open)
         event.save()
 
     year = date.today().year
@@ -42,6 +43,10 @@ def EventsListView(request):
 
 def EventsListByYearView(request, pk):
     events = Event.objects.filter(date__year=pk).order_by('date')
+    for event in events:
+        event.reg_open = is_registration_open(event.id)
+        print(event.reg_open)
+        event.save()
     year = pk
     next_year = int(year) + 1
     last_year = int(year) - 1
