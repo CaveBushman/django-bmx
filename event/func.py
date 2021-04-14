@@ -69,6 +69,11 @@ def excel_first_line(ws):
 def is_registration_open(event_id):
     event = Event.objects.get(id=event_id)
     this_date = date.today()
+
+    # if results is uploaded, registraion is close
+    if event.results_uploaded:
+        return False
+
     if (this_date >= event.reg_open_from) and (this_date <= event.reg_open_to):
         return True
     return False

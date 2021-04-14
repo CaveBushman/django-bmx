@@ -94,43 +94,6 @@ def EventDetailViews(request, pk):
     return render(request, 'event/event-detail.html', data)
 
 
-def UploadResultViews(request, pk):
-    if request.method == "POST" and request.FILES['result_file']:
-        result_file = request.FILES['result_file']
-        result_file_name = result_file.name
-        fs = FileSystemStorage('static/results')
-        filename = fs.save(result_file_name, result_file)
-        uploaded_file_url = fs.url(filename)
-        event = Event.objects.get(id=pk)
-        ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
-        data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
-        for i in range(1, len(data.index)):
-            uci_id = str(data.iloc[i][1])
-            category = data.iloc[i][4]
-            place = str(data.iloc[i][0])
-            first_name = data.iloc[i][2]
-            last_name = data.iloc[i][3]
-            club = data.iloc[i][6]
-            result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
-                               last_name, club, event.organizer.team_name, event.event_type)
-            result.write_result()
-        event.results_uploaded = 1
-        event.results_path_to_file = uploaded_file_url
-        event.save()
-        RankingCount.set_ranking_points()
-
-        ranking = RankPositionCount()
-        ranking.count_ranking_position()
-
-        return redirect('event:events')
-
-    else:
-        event = Event.objects.filter(id=pk)
-        event = event[0]
-        data = {'event': event}
-        return render(request, 'event/upload_results.html', data)
-
-
 def ResultsView(request, pk):
     event = Event.objects.filter(id=pk)
     event = event[0]

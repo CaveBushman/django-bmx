@@ -9,25 +9,9 @@
 <div class="container">
 
  {% if request.user.is_superuser %}
-
-    <h5>Datum závodu: {{event.date}}</h5>
-    <h5>Pořadatel: {{event.organizer}}</h5>
-    <h5>Typ závodu: {{event.event_type}}</h5>
-
     <form method = "POST" class="form-group" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="d-flex justify-content-between bd-highlight event-admin-flex">
-        <div class="p-2 bd-highlight"><a
-            href="{% url 'event:upload-result' event.id %}"
-            class="btn btn-info"
-            tabindex="-1"
-            role="button"
-            aria-disabled="true">Nahrát výsledky závodu</a></div>
-        <div class="p-2 bd-highlight"></div>
-        <div class="p-2 bd-highlight"></div>
-    </div>
-
-        <div id="message" class="container alert-container">
+      <div id="message" class="container alert-container">
       {% if messages %}
       {% for message in messages %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
@@ -40,12 +24,25 @@
 <table class="table table-borderless align-middle table-event-admin">
   <tbody>
     <tr>
+      <td><h6>Datum závodu: {{event.date}}</h6></td>
+      <td></td>
+      <td><h6>Pořadatel: {{event.organizer}}</h6></td>
+      <td></td>
+      <td><h6>Typ závodu: {{event.event_type}}</h6></td>
+    </tr>
+    <tr>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Soubory pro BEM</th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    <tr>
       <th scope="row">Registrovaní jezdci na závod - BEM FILE</th>
       <td>Aktuální ke dni:</td>
       <td> {{event.bem_entries_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info"
+            class="btn btn-outline-info blur"
             tabindex="-1"
             role="button"
             name="btn-bem-file"
@@ -66,15 +63,52 @@
       <td><a href="../../{{event.bem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
     </tr>
     <tr>
+      <th></th>
+    </tr>
+    <tr>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Výsledky</th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    <tr>
       <th scope="row">Výsledky závodu</th>
       <td><label for="result-file" class="form-label">Vyber soubor</label></td>
       <td colspan = "2"><input class="form-control" type="file" name="result-file"></td>
       <td><button type="text" class="btn btn-info blur" name = "btn-upload-result" value = "btn-upload-result">Nahraj výsledky</button></td>
     </tr>
     <tr>
+      <th scope="row">Smazat výsledky závodu</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th><button class = "btn btn-danger" name="delete-result" value="delete-result">Smaž výsledky závodu</button></th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    
+    {% if event.event_type == "Mezinárodní závod" %}
+
+    <tr>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Evropský pohár</th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    {% endif %}
+    <tr>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Notifikace</th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    <tr>
       <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
       <td><button type="button" class="btn btn-warning">Odešli notifikaci</button></td>
     </tr>
+
+
   </tbody>
 </table>
 </div>
