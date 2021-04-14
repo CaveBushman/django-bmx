@@ -285,7 +285,7 @@ def SuccessView(request):
 
     for transaction_to_email in transactions_to_email:
         print(f" Posílám e-amil o transakcích {transaction_to_email}")
-        SendConfirmEmail(transaction_to_email).send_email_about_registration()
+        # SendConfirmEmail(transaction_to_email).send_email_about_registration()
 
     return render(request, 'event/success.html')
 
