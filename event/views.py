@@ -31,7 +31,6 @@ def EventsListView(request):
 
     for event in events:
         event.reg_open = is_registration_open(event.id)
-        print(event.reg_open)
         event.save()
 
     year = date.today().year
@@ -58,7 +57,7 @@ def EventsListByYearView(request, pk):
 
 def EventDetailViews(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    categories = Categories.get_categories()
+    categories = Categories.get_categories(pk)
     riders=""
     select_category=""
     alert = False
@@ -67,19 +66,22 @@ def EventDetailViews(request, pk):
 
     if 'categoryInput' in request.POST:
         select_category = request.POST['categoryInput']
+
+        # check, if category is Cruiser
         if re.search("Cruiser", select_category):
             cruiser = 1
         else:
             cruiser = 0
+
+        # get Cruiser entry riders in selected category 
         if cruiser:
-            entries_24 = Entry.objects.filter(event=event.id, class_24 = select_category[8:], payment_complete=True)
+            entries_24 = Entry.objects.filter(event=event.id, class_24 = select_category, payment_complete=True)
             list_24=[]
             for entry_24 in entries_24:
                 list_24.append(entry_24.rider)
-                print(list_24)
             riders = Rider.objects.filter(uci_id__in = list_24)
-            print(riders)
 
+         # get 20" bike entry riders in selected category
         else:
             entries_20 = Entry.objects.filter(event=event.id, class_20 = select_category, payment_complete=True)
             list_20=[]
@@ -199,7 +201,7 @@ def ConfirmView(request):
                     'unit_amount': fee * 100,
                     'product_data': {
                         'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                            'first_name'] + ", " + rider_24['fields']['class_20'] + "(Cruiser)",
+                            'first_name'] + ", " + rider_24['fields']['class_24'],
                         'images': [],
                         'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
                     },
@@ -260,7 +262,7 @@ def SuccessView(request):
 
     for transaction_to_email in transactions_to_email:
         print(f" Posílám e-amil o transakcích {transaction_to_email}")
-        SendConfirmEmail(transaction_to_email).send_email_about_registration()
+        # SendConfirmEmail(transaction_to_email).send_email_about_registration()
 
     return render(request, 'event/success.html')
 
@@ -298,7 +300,6 @@ def EventAdminView(request, pk):
     if 'btn-upload-result' in request.POST:
 
         if 'result-file' not in request.FILES:
-            print("CHYBA")
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
  
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
@@ -382,7 +383,9 @@ def EventAdminView(request, pk):
             ws.cell(x,12,team_name_resolve(rider.club))
             ws.cell(x,13,"CZE")
             ws.cell(x,14,"CZE")
-            ws.cell(x,15,rider.class_20)
+
+            ws.cell(x,15,entry_20.class_20)
+          
             ws.cell(x,16,"")
             ws.cell(x,17,"")
             ws.cell(x,18,"")

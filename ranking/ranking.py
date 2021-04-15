@@ -1,7 +1,7 @@
 import datetime
 
 from rider.models import Rider
-from event.models import Result
+from event.models import Result, Entry
 from django.db.models import Q
 
 
@@ -294,21 +294,23 @@ class Categories:
     """ Return set of classes """
 
     @staticmethod
-    def get_categories():
+    def get_categories(event):
 
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+        entries = Entry.objects.filter(event=event)
 
-         # PREPARE CLASSES FROM REAL RIDER CLASSES
+        # PREPARE CLASSES FROM REAL RIDER CLASSES
         categories20 = []
         categories24 = []
-        for rider in riders:
+        for entry in entries:
             try:
-                categories20.append(rider.class_20)
+                if entry.is_20: 
+                    categories20.append(entry.class_20)
             except:
                 pass
-        for rider in riders:
+        for entry in entries:
             try:
-                categories24.append(rider.class_24)
+                if entry.is_24:
+                    categories24.append(entry.class_24)
             except:
                 pass
 
@@ -321,7 +323,6 @@ class Categories:
 
         clean_categories24 = []
         for category in categories24:
-            category = "Cruiser " + category
             if category not in clean_categories24:
                 clean_categories24.append(category)
         clean_categories24.sort()

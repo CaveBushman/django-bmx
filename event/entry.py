@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from .models import Entry, Event
 from rider.models import Rider
+from .func import *
 from datetime import date
 import stripe
 import os
@@ -26,8 +27,8 @@ class EntryClass:
             rider=self.rider,
             is_20=self.is_20,
             is_24=self.is_24,
-            class_20=self.class_20,
-            class_24=self.class_24,
+            class_20=resolve_event_class_20(self.event, self.rider),
+            class_24=resolve_event_class_24(self.event, self.rider),
         )
         new_entry.save()
 
