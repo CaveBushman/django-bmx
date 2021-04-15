@@ -295,25 +295,45 @@ class Categories:
     """ Return set of classes """
 
     @staticmethod
-    def get_categories(event):
+    def get_categories(event=0):
+        # events 0 is categories for ranking view
+        if event == 0:
+            riders = Rider.objects.filter(is_active=True, is_approwe=True)
 
-        entries = Entry.objects.filter(event=event)
+            # PREPARE CLASSES FROM REAL RIDER CLASSES
+            categories20 = []
+            categories24 = []
+            for rider in riders:
+                try:
+                    if rider.is_20: 
+                        categories20.append(rider.class_20)
+                except:
+                    pass
+            for rider in riders:
+                try:
+                    if rider.is_24:
+                        categories24.append(rider.class_24)
+                except:
+                    pass
+        # categories for entries
+        else:
+            entries = Entry.objects.filter(event=event)
 
-        # PREPARE CLASSES FROM REAL RIDER CLASSES
-        categories20 = []
-        categories24 = []
-        for entry in entries:
-            try:
-                if entry.is_20: 
-                    categories20.append(entry.class_20)
-            except:
-                pass
-        for entry in entries:
-            try:
-                if entry.is_24:
-                    categories24.append(entry.class_24)
-            except:
-                pass
+            # PREPARE CLASSES FROM REAL RIDER CLASSES
+            categories20 = []
+            categories24 = []
+            for entry in entries:
+                try:
+                    if entry.is_20: 
+                        categories20.append(entry.class_20)
+                except:
+                    pass
+            for entry in entries:
+                try:
+                    if entry.is_24:
+                        categories24.append(entry.class_24)
+                except:
+                    pass
 
         # REMOVE DUPLICATES
         clean_categories20 = []

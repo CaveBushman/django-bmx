@@ -10,7 +10,7 @@ import datetime
 # Create your views here.
 
 def RidersListView(request):
-    riders = Rider.objects.filter(is_active=True)
+    riders = Rider.objects.filter(is_active=True, is_approwe=True)
     data = {'riders': riders}
 
     return render(request, 'rider/riders-list.html', data)
