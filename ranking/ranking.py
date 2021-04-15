@@ -1,4 +1,5 @@
 import datetime
+import threading
 
 from rider.models import Rider
 from event.models import Result, Entry
@@ -119,10 +120,10 @@ class RankingCount:
 
     def count_points(self):
         self.resolve_category()
-        self.set_point_code_01()
-        self.set_point_code_02()
-        self.set_point_code_03()
-        self.set_point_code_04()
+        threading.Thread(target = self.set_point_code_01()).start()
+        threading.Thread(target = self.set_point_code_02()).start()
+        threading.Thread(target = self.set_point_code_03()).start()
+        threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod
     def set_ranking_points():
@@ -266,7 +267,7 @@ class RankPositionCount:
                         ranking = i + 1
                 else:
                     ranking = 1
-                self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)
+                threading.Thread (target = self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)).start()
 
         # RANKING POSITION FOR 24" (CRUISER)
         categories_24 = self.get_categories(is_20=False)

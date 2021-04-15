@@ -139,7 +139,7 @@
                                 name="SelectClub">
                             <option selected>Vyber...</option>
                             {% for club in clubs %}
-                            <option value="{{club.id}}">{{club.team_name}}</option>
+                            <option value="{{club.id}}">{{club.team_name|upper}}</option>
                             {% endfor %}
                         </select>
                     </div>

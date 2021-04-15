@@ -543,6 +543,5 @@ def EventAdminView(request, pk):
         event.bem_riders_created = datetime.now()
         event.save()
 
-
     data = {'event':event}
     return render(request, 'event/event-admin.html', data)
