@@ -81,12 +81,14 @@ def RiderNewView(request):
                         data = {}
                         return render(request, 'rider/rider-new.html', data)
 
+                    # fill form in rider-new-2 
                     if data_json[0]['Gender'] == "Male":
                         gender = "Muž"
                     else:
                         gender = "Žena"
                     data_new_rider = {'first_name': data_json[0]['FirstName'], 'last_name': data_json[0]['LastName'],
-                                      'date_of_birth': data_json[0]['Birthdate'][0:10], 'gender': gender,}
+                                      'date_of_birth': data_json[0]['Birthdate'][0:10], 'gender': gender, 'clubs': clubs,
+                                      'free_plates': free_plates, 'uci_id': uci_id,}
                     request.session['first_name'] = data_json[0]['FirstName']
                     request.session['last_name'] = data_json[0]['LastName'].capitalize()
                     request.session['date_of_birth'] = data_json[0]['Birthdate'][0:10]
