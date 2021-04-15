@@ -115,6 +115,7 @@ def EntryView(request, pk):
         sum_24 = riders_24.count()
         for rider_20 in riders_20:
             if re.search("Elite", rider_20.class_20) or re.search("Under", rider_20.class_20):
+                if re.search("Under", rider_20.class_20):
                 sum_fee += event.fee_elite
             elif re.search("Men", rider_20.class_20) or re.search("Women", rider_20.class_20):
                 sum_fee += event.fee_men_women
