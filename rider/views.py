@@ -33,6 +33,7 @@ def RiderNewView(request):
     # getting all used plates list
     used_plates = []
     riders = Rider.objects.filter(is_active=True)
+
     for rider in riders:
         used_plates += [rider.plate]
 
@@ -187,5 +188,6 @@ def RiderNewView(request):
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
-
-    return render(request, 'rider/rider-new.html')
+    print("rendering data")
+    data = {'clubs': clubs, 'free_plates': free_plates}
+    return render(request, 'rider/rider-new.html', data)
