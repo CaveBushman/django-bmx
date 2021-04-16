@@ -1,12 +1,13 @@
 from rider.models import Rider
 from datetime import date
+import threading
 
 def set_all_riders_classes():
-    """ Function for setiing classes for all riders """
+    """ Function for setting classes for all riders """
     riders = Rider.objects.all()
     for rider in riders:
-        rider.set_class_20()
-        rider.set_class_24()
+        threading.Thread(target=rider.set_class_20()).start()
+        threading.Thread(target=rider.set_class_24()).start()
     print ("Kategorie jezdců nastaveny")
 
 def clear_transponders():
@@ -18,5 +19,4 @@ def clear_transponders():
         if rider.transponder_24 == "nan":
             rider.transponder_24 = ""
         rider.created = date.today()
-        #rider.approwed_by = 1
         rider.save()

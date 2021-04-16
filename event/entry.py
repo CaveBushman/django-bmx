@@ -21,15 +21,18 @@ class EntryClass:
         self.class_24 = class_24
 
     def save(self):
+
         new_entry = Entry.objects.create(
             transaction_id=self.transaction_id,
             event=self.event,
             rider=self.rider,
             is_20=self.is_20,
             is_24=self.is_24,
-            class_20=resolve_event_class_20(self.event, self.rider),
-            class_24=resolve_event_class_24(self.event, self.rider),
         )
+        if self.is_20:
+            new_entry.class_20 = resolve_event_classes(self.event, self.rider, is_20=True)
+        if self.is_24:
+            new_entry.class_24 = resolve_event_classes(self.event, self.rider, is_20=False)
         new_entry.save()
 
 

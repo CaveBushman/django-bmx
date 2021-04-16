@@ -201,7 +201,7 @@ def ConfirmView(request):
                     'unit_amount': fee * 100,
                     'product_data': {
                         'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                            'first_name'] + ", " + rider_24['fields']['class_24'],
+                            'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
                         'images': [],
                         'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
                     },

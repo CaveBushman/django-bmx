@@ -24,6 +24,7 @@ class Event(models.Model):
 
     event_type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
     classes_code = models.IntegerField(default = 3)
+
     is_uci_race = models.BooleanField(default=False)
 
     pcp = models.CharField(max_length=255, null=True, blank=True)

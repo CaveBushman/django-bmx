@@ -307,10 +307,6 @@ class Categories:
                 try:
                     if rider.is_20: 
                         categories20.append(rider.class_20)
-                except:
-                    pass
-            for rider in riders:
-                try:
                     if rider.is_24:
                         categories24.append(rider.class_24)
                 except:
@@ -326,10 +322,6 @@ class Categories:
                 try:
                     if entry.is_20: 
                         categories20.append(entry.class_20)
-                except:
-                    pass
-            for entry in entries:
-                try:
                     if entry.is_24:
                         categories24.append(entry.class_24)
                 except:
