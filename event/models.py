@@ -23,7 +23,7 @@ class Event(models.Model):
     organizer = models.ForeignKey(Club, related_name='club', null=True, on_delete=models.SET_NULL)
 
     event_type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
-
+    classes_code = models.IntegerField(default = 3)
     is_uci_race = models.BooleanField(default=False)
 
     pcp = models.CharField(max_length=255, null=True, blank=True)

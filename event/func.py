@@ -1,6 +1,7 @@
 
 from datetime import date
 import re
+from openpyxl import load_workbook
 from club.models import Club
 from event.models import Event
 from rider.models import Rider
@@ -232,3 +233,21 @@ def resolve_event_class_24(event, rider):
         return "Cruiser"
     else:
         return rider.class_24
+
+def resolve_event_classes(event, rider, is_20):
+
+    wb = load_workbook('static/classes/classes.xlsx')
+    sheet_range = wb[event.classes_code]   
+
+    if is_20:
+
+        if rider.gender == "Žena" and rider.have_girl_bonus:
+            column = 3
+        else:
+            column = 2
+
+        for row in range (3, 35):
+              if rider.class_24 == sheet_range [row][1]:
+                  return sheet_range[row][column]
+
+
