@@ -23,6 +23,7 @@ class Event(models.Model):
     organizer = models.ForeignKey(Club, related_name='club', null=True, on_delete=models.SET_NULL)
 
     event_type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
+    classes_code = models.IntegerField(default = 3)
 
     is_uci_race = models.BooleanField(default=False)
 
@@ -32,6 +33,7 @@ class Event(models.Model):
 
     reg_open_from = models.DateField(default='2021-04-01')
     reg_open_to = models.DateField(default='2021-12-31')
+    reg_open = models.BooleanField(default=True)
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
     prices = models.TextField(max_length=1000, default="", blank=True, null=True)
@@ -48,6 +50,9 @@ class Event(models.Model):
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     bem_riders_list = models.FileField(upload_to='static/bem_riders', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    full_results_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
+    full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     results_path_to_file = models.FileField(upload_to='static/results', null=True, blank=True)
     results_uploaded = models.BooleanField(default=False)

@@ -1,15 +1,18 @@
 import json
+import os
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Event, Result, Entry
 from rider.models import Rider
-from django.shortcuts import render
+from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
+from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 import pandas as pd
 from .result import GetResult
 from .func import *
-from .entry import EntryClass, is_registration_open, SendConfirmEmail
+from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
 import re
@@ -26,6 +29,11 @@ endpoint_secret = 'whsec_DXwaMbmEKvJzk8SVlZ0Fgz2CGzMMEtj'
 
 def EventsListView(request):
     events = Event.objects.filter(date__year=date.today().year).order_by('date')
+
+    for event in events:
+        event.reg_open = is_registration_open(event.id)
+        event.save()
+
     year = date.today().year
     next_year = int(year) + 1
     last_year = int(year) - 1
@@ -36,6 +44,10 @@ def EventsListView(request):
 
 def EventsListByYearView(request, pk):
     events = Event.objects.filter(date__year=pk).order_by('date')
+    for event in events:
+        event.reg_open = is_registration_open(event.id)
+        print(event.reg_open)
+        event.save()
     year = pk
     next_year = int(year) + 1
     last_year = int(year) - 1
@@ -46,7 +58,7 @@ def EventsListByYearView(request, pk):
 
 def EventDetailViews(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    categories = Categories.get_categories()
+    categories = Categories.get_categories(pk)
     riders=""
     select_category=""
     alert = False
@@ -55,19 +67,22 @@ def EventDetailViews(request, pk):
 
     if 'categoryInput' in request.POST:
         select_category = request.POST['categoryInput']
+
+        # check, if category is Cruiser
         if re.search("Cruiser", select_category):
             cruiser = 1
         else:
             cruiser = 0
+
+        # get Cruiser entry riders in selected category
         if cruiser:
-            entries_24 = Entry.objects.filter(event=event.id, class_24 = select_category[8:], payment_complete=True)
+            entries_24 = Entry.objects.filter(event=event.id, class_24 = select_category, payment_complete=True)
             list_24=[]
             for entry_24 in entries_24:
                 list_24.append(entry_24.rider)
-                print(list_24)
             riders = Rider.objects.filter(uci_id__in = list_24)
-            print(riders)
 
+         # get 20" bike entry riders in selected category
         else:
             entries_20 = Entry.objects.filter(event=event.id, class_20 = select_category, payment_complete=True)
             list_20=[]
@@ -78,46 +93,9 @@ def EventDetailViews(request, pk):
         riders_sum = riders.count()
         if  riders_sum == 0:
             alert = True
-        
+
     data = {'event': event, 'categories':categories, 'riders': riders, 'alert': alert, 'select_category': select_category, 'riders_sum': riders_sum, 'reg_open': reg_open}
     return render(request, 'event/event-detail.html', data)
-
-
-def UploadResultViews(request, pk):
-    if request.method == "POST" and request.FILES['result_file']:
-        result_file = request.FILES['result_file']
-        result_file_name = result_file.name
-        fs = FileSystemStorage('static/results')
-        filename = fs.save(result_file_name, result_file)
-        uploaded_file_url = fs.url(filename)
-        event = Event.objects.get(id=pk)
-        ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
-        data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
-        for i in range(1, len(data.index)):
-            uci_id = str(data.iloc[i][1])
-            category = data.iloc[i][4]
-            place = str(data.iloc[i][0])
-            first_name = data.iloc[i][2]
-            last_name = data.iloc[i][3]
-            club = data.iloc[i][6]
-            result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
-                               last_name, club, event.organizer.team_name, event.event_type)
-            result.write_result()
-        event.results_uploaded = 1
-        event.results_path_to_file = uploaded_file_url
-        event.save()
-        RankingCount.set_ranking_points()
-
-        ranking = RankPositionCount()
-        ranking.count_ranking_position()
-
-        return redirect('event:events')
-
-    else:
-        event = Event.objects.filter(id=pk)
-        event = event[0]
-        data = {'event': event}
-        return render(request, 'event/upload_results.html', data)
 
 
 def ResultsView(request, pk):
@@ -139,7 +117,7 @@ def EntryView(request, pk):
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
         for rider_20 in riders_20:
-            if re.search("Elite", rider_20.class_20):
+            if re.search("Elite", rider_20.class_20) or re.search("Under", rider_20.class_20):
                 sum_fee += event.fee_elite
             elif re.search("Men", rider_20.class_20) or re.search("Women", rider_20.class_20):
                 sum_fee += event.fee_men_women
@@ -183,7 +161,7 @@ def EntryView(request, pk):
 
 
 def ConfirmView(request):
-    
+
 
     event = json.loads(request.session['event'])
     riders_20 = json.loads(request.session['riders_20'])
@@ -224,7 +202,7 @@ def ConfirmView(request):
                     'unit_amount': fee * 100,
                     'product_data': {
                         'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                            'first_name'] + ", " + rider_24['fields']['class_20'] + "(Cruiser)",
+                            'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
                         'images': [],
                         'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
                     },
@@ -278,13 +256,13 @@ def SuccessView(request):
             # fill list for confirm transaction via email
             if transaction.transaction_id not in transactions_to_email:
                 transactions_to_email.append(transaction.transaction_id)
-   
+
     # clear duplitates
     transactions_to_email = set(transactions_to_email)
-    
+
 
     for transaction_to_email in transactions_to_email:
-        print(f" Posílám e-mail o transakcích {transaction_to_email}")
+        print(f" Posílám e-amil o transakcích {transaction_to_email}")
         # SendConfirmEmail(transaction_to_email).send_email_about_registration()
 
     return render(request, 'event/success.html')
@@ -316,9 +294,87 @@ def stripe_webhook(request):
     # Passed signature verification
     return HttpResponse(status=200)
 
+@staff_member_required
 def EventAdminView(request, pk):
     """ Method for Event admin page """
     event = Event.objects.get(id=pk)
+
+    if 'btn-upload-result' in request.POST:
+
+        if 'result-file' not in request.FILES:
+            messages.error(request, "Musíš vybrat soubor s výsledky závodu")
+
+            return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+        else:
+            result_file = request.FILES.get('result-file')
+            result_file_name = result_file.name
+            fs = FileSystemStorage('static/results')
+            filename = fs.save(result_file_name, result_file)
+            uploaded_file_url = fs.url(filename)
+            event = Event.objects.get(id=pk)
+            ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
+            data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
+            for i in range(1, len(data.index)):
+                uci_id = str(data.iloc[i][1])
+                category = data.iloc[i][4]
+                place = str(data.iloc[i][0])
+                first_name = data.iloc[i][2]
+                last_name = data.iloc[i][3]
+                club = data.iloc[i][6]
+                result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
+                                last_name, club, event.organizer.team_name, event.event_type)
+                result.write_result()
+            event.results_uploaded = 1
+            event.results_path_to_file = uploaded_file_url
+            event.save()
+            RankingCount.set_ranking_points()
+
+            ranking = RankPositionCount()
+            ranking.count_ranking_position()
+
+            return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+    if 'btn-upload-pdf' in request.POST:
+        # if pdf file is not selected
+        if 'result-file-pdf' not in request.FILES:
+            messages.error(request, "Musíš vybrat soubor s výsledky závodu s časy")
+
+            return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+        else:
+            print("Nahrávám soubor s výsledky ve formátu pdf")
+            pdf_file = request.FILES.get('result-file-pdf')
+            pdf_file_name = pdf_file.name
+            fs = FileSystemStorage('static/full_results')
+            filename = fs.save(pdf_file_name, pdf_file)
+            uploaded_file_url = fs.url(filename)
+
+            # TODO: Copy pdf file with results
+
+        return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+    if 'btn-delete-xls' in request.POST:
+        print("Mažu XLS výsledky")
+
+        os.remove(f"static/results/{event.results_path_to_file}")
+        Result.objects.filter(event=pk).delete()
+
+        RankingCount.set_ranking_points()
+        RankPositionCount().count_ranking_position()
+
+        event.results_uploaded=False
+        event.save()
+
+        return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+    if 'btn-delete-pdf' in request.POST:
+        print("Mažu PDF výsledky")
+        event.results_uploaded = False
+        event.full_results_path =""
+        event.full_results_uploaded=None
+        event.save()
+
+        return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-bem-file' in request.POST:
         print("Vytvoř startovku")
@@ -347,7 +403,9 @@ def EventAdminView(request, pk):
             ws.cell(x,12,team_name_resolve(rider.club))
             ws.cell(x,13,"CZE")
             ws.cell(x,14,"CZE")
-            ws.cell(x,15,rider.class_20)
+
+            ws.cell(x,15,entry_20.class_20)
+
             ws.cell(x,16,"")
             ws.cell(x,17,"")
             ws.cell(x,18,"")
@@ -429,7 +487,7 @@ def EventAdminView(request, pk):
             ws.cell(x,42,"")
             ws.cell(x,43,"")
             ws.cell(x,44,"")
-            
+
             x += 1
         del entries_24
 
@@ -442,7 +500,7 @@ def EventAdminView(request, pk):
 
     if 'btn-riders-list' in request.POST:
         print("Vytvoř riders list")
-        file_name = f'static/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        file_name = f'static/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
         ws = wb.active
         ws.title="BEM5_EXT"
@@ -504,7 +562,6 @@ def EventAdminView(request, pk):
         event.bem_riders_list = file_name
         event.bem_riders_created = datetime.now()
         event.save()
-
 
     data = {'event':event}
     return render(request, 'event/event-admin.html', data)

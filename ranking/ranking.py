@@ -1,7 +1,8 @@
 import datetime
+import threading
 
 from rider.models import Rider
-from event.models import Result
+from event.models import Result, Entry
 from django.db.models import Q
 
 
@@ -119,10 +120,10 @@ class RankingCount:
 
     def count_points(self):
         self.resolve_category()
-        self.set_point_code_01()
-        self.set_point_code_02()
-        self.set_point_code_03()
-        self.set_point_code_04()
+        threading.Thread(target = self.set_point_code_01()).start()
+        threading.Thread(target = self.set_point_code_02()).start()
+        threading.Thread(target = self.set_point_code_03()).start()
+        threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod
     def set_ranking_points():
@@ -266,7 +267,7 @@ class RankPositionCount:
                         ranking = i + 1
                 else:
                     ranking = 1
-                self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)
+                threading.Thread (target = self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)).start()
 
         # RANKING POSITION FOR 24" (CRUISER)
         categories_24 = self.get_categories(is_20=False)
@@ -294,23 +295,37 @@ class Categories:
     """ Return set of classes """
 
     @staticmethod
-    def get_categories():
+    def get_categories(event=0):
+        # events 0 is categories for ranking view
+        if event == 0:
+            riders = Rider.objects.filter(is_active=True, is_approwe=True)
 
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+            # PREPARE CLASSES FROM REAL RIDER CLASSES
+            categories20 = []
+            categories24 = []
+            for rider in riders:
+                try:
+                    if rider.is_20: 
+                        categories20.append(rider.class_20)
+                    if rider.is_24:
+                        categories24.append(rider.class_24)
+                except:
+                    pass
+        # categories for entries
+        else:
+            entries = Entry.objects.filter(event=event)
 
-         # PREPARE CLASSES FROM REAL RIDER CLASSES
-        categories20 = []
-        categories24 = []
-        for rider in riders:
-            try:
-                categories20.append(rider.class_20)
-            except:
-                pass
-        for rider in riders:
-            try:
-                categories24.append(rider.class_24)
-            except:
-                pass
+            # PREPARE CLASSES FROM REAL RIDER CLASSES
+            categories20 = []
+            categories24 = []
+            for entry in entries:
+                try:
+                    if entry.is_20: 
+                        categories20.append(entry.class_20)
+                    if entry.is_24:
+                        categories24.append(entry.class_24)
+                except:
+                    pass
 
         # REMOVE DUPLICATES
         clean_categories20 = []
@@ -321,7 +336,6 @@ class Categories:
 
         clean_categories24 = []
         for category in categories24:
-            category = "Cruiser " + category
             if category not in clean_categories24:
                 clean_categories24.append(category)
         clean_categories24.sort()

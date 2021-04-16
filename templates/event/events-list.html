@@ -36,6 +36,7 @@
         <th scope="col">Pořadatel</th>
         <th scope="col">Druh</th>
         <th scope="col"></th>
+        <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
@@ -58,15 +59,32 @@
           <tr class="table-light text-decoration-line-through">
         {% endif %}
 
-        <th scope="row">{{event.date}}</th>
+        <th scope="row"><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.date}}</a></th>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
-        <td>{{event.organizer}}</td>
-        <td>{{event.event_type}}</td>
+        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.event_type}}</a></td>
+        <td>{% if event.reg_open %}
+                <div class="col col-reg"><a
+                        href="{% url 'event:entry' event.id %}"
+                        class="btn btn-warning"
+                        tabindex="-1"
+                        role="button"
+                        aria-disabled="true"
+                >Přihlásit do závodu</a></div>
+                {% else %}
+                <div class="col col-reg"><a
+                    href="{% url 'event:entry' event.id %}"
+                    class="btn btn-secondary disabled"
+                    tabindex="-1"
+                    role="button"
+                    aria-disabled="true"
+            >Přihlásit do závodu</a></div>
+                {% endif %}</td>
         <td>
           {% if event.results_uploaded %}
                     <a
             href="{% url 'event:results' event.id %}"
-            class="btn btn-outline-success btn-sm"
+            class="btn btn-success btn"
             tabindex="-1"
             role="button"
             aria-disabled="true"
@@ -75,7 +93,7 @@
           {% else %}
             <a
             href="{% url 'event:event-detail' event.id %}"
-            class="btn btn-outline-secondary btn-sm disabled"
+            class="btn btn-secondary btn disabled"
             tabindex="-1"
             role="button"
             aria-disabled="true"

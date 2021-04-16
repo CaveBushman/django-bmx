@@ -11,6 +11,7 @@
       <th scope="col">Název klubu</th>
       <th scope="col">Kraj</th>
       <th scope="col">Kontaktní osoba</th>
+      <th scope="col">Kontaktní telefon</th>
       <th scope="col">Kontaktní e-mail</th>
     </tr>
   </thead>
@@ -21,7 +22,8 @@
             href="{% url 'club:club-detail' club.id %}" style="text-decoration: none; color:black">{{club.team_name}}</a></th>
       <td>{{club.region}}</td>
       <td>{{club.contact_person}}</td>
-      <td>{{club.email}}</td>
+      <td>{{club.contact_phone}}</td>
+      <td>{{club.contact_email}}</td>
     </tr>
   {% endfor %}
   </tbody>

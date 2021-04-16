@@ -566,6 +566,19 @@ html {
           transform: scale(0.95);
 }
 
+.club-num-riders {
+  font-size: 1.3rem;
+  margin-top: 2rem;
+}
+
+.club-detail-address {
+  margin-top: 2rem;
+}
+
+.club-detail-contact {
+  margin-top: 2rem;
+}
+
 .alert {
   text-transform: uppercase;
   font-size: 12px;

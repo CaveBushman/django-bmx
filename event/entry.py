@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from .models import Entry, Event
 from rider.models import Rider
+from .func import *
 from datetime import date
 import stripe
 import os
@@ -20,15 +21,18 @@ class EntryClass:
         self.class_24 = class_24
 
     def save(self):
+
         new_entry = Entry.objects.create(
             transaction_id=self.transaction_id,
             event=self.event,
             rider=self.rider,
             is_20=self.is_20,
             is_24=self.is_24,
-            class_20=self.class_20,
-            class_24=self.class_24,
-        )
+            )
+        if self.is_20:
+            new_entry.class_20 = resolve_event_classes(self.event, self.rider, is_20=True)
+        if self.is_24:
+            new_entry.class_24 = resolve_event_classes(self.event, self.rider, is_20=False)
         new_entry.save()
 
 
@@ -37,7 +41,7 @@ class SendConfirmEmail:
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def __init__(self, transaction_id):
-        
+
         self.transaction_id = transaction_id
 
 
@@ -57,7 +61,7 @@ class SendConfirmEmail:
         list_24 = []
         for entry_20 in entries_20:
             list_20.append(entry_20.rider)
-        
+
         for entry_24 in entries_24:
             list_24.append(entry_24.rider)
 
@@ -74,10 +78,10 @@ class SendConfirmEmail:
             message_body += "Do kategorie Cruiser byly přihlášeni tito jezdci: "
             for rider_24 in riders_24:
                 message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_20}; "
-        
+
         print(message_body)
         return message_body
-        
+
 
     def send_email_about_registration(self):
         recipient = self.get_customers_email
@@ -93,11 +97,3 @@ class SendConfirmEmail:
             from_email = "bmx@ceskysvazcyklistiky.cz",
             recipient_list = [recipient],
         )
-
-
-def is_registration_open(event_id):
-    event = Event.objects.get(id=event_id)
-    this_date = date.today()
-    if (this_date > event.reg_open_from) and (this_date < event.reg_open_to):
-        return True
-    return False
