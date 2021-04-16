@@ -12,7 +12,7 @@ class News (models.Model):
 
     perex = models.TextField(max_length=500, default="")
 
-    content = RichTextField(max_length=2000, blank=True, null=True)
+    content = RichTextField(max_length=10000, blank=True, null=True)
 
     focus = models.CharField(choices=FOCUS, max_length=255, default='Ostatní')
 
