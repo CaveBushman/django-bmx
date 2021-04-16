@@ -80,8 +80,6 @@ class Rider(models.Model):
     have_valid_licence = models.BooleanField(default=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True)
-    approwed_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name

@@ -3,9 +3,10 @@ from django.core.mail import send_mail
 from .models import Entry, Event
 from rider.models import Rider
 from .func import *
-from datetime import date
+from datetime import date, datetime, time, timezone
 import stripe
 import os
+import json
 
 
 class EntryClass:
@@ -37,22 +38,25 @@ class EntryClass:
 
 
 class SendConfirmEmail:
-
+    """ Class for sending e-mail about registration """
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def __init__(self, transaction_id):
-
         self.transaction_id = transaction_id
 
-
     def get_customers_email(self):
-        transaction_detail = stripe.checkout.Session.retrieve(
-            self.transaction_id,)
-        print(transaction_detail)
-        return transaction_detail['customer_email']
+        """ Method for getting customer e-mail from stripe transaction """
+        transaction_detail = stripe.checkout.Session.retrieve(self.transaction_id,)
+        transaction_json = json.loads(str(transaction_detail))
+        return transaction_json['customer_details']['email']
 
+    def get_event_id(self):
+        """ Method for getting event ID from Entry database table"""
+        transaction = Entry.objects.filter(transaction_id=self.transaction_id)
+        return transaction[0].event
 
     def get_message_body(self):
+        """ Method for setting e-mail MESSAGE_BODY """
         entries_20 = Entry.objects.filter(transaction_id=self.transaction_id, is_20=True)
         entries_24 = Entry.objects.filter(transaction_id=self.transaction_id, is_24=True)
 
@@ -70,30 +74,37 @@ class SendConfirmEmail:
 
         message_body = ""
         if riders_20:
-            message_body += "Do kategorie Challenge, Junior, Under a Elite byly přihlášeni tito jezdci: "
+            message_body += " \r\n"
+            message_body += " \r\n"
+            message_body += "- do kategorie Challenge, Junior, Under a Elite byly přihlášeni tito jezdci: "
             for rider_20 in riders_20:
-                message_body += f"{rider_20.last_name.upper()} {rider_20.first_name}, UCI ID: {rider_20.uci_id}, v kategorii {rider_20.class_20}; "
-        message_body += " --- "
-        if riders_24:
-            message_body += "Do kategorie Cruiser byly přihlášeni tito jezdci: "
-            for rider_24 in riders_24:
-                message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_20}; "
+                message_body += f"{rider_20.last_name.upper()} {rider_20.first_name}, UCI ID: {rider_20.uci_id}, v kategorii {rider_20.class_20}, "
+        del entries_20
 
-        print(message_body)
+        if riders_24:
+            message_body += " \r\n"
+            message_body += " \r\n"
+            message_body += "- do kategorie Cruiser byly přihlášeni tito jezdci: "
+            for rider_24 in riders_24:
+                message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_20}, "
+        del entries_24
         return message_body
 
+    def send_email(self):
+        """ Method for sending e-mail with confirm registration - transaction ID required at creating instance """
+        recipient = self.get_customers_email()
+        message = self.get_message_body()
+        event = Event.objects.get(id=self.get_event_id())
+        MESSAGE_SUBJECT = f"TEST!!! Potvrzení o registraci jezdců na závod BMX race - {event.name}"
+        MESSAGE_BODY = f"Do závodu -- {event.name} -- konaného dne {event.date} byly registrováni: " + message + "\r\n \r\n David Průša "
 
-    def send_email_about_registration(self):
-        recipient = self.get_customers_email
-        message = self.get_message_body
-        MESSAGE_SUBJECT = "Potvrzení o registraci jezdců na závod BMX race"
-
-        print(f"Příjemce zprávy je {recipient}")
+        # TODO: Dodělat pdf potvrzení přílohou
+        # TODO: Dodělat MESSAGE_BODY v HTML
 
         # send an email
         send_mail (
-            subject = MESSAGE_SUBJECT,
-            message = message,
-            from_email = "bmx@ceskysvazcyklistiky.cz",
-            recipient_list = [recipient],
-        )
+             subject = MESSAGE_SUBJECT,
+             message = MESSAGE_BODY,
+             from_email = "bmx@ceskysvazcyklistiky.cz",
+             recipient_list = [recipient],)
+        del event

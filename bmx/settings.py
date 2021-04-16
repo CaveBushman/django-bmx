@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'news',
     'ranking',
     'commissar',
+    'accounts'
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bmx.wsgi.application'
 
+
+AUTH_USER_MODEL = 'accounts.Account'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -132,6 +135,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = '/static/'
 #STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS =  [os.path.join(BASE_DIR, 'static')]
+
+MEDIA_URL = '/'
+MEDIA_ROOT = BASE_DIR /''
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

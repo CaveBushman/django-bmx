@@ -88,7 +88,7 @@ def is_registration_open(event_id):
 
 
 def resolve_event_classes(event, rider, is_20):
-    """ Function for resolve class in event by classes_code and xlsx file | is_20 = TRUE if 20" bike """
+    """ Function for resolve class in event by classes_code and xlsx file | is_20 = TRUE for 20" bike """
     event = Event.objects.get(id=event)
     rider = Rider.objects.get(uci_id=rider)
     wb = load_workbook('static/classes/classes.xlsx')
@@ -96,17 +96,14 @@ def resolve_event_classes(event, rider, is_20):
 
     if is_20:
         if rider.gender == "Žena" and rider.have_girl_bonus:
-            column = 3
+            column = 3 # column in xlsx file
         else:
-            column = 2
+            column = 2  # column in xlsx file
 
         for row in range (3, 35):
             if rider.class_20 == sheet_range.cell(row,1).value:
                 return sheet_range.cell(row, column).value
     else:
         for row in range (3, 16):
-            print(f"Třída je : {sheet_range.cell(row,6).value}")
             if rider.class_24 == sheet_range.cell(row,6).value:
-                print(f"Třída je : {sheet_range.cell(row,6).value}")
-                print(sheet_range.cell(row, 7).value)
                 return sheet_range.cell(row, 7).value

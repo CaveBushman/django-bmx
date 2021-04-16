@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
+from django.core.mail import send_mail
 from .models import Rider
 from club.models import Club
 import urllib.request, json
@@ -82,7 +83,7 @@ def RiderNewView(request):
                         data = {}
                         return render(request, 'rider/rider-new.html', data)
 
-                    # fill form in rider-new-2 
+                    # fill form in rider-new-2
                     if data_json[0]['Gender'] == "Male":
                         gender = "Muž"
                     else:
@@ -127,7 +128,7 @@ def RiderNewView(request):
                 # TODO: Dodělat ověření správnosti e-mailové adresy
                 pass
 
-            if ('CheckIs20' or 'CheckIs24') not in request.POST:
+            if ('CheckIs20') not in request.POST and ('CheckIs24') not in request.POST:
                 print("Není vybrána kategorie")
                 messages.error(request, "Nevyplnil/a jsi, zda budeš jezdit na 20-ti palcovém kole či na Cruiseru. Jedná se o povinný údaj.")
                 data_new_rider = {'first_name': request.session['first_name'],
@@ -175,8 +176,13 @@ def RiderNewView(request):
             new_rider.set_class_20()
             new_rider.set_class_24()
 
-            # TODO: Dodělat odeslání e-mailového potvrzení
-
+            # TODO: Vylepšit odeslání e-mailového potvrzení HTML
+            send_mail (
+                subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
+                message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
+                from_email = "bmx@ceskysvazcyklistiky.cz",
+                recipient_list = ["david@black-ops.eu"],
+            )
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method

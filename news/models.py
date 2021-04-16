@@ -16,19 +16,17 @@ class News (models.Model):
 
     focus = models.CharField(choices=FOCUS, max_length=255, default='Ostatní')
 
-    photo_01 = models.ImageField (upload_to = 'images/news', null=True, blank=True) 
-    photo_02 = models.ImageField (upload_to = 'images/news', null=True, blank=True)  
-    photo_03 = models.ImageField (upload_to = 'images/news', null=True, blank=True) 
+    photo_01 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
+    photo_02 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
+    photo_03 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
 
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
 
     created_date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
-    
+
     class Meta:
         verbose_name_plural = 'Články'
-    

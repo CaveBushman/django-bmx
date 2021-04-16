@@ -20,6 +20,7 @@ from django.core import serializers
 from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
+import threading
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = 'whsec_DXwaMbmEKvJzk8SVlZ0Fgz2CGzMMEtj'
@@ -46,7 +47,6 @@ def EventsListByYearView(request, pk):
     events = Event.objects.filter(date__year=pk).order_by('date')
     for event in events:
         event.reg_open = is_registration_open(event.id)
-        print(event.reg_open)
         event.save()
     year = pk
     next_year = int(year) + 1
@@ -211,7 +211,6 @@ def ConfirmView(request):
             },
 
         try:
-            print(settings.YOUR_DOMAIN)
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -260,16 +259,14 @@ def SuccessView(request):
     # clear duplitates
     transactions_to_email = set(transactions_to_email)
 
-
+    # send e-mail about confirm registrations
     for transaction_to_email in transactions_to_email:
-        print(f" Posílám e-amil o transakcích {transaction_to_email}")
-        # SendConfirmEmail(transaction_to_email).send_email_about_registration()
+        threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
 
     return render(request, 'event/success.html')
 
 
 def CancelView(request):
-    print(request.POST)
     return render(request, 'event/cancel.html')
 
 
@@ -296,7 +293,7 @@ def stripe_webhook(request):
 
 @staff_member_required
 def EventAdminView(request, pk):
-    """ Method for Event admin page """
+    """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
 
     if 'btn-upload-result' in request.POST:
