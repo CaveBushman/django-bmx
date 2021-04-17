@@ -12,7 +12,7 @@ from datetime import date
 
 def HomepageView(request):
     this_year = date.today().year
-    events_sum = Event.objects.filter(date__year=str(this_year)).count
+    events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count
     riders_sum = Rider.objects.filter(is_active=True).count
     clubs_sum = Club.active_club()
     articles_sum = News.objects.all().count
@@ -41,4 +41,3 @@ def NewsDetailView(request, pk):
     queryset = {'news': news}
 
     return render(request, 'news/news-detail.html', queryset)
-

@@ -33,22 +33,26 @@ class RankingCount:
     def set_point_code_01(self):
         """ Methods for setting point from MCR """
         if self.is_20:
-            events = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=1,
+            results = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id)
             try:
-                events = events[0]
-                self.points_20 += events.points
+                result = results[0]
+                result.marked_20 = True
+                result.save()
+                self.points_20 += result.points
             except:
                 pass
 
         if self.is_24:
-            events = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=0,
+            results = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id)
             try:
-                events = events[0]
-                self.points_24 += events.points
+                result = results[0]
+                result.marked_24 = True
+                result.save()
+                self.points_24 += result.points
             except:
                 pass
 
@@ -57,60 +61,113 @@ class RankingCount:
         if self.is_20:
             events = Result.objects.filter(type="Český pohár", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+
+            for event in events:
+                event.marked_20 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.CZECH_CUP + 1 else self.CZECH_CUP
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_20 = True
                 self.points_20 += events[i].points
+                events[i].save()
+            del events
 
         if self.is_24:
             events = Result.objects.filter(type="Český pohár", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+
+            for event in events:
+                event.marked_24 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.CZECH_CUP + 1 else self.CZECH_CUP
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_24 = True
                 self.points_24 += events[i].points
+                events[i].save()
+            del events
 
     def set_point_code_03(self):
         """ Methods for setting point from Czech and Moravian Legue """
         if self.is_20:
             events = Result.objects.filter(Q(type="Česká liga") | Q(type="Moravská liga"), is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+
+            for event in events:
+                event.marked_20 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.LIGA + 1 else self.LIGA
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_20 = True
                 self.points_20 += events[i].points
+                events[i].save()
+            del events
 
         if self.is_24:
             events = Result.objects.filter(Q(type="Česká liga") | Q(type="Moravská liga"), is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+            for event in events:
+                event.marked_24 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.LIGA + 1 else self.LIGA
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_24 = True
                 self.points_24 += events[i].points
+                events[i].save()
+            del events
 
     def set_point_code_04(self):
         """ Methods for setting point from free race """
         if self.is_20:
             events = Result.objects.filter(type="Volný závod", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+
+            for event in events:
+                event.marked_20 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.VOLNY + 1 else self.VOLNY
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_20 = True
                 self.points_20 += events[i].points
+                events[i].save()
+            del events
 
         if self.is_24:
             events = Result.objects.filter(type="Volný závod", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points')
+                                           rider=self.uci_id).order_by('-points', '-date')
+
+            for event in events:
+                event.marked_24 = False
+                event.save()
+
             num_race = events.count() if events.count() < self.VOLNY + 1 else self.VOLNY
 
             for i in range(0, num_race):
+                if events[i].points > 0:
+                    events[i].marked_24 = True
                 self.points_24 += events[i].points
+                events[i].save()
+            del events
 
     def get_points_20(self):
         return self.points_20
@@ -225,7 +282,7 @@ class RankPositionCount:
                 del riders
             duplicates = []
             all_positions = []
-            
+
         for category_24 in categories_24:
             riders = Rider.objects.filter(class_24=category_24, is_active=True, is_approwe=True, is_24=True).exclude(
                 points_24=0)
@@ -305,25 +362,25 @@ class Categories:
             categories24 = []
             for rider in riders:
                 try:
-                    if rider.is_20: 
+                    if rider.is_20:
                         categories20.append(rider.class_20)
                     if rider.is_24:
-                        categories24.append(rider.class_24)
+                        categories24.append(f"Cruiser {rider.class_24}")
                 except:
                     pass
         # categories for entries
         else:
-            entries = Entry.objects.filter(event=event)
+            entries = Entry.objects.filter(event=event, payment_complete=True)
 
             # PREPARE CLASSES FROM REAL RIDER CLASSES
             categories20 = []
             categories24 = []
             for entry in entries:
                 try:
-                    if entry.is_20: 
+                    if entry.is_20:
                         categories20.append(entry.class_20)
                     if entry.is_24:
-                        categories24.append(entry.class_24)
+                        categories24.append(f"Cruiser {entry.class_24}")
                 except:
                     pass
 

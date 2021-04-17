@@ -89,7 +89,7 @@
             <div class="row">
                 <div class="col-sm">
                     <h5>Pořadí v rankingu v <b>{{rider.class_20}}</b> (20"): <b>
-                        {% if rider.ranking_20 == "0" %}
+                        {% if rider.ranking_20 == None %}
                         nejezdí/neboduje
                         {% else %}
                         {{rider.ranking_20}}. místo
@@ -98,7 +98,7 @@
                 </div>
                 <div class="col-sm">
                     <h5>Pořadí v rankingu v <b>{{rider.class_24}}</b> (24"): <b>
-                        {% if rider.ranking_24 == "0" %}
+                        {% if rider.ranking_24 == None %}
                         nejezdí/neboduje
                         {% else %}
                         {{rider.ranking_24}}. místo
@@ -130,7 +130,13 @@
 
 
         {% for result in results %}
+        {% if result.marked_20 %}
+        <tr class="table-primary" >
+        {% elif result.marked_24 %}
+        <tr class="table-info" >
+        {% else %}
         <tr>
+        {% endif %}
             <th scope="row">{{ result.date }}</th>
             <td>{{ result.name }}</td>
             <td>{{ result.organizer }}</td>

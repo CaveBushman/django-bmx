@@ -1,31 +1,14 @@
-{% extends 'pages/base.html' %} {% block title %} Přihlášení na závody 
+{% extends 'pages/base.html' %} {% block title %} Přihlášení na závody
 {% endblock title %} {% load static %} {% block content %}
 
 <h1 class="text-center main-header">Přihlášení na {{event.name}}</h1>
 <br /><br />
 
-<div class="container">
-  <table class="table" style="margin-bottom: 3rem">
-    <thead>
-      <tr>
-        <th scope="col">BOYS/GIRLS</th>
-        <th scope="col">MEN/WOMEN</th>
-        <th scope="col">JUNIOR</th>
-        <th scope="col">ELITE</th>
-        <th scope="col">CRUISER</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td scope="row">{{event.fee_boys_girls}},- CZK</td>
-        <td>{{event.fee_men_women}},- CZK</td>
-        <td>{{event.fee_junior}},- CZK</td>
-        <td>{{event.fee_elite}},- CZK</td>
-        <td>{{event.fee_cruiser}},- CZK</td>
-      </tr>
-    </tbody>
-  </table>
-
+<div class = "container">
+  <h5>Datum konání: <b>{{event.date}}</b></h5>
+</div>
+<br>
+<div class = "container">
   <div class="container">
     <div class="row">
       <div class="col-sm">

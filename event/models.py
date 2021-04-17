@@ -14,7 +14,7 @@ class Event(models.Model):
                   ('Česká liga', 'Česká liga'),
                   ('Moravská liga', 'Moravská liga'), ('Volný závod', 'Volný závod'),
                   ('Nebodovaný závod', 'Nebodovaný závod'), ('Mezinárodní závod', 'Mezinárodní závod'))
-    
+
     RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'), ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
 
     name = models.CharField(max_length=255, blank=False)
@@ -22,7 +22,7 @@ class Event(models.Model):
 
     organizer = models.ForeignKey(Club, related_name='club', null=True, on_delete=models.SET_NULL)
 
-    event_type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
+    type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
     classes_code = models.IntegerField(default = 3)
 
     is_uci_race = models.BooleanField(default=False)
@@ -39,12 +39,6 @@ class Event(models.Model):
     prices = models.TextField(max_length=1000, default="", blank=True, null=True)
     timeschedule = models.TextField(max_length=1000, default="", blank=True, null=True)
     notes = models.TextField(max_length=1000, default="", blank=True, null=True)
-
-    fee_boys_girls = models.IntegerField(default=300)  # CZK
-    fee_men_women = models.IntegerField(default=300)  # CZK
-    fee_junior = models.IntegerField(default=500)  # CZK
-    fee_elite = models.IntegerField(default=800)  # CZK
-    fee_cruiser = models.IntegerField(default=300)  # CZK
 
     bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -89,6 +83,8 @@ class Result(models.Model):
     place = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
     is_20 = models.BooleanField(default=1)
+    marked_20 = models.BooleanField(default=0)
+    marked_24 = models.BooleanField(default=0)
 
     class Meta:
         verbose_name = "Výsledek"

@@ -32,7 +32,10 @@ def EventsListView(request):
     events = Event.objects.filter(date__year=date.today().year).order_by('date')
 
     for event in events:
-        event.reg_open = is_registration_open(event.id)
+        if event.canceled:
+            event.reg_open = False
+        else:
+            event.reg_open = is_registration_open(event.id)
         event.save()
 
     year = date.today().year
@@ -46,7 +49,10 @@ def EventsListView(request):
 def EventsListByYearView(request, pk):
     events = Event.objects.filter(date__year=pk).order_by('date')
     for event in events:
-        event.reg_open = is_registration_open(event.id)
+        if event.canceled:
+            event.reg_open = False
+        else:
+            event.reg_open = is_registration_open(event.id)
         event.save()
     year = pk
     next_year = int(year) + 1
@@ -116,18 +122,24 @@ def EntryView(request, pk):
         riders_24 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_24'))
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
-        for rider_20 in riders_20:
-            if re.search("Elite", rider_20.class_20) or re.search("Under", rider_20.class_20):
-                sum_fee += event.fee_elite
-            elif re.search("Men", rider_20.class_20) or re.search("Women", rider_20.class_20):
-                sum_fee += event.fee_men_women
-            elif re.search("Junior", rider_20.class_20):
-                sum_fee += event.fee_junior
-            else:
-                sum_fee += event.fee_boys_girls
+
+        # read xlsx file due to fees
+        wb = load_workbook('static/classes/classes.xlsx')
+        sheet_range = wb[str(event.classes_code)]
 
         # add fees for cruiser
-        sum_fee += event.fee_cruiser * sum_24
+        for rider_20 in riders_20:
+            for row in range (3, 35):
+                if rider_20.class_20 == sheet_range.cell(row,1).value:
+                    if rider_20.gender == "Žena" and rider_20.have_girl_bonus:
+                        sum_fee+= int(sheet_range.cell(row,4).value)
+                    else:
+                        sum_fee+= int(sheet_range.cell(row,5).value)
+        # add fees for cruiser
+        for rider_24 in riders_24:
+            for row in range (3, 16):
+                if rider_24.class_24 == sheet_range.cell(row,6).value:
+                    sum_fee+= int(sheet_range.cell(row,8).value)
 
         # convert to json format (need for sessions)
         sum_fee_json = json.dumps({'sum_fee': sum_fee})
@@ -162,25 +174,28 @@ def EntryView(request, pk):
 
 def ConfirmView(request):
 
-
     event = json.loads(request.session['event'])
+    this_event = Event.objects.get(id=event['event'])
     riders_20 = json.loads(request.session['riders_20'])
     riders_24 = json.loads(request.session['riders_24'])
 
     if request.method == "POST":
 
+        # read xlsx file due to fees
+        wb = load_workbook('static/classes/classes.xlsx')
+        sheet_range = wb[str(this_event.classes_code)]
+
+        fee=0
+
         # data for checkout session
         line_items = []
-        this_event = Event.objects.get(id=event['event'])
         for rider_20 in riders_20:
-            if re.search("Elite", rider_20['fields']['class_20']):
-                fee = this_event.fee_elite
-            elif re.search("Men", rider_20['fields']['class_20']) or re.search("Women", rider_20['fields']['class_20']):
-                fee = this_event.fee_men_women
-            elif re.search("Junior", rider_20['fields']['class_20']):
-                fee = this_event.fee_junior
-            else:
-                fee = this_event.fee_boys_girls
+            for row in range (3, 35):
+                if rider_20['fields']['class_20'] == sheet_range.cell(row,1).value:
+                    if rider_20['fields']['gender']== "Žena" and rider_20['fields']['have_girl_bonus']:
+                        fee = int(sheet_range.cell(row,4).value)
+                    else:
+                        fee = int(sheet_range.cell(row,5).value)
             line_items += {
                 'price_data': {
                     'currency': 'czk',
@@ -194,8 +209,12 @@ def ConfirmView(request):
                 },
                 'quantity': 1,
             },
+
+        # add fees for cruiser
         for rider_24 in riders_24:
-            fee = this_event.fee_cruiser
+            for row in range (3, 16):
+                if rider_24['fields']['class_24'] == sheet_range.cell(row,6).value:
+                    fee = int(sheet_range.cell(row,8).value)
             line_items += {
                 'price_data': {
                     'currency': 'czk',
@@ -261,8 +280,8 @@ def SuccessView(request):
 
     # send e-mail about confirm registrations
     for transaction_to_email in transactions_to_email:
-        threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
-
+        # threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
+        pass
     return render(request, 'event/success.html')
 
 
@@ -310,7 +329,7 @@ def EventAdminView(request, pk):
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)
             event = Event.objects.get(id=pk)
-            ranking_code = GetResult.ranking_code_resolve(event_type=event.event_type)
+            ranking_code = GetResult.ranking_code_resolve(type=event.type)
             data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
@@ -320,7 +339,7 @@ def EventAdminView(request, pk):
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
                 result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
-                                last_name, club, event.organizer.team_name, event.event_type)
+                                last_name, club, event.organizer.team_name, event.type)
                 result.write_result()
             event.results_uploaded = 1
             event.results_path_to_file = uploaded_file_url
@@ -360,6 +379,7 @@ def EventAdminView(request, pk):
         RankPositionCount().count_ranking_position()
 
         event.results_uploaded=False
+        print("Výsledky vymazány")
         event.save()
 
         return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))

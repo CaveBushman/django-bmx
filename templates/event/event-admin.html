@@ -28,7 +28,7 @@
       <td></td>
       <td><h6>Pořadatel: {{event.organizer}}</h6></td>
       <td></td>
-      <td><h6>Typ závodu: {{event.event_type}}</h6></td>
+      <td><h6>Typ závodu: {{event.type}}</h6></td>
     </tr>
     <tr>
       <th scope="row" colspan="5" class = "h5 table-warning text-center" >Soubory pro BEM</th>
@@ -95,11 +95,11 @@
       <th></th>
       <th><button class = "btn btn-danger blur" name="btn-delete-pdf" value="delete">Smaž výsledky závodu</button></th>
     </tr>
-    
+
     <tr>
       <th></th>
     </tr>
-    
+
     {% if event.event_type == "Mezinárodní závod" %}
 
     <tr>
