@@ -22,7 +22,6 @@ class EntryClass:
         self.class_24 = class_24
 
     def save(self):
-
         new_entry = Entry.objects.create(
             transaction_id=self.transaction_id,
             event=self.event,

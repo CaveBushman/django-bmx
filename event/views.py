@@ -194,15 +194,17 @@ def ConfirmView(request):
                 if rider_20['fields']['class_20'] == sheet_range.cell(row,1).value:
                     if rider_20['fields']['gender']== "Žena" and rider_20['fields']['have_girl_bonus']:
                         fee = int(sheet_range.cell(row,4).value)
+                        cat = sheet_range.cell(row,2).value
                     else:
                         fee = int(sheet_range.cell(row,5).value)
+                        cat = sheet_range.cell(row,3).value
             line_items += {
                 'price_data': {
                     'currency': 'czk',
                     'unit_amount': fee * 100,
                     'product_data': {
                         'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
-                            'first_name'] + ", " + rider_20['fields']['class_20'],
+                            'first_name'] + ", " + cat,
                         'images': [],
                         'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
                     },
@@ -242,12 +244,12 @@ def ConfirmView(request):
 
             # save entry riders to database
             for rider_20 in riders_20:
-                entry = EntryClass(transaction_id=checkout_session.id, event=event['event'],
+                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
                                    rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
                                    class_20=rider_20['fields']['class_20'], class_24="")
                 entry.save()
             for rider_24 in riders_24:
-                entry = EntryClass(transaction_id=checkout_session.id, event=event['event'],
+                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
                                    rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
                                    class_24=rider_24['fields']['class_24'], class_20="")
                 entry.save()

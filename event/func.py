@@ -96,14 +96,12 @@ def resolve_event_classes(event, rider, is_20):
 
     if is_20:
         if rider.gender == "Žena" and rider.have_girl_bonus:
-            print ("Holka s bonusem")
-            column = 2 # column in xlsx file
-        else:
             column = 3 # column in xlsx file
+        else:
+            column = 2 # column in xlsx file
 
         for row in range (3, 35):
             if rider.class_20 == sheet_range.cell(row,1).value:
-                print(sheet_range.cell(row, column).value)
                 return sheet_range.cell(row, column).value
     else:
         for row in range (3, 16):
