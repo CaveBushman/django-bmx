@@ -15,7 +15,7 @@ def RankingView(request):
 
     if request.POST:
         if re.search("Cruiser", request.POST['categoryInput']):
-            results = Rider.objects.filter(class_24=request.POST['categoryInput'][9:], is_active=1, is_approwe=1).order_by('-points_24').exclude(points_24=0)
+            results = Rider.objects.filter(class_24=request.POST['categoryInput'][8:], is_active=1, is_approwe=1).order_by('-points_24').exclude(points_24=0)
             cruiser = 1
         else:
             results = Rider.objects.filter(class_20=request.POST['categoryInput'], is_active=1, is_approwe=1).order_by('-points_20').exclude(points_20=0)

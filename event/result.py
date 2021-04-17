@@ -196,14 +196,14 @@ class GetResult:
         result.save()
 
     @staticmethod
-    def ranking_code_resolve(event_type):
-        if event_type == "Mistrovství ČR jednotlivců":
+    def ranking_code_resolve(type):
+        if type == "Mistrovství ČR jednotlivců":
             return 1
-        elif event_type == "Český pohár":
+        elif type == "Český pohár":
             return 2
-        elif event_type == "Česká liga" or event_type == "Moravská liga":
+        elif type == "Česká liga" or type == "Moravská liga":
             return 3
-        elif event_type == "Volný závod":
+        elif type == "Volný závod":
             return 4
         else:
             return 0

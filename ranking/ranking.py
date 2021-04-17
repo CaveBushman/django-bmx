@@ -311,6 +311,7 @@ class RankPositionCount:
         # RANKING POSITION FOR 20"
         categories_20 = self.get_categories(is_20=True)
         for category_20 in categories_20:
+            print(category_20)
             riders_20 = self.get_riders_by_class(category=category_20, is_20=True)
 
             for i in range(0, riders_20.count()):
