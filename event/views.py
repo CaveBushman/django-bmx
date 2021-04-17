@@ -65,6 +65,7 @@ def EventsListByYearView(request, pk):
 def EventDetailViews(request, pk):
     event = get_object_or_404(Event, pk=pk)
     categories = Categories.get_categories(pk)
+    print(categories)
     riders=""
     select_category=""
     alert = False
@@ -195,9 +196,11 @@ def ConfirmView(request):
                     if rider_20['fields']['gender']== "Žena" and rider_20['fields']['have_girl_bonus']:
                         fee = int(sheet_range.cell(row,4).value)
                         cat = sheet_range.cell(row,2).value
+                        print(cat)
                     else:
                         fee = int(sheet_range.cell(row,5).value)
                         cat = sheet_range.cell(row,3).value
+                        print(cat)
             line_items += {
                 'price_data': {
                     'currency': 'czk',
