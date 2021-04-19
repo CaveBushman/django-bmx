@@ -409,8 +409,6 @@ html {
 .arrow {
   display: none;
   position: fixed;
-  /* color: white; */
-  /* background-color: blue; */
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -428,7 +426,6 @@ html {
   right: 2%;
   bottom: 5%;
   text-decoration: none;
-  /* color: white; */
 }
 
 #to-bottom {
