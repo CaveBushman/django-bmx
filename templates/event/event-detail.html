@@ -39,13 +39,10 @@
     <div class="event-detail-header">Základní informace</div>
     <div class="container-date">
         <div class="row">
-            <div class="col col-info"><i class="fas fa-calendar-day fa-lg info-icon"></i></div>
-            <div class="col col-info"><i class="far fa-map fa-lg info-icon"></i></div>
-            <div class="col col-info"><i class="fas fa-biking fa-lg info-icon"></i></div>
             <div class="w-100"></div>
-            <div class="col col-info"><i class="fas fa-user fa-lg info-icon"></i>PCP: {{event.pcp}}</div>
-            <div class="col col-info"><i class="far fa-user fa-lg info-icon"></i>PCP ASSIST.: {{event.pcp_assist}}</div>
-            <div class="col col-info"><i class="fas fa-user-tie fa-lg info-icon"></i>ŘEDITEL: {{event.director}} </div>
+            <div class="col col-info">PCP: {{event.pcp}}</div>
+            <div class="col col-info">PCP ASSIST.: {{event.pcp_assist}}</div>
+            <div class="col col-info">ŘEDITEL: {{event.director}} </div>
         </div>
     </div>
 
@@ -161,11 +158,11 @@
                 <div class="col-sm">
                     <button type="submit" class="btn btn-success" name="submit">Zobraz seznam</button>
                 </div>
-             </div> 
+             </div>
         </div>
     </form>
     {% endif %}
-   
+
     {% if riders %}
     <h1 class="text-center main-header" style="margin-top: 2rem">{{select_category}}</h1>
     <h4>Celkem přihlášeno jezdců: {{riders_sum}} </h4>
@@ -202,5 +199,3 @@
 
 </div>
 {% endblock content %}
-
-
