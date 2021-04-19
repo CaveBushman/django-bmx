@@ -1,5 +1,5 @@
-{% extends 'pages/base.html' %} {% block title %} Žádost o startovní číslo 
-{% endblock title %} 
+{% extends 'pages/base.html' %} {% block title %} Žádost o startovní číslo
+{% endblock title %}
 {% load static %}
 {% block content %}
 
@@ -140,4 +140,6 @@
       </div>
   </form>
 </div>
+<script src="{% static 'js/alert_timeout.js' %}"></script>
+<script src = "{% static 'js/licence.js' %}"></script>
 {% endblock content %}

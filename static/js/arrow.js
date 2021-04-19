@@ -13,7 +13,8 @@ let toTopFunction = function toTopFunc() {
       document.body.scrollTop > showBtn2 ||
       document.documentElement.scrollTop > showBtn2
     ) {
-      toTopBtn.style.display = 'block'
+      toTopBtn.style.display = 'block';
+      console.log("to up");
     } else {
       toTopBtn.style.display = 'none'
     }

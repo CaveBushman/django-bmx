@@ -1,4 +1,4 @@
-{% extends 'pages/base.html' %} 
+{% extends 'pages/base.html' %}
 {% block title %} Jezdci {% endblock title %}
 {% load static %}
 {% block content %}
@@ -42,13 +42,14 @@
             <tbody>
             {% for rider in riders %}
             <tr>
-                <th scope="row"><img class="rounded-circle" src="{{rider.photo.url}}" alt="" sizes="10px" srcset=""
+                <th scope="row"><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="10px" srcset=""
                                      style="width: 3rem; height: 3rem;"></th>
                 <td>{{rider.plate}}</td>
                 <td><a
                         href="{% url 'rider:rider-detail' rider.id %}"
                         style="text-decoration: none; color: black;"
-                        aria-disabled="true">{{rider.last_name}}</a></td>
+                        class = "text-dark"
+                        aria-disabled="true">{{rider.last_name|upper}}</a></td>
                 <td>{{rider.first_name}}</td>
                 <td>{{rider.club}}</td>
                 <td>{{rider.uci_id}}</td>
@@ -56,7 +57,7 @@
             {% endfor %}
             </tbody>
         </table>
-        <a href="#" class="arrow" id="to-top">^</a>
+        <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
     </div>
     <script src="{% static 'js/rider.js' %}"></script>
     <script src="{% static 'js/arrow.js' %}"></script>

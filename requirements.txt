@@ -11,6 +11,7 @@ django-js-asset==1.2.2
 djangorestframework==3.12.4
 docutils==0.16
 et-xmlfile==1.0.1
+fontawesome-free==5.15.3
 idna==2.10
 isort==5.8.0
 jedi==0.18.0

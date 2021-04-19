@@ -1,13 +1,11 @@
 const myfunction = function myFunc() {
-  
-  setTimeout(function(){ jQuery("#message").fadeOut("slow");}, 5000);
 
     const inputs = document.querySelectorAll(
       '.uciid-container .inputs-container input'
     )
-  
+
     inputs[0].focus()
-  
+
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', (e) => {
         if (e.key >= 0 && e.key <= 9 && index < inputs.length) {
@@ -19,7 +17,7 @@ const myfunction = function myFunc() {
           inputs[index - 1].value = ''
         }
       })
-  
+
       input.addEventListener('paste', (e) => {
         input.value = ''
         let paste = (e.clipboardData || window.clipboardData)
@@ -34,6 +32,5 @@ const myfunction = function myFunc() {
       })
     })
   }
-  
+
   window.onload = myfunction
-  
