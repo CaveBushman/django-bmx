@@ -1,8 +1,11 @@
 from django.db import models
 from club.models import Club
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import User
 
 from datetime import date
+import re
 
 
 # Create your models here.
@@ -17,12 +20,12 @@ class Rider(models.Model):
     ('Boys 15', 'Boys 15'), ('Boys 16', 'Boys 16'), ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-29'),
     ('Men 30-34', 'Men 30-34'), ('Men 35 and over', 'Men 35 and over'), ('Girls 7', 'Girls 7'),
     ('Girls 8', 'Girls 8'), ('Girls 9', 'Girls 9'), ('Girls 10', 'Girls 10'), ('Girls 11', 'Girls 11'),
-    ('Girls 12', 'Girls 12'), ('Girls 13', 'Girls 13'), ('Girls 14', 'Girls 14'), ('Girls 15', 'Girls 16'),
+    ('Girls 12', 'Girls 12'), ('Girls 13', 'Girls 13'), ('Girls 14', 'Girls 14'), ('Girls 15', 'Girls 15'),('Girls 16', 'Girls 16'),
     ('Women 17-24', 'Women 17-24'), ('Women 25 and over', 'Women 25 and over'), ('Men Junior', 'Men Junior'),
     ('Men Under 23', 'Men Under 23'), ('Men Elite', 'Men Elite'), ('Women Junior', 'Women Junior'),
     ('Women Under 23', 'Women Under 23'), ('Women Elite', 'Women Elite'))
     CLASS_24 = (
-    ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 a 16', 'Boys 15 a 16'),
+    ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
     ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
     ('Men 40-49',
      'Men 40-49'), ('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
@@ -88,153 +91,143 @@ class Rider(models.Model):
         ordering = ['last_name', 'first_name']
         verbose_name_plural = 'Jezdci'
 
-    def get_age(self):
-        return date.today().year - self.date_of_birth.year
+    def get_age(self, rider):
+        print (rider.date_of_birth)
+        return date.today().year - rider.date_of_birth.year
 
-    def set_class_20(self):
-        age = self.get_age()
-
-        if self.is_elite:
-            if self.gender == "Muž" or self.gender == "Ostatní":
+    def set_class_20(self, gender, age : int, is_elite):
+        if is_elite:
+            if gender == "Muž" or gender == "Ostatní":
                 if age <= 18:
-                    self.class_20 = "Men Junior"
-                    self.plate_color_20 = "black"
+                    return "Men Junior"
                 elif age <= 22:
-                    self.class_20 = "Men Under 23"
-                    self.plate_color_20 = "white"
+                    return "Men Under 23"
                 else:
-                    self.class_20 = "Men Elite"
-                    self.plate_color_20 = "white"
+                    return "Men Elite"
             else:
                 if age <= 18:
-                    self.class_20 = "Women Junior"
-                    self.plate_color_20 = "black"
+                    return "Women Junior"
                 elif age <= 22:
-                    self.class_20 = "Women Under 23"
-                    self.plate_color_20 = "white"
+                    return "Women Under 23"
                 else:
-                    self.class_20 = "Women Elite"
-                    self.plate_color_20 = "white"
+                    return "Women Elite"
 
-        if not self.is_elite:
-            if self.gender == "Muž" or self.gender == "Ostatní":
+        if not is_elite:
+            if gender == "Muž" or gender == "Ostatní":
                 if age <= 6:
-                    self.class_20 = "Boys 6"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 6"
                 elif age == 7:
-                    self.class_20 = "Boys 7"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 7"
                 elif age == 8:
-                    self.class_20 = "Boys 8"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 8"
                 elif age == 9:
-                    self.class_20 = "Boys 9"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 9"
                 elif age == 10:
-                    self.class_20 = "Boys 10"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 10"
                 elif age == 11:
-                    self.class_20 = "Boys 11"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 11"
                 elif age == 12:
-                    self.class_20 = "Boys 12"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 12"
                 elif age == 13:
-                    self.class_20 = "Boys 13"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 13"
                 elif age == 14:
-                    self.class_20 = "Boys 14"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 14"
                 elif age == 15:
-                    self.class_20 = "Boys 15"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 15"
                 elif age == 16:
-                    self.class_20 = "Boys 16"
-                    self.plate_color_20 = "yellow"
+                    return "Boys 16"
                 elif age <= 24:
-                    self.class_20 = "Men 17-24"
-                    self.plate_color_20 = "yellow"
+                    return "Men 17-24"
                 elif age <= 29:
-                    self.class_20 = "Men 25-29"
-                    self.plate_color_20 = "yellow"
+                    return "Men 25-29"
                 elif age <= 34:
-                    self.class_20 = "Men 30-34"
-                    self.plate_color_20 = "yellow"
+                    return "Men 30-34"
                 else:
-                    self.class_20 = "Men 35 and over"
-                    self.plate_color_20 = "yellow"
-            else:
-                if age <= 6:
-                    self.class_20 = "Girls 6"
-                    self.plate_color_20 = "blue"
-                elif age == 7:
-                    self.class_20 = "Girls 7"
-                    self.plate_color_20 = "blue"
-                elif age == 8:
-                    self.class_20 = "Girls 8"
-                    self.plate_color_20 = "blue"
-                elif age == 9:
-                    self.class_20 = "Girls 9"
-                    self.plate_color_20 = "blue"
-                elif age == 10:
-                    self.class_20 = "Girls 10"
-                    self.plate_color_20 = "blue"
-                elif age == 11:
-                    self.class_20 = "Girls 11"
-                    self.plate_color_20 = "blue"
-                elif age == 12:
-                    self.class_20 = "Girls 12"
-                    self.plate_color_20 = "blue"
-                elif age == 13:
-                    self.class_20 = "Girls 13"
-                    self.plate_color_20 = "blue"
-                elif age == 14:
-                    self.class_20 = "Girls 14"
-                    self.plate_color_20 = "blue"
-                elif age == 15:
-                    self.class_20 = "Girls 15"
-                    self.plate_color_20 = "blue"
-                elif age == 16:
-                    self.class_20 = "Girls 16"
-                    self.plate_color_20 = "blue"
-                elif age <= 24:
-                    self.class_20 = "Women 17-24"
-                    self.plate_color_20 = "blue"
-                else:
-                    self.class_20 = "Women 25 and over"
-                    self.plate_color_20 = "blue"
-        self.save()
+                    return "Men 35 and over"
 
-    def set_class_24(self):
-        age = self.get_age()
-        if self.gender == "Muž" or self.gender == "Ostatní":
-            if age <= 12:
-                self.class_24 = "Boys 12 and under"
-            elif age <= 14:
-                self.class_24 = "Boys 13 and 14"
-            elif age <= 16:
-                self.class_24 = "Boys 15 and 16"
-            elif age <= 24:
-                self.class_24 = "Men 17-24"
-            elif age <= 29:
-                self.class_24 = "Men 25-29"
-            elif age <= 34:
-                self.class_24 = "Men 30-34"
-            elif age <= 39:
-                self.class_24 = "Men 35-39"
-            elif age <= 49:
-                self.class_24 = "Men 40-49"
             else:
-                self.class_24 = "Men 50 and over"
+                if age <= 7:
+                    return "Girls 7"
+                elif age == 8:
+                    return "Girls 8"
+                elif age == 9:
+                    return "Girls 9"
+                elif age == 10:
+                    return "Girls 10"
+                elif age == 11:
+                    return "Girls 11"
+                elif age == 12:
+                    return "Girls 12"
+                elif age == 13:
+                    return "Girls 13"
+                elif age == 14:
+                    return "Girls 14"
+                elif age == 15:
+                    return "Girls 15"
+                elif age == 16:
+                    return "Girls 16"
+                elif age <= 24:
+                    return "Women 17-24"
+                else:
+                    return "Women 25 and over"
+
+
+
+    def set_class_24(self, gender, age:int):
+
+        if gender == "Muž" or gender == "Ostatní":
+            if age <= 12:
+                return "Boys 12 and under"
+            elif age <= 14:
+                return "Boys 13 and 14"
+            elif age <= 16:
+                return "Boys 15 and 16"
+            elif age <= 24:
+                return "Men 17-24"
+            elif age <= 29:
+                return "Men 25-29"
+            elif age <= 34:
+                return "Men 30-34"
+            elif age <= 39:
+                return "Men 35-39"
+            elif age <= 49:
+                return "Men 40-49"
+            else:
+                return "Men 50 and over"
         else:
             if age <= 12:
-                self.class_24 = "Girls 12 and under"
+                return "Girls 12 and under"
             elif age <= 16:
-                self.class_24 = "Girls 13-16"
+                return "Girls 13-16"
             elif age <= 29:
-                self.class_24 = "Women 17-29"
+                return "Women 17-29"
             elif age <= 39:
-                self.class_24 = "Women 30-39"
+                return "Women 30-39"
             else:
-                self.class_24 = "Women 40 and over"
-        self.save()
+                return "Women 40 and over"
+
+
+    def plate_color(self, class_20):
+        if re.search("Elite", class_20):
+            return "white"
+        elif re.search("Under", class_20):
+            return "white"
+        elif re.search("Junior", class_20):
+            return "black"
+        elif re.search("Girls", class_20) or re.search("Women", class_20):
+            return "blue"
+        else:
+            return "yellow"
+
+
+@receiver(pre_save, sender=Rider)
+def set_class(sender, instance, **kwargs):
+    print("volán signál nastav třídu")
+    age = instance.get_age(instance)
+    is_elite = instance.is_elite
+    instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
+    instance.class_24 = instance.set_class_24(instance.gender, age)
+    instance.plate_color_20 = instance.plate_color(instance.class_20)
+    print(instance.class_24)
+
+pre_save.connect (set_class, sender = Rider)

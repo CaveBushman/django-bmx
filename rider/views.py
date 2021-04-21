@@ -173,8 +173,6 @@ def RiderNewView(request):
                 emergency_phone=request.POST['InputEmergencyPhone'],
             )
             new_rider.save()
-            new_rider.set_class_20()
-            new_rider.set_class_24()
 
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
             send_mail (
