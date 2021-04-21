@@ -92,10 +92,10 @@ class Rider(models.Model):
         verbose_name_plural = 'Jezdci'
 
     def get_age(self, rider):
-        print (rider.date_of_birth)
         return date.today().year - rider.date_of_birth.year
 
-    def set_class_20(self, gender, age : int, is_elite):
+    @staticmethod
+    def set_class_20(gender, age : int, is_elite):
         if is_elite:
             if gender == "Muž" or gender == "Ostatní":
                 if age <= 18:
@@ -172,9 +172,8 @@ class Rider(models.Model):
                     return "Women 25 and over"
 
 
-
-    def set_class_24(self, gender, age:int):
-
+    @staticmethod
+    def set_class_24(gender, age:int):
         if gender == "Muž" or gender == "Ostatní":
             if age <= 12:
                 return "Boys 12 and under"
@@ -206,8 +205,8 @@ class Rider(models.Model):
             else:
                 return "Women 40 and over"
 
-
-    def plate_color(self, class_20):
+    @staticmethod
+    def plate_color(class_20):
         if re.search("Elite", class_20):
             return "white"
         elif re.search("Under", class_20):
@@ -222,12 +221,11 @@ class Rider(models.Model):
 
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
-    print("volán signál nastav třídu")
+    print("Volán signál nastavení kategorie jedzce PRE_SAVE")
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
     instance.class_24 = instance.set_class_24(instance.gender, age)
     instance.plate_color_20 = instance.plate_color(instance.class_20)
-    print(instance.class_24)
 
 pre_save.connect (set_class, sender = Rider)
