@@ -89,6 +89,7 @@ class Rider(models.Model):
 
     class Meta:
         ordering = ['last_name', 'first_name']
+        verbose_name = "Jezdec"
         verbose_name_plural = 'Jezdci'
 
     def get_age(self, rider):
@@ -170,7 +171,6 @@ class Rider(models.Model):
                     return "Women 17-24"
                 else:
                     return "Women 25 and over"
-
 
     @staticmethod
     def set_class_24(gender, age:int):
