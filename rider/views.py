@@ -26,7 +26,7 @@ def RiderDetailView(request, pk):
 
 
 def RiderNewView(request):
-    """View for new rider form"""
+    """ View for new rider form """
     clubs = Club.objects.filter(is_active=True)
 
     # getting all used plates list
@@ -57,10 +57,9 @@ def RiderNewView(request):
             num11 = request.POST['num11']
             uci_id = str(num1)+str(num2)+str(num3)+str(num4)+str(num5)+str(num6)+str(num7)+str(num8)+str(num9)+str(num10)+str(num11)
             url_uci = f"https://ucibws.uci.ch/api/contacts/riders?filter.uciid={uci_id}"
-            print(f"Url je {url_uci}")
             with urllib.request.urlopen(url_uci) as url:
                 data_json = json.loads(url.read().decode())
-                # TODO: Dodělat časové omezení alertu
+
                 # check, if UCI ID exist
                 if len(data_json) == 0:
                     messages.error(request, "Toto UCI ID v databázi UCI neexistuje. Zkontrolujte prosím jeho správnost.")
@@ -99,7 +98,6 @@ def RiderNewView(request):
         # get data form form and save new rider
         else:
             # TODO: Dodělat ověření vyplnění všech údajů, v případě chyby zobrazit alert
-            print(request.POST)
             if request.POST['InputEmail'].strip() == "":
                 print("Není vyplněn e-mail")
                 messages.error(request, "Nevyplnil/a jsi e-mailovou adresu. Jedná se o povinný údaj.")
@@ -172,15 +170,14 @@ def RiderNewView(request):
             new_rider.save()
 
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
-            send_mail (
-                subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
-                message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
-                from_email = "bmx@ceskysvazcyklistiky.cz",
-                recipient_list = ["david@black-ops.eu"],
-            )
+            # send_mail (
+            #     subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
+            #     message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
+            #     from_email = "bmx@ceskysvazcyklistiky.cz",
+            #     recipient_list = ["david@black-ops.eu"],
+            # )
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
-    print("rendering data")
     data = {'clubs': clubs, 'free_plates': free_plates}
     return render(request, 'rider/rider-new.html', data)
