@@ -55,7 +55,7 @@
             <th scope="row">{{result.ranking_20}}.</th>
             {% endif %}
 
-            <td><a href="{% url 'rider:rider-detail' result.id %}" style="text-decoration: none; color:black">{{result.last_name}}<a></a></td>
+            <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black">{{result.last_name}}<a></a></td>
             <td>{{result.first_name}}</td>
             <td>{{result.club}}</td>
             {% if cruiser %}

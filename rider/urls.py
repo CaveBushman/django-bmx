@@ -5,8 +5,9 @@ app_name = 'rider'
 
 urlpatterns = [
 
-    path('', views.RidersListView, name='riders-list'),
-    path('<int:pk>', views.RiderDetailView, name='rider-detail'),
-    path('new', views.RiderNewView, name='rider-new'),
+    path('', views.RidersListView, name='list'),
+    path('<int:pk>', views.RiderDetailView, name='detail'),
+    path('new', views.RiderNewView, name='new'),
+    path('admin', views.RiderAdmin, name = "admin")
 
 ]

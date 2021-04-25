@@ -7,8 +7,12 @@
 
 <div class="container">
     <div class="d-flex flex-row-reverse bd-highlight">
+      <div class="p-2 bd-highlight">
+          <a href="{% url 'rider:admin' %}" class="btn btn-outline-danger btn" tabindex="-1" role="button"
+             aria-disabled="true">Administrace jezdců</a>
+      </div>
         <div class="p-2 bd-highlight">
-            <a href="{% url 'rider:rider-new' %}" class="btn btn-outline-success btn" tabindex="-1" role="button"
+            <a href="{% url 'rider:new' %}" class="btn btn-outline-success btn" tabindex="-1" role="button"
                aria-disabled="true">Požádat o startovní číslo</a>
         </div>
     </div>
@@ -46,13 +50,17 @@
                                      style="width: 3rem; height: 3rem;"></th>
                 <td>{{rider.plate}}</td>
                 <td><a
-                        href="{% url 'rider:rider-detail' rider.id %}"
+                        href="{% url 'rider:detail' rider.id %}"
                         style="text-decoration: none; color: black;"
                         class = "text-dark"
                         aria-disabled="true">{{rider.last_name|upper}}</a></td>
                 <td>{{rider.first_name}}</td>
                 <td>{{rider.club}}</td>
+                {% if rider.have_valid_licence %}
                 <td>{{rider.uci_id}}</td>
+                {% else %}
+                <td><span class = "text-danger"><b>{{rider.uci_id}}</b></span></td>
+                {% endif %}
             </tr>
             {% endfor %}
             </tbody>

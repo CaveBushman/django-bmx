@@ -27,7 +27,7 @@
                 <a {% if 'rider' in request.path %}
                   class="current"
                   {% endif %}
-                  href="{% url 'rider:riders-list' %}"
+                  href="{% url 'rider:list' %}"
                     >Jezdci
                 </a>
             </li>
@@ -45,15 +45,13 @@
                 class="curren"
               {% endif %} href="{% url 'news:rules' %}">Pravidla
             </a></li>
-            <li>
-                        <a
-                                {% if user.is_authenticated %}
-                               
-                                href="{% url 'logout' %}">Odhlášení
-                                {% else %}
-                                href="{% url 'login' %}">Přihlášení
-                                {% endif %}
-                        </a>
+            <li><a {% if user.is_authenticated %}
+                 href="{% url 'logout' %}">Odhlášení
+                {% else %}
+                 href="{% url 'login' %}">Přihlášení
+                {% endif %}
+                </a>
+            </li>
         </ul>
     </div>
 </nav>

@@ -2,10 +2,15 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from .models import Rider
+from .rider import valid_licence
 from club.models import Club
 import urllib.request, json
 from event.models import Result
 import datetime
+from datetime import date
+import requests
+import re
+import threading
 
 
 # Create your views here.
@@ -23,6 +28,35 @@ def RiderDetailView(request, pk):
                                     date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('date')
     data = {'rider': rider, 'results': results}
     return render(request, 'rider/rider-detail.html', data)
+
+
+def RiderAdmin(request):
+
+    if 'btnValidLicence' in request.POST:
+        print("Volána funkce pro kontrolu platnosti licencí")
+        username = request.POST['username']
+        password = request.POST['password']
+        riders = Rider.objects.all().exclude(is_active=False)
+
+        # check if valid username and password
+        basicAuthCredentials = (username, password)
+        now = date.today().year
+        url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={riders[0].uci_id}&year={now}')
+        try:
+            dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
+            if re.search("Http_Unauthorised", dataJSON.text):
+                print("Špatné přihlašovací údaje")
+                messages.error (request, "Špatné přihlašovací údaje k API ČSC")
+                return render(request, 'rider/rider-admin.html')
+        except:
+            pass
+
+        for rider in riders:
+            basicAuthCredentials = (username, password)
+            now = date.today().year
+            rider.have_valid_licence = valid_licence(rider.uci_id, username, password)
+            rider.save()
+    return render(request, 'rider/rider-admin.html')
 
 
 def RiderNewView(request):

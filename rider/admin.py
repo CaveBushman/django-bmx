@@ -15,6 +15,6 @@ class RiderAdmin(admin.ModelAdmin):
     list_display_links = ('last_name',)
     list_editable = ('is_20', 'is_24','is_active',)
     search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate',)
-    list_filter = ('is_20', 'is_24','gender',  'is_approwe', 'is_active', 'club')
+    list_filter = ('is_20', 'is_24','gender',  'is_approwe', 'is_active', 'have_valid_licence', 'club')
 
 admin.site.register(Rider, RiderAdmin)

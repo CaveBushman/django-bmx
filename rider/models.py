@@ -88,6 +88,7 @@ class Rider(models.Model):
         return self.first_name + ' ' + self.last_name
 
     class Meta:
+        db_table = 'Jezdci'
         ordering = ['last_name', 'first_name']
         verbose_name = "Jezdec"
         verbose_name_plural = 'Jezdci'
@@ -221,7 +222,6 @@ class Rider(models.Model):
 
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
-    print("Volán signál nastavení kategorie jedzce PRE_SAVE")
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)

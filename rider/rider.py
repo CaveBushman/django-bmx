@@ -1,31 +1,23 @@
 from datetime import date
 import requests
-import os
+import re
 
-class Licence:
-    def __init__(self, uci_id):
-        self.uci_id = uci_id
-    
-    def check_valid_licence(self):
 
-        valid = True
+def valid_licence(uci_id, username, password):
+    """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
+    basicAuthCredentials = (username, password)
+    now = date.today().year
+    url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={uci_id}&year={now}')
 
-        basicAuthCredentials = ("", "")
-
-        now = date.today().year
-        url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={self.uci_id}&year={now}')
-
-        try:
-            dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
-            if dataJSON.text == "false":
-                print("neplatná licence")
-                valid = False
-
-            elif dataJSON.status_code == 404:
-                print("neplatná licence")
-                valid = False
-        except:
-            print("Chyba v připojení JSON: ", sys.exc_info()[0])
-
-        return valid
-        
+    try:
+        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
+        if dataJSON.text == "false":
+            return False
+        elif re.search("Http_NotFound", dataJSON.text):
+            print(f"UCI ID {uci_id} NEEXISTUJE V DATABÁZI ČSC")
+            return False
+        else:
+            return True
+    except:
+        print("CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE")
+        return False
