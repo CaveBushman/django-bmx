@@ -73,7 +73,7 @@ class Result(models.Model):
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
-    type = models.CharField(max_length=255, null=True, blank=True)
+    event_type = models.CharField(max_length=255, null=True, blank=True)
     organizer = models.CharField(max_length=100, null=True, blank=True)
     rider = models.IntegerField(default=0)
     first_name = models.CharField(max_length=255, null=True, blank=True)

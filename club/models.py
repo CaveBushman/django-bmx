@@ -32,6 +32,7 @@ class Club(models.Model):
     is_active = models.BooleanField(default=True)
     have_track = models.BooleanField(default=False)
     track_id = models.CharField(max_length=255, blank=True)
+    mapy_cz_svg = models.CharField(max_length = 50000, null = True, blank=True) 
 
     def __str__(self):
         return self.team_name

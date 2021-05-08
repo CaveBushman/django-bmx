@@ -5,7 +5,7 @@ import re
 class GetResult:
     """ Class for writing results to result table in database"""
 
-    def __init__(self, date, race_id, name, ranking_code, uci_id, place, category, first_name, last_name, club, organizer, type):
+    def __init__(self, date, race_id, name, ranking_code, uci_id, place, category, first_name, last_name, club, organizer, event_type):
         self.date = date
         self.race_id = race_id
         self.organizer = organizer
@@ -19,7 +19,7 @@ class GetResult:
         self.category = category
         self.point = 0
         self.is_20 = 1
-        self.type = type
+        self.type = event_type
 
     def get_ranking_points(self):
         """ Function for give points depend by place and ranking code """
@@ -186,7 +186,7 @@ class GetResult:
         result.date = self.date
         result.name = self.name
         result.organizer = self.organizer
-        result.type = self.type
+        result.event_type = self.type
 
         result.place = self.place
         result.points = self.point

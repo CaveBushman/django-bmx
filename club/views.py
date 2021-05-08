@@ -7,7 +7,7 @@ from datetime import date
 # Create your views here.
 
 def ClubsListView(request):
-    clubs = Club.objects.filter(is_active=True)
+    clubs = Club.objects.filter(is_active=True).order_by('team_name')
     data = {'clubs': clubs}
 
     return render(request, 'club/clubs-list.html', data)

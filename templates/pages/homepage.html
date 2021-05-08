@@ -87,18 +87,17 @@ website {% endblock title %} {% block content %}
     <div class="row mb-2 card-white">
       <div class="col-md-12">
         <div
-          class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative"
-        >
+          class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
           <div class="col p-4 d-flex flex-column position-static">
             {% if news.focus == 'Administrativa'%}
-            <strong class="d-inline-block mb-2 text-danger">{{ news.focus }}</strong>
+            <strong class="d-inline-block mb-2 text-danger">{{ news.focus|upper }}</strong>
             {% elif news.focus == 'Závody' %}
-            <strong class="d-inline-block mb-2 text-success">{{ news.focus }}</strong>
+            <strong class="d-inline-block mb-2 text-success">{{ news.focus|upper }}</strong>
             {% else %}
-            <strong class="d-inline-block mb-2 text-primary">{{ news.focus }}</strong>
+            <strong class="d-inline-block mb-2 text-primary">{{ news.focus|upper }}</strong>
             {% endif %}
             <h3 class="mb-0">{{ news.title }}</h3>
-            <div class="mb-1 text-muted">{{ news.created }}</div>
+            <div class="mb-1 text-muted">Autor: {{ news.created }}, {{news.publish_date}}</div>
             <p class="card-text mb-auto " style = 'text-align: justify; padding: 1rem 1rem 1rem 0rem;'>
               {{ news.perex }}
             </p>

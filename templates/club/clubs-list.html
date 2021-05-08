@@ -19,7 +19,7 @@
   {% for club in clubs %}
     <tr>
       <th scope="row"><a
-            href="{% url 'club:club-detail' club.id %}" style="text-decoration: none; color:black">{{club.team_name}}</a></th>
+            href="{% url 'club:club-detail' club.id %}" style="text-decoration: none; color:black">{{club.team_name|upper}}</a></th>
       <td>{{club.region}}</td>
       <td>{{club.contact_person}}</td>
       <td>{{club.contact_phone}}</td>

@@ -1,6 +1,7 @@
 from django.db import models
 from ckeditor.fields import RichTextField
-from django.contrib.auth.models import User
+from accounts.models import Account
+import datetime
 
 # Create your models here.
 
@@ -23,7 +24,10 @@ class News (models.Model):
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
 
-    created_date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_date = models.DateTimeField(editable=True, auto_now_add=True, null=True, blank=True)
+    created = models.ForeignKey(Account, on_delete = models.SET_NULL, null=True, blank = True)
+
+    publish_date = models.DateField(default=datetime.date.today)
 
     def __str__(self):
         return self.title

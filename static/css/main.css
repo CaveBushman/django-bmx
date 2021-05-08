@@ -302,6 +302,10 @@ html {
   margin: auto;
 }
 
+.search {
+  position: relative;
+}
+
 #myTable {
   margin-bottom: 10rem;
 }
