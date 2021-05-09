@@ -82,13 +82,13 @@ website {% endblock title %} {% block content %}
 </div>
 <section class="news">
   <div class="container">
-    {% for news in homepage_news %}
+
   <div class="p-10 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-    
+  {% for news in homepage_news %}
     <!--Card-->
     <div class="rounded-lg overflow-hidden shadow-lg">
-      <img class="w-full" src="{{news.photo_01.url}}" alt="Photo">
-        <div class="px-6 pt-4 pb-2">
+      <img class="h-80 w-full object-fill object-center" src="{{news.photo_01.url}}" alt="Photo">
+        <div class="px-8 pt-4 pb-2">
           {% if news.focus == 'Administrativa'%}
             <span class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
             {% elif news.focus == 'Závody' %}
@@ -97,10 +97,10 @@ website {% endblock title %} {% block content %}
             <span class="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
             {% endif %}
         </div>
-      <div class="px-6 py-2">
+      <div class="px-8 py-2">
         <div class="font-bold text-xl mb-2">{{news.title}}</div>
         <p class="text-gray-700 text-base text-justify">
-          {{news.content|safe|truncatechars:400}}
+          {{news.content|safe|truncatechars:500}}
         </p>
          <a href="{% url 'news:news-detail' news.id %}" class="inline-block bg-blue-500 rounded-full px-3 py-2 my-3 text-sm font-semibold text-white mr-2 mb-2 hover:bg-blue-700">Pokračovat ve čtení</a>
       </div>
@@ -112,9 +112,11 @@ website {% endblock title %} {% block content %}
             <p class="text-gray-500">{{news.publish_date}}</p>
           </div>
       </footer>
+            
     </div>
+    {% endfor %}
   </div>
-      {% endfor %}
+
   </div>
 </section>
 </div>
