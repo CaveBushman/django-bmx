@@ -2,8 +2,8 @@
 {% block title %} Detail klubu {% endblock title %} 
 {% block content %}
 
-<h1 class="text-center main-header" style="margin-bottom: 2rem">
-  {{club.team_name}}
+<h1 class="text-4xl text-black-900 text-center mt-5 py-3">
+  {{club.team_name|upper}}
 </h1>
 
 <div class="container">
@@ -62,8 +62,7 @@
   <br />
   {% if events %}
   <h1
-    class="text-center main-header"
-    style="margin-bottom: 2rem; margin-top: 1rem">
+    class="text-2xl text-black-900 text-center mt-5 py-3">
     Seznam závodů pořádaných klubem tento rok
   </h1>
 

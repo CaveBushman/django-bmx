@@ -11,15 +11,13 @@ class News (models.Model):
 
     title = models.CharField(max_length=255, default="")
 
-    perex = models.TextField(max_length=500, default="")
-
     content = RichTextField(max_length=10000, blank=True, null=True)
 
     focus = models.CharField(choices=FOCUS, max_length=255, default='Ostatní')
 
-    photo_01 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
-    photo_02 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
-    photo_03 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
+    photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
+    photo_02 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
+    photo_03 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
 
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False)

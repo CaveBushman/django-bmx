@@ -1,12 +1,26 @@
 {% extends 'pages/base.html' %} {% block title %} {{ news.title }} {% endblock title %}
 {% block content %}
 
-<h1 class="text-center main-header mb-5">{{news.title}}</h1>
+<img class = "w-50 mx-auto rounded shadow-lg mt-6" src="{{news.photo_01.url}}" alt="News photo"/>
+<h1 class="text-4xl text-black-900 text-center mt-6">{{news.title}}</h1>
 
-<div class="container">
+<div class="container mt-4 w-50">
+<author class="flex items-center px-6 pt-2 pb-4 w-50">
+    <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
+    <div class="text-sm">
+      <p class="inline-block text-gray-900 leading-none">{{ news.created }}, </p>
+      <p class="inline-block text-gray-500">{{news.publish_date}}</p>
+        {% if news.focus == 'Administrativa'%}
+            <span class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{news.focus|upper}}</span>
+        {% elif news.focus == 'Závody' %}
+            <span class="inline-block bg-green-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{news.focus|upper}}</span>
+        {% else %}
+            <span class="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{news.focus|upper}}</span>
+        {% endif %}
+    </div>
+</author>
 
-<p class = "text-justify">{{news.perex}}</p>
-<p class = "text-justify">{{news.content|safe}}</p>
+<p class = "text-justify text-gray-500">{{news.content|safe}}</p>
 
 </div>
 {% endblock content %}

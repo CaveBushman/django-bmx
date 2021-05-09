@@ -3,7 +3,7 @@
 {% load static %}
 {% block content %}
 
-<h1 class="text-center main-header">Seznam jezdců BMX</h1>
+<h1 class="text-4xl text-black-900 text-center mt-6">Seznam jezdců BMX</h1>
 
 <div class="container">
     <div class="d-flex flex-row-reverse bd-highlight">
@@ -20,11 +20,11 @@
     <div class="container search" style = "margin-top: 2rem">
         <div class="row">
             <div class="col-sm">
-                <input class="form-control" type="text" placeholder="Napiš příjmení jezdce"
+                <input class="form-control focus:ring-2 focus:ring-blue-600 rounded" type="text" placeholder="Napiš příjmení jezdce"
                        aria-label="default input example" onkeyup="searchByLastName()" id="inputLastName">
             </div>
             <div class="col-sm">
-                <input class="form-control" type="text" placeholder="Napiš jméno klubu" aria-label="default input example"
+                <input class="form-control focus:ring-2 focus:ring-blue-600 rounded" type="text" placeholder="Napiš jméno klubu" aria-label="default input example"
                        onkeyup="searchByClub()" id="inputClub">
             </div>
         </div>
@@ -47,7 +47,7 @@
             {% for rider in riders %}
             <tr>
                 <th scope="row"><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="10px" srcset=""
-                                     style="width: 3rem; height: 3rem;"></th>
+                                     style="width: 2rem; height: 2rem;"></th>
                 <td>{{rider.plate}}</td>
                 <td><a
                         href="{% url 'rider:detail' rider.id %}"
@@ -57,9 +57,9 @@
                 <td>{{rider.first_name}}</td>
                 <td>{{rider.club}}</td>
                 {% if rider.have_valid_licence %}
-                <td>{{rider.uci_id}}</td>
+                <td class = "inline-block px-2">{{rider.uci_id}}</td>
                 {% else %}
-                <td><span class = "text-danger"><b>{{rider.uci_id}}</b></span></td>
+                <td><span class = "inline-block bg-red-200 rounded-full text-center px-2"><b>{{rider.uci_id}}</b></span></td>
                 {% endif %}
             </tr>
             {% endfor %}
