@@ -16,7 +16,7 @@ def HomepageView(request):
     riders_sum = Rider.objects.filter(is_active=True).count
     clubs_sum = Club.active_club()
     articles_sum = News.objects.all().count
-    homepage_news = News.objects.order_by('-created_date').filter(published=True, on_homepage=True)
+    homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
 
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
                'events_sum': events_sum, 'articles_sum': articles_sum,

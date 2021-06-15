@@ -33,7 +33,7 @@ class RankingCount:
     def set_point_code_01(self):
         """ Methods for setting point from MCR """
         if self.is_20:
-            results = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=1,
+            results = Result.objects.filter(event_type="Mistrovství ČR jednotlivců", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id)
             try:
@@ -45,7 +45,7 @@ class RankingCount:
                 pass
 
         if self.is_24:
-            results = Result.objects.filter(type="Mistrovství ČR jednotlivců", is_20=0,
+            results = Result.objects.filter(event_type="Mistrovství ČR jednotlivců", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id)
             try:
@@ -59,7 +59,7 @@ class RankingCount:
     def set_point_code_02(self):
         """ Methods for setting point from Czech Cup """
         if self.is_20:
-            events = Result.objects.filter(type="Český pohár", is_20=1,
+            events = Result.objects.filter(event_type="Český pohár", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
 
@@ -77,7 +77,7 @@ class RankingCount:
             del events
 
         if self.is_24:
-            events = Result.objects.filter(type="Český pohár", is_20=0,
+            events = Result.objects.filter(event_type="Český pohár", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
 
@@ -97,7 +97,7 @@ class RankingCount:
     def set_point_code_03(self):
         """ Methods for setting point from Czech and Moravian Legue """
         if self.is_20:
-            events = Result.objects.filter(Q(type="Česká liga") | Q(type="Moravská liga"), is_20=1,
+            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga"), is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
 
@@ -115,7 +115,7 @@ class RankingCount:
             del events
 
         if self.is_24:
-            events = Result.objects.filter(Q(type="Česká liga") | Q(type="Moravská liga"), is_20=0,
+            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga"), is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
             for event in events:
@@ -134,7 +134,7 @@ class RankingCount:
     def set_point_code_04(self):
         """ Methods for setting point from free race """
         if self.is_20:
-            events = Result.objects.filter(type="Volný závod", is_20=1,
+            events = Result.objects.filter(event_type="Volný závod", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
 
@@ -152,7 +152,7 @@ class RankingCount:
             del events
 
         if self.is_24:
-            events = Result.objects.filter(type="Volný závod", is_20=0,
+            events = Result.objects.filter(event_type="Volný závod", is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
 
