@@ -6,6 +6,13 @@ from event.models import Result, Entry
 from django.db.models import Q
 
 
+def sort_20(self, classes):
+    pass
+
+def sort_24(self, classes):
+     pass
+
+
 class RankingCount:
     """ Class for ranking count"""
     CZECH_CUP = 8
@@ -67,7 +74,7 @@ class RankingCount:
                 event.marked_20 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.CZECH_CUP + 1 else self.CZECH_CUP
+            num_race = events.count() if events.count() <= self.CZECH_CUP  else self.CZECH_CUP
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -85,7 +92,7 @@ class RankingCount:
                 event.marked_24 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.CZECH_CUP + 1 else self.CZECH_CUP
+            num_race = events.count() if events.count() <= self.CZECH_CUP  else self.CZECH_CUP
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -105,7 +112,7 @@ class RankingCount:
                 event.marked_20 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.LIGA + 1 else self.LIGA
+            num_race = events.count() if events.count() <= self.LIGA  else self.LIGA
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -122,7 +129,7 @@ class RankingCount:
                 event.marked_24 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.LIGA + 1 else self.LIGA
+            num_race = events.count() if events.count() <= self.LIGA else self.LIGA
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -142,7 +149,7 @@ class RankingCount:
                 event.marked_20 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.VOLNY + 1 else self.VOLNY
+            num_race = events.count() if events.count() <= self.VOLNY else self.VOLNY
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -160,7 +167,7 @@ class RankingCount:
                 event.marked_24 = False
                 event.save()
 
-            num_race = events.count() if events.count() < self.VOLNY + 1 else self.VOLNY
+            num_race = events.count() if events.count() <= self.VOLNY else self.VOLNY
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -355,6 +362,7 @@ class Categories:
     def get_categories(event=0):
         # events 0 is categories for ranking view
         if event == 0:
+
             riders = Rider.objects.filter(is_active=True, is_approwe=True)
 
             # PREPARE CLASSES FROM REAL RIDER CLASSES
@@ -389,11 +397,13 @@ class Categories:
         for category in categories20:
             if category not in clean_categories20:
                 clean_categories20.append(category)
+        # TODO: Předělat řazení kategorií 20
         clean_categories20.sort()
 
         clean_categories24 = []
         for category in categories24:
             if category not in clean_categories24:
                 clean_categories24.append(category)
+        # TODO: Předělat řazení kategorií 24
         clean_categories24.sort()
         return clean_categories20 + clean_categories24

@@ -29,7 +29,7 @@ def RulesView(request):
 
 
 def NewsListView(request):
-    news = News.objects.all().order_by('created_date')
+    news = News.objects.all().order_by('-publish_date')
     data = {'news': news}
 
     return render(request, 'news/news-list.html', data)

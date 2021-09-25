@@ -9,8 +9,7 @@ import datetime
 
 def RankingView(request):
     global results
-    view_data = 0
-
+    
     categories = Categories.get_categories()
 
     if request.POST:
@@ -21,8 +20,9 @@ def RankingView(request):
             results = Rider.objects.filter(class_20=request.POST['categoryInput'], is_active=1, is_approwe=1).order_by('-points_20').exclude(points_20=0)
             cruiser = 0
 
-        view_data = 1
-        data = {'categories': categories, 'results': results, 'category': request.POST['categoryInput'], 'view_data': view_data, 'cruiser': cruiser}
+        data = {'categories': categories, 'results': results, 'category': request.POST['categoryInput'], 'cruiser': cruiser}
     else:
-        data = {'categories': categories, 'view_data': view_data,}
+        results = Rider.objects.filter(class_20="Men Elite", is_active=1, is_approwe=1).order_by('-points_20').exclude(points_20=0)
+        cruiser = 0
+        data = {'categories': categories, 'results': results, 'category': "MEN ELITE" }
     return render(request, 'ranking/ranking.html', data)
