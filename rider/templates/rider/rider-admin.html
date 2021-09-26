@@ -1,0 +1,44 @@
+{% extends 'pages/base.html' %} {% block title %} Administrace jezdců{% endblock title %}
+{% load static %}
+{% block content %}
+
+<div class = "container">
+
+<h3 class = "text-4xl text-black-900 text-center mt-5 py-3 text-danger" >KONTROLA PLATNOSTI LICENCÍ</h3>
+
+<div id="message" class="container alert-container">
+{% if messages %}
+{% for message in messages %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+{% endif %}
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <div class="container mt-2">
+  <div class="row">
+    <div class="col-sm">
+      <input type="text" class="form-control" name="username" placeholder = "Zadej uživatelské jméno do API ČSC">
+    </div>
+    <div class="col-sm">
+      <input type="password" class="form-control" name="password" placeholder="Zadej heslo do API ČSC">
+    </div>
+    <div class="col-sm">
+      <label> </label>
+      <button type="submit" class="btn btn-danger blur" name="btnValidLicence" value="check">Zkontroluj platnost licencí</button>
+    </div>
+  </div>
+  </div>
+</form>
+
+</div>
+
+{% include "spinner.html" %}
+
+
+<script src = "{% static 'js/alert_timeout.js' %}"></script>
+{% endblock content %}
