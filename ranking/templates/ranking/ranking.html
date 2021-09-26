@@ -1,7 +1,7 @@
 {% extends 'pages/base.html' %} {% block title %} Ranking {% endblock title %}
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3">Národní ranking</h1>
+<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-red-600">NÁRODNÍ RANKING</h1>
 
 <div class="container">
 
@@ -12,35 +12,39 @@
         bodů. Do rankingu se započítávájí závody za posledních 365 dní a jezdci si body přenáší na konci roku sebou mezi
         kategoriemi.</p>
 
-    <form method="POST">
+    <form method="POST" id = "rankingForm">
         {% csrf_token %}
+        <div class="container mt-4">
+            <div class="row">
 
-        <div class="container">
-            <div class="row" style = "margin-top: 2rem; margin-bottom: 2rem">
+                <div class="col-sm"> <h1 class="text-center text-3xl text-blue-600">{{category | upper}}</h1></div>
+
                 <div class="col-sm">
-                    <select class="form-select" aria-label="Default select example" name="categoryInput">
+                    <select class="form-select" aria-label="Default select example" name="categoryInput" id="categoryInput">
                         <option selected>Vyber kategorii:</option>
                         {% for category in categories %}
                         <option value="{{category}}">{{category}}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-sm">
-                    <button type="submit" class="btn btn-success" name="submit">Zobraz ranking</button>
-                </div>
-
+               
+                <script>
+                    const selectEl = document.getElementById("categoryInput")
+                    selectEl.addEventListener('change', () => document.getElementById("rankingForm").submit())
+                </script>
             </div>
         </div>
     </form>
 
-    <h1 class="text-center main-header text-4xl" style="margin-top: 4rem">{{category | upper}}</h1>
-    <br>
-    <table class="table table-hover">
+    <table class="table table-hover mt-2 align-middle">
         <thead>
         <tr>
             <th scope="col">#</th>
+            <th>St.č.</th>
+            <th></th>
             <th scope="col">Příjmení</th>
             <th scope="col">Jméno</th>
+            <th>UCI ID</th>
             <th scope="col">Klub</th>
             <th scope="col">Počet bodů</th>
         </tr>
@@ -53,14 +57,23 @@
             {% else %}
             <th scope="row">{{result.ranking_20}}.</th>
             {% endif %}
-
-            <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black">{{result.last_name}}<a></a></td>
+            <td>{{result.plate}}</td>
+            <td><img
+                class="avatar img-fluid rounded-circle"
+                src="{{result.photo.url}}"
+                alt=""
+                sizes="10px"
+                srcset=""
+                style="width: 2rem; height: 2rem"
+              /></td>
+            <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black"><b>{{result.last_name}}</b></a></td>
             <td>{{result.first_name}}</td>
-            <td>{{result.club}}</td>
+            <td class = "text-sm">{{result.uci_id}}</td>
+            <td class="text-sm">{{result.club}}</td>
             {% if cruiser %}
-            <td>{{result.points_24}}</td>
+            <td class = "text-sm">{{result.points_24}}</td>
             {% else %}
-            <td>{{result.points_20}}</td>
+            <td class = "text-sm">{{result.points_20}}</td>
             {% endif %}
         </tr>
         {% endfor %}

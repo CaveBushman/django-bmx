@@ -1,31 +1,31 @@
-{% extends 'pages/base.html' %} {% block title %} Kalendář závodů {% endblock title %} {% block content %}
+{% extends 'pages/base.html' %} 
+{% block title %} Kalendář závodů {% endblock title %} 
+{% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3">Kalendář závodů</h1>
+<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-red-600">KALENDÁŘ ZÁVODŮ</h1>
 
-<div class="container" style = "margin-bottom: 3rem">
+<div class="container mt-3">
 
 <div class="d-flex flex-row bd-highlight mb-3 justify-content-center">
-
   <div class="p-2 bd-highlight">
-  <nav aria-label="Page navigation example">
-  <ul class="pagination text-black">
-    <li class="page-item">
-      <a class="page-link text-black" href="#" aria-label="Previous">
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>
-    <li class="page-item"><a class="page-link text-black" href="{% url 'event:events-by-year' last_year %}">{{last_year}}</a></li>
-    <li class="page-item"><a class="page-link text-gray-50 bg-gray-800" href="#">{{year}}</a></li>
-    <li class="page-item"><a class="page-link text-black" href="{% url 'event:events-by-year' next_year %}">{{next_year}}</a></li>
-    <li class="page-item">
-      <a class="page-link text-black" href="#" aria-label="Next">
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>
-  </ul>
-</nav>
+    <nav aria-label="Page navigation example">
+      <ul class="pagination text-black">
+        <li class="page-item">
+          <a class="page-link text-black" href="#" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item"><a class="page-link text-black" href="{% url 'event:events-by-year' last_year %}">{{last_year}}</a></li>
+        <li class="page-item"><a class="page-link text-gray-50 bg-gray-800" href="#">{{year}}</a></li>
+        <li class="page-item"><a class="page-link text-black" href="{% url 'event:events-by-year' next_year %}">{{next_year}}</a></li>
+        <li class="page-item">
+          <a class="page-link text-black" href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
   </div>
-
 </div>
 
   <table class="table">
@@ -37,6 +37,9 @@
         <th scope="col">Druh</th>
         <th scope="col"></th>
         <th scope="col"></th>
+        {% if request.user.is_superuser %}
+        <th scope="col"></th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -100,18 +103,19 @@
             >Výsledky</a>
           {% endif %}
           {% if request.user.is_superuser %}
+          <td>
           <a
               href="{% url 'event:event-admin' event.id %}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-pencil-square ms-3 border-0 text-secondary" viewBox="0 0 16 16">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-pencil-square ms-3 border-0 text-red-600" viewBox="0 0 16 16">
     <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
     <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
   </svg></a>
+        </td>
           {% endif %}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-</div>
 
 {% endblock content %}

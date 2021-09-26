@@ -1,7 +1,7 @@
 {% extends 'pages/base.html' %} {% block title %} Detail závodu {% endblock title %}
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3">{{event.name}}</h1>
+<h1 class="text-4xl text-black-900 text-center mt-5 py-3 text-red-600">{{event.name | upper}}</h1>
 
 <div class="container">
 
@@ -27,8 +27,8 @@
             aria-disabled="true">Administrace závodu</a></div>
 {% endif %}
 </div>
-    <p><span class = "event-date">Datum : {{event.date}}</span></p>
-    <p><span class = "event-date">Pořadatel : {{event.organizer}}</span></p>
+    <p class = "event-date">Datum : {{event.date}}</p>
+    <p class = "event-date mt-2">Pořadatel : {{event.organizer}}</p>
 
 {% if event.canceled %}
 <div class="alert alert-danger h4 text-center" role="alert">
@@ -53,8 +53,8 @@
         </div>
         <div class="event-content">
             <div class="row row-registration">
-                <div class="col col-reg">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
-                <div class="col col-reg">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
+                <div class="col col-reg mt-2">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
+                <div class="col col-reg mt-2">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
                 {% if reg_open %}
                 <div class="col col-reg"><a
                         href="{% url 'event:entry' event.id %}"
@@ -81,7 +81,7 @@
         <div class="event-header">
             Systém závodů
         </div>
-        <div class="event-content">{{event.system}}</div>
+        <div class="event-content mt-2">{{event.system}}</div>
         {% if event.is_uci_race %}
         <div class="alert alert-danger" role="alert">POZOR! Tento závod je zapsán v kalendáři
             UCI, proto Junior, Under 23 a Elite kategorie pojedou podle pravidel UCI a nikoliv platných prováděcích pokynů!
@@ -119,39 +119,39 @@
 
     <!-- Seznam přihlášených -->
     {% if event.results_uploaded  == 0 %}
-    <div class="entries">
-        <div class="event-header">
-            Seznam přihlášených
-        </div>
-        <div *ngFor="let riderEntry of registered">
-            <app-entries-item [riderEntry]="riderEntry"></app-entries-item>
-        </div>
-    </div>
 
-    <form method="POST">
+        <div class="text-center text-2xl mt-4 text-red-600">
+            SEZNAM PŘIHLÁŠENÝCH
+        </div>
+
+    <form method="POST" id="entriesForm">
         {% csrf_token %}
         <div class="container">
             <div class="row" style = "margin-top: 2rem; margin-bottom: 2rem">
+                <div class="col-sm"><h1 class="text-center text-3xl text-blue-600">{{select_category | upper}}</h1></div>
                 <div class="col-sm">
-                    <select class="form-select" aria-label="Default select example" name="categoryInput">
+                    <select class="form-select" aria-label="Default select example" name="categoryInput" id="categoryInput">
                         <option selected>Vyber kategorii:</option>
                         {% for category in categories %}
                         <option value="{{category}}">{{category}}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-sm">
-                    <button type="submit" class="btn btn-success" name="submit">Zobraz seznam</button>
-                </div>
+
+                <script>
+                    const selectEl = document.getElementById("categoryInput")
+                    selectEl.addEventListener("change", () => document.getElementById("entriesForm").submit())
+                </script>
+
+                
              </div>
         </div>
     </form>
     {% endif %}
 
     {% if riders %}
-    <h1 class="text-center main-header" style="margin-top: 2rem">{{select_category}}</h1>
     <h4>Celkem přihlášeno jezdců: {{riders_sum}} </h4>
-    <table class="table table-hover" id="myTable">
+    <table class="table table-hover mt-2" id="myTable">
       <thead>
         <tr>
           <th scope="col">Start.č.</th>

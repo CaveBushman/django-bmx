@@ -106,7 +106,7 @@ def EventDetailViews(request, pk):
 
 
 def ResultsView(request, pk):
-    event = Event.objects.filter(id=pk)
+    event = get_object_or_404(Event, pk=pk)
     event = event[0]
     results = Result.objects.filter(event=pk)
     data = {'results': results, 'event': event}
@@ -114,7 +114,7 @@ def ResultsView(request, pk):
 
 
 def EntryView(request, pk):
-    event = Event.objects.get(id=pk)
+    event = get_object_or_404(Event, id=pk)
     riders = Rider.objects.filter(is_active=True, is_approwe=True)
     sum_fee = 0
     if request.POST:
@@ -124,7 +124,7 @@ def EntryView(request, pk):
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
 
-        # read xlsx file due to fees
+        # read xlsx file due to feesgit
         wb = load_workbook('static/classes/classes.xlsx')
         sheet_range = wb[str(event.classes_code)]
 
@@ -376,8 +376,11 @@ def EventAdminView(request, pk):
 
     if 'btn-delete-xls' in request.POST:
         print("Mažu XLS výsledky")
-
-        os.remove(f"static/results/{event.results_path_to_file}")
+        try:
+            os.remove(f"static/results/{event.results_path_to_file}")
+        except:
+            print (f"Nebyl nalezen soubor {event.results_path_to_file}")
+        
         Result.objects.filter(event=pk).delete()
 
         RankingCount.set_ranking_points()
