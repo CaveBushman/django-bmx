@@ -1,7 +1,7 @@
 {% extends 'pages/base.html' %} {% block title %} Výsledky závodu {% endblock title %}
 {% block content %}
 
-<h1 class="text-center main-header">Výsledky závodu: {{event.name}}</h1>
+<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-red-600">Výsledky závodu: {{event.name}}</h1>
 
 <div class="container">
 
@@ -23,8 +23,8 @@
             <td>{{result.category}}</td>
             <td>{{result.first_name}}</td>
             <td>{{result.last_name}}</td>
-            <td>{{result.rider}}</td>
-            <td>{{result.club}}</td>
+            <td class = "text-sm">{{result.rider}}</td>
+            <td class = "text-sm">{{result.club | upper}}</td>
         </tr>
         {% endfor %}
         </tbody>
