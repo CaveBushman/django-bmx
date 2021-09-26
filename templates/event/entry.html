@@ -1,7 +1,7 @@
 {% extends 'pages/base.html' %} {% block title %} Přihlášení na závody
 {% endblock title %} {% load static %} {% block content %}
 
-<h1 class="text-center main-header">Přihlášení na {{event.name}}</h1>
+<h1 class="text-4xl text-black-900 text-center mt-5 py-3">Přihlášení na {{event.name}}</h1>
 <br /><br />
 
 <div class = "container">
@@ -38,10 +38,11 @@
   <form method="POST">
     {% csrf_token %}
 
-    <table class="table table-hover" id="myTable">
+    <table class="table table-hover align-middle" id="myTable">
       <thead>
         <tr>
           <th scope="col">Start.č.</th>
+          <th scope="col"></th>
           <th scope="col">Příjmení</th>
           <th scope="col">Jméno</th>
           <th scope="col">Klub</th>
@@ -54,13 +55,15 @@
         {% for rider in riders %}
         <tr>
           <td scope="row">{{rider.plate}}</td>
+          <td><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
+                                     style="width: 2rem; height: 2rem;"></td>
           <td>{{rider.last_name}}</td>
           <td>{{rider.first_name}}</td>
-          <td>{{rider.club}}</td>
-          <td>{{rider.uci_id}}</td>
+          <td class = "text-sm">{{rider.club}}</td>
+          <td class = "text-sm">{{rider.uci_id}}</td>
 
           {% if 'registered' in rider.class_20 %}
-          <td class = "table-success">
+          <td class = "table-success text-sm">
             <input
               class="form-check-input"
               type="checkbox"
@@ -73,7 +76,7 @@
             {{rider.class_20|slice:":-10" }}
           </td>
           {% else %}
-          <td>
+          <td class = "text-sm">
             <input
               class="form-check-input"
               type="checkbox"
@@ -84,7 +87,7 @@
             {{rider.class_20}}
           </td>
           {% endif %} {% if 'registered' in rider.class_24 %}
-          <td class = "table-success" >
+          <td class = "table-success text-sm" >
             <input
               class="form-check-input"
               type="checkbox"
@@ -96,7 +99,7 @@
             />{{rider.class_24|slice:":-10" }}
           </td>
           {% else %}
-          <td>
+          <td class = "text-sm">
             <input
               class="form-check-input"
               type="checkbox"

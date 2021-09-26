@@ -7,10 +7,15 @@ from django.db.models import Q
 
 
 def sort_20(self, classes):
+    CLASS_ORDER20 = {
+    'Boys 6', 'Boys 7', 'Boys 8', 'Boys 9', 'Boys 10', 'Boys 11', 'Boys 12', 'Boys 13', 'Boys 14', 'Boys 15', 'Boys 16', 'Men 17-24', 'Men 25-29', 'Men 30-34', 'Men 35 and over', 'Girls 7', 'Girls 8', 'Girls 9', 'Girls 10', 'Girls 11', 'Girls 12',
+    'Girls 12', 'Girls 13', 'Girls 14', 'Girls 15', 'Girls 16', 'Women 17-24', 'Women 25 and over', 'Men Junior', 'Men Under 23', 'Men Elite', 'Women Junior'
+    'Women Under 23', 'Women Elite'}
     pass
 
 def sort_24(self, classes):
-     pass
+    CLASS_ORDER_24 = {'Boys 12 and under', 'Boys 13 and 14', 'Boys 15 and 16', 'Men 17-24', 'Men 25-39', 'Men 30-34', 'Men 35-39','Men 40-49', 'Men 50 and over', 'Girls 12 and under', 'Girls 13-16', 'Women 17-29', 'Women 30-99', 'Women 40 and over'}
+    pass
 
 
 class RankingCount:
@@ -388,7 +393,7 @@ class Categories:
                     if entry.is_20:
                         categories20.append(entry.class_20)
                     if entry.is_24:
-                        categories24.append(f"Cruiser {entry.class_24}")
+                        categories24.append(entry.class_24)
                 except:
                     pass
 

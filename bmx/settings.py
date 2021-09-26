@@ -156,7 +156,7 @@ STRIPE_PUBLIC_KEY = "pk_test_51HeoE0F3rP8tXY4Cx7YEpcx0fSAQ6M3HYdQrTgiUlNqSxNxCAM
 STRIPE_SECRET_KEY = "sk_test_51HeoE0F3rP8tXY4C7hSSIAuzYZsNCAddVo1cMCQa5GFVR6N25iEgC6v5ECkPLOqElil8OMe649Yct1GnZ6J0P2OC00n4ruiDRW"
 STRIPE_WEBHOOK_SECRET = ""
 
-YOUR_DOMAIN = "http://beta.black-ops.eu"
+YOUR_DOMAIN = "http://localhost:8000"
 
 # email setting
 EMAIL_HOST = 'smtp.gmail.com'
