@@ -107,7 +107,6 @@ def EventDetailViews(request, pk):
 
 def ResultsView(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    event = event[0]
     results = Result.objects.filter(event=pk)
     data = {'results': results, 'event': event}
     return render(request, 'event/results.html', data)
