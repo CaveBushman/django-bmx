@@ -102,7 +102,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="ml-4">
+                  <div class="">
                     <div class="text-sm font-medium text-gray-500">20": 
                       {% if rider.is_20%}
                         {{rider.class_20}}
@@ -121,16 +121,16 @@
                 </div>
               </td>
               <td>
-              <div class="flex flex-row">
+              <div class="flex flex-row px-6 py-4">
               {%if rider.is_20%}
                 {% if rider.plate_color_20 == "blue" %}
                   <div class=" px-3 py-3 whitespace-nowrap bg-blue-800 text-white rounded-full w-max mr-2">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "yellow" %}
                   <div class=" px-3 py-3 whitespace-nowrap bg-yellow-500 text-black rounded-full w-max mr-2">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "white" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-whire-400 text-black border-gray-400 border-2 border-solid rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-white text-black border-gray-400 border-2 border-solid rounded-full w-max mr-2">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "black" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-black-400 text-white rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-black text-white rounded-full w-max mr-2">{{rider.plate}}</div>
                 {% endif %}
               {% endif %} 
               {%if rider.is_24%}
