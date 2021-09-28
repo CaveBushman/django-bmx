@@ -5,15 +5,19 @@ import datetime
 
 # Create your models here.
 
+class Tag(models.Model):
+    caption=models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.caption
+
+
 class News (models.Model):
 
-    FOCUS = (('Závody', 'Závody'), ('Reprezentace', 'Reprezentace'), ('Administrativa', 'Administrativa'), ('Ostatní', 'Ostatní'))
-
+   
     title = models.CharField(max_length=255, default="")
-
     content = RichTextField(max_length=10000, blank=True, null=True)
-
-    focus = models.CharField(choices=FOCUS, max_length=255, default='Ostatní')
+    tag = models.ManyToManyField(Tag)
 
     photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
     photo_02 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)

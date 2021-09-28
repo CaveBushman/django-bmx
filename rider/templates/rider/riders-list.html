@@ -81,10 +81,10 @@
           <tbody class="bg-white divide-y divide-gray-200">
           {% for rider in riders %}
             <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" style='cursor: pointer;'>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
+                  <div class="flex-shrink-0 h-12 w-12">
+                    <img class="h-12 w-12 rounded-full" src="{{rider.photo.url}}" alt="">
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900">
@@ -96,11 +96,11 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-2 whitespace-nowrap">
                 <div class="text-sm text-gray-900">{{rider.club}}</div>
                 <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="">
                     <div class="text-sm font-medium text-gray-500">20": 
@@ -121,16 +121,16 @@
                 </div>
               </td>
               <td>
-              <div class="flex flex-row px-6 py-4">
+              <div class="flex flex-row px-6 py-2 space-x-4">
               {%if rider.is_20%}
                 {% if rider.plate_color_20 == "blue" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-blue-800 text-white rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-blue-800 text-white rounded-full w-max">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "yellow" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-yellow-500 text-black rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-yellow-500 text-black rounded-full w-max">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "white" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-white text-black border-gray-400 border-2 border-solid rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-white text-black border-gray-400 border-2 border-solid rounded-full w-max">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "black" %}
-                  <div class=" px-3 py-3 whitespace-nowrap bg-black text-white rounded-full w-max mr-2">{{rider.plate}}</div>
+                  <div class=" px-3 py-3 whitespace-nowrap bg-black text-white rounded-full w-max">{{rider.plate}}</div>
                 {% endif %}
               {% endif %} 
               {%if rider.is_24%}
