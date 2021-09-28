@@ -35,8 +35,7 @@ class RankingCount:
         self.points_24 = 0
 
     def resolve_category(self):
-        rider = Rider.objects.filter(uci_id=self.uci_id)
-        rider = rider[0]
+        rider = Rider.objects.get(uci_id=self.uci_id)
         self.is_20 = rider.is_20
         self.is_24 = rider.is_24
         self.class_20 = rider.class_20
@@ -112,13 +111,15 @@ class RankingCount:
             events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga"), is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
-
+            
+            # smazání označení předchozích výsledků jako bodovaných
             for event in events:
                 event.marked_20 = False
                 event.save()
 
             num_race = events.count() if events.count() <= self.LIGA  else self.LIGA
 
+            # zapsání nejlepších výsledků jako bodovaných do raningu
             for i in range(0, num_race):
                 if events[i].points > 0:
                     events[i].marked_20 = True
@@ -354,7 +355,7 @@ class RankPositionCount:
                         ranking = i + 1
                 else:
                     ranking = 1
-                self.write_ranking(rider=riders_24[i].id, is_20=False, ranking=ranking)
+                threading.Thread (target = self.write_ranking(rider=riders_24[i].id, is_20=False, ranking=ranking)).start()
 
         self.mark_same_position()
         print("Ranking všech jezdců přepočítán")

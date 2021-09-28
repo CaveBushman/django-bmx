@@ -53,71 +53,104 @@
     </div>
     <div class="col-sm" style="margin-bottom: 2rem"></div>
 
-    <table
-      class="table table-borderless align-middle table-hover"
-      id="myTable"
-      style="margin-bottom: 2rem">
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          <th scope="col">St. číslo</th>
-          <th scope="col">Příjmení</th>
-          <th scope="col">Jméno</th>
-          <th scope="col">Klub</th>
-          <th scope="col">UCI ID</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rider in riders %}
-        
-        <tr>
-          <th scope="row">
-            <img
-              class="avatar img-fluid rounded-circle"
-              src="{{rider.photo.url}}"
-              alt=""
-              sizes="10px"
-              srcset=""
-              style="width: 2rem; height: 2rem"
-            />
-          </th>
-          <td>{{rider.plate}}</td>
-          <td>
-            <a
-              href="{% url 'rider:detail' rider.id %}"
-              style="text-decoration: none; color: black"
-              class="text-dark"
-              aria-disabled="true"
-              >{{rider.last_name|upper}}</a
-            >
-          </td>
-          <td><a
-              href="{% url 'rider:detail' rider.id %}"
-              style="text-decoration: none; color: black"
-              class="text-dark"
-              aria-disabled="true"
-              >{{rider.first_name}}</a></td>
-          <td class="text-sm">{{rider.club | upper}}</td>
-          {% if rider.have_valid_licence %}
-          <td><span class="inline-block text-center px-2 text-sm">{{rider.uci_id}}</span></td>
-          {% else %}
-          <td>
-            <span
-              class="
-                inline-block
-                bg-red-200
-                rounded-full
-                text-center
-                px-2
-                text-sm"
-              ><b>{{rider.uci_id}}</b></span
-            >
-          </td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- This example requires Tailwind CSS v2.0+ -->
+<div class="flex flex-col">
+  <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+      <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200" id="myTable">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Jméno
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Klub, UCI ID
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Kategorie
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Startovní číslo
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Edit</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+          {% for rider in riders %}
+            <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" style='cursor: pointer;'>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{rider.last_name}}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{rider.first_name}}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{rider.club}}</div>
+                <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-500">20": 
+                      {% if rider.is_20%}
+                        {{rider.class_20}}
+                      {% else %}
+                       nejezdí
+                      {% endif %}
+                    </div>
+                    <div class="text-sm font-medium text-gray-500">24": 
+                      {% if rider.is_24%}
+                        {{rider.class_24}}
+                      {% else %}
+                        nejezdí
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+              <div class="flex flex-row">
+              {%if rider.is_20%}
+                {% if rider.plate_color_20 == "blue" %}
+                  <div class=" px-3 py-3 whitespace-nowrap bg-blue-800 text-white rounded-full w-max mr-2">{{rider.plate}}</div>
+                {% elif rider.plate_color_20 == "yellow" %}
+                  <div class=" px-3 py-3 whitespace-nowrap bg-yellow-500 text-black rounded-full w-max mr-2">{{rider.plate}}</div>
+                {% elif rider.plate_color_20 == "white" %}
+                  <div class=" px-3 py-3 whitespace-nowrap bg-whire-400 text-black border-gray-400 border-2 border-solid rounded-full w-max mr-2">{{rider.plate}}</div>
+                {% elif rider.plate_color_20 == "black" %}
+                  <div class=" px-3 py-3 whitespace-nowrap bg-black-400 text-white rounded-full w-max mr-2">{{rider.plate}}</div>
+                {% endif %}
+              {% endif %} 
+              {%if rider.is_24%}
+                <div class="px-3 py-3 whitespace-nowrap bg-red-600 text-white rounded-full w-max">{{rider.plate}}</div>
+              {% endif %}  
+              </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-indigo-600 hover:text-indigo-900"></a>
+              </td>
+            </tr>
+            {% endfor%}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+   
     <a href="#" class="arrow" id="to-top">
         <i class="bi bi-arrow-up-square-fill"></i>
     </a>

@@ -81,12 +81,12 @@ website {% endblock title %} {% block content %}
   <h1 class="text-4xl text-black-900 text-center">Novinky v BMX</h1>
 </div>
 <section class="news">
-  <div class="container">
+  <div class="container ">
 
   <div class="p-10 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
   {% for news in homepage_news %}
     <!--Card-->
-    <div class="rounded-lg overflow-hidden shadow-lg">
+    <div class="rounded-lg overflow-hidden shadow-lg relative">
       <img class="h-80 w-full object-fill object-center" src="{{news.photo_01.url}}" alt="Photo">
         <div class="px-8 pt-4 pb-2">
           {% if news.focus == 'Administrativa'%}
@@ -97,15 +97,15 @@ website {% endblock title %} {% block content %}
             <span class="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
             {% endif %}
         </div>
-      <div class="px-8 py-2">
-        <div class="font-bold text-xl mb-2">{{news.title}}</div>
+      <div class="px-8 py-2 mb-2">
+        <div class="font-bold text-xl">{{news.title}}</div>
         <p class="text-gray-700 text-base text-justify">
           {{news.content|safe|truncatechars:500}}
         </p>
          <a href="{% url 'news:news-detail' news.id %}" class="inline-block bg-blue-500 rounded-full px-3 py-2 my-3 text-sm font-semibold text-white mr-2 mb-2 hover:bg-blue-700">Pokračovat ve čtení</a>
       </div>
 
-      <footer class="flex items-center px-6 pt-2 pb-4">
+      <footer class=" items-center px-6 mt-2 mb-4 leading-6 ">
           <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
           <div class="text-sm">
             <p class="text-gray-900 leading-none">{{ news.created }}</p>
