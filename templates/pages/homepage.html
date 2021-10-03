@@ -44,42 +44,39 @@ website {% endblock title %} {% block content %}
   <div class="row d-flex justify-content-center">
     <div class="col">
       <div class="row instrument-text">
-        <div class="display-4">{{riders_sum}}</div>
+        <div class="sm:text-2xl md:text-6xl text-center">{{riders_sum}}</div>
       </div>
       <div class="row">
-        <div class="instrument-subtext">aktivních jezdců</div>
+        <div class="sm:text-lg md:text-3xl text-center">aktivních jezdců</div>
       </div>
     </div>
     <div class="col">
       <div class="row instrument-text">
-        <div class="display-4">{{events_sum}}</div>
+        <div class="sm:text-2xl md:text-6xl text-center">{{events_sum}}</div>
       </div>
       <div class="row">
-        <div class="instrument-subtext">závodů v tomto roce</div>
+        <div class="sm:text-lg md:text-3xl text-center">závodů v tomto roce</div>
       </div>
     </div>
     <div class="col">
       <div class="row instrument-text">
-        <div class="display-4">{{clubs_sum}}</div>
+        <div class="sm:text-2xl md:text-6xl text-center">{{clubs_sum}}</div>
       </div>
       <div class="row">
-        <div class="instrument-subtext">klubů provozujích BMX</div>
+        <div class="sm:text-lg md:text-3xl text-center">klubů provozujích BMX</div>
       </div>
     </div>
     <div class="col">
       <div class="row instrument-text">
-        <div class="display-4">{{articles_sum}}</div>
+        <div class="sm:text-2xl md:text-6xl text-center">{{articles_sum}}</div>
       </div>
       <div class="row">
-        <div class="instrument-subtext">článků na tomto webu</div>
+        <div class="sm:text-lg md:text-3xl text-center">článků na tomto webu</div>
       </div>
     </div>
   </div>
 </section>
 
-<div class="container">
-  <h1 class="text-4xl text-black-900 text-center">Novinky v BMX</h1>
-</div>
 <section class="news">
   <div class="container ">
 
@@ -89,13 +86,9 @@ website {% endblock title %} {% block content %}
     <div class="rounded-lg overflow-hidden shadow-lg relative">
       <img class="h-80 w-full object-fill object-center" src="{{news.photo_01.url}}" alt="Photo">
         <div class="px-8 pt-4 pb-2">
-          {% if news.focus == 'Administrativa'%}
-            <span class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
-            {% elif news.focus == 'Závody' %}
-            <span class="inline-block bg-green-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
-            {% else %}
-            <span class="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{news.focus|upper}}</span>
-            {% endif %}
+          {% for tag in news.tags.all %}
+           <span class="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">{{tag}}</span>
+          {% endfor %}
         </div>
       <div class="px-8 py-2 mb-2">
         <div class="font-bold text-xl">{{news.title}}</div>
@@ -109,7 +102,7 @@ website {% endblock title %} {% block content %}
           <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
           <div class="text-sm">
             <p class="text-gray-900 leading-none">{{ news.created }}</p>
-            <p class="text-gray-500">{{news.publish_date}}</p>
+            <p class="text-gray-500">{{ news.publish_date|date:"l d F Y" }}</p>
           </div>
       </footer>
             

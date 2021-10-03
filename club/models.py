@@ -34,6 +34,9 @@ class Club(models.Model):
     track_id = models.CharField(max_length=255, blank=True)
     mapy_cz_svg = models.CharField(max_length = 50000, null = True, blank=True) 
 
+    created = models.DateTimeField(auto_now_add= True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
     def __str__(self):
         return self.team_name
 

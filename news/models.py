@@ -17,11 +17,13 @@ class News (models.Model):
    
     title = models.CharField(max_length=255, default="")
     content = RichTextField(max_length=10000, blank=True, null=True)
-    tag = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag)
 
     photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
     photo_02 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
     photo_03 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
+
+    time_to_read = models.IntegerField(default=0)
 
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False)

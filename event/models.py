@@ -52,6 +52,7 @@ class Event(models.Model):
     results_uploaded = models.BooleanField(default=False)
 
     created = models.DateField(auto_now_add=True, null=True)
+    updated = models.DateField(auto_now=True, null=True, blank=True)
 
     canceled = models.BooleanField(default=False)
 
