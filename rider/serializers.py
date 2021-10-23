@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from rider.models import Rider
+from .models import Rider
 
 class RiderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rider
-        fields = '__all__'
+        exclude = ['email', 'emergency_contact', 'emergency_phone']
+        read_only_fields = ['id']

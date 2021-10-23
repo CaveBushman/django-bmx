@@ -26,6 +26,7 @@ urlpatterns = [
     # path('news/', include ('news.urls')),
     path('club/', include('club.urls')),
     path('ranking/', include('ranking.urls')),
+    path('api-auth/', include('rest_framework.urls')),
     path('', include("django.contrib.auth.urls")),
     path('bmx-admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

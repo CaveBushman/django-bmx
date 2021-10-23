@@ -2,11 +2,29 @@
 {% block content %}
 
 <div class="div container position-absolute top-50 start-50 translate-middle">
-  <div class="d-flex p-2 bd-highlight justify-content-center mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-x-circle-fill text-danger text-center align-middle" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
-</svg></div>
-    <h1 class = "success-payment-header text-center align-middle">OOPS. NĚKDE SE STALA CHYBA.</h1>
-    <h5 class = "text-center">Požadovaná stránka nebyla nalezena.</h5>
+  
+<div class="bg-white min-h-full px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">
+  <div class="max-w-max mx-auto">
+    <main class="sm:flex">
+      <p class="text-4xl font-extrabold text-indigo-600 sm:text-5xl">404</p>
+      <div class="sm:ml-6">
+        <div class="sm:border-l sm:border-gray-200 sm:pl-6">
+          <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Stránka nebyla nalezena</h1>
+          <p class="mt-1 text-base text-gray-500">Prosím zkontrolujte adresu v adresním řádku.</p>
+        </div>
+        <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
+          <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Zpět na úvodní stránku
+          </a>
+          <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Kontaktujte admnistrátora
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
 </div>
 
 {% endblock %}
