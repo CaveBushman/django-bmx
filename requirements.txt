@@ -18,7 +18,6 @@ anyio==3.5.0
 apispec==5.1.1
 apispec-webframeworks==0.5.2
 appdirs==1.4.4
-APScheduler==0.0.0
 arandr==0.1.10
 arrow==1.2.2
 asciitree==0.3.3
@@ -57,7 +56,6 @@ certifi==2020.12.5
 cffi==1.15.0
 chardet==4.0.0
 charset-normalizer==2.0.6
-cheroot==8.6.0+ds1
 CherryPy==18.6.1
 cherrypy-cors==1.6
 cli-helpers==2.2.1
@@ -146,7 +144,6 @@ hpack==4.0.0
 html2text==2020.1.16
 html5lib==1.1
 httpagentparser==1.9.1
-humanize==0.0.0
 hupper==1.10.3
 hyperframe==6.0.0
 hyperlink==21.0.0
@@ -285,7 +282,6 @@ PyGObject==3.42.0
 pygraphviz==1.7
 PyHamcrest==2.0.2
 pyinotify==0.9.6
-PyInstaller==3.5+498e6ee058
 pylint==2.7.4
 pylint-django==2.4.2
 pylint-plugin-utils==0.6
