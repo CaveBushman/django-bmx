@@ -393,6 +393,7 @@ def EventAdminView(request, pk):
 
     if 'btn-delete-pdf' in request.POST:
         print("Mažu PDF výsledky")
+        # TODO: Delete file with PDF results
         event.results_uploaded = False
         event.full_results_path =""
         event.full_results_uploaded=None

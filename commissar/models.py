@@ -5,3 +5,7 @@ from django.db import models
 
 class Commissar (models.Model):
     pass
+
+    class Meta:
+        verbose_name = "Rozhodčí"
+        verbose_name_plural = 'Rozhodčí'
