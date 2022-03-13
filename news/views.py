@@ -21,11 +21,11 @@ def HomepageView(request):
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
                'events_sum': events_sum, 'articles_sum': articles_sum,
                'homepage_news': homepage_news}
-    return render(request, "pages/homepage.html", content)
+    return render(request, "homepage.html", content)
 
 
 def RulesView(request):
-    return render(request, 'pages/rules.html')
+    return render(request, 'rules.html')
 
 
 def NewsListView(request):

@@ -571,3 +571,7 @@ html {
   line-height: 15px;
 }
 /*# sourceMappingURL=main.css.map */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

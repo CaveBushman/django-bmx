@@ -1,8 +1,8 @@
-{% extends 'pages/base.html' %} 
+{% extends 'base.html' %} 
 {% block title %} Kalendář závodů {% endblock title %} 
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-red-600">KALENDÁŘ ZÁVODŮ</h1>
+<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-purple-700">KALENDÁŘ ZÁVODŮ</h1>
 
 <div class="container mt-3">
 
@@ -45,17 +45,17 @@
     <tbody>
       {% for event in events%}
       {% if event.type == 'Mistrovství ČR jednotlivců' or event.type == "Mistrovství ČR družstev" %}
-            <tr class="table-danger">
+            <tr class="bg-rose-200">
         {% elif event.type == 'Český pohár' %}
-             <tr class="table-primary">
+             <tr class="bg-emerald-200">
         {% elif event.type == 'Česká liga' %}
             <tr class="table-success">
         {% elif event.type == 'Moravská liga' %}
-            <tr class="table-info">
+            <tr class="bg-blue-200">
         {% elif event.type == 'Mezinárodní závod' %}
             <tr class="table-secondary">
         {% else %}
-            <tr class="table-warning">
+            <tr class="bg-amber-100">
         {% endif %}
 
         {% if event.canceled %}
@@ -63,7 +63,7 @@
         {% endif %}
 
         <th scope="row"><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.date}}</a></th>
-        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
+        <td class = ""><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer}}</a></td>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.type}}</a></td>
         <td>{% if event.reg_open %}

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     # 3rd party
     'rest_framework',
     'ckeditor',
+    'tailwind',
+    'django_browser_reload',
 
     # My app
     'rider',
@@ -52,7 +54,9 @@ INSTALLED_APPS = [
     'news',
     'ranking',
     'commissar',
-    'accounts'
+    'accounts',
+    'theme',
+ 
 ]
 
 MIDDLEWARE = [
@@ -73,7 +77,7 @@ ROOT_URLCONF = 'bmx.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': ['theme/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,6 +88,12 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 WSGI_APPLICATION = 'bmx.wsgi.application'
