@@ -39,8 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    # 3rd party
     'rest_framework',
     'ckeditor',
+
+    # My app
     'rider',
     'event',
     'api',
