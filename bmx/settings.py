@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
-    'django_browser_reload',
 
     # My app
     'rider',
