@@ -212,7 +212,7 @@ class Rider(models.Model):
         if re.search("Elite", class_20):
             return "white"
         elif re.search("Under", class_20):
-            return "white"
+            return "gray"
         elif re.search("Junior", class_20):
             return "black"
         elif re.search("Girls", class_20) or re.search("Women", class_20):

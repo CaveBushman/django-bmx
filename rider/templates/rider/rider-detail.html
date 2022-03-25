@@ -13,6 +13,10 @@
                     style="background-color: darkblue; color: white">
                 {{rider.plate}}
             </div>
+            {% elif rider.plate_color_20 == 'gray'%}
+            <div class="plate small" style="background-color: gray; color: white">
+                {{rider.plate}}
+            </div>
             {% elif rider.plate_color_20 == 'yellow'%}
             <div class="plate small" style="background-color: yellow; color: black">
                 {{rider.plate}}

@@ -97,7 +97,7 @@
                 </div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{rider.club}}</div>
+                <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
                 <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
@@ -125,6 +125,8 @@
               {%if rider.is_20%}
                 {% if rider.plate_color_20 == "blue" %}
                   <div class=" px-3 py-3 whitespace-nowrap bg-blue-800 text-white rounded-full w-max">{{rider.plate}}</div>
+                {% elif rider.plate_color_20 == "grey" %}
+                  <div class=" px-3 py-3 whitespace-nowrap bg-slate-600 text-white rounded-full w-max">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "yellow" %}
                   <div class=" px-3 py-3 whitespace-nowrap bg-yellow-500 text-black rounded-full w-max">{{rider.plate}}</div>
                 {% elif rider.plate_color_20 == "white" %}
