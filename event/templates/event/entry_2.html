@@ -1,6 +1,7 @@
-{% extends 'base.html' %} {% block title %} Potvrzení přihlášky {% endblock title %}
+{% extends 'base.html' %} 
+{% load static %}
+{% block title %} Potvrzení přihlášky {% endblock title %}
 {% block content %}
-
 <h1 class="text-4xl text-black-900 text-center mt-5 py-3">Potvrzení přihlášky na {{event.name}}</h1>
 
 <section>
@@ -60,6 +61,6 @@
         <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" id="checkout-button">Přejít k placení</button>
     </div>
 </div>
-    </div>
-
+</div>
+<script src="{% static 'js/checkout.js' %}"></script>
 {% endblock content %}

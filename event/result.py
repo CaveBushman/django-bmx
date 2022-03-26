@@ -98,7 +98,7 @@ class GetResult:
             else:
                 return 0
 
-        # RANKING CODE 3 - Česká liga, Moravská liga
+        # RANKING CODE 3 - Česká liga, Moravská liga, Volný závod
         elif self.ranking_code == 3:
             if self.place == "1":
                 return 90
@@ -127,7 +127,7 @@ class GetResult:
             else:
                 return 0
 
-        # RANKING CODE 4 - Volný závod
+        # RANKING CODE 4 - Volný závod - nyní nepoužívat
         elif self.ranking_code == 4:
             if self.place == "1":
                 return 60
@@ -162,9 +162,9 @@ class GetResult:
     def cruiser_resolve(self):
         """ Resolve, if category is Cruiser """
         if re.search('cruiser', self.category.lower()):
-            return 0
+            return 0 # is Cruiser
         else:
-            return 1
+            return 1 # is 20
 
     def write_result(self):
 
@@ -201,9 +201,7 @@ class GetResult:
             return 1
         elif type == "Český pohár":
             return 2
-        elif type == "Česká liga" or type == "Moravská liga":
+        elif type == "Česká liga" or type == "Moravská liga" or type == "Volný závod":
             return 3
-        elif type == "Volný závod":
-            return 4
         else:
             return 0

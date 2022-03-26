@@ -22,9 +22,14 @@
     <div id="message" class="container alert-container">
       {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div role="alert">
+        <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+          Upozornění
         </div>
+        <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+          <p>{{message}}</p>
+        </div>
+      </div>
       {% endfor %}
       {% endif %}
     </div>
@@ -144,4 +149,5 @@
 </div>
 <script src="{% static 'js/alert_timeout.js' %}"></script>
 <script src = "{% static 'js/licence.js' %}"></script>
+<script src="{% static 'js/new_rider.js' %}"></script>
 {% endblock content %}

@@ -195,11 +195,9 @@ def ConfirmView(request):
                     if rider_20['fields']['gender']== "Žena" and rider_20['fields']['have_girl_bonus']:
                         fee = int(sheet_range.cell(row,4).value)
                         cat = sheet_range.cell(row,2).value
-                        print(cat)
                     else:
                         fee = int(sheet_range.cell(row,5).value)
                         cat = sheet_range.cell(row,3).value
-                        print(cat)
             line_items += {
                 'price_data': {
                     'currency': 'czk',
@@ -321,7 +319,7 @@ def EventAdminView(request, pk):
 
     if 'btn-upload-result' in request.POST:
 
-        if 'result-file' not in request.FILES:
+        if 'result-file' not in request.FILES: # if xls file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
@@ -356,8 +354,8 @@ def EventAdminView(request, pk):
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-upload-pdf' in request.POST:
-        # if pdf file is not selected
-        if 'result-file-pdf' not in request.FILES:
+        
+        if 'result-file-pdf' not in request.FILES: # if pdf file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu s časy")
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
@@ -455,7 +453,7 @@ def EventAdminView(request, pk):
             ws.cell(x,37,"")
             ws.cell(x,38,"")
             ws.cell(x,39,"")
-            ws.cell(x,40,"")
+            ws.cell(x,40,team_name_resolve(rider.club))
             ws.cell(x,41,"")
             ws.cell(x,42,"")
             ws.cell(x,43,"")
@@ -507,7 +505,7 @@ def EventAdminView(request, pk):
             ws.cell(x,37,"")
             ws.cell(x,38,"")
             ws.cell(x,39,"")
-            ws.cell(x,40,"")
+            ws.cell(x,40,team_name_resolve(rider.club))
             ws.cell(x,41,"")
             ws.cell(x,42,"")
             ws.cell(x,43,"")
@@ -574,7 +572,7 @@ def EventAdminView(request, pk):
             ws.cell(x,37,"")
             ws.cell(x,38,"")
             ws.cell(x,39,"")
-            ws.cell(x,40,"")
+            ws.cell(x,40,team_name_resolve(rider.club))
             ws.cell(x,41,"")
             ws.cell(x,42,"")
             ws.cell(x,43,"")

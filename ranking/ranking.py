@@ -22,7 +22,6 @@ class RankingCount:
     """ Class for ranking count"""
     CZECH_CUP = 8
     LIGA = 6
-    VOLNY = 4
 
     def __init__(self, uci_id):
         self.uci_id = uci_id
@@ -108,7 +107,7 @@ class RankingCount:
     def set_point_code_03(self):
         """ Methods for setting point from Czech and Moravian Legue """
         if self.is_20:
-            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga"), is_20=1,
+            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga") | Q(event_type="Volný závod"), is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
             
@@ -128,7 +127,7 @@ class RankingCount:
             del events
 
         if self.is_24:
-            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga"), is_20=0,
+            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga") | Q(event_type="Volný závod"), is_20=0,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
                                            rider=self.uci_id).order_by('-points', '-date')
             for event in events:
@@ -136,44 +135,6 @@ class RankingCount:
                 event.save()
 
             num_race = events.count() if events.count() <= self.LIGA else self.LIGA
-
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_24 = True
-                self.points_24 += events[i].points
-                events[i].save()
-            del events
-
-    def set_point_code_04(self):
-        """ Methods for setting point from free race """
-        if self.is_20:
-            events = Result.objects.filter(event_type="Volný závod", is_20=1,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
-
-            for event in events:
-                event.marked_20 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.VOLNY else self.VOLNY
-
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_20 = True
-                self.points_20 += events[i].points
-                events[i].save()
-            del events
-
-        if self.is_24:
-            events = Result.objects.filter(event_type="Volný závod", is_20=0,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
-
-            for event in events:
-                event.marked_24 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.VOLNY else self.VOLNY
 
             for i in range(0, num_race):
                 if events[i].points > 0:
@@ -193,7 +154,7 @@ class RankingCount:
         threading.Thread(target = self.set_point_code_01()).start()
         threading.Thread(target = self.set_point_code_02()).start()
         threading.Thread(target = self.set_point_code_03()).start()
-        threading.Thread(target = self.set_point_code_04()).start()
+        #threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod
     def set_ranking_points():

@@ -64,7 +64,7 @@
 
         <th scope="row"><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.date}}</a></th>
         <td class = ""><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
-        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer|upper}}</a></td>
         <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.type}}</a></td>
         <td>{% if event.reg_open %}
                 <div class="col col-reg"><a

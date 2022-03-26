@@ -14,9 +14,15 @@
       <div id="message" class="container alert-container">
       {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+      <div role="alert">
+        <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+          CHYBA!
         </div>
+        <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+          <p>{{message}}</p>
+        </div>
+      </div>
       {% endfor %}
       {% endif %}
     </div>
@@ -42,7 +48,7 @@
       <td> {{event.bem_entries_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blur"
+            class="btn btn-outline-info blurApp"
             tabindex="-1"
             role="button"
             name="btn-bem-file"
@@ -55,7 +61,7 @@
       <td>{{event.bem_riders_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blur"
+            class="btn btn-outline-info blurApp"
             tabindex="-1"
             role="button"
             name="btn-riders-list"
@@ -74,26 +80,26 @@
     <tr>
       <th scope="row">Nahrát výsledky závodu (xls)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
-      <td><button type="text" class="btn btn-info blur px-auto" name = "btn-upload-result" value = "xls">Nahraj výsledky</button></td>
+      <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls">Nahraj výsledky</button></td>
     </tr>
     <tr>
       <th scope="row">Smazat výsledky závodu (xls)</th>
       <th></th>
       <th></th>
       <th></th>
-      <th><button class = "btn btn-danger blur" name="btn-delete-xls" value="delete">Smaž výsledky závodu</button></th>
+      <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete">Smaž výsledky závodu</button></th>
     </tr>
     <tr>
       <th scope="row">Nahrát výsledky závodu s časy (pdf)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file-pdf"></td>
-      <td><button type="text" class="btn btn-info blur" name = "btn-upload-pdf" value = "pdf">Nahraj výsledky</button></td>
+      <td><button type="text" class="btn btn-info blurApp" name = "btn-upload-pdf" value = "pdf">Nahraj výsledky</button></td>
     </tr>
     <tr>
       <th scope="row">Smazat výsledky závodu (pdf)</th>
       <th></th>
       <th></th>
       <th></th>
-      <th><button class = "btn btn-danger blur" name="btn-delete-pdf" value="delete">Smaž výsledky závodu</button></th>
+      <th><button class = "btn btn-danger blurApp" name="btn-delete-pdf" value="delete">Smaž výsledky závodu</button></th>
     </tr>
 
     <tr>
@@ -119,19 +125,18 @@
       <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
       <td><button type="button" class="btn btn-warning">Odešli notifikaci</button></td>
     </tr>
-
-
   </tbody>
 </table>
 </div>
 <form>
 
 <div class="spinner div container position-absolute top-50 start-50 translate-middle" id="spinner">
-    <div class="d-flex flex-column bd-highlight mb-3 justify-content-center">
+  <div class="d-flex flex-column bd-highlight mb-3 justify-content-center">
         <div class="p-2 bd-highlight text-center"><div class="spinner-border ms-auto text-success" style="width: 10rem; height: 10rem;" role="status" aria-hidden="true"></div></div>
-        <div class="p-2 bd-highlight"><h1 class = "spinner-header text-center align-middle">PRACUJI.</h1></div>
-        <div class="p-2 bd-highlight"><h5 class = "spinner-text text-center">Prosím o chvilku strpení.</h5></div>
-    </div>
+        <div class="p-2 bd-highlight"><h1 class = "spinner-header text-center align-middle text-2xl">PRACUJI.</h1></div>
+        <div class="p-2 bd-highlight"><h5 class = "spinner-text text-center italic">Prosím o chvilku strpení.</h5></div>
+    </div>  
+
 </div>
 
 <script src = "{% static 'js/show_spinner.js' %}"></script>
