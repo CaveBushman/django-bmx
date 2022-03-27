@@ -69,7 +69,7 @@
             <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black"><b>{{result.last_name}}</b></a></td>
             <td>{{result.first_name}}</td>
             <td class = "text-sm">{{result.uci_id}}</td>
-            <td class="text-sm">{{result.club}}</td>
+            <td class="text-sm">{{result.club|upper}}</td>
             {% if cruiser %}
             <td class = "text-sm">{{result.points_24}}</td>
             {% else %}

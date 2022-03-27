@@ -162,9 +162,9 @@ class GetResult:
     def cruiser_resolve(self):
         """ Resolve, if category is Cruiser """
         if re.search('cruiser', self.category.lower()):
-            return 0 # is Cruiser
+            return 0 # if is Cruiser
         else:
-            return 1 # is 20
+            return 1 # if is 20
 
     def write_result(self):
 

@@ -68,9 +68,14 @@
             <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" style='cursor: pointer;'>
               <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="flex-shrink-0 h-12 w-12">
-                    <img class="h-12 w-12 rounded-full" src="{{rider.photo.url}}" alt="">
-                  </div>
+                    <div class="relative">
+                      <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
+                      {% if rider.have_valid_licence %}
+                        <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                      {% else %}
+                        <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                      {% endif%}
+                    </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900">
                       {{rider.last_name}}

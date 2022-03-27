@@ -81,6 +81,7 @@ class Rider(models.Model):
     is_active = models.BooleanField(default=True)
     is_approwe = models.BooleanField(default=False)
     have_valid_licence = models.BooleanField(default=True)
+    two_years_inactive = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)

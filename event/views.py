@@ -312,6 +312,7 @@ def stripe_webhook(request):
     # Passed signature verification
     return HttpResponse(status=200)
 
+
 @staff_member_required
 def EventAdminView(request, pk):
     """ Function for Event admin page view"""
@@ -335,7 +336,7 @@ def EventAdminView(request, pk):
             data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
-                category = data.iloc[i][4]
+                category = data.iloc[i][5]
                 place = str(data.iloc[i][0])
                 first_name = data.iloc[i][2]
                 last_name = data.iloc[i][3]
