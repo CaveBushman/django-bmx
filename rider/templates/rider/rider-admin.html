@@ -6,11 +6,16 @@
 
 <h3 class = "text-4xl text-black-900 text-center mt-5 py-3 text-danger" >KONTROLA PLATNOSTI LICENCÍ</h3>
 
-<div id="message" class="container alert-container">
+<div id="message" class="container alert-container mb-4">
 {% if messages %}
 {% for message in messages %}
-  <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <div role="alert">
+    <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+      Upozornění
+    </div>
+    <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+      <p>{{message}}.</p>
+    </div>
   </div>
 {% endfor %}
 {% endif %}
@@ -19,7 +24,7 @@
 <form method="POST">
   {% csrf_token %}
 
-  <div class="container mt-2">
+  <div class="container mt-4">
   <div class="row">
     <div class="col-sm">
       <input type="text" class="form-control" name="username" placeholder = "Zadej uživatelské jméno do API ČSC">
@@ -29,16 +34,14 @@
     </div>
     <div class="col-sm">
       <label> </label>
-      <button type="submit" class="btn btn-danger blur" name="btnValidLicence" value="check">Zkontroluj platnost licencí</button>
+      <button type="submit" class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900 blurApp" name="btnValidLicence" value="check">Zkontroluj platnost licencí</button>
     </div>
   </div>
   </div>
 </form>
-
 </div>
 
 {% include "spinner.html" %}
-
 
 <script src = "{% static 'js/alert_timeout.js' %}"></script>
 {% endblock content %}
