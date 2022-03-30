@@ -8,6 +8,6 @@ urlpatterns = [
     path('', views.RidersListView, name='list'),
     path('<int:pk>', views.RiderDetailView, name='detail'),
     path('new', views.RiderNewView, name='new'),
-    path('admin', views.RiderAdmin, name = "admin")
+    path('admin', views.RiderAdmin, name = "admin"),
 
 ]

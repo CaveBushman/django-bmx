@@ -90,7 +90,7 @@ TEMPLATES = [
 
 TAILWIND_APP_NAME = 'theme'
 
-# TAILWIND_CSS_PATH = [os.path.join(BASE_DIR, 'static/css/styles.css')]
+TAILWIND_CSS_PATH = os.path.join(BASE_DIR, 'static/css/styles.css')
 
 INTERNAL_IPS = [
     '127.0.0.1',

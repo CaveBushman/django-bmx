@@ -204,12 +204,12 @@ def RiderNewView(request):
             new_rider.save()
 
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
-            # send_mail (
+            send_mail (
             #     subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
             #     message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
             #     from_email = "bmx@ceskysvazcyklistiky.cz",
             #     recipient_list = ["david@black-ops.eu"],
-            # )
+            )
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method

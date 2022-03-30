@@ -22,7 +22,6 @@ def RankingView(request):
 
         data = {'categories': categories, 'results': results, 'category': request.POST['categoryInput'], 'cruiser': cruiser}
     else:
-        results = Rider.objects.filter(class_20="Men Elite", is_active=1, is_approwe=1).order_by('-points_20').exclude(points_20=0)
-        cruiser = 0
-        data = {'categories': categories, 'results': results, 'category': "MEN ELITE" }
+        results = Rider.objects.filter(class_20="Men Under 23", is_active=1, is_approwe=1).order_by('-points_20').exclude(points_20=0)
+        data = {'categories': categories, 'results': results, 'category': "MEN UNDER 23" }
     return render(request, 'ranking/ranking.html', data)
