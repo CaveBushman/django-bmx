@@ -9,7 +9,7 @@
         <div class="p-2 bd-highlight align-self-end">
             {% if rider.is_20 %} {% if rider.plate_color_20 == 'blue' %}
             <div class="plate small"
-                    style="background-color: darkblue; color: white">
+                 style="background-color: darkblue; color: white">
                 {{rider.plate}}
             </div>
             {% elif rider.plate_color_20 == 'gray'%}
@@ -25,12 +25,11 @@
                 {{rider.plate}}
             </div>
             {% elif rider.plate_color_20 == 'white'%}
-            <div
-                    class="plate small"
-                    style="background-color: white; color: black; border: 1px black solid">
-                {{rider.plate}}
+            <div class="plate small"
+                 style="background-color: white; color: black; border: 1px black solid">
+                 {{rider.plate}}
             </div>
-            {% endif %} {% endif %}
+            {% endif %} 
         </div>
         <div class="p-2 bd-highlight">
             <div>
@@ -45,7 +44,7 @@
         </div>
         <div class="p-2 bd-highlight align-self-end">
             {% if rider.is_24%}
-            <div class="plate small red">{{rider.plate}}</div>
+                <div class="plate small red">{{rider.plate}}</div>
             {% endif %}
         </div>
     </div>
@@ -54,20 +53,19 @@
         {{ rider.first_name}} {{ rider.last_name}}
     </h1>
     {% if rider.is_in_representation %}
-    <div class="d-flex flex-row bd-highlight mb-3 ">
-        <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
-                class="repre">Člen národní reprezentace</span></h5></div>
-    </div>
+        <div class="d-flex flex-row bd-highlight mb-3 ">
+            <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
+                    class="repre">Člen národní reprezentace</span></h5></div>
+        </div>
     {% endif %}
     {% if rider.is_in_talent_team %}
-    <div class="d-flex flex-row bd-highlight mb-3 ">
-        <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
-                class="repre">Člen národního talent teamu</span></h5></div>
-    </div>
+        <div class="d-flex flex-row bd-highlight mb-3 ">
+            <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
+                    class="repre">Člen národního talent teamu</span></h5></div>
+        </div>
     {% endif %}
 
     <div class="container">
-
         <div class="container">
             <div class="row">
                 <div class="col-sm">
@@ -81,10 +79,22 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm mt-2">
-                    <h5>Transpondér pro 20": <b>{{rider.transponder_20}}</b></h5>
+                    <h5>Transpondér pro 20": <b>
+                        {% if rider.transponder_20 =="nan" %}
+                            nemá přidělen
+                        {% else %}
+                            {{rider.transponder_20}}
+                        {% endif%}
+                    </b></h5>
                 </div>
                 <div class="col-sm mt-2">
-                    <h5>Transpondér pro 24": <b>{{rider.transponder_24}}</b></h5>
+                    <h5>Transpondér pro 24": <b>
+                        {% if rider.transponder_24 =="nan" %}
+                            nemá přidělen
+                        {% else %}
+                            {{rider.transponder_24}}
+                        {% endif%}
+                    </b></h5>
                 </div>
             </div>
         </div>
@@ -92,7 +102,7 @@
             <div class="row">
                 <div class="col-sm mt-2">
                     <h5>Pořadí v rankingu v <b>{{rider.class_20}}</b> (20"): <b>
-                        {% if rider.ranking_20 == None %}
+                        {% if rider.ranking_20 == None or rider.ranking_20 == "0" %}
                         nejezdí/neboduje
                         {% else %}
                         {{rider.ranking_20}}. místo
@@ -101,7 +111,7 @@
                 </div>
                 <div class="col-sm mt-2">
                     <h5>Pořadí v rankingu v <b>{{rider.class_24}}</b> (24"): <b>
-                        {% if rider.ranking_24 == None %}
+                        {% if rider.ranking_24 == None or rider.ranking_24 == "0" %}
                         nejezdí/neboduje
                         {% else %}
                         {{rider.ranking_24}}. místo
@@ -120,18 +130,17 @@
 <div class="container">
     <table class="table" style="padding-left: 5rem; padding-right: 5rem; margin-bottom: 3rem">
         <thead>
-        <tr>
-            <th scope="col">Datum</th>
-            <th scope="col">Název závodu</th>
-            <th scope="col">Pořadatel</th>
-            <th scope="col">Typ závodu</th>
-            <th scope="col">Kategorie</th>
-            <th scope="col">Umístění</th>
-            <th scope="col">Počet bodů</th>
-        </tr>
+            <tr>
+                <th scope="col">Datum</th>
+                <th scope="col">Název závodu</th>
+                <th scope="col">Pořadatel</th>
+                <th scope="col">Typ závodu</th>
+                <th scope="col">Kategorie</th>
+                <th scope="col">Umístění</th>
+                <th scope="col">Počet bodů</th>
+            </tr>
         </thead>
         <tbody>
-
 
         {% for result in results %}
         {% if result.marked_20 %}
@@ -150,13 +159,11 @@
             <td>{{ result.points }}</td>
         </tr>
         {% endfor %}
-
-
         </tbody>
     </table>
 
-    {% else %}
+{% else %}
     <h5 style = "text-align: center">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
-            {% endif %}
+{% endif %}
 </div>
 {% endblock content %}

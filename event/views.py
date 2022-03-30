@@ -457,12 +457,18 @@ def EventAdminView(request, pk):
             ws.cell(x,38,"")
             ws.cell(x,39,"")
             ws.cell(x,40,team_name_resolve(rider.club))
-            ws.cell(x,41,"")
+            if rider.have_valid_licence:
+                ws.cell(x,41,"")
+            else:
+                ws.cell(x,41,"NEPLATNÁ LICENCE")
             ws.cell(x,42,"")
             ws.cell(x,43,"")
             ws.cell(x,44,"")
 
             x += 1
+
+            #TODO: Dodělat zobrazení přihlášených jezdců s neplatnou licencí
+
         del entries_20
 
         entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
