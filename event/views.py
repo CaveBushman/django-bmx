@@ -322,7 +322,6 @@ def EventAdminView(request, pk):
 
         if 'result-file' not in request.FILES: # if xls file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
-
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
         else:
@@ -341,14 +340,17 @@ def EventAdminView(request, pk):
                 first_name = data.iloc[i][2]
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
-                result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
+                #TODO: Zkontrolovat přeskočení kategorie Příchozích
+                if re.search("Prichozi", category) or re.search("Příchozí", category):
+                    print("Přeskakuji kategorii Příchozích")
+                else:
+                    result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
                                 last_name, club, event.organizer.team_name, event.type)
-                result.write_result()
+                    result.write_result()
             event.results_uploaded = 1
             event.results_path_to_file = uploaded_file_url
             event.save()
             RankingCount.set_ranking_points()
-
             ranking = RankPositionCount()
             ranking.count_ranking_position()
 

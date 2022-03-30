@@ -49,7 +49,9 @@ def RiderAdmin(request):
                 messages.error (request, "Špatné přihlašovací údaje k API ČSC")
                 return render(request, 'rider/rider-admin.html')
         except:
-            pass
+            print("Spojení se serverem ČSC se nezdařilo")
+            messages.error (request, "Spojení se serverem ČSC se nezdařilo")
+            return render(request, 'rider/rider-admin.html')
 
         for rider in riders:
             basicAuthCredentials = (username, password)

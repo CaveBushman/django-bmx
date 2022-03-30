@@ -201,7 +201,9 @@ class GetResult:
             return 1
         elif type == "Český pohár":
             return 2
-        elif type == "Česká liga" or type == "Moravská liga" or type == "Volný závod":
+        elif type == "Česká liga" or type == "Moravská liga":
             return 3
+        elif type == "Volný závod":
+            return 3 # Pokud bude Česká liga, změnit na 4
         else:
             return 0
