@@ -386,6 +386,7 @@ def EventAdminView(request, pk):
         RankingCount.set_ranking_points()
         RankPositionCount().count_ranking_position()
 
+        event.results_path_to_file=""
         event.results_uploaded=False
         print("Výsledky vymazány")
         event.save()

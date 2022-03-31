@@ -7,29 +7,31 @@
 <div class="container rider-detail-container">
     <div class="d-flex flex-row bd-highlight mb-3 justify-content-center">
         <div class="p-2 bd-highlight align-self-end">
-            {% if rider.is_20 %} {% if rider.plate_color_20 == 'blue' %}
-            <div class="plate small"
-                 style="background-color: darkblue; color: white">
-                {{rider.plate}}
-            </div>
-            {% elif rider.plate_color_20 == 'gray'%}
-            <div class="plate small" style="background-color: gray; color: white">
-                {{rider.plate}}
-            </div>
-            {% elif rider.plate_color_20 == 'yellow'%}
-            <div class="plate small" style="background-color: yellow; color: black">
-                {{rider.plate}}
-            </div>
-            {% elif rider.plate_color_20 == 'black'%}
-            <div class="plate small" style="background-color: black; color: white">
-                {{rider.plate}}
-            </div>
-            {% elif rider.plate_color_20 == 'white'%}
-            <div class="plate small"
-                 style="background-color: white; color: black; border: 1px black solid">
-                 {{rider.plate}}
-            </div>
-            {% endif %} 
+            {% if rider.is_20 %} 
+                {% if rider.plate_color_20 == 'blue' %}
+                    <div class="plate small"
+                    style="background-color: darkblue; color: white">
+                    {{rider.plate}}
+                </div>
+                {% elif rider.plate_color_20 == 'gray'%}
+                <div class="plate small" style="background-color: gray; color: white">
+                    {{rider.plate}}
+                </div>
+                {% elif rider.plate_color_20 == 'yellow'%}
+                <div class="plate small" style="background-color: yellow; color: black">
+                    {{rider.plate}}
+                </div>
+                {% elif rider.plate_color_20 == 'black'%}
+                <div class="plate small" style="background-color: black; color: white">
+                    {{rider.plate}}
+                </div>
+                {% elif rider.plate_color_20 == 'white'%}
+                <div class="plate small"
+                    style="background-color: white; color: black; border: 1px black solid">
+                    {{rider.plate}}
+                </div>
+                {% endif %}
+                {% endif %} 
         </div>
         <div class="p-2 bd-highlight">
             <div>
@@ -80,7 +82,7 @@
             <div class="row">
                 <div class="col-sm mt-2">
                     <h5>Transpondér pro 20": <b>
-                        {% if rider.transponder_20 =="nan" %}
+                        {% if rider.transponder_20 == "nan" %}
                             nemá přidělen
                         {% else %}
                             {{rider.transponder_20}}
@@ -89,7 +91,7 @@
                 </div>
                 <div class="col-sm mt-2">
                     <h5>Transpondér pro 24": <b>
-                        {% if rider.transponder_24 =="nan" %}
+                        {% if rider.transponder_24 == "nan" %}
                             nemá přidělen
                         {% else %}
                             {{rider.transponder_24}}
