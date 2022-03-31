@@ -7,7 +7,7 @@ console.log(all);
 btns.forEach(btn => {
   btn.addEventListener('click', () => {
     all.forEach((el) => {
-      el.classList.add("blur")
+      el.classList.add("blur-md")
     })
     spinner.style.display = 'flex'
   })
