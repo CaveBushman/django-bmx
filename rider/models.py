@@ -44,6 +44,7 @@ class Rider(models.Model):
     have_girl_bonus = models.BooleanField(default=False)
 
     email = models.EmailField(max_length=100, null=True, blank=True)
+    phone = models.CharField(max_length=100, null=True, blank=True)
 
     photo = models.ImageField(
         upload_to='static/images/riders/', blank=True, null=True, default='static/images/riders/uni.jpeg')
