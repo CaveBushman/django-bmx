@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block title %} Žádost o startovní číslo
 {% endblock title %} {% block content %}
 
-<h1 class="text-center main-header">Žádost o startovní číslo</h1>
+<h1 class="text-center text-4xl mt-6 text-green-600">Žádost o startovní číslo</h1>
 
 <div id="message" class="container alert-container">
     {% if messages %}
@@ -100,7 +100,7 @@
                             id="InputEmergencyContact"
                             name="InputEmergencyContact"
                             aria-describedby="EmergencyContactHelp"
-                            placeholder="Sem napiš své jméno"
+                            placeholder="Sem napiš jméno nouzového kontaktu"
                     />
                     <small id="EmergencyContactHelp" class="form-text text-muted"></small>
                 </div>
@@ -113,7 +113,7 @@
                             id="InputEmergencyPhone"
                             name="InputEmergencyPhone"
                             aria-describedby="EmergencyPhoneHelp"
-                            placeholder="Sem napiš své jméno"/>
+                            placeholder="Sem napiš telefon na nouzový kontakt"/>
                     <small id="EmergencyPhoneHelp" class="form-text text-muted"></small>
                 </div>
 
@@ -185,7 +185,7 @@
                 </div>
 
                 {% endif %}
-                <button type="submit" class="btn btn-outline-primary" style="margin-top: 2rem; margin-bottom: 3rem">
+                <button type="submit" class="text-green-700 hover:text-white text-xl border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800 mt-8">
                     Odešli žádost ke schválení
                 </button>
     </form>

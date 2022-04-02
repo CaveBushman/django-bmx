@@ -318,6 +318,31 @@ def EventAdminView(request, pk):
     """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
 
+    # zjištění jezdců přihlášených na závod s neplatnou licencí
+
+    check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
+    check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
+
+    invalid_licences = []
+    for check20 in check_20_entries:
+        print(check20.rider)
+        rider = Rider.objects.get(uci_id=check20.rider)
+        if not rider.have_valid_licence:
+            print("Jezdec nemá platnou licenci")
+            invalid_licences.append(rider)
+        else:
+            print("Jezdec má platnou licenci")
+
+    for check24 in check_24_entries:
+        print(check24.rider)
+        rider = Rider.objects.get(uci_id=check24.rider)
+        if not rider.have_valid_licence:
+            print("Jezdec nemá platnou licenci")
+            invalid_licences.append(rider)
+        else:
+            print("Jezdec má platnou licenci")
+    invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
+
     if 'btn-upload-result' in request.POST:
 
         if 'result-file' not in request.FILES: # if xls file is not selected
@@ -340,13 +365,12 @@ def EventAdminView(request, pk):
                 first_name = data.iloc[i][2]
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
-                #TODO: Zkontrolovat přeskočení kategorie Příchozích
-                if re.search("Prichozi", category) or re.search("Příchozí", category):
-                    print("Přeskakuji kategorii Příchozích")
-                else:
+
+                if not re.search("Prichozi", category) or not re.search("Příchozí", category):
                     result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
                                 last_name, club, event.organizer.team_name, event.type)
                     result.write_result()
+                    
             event.results_uploaded = 1
             event.results_path_to_file = uploaded_file_url
             event.save()
@@ -441,7 +465,7 @@ def EventAdminView(request, pk):
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T1")
             ws.cell(x,45,team_name_resolve(rider.club))
-            if rider.have_valid_licence:
+            if rider.have_valid_licence=="True":
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
@@ -535,6 +559,10 @@ def EventAdminView(request, pk):
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T2")
             ws.cell(x,45,team_name_resolve(rider.club))
+            if rider.have_valid_licence:
+                ws.cell(x,46,"")
+            else:
+                ws.cell(x,46,"NEPLATNÁ LICENCE")
 
             x += 1
         del riders
@@ -544,5 +572,5 @@ def EventAdminView(request, pk):
         event.bem_riders_created = datetime.now()
         event.save()
 
-    data = {'event':event}
+    data = {'event':event, "invalid_licences": invalid_licences}
     return render(request, 'event/event-admin.html', data)

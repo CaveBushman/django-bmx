@@ -45,11 +45,9 @@ def RiderAdmin(request):
         try:
             dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
             if re.search("Http_Unauthorised", dataJSON.text):
-                print("Špatné přihlašovací údaje")
                 messages.error (request, "Špatné přihlašovací údaje k API ČSC")
                 return render(request, 'rider/rider-admin.html')
         except:
-            print("Spojení se serverem ČSC se nezdařilo")
             messages.error (request, "Spojení se serverem ČSC se nezdařilo")
             return render(request, 'rider/rider-admin.html')
 
@@ -63,20 +61,22 @@ def RiderAdmin(request):
 
 def RiderNewView(request):
     """ View for new rider form """
-    clubs = Club.objects.filter(is_active=True)
-
-    # getting all used plates list
-    used_plates = []
-    riders = Rider.objects.filter(is_active=True)
-
-    for rider in riders:
-        used_plates += [rider.plate]
-
-    # create free plates list
-    free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
-
+    
     # User fill data and send form
     if request.method == "POST":
+
+        clubs = Club.objects.filter(is_active=True)
+
+        # getting all used plates list
+        used_plates = []
+        riders = Rider.objects.filter(is_active=True)
+
+        for rider in riders:
+            used_plates += [rider.plate]
+
+        # create free plates list
+        free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
+
         # get data from UCI API and put this data to the second form
         if 'num11' in request.POST and 'InputFirstName' not in request.POST:
 
@@ -144,6 +144,9 @@ def RiderNewView(request):
                                   'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
                 }
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
+            else:
+                # TODO: Dodělat ověření správnosti e-mailové adresy
+                pass
 
             if request.POST['SelectFreePlate'] == "Vyber...":
                 print("Není vybráno startovní číslo")
@@ -155,9 +158,6 @@ def RiderNewView(request):
                                   'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
                                   }
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
-            else:
-                # TODO: Dodělat ověření správnosti e-mailové adresy
-                pass
 
             if ('CheckIs20') not in request.POST and ('CheckIs24') not in request.POST:
                 print("Není vybrána kategorie")
@@ -215,5 +215,4 @@ def RiderNewView(request):
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
-    data = {'clubs': clubs, 'free_plates': free_plates}
-    return render(request, 'rider/rider-new.html', data)
+    return render(request, 'rider/rider-new.html')

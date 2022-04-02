@@ -19,7 +19,7 @@ def sort_24(self, classes):
 
 
 class RankingCount:
-    """ Class for ranking count"""
+    """ Class for rankings count"""
     CZECH_CUP = 8
     LIGA = 6
 
@@ -41,7 +41,7 @@ class RankingCount:
         self.class_24 = rider.class_24
 
     def set_point_code_01(self):
-        """ Methods for setting point from MCR """
+        """ Methods for setting points from MCR """
         if self.is_20:
             results = Result.objects.filter(event_type="Mistrovství ČR jednotlivců", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
@@ -67,7 +67,7 @@ class RankingCount:
                 pass
 
     def set_point_code_02(self):
-        """ Methods for setting point from Czech Cup """
+        """ Methods for getings points from Czech Cup """
         if self.is_20:
             events = Result.objects.filter(event_type="Český pohár", is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
@@ -105,7 +105,7 @@ class RankingCount:
             del events
 
     def set_point_code_03(self):
-        """ Methods for setting point from Czech and Moravian Legue """
+        """ Methods for setting points from Czech and Moravian Legue """
         if self.is_20:
             events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga") | Q(event_type="Volný závod"), is_20=1,
                                            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
@@ -118,7 +118,7 @@ class RankingCount:
 
             num_race = events.count() if events.count() <= self.LIGA  else self.LIGA
 
-            # zapsání nejlepších výsledků jako bodovaných do raningu
+            # zapsání nejlepších výsledků jako bodovaných do rankingu
             for i in range(0, num_race):
                 if events[i].points > 0:
                     events[i].marked_20 = True

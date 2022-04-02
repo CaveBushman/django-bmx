@@ -24,7 +24,6 @@ urlpatterns = [
     path('', include('news.urls')),
     path('event/', include('event.urls')),
     path('rider/', include('rider.urls')),
-    # path('news/', include ('news.urls')),
     path('club/', include('club.urls')),
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),

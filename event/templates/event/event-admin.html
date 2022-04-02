@@ -73,6 +73,19 @@
     <tr>
       <th></th>
     </tr>
+    {% if invalid_licences%}
+    <tr>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Přihlášení jezdci s neplatnou licencí</th>
+    </tr>
+    <tr>
+      {% for rider in invalid_licences %}
+      <tr>
+        <td></td>
+        <td>{{rider.last_name|upper}} {{rider.first_name}}, UCI ID: {{rider.uci_id}}</td>
+        <td>klub: {{rider.club}}</td>
+      </tr>
+      {% endfor %}
+    {% endif %}
     <tr>
       <th scope="row" colspan="5" class = "h5 table-warning text-center" >Výsledky závodu</th>
     </tr>
@@ -136,4 +149,5 @@
 
 {% endif %}
 
+</div>
 {% endblock content %}
