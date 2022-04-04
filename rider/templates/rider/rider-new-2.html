@@ -1,41 +1,60 @@
 {% extends 'base.html' %} {% block title %} Žádost o startovní číslo
 {% endblock title %} {% block content %}
 
-<h1 class="text-center text-4xl mt-6 text-green-600">Žádost o startovní číslo</h1>
-
-<div id="message" class="container alert-container">
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-    {% endif %}
-</div>
-
-<div class="container">
+<div class="w-5/6 mx-auto mt-10">
     <form method="POST" class="well form-horizontal">
+        <div class = "bg-gray-100 p-4 rounded shadow-lg">
         {% csrf_token %}
+
+        <h1 class="text-center sm:text-3xl md:text-5xl mt-6 text-teal-600 text-extrabold uppercase">Žádost o startovní číslo</h1>
+
+        <div id="message" class="container alert-container">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">{{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
         <div class="form-group">
 
-            <div class="form-group">
-                <label for="InputUciid">UCI ID</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="InputUciid"
-                        name="InputUciid"
-                        aria-describedby="uciidHelp"
-                        value="{{uci_id}}"
-                        disabled/>
+            <div class="row" style="margin-top: 1rem">
+                <div class="col">
 
+                <div class="form-group">
+                    <label for="InputUciid" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">UCI ID</label>
+                    <input
+                            type="text"
+                            class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md bg-gray-100 text-violet-700"
+                            id="InputUciid"
+                            name="InputUciid"
+                            aria-describedby="uciidHelp"
+                            value="{{uci_id}}"
+                            disabled/>
+                </div>
+            </div>
+            <div class="col">
+                <label class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" for="SelectGender"
+                >Pohlaví</label>
+                <select
+                        class="max-w-lg block focus:ring-indigo-500 focus:border-indigo-500 w-full shadow-sm sm:max-w-xs sm:text-sm border-gray-300 rounded-md bg-gray-100 text-violet-700"
+                        id="SelectGender"
+                        name="SelectGender"
+                        disabled>
+                    <option value="{{gender}}">{{gender}}</option>
+
+                </select>
+            </div>
+        </div>
                 <div class="row" style="margin-top: 1rem">
                     <div class="col">
                         <div class="form-group">
-                            <label for="InputFirstName">Jméno</label>
+                            <label for="InputFirstName" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Jméno</label>
                             <input
                                     type="text"
-                                    class="form-control"
+                                    class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md bg-gray-100 text-violet-700"
                                     id="InputFirstName"
                                     name="InputFirstName"
                                     aria-describedby="firstNameHelp"
@@ -47,10 +66,10 @@
 
                     <div class="col">
                         <div class="form-group">
-                            <label for="InputLastName">Příjmení</label>
+                            <label for="InputLastName" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Příjmení</label>
                             <input
                                     type="text"
-                                    class="form-control"
+                                    class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md bg-gray-100 text-violet-700"
                                     id="InputLastName"
                                     name="InputLastName"
                                     aria-describedby="lastNameHelp"
@@ -64,10 +83,10 @@
                 <div class="row" style="margin-top: 1rem">
                     <div class="col">
                         <div class="form-group">
-                            <label for="InputDateOfBirth">Datum narození</label>
+                            <label for="InputDateOfBirth" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Datum narození</label>
                             <input
                                     type="text"
-                                    class="form-control"
+                                    class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md bg-gray-100 text-violet-700"
                                     id="InputDateOfBirth"
                                     name="InputDateOfBirth"
                                     placeholder="{{date_of_birth}}"
@@ -78,10 +97,10 @@
 
                     <div class="col">
                         <div class="form-group">
-                            <label for="InputEmail">Emailová adresa</label>
+                            <label for="InputEmail" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Emailová adresa</label>
                             <input
                                     type="email"
-                                    class="form-control"
+                                    class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
                                     id="InputEmail"
                                     name="InputEmail"
                                     aria-describedby="emailHelp"
@@ -91,50 +110,42 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="InputEmergencyContact">Jméno nouzového kontaktu</label>
+                <div class="row" style="">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="InputEmergencyContact" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Jméno nouzového kontaktu</label>
+                            <input
+                                    type="text"
+                                    class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
+                                    id="InputEmergencyContact"
+                                    name="InputEmergencyContact"
+                                    aria-describedby="EmergencyContactHelp"
+                                    placeholder="Sem napiš jméno nouzového kontaktu"
+                            />
+                            <small id="EmergencyContactHelp" class="form-text text-muted"></small>
+                        </div>
+                     </div>
+                    <div class="col">
+                        <div class="form-group" style="">
+                    <label for="InputEmergencyPhone" class = "block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">Telefon na nouzový kontakt</label>
                     <input
                             type="text"
-                            class="form-control"
-                            id="InputEmergencyContact"
-                            name="InputEmergencyContact"
-                            aria-describedby="EmergencyContactHelp"
-                            placeholder="Sem napiš jméno nouzového kontaktu"
-                    />
-                    <small id="EmergencyContactHelp" class="form-text text-muted"></small>
-                </div>
-
-                <div class="form-group" style="margin-top: 1rem">
-                    <label for="InputEmergencyPhone">Telefon na nouzový kontakt</label>
-                    <input
-                            type="text"
-                            class="form-control"
+                            class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
                             id="InputEmergencyPhone"
                             name="InputEmergencyPhone"
                             aria-describedby="EmergencyPhoneHelp"
                             placeholder="Sem napiš telefon na nouzový kontakt"/>
                     <small id="EmergencyPhoneHelp" class="form-text text-muted"></small>
-                </div>
-
-                <div class="row" style="margin-top: 1rem">
-                    <div class="col">
-                        <label class="my-1 mr-2" for="SelectGender"
-                        >Pohlaví</label>
-                        <select
-                                class="form-select my-1 mr-sm-2"
-                                id="SelectGender"
-                                name="SelectGender"
-                                disabled>
-                            <option value="{{gender}}">{{gender}}</option>
-
-                        </select>
                     </div>
+                </div>
+            </div>
+                <div class="row" style="margin-top: 1rem">
+                    
                     <div class="col">
-                        <label class="my-1 mr-2" for="SelectClub"
+                        <label class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" for="SelectClub"
                         >Vyber svůj klub</label>
                         <select
-                                class="form-select my-1 mr-sm-2"
+                                class="max-w-lg block focus:ring-indigo-500 focus:border-indigo-500 w-full shadow-sm sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
                                 id="SelectClub"
                                 name="SelectClub">
                             <option selected>Vyber...</option>
@@ -145,11 +156,11 @@
                     </div>
 
                     <div class="col">
-                        <label class="my-1 mr-2" for="SelectFreePlate"
+                        <label class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2" for="SelectFreePlate"
                         >Vyber své startovní číslo</label
                         >
                         <select
-                                class="form-select my-1 mr-sm-2"
+                                class="max-w-lg block focus:ring-indigo-500 focus:border-indigo-500 w-full shadow-sm sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
                                 id="SelectFreePlate"
                                 name="SelectFreePlate">
                             <option selected>Vyber...</option>
@@ -173,21 +184,22 @@
 
                 <div class="form-check form-switch" style="margin-top:1rem">
                     <input class="form-check-input" type="checkbox" id="CheckElite" name="CheckElite">
-                    <label class="form-check-label" for="CheckElite">Jsem jezdec kategorie Junior/Elite</label>
+                    <label class="form-check-label" for="CheckElite">Jsem jezdec kategorie Junior/Under 23/Elite</label>
                 </div>
 
                 {% if gender == "Žena" %}
-
                 <div class="form-check form-switch" style="margin-top:1rem">
                     <input class="form-check-input" type="checkbox" id="CheckBonus" name="CheckBonus" checked>
                     <label class="form-check-label" for="CheckBonus">Chci bonus pro dívky. Dívky mohou jezdit s chlapci o rok
                         mladšími.</label>
                 </div>
-
                 {% endif %}
-                <button type="submit" class="text-green-700 hover:text-white text-xl border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800 mt-8">
+
+                <button type="submit" class="bg-white text-green-700 hover:text-emerald-400 text-xl border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800 mt-8">
                     Odešli žádost ke schválení
                 </button>
+            </div>
+        </div>
     </form>
 </div>
 
