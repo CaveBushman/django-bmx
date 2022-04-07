@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'oe2*f1@2uyk&j)jo!2s1ehd*&%j^4aepgk=iyysti)#h)4b0wg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -175,7 +175,7 @@ STRIPE_PUBLIC_KEY = "pk_test_51HeoE0F3rP8tXY4Cx7YEpcx0fSAQ6M3HYdQrTgiUlNqSxNxCAM
 STRIPE_SECRET_KEY = "sk_test_51HeoE0F3rP8tXY4C7hSSIAuzYZsNCAddVo1cMCQa5GFVR6N25iEgC6v5ECkPLOqElil8OMe649Yct1GnZ6J0P2OC00n4ruiDRW"
 STRIPE_WEBHOOK_SECRET = ""
 
-YOUR_DOMAIN = "http://localhost:8000"
+YOUR_DOMAIN = "http://app.czechbmx.cz"
 
 # email setting
 EMAIL_HOST = 'smtp.gmail.com'
