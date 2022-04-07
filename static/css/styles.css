@@ -838,6 +838,10 @@ select {
   margin-left: 1rem;
 }
 
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
 .block {
   display: block;
 }
@@ -958,6 +962,18 @@ select {
 
 .w-5\/6 {
   width: 83.333333%;
+}
+
+.w-3\/4 {
+  width: 75%;
+}
+
+.w-2\/5 {
+  width: 40%;
+}
+
+.w-3\/5 {
+  width: 60%;
 }
 
 .min-w-full {
@@ -1974,6 +1990,12 @@ select {
   }
 }
 
+@media print {
+  .print\:hidden {
+    display: none;
+  }
+}
+
 @media (min-width: 640px) {
   .sm\:-mx-6 {
     margin-left: -1.5rem;
@@ -2002,6 +2024,10 @@ select {
 
   .sm\:w-3\/4 {
     width: 75%;
+  }
+
+  .sm\:w-3\/5 {
+    width: 60%;
   }
 
   .sm\:max-w-xs {
@@ -2078,6 +2104,11 @@ select {
   .sm\:text-3xl {
     font-size: 1.875rem;
     line-height: 2.25rem;
+  }
+
+  .sm\:text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
   }
 }
 
