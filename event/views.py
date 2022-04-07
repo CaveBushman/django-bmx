@@ -527,7 +527,7 @@ def EventAdminView(request, pk):
         ws.title="BEM5_EXT"
         ws = excel_first_line(ws)
 
-        riders = Rider.objects.filter(is_active=True, is_approwe=True, is_20=True)
+        riders = Rider.objects.filter(is_active=True, is_approwe=True)
         x = 2
         for rider in riders:
             ws.cell(x,1,rider.uci_id)
