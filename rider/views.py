@@ -211,7 +211,7 @@ def RiderNewView(request):
             #     message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
             #     from_email = "bmx@ceskysvazcyklistiky.cz",
             #     recipient_list = ["david@black-ops.eu"],
-            )
+            #)
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
