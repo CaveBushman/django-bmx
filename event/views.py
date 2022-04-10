@@ -324,23 +324,29 @@ def EventAdminView(request, pk):
     check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
 
     invalid_licences = []
-    for check20 in check_20_entries:
-        print(check20.rider)
-        rider = Rider.objects.get(uci_id=check20.rider)
-        if not rider.have_valid_licence:
-            print("Jezdec nemá platnou licenci")
-            invalid_licences.append(rider)
-        else:
-            print("Jezdec má platnou licenci")
+    try:
+        for check20 in check_20_entries:
+            print(check20.rider)
+            rider = Rider.objects.get(uci_id=check20.rider)
+            if not rider.have_valid_licence:
+                print(f"Jezdec nemá platnou licenci")
+                invalid_licences.append(rider)
+            else:
+                print(f"Jezdec {rider.last_name} má platnou licenci")
+    except:
+        pass    #TODO: Dodělat zprávu o chybě
 
     for check24 in check_24_entries:
         print(check24.rider)
-        rider = Rider.objects.get(uci_id=check24.rider)
-        if not rider.have_valid_licence:
-            print("Jezdec nemá platnou licenci")
-            invalid_licences.append(rider)
-        else:
-            print("Jezdec má platnou licenci")
+        try:
+            rider = Rider.objects.get(uci_id=check24.rider)
+            if not rider.have_valid_licence:
+                print(f"Jezdec nemá platnou licenci")
+                invalid_licences.append(rider)
+            else:
+                print(f"Jezdec {rider.last_name} má platnou licenci")
+        except:
+            pass    #TODO: Dodělat zprávu o chybě
     invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
 
     if 'btn-upload-result' in request.POST:
