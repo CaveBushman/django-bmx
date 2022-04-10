@@ -4,7 +4,7 @@
 
 <h1 class="text-4xl text-black-900 mt-4 py-3 text-center text-purple-700">KALENDÁŘ ZÁVODŮ</h1>
 
-<div class="w-3/5 mx-auto mt-3">
+<div class=" md:w-4/5 lg:w-3/5 mx-auto">
 
 <div class="d-flex flex-row bd-highlight mb-3 justify-content-center">
   <div class="p-2 bd-highlight">
@@ -62,10 +62,10 @@
           <tr class="table-light text-decoration-line-through">
         {% endif %}
 
-        <th scope="row"><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.date}}</a></th>
-        <td class = ""><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.name}}</a></td>
-        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.organizer|upper}}</a></td>
-        <td><a href="{% url 'event:event-detail' event.id %}" style="text-decoration: none; color: black">{{event.type}}</a></td>
+        <th scope="row"><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg"> {{event.date}}</a></th>
+        <td class = ""><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg">{{event.name}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg">{{event.organizer|upper}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg"">{{event.type}}</a></td>
         <td>{% if event.reg_open %}
                 <div class="col col-reg"><a
                         href="{% url 'event:entry' event.id %}"
@@ -73,7 +73,7 @@
                         tabindex="-1"
                         role="button"
                         aria-disabled="true"
-                >Přihlásit do závodu</a></div>
+                >Přihlásit</a></div>
                 {% else %}
                 <div class="col col-reg"><a
                     href="{% url 'event:entry' event.id %}"
@@ -81,7 +81,7 @@
                     tabindex="-1"
                     role="button"
                     aria-disabled="true"
-            >Přihlásit do závodu</a></div>
+            >Přihlásit</a></div>
                 {% endif %}</td>
         <td>
           {% if event.results_uploaded %}
