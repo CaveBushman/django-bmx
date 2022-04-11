@@ -44,15 +44,15 @@
     </thead>
     <tbody>
       {% for event in events%}
-      {% if event.type == 'Mistrovství ČR jednotlivců' or event.type == "Mistrovství ČR družstev" %}
+      {% if event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type == "Mistrovství ČR družstev" %}
             <tr class="bg-rose-200">
-        {% elif event.type == 'Český pohár' %}
+        {% elif event.type_for_ranking == 'Český pohár' %}
              <tr class="bg-emerald-200">
-        {% elif event.type == 'Česká liga' %}
+        {% elif event.type_for_ranking == 'Česká liga' %}
             <tr class="table-success">
-        {% elif event.type == 'Moravská liga' %}
+        {% elif event.type_for_ranking == 'Moravská liga' %}
             <tr class="bg-blue-200">
-        {% elif event.type == 'Mezinárodní závod' %}
+        {% elif event.type_for_ranking == 'Mezinárodní závod' %}
             <tr class="table-secondary">
         {% else %}
             <tr class="bg-amber-100">
