@@ -20,7 +20,7 @@
                 <div class="col-sm"> <h1 class="text-center text-3xl text-blue-600">{{category | upper}}</h1></div>
 
                 <div class="col-sm">
-                    <select class="form-select" aria-label="Default select example" name="categoryInput" id="categoryInput">
+                    <select class="form-select mt-3" aria-label="Default select example" name="categoryInput" id="categoryInput">
                         <option selected>Vyber kategorii:</option>
                         {% for category in categories %}
                         <option value="{{category}}">{{category}}</option>
@@ -41,10 +41,10 @@
         <tr>
             <th scope="col">#</th>
             <th>St.č.</th>
-            <th></th>
+            <th class="hidden sm:table-cell"></th>
             <th scope="col">Příjmení</th>
             <th scope="col">Jméno</th>
-            <th>UCI ID</th>
+            <th class="hidden md:table-cell">UCI ID</th>
             <th scope="col">Klub</th>
             <th scope="col">Počet bodů</th>
         </tr>
@@ -58,8 +58,8 @@
             <th scope="row">{{result.ranking_20}}.</th>
             {% endif %}
             <td>{{result.plate}}</td>
-            <td><img
-                class="avatar img-fluid rounded-circle"
+            <td class="hidden sm:table-cell"><img
+                class="avatar img-fluid rounded-circle "
                 src="{{result.photo.url}}"
                 alt=""
                 sizes="10px"
@@ -68,7 +68,7 @@
               /></td>
             <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black"><b>{{result.last_name|upper}}</b></a></td>
             <td>{{result.first_name}}</td>
-            <td class = "text-sm">{{result.uci_id}}</td>
+            <td class = "text-sm hidden md:table-cell">{{result.uci_id}}</td>
             <td class="text-sm">{{result.club|upper}}</td>
             {% if cruiser %}
             <td class = "text-sm">{{result.points_24}}</td>

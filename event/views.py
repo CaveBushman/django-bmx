@@ -1,7 +1,7 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Event, Result, Entry
+from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider
 from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
@@ -123,23 +123,100 @@ def EntryView(request, pk):
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
 
-        # read xlsx file due to feesgit
-        wb = load_workbook('static/classes/classes.xlsx')
-        sheet_range = wb[str(event.classes_code)]
+        fee = EntryClasses.objects.get(id=event.classes_and_fees_like.id)
 
-        # add fees for cruiser
+
         for rider_20 in riders_20:
-            for row in range (3, 35):
-                if rider_20.class_20 == sheet_range.cell(row,1).value:
-                    if rider_20.gender == "Žena" and rider_20.have_girl_bonus:
-                        sum_fee+= int(sheet_range.cell(row,4).value)
-                    else:
-                        sum_fee+= int(sheet_range.cell(row,5).value)
-        # add fees for cruiser
+            if rider_20.class_20 == "Boys 6":
+                sum_fee+=fee.boys_6_fee 
+            elif rider_20.class_20 == "Boys 7":
+                sum_fee+=fee.boys_7_fee       
+            elif rider_20.class_20 == "Boys 8":
+                sum_fee+=fee.boys_8_fee
+            elif rider_20.class_20 == "Boys 9":
+                sum_fee+=fee.boys_9_fee
+            elif rider_20.class_20 == "Boys 10":
+                sum_fee+=fee.boys_10_fee
+            elif rider_20.class_20 == "Boys 11":
+                sum_fee+=fee.boys_11_fee
+            elif rider_20.class_20 == "Boys 12":
+                sum_fee+=fee.boys_12_fee
+            elif rider_20.class_20 == "Boys 13":
+                sum_fee+=fee.boys_13_fee
+            elif rider_20.class_20 == "Boys 14":
+                sum_fee+=fee.boys_14_fee
+            elif rider_20.class_20 == "Boys 15":
+                sum_fee+=fee.boys_15_fee
+            elif rider_20.class_20 == "Boys 16":
+                sum_fee+=fee.boys_16_fee
+            elif rider_20.class_20 == "Men 17-24":
+                sum_fee+=fee.men_17_24_fee
+            elif rider_20.class_20 == "Men 25-29":
+                sum_fee+=fee.men_25_29_fee
+            elif rider_20.class_20 == "Men 30-34":
+                sum_fee+=fee.men_30_34_fee
+            elif rider_20.class_20 == "Men 35 and over":
+                sum_fee+=fee.men_35_over_fee
+            elif rider_20.class_20 == "Men Junior":
+                sum_fee+=fee.men_junior_fee
+            elif rider_20.class_20 == "Men Under 23":
+                sum_fee+=fee. men_u23_fee
+            elif rider_20.class_20 == "Men Elite":
+                sum_fee+=fee.men_elite_fee
+            elif rider_20.class_20 == "Girls 7":
+                sum_fee+=fee.girls_7_fee
+            elif rider_20.class_20 == "Girls 8":
+                sum_fee+=fee.girls_8_fee
+            elif rider_20.class_20 == "Girls 9":
+                sum_fee+=fee.girls_9_fee
+            elif rider_20.class_20 == "Girls 10":
+                sum_fee+=fee.girls_10_fee 
+            elif rider_20.class_20 == "Girls 11":
+                sum_fee+=fee.girls_11_fee
+            elif rider_20.class_20 == "Girls 12":
+                sum_fee+=fee.girls_12_fee
+            elif rider_20.class_20 == "Girls 13":
+                sum_fee+=fee.girls_13_fee
+            elif rider_20.class_20 == "Girls 14":
+                sum_fee+=fee.girls_14_fee
+            elif rider_20.class_20 == "Girls 15":
+                sum_fee+=fee.girls_15_fee
+            elif rider_20.class_20 == "Girls 16":
+                sum_fee+=fee.girls_16_fee
+            elif rider_20.class_20 == "Women 17-24":
+                sum_fee+=fee. women_17_24_fee
+            elif rider_20.class_20 == "Women 25 and over":
+                sum_fee+=fee. women_25_over_fee  
+
         for rider_24 in riders_24:
-            for row in range (3, 16):
-                if rider_24.class_24 == sheet_range.cell(row,6).value:
-                    sum_fee+= int(sheet_range.cell(row,8).value)
+            if rider_24.class_24 == "Boys 12 and under":
+                sum_fee+=fee.cr_boys_12_and_under_fee  
+            elif rider_24.class_24 == "Boys 13 and 14":
+                sum_fee+=fee.cr_boys_13_14_fee
+            elif rider_24.class_24 == "Boys 15 and 16":
+                sum_fee+=fee.cr_boys_15_16_fee
+            elif rider_24.class_24 == "Men 17-24":
+                sum_fee+=fee.cr_men_17_24_fee
+            elif rider_24.class_24 == "Men 25-29":
+                sum_fee+=fee.cr_men_25_29_fee
+            elif rider_24.class_24 == "Men 30-34":
+                sum_fee+=fee.cr_men_30_34_fee
+            elif rider_24.class_24 == "Men 35-39":
+                sum_fee+=fee.cr_men_35_39_fee
+            elif rider_24.class_24 == "Men 40-49":
+                sum_fee+=fee.cr_men_40_49_fee
+            elif rider_24.class_24 == "Men 50 and over":
+                sum_fee+=fee.cr_men_50_and_over_fee
+            elif rider_24.class_24 == "Girls 12 and under":
+                sum_fee+=fee. cr_girls_12_and_under_fee
+            elif rider_24.class_24 == "Girls 13-16":
+                sum_fee+=fee.cr_girls_13_16_fee
+            elif rider_24.class_24 == "Women 17-29":
+                sum_fee+=fee.cr_women_17_29_fee
+            elif rider_24.class_24 == "Women 30-39":
+                sum_fee+=fee.cr_women_30_39_fee
+            elif rider_24.class_24 == "Women 40 and over":
+                sum_fee+=fee.cr_women_40_and_over_fee
 
         # convert to json format (need for sessions)
         sum_fee_json = json.dumps({'sum_fee': sum_fee})
@@ -179,32 +256,95 @@ def ConfirmView(request):
     riders_20 = json.loads(request.session['riders_20'])
     riders_24 = json.loads(request.session['riders_24'])
 
+    current_event = Event.objects.get(id=event['event'])
+
+    print (current_event.classes_and_fees_like.id)
+
+    entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
+
+    
+
     if request.method == "POST":
 
-        # read xlsx file due to fees
-        wb = load_workbook('static/classes/classes.xlsx')
-        sheet_range = wb[str(this_event.classes_code)]
-
         fee=0
-
+  
         # data for checkout session
         line_items = []
         for rider_20 in riders_20:
-            for row in range (3, 35):
-                if rider_20['fields']['class_20'] == sheet_range.cell(row,1).value:
-                    if rider_20['fields']['gender']== "Žena" and rider_20['fields']['have_girl_bonus']:
-                        fee = int(sheet_range.cell(row,4).value)
-                        cat = sheet_range.cell(row,2).value
-                    else:
-                        fee = int(sheet_range.cell(row,5).value)
-                        cat = sheet_range.cell(row,3).value
+            if rider_20['fields']['class_20'] == "Boys 6":
+               fee = entry_fee.boys_6_fee
+            elif rider_20['fields']['class_20'] == "Boys 7":
+               fee = entry_fee.boys_7_fee
+            elif rider_20['fields']['class_20'] == "Boys 8":
+               fee = entry_fee.boys_8_fee
+            elif rider_20['fields']['class_20'] == "Boys 9":
+               fee = entry_fee.boys_9_fee
+            elif rider_20['fields']['class_20'] == "Boys 10":
+               fee = entry_fee.boys_10_fee
+            elif rider_20['fields']['class_20'] == "Boys 11":
+               fee = entry_fee.boys_11_fee
+            elif rider_20['fields']['class_20'] == "Boys 12":
+               fee = entry_fee.boys_12_fee
+            elif rider_20['fields']['class_20'] == "Boys 13":
+               fee = entry_fee.boys_13_fee
+            elif rider_20['fields']['class_20'] == "Boys 14":
+               fee = entry_fee.boys_14_fee
+            elif rider_20['fields']['class_20'] == "Boys 15":
+               fee = entry_fee.boys_15_fee
+            elif rider_20['fields']['class_20'] == "Boys 16":
+               fee = entry_fee.boys_16_fee
+            elif rider_20['fields']['class_20'] == "Men 17-24":
+               fee = entry_fee.men_17_24_fee
+            elif rider_20['fields']['class_20'] == "Men 25-29":
+               fee = entry_fee.men_25_29_fee
+            elif rider_20['fields']['class_20'] == "Men 30-34":
+               fee = entry_fee.men_30_34_fee
+            elif rider_20['fields']['class_20'] == "Men 35 and over":
+               fee = entry_fee.men_35_over_fee
+            elif rider_20['fields']['class_20'] == "Men Junior":
+               fee = entry_fee.men_junior_fee
+            elif rider_20['fields']['class_20'] == "Men Under 23":
+               fee = entry_fee.men_u23_fee
+            elif rider_20['fields']['class_20'] == "Men Elite":
+               fee = entry_fee.men_elite_fee
+            elif rider_20['fields']['class_20'] == "Girls 7":
+               fee = entry_fee.girls_7_fee
+            elif rider_20['fields']['class_20'] == "Girls 8":
+               fee = entry_fee.girls_8_fee
+            elif rider_20['fields']['class_20'] == "Girls 9":
+               fee = entry_fee.girls_9_fee
+            elif rider_20['fields']['class_20'] == "Girls 10":
+               fee = entry_fee.girls_10_fee
+            elif rider_20['fields']['class_20'] == "Girls 11":
+               fee = entry_fee.girls_11_fee
+            elif rider_20['fields']['class_20'] == "Girls 12":
+               fee = entry_fee.girls_12_fee
+            elif rider_20['fields']['class_20'] == "Girls 13":
+               fee = entry_fee.girls_13_fee
+            elif rider_20['fields']['class_20'] == "Girls 14":
+               fee = entry_fee.girls_14_fee
+            elif rider_20['fields']['class_20'] == "Girls 15":
+               fee = entry_fee.girls_15_fee
+            elif rider_20['fields']['class_20'] == "Girls 16":
+               fee = entry_fee.girls_16_fee
+            elif rider_20['fields']['class_20'] == "Women 17-24":
+               fee = entry_fee.women_17_24_fee
+            elif rider_20['fields']['class_20'] == "Women 25 and over":
+               fee = entry_fee. women_25_over_fee
+            elif rider_20['fields']['class_20'] == "Women Junior":
+               fee = entry_fee.women_junior_fee
+            elif rider_20['fields']['class_20'] == "Women Under 23":
+               fee = entry_fee.women_u23_fee
+            elif rider_20['fields']['class_20'] == "Women Elite":
+               fee = entry_fee.women_elite_fee
+            
             line_items += {
                 'price_data': {
                     'currency': 'czk',
                     'unit_amount': fee * 100,
                     'product_data': {
                         'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
-                            'first_name'] + ", " + cat,
+                            'first_name'] + ", " + rider_20['fields']['class_20'],
                         'images': [],
                         'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
                     },
@@ -214,22 +354,48 @@ def ConfirmView(request):
 
         # add fees for cruiser
         for rider_24 in riders_24:
-            for row in range (3, 16):
-                if rider_24['fields']['class_24'] == sheet_range.cell(row,6).value:
-                    fee = int(sheet_range.cell(row,8).value)
+            if rider_20['fields']['class_24'] == "Boys 12 and under":
+                fee=entry_fee.cr_boys_12_and_under_fee
+            elif rider_20['fields']['class_24'] == "Boys 13 and 14":
+                fee=entry_fee.cr_boys_13_14_fee
+            elif rider_20['fields']['class_24'] == "Boys 15 and 16":
+                fee=entry_fee.cr_boys_15_16_fee
+            elif rider_20['fields']['class_24'] == "Men 17-24":
+                fee=entry_fee.cr_men_17_24_fee
+            elif rider_20['fields']['class_24'] == "Men 25-29":
+                fee=entry_fee.cr_men_25_29_fee
+            elif rider_20['fields']['class_24'] == "Men 30-34":
+                fee=entry_fee.cr_men_30_34_fee
+            elif rider_20['fields']['class_24'] == "Men 35-39":
+                fee=entry_fee.cr_men_35_39_fee
+            elif rider_20['fields']['class_24'] == "Men 40-49":
+                fee=entry_fee.cr_men_40_49_fee
+            elif rider_20['fields']['class_24'] == "Men 50 and over":
+                fee=entry_fee.cr_men_50_and_over_fee
+            elif rider_20['fields']['class_24'] == "Girls 12 and under":
+                fee=entry_fee.cr_girls_12_and_under_fee
+            elif rider_20['fields']['class_24'] == "Girls 13-16":
+                fee=entry_fee.cr_girls_13_16_fee
+            elif rider_20['fields']['class_24'] == "Women 17-29":
+                fee=entry_fee.cr_women_17_29_fee
+            elif rider_20['fields']['class_24'] == "Women 30-39":
+                fee=entry_fee.cr_women_30_39_fee
+            elif rider_20['fields']['class_24'] == "Women 40 and over":
+                fee=entry_fee.cr_women_40_and_over_fee
+
             line_items += {
                 'price_data': {
-                    'currency': 'czk',
-                    'unit_amount': fee * 100,
-                    'product_data': {
-                        'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                            'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
-                        'images': [],
-                        'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
+                        'currency': 'czk',
+                        'unit_amount': fee * 100,
+                        'product_data': {
+                            'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
+                                'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
+                            'images': [],
+                            'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
+                        },
                     },
+                    'quantity': 1,
                 },
-                'quantity': 1,
-            },
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -244,16 +410,18 @@ def ConfirmView(request):
 
             # save entry riders to database
             for rider_20 in riders_20:
-                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                   rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
-                                   class_20=rider_20['fields']['class_20'], class_24="")
-                entry.save()
+                # entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
+                #                    rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
+                #                    class_20=rider_20['fields']['class_20'], class_24="")
+                # entry.save()
+                pass
             for rider_24 in riders_24:
-                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                   rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
-                                   class_24=rider_24['fields']['class_24'], class_20="")
-                entry.save()
-            del entry
+                # entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
+                #                    rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
+                #                    class_24=rider_24['fields']['class_24'], class_20="")
+                # entry.save()
+                pass
+            # del entry
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
             return JsonResponse(error=str(e)), 403
@@ -554,8 +722,8 @@ def EventAdminView(request, pk):
             ws.cell(x,17,team_name_resolve(rider.club))
             ws.cell(x,18,"CZE")
             ws.cell(x,19,"CZE")
-            ws.cell(x,20,rider.class_20)
-            ws.cell(x,21,rider.class_24)
+            ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
+            ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
             ws.cell(x,28,"")
             ws.cell(x,29,"")
             ws.cell(x,24,rider.plate)

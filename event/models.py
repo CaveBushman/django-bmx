@@ -1,4 +1,6 @@
+from faulthandler import is_enabled
 from django.db import models
+from sqlalchemy import true
 from club.models import Club
 
 from datetime import date
@@ -6,7 +8,150 @@ from datetime import date
 
 # Create your models here.
 
+class Entry(models.Model):
+    transaction_id = models.CharField(max_length=255, default="")
+    event = models.IntegerField(default=0, null=True, blank=True)
+    rider = models.IntegerField(default=0)
+    is_20 = models.BooleanField(default=False)
+    is_24 = models.BooleanField(default=False)
+    class_20 = models.CharField(max_length=255, default="")
+    class_24 = models.CharField(max_length=255, default="")
+    fee_20 = models.IntegerField(null=True, blank=True, default=0)
+    fee_24 = models.IntegerField(null=True, blank=True, default=0)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+    payment_complete = models.BooleanField(default=False)
+    logout = models.BooleanField(default=False)
+    date_of_payment = models.DateField(auto_now_add=True, null=True)
+
+
+class EntryClasses(models.Model):
+
+    event_name = models.CharField(max_length=200)
+    
+    boys_6 = models.CharField(max_length=50, blank = true, null = true)
+    boys_7 = models.CharField(max_length=50, blank = true, null = true)
+    boys_8 = models.CharField(max_length=50, blank = true, null = true)
+    boys_9 = models.CharField(max_length=50, blank = true, null = true)
+    boys_10 = models.CharField(max_length=50, blank = true, null = true)
+    boys_11 = models.CharField(max_length=50, blank = true, null = true)
+    boys_12 = models.CharField(max_length=50, blank = true, null = true)
+    boys_13 = models.CharField(max_length=50, blank = true, null = true)
+    boys_14 = models.CharField(max_length=50, blank = true, null = true)
+    boys_15 = models.CharField(max_length=50, blank = true, null = true)
+    boys_16 = models.CharField(max_length=50, blank = true, null = true)
+    men_17_24 = models.CharField(max_length=50, blank = true, null = true)
+    men_25_29 = models.CharField(max_length=50, blank = true, null = true)
+    men_30_34 = models.CharField(max_length=50, blank = true, null = true)
+    men_35_over = models.CharField(max_length=50, blank = true, null = true)
+
+    girls_7 = models.CharField(max_length=50, blank = true, null = true)
+    girls_8 = models.CharField(max_length=50, blank = true, null = true)
+    girls_9 = models.CharField(max_length=50, blank = true, null = true)
+    girls_10 = models.CharField(max_length=50, blank = true, null = true)
+    girls_11 = models.CharField(max_length=50, blank = true, null = true)
+    girls_12 = models.CharField(max_length=50, blank = true, null = true)
+    girls_13 = models.CharField(max_length=50, blank = true, null = true)
+    girls_14 = models.CharField(max_length=50, blank = true, null = true)
+    girls_15 = models.CharField(max_length=50, blank = true, null = true)
+    girls_16 = models.CharField(max_length=50, blank = true, null = true)
+    women_17_24 = models.CharField(max_length=50, blank = true, null = true)
+    women_25_over = models.CharField(max_length=50, blank = true, null = true)
+
+    men_junior = models.CharField(max_length=50, blank = true, null = true)
+    men_u23 = models.CharField(max_length=50, blank = true, null = true)
+    men_elite = models.CharField(max_length=50, blank = true, null = true)
+
+    women_junior = models.CharField(max_length=50, blank = true, null = true)
+    women_u23 = models.CharField(max_length=50, blank = true, null = true)
+    women_elite = models.CharField(max_length=50, blank = true, null = true)
+
+    cr_boys_12_and_under = models.CharField(max_length=50, blank = true, null = true)
+    cr_boys_13_14 = models.CharField(max_length=50, blank = true, null = true)
+    cr_boys_15_16 = models.CharField(max_length=50, blank = true, null = true)
+
+    cr_men_17_24 = models.CharField(max_length=50, blank = true, null = true)
+    cr_men_25_29 = models.CharField(max_length=50, blank = true, null = true)
+    cr_men_30_34 = models.CharField(max_length=50, blank = true, null = true)
+    cr_men_35_39 = models.CharField(max_length=50, blank = true, null = true)
+    cr_men_40_49 = models.CharField(max_length=50, blank = true, null = true)
+    cr_men_50_and_over = models.CharField(max_length=50, blank = true, null = true)
+
+    cr_girls_12_and_under = models.CharField(max_length=50, blank = true, null = true)
+    cr_girls_13_16 = models.CharField(max_length=50, blank = true, null = true)
+    cr_women_17_29 = models.CharField(max_length=50, blank = true, null = true)
+    cr_women_30_39 = models.CharField(max_length=50, blank = true, null = true)
+    cr_women_40_and_over = models.CharField(max_length=50, blank = true, null = true)
+
+    boys_6_fee = models.IntegerField(default=0)
+    boys_7_fee = models.IntegerField(default=0)
+    boys_8_fee = models.IntegerField(default=0)
+    boys_9_fee = models.IntegerField(default=0)
+    boys_10_fee = models.IntegerField(default=0)
+    boys_11_fee = models.IntegerField(default=0)
+    boys_12_fee = models.IntegerField(default=0)
+    boys_13_fee = models.IntegerField(default=0)
+    boys_14_fee = models.IntegerField(default=0)
+    boys_15_fee = models.IntegerField(default=0)
+    boys_16_fee = models.IntegerField(default=0)
+    men_17_24_fee = models.IntegerField(default=0)
+    men_25_29_fee = models.IntegerField(default=0)
+    men_30_34_fee = models.IntegerField(default=0)
+    men_35_over_fee = models.IntegerField(default=0)
+
+    girls_7_fee = models.IntegerField(default=0)
+    girls_8_fee = models.IntegerField(default=0)
+    girls_9_fee = models.IntegerField(default=0)
+    girls_10_fee =models.IntegerField(default=0)
+    girls_11_fee =models.IntegerField(default=0)
+    girls_12_fee =models.IntegerField(default=0)
+    girls_13_fee =models.IntegerField(default=0)
+    girls_14_fee =models.IntegerField(default=0)
+    girls_15_fee =models.IntegerField(default=0)
+    girls_16_fee =models.IntegerField(default=0)
+    women_17_24_fee = models.IntegerField(default=0)
+    women_25_over_fee = models.IntegerField(default=0)
+
+    men_junior_fee = models.IntegerField(default=0)
+    men_u23_fee = models.IntegerField(default=0)
+    men_elite_fee = models.IntegerField(default=0)
+
+    women_junior_fee =models.IntegerField(default=0)
+    women_u23_fee = models.IntegerField(default=0)
+    women_elite_fee = models.IntegerField(default=0)
+
+    cr_boys_12_and_under_fee = models.IntegerField(default=0)
+    cr_boys_13_14_fee = models.IntegerField(default=0)
+    cr_boys_15_16_fee = models.IntegerField(default=0)
+
+    cr_men_17_24_fee = models.IntegerField(default=0)
+    cr_men_25_29_fee = models.IntegerField(default=0)
+    cr_men_30_34_fee = models.IntegerField(default=0)
+    cr_men_35_39_fee = models.IntegerField(default=0)
+    cr_men_40_49_fee = models.IntegerField(default=0)
+    cr_men_50_and_over_fee = models.IntegerField(default=0)
+    
+    cr_girls_12_and_under_fee = models.IntegerField(default=0)
+    cr_girls_13_16_fee = models.IntegerField(default=0)
+    cr_women_17_29_fee = models.IntegerField(default=0)
+    cr_women_30_39_fee = models.IntegerField(default=0)
+    cr_women_40_and_over_fee = models.IntegerField(default=0)
+
+    is_enabled = models.BooleanField(default=true)
+
+    created = models.DateField(auto_now_add=True, null=True)
+    updated = models.DateField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.event_name
+    
+    class Meta:
+        verbose_name = "Kategorie a startovné"
+        verbose_name_plural = 'Kategorie a startovné'
+    
+    
+
 class Event(models.Model):
+
     """ class form event """
 
     EVENT_TYPE = (('Mistrovství ČR jednotlivců', 'Mistrovství ČR jednotlivců'),
@@ -22,8 +167,10 @@ class Event(models.Model):
 
     organizer = models.ForeignKey(Club, related_name='club', null=True, on_delete=models.SET_NULL)
 
-    type = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
-    classes_code = models.IntegerField(default = 3)
+    type_for_ranking = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
+
+    # classes_code = models.IntegerField(default = 3)
+    classes_and_fees_like = models.ForeignKey(EntryClasses,  default = 5, on_delete=models.SET_DEFAULT, blank=True)
 
     is_uci_race = models.BooleanField(default=False)
 
@@ -93,19 +240,3 @@ class Result(models.Model):
 
     def __str__(self):
         return self.name + " " + str(self.last_name) + " " + self.first_name + " " + self.category
-
-
-class Entry(models.Model):
-    transaction_id = models.CharField(max_length=255, default="")
-    event = models.IntegerField(default=0, null=True, blank=True)
-    rider = models.IntegerField(default=0)
-    is_20 = models.BooleanField(default=False)
-    is_24 = models.BooleanField(default=False)
-    class_20 = models.CharField(max_length=255, default="")
-    class_24 = models.CharField(max_length=255, default="")
-    fee_20 = models.IntegerField(null=True, blank=True, default=0)
-    fee_24 = models.IntegerField(null=True, blank=True, default=0)
-    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
-    payment_complete = models.BooleanField(default=False)
-    logout = models.BooleanField(default=False)
-    date_of_payment = models.DateField(auto_now_add=True, null=True)
