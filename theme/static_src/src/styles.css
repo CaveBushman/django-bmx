@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+
 .btn {
     @apply text-base font-medium rounded-lg p-3;
   }
@@ -16,4 +18,9 @@
 
   .btn--green {
     @apply focus:outline-none text-white hover:text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800
+}
+  .dark--text{
+    @apply text-gray-200
+  }
+
 }

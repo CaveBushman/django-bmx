@@ -530,7 +530,7 @@ def EventAdminView(request, pk):
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)
             event = Event.objects.get(id=pk)
-            ranking_code = GetResult.ranking_code_resolve(type=event.type)
+            ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
             data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
@@ -540,11 +540,12 @@ def EventAdminView(request, pk):
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
 
-                if not re.search("Prichozi", category) or not re.search("Příchozí", category):
+                # Kategorie Příchozích neboduje do rankingu
+                if category.find("Příchozí") == -1 and category.find("Prichozi") == -1:
                     result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
-                                last_name, club, event.organizer.team_name, event.type)
+                                last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
-                    
+                      
             event.results_uploaded = 1
             event.results_path_to_file = uploaded_file_url
             event.save()

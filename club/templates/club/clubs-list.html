@@ -8,22 +8,22 @@
 <table class="table table-hover">
   <thead>
     <tr>
-      <th scope="col">Název klubu</th>
-      <th scope="col">Kraj</th>
-      <th scope="col">Kontaktní osoba</th>
-      <th scope="col">Kontaktní telefon</th>
-      <th scope="col">Kontaktní e-mail</th>
+      <th scope="col" class="dark:text-gray-200">Název klubu</th>
+      <th scope="col" class="dark:text-gray-200">Kraj</th>
+      <th scope="col" class="dark:text-gray-200">Kontaktní osoba</th>
+      <th scope="col" class="dark:text-gray-200 hidden lg:table-cell">Kontaktní telefon</th>
+      <th scope="col" class="dark:text-gray-200">Kontaktní e-mail</th>
     </tr>
   </thead>
   <tbody>
   {% for club in clubs %}
     <tr>
       <th scope="row"><a
-            href="{% url 'club:club-detail' club.id %}" style="text-decoration: none; color:black">{{club.team_name|upper}}</a></th>
-      <td>{{club.region}}</td>
-      <td>{{club.contact_person}}</td>
-      <td>{{club.contact_phone}}</td>
-      <td>{{club.contact_email}}</td>
+            href="{% url 'club:club-detail' club.id %}" style="text-decoration: none;" class="text-black dark:text-gray-100">{{club.team_name|upper}}</a></th>
+      <td class="dark:text-slate-100">{{club.region}}</td>
+      <td class="dark:text-slate-100">{{club.contact_person}}</td>
+      <td class="dark:text-slate-100 hidden lg:table-cell">{{club.contact_phone}}</td>
+      <td class="dark:text-slate-100">{{club.contact_email}}</td>
     </tr>
   {% endfor %}
   </tbody>

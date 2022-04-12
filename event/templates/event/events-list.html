@@ -2,7 +2,7 @@
 {% block title %} Kalendář závodů {% endblock title %} 
 {% block content %}
 
-<h1 class="text-4xl text-black-900 mt-4 py-3 text-center text-purple-700">KALENDÁŘ ZÁVODŮ</h1>
+<h1 class="text-4xl text-black-900 mt-4 py-3 text-center text-purple-700 dark:text-purple-300">KALENDÁŘ ZÁVODŮ</h1>
 
 <div class=" md:w-4/5 lg:w-3/5 mx-auto">
 
@@ -31,12 +31,12 @@
   <table class="table mb-6">
     <thead>
       <tr>
-        <th scope="col">Datum</th>
-        <th scope="col">Název</th>
-        <th scope="col">Pořadatel</th>
-        <th scope="col">Druh</th>
-        <th scope="col"></th>
-        <th scope="col"></th>
+        <th scope="col" class="dark:text-gray-200 text-center">Datum</th>
+        <th scope="col" class="dark:text-gray-200 text-center">Název</th>
+        <th scope="col" class="hidden md:table-cell dark:text-gray-200 text-center">Pořadatel</th>
+        <th scope="col" class="dark:text-gray-200 text-center">Druh</th>
+        <th scope="col" class="dark:text-gray-200 text-center"></th>
+        <th scope="col" class="dark:text-gray-200 text-center"></th>
         {% if request.user.is_superuser %}
         <th scope="col"></th>
         {% endif %}
@@ -44,7 +44,7 @@
     </thead>
     <tbody>
       {% for event in events%}
-      {% if event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type == "Mistrovství ČR družstev" %}
+      {% if event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type_for_ranking == "Mistrovství ČR družstev" %}
             <tr class="bg-rose-200">
         {% elif event.type_for_ranking == 'Český pohár' %}
              <tr class="bg-emerald-200">
@@ -64,8 +64,8 @@
 
         <th scope="row"><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg"> {{event.date}}</a></th>
         <td class = ""><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg">{{event.name}}</a></td>
-        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg">{{event.organizer|upper}}</a></td>
-        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg"">{{event.type}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg ">{{event.organizer|upper}}</a></td>
+        <td><a href="{% url 'event:event-detail' event.id %}" class="no-underline text-gray-900 text-sm sm:text-lg hidden md:table-cell">{{event.type_for_ranking}}</a></td>
         <td>{% if event.reg_open %}
                 <div class="col col-reg"><a
                         href="{% url 'event:entry' event.id %}"

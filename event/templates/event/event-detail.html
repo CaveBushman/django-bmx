@@ -1,9 +1,9 @@
 {% extends 'base.html' %} {% block title %} Detail závodu {% endblock title %}
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3 text-red-600">{{event.name | upper}}</h1>
+<h1 class="text-4xl text-black-900 text-center mt-5 py-3 text-purple-700 dark:text-purple-300">{{event.name | upper}}</h1>
 
-<div class="container">
+<div class="container mx-4">
 
 
 <div class="d-flex flex-row-reverse bd-highlight">
@@ -27,8 +27,8 @@
             aria-disabled="true">Administrace závodu</a></div>
 {% endif %}
 </div>
-    <p class = "event-date">Datum : {{event.date}}</p>
-    <p class = "event-date mt-2">Pořadatel : {{event.organizer}}</p>
+    <p class = "event-date dark:dark--text">Datum : {{event.date}}</p>
+    <p class = "event-date mt-2 dark:dark--text">Pořadatel : {{event.organizer}}</p>
 
 {% if event.canceled %}
 <div class="alert alert-danger h4 text-center" role="alert">
@@ -36,25 +36,25 @@
 </div>
 
 {% endif %}
-    <div class="event-detail-header">Základní informace</div>
+    <div class="event-detail-header dark:dark--text">Základní informace</div>
     <div class="container-date">
         <div class="row">
             <div class="w-100"></div>
-            <div class="col col-info">PCP: {{event.pcp}}</div>
-            <div class="col col-info">PCP ASSIST.: {{event.pcp_assist}}</div>
-            <div class="col col-info">ŘEDITEL: {{event.director}} </div>
+            <div class="col col-info dark:dark--text">PCP: {{event.pcp}}</div>
+            <div class="col col-info dark:dark--text">PCP ASSIST.: {{event.pcp_assist}}</div>
+            <div class="col col-info dark:dark--text">ŘEDITEL: {{event.director}} </div>
         </div>
     </div>
 
 {% if not event.results_uploaded and not event.canceled %}
     <div class="registration">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Možnosti přihlášení do závodu
         </div>
         <div class="event-content">
             <div class="row row-registration">
-                <div class="col col-reg mt-2">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
-                <div class="col col-reg mt-2">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
+                <div class="col col-reg mt-2 dark:dark--text">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
+                <div class="col col-reg mt-2 dark:dark--text">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
                 {% if reg_open %}
                 <div class="col col-reg"><a
                         href="{% url 'event:entry' event.id %}"
@@ -78,10 +78,10 @@
 {% endif %}
 
     <div class="race-sys">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Systém závodů
         </div>
-        <div class="event-content mt-2">{{event.system}}</div>
+        <div class="event-content mt-2 dark:dark--text">{{event.system}}</div>
         {% if event.is_uci_race %}
         <div role="alert">
             <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2 mt-4">
@@ -95,28 +95,28 @@
     </div>
 
     <div class="classes">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Kategorie
         </div>
-        <div class="event-content"> xxx</div>
+        <div class="event-content dark:dark--text"> xxx</div>
     </div>
 
     <div class="prices">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Ceny
         </div>
         <div class="event-content">{{event.prices}}</div>
     </div>
 
     <div class="timeschedule">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Časový harmonogram
         </div>
         <div class="event-content">{{event.timeschedule}}</div>
     </div>
 
     <div class="note">
-        <div class="event-header">
+        <div class="event-header dark:dark--text">
             Poznámky:
         </div>
         <div class="event-content">{{event.notes}}</div>

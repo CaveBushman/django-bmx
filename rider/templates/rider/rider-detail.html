@@ -4,8 +4,8 @@
 {% load static %}
 
 <!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
-<div class="container rider-detail-container">
-    <div class="d-flex flex-row bd-highlight mb-3 justify-content-center">
+<div class="container rider-detail-container dark:bg-gray-800">
+    <div class="d-flex flex-row bd-highlight  mb-3 justify-content-center">
         <div class="p-2 bd-highlight align-self-end">
             {% if rider.is_20 %} 
                 {% if rider.plate_color_20 == 'blue' %}
@@ -51,12 +51,12 @@
         </div>
     </div>
 
-    <h1 class="display-4 text-center" style="margin-bottom: 3rem">
+    <h1 class="display-4 text-center dark:text-purple-300" style="margin-bottom: 3rem">
         {{ rider.first_name|upper}} {{ rider.last_name|upper}}
     </h1>
     {% if rider.is_in_representation %}
         <div class="d-flex flex-row bd-highlight mb-3 ">
-            <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
+            <div class="p-0 bd-highlight dark:text-gray-200" style="margin-bottom: 1rem;"><h5><span
                     class="repre">Člen národní reprezentace</span></h5></div>
         </div>
     {% endif %}
@@ -67,7 +67,7 @@
         </div>
     {% endif %}
 
-    <div class="container">
+    <div class="container dark:text-gray-200">
         <div class="container">
             <div class="row">
                 <div class="col-sm">
@@ -125,7 +125,7 @@
     </div>
 </div>
 
-<h3 class="display-6 text-center rider-detail-header" style="margin-bottom: 2rem">
+<h3 class="display-6 text-center rider-detail-header dark:text-purple-300" style="margin-bottom: 2rem">
     Umístění za poslední rok
 </h3>
 {% if results %}
@@ -133,39 +133,38 @@
     <table class="table" style="padding-left: 5rem; padding-right: 5rem; margin-bottom: 3rem">
         <thead>
             <tr>
-                <th scope="col">Datum</th>
-                <th scope="col">Název závodu</th>
-                <th scope="col">Pořadatel</th>
-                <th scope="col">Typ závodu</th>
-                <th scope="col">Kategorie</th>
-                <th scope="col">Umístění</th>
-                <th scope="col">Počet bodů</th>
+                <th scope="col" class="dark:text-gray-200">Datum</th>
+                <th scope="col" class="dark:text-gray-200">Název závodu</th>
+                <th scope="col" class="dark:text-gray-200">Pořadatel</th>
+                <th scope="col" class="dark:text-gray-200">Typ závodu</th>
+                <th scope="col" class="dark:text-gray-200">Kategorie</th>
+                <th scope="col" class="dark:text-gray-200">Umístění</th>
+                <th scope="col" class="dark:text-gray-200">Počet bodů</th>
             </tr>
         </thead>
         <tbody>
-
         {% for result in results %}
         {% if result.marked_20 %}
-        <tr class="table-primary" >
+        <tr class="bg-purple-500 text-white dark:bg-purple-900" >
         {% elif result.marked_24 %}
-        <tr class="table-info" >
+        <tr class="bg-blue-400 text-white dark:bg-blue-800" >
         {% else %}
         <tr>
         {% endif %}
-            <th scope="row">{{ result.date }}</th>
-            <td>{{ result.name }}</td>
-            <td>{{ result.organizer|upper }}</td>
-            <td>{{ result.event_type }}</td>
-            <td>{{ result.category }}</td>
-            <td>{{ result.place }}. místo</td>
-            <td>{{ result.points }}</td>
+            <th scope="row" class="dark:text-gray-200">{{ result.date }}</th>
+            <td class="dark:text-gray-200">{{ result.name }}</td>
+            <td class="dark:text-gray-200">{{ result.organizer|upper }}</td>
+            <td class="dark:text-gray-200">{{ result.event_type }}</td>
+            <td class="dark:text-gray-200">{{ result.category }}</td>
+            <td class="dark:text-gray-200">{{ result.place }}. místo</td>
+            <td class="dark:text-gray-200"> {{ result.points }}</td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
 
 {% else %}
-    <h5 style = "text-align: center">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
+    <h5 style = "text-align: center" class="dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
 {% endif %}
 </div>
 {% endblock content %}

@@ -1,11 +1,11 @@
 {% extends 'base.html' %} {% block title %} Ranking {% endblock title %}
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-purple-700">NÁRODNÍ RANKING</h1>
+<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-purple-700 dark:text-purple-300">NÁRODNÍ RANKING</h1>
 
 <div class="container">
 
-    <p class="text-justify mt-3">Do národního rankingu jsou započítávány výsledky z Mistrovství České republiky
+    <p class="text-justify mt-3 dark:text-gray-200">Do národního rankingu jsou započítávány výsledky z Mistrovství České republiky
         jednotlivců, 8 nejlepších výsledků
         Českého poháru, 6 nejlepších výsledků České ligy, Moravské ligy a volných
         závodů (dohromady). Mistrovství České republiky družstev se do národního rankingu nezapočítává a všichni jezdci z něj získávají 0
@@ -16,18 +16,16 @@
         {% csrf_token %}
         <div class="container mt-4">
             <div class="row">
-
-                <div class="col-sm"> <h1 class="text-center text-3xl text-blue-600">{{category | upper}}</h1></div>
-
-                <div class="col-sm">
-                    <select class="form-select mt-3" aria-label="Default select example" name="categoryInput" id="categoryInput">
-                        <option selected>Vyber kategorii:</option>
+                <div>
+                    <label for="categoryInput" class="block text-lg font-medium text-gray-700 dark:text-gray-200">Vyber kategorii</label>
+                    <select id="categoryInput" name="categoryInput" class="mt-1 max-w-md block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option selected>Men Under 23</option>
                         {% for category in categories %}
                         <option value="{{category}}">{{category}}</option>
                         {% endfor %}
                     </select>
                 </div>
-               
+
                 <script>
                     const selectEl = document.getElementById("categoryInput")
                     selectEl.addEventListener('change', () => document.getElementById("rankingForm").submit())
@@ -36,28 +34,28 @@
         </div>
     </form>
 
-    <table class="table table-hover mt-2 align-middle">
+    <table class="table table-hover my-4 align-middle">
         <thead>
         <tr>
-            <th scope="col">#</th>
-            <th>St.č.</th>
-            <th class="hidden sm:table-cell"></th>
-            <th scope="col">Příjmení</th>
-            <th scope="col">Jméno</th>
-            <th class="hidden md:table-cell">UCI ID</th>
-            <th scope="col">Klub</th>
-            <th scope="col">Počet bodů</th>
+            <th scope="col" class="dark:text-gray-200">#</th>
+            <th class="dark:text-gray-200">St.č.</th>
+            <th class="hidden sm:table-cell dark:text-gray-200"></th>
+            <th scope="col" class="dark:text-gray-200">Příjmení</th>
+            <th scope="col" class="dark:text-gray-200">Jméno</th>
+            <th class="hidden md:table-cell dark:text-gray-200">UCI ID</th>
+            <th scope="col" class="dark:text-gray-200 hidden sm:table-cell">Klub</th>
+            <th scope="col" class="dark:text-gray-200">Počet bodů</th>
         </tr>
         </thead>
         <tbody>
         {% for result in results %}
         <tr>
             {% if cruiser %}
-            <th scope="row">{{result.ranking_24}}.</th>
+            <th scope="row" class="dark:text-gray-200">{{result.ranking_24}}.</th>
             {% else %}
-            <th scope="row">{{result.ranking_20}}.</th>
+            <th scope="row" class="dark:text-gray-200">{{result.ranking_20}}.</th>
             {% endif %}
-            <td>{{result.plate}}</td>
+            <td class = "dark:text-gray-200">{{result.plate}}</td>
             <td class="hidden sm:table-cell"><img
                 class="avatar img-fluid rounded-circle "
                 src="{{result.photo.url}}"
@@ -66,14 +64,14 @@
                 srcset=""
                 style="width: 2rem; height: 2rem"
               /></td>
-            <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none; color:black"><b>{{result.last_name|upper}}</b></a></td>
-            <td>{{result.first_name}}</td>
-            <td class = "text-sm hidden md:table-cell">{{result.uci_id}}</td>
-            <td class="text-sm">{{result.club|upper}}</td>
+            <td><a href="{% url 'rider:detail' result.id %}" style="text-decoration: none" class="text-black dark:text-gray-200"><b>{{result.last_name|upper}}</b></a></td>
+            <td class="dark:text-gray-200">{{result.first_name}}</td>
+            <td class = "text-sm hidden md:table-cell dark:text-gray-200">{{result.uci_id}}</td>
+            <td class="text-sm dark:text-gray-200 hidden sm:table-cell">{{result.club|upper}}</td>
             {% if cruiser %}
-            <td class = "text-sm">{{result.points_24}}</td>
+            <td class = "text-sm dark:text-gray-200">{{result.points_24}}</td>
             {% else %}
-            <td class = "text-sm">{{result.points_20}}</td>
+            <td class = "text-sm dark:text-gray-200">{{result.points_20}}</td>
             {% endif %}
         </tr>
         {% endfor %}
