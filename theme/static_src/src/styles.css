@@ -23,4 +23,8 @@
     @apply text-gray-200
   }
 
+  .dark--header {
+    @apply dark:text-purple-300
+  }
+
 }

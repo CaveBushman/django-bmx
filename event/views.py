@@ -125,7 +125,6 @@ def EntryView(request, pk):
 
         fee = EntryClasses.objects.get(id=event.classes_and_fees_like.id)
 
-
         for rider_20 in riders_20:
             if rider_20.class_20 == "Boys 6":
                 sum_fee+=fee.boys_6_fee 
