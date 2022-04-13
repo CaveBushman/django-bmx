@@ -7,7 +7,7 @@ from django.utils.html import format_html
 class RiderAdmin(admin.ModelAdmin):
 
     def thumbnail(self, object):
-        return format_html('<img src="{}" width="40" style="border-radius: 50px;" />'.format(object.photo.url))
+        return format_html('<img src="{}" width="30" style="border-radius: 50px;" />'.format(object.photo.url))
 
     thumbnail.short_description = 'Foto'
 
