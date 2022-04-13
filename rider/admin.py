@@ -11,7 +11,7 @@ class RiderAdmin(admin.ModelAdmin):
 
     thumbnail.short_description = 'Foto'
 
-    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active')
+    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approwe')
     list_display_links = ('last_name',)
     list_editable = ('is_20', 'is_24','is_elite','is_active',)
     search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate',)
