@@ -15,22 +15,24 @@
     <form method="POST" id = "rankingForm">
         {% csrf_token %}
         <div class="container mt-4">
-            <div class="row">
-                <div>
-                    <label for="categoryInput" class="block text-lg font-medium text-gray-700 dark:text-gray-200">Vyber kategorii</label>
-                    <select id="categoryInput" name="categoryInput" class="mt-1 max-w-md block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option selected>Vyber kategorii</option>
-                        {% for category in categories %}
-                        <option value="{{category}}">{{category}}</option>
-                        {% endfor %}
-                    </select>
+            <div class="">
+                <div class="text-4xl text-center dark:dark--header">
+                    {{category|upper}}
                 </div>
-
+            </div>
+            <div class="">
+                <label for="categoryInput" class="block text-lg font-medium text-gray-700 dark:text-gray-200">Vyber kategorii</label>
+                <select id="categoryInput" name="categoryInput" class="mt-1 max-w-md block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option selected>Vyber kategorii</option>
+                        {% for category in categories %}
+                    <option value="{{category}}">{{category}}</option>
+                        {% endfor %}
+                </select>
+            </div>
                 <script>
                     const selectEl = document.getElementById("categoryInput")
                     selectEl.addEventListener('change', () => document.getElementById("rankingForm").submit())
                 </script>
-            </div>
         </div>
     </form>
 

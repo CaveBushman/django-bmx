@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block title %} Přihlášení na závody
 {% endblock title %} {% load static %} {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3 dark:dark--haeder">Přihlášení na {{event.name}}</h1>
+<h1 class="text-4xl text-black-900 text-center mt-5 py-3 dark:dark--header">Přihlášení na {{event.name}}</h1>
 <br /><br />
 
 <div class = "container dark:dark--text">
@@ -38,7 +38,7 @@
   <form method="POST">
     {% csrf_token %}
 
-    <table class="table table-hover align-middle" id="myTable">
+    <table class="table table-hover align-middle dark:dark--text" id="myTable">
       <thead>
         <tr>
           <th scope="col">Start.č.</th>
@@ -53,7 +53,7 @@
       </thead>
       <tbody>
         {% for rider in riders %}
-        <tr>
+        <tr class="dark:hover:text-gray-50">
           <td scope="row">{{rider.plate}}</td>
           <td><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
                                      style="width: 2rem; height: 2rem;"></td>
