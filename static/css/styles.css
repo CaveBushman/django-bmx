@@ -2259,6 +2259,10 @@ select {
     height: auto;
   }
 
+  .md\:h-80 {
+    height: 20rem;
+  }
+
   .md\:w-48 {
     width: 12rem;
   }
