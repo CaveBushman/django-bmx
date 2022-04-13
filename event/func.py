@@ -142,7 +142,7 @@ def resolve_event_classes(event, rider, is_20):
             return event_classes.men_elite 
 
     # Ženy s bonusem
-    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus == True:
+    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus:
         if rider.class_20 == "Girls 7":
             return event_classes.girls_7
         elif rider.class_20 == "Girls 8":
@@ -175,7 +175,7 @@ def resolve_event_classes(event, rider, is_20):
             return event_classes.women_elite
 
     # Ženy bez bonusu
-    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus == False:
+    if is_20 and rider.gender == "Žena" and not rider.have_girl_bonus:
         if rider.class_20 == "Girls 7":
             return event_classes.girls_8
         elif rider.class_20 == "Girls 8":
