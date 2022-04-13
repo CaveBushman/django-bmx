@@ -713,7 +713,7 @@ def EventAdminView(request, pk):
             ws.cell(x,7,"BMX-RACE")
             ws.cell(x,9,str(rider.date_of_birth).replace('-', '/'))
             ws.cell(x,10,rider.first_name)
-            ws.cell(x,11,rider.last_name)
+            ws.cell(x,11,rider.last_name.upper())
             ws.cell(x,12,rider.email)
             ws.cell(x,13,rider.phone)
             ws.cell(x,14,rider.emergency_contact)
@@ -722,8 +722,10 @@ def EventAdminView(request, pk):
             ws.cell(x,17,team_name_resolve(rider.club))
             ws.cell(x,18,"CZE")
             ws.cell(x,19,"CZE")
-            ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
-            ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
+            if rider.is_20:
+                ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
+            if rider.is_24:
+                ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
             ws.cell(x,28,"")
             ws.cell(x,29,"")
             ws.cell(x,24,rider.plate)
