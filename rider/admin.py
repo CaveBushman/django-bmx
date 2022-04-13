@@ -13,7 +13,7 @@ class RiderAdmin(admin.ModelAdmin):
 
     list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approwe')
     list_display_links = ('last_name',)
-    list_editable = ('is_20', 'is_24','is_elite','is_active',)
+    list_editable = ('is_20', 'is_24','is_elite','is_active','is_approwe')
     search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate',)
     list_filter = ('is_20', 'is_24','gender',  'is_approwe', 'is_active', 'have_valid_licence', 'club')
 
