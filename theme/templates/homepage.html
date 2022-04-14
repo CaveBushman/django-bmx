@@ -69,7 +69,7 @@
               <a href="#" class="hover:underline">
                 {% for tag in article.tags.all %}
                 <span>{{tag}}</span>
-              {% endfor %}
+                {% endfor %}
               </a>
             </p>
             <div class="block mt-2">
@@ -84,7 +84,7 @@
           <div class="mt-6 flex items-center">
             <div class="flex-shrink-0">
               <a href="#">
-                <span class="sr-only">Roel Aufderehar</span>
+                <span class="sr-only"></span>
                 <img class="h-10 w-10 rounded-full" src="{{article.created.photo.url}}" alt="">
               </a>
             </div>

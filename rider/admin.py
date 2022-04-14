@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Rider
+from .models import ForeignRider, Rider
 from django.utils.html import format_html
 
 # Register your models here.
@@ -18,3 +18,4 @@ class RiderAdmin(admin.ModelAdmin):
     list_filter = ('is_20', 'is_24','gender',  'is_approwe', 'is_active', 'have_valid_licence', 'club')
 
 admin.site.register(Rider, RiderAdmin)
+admin.site.register(ForeignRider)

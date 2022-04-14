@@ -5,10 +5,10 @@
 <div class = "blur-md"></div>
 
 <div class="container">
-    <div class = "text-center event-admin-header">Administrace závodu: {{event.name}}</div>
+    <div class = "text-center event-admin-header dark:dark--header">Administrace závodu: {{event.name}}</div>
 </div>
 
-<div class="container">
+<div class="container dark:dark--text">
 
  {% if request.user.is_superuser %}
     <form method = "POST" class="form-group" enctype="multipart/form-data">
@@ -36,7 +36,7 @@
       <td></td>
       <td><h6>Pořadatel: {{event.organizer}}</h6></td>
       <td></td>
-      <td><h6>Typ závodu: {{event.type}}</h6></td>
+      <td><h6>Typ závodu: {{event.type_for_ranking}}</h6></td>
     </tr>
     <tr>
       <th scope="row" colspan="5" class = "h5 table-warning text-center" >Soubory pro BEM</th>

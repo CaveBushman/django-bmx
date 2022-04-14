@@ -498,8 +498,6 @@ def EventAdminView(request, pk):
             if not rider.have_valid_licence:
                 print(f"Jezdec nemá platnou licenci")
                 invalid_licences.append(rider)
-            else:
-                print(f"Jezdec {rider.last_name} má platnou licenci")
     except:
         pass    #TODO: Dodělat zprávu o chybě
 
@@ -635,7 +633,7 @@ def EventAdminView(request, pk):
             ws.cell(x,24,rider.plate)
             ws.cell(x,25,rider.plate)
             ws.cell(x,32,rider.transponder_20)
-            ws.cell(x,33,rider.transponder_24)
+            # ws.cell(x,33,rider.transponder_24)
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T1")
             ws.cell(x,45,team_name_resolve(rider.club))
@@ -673,7 +671,7 @@ def EventAdminView(request, pk):
             ws.cell(x,19,"CZE")
             ws.cell(x,21,"Cruiser " +rider.class_24)
             ws.cell(x,25,rider.plate)
-            ws.cell(x,32,rider.transponder_20)
+            # ws.cell(x,32,rider.transponder_20)
             ws.cell(x,33,rider.transponder_24)
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T2")
