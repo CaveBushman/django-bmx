@@ -268,6 +268,9 @@ class ForeignRider(models.Model):
 
     plate = models.IntegerField(blank=True, null=True, default=0)
 
+    state = models.CharField(max_length=3, null=True, blank=True)
+    club = models.CharField(max_length=200, null=True, blank=True)
+
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
