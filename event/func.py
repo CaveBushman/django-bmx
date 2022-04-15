@@ -96,143 +96,142 @@ def is_registration_open(event_id):
     return False
 
 
-def resolve_event_classes(event, rider, is_20):
+def resolve_event_classes(event, gender, have_girl_bonus, rider_class, is_20):
     """ Function for resolve class in event by classes_code and xlsx file | is_20 = TRUE for 20" bike """
     event = Event.objects.get(id=event)
-    rider = Rider.objects.get(uci_id=rider)
-
+  
     event_classes = EntryClasses.objects.get(event=event.id)
 
-    if is_20 and ( rider.gender == "Muž" or rider.gender == "Ostatní" ):
-        if rider.class_20 == "Boys 6":
+    if is_20 and (gender == "Muž" or gender == "Ostatní" ):
+        if rider_class == "Boys 6":
             return event_classes.boys_6
-        elif rider.class_20 == "Boys 7":
+        elif rider_class == "Boys 7":
             return event_classes.boys_7 
-        elif rider.class_20 == "Boys 8":
+        elif rider_class == "Boys 8":
             return event_classes.boys_8 
-        elif rider.class_20 == "Boys 9":
+        elif rider_class == "Boys 9":
             return event_classes.boys_9 
-        elif rider.class_20 == "Boys 10":
+        elif rider_class == "Boys 10":
             return event_classes.boys_10 
-        elif rider.class_20 == "Boys 11":
+        elif rider_class == "Boys 11":
             return event_classes.boys_11 
-        elif rider.class_20 == "Boys 12":
+        elif rider_class == "Boys 12":
             return event_classes.boys_12 
-        elif rider.class_20 == "Boys 13":
+        elif rider_class == "Boys 13":
             return event_classes.boys_13 
-        elif rider.class_20 == "Boys 14":
+        elif rider_class == "Boys 14":
             return event_classes.boys_14 
-        elif rider.class_20 == "Boys 15":
+        elif rider_class == "Boys 15":
             return event_classes.boys_15
-        elif rider.class_20 == "Boys 16":
+        elif rider_class == "Boys 16":
             return event_classes.boys_16
-        elif rider.class_20 == "Men 17-24":
+        elif rider_class == "Men 17-24":
             return event_classes.men_17_24 
-        elif rider.class_20 == "Men 25-29":
+        elif rider_class == "Men 25-29":
             return event_classes.men_25_29
-        elif rider.class_20 == "Men 30-34":
+        elif rider_class == "Men 30-34":
             return event_classes.men_30_34
-        elif rider.class_20 == "Men 35 and over":
+        elif rider_class == "Men 35 and over":
             return event_classes.men_35_over
-        elif rider.class_20 == "Men Junior":
+        elif rider_class == "Men Junior":
             return event_classes.men_junior
-        elif rider.class_20 == "Men Under 23":
+        elif rider_class == "Men Under 23":
             return event_classes.men_u23
         else: 
             return event_classes.men_elite 
 
     # Ženy s bonusem
-    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
+    if is_20 and gender == "Žena" and have_girl_bonus:
+        if rider_class == "Girls 7":
             return event_classes.girls_7
-        elif rider.class_20 == "Girls 8":
+        elif rider_class == "Girls 8":
             return event_classes.girls_8
-        elif rider.class_20 == "Girls 9":
+        elif rider_class == "Girls 9":
             return event_classes.girls_9
-        elif rider.class_20 == "Girls 10":
+        elif rider_class == "Girls 10":
             return event_classes.girls_10
-        elif rider.class_20 == "Girls 11":
+        elif rider_class == "Girls 11":
             return event_classes.girls_11
-        elif rider.class_20 == "Girls 12":
+        elif rider_class == "Girls 12":
             return event_classes.girls_12
-        elif rider.class_20 == "Girls 13":
+        elif rider_class == "Girls 13":
             return event_classes.girls_13
-        elif rider.class_20 == "Girls 14":
+        elif rider_class == "Girls 14":
             return event_classes.girls_14
-        elif rider.class_20 == "Girls 15":
+        elif rider_class == "Girls 15":
             return event_classes.girls_15
-        elif rider.class_20 == "Girls 16":
+        elif rider_class == "Girls 16":
             return event_classes.girls_16
-        elif rider.class_20 == "Women 17-24":
+        elif rider_class == "Women 17-24":
             return event_classes.women_17_24
-        elif rider.class_20 == "Women 25 and over":
+        elif rider_class == "Women 25 and over":
             return event_classes.women_25_over
-        elif rider.class_20 == "Women Junior":
+        elif rider_class == "Women Junior":
             return event_classes.women_junior
-        elif rider.class_20 == "Women Under 23":
+        elif rider_class == "Women Under 23":
             return event_classes.women_u23
         else: 
             return event_classes.women_elite
 
     # Ženy bez bonusu
     if is_20 and rider.gender == "Žena" and not rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
+        if rider_class == "Girls 7":
             return event_classes.girls_8
-        elif rider.class_20 == "Girls 8":
+        elif rider_class == "Girls 8":
             return event_classes.girls_9
-        elif rider.class_20 == "Girls 9":
+        elif rider_class == "Girls 9":
             return event_classes.girls_10
-        elif rider.class_20 == "Girls 10":
+        elif rider_class == "Girls 10":
             return event_classes.girls_11
-        elif rider.class_20 == "Girls 11":
+        elif rider_class == "Girls 11":
             return event_classes.girls_12
-        elif rider.class_20 == "Girls 12":
+        elif rider_class == "Girls 12":
             return event_classes.girls_13
-        elif rider.class_20 == "Girls 13":
+        elif rider_class == "Girls 13":
             return event_classes.girls_14
-        elif rider.class_20 == "Girls 14":
+        elif rider_class == "Girls 14":
             return event_classes.girls_15
-        elif rider.class_20 == "Girls 15":
+        elif rider_class == "Girls 15":
             return event_classes.girls_16
-        elif rider.class_20 == "Girls 16":
+        elif rider_class == "Girls 16":
             return event_classes.girls_17_24
-        elif rider.class_20 == "Women 17-24":
+        elif rider_class == "Women 17-24":
             return event_classes.women_17_24
-        elif rider.class_20 == "Women 25 and over":
+        elif rider_class == "Women 25 and over":
             return event_classes.girls_24_over
-        elif rider.class_20 == "Women Junior":
+        elif rider_class == "Women Junior":
             return event_classes.women_junior
-        elif rider.class_20 == "Women Under 23":
+        elif rider_class == "Women Under 23":
             return event_classes.women_u23
         else: 
             return event_classes.women_elite
 
     if not is_20:
-        if rider.class_24 == "Boys 12 and under":
+        if rider_class == "Boys 12 and under":
             return event_classes.cr_boys_12_and_under
-        elif rider.class_24 == "Boys 13 and 14":
+        elif rider_class == "Boys 13 and 14":
             return event_classes.cr_boys_13_14
-        elif rider.class_24 == "Boys 15 and 16":
+        elif rider_class == "Boys 15 and 16":
             return event_classes.cr_boys_15_16
-        elif rider.class_24 == "Men 17-24":
+        elif rider_class == "Men 17-24":
             return event_classes.cr_men_17_24
-        elif rider.class_24 == "Men 25-29":
+        elif rider_class == "Men 25-29":
             return event_classes.cr_men_25_29
-        elif rider.class_24 == "Men 30-34":
+        elif rider_class == "Men 30-34":
             return event_classes.cr_men_30_34
-        elif rider.class_24 == "Men 35-39":
+        elif rider_class == "Men 35-39":
             return event_classes.cr_men_35_39
-        elif rider.class_24 == "Men 40-49":
+        elif rider_class == "Men 40-49":
             return event_classes.cr_men_40_49
-        elif rider.class_24 == "Men 50 and over":
+        elif rider_class == "Men 50 and over":
             return event_classes.cr_men_50_and_over
-        elif rider.class_24 == "Girls 12 and under":
+        elif rider_class == "Girls 12 and under":
             return event_classes. cr_girls_12_and_under
-        elif rider.class_24 == "Girls 13-16":
+        elif rider_class == "Girls 13-16":
             return event_classes.cr_girls_13_16
-        elif rider.class_24 == "Women 17-29":
+        elif rider_class == "Women 17-29":
             return event_classes. cr_women_17_29
-        elif rider.class_24 == "Women 30-39":
+        elif rider_class == "Women 30-39":
             return event_classes.cr_women_30_39
         else:
             return event_classes.cr_women_40_and_over

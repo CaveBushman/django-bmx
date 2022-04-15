@@ -718,9 +718,9 @@ def EventAdminView(request, pk):
             ws.cell(x,18,"CZE")
             ws.cell(x,19,"CZE")
             if rider.is_20:
-                ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
+                ws.cell(x,20,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_20,1))
             if rider.is_24:
-                ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
+                ws.cell(x,21,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_24,0))
             ws.cell(x,28,"")
             ws.cell(x,29,"")
             ws.cell(x,24,rider.plate)
@@ -754,10 +754,10 @@ def EventAdminView(request, pk):
             ws.cell(x,17,foreign_club_resolve(foreign_rider.state))
             ws.cell(x,18,foreign_rider.state)
             ws.cell(x,19,foreign_rider.state)
-            if rider.is_20:
-                ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
-            if rider.is_24:
-                ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
+            if foreign_rider.is_20:
+                ws.cell(x,20,resolve_event_classes(event.id,foreign_rider.gender,True,foreign_rider.class_20,1))
+            if foreign_rider.is_24:
+                ws.cell(x,21,resolve_event_classes(event.id,foreign_rider.gender,False,foreign_rider.class_24,0))
             ws.cell(x,28,"")
             ws.cell(x,29,"")
             ws.cell(x,24,foreign_rider.plate)
