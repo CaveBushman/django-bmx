@@ -237,5 +237,13 @@ def resolve_event_classes(event, rider, is_20):
         else:
             return event_classes.cr_women_40_and_over
         
-        
+
+def foreign_club_resolve(state):
+
+    if state == "SVK":
+        return "Slovakia-All Clubs"
+    elif state == "GER":
+        return "Germany-All Clubs"
+    elif state == "POL":
+        return "Poland-All Clubs"
         

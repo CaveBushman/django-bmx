@@ -222,9 +222,20 @@ class Rider(models.Model):
         else:
             return "yellow"
 
+@receiver(pre_save, sender=Rider)
+def set_class(sender, instance, **kwargs):
+    print("PRESAVE CZE")
+    print (instance)
+    age = instance.get_age(instance)
+    is_elite = instance.is_elite
+    instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
+    instance.class_24 = instance.set_class_24(instance.gender, age)
+    instance.plate_color_20 = instance.plate_color(instance.class_20)
+
+pre_save.connect (set_class, sender = Rider)
 
 class ForeignRider(models.Model):
-    """ Class for rider """
+    """ Class for foreign rider """
 
     CLASS_20 = (
     ('Boys 6', 'Boys 6'), ('Boys 7', 'Boys 7'), ('Boys 8', 'Boys 8'), ('Boys 9', 'Boys 9'), ('Boys 10', 'Boys 10'),
@@ -396,22 +407,12 @@ class ForeignRider(models.Model):
             else:
                 return "Women 40 and over"
 
-
-@receiver(pre_save, sender=Rider)
-def set_class(sender, instance, **kwargs):
-    age = instance.get_age(instance)
-    is_elite = instance.is_elite
-    instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
-    instance.class_24 = instance.set_class_24(instance.gender, age)
-    instance.plate_color_20 = instance.plate_color(instance.class_20)
-
-pre_save.connect (set_class, sender = Rider)
-
 @receiver(pre_save, sender=ForeignRider)
-def set_class_foreign(sender, instance, **kwargs):
+def set_class_foreign(sender, instance, *args, **kwargs):
+    print("PRESAVE FR")
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
     instance.class_24 = instance.set_class_24(instance.gender, age)
 
-pre_save.connect (set_class, sender = ForeignRider)
+pre_save.connect (set_class_foreign, sender = ForeignRider)

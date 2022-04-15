@@ -2,7 +2,7 @@ import json
 import os
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import EntryClasses, Event, Result, Entry
-from rider.models import Rider
+from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
 from django.contrib import messages
@@ -506,10 +506,7 @@ def EventAdminView(request, pk):
         try:
             rider = Rider.objects.get(uci_id=check24.rider)
             if not rider.have_valid_licence:
-                print(f"Jezdec nemá platnou licenci")
                 invalid_licences.append(rider)
-            else:
-                print(f"Jezdec {rider.last_name} má platnou licenci")
         except:
             pass    #TODO: Dodělat zprávu o chybě
     invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
@@ -740,6 +737,38 @@ def EventAdminView(request, pk):
 
             x += 1
         del riders
+
+        foreign_riders = ForeignRider.objects.all()
+        for foreign_rider in foreign_riders:
+            ws.cell(x,1,foreign_rider.uci_id)
+            ws.cell(x,2,foreign_rider.uci_id)
+            ws.cell(x,3,foreign_rider.uci_id)
+            ws.cell(x,4,foreign_rider.uci_id)
+            ws.cell(x,5,foreign_rider.uci_id)
+            ws.cell(x,6,expire_licence())
+            ws.cell(x,7,"BMX-RACE")
+            ws.cell(x,9,str(foreign_rider.date_of_birth).replace('-', '/'))
+            ws.cell(x,10,foreign_rider.first_name)
+            ws.cell(x,11,foreign_rider.last_name.upper())
+            ws.cell(x,16,gender_resolve(foreign_rider.gender))
+            ws.cell(x,17,foreign_club_resolve(foreign_rider.state))
+            ws.cell(x,18,foreign_rider.state)
+            ws.cell(x,19,foreign_rider.state)
+            if rider.is_20:
+                ws.cell(x,20,resolve_event_classes(event.id,rider.uci_id,1))
+            if rider.is_24:
+                ws.cell(x,21,resolve_event_classes(event.id,rider.uci_id,0))
+            ws.cell(x,28,"")
+            ws.cell(x,29,"")
+            ws.cell(x,24,foreign_rider.plate)
+            ws.cell(x,25,foreign_rider.plate)
+            ws.cell(x,32,foreign_rider.transponder_20)
+            ws.cell(x,33,foreign_rider.transponder_24)
+            ws.cell(x,36,"T1")
+            ws.cell(x,37,"T2")
+            ws.cell(x,45,foreign_rider.club)
+            x+=1
+        del foreign_riders
 
         wb.save(file_name)
         event.bem_riders_list = file_name
