@@ -149,10 +149,8 @@ class EntryClasses(models.Model):
         verbose_name_plural = 'Kategorie a startovné'
     
     
-
 class Event(models.Model):
-
-    """ class form event """
+    """ class for event """
 
     EVENT_TYPE = (('Mistrovství ČR jednotlivců', 'Mistrovství ČR jednotlivců'),
                   ('Mistrovství ČR družstev', 'Mistrovství ČR družstev'), ('Český pohár', 'Český pohár'),
@@ -170,7 +168,7 @@ class Event(models.Model):
     type_for_ranking = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
 
     # classes_code = models.IntegerField(default = 3)
-    classes_and_fees_like = models.ForeignKey(EntryClasses,  default = 5, on_delete=models.SET_DEFAULT, blank=True)
+    classes_and_fees_like = models.ForeignKey(EntryClasses,  default = 6, on_delete=models.SET_DEFAULT, blank=True)
 
     is_uci_race = models.BooleanField(default=False)
 

@@ -20,6 +20,8 @@ class EntryClass:
         self.is_24 = is_24
         self.class_20 = class_20
         self.class_24 = class_24
+        self.fee_20 = fee_20
+        self.fee_24 = fee_24
 
     def save(self):
         new_entry = Entry.objects.create(
@@ -28,11 +30,14 @@ class EntryClass:
             rider=self.rider,
             is_20=self.is_20,
             is_24=self.is_24,
+            fee_20=self.fee_20,
+            fee_24=self.fee_24
             )
+        current_rider = Rider.objects.get(uci_id = self.rider)
         if self.is_20:
-            new_entry.class_20 = resolve_event_classes(self.event, self.rider, is_20=True)
+            new_entry.class_20 = resolve_event_classes(self.event, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_20,1)
         if self.is_24:
-            new_entry.class_24 = resolve_event_classes(self.event, self.rider, is_20=False)
+            new_entry.class_24 = resolve_event_classes(self.event, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24,0)
         new_entry.save()
 
 
@@ -101,9 +106,9 @@ class SendConfirmEmail:
         # TODO: Dodělat MESSAGE_BODY v HTML
 
         # send an email
-        send_mail (
-             subject = MESSAGE_SUBJECT,
-             message = MESSAGE_BODY,
-             from_email = "bmx@ceskysvazcyklistiky.cz",
-             recipient_list = [recipient],)
+        # send_mail (
+        #      subject = MESSAGE_SUBJECT,
+        #      message = MESSAGE_BODY,
+        #      from_email = "bmx@ceskysvazcyklistiky.cz",
+        #      recipient_list = [recipient],)
         del event

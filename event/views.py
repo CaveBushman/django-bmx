@@ -36,6 +36,9 @@ def EventsListView(request):
             event.reg_open = False
         else:
             event.reg_open = is_registration_open(event.id)
+
+        if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
+            event.reg_open = False
         event.save()
 
     year = date.today().year
@@ -53,6 +56,11 @@ def EventsListByYearView(request, pk):
             event.reg_open = False
         else:
             event.reg_open = is_registration_open(event.id)
+        
+        print(event.classes_and_fees_like.event_name)
+        if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
+            print("Kategorie závodů nebyla stanovena")
+            event.reg_open = False
         event.save()
     year = pk
     next_year = int(year) + 1
@@ -261,10 +269,7 @@ def ConfirmView(request):
 
     entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
 
-    
-
     if request.method == "POST":
-
         fee=0
   
         # data for checkout session
@@ -408,19 +413,24 @@ def ConfirmView(request):
             # TODO: Need last check for registration in the same time
 
             # save entry riders to database
+
             for rider_20 in riders_20:
-                # entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                #                    rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
-                #                    class_20=rider_20['fields']['class_20'], class_24="")
-                # entry.save()
-                pass
+                current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
+                current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_20, 1)
+                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
+                                    rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
+                                    class_20=rider_20['fields']['class_20'], class_24="", fee_20 = current_fee)
+                entry.save()
+    
             for rider_24 in riders_24:
-                # entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                #                    rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
-                #                    class_24=rider_24['fields']['class_24'], class_20="")
-                # entry.save()
-                pass
-            # del entry
+                current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
+                current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24, 0)
+                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
+                                    rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
+                                    class_24=rider_24['fields']['class_24'], class_20="", fee_24 = current_fee)
+                entry.save()
+                
+            del entry
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
             return JsonResponse(error=str(e)), 403
@@ -484,32 +494,6 @@ def stripe_webhook(request):
 def EventAdminView(request, pk):
     """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
-
-    # zjištění jezdců přihlášených na závod s neplatnou licencí
-
-    check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
-    check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
-
-    invalid_licences = []
-    try:
-        for check20 in check_20_entries:
-            print(check20.rider)
-            rider = Rider.objects.get(uci_id=check20.rider)
-            if not rider.have_valid_licence:
-                print(f"Jezdec nemá platnou licenci")
-                invalid_licences.append(rider)
-    except:
-        pass    #TODO: Dodělat zprávu o chybě
-
-    for check24 in check_24_entries:
-        print(check24.rider)
-        try:
-            rider = Rider.objects.get(uci_id=check24.rider)
-            if not rider.have_valid_licence:
-                invalid_licences.append(rider)
-        except:
-            pass    #TODO: Dodělat zprávu o chybě
-    invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
 
     if 'btn-upload-result' in request.POST:
 
@@ -775,5 +759,39 @@ def EventAdminView(request, pk):
         event.bem_riders_created = datetime.now()
         event.save()
 
-    data = {'event':event, "invalid_licences": invalid_licences}
+    # zjištění jezdců přihlášených na závod s neplatnou licencí
+
+    check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
+    check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
+
+    invalid_licences = []
+    sum_of_fees = 0
+
+    for check20 in check_20_entries:
+        try:
+            rider = Rider.objects.get(uci_id=check20.rider)
+            if not rider.have_valid_licence:
+                invalid_licences.append(rider)
+        except:
+            pass    #TODO: Dodělat zprávu o chybě
+
+    for check24 in check_24_entries:
+        try:
+            rider = Rider.objects.get(uci_id=check24.rider)
+            if not rider.have_valid_licence:
+                invalid_licences.append(rider)
+        except:
+            pass    #TODO: Dodělat zprávu o chybě
+    invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
+
+    # summary fees on event
+    entries = Entry.objects.filter(event = event.id)
+
+    for entry in entries:
+        sum_of_fees += entry.fee_20
+        sum_of_fees += entry.fee_24
+
+    print(f"Vybrané startovné činní částku {sum_of_fees} Kč.")
+
+    data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees}
     return render(request, 'event/event-admin.html', data)
