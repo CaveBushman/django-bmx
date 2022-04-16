@@ -3,16 +3,18 @@
 {% load static %} 
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center my-4 py-3 text-purple-700 dark:text-purple-300">SEZNAM JEZDCŮ BMX</h1>
-
+<div class="text-center mt-4">
+  <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl py-3">Seznam českých jezdců BMX</h2>
+  <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4"> </p>
+</div>
 <div class="container">
   <div class="d-flex flex-row-reverse bd-highlight">
       {% if request.user.is_superuser %}
       <a
-      href="{% url 'rider:admin' %}" class="text-red-700 hover:text-white text-xl border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Administrace jezdců</button>
+      href="{% url 'rider:admin' %}" class="btn--red text-sm md:text-lg">Administrace jezdců</button>
       {% endif %}
     <a
-    href="{% url 'rider:new' %}" class="btn btn--green text-2xl">Požádat o startovní číslo</a>
+    href="{% url 'rider:new' %}" class="btn btn--green text-sm md:text-lg">Požádat o startovní číslo</a>
   </div>
 
   <div class="container search" style="margin-top: 2rem">

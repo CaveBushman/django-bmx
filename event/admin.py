@@ -7,9 +7,10 @@ class ResultAdmin(admin.ModelAdmin):
     pass
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('id','name', 'date', 'organizer', 'type_for_ranking', 'results_uploaded')
-    list_editable = ('results_uploaded',)
+    list_display = ('id','name', 'date', 'organizer', 'type_for_ranking', 'classes_and_fees_like', 'results_uploaded')
     list_display_links = ('name',)
+    search_fields = ('name', 'organizer',)
+    list_filter = ('type_for_ranking',)
 
 
 admin.site.register(Event, EventAdmin)

@@ -47,7 +47,7 @@ def RiderAdmin(request):
             if re.search("Http_Unauthorised", dataJSON.text):
                 messages.error (request, "Špatné přihlašovací údaje k API ČSC")
                 return render(request, 'rider/rider-admin.html')
-        except:
+        except Exception as e:
             messages.error (request, "Spojení se serverem ČSC se nezdařilo")
             return render(request, 'rider/rider-admin.html')
 

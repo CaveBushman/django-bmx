@@ -4,7 +4,13 @@ from django.db import models
 
 
 class Commissar (models.Model):
-    pass
+
+    LEVEL = (('UCI', 'UCI'), ('ENC', 'ENC'), ('Národní', 'Národní'))
+
+    first_name = models.CharField(max_length=200)
+    last_name = models.CharField(max_length=200)
+
+    level = models.CharField(max_length=100, choices=LEVEL, default="Národní")
 
     class Meta:
         verbose_name = "Rozhodčí"

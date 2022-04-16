@@ -2,6 +2,7 @@ from faulthandler import is_enabled
 from django.db import models
 from sqlalchemy import true
 from club.models import Club
+from commissar.models import Commissar
 
 from datetime import date
 
@@ -156,7 +157,7 @@ class Event(models.Model):
                   ('Mistrovství ČR družstev', 'Mistrovství ČR družstev'), ('Český pohár', 'Český pohár'),
                   ('Česká liga', 'Česká liga'),
                   ('Moravská liga', 'Moravská liga'), ('Volný závod', 'Volný závod'),
-                  ('Nebodovaný závod', 'Nebodovaný závod'), ('Mezinárodní závod', 'Mezinárodní závod'))
+                  ('Nebodovaný závod', 'Nebodovaný závod'),)
 
     RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'), ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
 
@@ -172,8 +173,8 @@ class Event(models.Model):
 
     is_uci_race = models.BooleanField(default=False)
 
-    pcp = models.CharField(max_length=255, null=True, blank=True)
-    pcp_assist = models.CharField(max_length=255, null=True, blank=True)
+    pcp = models.ForeignKey(Commissar, related_name="PCP", on_delete=models.SET_NULL, blank=True, null=True)
+    pcp_assist = models.ForeignKey(Commissar, related_name="PCP_asist", on_delete=models.SET_NULL, blank=True, null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
 
     reg_open_from = models.DateField(default='2021-04-01')

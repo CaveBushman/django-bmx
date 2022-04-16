@@ -555,7 +555,7 @@ def EventAdminView(request, pk):
         print("Mažu XLS výsledky")
         try:
             os.remove(f"static/results/{event.results_path_to_file}")
-        except:
+        except Exception as e:
             print (f"Nebyl nalezen soubor {event.results_path_to_file}")
         
         Result.objects.filter(event=pk).delete()
@@ -772,7 +772,7 @@ def EventAdminView(request, pk):
             rider = Rider.objects.get(uci_id=check20.rider)
             if not rider.have_valid_licence:
                 invalid_licences.append(rider)
-        except:
+        except Exception as e:
             pass    #TODO: Dodělat zprávu o chybě
 
     for check24 in check_24_entries:
@@ -780,8 +780,9 @@ def EventAdminView(request, pk):
             rider = Rider.objects.get(uci_id=check24.rider)
             if not rider.have_valid_licence:
                 invalid_licences.append(rider)
-        except:
+        except Exception as e:
             pass    #TODO: Dodělat zprávu o chybě
+        
     invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
 
     # summary fees on event
