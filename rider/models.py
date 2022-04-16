@@ -98,6 +98,9 @@ class Rider(models.Model):
 
     def get_age(self, rider):
         return date.today().year - rider.date_of_birth.year
+    
+    def sum_of_riders():
+        return Rider.objects.filter(is_active=True).count
 
     @staticmethod
     def set_class_20(gender, age : int, is_elite):

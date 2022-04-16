@@ -11,6 +11,7 @@ class NewsAdmin (admin.ModelAdmin):
     search_fields = ('title', 'perex', 'content')
     list_filter = ('on_homepage', 'published','created_date')
     readonly_fields = ('created_date',)
+    exclude = ('time_to_read',)
 
     
 

@@ -1,4 +1,6 @@
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_save, post_save
 from ckeditor.fields import RichTextField
 from accounts.models import Account
 import datetime
@@ -13,8 +15,8 @@ class Tag(models.Model):
 
 
 class News (models.Model):
+    """ Class for news on this wabsite """
 
-   
     title = models.CharField(max_length=255, default="")
     content = RichTextField(max_length=10000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
@@ -38,3 +40,17 @@ class News (models.Model):
 
     class Meta:
         verbose_name_plural = 'Články'
+    
+    def sum_of_news():
+        return News.objects.filter(published = True).count()
+
+@receiver(pre_save, sender=News)
+def set_time_to_read (sender, instance, *args, **kwargs):
+    world_list = instance.content.split()
+    number_of_words = len(world_list)
+    time_to_read = int(number_of_words/200)
+    if time_to_read < 1:
+        time_to_read = 1
+    instance.time_to_read = time_to_read
+    
+pre_save.connect (set_time_to_read, sender = News)
