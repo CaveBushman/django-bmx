@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
@@ -21,7 +22,7 @@ class News (models.Model):
     content = RichTextField(max_length=10000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
 
-    photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
+    photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True, default="static/images/news/AKBMX.jpg")
     photo_02 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
     photo_03 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
 
