@@ -1,7 +1,7 @@
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     // Create an instance of the Stripe object with your publishable API key
     // var stripe = Stripe( "{{ STRIPE_PUBLIC_KEY }}");
-    var stripe = Stripe( "pk_test_51HeoE0F3rP8tXY4Cx7YEpcx0fSAQ6M3HYdQrTgiUlNqSxNxCAMbsDBUQt37DCFtDiZLS6sgExG3VDahuc8TEWRF600jwWQ7znp");
+    var stripe = Stripe( "pk_live_51HeoE0F3rP8tXY4CdmognZ850toJHFvgADoSmxzKuqbj8RwC0d0E0S9x6qFiW42HLkBTJDXcfUfdOttrwNHP7zpI00VwgIQ3bj");
     var checkoutButton = document.getElementById("checkout-button");
     checkoutButton.addEventListener("click", function () {
         console.log("Stisknuto tlačítko Zaplatit");

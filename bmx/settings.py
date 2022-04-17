@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import stripe
+from bmx.sec import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,9 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'oe2*f1@2uyk&j)jo!2s1ehd*&%j^4aepgk=iyysti)#h)4b0wg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -170,10 +169,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 LOGIN_REDIRECT_URL = "news:home"
 LOGOUT_REDIRECT_URL = 'news:home'
-
-STRIPE_PUBLIC_KEY = "pk_live_51HeoE0F3rP8tXY4CdmognZ850toJHFvgADoSmxzKuqbj8RwC0d0E0S9x6qFiW42HLkBTJDXcfUfdOttrwNHP7zpI00VwgIQ3bj"
-STRIPE_SECRET_KEY = ""
-STRIPE_WEBHOOK_SECRET = ""
 
 YOUR_DOMAIN = "http://app.czechbmx.cz"
 # YOUR_DOMAIN = "http://localhost:8000"

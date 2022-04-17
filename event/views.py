@@ -12,6 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 import pandas as pd
 from .result import GetResult
 from .func import *
+from bmx.sec import * 
 from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
@@ -21,10 +22,6 @@ from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
 import threading
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-endpoint_secret = 'whsec_DXwaMbmEKvJzk8SVlZ0Fgz2CGzMMEtj'
-
 
 # Create your views here.
 
@@ -265,8 +262,6 @@ def ConfirmView(request):
 
     current_event = Event.objects.get(id=event['event'])
 
-    print (current_event.classes_and_fees_like.id)
-
     entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
 
     if request.method == "POST":
@@ -410,10 +405,11 @@ def ConfirmView(request):
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
 
+            print ("Checkout")
+
             # TODO: Need last check for registration in the same time
 
             # save entry riders to database
-
             for rider_20 in riders_20:
                 current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
                 current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_20, 1)
@@ -433,6 +429,7 @@ def ConfirmView(request):
             del entry
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
+            print(f"Chyba {e}")
             return JsonResponse(error=str(e)), 403
 
 
