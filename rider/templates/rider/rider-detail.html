@@ -3,8 +3,14 @@
 {% block content %}
 {% load static %}
 
+<header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-header">Detail jezdce</h1>
+    </div>
+</header>
+
 <!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
-<div class="container rider-detail-container dark:bg-gray-800">
+<div class="mt-6 dark:bg-gray-800">
     <div class="d-flex flex-row bd-highlight  mb-3 justify-content-center">
         <div class="p-2 bd-highlight align-self-end">
             {% if rider.is_20 %} 

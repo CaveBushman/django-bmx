@@ -3,12 +3,14 @@
 {% load static %} 
 {% block content %}
 
-<div class="text-center mt-4">
-  <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl py-3 dark:text-gray-300">Seznam českých jezdců BMX</h2>
-  <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4"> </p>
-</div>
-<div class="container">
-  <div class="d-flex flex-row-reverse bd-highlight">
+<header class="bg-white shadow">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-header">Seznam jezdců BMX</h1>
+  </div>
+</header>
+
+<div class="mt-8 mx-6">
+  <div class="d-flex flex-row-reverse bd-highlight mr-6">
       {% if request.user.is_superuser %}
       <a
       href="{% url 'rider:admin' %}" class="btn--red text-sm md:text-lg">Administrace jezdců</button>
@@ -17,7 +19,7 @@
     href="{% url 'rider:new' %}" class="btn btn--green text-sm md:text-lg">Požádat o startovní číslo</a>
   </div>
 
-  <div class="container search" style="margin-top: 2rem">
+  <div class="search" style="margin-top: 2rem">
     <div class="row">
       <div class="col-sm">
         <input

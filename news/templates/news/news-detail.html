@@ -1,22 +1,27 @@
 {% extends 'base.html' %} {% block title %} {{ news.title }} {% endblock title %}
 {% block content %}
 
-<img class="w-50 mx-auto rounded shadow-lg mt-6" src="{{news.photo_01.url}}" alt="News photo"/>
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3 dark:text-purple-300">{{news.title}}</h1>
+<img class="h-80 w-full object-cover" src="{{news.photo_01.url}}" alt="News photo"/>
 
-<div class="container my-4 w-4/5">
-<author class="flex items-center px-6 pt-2 pb-4">
-    <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
-    <div class="text-sm">
-      <p class="inline-block text-gray-900 leading-none dark:dark--text">{{ news.created }}, </p>
-      <p class="inline-block text-gray-500">{{news.publish_date}}</p>
-        {% for tag in news.tags.all %}
-            <p class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{tag|upper}}</p>
-        {% endfor %}
+<header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-header">{{news.title|upper}}</h1>
     </div>
-</author>
+</header>
 
-<p class = "text-justify text-gray-500 dark:dark--text">{{news.content|safe}}</p>
+<div class="mx-auto my-4 w-4/5">
+    <author class="flex items-center px-6 pt-2 pb-4">
+        <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
+        <div class="text-sm">
+        <p class="inline-block text-gray-900 leading-none dark:dark--text">{{ news.created }}, </p>
+        <p class="inline-block text-gray-500">{{news.publish_date}}</p>
+            {% for tag in news.tags.all %}
+                <p class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{tag|upper}}</p>
+            {% endfor %}
+        </div>
+    </author>
+
+    <p class = "text-justify text-gray-500 dark:dark--text">{{news.content|safe}}</p>
 
 </div>
 {% endblock content %}

@@ -48,8 +48,8 @@ p {
     @apply text-gray-200
   }
 
-  .dark--header {
-    @apply dark:text-purple-300
+  .text--header {
+    @apply  text-gray-900 dark:text-gray-300
   }
 
 }

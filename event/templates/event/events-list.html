@@ -2,12 +2,13 @@
 {% block title %} Kalendář závodů {% endblock title %} 
 {% block content %}
 
-<div class="text-center mt-4">
-  <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl py-3 dark:text-gray-300">Kalendář závodů</h2>
-  <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4"> </p>
-</div>
+<header class="bg-white shadow">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-header">Kalendář závodů</h1>
+  </div>
+</header>
 
-<div class="flex flex-auto">
+<div class="flex flex-auto mt-6">
   <nav class="mx-auto relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
     <a href="{% url 'event:events-by-year' last_year %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
       <span class="sr-only">Previous</span>

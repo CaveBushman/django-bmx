@@ -1,143 +1,156 @@
 {% extends 'base.html' %} {% block title %} Detail závodu {% endblock title %}
 {% block content %}
 
-<div class="text-center mt-4">
-    <h2 class="text-3xl tracking-tight font-extrabold text-gray-900 sm:text-4xl py-3">{{event.name | upper}}</h2>
-    <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4"> </p>
-  </div>
-
-<div class="container mx-4">
-
-<div class="d-flex flex-row-reverse bd-highlight">
-
-{% if event.results_uploaded %}
-<div class="p-2 bd-highlight"><a
-            href="{% url 'event:results' event.id %}"
-            class="btn btn-outline-success"
-            tabindex="-1"
-            role="button"
-            aria-disabled="true"
-            >Zobrazit výsledky závodu</a></div>
-{% endif %}
-
-{% if request.user.is_superuser %}
-        <div class="p-2 bd-highlight"><a
-            href="{% url 'event:event-admin' event.id %}"
-            class="btn btn-outline-info"
-            tabindex="-1"
-            role="button"
-            aria-disabled="true">Administrace závodu</a></div>
-{% endif %}
-</div>
-    <p class = "event-date dark:dark--text">Datum : {{event.date}}</p>
-    <p class = "event-date mt-2 dark:dark--text">Pořadatel : {{event.organizer}}</p>
-
-{% if event.canceled %}
-<div class="alert alert-danger h4 text-center" role="alert">
-  POZOR! Závod je zrušen.
-</div>
-
-{% endif %}
-    <div class="event-detail-header dark:dark--text">Základní informace</div>
-    <div class="container-date">
-        <div class="row">
-            <div class="w-100"></div>
-            <div class="col col-info dark:dark--text">PCP: {{event.pcp}}</div>
-            <div class="col col-info dark:dark--text">PCP ASSIST.: {{event.pcp_assist}}</div>
-            <div class="col col-info dark:dark--text">ŘEDITEL: {{event.director}} </div>
-        </div>
+<header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-header">{{event.name | upper}}</h1>
     </div>
+</header>
 
-{% if not event.results_uploaded and not event.canceled %}
-    <div class="registration">
-        <div class="event-header dark:dark--text">
-            Možnosti přihlášení do závodu
-        </div>
-        <div class="event-content">
-            <div class="row row-registration">
-                <div class="col col-reg mt-2 dark:dark--text">REGISTRACE OTEVŘENA OD: <b>{{event.reg_open_from}}</b></div>
-                <div class="col col-reg mt-2 dark:dark--text">REGISTRACE OTEVŘENA DO: <b>{{event.reg_open_to}}</b></div>
-                {% if reg_open %}
-                <div class="col col-reg"><a
-                        href="{% url 'event:entry' event.id %}"
-                        class="btn btn-warning"
-                        tabindex="-1"
-                        role="button"
-                        aria-disabled="true"
-                >Přihlásit do závodu</a></div>
-                {% else %}
-                <div class="col col-reg"><a
-                    href="{% url 'event:entry' event.id %}"
-                    class="btn btn-warning disabled"
-                    tabindex="-1"
-                    role="button"
-                    aria-disabled="true"
-            >Přihlásit do závodu</a></div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-{% endif %}
+<div class="mx-10 mt-6">
+    <div class="d-flex flex-row-reverse bd-highlight">
 
-    <div class="race-sys">
-        <div class="event-header dark:dark--text">
-            Systém závodů
-        </div>
-        <div class="event-content mt-2 dark:dark--text">{{event.system}}</div>
-        {% if event.is_uci_race %}
-        <div role="alert">
-            <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2 mt-4">
-             Upozornění
-            </div>
-            <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-              <p>Tento závod je zapsán v kalendáři UCI, proto Junior, Under 23 a Elite kategorie pojedou podle pravidel UCI a nikoliv platných prováděcích pokynů!</p>
-            </div>
-          </div>
+        {% if event.results_uploaded %}
+        <div class="p-2 bd-highlight"><a href="{% url 'event:results' event.id %}" class="btn btn-outline-success"
+                tabindex="-1" role="button" aria-disabled="true">Zobrazit výsledky závodu</a></div>
+        {% endif %}
+
+        {% if request.user.is_superuser %}
+        <div class="p-2 bd-highlight"><a href="{% url 'event:event-admin' event.id %}" class="btn btn-outline-info"
+                tabindex="-1" role="button" aria-disabled="true">Administrace závodu</a></div>
         {% endif %}
     </div>
 
-    <div class="classes">
-        <div class="event-header dark:dark--text">
-            Kategorie
-        </div>
-        <div class="event-content dark:dark--text"> xxx</div>
-    </div>
+    <div class="shadow-lg rounded-2xl px-12 pb-2">
 
-    <div class="prices">
-        <div class="event-header dark:dark--text">
-            Ceny
+        <div class="flex flex-row mt-4 py-4 bg-white overflow-hidden sm:rounded-md">
+            <p class="text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600 dark:dark--text basis-1/2">{{event.date}}</p>
+            <p class="text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600 dark:dark--text basis-1/2">{{event.organizer|upper}}</p>
         </div>
-        <div class="event-content">{{event.prices}}</div>
-    </div>
+        {% if event.canceled %}
+        <div class="alert alert-danger h4 text-center" role="alert">
+            POZOR! Závod je zrušen.
+        </div>
 
-    <div class="timeschedule">
-        <div class="event-header dark:dark--text">
-            Časový harmonogram
-        </div>
-        <div class="event-content">{{event.timeschedule}}</div>
-    </div>
+        {% endif %}
 
-    <div class="note">
-        <div class="event-header dark:dark--text">
-            Poznámky:
+        <!-- Rozhodčí -->
+        <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Rozhodčí</div>
+        <div class="mt-4 bg-white overflow-hidden sm:rounded-md">
+            <ul role="list" class="divide-y divide-gray-200">
+                <li>
+                    <a href="#" class="block hover:bg-gray-50">
+                        <div class="flex items-center px-4 py-4 sm:px-6">
+                            <div class="min-w-0 flex-1 flex items-center">
+                                <!-- PCP -->
+                                <div class="flex-shrink-0">
+                                    <img class="h-12 w-12 rounded-full"
+                                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                        alt="">
+                                </div>
+                                <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
+                                    <div>
+                                        <p class="text-sm font-medium text-indigo-600 truncate">{{event.pcp}}</p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500">
+                                            <span class="truncate">{{event.pcp.level}}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- PCP asist -->
+                                <div class="flex-shrink-0">
+                                    <img class="h-12 w-12 rounded-full"
+                                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                        alt="">
+                                </div>
+                                <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
+                                    <div>
+                                        <p class="text-sm font-medium text-indigo-600 truncate">{{event.pcp_assist}}</p>
+                                        <p class="mt-2 flex items-center text-sm text-gray-500">
+                                            <span class="truncate">{{event.pcp_assist.level}}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
         </div>
-        <div class="event-content">{{event.notes}}</div>
+
+        <div class="flex flex-row">
+            <div class="basis-1/2">
+                <!-- Registrace -->
+                {% if not event.results_uploaded and not event.canceled %}
+                <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text ">On-line registrace</div>
+                <div class="bg-white overflow-hidden sm:rounded-md mt-2">
+                    <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text basis-1/2">od {{event.reg_open_from}} do
+                        {{event.reg_open_to}}</div>
+                </div>
+                {% else %}
+                <div class="text-lg text-gray-600 dark:dark--text basis-1/2">Registrace nebyla otevřena nebo už byla
+                    ukončena</div>
+                {% endif %}
+
+            </div>
+
+            <div class="basis-1/2">
+                <div class="mt-4 text-3xl dark:dark--text ">Systém závodů</div>
+                <div class="bg-white overflow-hidden sm:rounded-md mt-2">
+                    <div class="text-lg text-gray-600 dark:dark--text">{{event.system}}</div>
+                    {% if event.is_uci_race %}
+                    <div role="alert">
+                        <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2 mt-4">
+                            Upozornění
+                        </div>
+                        <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                            <p>Tento závod je zapsán v kalendáři UCI, proto Junior, Under 23 a Elite kategorie pojedou
+                                podle pravidel UCI a nikoliv platných prováděcích pokynů!</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="classes">
+            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Kategorie</div>
+            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">xxx</div>
+        </div>
+
+        <div class="prices">
+            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Ceny</div>
+            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.prices}}</div>
+        </div>
+
+        <div class="timeschedule">
+            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Časový harmonogram</div>
+            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.timeschedule}}</div>
+        </div>
+
+        <div class="note">
+            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Poznámky</div>
+            <div class="text-lg  px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.notes}}</div>
+        </div>
     </div>
 
     <!-- Seznam přihlášených -->
-    {% if event.results_uploaded  == 0 %}
-
-        <div class="text-center text-2xl mt-4 text-red-600">
-            SEZNAM PŘIHLÁŠENÝCH
+    <div class="shadow-lg rounded-2xl px-12 mt-6 mb-6">
+        {% if event.results_uploaded == 0 %}
+        <div class="mt-6 px-4 sm:px-6 lg:px-8 text-3xl font-bold inline-block">
+            Seznam registrovaných jezdců
         </div>
-
-    <form method="POST" id="entriesForm">
-        {% csrf_token %}
-        <div class="container">
-            <div class="row" style = "margin-top: 2rem; margin-bottom: 2rem">
-                <div class="col-sm"><h1 class="text-center text-3xl text-blue-600">{{select_category | upper}}</h1></div>
-                <div class="col-sm">
-                    <select class="form-select" aria-label="Default select example" name="categoryInput" id="categoryInput">
+        <form method="POST" id="entriesForm">
+            {% csrf_token %}
+            <div class="flex flex-row mt-4">
+                <div class="basis-1/2">
+                    <h1 class="text-left text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600">{{select_category | upper}}</h1>
+                </div>
+                <div class="basis-1/2">
+                    <select
+                        class="mt-1 max-w-md block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                        aria-label="Default select example" name="categoryInput" id="categoryInput">
                         <option selected>Vyber kategorii:</option>
                         {% for category in categories %}
                         <option value="{{category}}">{{category}}</option>
@@ -149,45 +162,60 @@
                     const selectEl = document.getElementById("categoryInput")
                     selectEl.addEventListener("change", () => document.getElementById("entriesForm").submit())
                 </script>
+            </div>
+        </form>
+        {% endif %}
 
-                
-             </div>
+        {% if riders %}
+        <!-- Tabulka přihlášených -->
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div
+                class="-mx-4 mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">St. číslo
+                            </th>
+                            <th scope="col"
+                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Příjmení
+                            </th>
+                            <th scope="col"
+                                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                                Jméno</th>
+                            <th scope="col"
+                                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
+                                Klub</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UCI ID
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {% for rider in riders %}
+                        <tr>
+                            <td class="px-3 py-4 text-sm text-gray-500">{{rider.plate}}</td>
+                            <td
+                                class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+                                {{rider.last_name|upper}}
+                                <dl class="font-normal lg:hidden">
+                                    <dt class="sr-only">Title</dt>
+                                    <dd class="mt-1 truncate text-gray-700">{{rider.first_name}}</dd>
+                                    <dt class="sr-only sm:hidden">Email</dt>
+                                    <dd class="mt-1 truncate text-gray-500 sm:hidden">{{rider.club}}</dd>
+                                </dl>
+                            </td>
+                            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{rider.first_name}}</td>
+                            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club}}</td>
+                            <td class="px-3 py-4 text-sm text-gray-500">{{rider.uci_id}}</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- More people... -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </form>
-    {% endif %}
-
-    {% if riders %}
-    <h4>Celkem přihlášeno jezdců: {{riders_sum}} </h4>
-    <table class="table table-hover mt-2" id="myTable">
-      <thead>
-        <tr>
-          <th scope="col">Start.č.</th>
-          <th scope="col">Příjmení</th>
-          <th scope="col">Jméno</th>
-          <th scope="col">Klub</th>
-          <th scope="col">UCI ID</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rider in riders %}
-        <tr>
-          <td scope="row">{{rider.plate}}</td>
-          <td>{{rider.last_name|upper}}</td>
-          <td>{{rider.first_name}}</td>
-          <td>{{rider.club}}</td>
-          <td>{{rider.uci_id}}</td>
-        </tr>
-              {% endfor%}
-        </tbody>
-        </table>
-    {% else %}
-    <h1 class="text-center main-header" style="margin-top: 2rem">{{select_category}}</h1>
-    {% if alert %}
-    <div class="alert alert-info" role="alert">
- Do této kategorie není dosud nikdo přihlášen.
+        <div class="text-2xl mt-4 pb-2 px-4 sm:px-6 lg:px-8">Celkem přihlášeno v této kategorii jezdců:  <span class="text-3xl">{{riders_sum}}</span> </div>
+        {% endif %}
+    </div>
 </div>
-    {% endif %}
-    {% endif %}
 
-</div>
 {% endblock content %}
