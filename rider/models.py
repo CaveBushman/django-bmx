@@ -225,6 +225,7 @@ class Rider(models.Model):
         else:
             return "yellow"
 
+# nastavení kategorie jezdce při ukládání
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
     print("PRESAVE CZE")
@@ -234,8 +235,23 @@ def set_class(sender, instance, **kwargs):
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
     instance.class_24 = instance.set_class_24(instance.gender, age)
     instance.plate_color_20 = instance.plate_color(instance.class_20)
-
 pre_save.connect (set_class, sender = Rider)
+
+# vymazání staré fotky jezdce při její změně
+@receiver(pre_save, sender=Rider)
+def delete_file_on_change_extension(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_photo = Rider.objects.get(pk=instance.pk).photo
+        except Rider.DoesNotExist:
+            return
+        else:
+            new_photo = instance.photo
+            if old_photo == "static/images/riders/uni.jpeg":
+                return
+            if old_photo and old_photo.url != new_photo.url:
+                old_photo.delete(save=False)
+pre_save.connect(delete_file_on_change_extension, sender=Rider)
 
 class ForeignRider(models.Model):
     """ Class for foreign rider """
@@ -417,5 +433,5 @@ def set_class_foreign(sender, instance, *args, **kwargs):
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
     instance.class_24 = instance.set_class_24(instance.gender, age)
-
 pre_save.connect (set_class_foreign, sender = ForeignRider)
+

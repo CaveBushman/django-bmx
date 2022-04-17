@@ -15,7 +15,7 @@ class Tag(models.Model):
 
 
 class News (models.Model):
-    """ Class for news on this wabsite """
+    """ Class for news on this website """
 
     title = models.CharField(max_length=255, default="")
     content = RichTextField(max_length=10000, blank=True, null=True)
@@ -39,11 +39,14 @@ class News (models.Model):
         return self.title
 
     class Meta:
+        verbose_name = "Článek"
         verbose_name_plural = 'Články'
     
     def sum_of_news():
+        """ fukce vrací hodnotu všech zveřejněných článků """
         return News.objects.filter(published = True).count()
 
+# nastavení time_to_read při ukládání článku
 @receiver(pre_save, sender=News)
 def set_time_to_read (sender, instance, *args, **kwargs):
     world_list = instance.content.split()
@@ -51,6 +54,27 @@ def set_time_to_read (sender, instance, *args, **kwargs):
     time_to_read = int(number_of_words/200)
     if time_to_read < 1:
         time_to_read = 1
-    instance.time_to_read = time_to_read
-    
+    instance.time_to_read = time_to_read   
 pre_save.connect (set_time_to_read, sender = News)
+
+# vymazání staré fotky z disku při její změně
+@receiver(pre_save, sender=News)
+def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
+    if instance.pk:
+        try:
+            old_photo_01 = News.objects.get(pk=instance.pk).photo_01
+            old_photo_02 = News.objects.get(pk=instance.pk).photo_03
+            old_photo_03 = News.objects.get(pk=instance.pk).photo_03
+        except News.DoesNotExist:
+            return
+        else:
+            new_photo_01 = instance.photo_01
+            new_photo_02 = instance.photo_02
+            new_photo_03 = instance.photo_03
+            if old_photo_01 and old_photo_01.url != new_photo_01.url:
+                old_photo_01.delete(save=False)
+            if old_photo_02 and old_photo_02.url != new_photo_02.url:
+                old_photo_02.delete(save=False)
+            if old_photo_03 and old_photo_03.url != new_photo_03.url:
+                old_photo_03.delete(save=False)
+pre_save.connect(delete_photo_on_change_extension, sender=News)

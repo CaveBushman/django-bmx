@@ -14,6 +14,5 @@ class NewsAdmin (admin.ModelAdmin):
     exclude = ('time_to_read',)
 
     
-
 admin.site.register(News, NewsAdmin,)
 admin.site.register(Tag)
