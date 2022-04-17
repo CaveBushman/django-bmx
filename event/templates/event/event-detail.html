@@ -80,14 +80,14 @@
         <div class="flex flex-row">
             <div class="basis-1/2">
                 <!-- Registrace -->
-                {% if not event.results_uploaded and not event.canceled %}
                 <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text ">On-line registrace</div>
+                {% if not event.results_uploaded and not event.canceled %}
                 <div class="bg-white overflow-hidden sm:rounded-md mt-2">
                     <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text basis-1/2">od {{event.reg_open_from}} do
                         {{event.reg_open_to}}</div>
                 </div>
                 {% else %}
-                <div class="text-lg text-gray-600 dark:dark--text basis-1/2">Registrace nebyla otevřena nebo už byla
+                <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text basis-1/2">Registrace nebyla otevřena nebo už byla
                     ukončena</div>
                 {% endif %}
 
