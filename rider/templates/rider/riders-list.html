@@ -9,6 +9,8 @@
   </div>
 </header>
 
+<div class="max-w-screen-2xl mx-auto">
+
 <div class="mt-8 mx-6">
   <div class="d-flex flex-row-reverse bd-highlight mr-6">
       {% if request.user.is_superuser %}
@@ -145,6 +147,7 @@
   </div>
   <script src="{% static 'js/rider.js' %}"></script>
   <script src="{% static 'js/arrow.js' %}"></script>
+</div>
 </div>
 
 {% endblock content %}

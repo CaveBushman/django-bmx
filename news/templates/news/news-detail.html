@@ -1,13 +1,17 @@
 {% extends 'base.html' %} {% block title %} {{ news.title }} {% endblock title %}
 {% block content %}
 
-<img class="h-80 w-full object-cover" src="{{news.photo_01.url}}" alt="News photo"/>
+<div class="max-w-screen-2xl mx-auto">
+    <img class="h-80 w-full object-cover" src="{{news.photo_01.url}}" alt="News photo"/>
+</div>
 
 <header class="bg-white shadow">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl font-bold text-header">{{news.title|upper}}</h1>
     </div>
 </header>
+
+<div class="max-w-screen-2xl mx-auto">
 
 <div class="mx-auto my-4 w-4/5">
     <author class="flex items-center px-6 pt-2 pb-4">
@@ -22,6 +26,6 @@
     </author>
 
     <p class = "text-justify text-gray-500 dark:dark--text">{{news.content|safe}}</p>
-
+</div>
 </div>
 {% endblock content %}

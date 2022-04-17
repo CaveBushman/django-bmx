@@ -9,6 +9,8 @@
     </div>
 </header>
 
+<div class="max-w-screen-2xl mx-auto">
+    
 <!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
 <div class="mt-6 dark:bg-gray-800">
     <div class="d-flex flex-row bd-highlight  mb-3 justify-content-center">
@@ -128,6 +130,8 @@
 <h3 class="display-6 text-center rider-detail-header dark:text-purple-300" style="margin-bottom: 2rem">
     Umístění za poslední rok
 </h3>
+
+
 {% if results %}
 
 <!-- This example requires Tailwind CSS v2.0+ -->
@@ -187,4 +191,6 @@
     <h5 style = "text-align: center" class="dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
 {% endif %}
 </div>
+</div>
+
 {% endblock content %}

@@ -13,7 +13,7 @@ def HomepageView(request):
     this_year = date.today().year
     events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count
     riders_sum = Rider.sum_of_riders()
-    clubs_sum = Club.active_club()
+    clubs_sum = Club.active_club()-1 # odečítám "Bez klubové příslušnosti"
     homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
 
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,

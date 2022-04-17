@@ -8,15 +8,19 @@
 </header>
 
 <div class="mx-10 mt-6">
-    <div class="d-flex flex-row-reverse bd-highlight">
+    <div class="flex flex-row-reverse ">
 
         {% if event.results_uploaded %}
-        <div class="p-2 bd-highlight"><a href="{% url 'event:results' event.id %}" class="btn btn-outline-success"
-                tabindex="-1" role="button" aria-disabled="true">Zobrazit výsledky závodu</a></div>
+        <div class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 flex items-center">
+            <div>Výsledky  </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
+            </svg>
+        </div>
         {% endif %}
 
         {% if request.user.is_superuser %}
-        <div class="p-2 bd-highlight"><a href="{% url 'event:event-admin' event.id %}" class="btn btn-outline-info"
+        <div class="p-2 "><a href="{% url 'event:event-admin' event.id %}" class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
                 tabindex="-1" role="button" aria-disabled="true">Administrace závodu</a></div>
         {% endif %}
     </div>
@@ -130,14 +134,15 @@
         </div>
 
         <div class="note">
-            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Poznámky</div>
+            <div class="mt-4 pb-6 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Poznámky</div>
             <div class="text-lg  px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.notes}}</div>
         </div>
     </div>
 
     <!-- Seznam přihlášených -->
-    <div class="shadow-lg rounded-2xl px-12 mt-6 mb-6">
-        {% if event.results_uploaded == 0 %}
+    {% if event.results_uploaded == 0 %}
+    <div class="shadow-lg rounded-2xl px-12 mt-6 mb-6 py-4">
+
         <div class="mt-6 px-4 sm:px-6 lg:px-8 text-3xl font-bold inline-block">
             Seznam registrovaných jezdců
         </div>
@@ -204,7 +209,7 @@
                                 </dl>
                             </td>
                             <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{rider.first_name}}</td>
-                            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club}}</td>
+                            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club|upper}}</td>
                             <td class="px-3 py-4 text-sm text-gray-500">{{rider.uci_id}}</td>
                         </tr>
                         {% endfor %}
@@ -214,8 +219,9 @@
             </div>
         </div>
         <div class="text-2xl mt-4 pb-2 px-4 sm:px-6 lg:px-8">Celkem přihlášeno v této kategorii jezdců:  <span class="text-3xl">{{riders_sum}}</span> </div>
-        {% endif %}
     </div>
+        {% endif %}
+
 </div>
 
 {% endblock content %}

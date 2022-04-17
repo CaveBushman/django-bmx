@@ -7,6 +7,8 @@
   </div>
 </header>
 
+<div class="max-w-screen-2xl mx-auto">
+
 <!-- This example requires Tailwind CSS v2.0+ -->
 <div class="px-4 sm:px-6 lg:px-8">
   <div class="-mx-4 my-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
@@ -23,6 +25,7 @@
       </thead>
       <tbody class="divide-y divide-gray-200 bg-white">
         {% for club in clubs %}
+        {% if club.team_name != "Bez klubové příslušnosti"  %}
         <tr>
           <td class="w-1/2 max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
             <a
@@ -47,11 +50,12 @@
           <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{club.contact_email}}</td>
           <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{club.contact_phone}}</td>
         </tr>
+        {% endif %}
         {% endfor %}
         <!-- More people... -->
       </tbody>
     </table>
   </div>
 </div>
-
+</div>
 {% endblock content %}

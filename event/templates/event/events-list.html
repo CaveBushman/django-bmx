@@ -8,6 +8,8 @@
   </div>
 </header>
 
+<div class="max-w-screen-2xl mx-auto">
+
 <div class="flex flex-auto mt-6">
   <nav class="mx-auto relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
     <a href="{% url 'event:events-by-year' last_year %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
@@ -90,5 +92,5 @@
     </table>
   </div>
 </div>
-
+</div>
 {% endblock content %}
