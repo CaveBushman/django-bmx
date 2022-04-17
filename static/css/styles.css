@@ -989,6 +989,21 @@ p {
   margin-bottom: -0.5rem;
 }
 
+.mx-6 {
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+}
+
+.mx-10 {
+  margin-left: 2.5rem;
+  margin-right: 2.5rem;
+}
+
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -1067,6 +1082,10 @@ p {
 
 .ml-4 {
   margin-left: 1rem;
+}
+
+.ml-6 {
+  margin-left: 1.5rem;
 }
 
 .block {
@@ -1197,6 +1216,10 @@ p {
   width: -webkit-max-content;
   width: -moz-max-content;
   width: max-content;
+}
+
+.w-1\/2 {
+  width: 50%;
 }
 
 .min-w-full {
@@ -1628,6 +1651,16 @@ p {
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
+.bg-purple-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 232 255 / var(--tw-bg-opacity));
+}
+
+.bg-blue-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(219 234 254 / var(--tw-bg-opacity));
+}
+
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
@@ -1759,6 +1792,10 @@ p {
   text-align: center;
 }
 
+.text-right {
+  text-align: right;
+}
+
 .text-justify {
   text-align: justify;
 }
@@ -1862,6 +1899,10 @@ p {
 
 .tracking-normal {
   letter-spacing: 0em;
+}
+
+.tracking-wide {
+  letter-spacing: 0.025em;
 }
 
 .text-indigo-600 {
@@ -2078,6 +2119,11 @@ p {
 .hover\:text-purple-400:hover {
   --tw-text-opacity: 1;
   color: rgb(192 132 252 / var(--tw-text-opacity));
+}
+
+.hover\:text-indigo-900:hover {
+  --tw-text-opacity: 1;
+  color: rgb(49 46 129 / var(--tw-text-opacity));
 }
 
 .hover\:underline:hover {
@@ -2298,6 +2344,14 @@ p {
     margin-top: 1px;
   }
 
+  .sm\:mt-0 {
+    margin-top: 0px;
+  }
+
+  .sm\:ml-16 {
+    margin-left: 4rem;
+  }
+
   .sm\:flex {
     display: flex;
   }
@@ -2318,6 +2372,14 @@ p {
     width: 75%;
   }
 
+  .sm\:w-5 {
+    width: 1.25rem;
+  }
+
+  .sm\:w-1\/2 {
+    width: 50%;
+  }
+
   .sm\:max-w-none {
     max-width: none;
   }
@@ -2328,6 +2390,14 @@ p {
 
   .sm\:flex-1 {
     flex: 1 1 0%;
+  }
+
+  .sm\:flex-auto {
+    flex: 1 1 auto;
+  }
+
+  .sm\:flex-none {
+    flex: none;
   }
 
   .sm\:items-center {
@@ -2442,6 +2512,10 @@ p {
     display: grid;
   }
 
+  .md\:hidden {
+    display: none;
+  }
+
   .md\:h-80 {
     height: 20rem;
   }
@@ -2472,6 +2546,16 @@ p {
 
   .md\:rounded-lg {
     border-radius: 0.5rem;
+  }
+
+  .md\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .md\:px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 
   .md\:text-4xl {

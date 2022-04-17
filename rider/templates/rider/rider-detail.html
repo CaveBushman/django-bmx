@@ -123,40 +123,60 @@
     Umístění za poslední rok
 </h3>
 {% if results %}
-<div class="container">
-    <table class="table" style="padding-left: 5rem; padding-right: 5rem; margin-bottom: 3rem">
-        <thead>
-            <tr>
-                <th scope="col" class="dark:text-gray-200">Datum</th>
-                <th scope="col" class="dark:text-gray-200">Název závodu</th>
-                <th scope="col" class="dark:text-gray-200">Pořadatel</th>
-                <th scope="col" class="dark:text-gray-200">Typ závodu</th>
-                <th scope="col" class="dark:text-gray-200">Kategorie</th>
-                <th scope="col" class="dark:text-gray-200">Umístění</th>
-                <th scope="col" class="dark:text-gray-200">Počet bodů</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for result in results %}
-        {% if result.marked_20 %}
-        <tr class="bg-purple-400 text-white dark:bg-purple-900" >
-        {% elif result.marked_24 %}
-        <tr class="bg-blue-400 text-white dark:bg-blue-800" >
-        {% else %}
-        <tr>
-        {% endif %}
-            <th scope="row" class="dark:text-gray-200">{{ result.date }}</th>
-            <td class="dark:text-gray-200">{{ result.name }}</td>
-            <td class="dark:text-gray-200">{{ result.organizer|upper }}</td>
-            <td class="dark:text-gray-200">{{ result.event_type }}</td>
-            <td class="dark:text-gray-200">{{ result.category }}</td>
-            <td class="dark:text-gray-200">{{ result.place }}. místo</td>
-            <td class="dark:text-gray-200"> {{ result.points }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
 
+<!-- This example requires Tailwind CSS v2.0+ -->
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <p class="mt-2 ml-8 text-sm text-gray-700">Fialová barva v tabulce označuje bodované závody na 20-ti palových kolech, modrá na cruiserech, bílá označuje závody, které se do rankingu nezapočítají.</p>
+      </div>
+
+    </div>
+    <div class="mx-4 mt-8 mb-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50">
+           <tr>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Datum</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Závod</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Pořadatel</th>
+            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Typ závodu</th>
+            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategorie</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Umístění</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Počet bodů</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+            {% for result in results %}
+            {% if result.marked_20 %}
+            <tr class="bg-purple-100 text-white dark:bg-purple-900" >
+            {% elif result.marked_24 %}
+            <tr class="bg-blue-100 text-white dark:bg-blue-800" >
+            {% else %}
+            <tr>
+            {% endif %}
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+                {{ result.date }}
+              <dl class="font-normal lg:hidden">
+                <dt class="sr-only">Title</dt>
+                <dd class="mt-1 truncate text-gray-700">{{ result.name }}</dd>
+                <dt class="sr-only sm:hidden">Organizátor</dt>
+                <dd class="mt-1 truncate text-gray-500 sm:hidden">{{ result.organizer|upper }}</dd>
+              </dl>
+            </td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ result.name }}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{ result.organizer|upper }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500">{{ result.event_type }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500">{{ result.category }}</td>
+            <td class="px-3 py-4 text-sm text-gray-500">{{ result.place }}. místo</td>
+            <td class="px-3 py-4 text-sm text-gray-500">{{ result.points }}</td>
+          </tr>
+          {% endfor %}
+          <!-- More people... -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+ 
 {% else %}
     <h5 style = "text-align: center" class="dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
 {% endif %}
