@@ -7,7 +7,7 @@
 </svg></div>
 
     <h1 class = "success-payment-header text-center align-middle">DĚKUJEME.</h1>
-    <h5 class = "text-center">Vaše platba byla přijata. Přihlášení jezdců do závodu si můžete zkontroloval v detailu závodu. </h5>
+    <h5 class = "text-center">Vaše platba byla přijata. Přihlášení jezdců do závodu si můžete zkontroloval <a href="{% url 'event:event-detail' event.id %}"> zde </a> v detailu závodu. </h5>
 </div>
 
 {% endblock content %}

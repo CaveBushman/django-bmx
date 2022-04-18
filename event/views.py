@@ -440,6 +440,8 @@ def SuccessView(request):
                                         transaction_date__day=date.today().day,
                                         payment_complete=False,)
     transactions_to_email = []
+    event_id = transaction.event
+    event = Event.objects.get(id=event_id)
 
     # check, if fees was paid
     for transaction in transactions:
@@ -459,7 +461,8 @@ def SuccessView(request):
     for transaction_to_email in transactions_to_email:
         # threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
         pass
-    return render(request, 'event/success.html')
+    data = {'event':event}
+    return render(request, 'event/success.html', data)
 
 
 def CancelView(request):
