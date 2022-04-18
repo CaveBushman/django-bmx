@@ -9,6 +9,7 @@ from datetime import date
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
+from ckeditor.fields import RichTextField
 
 # Create your models here.
 
@@ -185,9 +186,9 @@ class Event(models.Model):
     reg_open = models.BooleanField(default=True)
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
-    prices = models.TextField(max_length=1000, default="", blank=True, null=True)
-    timeschedule = models.TextField(max_length=1000, default="", blank=True, null=True)
-    notes = models.TextField(max_length=1000, default="", blank=True, null=True)
+    prices = RichTextField(max_length=10000, blank=True, null=True)
+    timeschedule = RichTextField(max_length=10000, blank=True, null=True)
+    notes = RichTextField(max_length=10000, blank=True, null=True)
 
     commission_fee = models.IntegerField(default=0)
 
