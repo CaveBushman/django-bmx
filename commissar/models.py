@@ -22,6 +22,9 @@ class Commissar (models.Model):
         verbose_name = "Rozhodčí"
         verbose_name_plural = 'Rozhodčí'
     
+    def __str__(self):
+        return (f"{self.last_name} {self.first_name}")
+    
 # vymazání staré fotky jezdce při její změně
 @receiver(pre_save, sender=Commissar)
 def delete_file_on_change_extension(sender, instance, **kwargs):
