@@ -1,6 +1,6 @@
 import json
 import os
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -23,7 +23,7 @@ from django.core import serializers
 from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
-import threading
+
 
 # Create your views here.
 
@@ -234,9 +234,11 @@ def EntryView(request, pk):
         request.session['riders_20'] = serializers.serialize('json', riders_20)
         request.session['riders_24'] = serializers.serialize('json', riders_24)
 
+    
+
         data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
                 'sum_24': sum_24}
-        return render(request, 'event/entry_2.html', data)
+        return render(request, 'event/checkout.html', data)
 
     # disable riders, who was registered in event
     for rider in riders:

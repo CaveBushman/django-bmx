@@ -1,15 +1,18 @@
 {% extends 'base.html' %} {% block title %} Přihlášení na závody
 {% endblock title %} {% load static %} {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-5 py-3 dark:dark--header">Přihlášení na {{event.name}}</h1>
-<br /><br />
+<header class="bg-white shadow">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold dark:text-gray-300">Přihlášení na {{event.name}}</h1>
+  </div>
+</header>
 
-<div class = "container dark:dark--text">
-  <h5>Datum konání: <b>{{event.date}}</b></h5>
+<div class = "max-w-7xl mt-4 mx-auto dark:dark--text">
+  <div class="text-2xl">Datum konání: <b>{{event.date}}</b></div>
 </div>
 <br>
-<div class = "container dark:dark--text">
-  <div class="container">
+<div class = "max-w-7xl mx-auto dark:dark--text">
+  <div class="">
     <div class="row">
       <div class="col-sm">
         <input
@@ -38,85 +41,98 @@
   <form method="POST">
     {% csrf_token %}
 
-    <table class="table table-hover align-middle dark:dark--text" id="myTable">
-      <thead>
-        <tr>
-          <th scope="col">Start.č.</th>
-          <th scope="col"></th>
-          <th scope="col">Příjmení</th>
-          <th scope="col">Jméno</th>
-          <th scope="col">Klub</th>
-          <th scope="col">UCI ID</th>
-          <th scope="col">20"</th>
-          <th scope="col">Cruiser</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rider in riders %}
-        <tr class="dark:hover:text-gray-50">
-          <td scope="row">{{rider.plate}}</td>
-          <td><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
-                                     style="width: 2rem; height: 2rem;"></td>
-          <td>{{rider.last_name}}</td>
-          <td>{{rider.first_name}}</td>
-          <td class = "text-sm">{{rider.club}}</td>
-          <td class = "text-sm">{{rider.uci_id}}</td>
+    <div class="-mx-4 mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-300" id="myTable">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 sm:pl-6 text-center">Start.č.</th>
+            <th scope="col"></th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Příjmení</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Jméno</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Klub</th>
+            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UCI ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">20"</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">24"</th>
+          </tr>
+        </thead>
 
-          {% if 'registered' in rider.class_20 %}
-          <td class = "table-success text-sm">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value="{{rider.uci_id}}"
-              id="checkbox_20"
-              name="checkbox_20"
-              checked
-              disabled
-            />
-            {{rider.class_20|slice:":-10" }}
-          </td>
-          {% else %}
-          <td class = "text-sm">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value="{{rider.uci_id}}"
-              id="checkbox_20"
-              name="checkbox_20"
-            />
-            {{rider.class_20}}
-          </td>
-          {% endif %} {% if 'registered' in rider.class_24 %}
-          <td class = "table-success text-sm" >
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value="{{rider.uci_id}}"
-              id="checkbox_24"
-              name="checkbox_24"
-              checked
-              disabled
-            />{{rider.class_24|slice:":-10" }}
-          </td>
-          {% else %}
-          <td class = "text-sm">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value="{{rider.uci_id}}"
-              id="checkbox_24"
-              name="checkbox_24"
-            />
-            {{rider.class_24}}
-          </td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          {% for rider in riders %}
+          <tr>
+            <td class="mt-1 truncate text-gray-700 text-center">{{rider.plate}}</td>
+            <td><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
+              style="width: 2rem; height: 2rem;"></td>
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+              {{rider.last_name}}
+              <dl class="font-normal lg:hidden">
+                <dt class="sr-only">Title</dt>
+                <dd class="mt-1 truncate text-gray-700">{{rider.first_name}}</dd>
+                <dt class="sr-only sm:hidden">Email</dt>
+                <dd class="mt-1 truncate text-gray-500 sm:hidden">{{rider.club|upper}}</dd>
+              </dl>
+            </td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{rider.first_name}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club|upper}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 md:table-cell">{{rider.uci_id}}</td>
+            {% if 'registered' in rider.class_20 %}
+            <td class="mt-1 text-sm truncate text-gray-700 bg-green-300">
+              <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_20"
+                name="checkbox_20"
+                checked
+                disabled
+              />
+              {{rider.class_20|slice:":-10" }}
+            </td>
+            {% else %}
+            <td class="mt-1 text-sm truncate text-gray-700">
+              <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_20"
+                name="checkbox_20"
+              />
+              {{rider.class_20}}
+            </td>
+            {% endif %}
+            {% if 'registered' in rider.class_24 %}
+            <td class="mt-1 text-sm truncate text-gray-700 bg-green-300" >
+              <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_24"
+                name="checkbox_24"
+                checked
+                disabled
+              />{{rider.class_24|slice:":-10" }}
+            </td>
+            {% else %}
+            <td class="mt-1 text-sm truncate text-gray-700">
+              <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_24"
+                name="checkbox_24"
+              />
+              {{rider.class_24}}
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+          <!-- More people... -->
+        </tbody>
+      </table>
+    </div>
+
     <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
-    <button type="submit" class="arrow bg-primary text-light" id="to-bottom">
-      Přejít ke kontrole přihlášky
+    <button type="submit" class="arrow text-md text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800" id="to-bottom">
+      Checkout
     </button>
   </form>
 </div>
