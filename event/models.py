@@ -234,8 +234,11 @@ def delete_xml_results_file (sender, instance, **kwargs):
             return
         else:
             new_xml = instance.xml_results
-            if old_xml and old_xml.url != new_xml.url or new_xml.url=="":
-                old_xml.delete(save=False)
+            if old_xml and old_xml.url != new_xml.url:
+                try:
+                    old_xml.delete(save=False)
+                except Exception as e:
+                    pass
 pre_save.connect(delete_xml_results_file, sender=Event)
 
 # vymazání celkových výsledků při aktualizaci
