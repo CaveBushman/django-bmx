@@ -764,6 +764,7 @@ def EventAdminView(request, pk):
     invalid_licences = []
     sum_of_fees = 0
     sum_of_riders = 0
+    organizer_fee = 0
 
     for check20 in check_20_entries:
         try:
@@ -791,7 +792,9 @@ def EventAdminView(request, pk):
         sum_of_fees += entry.fee_24
         sum_of_riders+=1
 
+    organizer_fee = sum_of_fees - ( sum_of_fees * event.commission_fee /100)
+
     print(f"Vybrané startovné činní částku {sum_of_fees} Kč.")
 
-    data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees, "sum_of_riders":sum_of_riders}
+    data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees, "sum_of_riders":sum_of_riders, 'organizer_fee':organizer_fee}
     return render(request, 'event/event-admin.html', data)
