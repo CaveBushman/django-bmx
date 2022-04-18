@@ -6,6 +6,9 @@ from commissar.models import Commissar
 
 from datetime import date
 
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
+
 
 # Create your models here.
 
@@ -220,6 +223,48 @@ class Event(models.Model):
         verbose_name = "Závod"
         verbose_name_plural = 'Závody'
         ordering = ['-date',]
+
+# vymazání xml výsledků při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_xml_results_file (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_xml = Event.objects.get(pk=instance.pk).xml_results
+        except Event.DoesNotExist:
+            return
+        else:
+            new_xml = instance.xml_results
+            if old_xml and old_xml.url != new_xml.url:
+                old_xml.delete(save=False)
+pre_save.connect(delete_xml_results_file, sender=Event)
+
+# vymazání celkových výsledků při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_full_results_file (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_full_results_path = Event.objects.get(pk=instance.pk).full_results_path
+        except Event.DoesNotExist:
+            return
+        else:
+            new_full_results_path = instance.full_results_path
+            if old_full_results_path and old_full_results_path.url != new_full_results_path.url:
+                old_full_results_path.delete(save=False)
+pre_save.connect(delete_full_results_file, sender=Event)
+
+# vymazání nejrychlejších jezdců
+@receiver(pre_save, sender=Event)
+def delete_fast_riders_file (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_fast_riders_path = Event.objects.get(pk=instance.pk).fast_riders_path
+        except Event.DoesNotExist:
+            return
+        else:
+            new_fast_riders_path = instance.fast_riders_path
+            if old_fast_riders_path and old_fast_riders_path.url != new_fast_riders_path.url:
+                old_fast_riders_path.delete(save=False)
+pre_save.connect(delete_fast_riders_file, sender=Event)
 
 
 class Result(models.Model):
