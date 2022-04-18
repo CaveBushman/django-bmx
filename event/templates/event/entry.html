@@ -16,7 +16,7 @@
     <div class="row">
       <div class="col-sm">
         <input
-          class="form-control"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
           type="text"
           placeholder="Napiš příjmení jezdce"
           aria-label="default input example"
@@ -27,7 +27,7 @@
       <div class="col-sm"></div>
       <div class="col-sm">
         <input
-          class="form-control"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
           type="text"
           placeholder="Napiš klub"
           aria-label="default input example"
@@ -37,11 +37,11 @@
       </div>
     </div>
   </div>
-  <br />
+
   <form method="POST">
     {% csrf_token %}
 
-    <div class="-mx-4 mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+    <div class="-mx-4 mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
       <table class="min-w-full divide-y divide-gray-300" id="myTable">
         <thead class="bg-gray-50">
           <tr>

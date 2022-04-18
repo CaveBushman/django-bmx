@@ -58,7 +58,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     # not required
     photo = models.ImageField(
-        upload_to='static/images/users/', blank=True, null=True, default='static/images/users/uni.jpeg')
+        upload_to='static/images/users/', blank=True, null=True, default='static/images/users/blank-avatar-200x200.jpg')
 
     USERNAME_FIELD  = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']

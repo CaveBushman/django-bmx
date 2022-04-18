@@ -13,7 +13,7 @@ class Commissar (models.Model):
     last_name = models.CharField(max_length=200)
 
     photo = models.ImageField(
-        upload_to='static/images/commissar/', blank=True, null=True, default='static/images/commissar/uni.jpeg')
+        upload_to='static/images/commissar/', blank=True, null=True, default='static/images/users/blank-avatar-200x200.jpg')
 
 
     level = models.CharField(max_length=100, choices=LEVEL, default="Národní rozhodčí")
