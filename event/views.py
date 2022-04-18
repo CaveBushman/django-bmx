@@ -39,7 +39,6 @@ def EventsListView(request):
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             event.reg_open = False
         event.save()
-
     year = date.today().year
     next_year = int(year) + 1
     last_year = int(year) - 1
@@ -524,8 +523,7 @@ def EventAdminView(request, pk):
                                 last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
                       
-            event.results_uploaded = 1
-            event.results_path_to_file = uploaded_file_url
+            event.xml_results = uploaded_file_url
             event.save()
             RankingCount.set_ranking_points()
             ranking = RankPositionCount()
@@ -554,17 +552,16 @@ def EventAdminView(request, pk):
     if 'btn-delete-xls' in request.POST:
         print("Mažu XLS výsledky")
         try:
-            os.remove(f"static/results/{event.results_path_to_file}")
+            os.remove(f"static/results/{event.xml_results}")
         except Exception as e:
-            print (f"Nebyl nalezen soubor {event.results_path_to_file}")
+            print (f"Nebyl nalezen soubor {event.xml_results}")
         
         Result.objects.filter(event=pk).delete()
 
         RankingCount.set_ranking_points()
         RankPositionCount().count_ranking_position()
 
-        event.results_path_to_file=""
-        event.results_uploaded=False
+        event.xml_results=""
         print("Výsledky vymazány")
         event.save()
 
@@ -766,6 +763,7 @@ def EventAdminView(request, pk):
 
     invalid_licences = []
     sum_of_fees = 0
+    sum_of_riders = 0
 
     for check20 in check_20_entries:
         try:
@@ -791,8 +789,9 @@ def EventAdminView(request, pk):
     for entry in entries:
         sum_of_fees += entry.fee_20
         sum_of_fees += entry.fee_24
+        sum_of_riders+=1
 
     print(f"Vybrané startovné činní částku {sum_of_fees} Kč.")
 
-    data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees}
+    data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees, "sum_of_riders":sum_of_riders}
     return render(request, 'event/event-admin.html', data)

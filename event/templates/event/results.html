@@ -1,10 +1,14 @@
 {% extends 'base.html' %} {% block title %} Výsledky závodu {% endblock title %}
 {% block content %}
 
-<h1 class="text-4xl text-black-900 text-center mt-4 py-3 text-red-600">Výsledky závodu: {{event.name}}</h1>
 
-<div class="container">
+<header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold dark:text-gray-300">Výsledky závodu: {{event.name}}</h1>
+    </div>
+</header>
 
+<div class="container mt-4">
     <table class="table">
         <thead>
         <tr>
@@ -29,7 +33,6 @@
         {% endfor %}
         </tbody>
     </table>
-
 </div>
 
 {% endblock content %}

@@ -88,7 +88,7 @@ def is_registration_open(event_id):
     this_date = date.today()
 
     # if results is uploaded, registration is close
-    if event.results_uploaded:
+    if event.xml_results:
         return False
     
     # event registration is manually close

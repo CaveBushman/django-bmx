@@ -188,14 +188,18 @@ class Event(models.Model):
 
     bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    
     bem_riders_list = models.FileField(upload_to='static/bem_riders', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     full_results_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    results_path_to_file = models.FileField(upload_to='static/results', null=True, blank=True)
-    results_uploaded = models.BooleanField(default=False)
+    fast_riders_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
+    fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    xml_results = models.FileField(upload_to='static/results', null=True, blank=True)
+    xml_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)

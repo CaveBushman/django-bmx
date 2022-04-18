@@ -1,4 +1,5 @@
 {% extends 'base.html' %} 
+{% load static %}
 {% block title %} Kalendář závodů {% endblock title %} 
 {% block content %}
 
@@ -77,8 +78,24 @@
             {% if event.reg_open%}
             <a href="{% url 'event:entry' event.id %}" class="py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--yellow">Přihlásit</a>
             {% endif %}
-            {% if event.results_uploaded %}
-            <a href = "{% url 'event:results' event.id %}" class="py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--green">Výsledky</a>
+            {% if event.xml_results %}
+            <div class="flex justify-end">
+              <span class="dropdown-main relative">
+                  <button class="dropdown-btn py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--green">Výsledky</button>
+                  <div class="dropdown-content right-0 hidden absolute z-10 py-10 px-5 w-64 bg-white shadow-xl rounded-lg">
+                      <ul>
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{% url 'event:results' event.id %}">HTML</a></li>
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="../static/results{{event.xml_results.url}}" target="_blank">XML</a></li>
+                        {% if event.full_results_path %}
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.full_results_path.url}}" target="_blank">PDF celkové výsledky</a></li>
+                        {% endif %} 
+                        {% if event.fast_riders_path %}
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.fast_riders_path.url}}" target="_blank">PDF 50 nejrychlejších jezdců</a></li>
+                        {% endif %} 
+                      </ul>
+                  </div>  
+              </span>
+          </div>
             {% endif %}
             {% if request.user.is_superuser %}
               <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--purple">Admin</a>
@@ -93,4 +110,5 @@
   </div>
 </div>
 </div>
+<script src="{% static 'js/dropdown.js' %}"></script>
 {% endblock content %}
