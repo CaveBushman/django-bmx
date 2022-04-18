@@ -125,7 +125,7 @@
 
         <div class="prices">
             <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Ceny</div>
-            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.prices}}</div>
+            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.prices|safe}}</div>
         </div>
 
         <div class="timeschedule">
@@ -135,7 +135,7 @@
 
         <div class="note">
             <div class="mt-4 pb-6 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Poznámky</div>
-            <div class="text-lg  px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.notes}}</div>
+            <div class="text-lg  px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.notes|safe}}</div>
         </div>
     </div>
 
