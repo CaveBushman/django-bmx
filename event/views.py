@@ -784,7 +784,7 @@ def EventAdminView(request, pk):
     invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
 
     # summary fees on event
-    entries = Entry.objects.filter(event = event.id)
+    entries = Entry.objects.filter(event = event.id, payment_complete=1)
 
     for entry in entries:
         sum_of_fees += entry.fee_20
