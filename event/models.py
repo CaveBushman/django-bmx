@@ -234,7 +234,7 @@ def delete_xml_results_file (sender, instance, **kwargs):
             return
         else:
             new_xml = instance.xml_results
-            if old_xml and old_xml.url != new_xml.url:
+            if old_xml and old_xml.url != new_xml.url or new_xml.url=="":
                 old_xml.delete(save=False)
 pre_save.connect(delete_xml_results_file, sender=Event)
 
@@ -265,6 +265,16 @@ def delete_fast_riders_file (sender, instance, **kwargs):
             if old_fast_riders_path and old_fast_riders_path.url != new_fast_riders_path.url:
                 old_fast_riders_path.delete(save=False)
 pre_save.connect(delete_fast_riders_file, sender=Event)
+
+# nastavení provize Asociace klubů
+@receiver(pre_save, sender=Event)
+def commission_fee (sender, instance, **kwargs):
+    if instance.commission_fee == 0:
+        if instance.type_for_ranking =="Český pohár" or instance.type_for_ranking =="Česká liga" or instance.type_for_ranking =="Moravská liga":
+            instance.commission_fee=20
+        else:
+            instance.commission_fee=5
+pre_save.connect(commission_fee, sender=Event)
 
 
 class Result(models.Model):
