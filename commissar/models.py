@@ -9,14 +9,14 @@ class Commissar (models.Model):
 
     LEVEL = (('UCI rozhodčí', 'UCI rozhodčí'), ('Elite National Commissar', 'Elite National Commissar'), ('Národní rozhodčí', 'Národní rozhodčí'), ('',''))
 
-    first_name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=200, null=True, blank=True)
     last_name = models.CharField(max_length=200)
 
     photo = models.ImageField(
         upload_to='static/images/commissar/', blank=True, null=True, default='static/images/users/blank-avatar-200x200.jpg')
 
 
-    level = models.CharField(max_length=100, choices=LEVEL, default="Národní rozhodčí")
+    level = models.CharField(max_length=100, choices=LEVEL, default="Národní rozhodčí", null=True, blank=True)
 
     class Meta:
         verbose_name = "Rozhodčí"
