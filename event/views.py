@@ -489,7 +489,7 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-@cache_control(no_cache=True)
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def EventAdminView(request, pk):
     """ Function for Event admin page view"""

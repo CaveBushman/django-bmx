@@ -31,7 +31,7 @@ def RiderDetailView(request, pk):
     data = {'rider': rider, 'results': results}
     return render(request, 'rider/rider-detail.html', data)
 
-@cache_control(no_cache=True)
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def RiderAdmin(request):
 

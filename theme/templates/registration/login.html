@@ -5,6 +5,16 @@ Přihlášení
 {% load static %}
 {% block content %}
 
+<div role="alert" id="message" class=" mx-auto max-w-4xl mt-6">
+{% if form.errors %}
+  <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+    CHYBA
+  </div>
+  <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+    <p>Špatné přihlašovací údaje</p>
+  </div>
+{% endif %}
+</div>
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
@@ -34,11 +44,11 @@ Přihlášení
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-            <label for="remember-me" class="ml-2 block text-sm text-gray-900"> Remember me </label>
+            <label for="remember-me" class="ml-2 block text-sm text-gray-900"> Zapamatuj si mně </label>
           </div>
 
           <div class="text-sm">
-            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500"> Forgot your password? </a>
+            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500"> Zapomněl jsi heslo? </a>
           </div>
         </div>
 
@@ -50,4 +60,6 @@ Přihlášení
     </div>
   </div>
 </div>
+
+<script src="{% static 'js/alert_timeout.js' %}"></script>
 {% endblock content %}
