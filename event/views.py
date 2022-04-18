@@ -9,6 +9,8 @@ from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_control
 import pandas as pd
 from .result import GetResult
 from .func import *
@@ -405,8 +407,6 @@ def ConfirmView(request):
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
 
-            print ("Checkout")
-
             # TODO: Need last check for registration in the same time
 
             # save entry riders to database
@@ -487,6 +487,7 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
+@cache_control(no_cache=True)
 @staff_member_required
 def EventAdminView(request, pk):
     """ Function for Event admin page view"""

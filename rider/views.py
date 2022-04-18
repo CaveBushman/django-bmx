@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.views.decorators.cache import cache_control
+from django.contrib.admin.views.decorators import staff_member_required
 from .models import Rider
 from .rider import valid_licence
 from club.models import Club
@@ -29,7 +31,8 @@ def RiderDetailView(request, pk):
     data = {'rider': rider, 'results': results}
     return render(request, 'rider/rider-detail.html', data)
 
-
+@cache_control(no_cache=True)
+@staff_member_required
 def RiderAdmin(request):
 
     if 'btnValidLicence' in request.POST:
