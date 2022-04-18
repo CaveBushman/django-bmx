@@ -186,9 +186,11 @@ class Event(models.Model):
     timeschedule = models.TextField(max_length=1000, default="", blank=True, null=True)
     notes = models.TextField(max_length=1000, default="", blank=True, null=True)
 
+    commission_fee = models.IntegerField(default=0)
+
     bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    
+
     bem_riders_list = models.FileField(upload_to='static/bem_riders', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 

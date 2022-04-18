@@ -141,7 +141,11 @@
     <tr>
       <th scope="row">Nahrát výsledky závodu (xls)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
-      <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls">Nahraj výsledky</button></td>
+      <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls"
+        {% if event.xml_results %}
+        disabled
+        {% endif%}
+      >Nahraj výsledky</button></td>
     </tr>
     <tr>
       <th scope="row">Smazat výsledky závodu (xls)</th>
@@ -153,7 +157,11 @@
     <tr>
       <th scope="row">Nahrát výsledky závodu s časy (pdf)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file-pdf"></td>
-      <td><button type="text" class="btn btn-info blurApp" name = "btn-upload-pdf" value = "pdf">Nahraj výsledky</button></td>
+      <td><button type="text" class="btn btn-info blurApp" name = "btn-upload-pdf" value = "pdf"
+        {% if event.full_results_path %}
+        disabled
+        {% endif%}
+        >Nahraj výsledky</button></td>
     </tr>
     <tr>
       <th scope="row">Smazat výsledky závodu (pdf)</th>
