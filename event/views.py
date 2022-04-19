@@ -459,6 +459,7 @@ def SuccessView(request):
         except Exception as e:
             pass
     # clear duplitates
+            
     transactions_to_email = set(transactions_to_email)
 
     # send e-mail about confirm registrations
