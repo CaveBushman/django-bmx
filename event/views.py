@@ -340,19 +340,20 @@ def ConfirmView(request):
             elif rider_20['fields']['class_20'] == "Women Elite":
                fee = entry_fee.women_elite_fee
             
+    
             line_items += {
                 'price_data': {
-                    'currency': 'czk',
-                    'unit_amount': fee * 100,
-                    'product_data': {
-                        'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
-                            'first_name'] + ", " + rider_20['fields']['class_20'],
-                        'images': [],
-                        'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
+                        'currency': 'czk',
+                        'unit_amount': fee * 100,
+                        'product_data': {
+                            'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
+                                'first_name'] + ", (Cruiser) " + rider_20['fields']['class_24'],
+                            'images': [],
+                            'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
+                        },
                     },
+                    'quantity': 1,
                 },
-                'quantity': 1,
-            }
 
         # add fees for cruiser
         for rider_24 in riders_24:
@@ -388,7 +389,7 @@ def ConfirmView(request):
             line_items += {
                 'price_data': {
                         'currency': 'czk',
-                        'unit_amount': fee * 100,
+                        'amount': fee * 100,
                         'product_data': {
                             'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
                                 'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
@@ -398,8 +399,10 @@ def ConfirmView(request):
                     },
                     'quantity': 1,
                 },
-
+        
         try:
+            print("Zkouším checkout")
+            
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -407,7 +410,6 @@ def ConfirmView(request):
                 success_url= settings.YOUR_DOMAIN + '/event/success',
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
-
             # TODO: Need last check for registration in the same time
 
             # save entry riders to database
@@ -430,7 +432,6 @@ def ConfirmView(request):
             del entry
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
-            print(f"Chyba {e}")
             return JsonResponse(error=str(e)), 403
 
 
@@ -443,9 +444,11 @@ def SuccessView(request):
 
     # check, if fees was paid
     for transaction in transactions:
+        print(transaction)
         confirm = stripe.checkout.Session.retrieve(
             transaction.transaction_id, )
         if confirm['payment_status'] == "paid":
+            print("Platba je v pořádku")
             transaction.payment_complete = True
             transaction.save()
             # fill list for confirm transaction via email
@@ -476,7 +479,7 @@ def stripe_webhook(request):
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
         )
     except ValueError as e:
         # Invalid payload
