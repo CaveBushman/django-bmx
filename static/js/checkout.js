@@ -4,7 +4,6 @@
     const stripe = Stripe("pk_test_51KqNPjJlEL6OSOqYRVsjejRnzgpeJErpVUYfTBxaoNTFoGcvbeMEcS60r5yLi6oWnyc84mpsWou8IAEMaPV6NH0I00JGhHeaLm");
     var checkoutButton = document.getElementById("checkout-button");
     checkoutButton.addEventListener("click", function () {
-        console.log("STRIPE je " + stripe);
       fetch("/event/confirm", {
         method: "POST",
         headers: {

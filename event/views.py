@@ -389,7 +389,7 @@ def ConfirmView(request):
             line_items += {
                 'price_data': {
                         'currency': 'czk',
-                        'amount': fee * 100,
+                        'unit_amount': fee * 100,
                         'product_data': {
                             'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
                                 'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
