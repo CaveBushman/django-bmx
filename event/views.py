@@ -1,6 +1,7 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404
+from sympy import EX
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -445,16 +446,18 @@ def SuccessView(request):
     # check, if fees was paid
     for transaction in transactions:
         print(transaction)
-        confirm = stripe.checkout.Session.retrieve(
-            transaction.transaction_id, )
-        if confirm['payment_status'] == "paid":
-            print("Platba je v pořádku")
-            transaction.payment_complete = True
-            transaction.save()
-            # fill list for confirm transaction via email
-            if transaction.transaction_id not in transactions_to_email:
-                transactions_to_email.append(transaction.transaction_id)
-
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                transaction.transaction_id, )
+            if confirm['payment_status'] == "paid":
+                print("Platba je v pořádku")
+                transaction.payment_complete = True
+                transaction.save()
+                # fill list for confirm transaction via email
+                if transaction.transaction_id not in transactions_to_email:
+                    transactions_to_email.append(transaction.transaction_id)
+        except Exception as e:
+            pass
     # clear duplitates
     transactions_to_email = set(transactions_to_email)
 
