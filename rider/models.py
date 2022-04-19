@@ -40,11 +40,16 @@ class Rider(models.Model):
     last_name = models.CharField(max_length=255, blank=False)
 
     date_of_birth = models.DateField(blank=False)
+    rc = models.CharField(max_length=1000, blank=True, null=True, default="")
     gender = models.CharField(choices=GENDER, max_length=10)
     have_girl_bonus = models.BooleanField(default=False)
 
     email = models.EmailField(max_length=100, null=True, blank=True)
     phone = models.CharField(max_length=100, null=True, blank=True)
+
+    street = models.CharField(max_length=1000, blank=True, null=True, default="")
+    city = models.CharField(max_length=1000, blank=True, null=True, default="")
+    zip=models.CharField(max_length=1000, blank=True, null=True, default="")
 
     photo = models.ImageField(
         upload_to='static/images/riders/', blank=True, null=True, default='static/images/riders/uni.jpeg')

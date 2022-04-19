@@ -161,12 +161,17 @@ class Event(models.Model):
                   ('Mistrovství ČR družstev', 'Mistrovství ČR družstev'), ('Český pohár', 'Český pohár'),
                   ('Česká liga', 'Česká liga'),
                   ('Moravská liga', 'Moravská liga'), ('Volný závod', 'Volný závod'),
+                  ('Evropský pohár', 'Evropský pohár'),
+                  ('Mistrovství Evropy', 'Mistrovství Evropy'),
+                  ('Mistrovství světa', 'Mistrovství světa'),
                   ('Nebodovaný závod', 'Nebodovaný závod'),)
 
     RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'), ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
 
     name = models.CharField(max_length=255, blank=False)
     date = models.DateField(null=True, blank=True)
+
+    double_race = models.BooleanField(default=False)
 
     organizer = models.ForeignKey(Club, related_name='club', null=True, on_delete=models.SET_NULL)
 
@@ -253,7 +258,10 @@ def delete_full_results_file (sender, instance, **kwargs):
         else:
             new_full_results_path = instance.full_results_path
             if old_full_results_path and old_full_results_path.url != new_full_results_path.url:
-                old_full_results_path.delete(save=False)
+                try:
+                    old_full_results_path.delete(save=False)
+                except Exception as e:
+                    pass
 pre_save.connect(delete_full_results_file, sender=Event)
 
 # vymazání nejrychlejších jezdců
@@ -267,7 +275,10 @@ def delete_fast_riders_file (sender, instance, **kwargs):
         else:
             new_fast_riders_path = instance.fast_riders_path
             if old_fast_riders_path and old_fast_riders_path.url != new_fast_riders_path.url:
-                old_fast_riders_path.delete(save=False)
+                try:
+                    old_fast_riders_path.delete(save=False)
+                except Exception as e:
+                    pass
 pre_save.connect(delete_fast_riders_file, sender=Event)
 
 # nastavení provize Asociace klubů
