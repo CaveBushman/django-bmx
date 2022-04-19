@@ -352,37 +352,37 @@ def ConfirmView(request):
                     },
                 },
                 'quantity': 1,
-            },
+            }
 
         # add fees for cruiser
         for rider_24 in riders_24:
-            if rider_20['fields']['class_24'] == "Boys 12 and under":
+            if rider_24['fields']['class_24'] == "Boys 12 and under":
                 fee=entry_fee.cr_boys_12_and_under_fee
-            elif rider_20['fields']['class_24'] == "Boys 13 and 14":
+            elif rider_24['fields']['class_24'] == "Boys 13 and 14":
                 fee=entry_fee.cr_boys_13_14_fee
-            elif rider_20['fields']['class_24'] == "Boys 15 and 16":
+            elif rider_24['fields']['class_24'] == "Boys 15 and 16":
                 fee=entry_fee.cr_boys_15_16_fee
-            elif rider_20['fields']['class_24'] == "Men 17-24":
+            elif rider_24['fields']['class_24'] == "Men 17-24":
                 fee=entry_fee.cr_men_17_24_fee
-            elif rider_20['fields']['class_24'] == "Men 25-29":
+            elif rider_24['fields']['class_24'] == "Men 25-29":
                 fee=entry_fee.cr_men_25_29_fee
-            elif rider_20['fields']['class_24'] == "Men 30-34":
+            elif rider_24['fields']['class_24'] == "Men 30-34":
                 fee=entry_fee.cr_men_30_34_fee
-            elif rider_20['fields']['class_24'] == "Men 35-39":
+            elif rider_24['fields']['class_24'] == "Men 35-39":
                 fee=entry_fee.cr_men_35_39_fee
-            elif rider_20['fields']['class_24'] == "Men 40-49":
+            elif rider_24['fields']['class_24'] == "Men 40-49":
                 fee=entry_fee.cr_men_40_49_fee
-            elif rider_20['fields']['class_24'] == "Men 50 and over":
+            elif rider_24['fields']['class_24'] == "Men 50 and over":
                 fee=entry_fee.cr_men_50_and_over_fee
-            elif rider_20['fields']['class_24'] == "Girls 12 and under":
+            elif rider_24['fields']['class_24'] == "Girls 12 and under":
                 fee=entry_fee.cr_girls_12_and_under_fee
-            elif rider_20['fields']['class_24'] == "Girls 13-16":
+            elif rider_24['fields']['class_24'] == "Girls 13-16":
                 fee=entry_fee.cr_girls_13_16_fee
-            elif rider_20['fields']['class_24'] == "Women 17-29":
+            elif rider_24['fields']['class_24'] == "Women 17-29":
                 fee=entry_fee.cr_women_17_29_fee
-            elif rider_20['fields']['class_24'] == "Women 30-39":
+            elif rider_24['fields']['class_24'] == "Women 30-39":
                 fee=entry_fee.cr_women_30_39_fee
-            elif rider_20['fields']['class_24'] == "Women 40 and over":
+            elif rider_24['fields']['class_24'] == "Women 40 and over":
                 fee=entry_fee.cr_women_40_and_over_fee
 
             line_items += {
@@ -420,7 +420,7 @@ def ConfirmView(request):
                 entry.save()
     
             for rider_24 in riders_24:
-                current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
+                current_rider = Rider.objects.get(uci_id=rider_24['fields']['uci_id'])
                 current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24, 0)
                 entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
                                     rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
