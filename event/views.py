@@ -254,6 +254,30 @@ def EntryView(request, pk):
     return render(request, 'event/entry.html', data)
 
 
+def EntryRidersView(request,pk):
+    """ View for registrated riders in event"""
+    event = Event.objects.get(id=pk)
+    entries_20 = Entry.objects.filter(event=pk, is_20=1, payment_complete=1)
+    entries_24 = Entry.objects.filter(event=pk, is_24=1, payment_complete=1)
+    riders_20=[]
+    riders_24=[]
+
+    for entry_20 in entries_20:
+        rider_20 = Rider.objects.get(uci_id = entry_20.rider)
+        rider_20.class_20 = entry_20.class_20
+
+        riders_20.append(rider_20)
+    
+    for entry_24 in entries_24:
+        rider_24 = Rider.objects.get(uci_id = entry_24.rider)
+        rider_24.class_24 = entry_24.class_24
+        print(rider_24.class_24)
+        riders_24.append(rider_24)
+
+    data={'event':event, 'riders_20':riders_20, 'riders_24':riders_24}
+    return render(request, 'event/entry-riders.html', data)
+
+
 def ConfirmView(request):
 
     event = json.loads(request.session['event'])

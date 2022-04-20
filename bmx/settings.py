@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -183,8 +183,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 LOGIN_REDIRECT_URL = "news:home"
 LOGOUT_REDIRECT_URL = 'news:home'
 
-YOUR_DOMAIN = "http://app.czechbmx.cz"
-# YOUR_DOMAIN = "http://localhost:8000"
+if DEBUG:
+    YOUR_DOMAIN = "http://localhost:8000"
+else:
+    YOUR_DOMAIN = "http://app.czechbmx.cz"
+
 
 # email setting
 EMAIL_HOST = 'smtp.gmail.com'

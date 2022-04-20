@@ -1,0 +1,169 @@
+{% extends 'base.html' %} {% block title %} Přihlášení na závody
+{% endblock title %} {% load static %} {% block content %}
+
+<header class="bg-white shadow">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold dark:text-gray-300">Seznam přihlášených jezdců na {{event.name}}</h1>
+  </div>
+</header>
+
+<div class="max-w-7xl mx-auto">
+<div class="search" style="margin-top: 2rem">
+  <div class="row">
+
+    <div class="col-sm mb-4">
+      <input
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        type="text"
+        placeholder="Napiš příjmení"
+        aria-label="default input example"
+        onkeyup="searchByName()"
+        id="inputName"/>
+    </div>
+
+    <div class="col-sm">
+      <input
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        type="text"
+        placeholder="Napiš klub"
+        aria-label="default input example"
+        onkeyup="searchByClub()"
+        id="inputClub"/>
+    </div>
+
+    <div class="col-sm mb-4">
+      <input
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        type="text"
+        placeholder="Napiš kategorii"
+        aria-label="default input example"
+        onkeyup="searchByClass()"
+        id="inputClass"/>
+    </div>
+  </div>
+
+  <div class="flex flex-col">
+    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+          <table class="min-w-full divide-y divide-gray-200" id="myTable">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Jméno
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Klub, UCI ID
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kategorie
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Startovní číslo
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for rider in riders_20 %}
+              <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" class="" style='cursor: pointer;'>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="flex items-center">
+                      <div class="relative">
+                        <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
+                        {% if rider.have_valid_licence %}
+                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                        {% else %}
+                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                        {% endif%}
+                      </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{rider.last_name|upper}}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        {{rider.first_name}}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+                </td>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="">
+                      <div class="text-sm font-medium text-gray-500"> 
+                          {{rider.class_20}}
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                <div class="flex flex-row px-6 py-2 space-x-4">
+                {{rider.plate}}</div>
+                </div>
+                </td>
+              </tr>
+              {% endfor%}
+
+              {% for rider in riders_24 %}
+              <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" class="" style='cursor: pointer;'>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="flex items-center">
+                      <div class="relative">
+                        <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
+                        {% if rider.have_valid_licence %}
+                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                        {% else %}
+                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
+                        {% endif%}
+                      </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{rider.last_name|upper}}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        {{rider.first_name}}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+                </td>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="">
+                      <div class="text-sm font-medium text-gray-500"> 
+                          {{rider.class_24}}
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                <div class="flex flex-row px-6 py-2 space-x-4">
+                {{rider.plate}}</div>
+                </div>
+                </td>
+              </tr>
+              {% endfor%}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+      <a href="#" class="arrow" id="to-top">
+          <i class="bi bi-arrow-up-square-fill"></i>
+      </a>
+    </div>
+    <script src="{% static 'js/entries.js' %}"></script>
+    <script src="{% static 'js/arrow.js' %}"></script>
+  </div>
+  </div>
+</div>
+{% endblock content %}

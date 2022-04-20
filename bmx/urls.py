@@ -29,7 +29,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('', include("django.contrib.auth.urls")),
     path('bmx-admin/', admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
 
 admin.site.site_header = "Czech BMX Website"
 admin.site.index_title = "Management"

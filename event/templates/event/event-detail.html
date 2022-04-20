@@ -19,6 +19,9 @@
         </div>
         {% endif %}
 
+        <div class="p-2 "><a href="{% url 'event:entry-riders' event.id %}" class="focus:outline-none text-black bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:focus:ring-yellow-900"
+            tabindex="-1" role="button" aria-disabled="true">Přihlášení jezdci</a></div>
+
         {% if request.user.is_superuser %}
         <div class="p-2 "><a href="{% url 'event:event-admin' event.id %}" class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
                 tabindex="-1" role="button" aria-disabled="true">Administrace závodu</a></div>
@@ -81,7 +84,7 @@
             </ul>
         </div>
 
-        <div class="flex flex-row">
+        <div class="flex flex-row mb-4">
             <div class="basis-1/2">
                 <!-- Registrace -->
                 <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text ">On-line registrace</div>
@@ -115,113 +118,7 @@
                 </div>
             </div>
         </div>
-
-
-
-        <div class="classes">
-            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Kategorie</div>
-            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">xxx</div>
-        </div>
-
-        <div class="prices">
-            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Ceny</div>
-            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.prices|safe}}</div>
-        </div>
-
-        <div class="timeschedule">
-            <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Časový harmonogram</div>
-            <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.timeschedule|safe}}</div>
-        </div>
-
-        <div class="note">
-            <div class="mt-4 pb-6 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text">Poznámky</div>
-            <div class="text-lg  px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text">{{event.notes|safe}}</div>
-        </div>
     </div>
-
-    <!-- Seznam přihlášených -->
-    {% if not event.xlm_results %}
-    <div class="shadow-lg rounded-2xl px-12 mt-6 mb-6 py-4">
-
-        <div class="mt-6 px-4 sm:px-6 lg:px-8 text-3xl font-bold inline-block">
-            Seznam registrovaných jezdců
-        </div>
-        <form method="POST" id="entriesForm">
-            {% csrf_token %}
-            <div class="flex flex-row mt-4">
-                <div class="basis-1/2">
-                    <h1 class="text-left text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600">{{select_category | upper}}</h1>
-                </div>
-                <div class="basis-1/2">
-                    <select
-                        class="mt-1 max-w-md block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                        aria-label="Default select example" name="categoryInput" id="categoryInput">
-                        <option selected>Vyber kategorii:</option>
-                        {% for category in categories %}
-                        <option value="{{category}}">{{category}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <script>
-                    const selectEl = document.getElementById("categoryInput")
-                    selectEl.addEventListener("change", () => document.getElementById("entriesForm").submit())
-                </script>
-            </div>
-        </form>
-        {% endif %}
-
-        {% if riders %}
-        <!-- Tabulka přihlášených -->
-        <div class="px-4 sm:px-6 lg:px-8">
-            <div
-                class="-mx-4 mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-300">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">St. číslo
-                            </th>
-                            <th scope="col"
-                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Příjmení
-                            </th>
-                            <th scope="col"
-                                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                                Jméno</th>
-                            <th scope="col"
-                                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
-                                Klub</th>
-                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UCI ID
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                        {% for rider in riders %}
-                        <tr>
-                            <td class="px-3 py-4 text-sm text-gray-500">{{rider.plate}}</td>
-                            <td
-                                class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
-                                {{rider.last_name|upper}}
-                                <dl class="font-normal lg:hidden">
-                                    <dt class="sr-only">Title</dt>
-                                    <dd class="mt-1 truncate text-gray-700">{{rider.first_name}}</dd>
-                                    <dt class="sr-only sm:hidden">Email</dt>
-                                    <dd class="mt-1 truncate text-gray-500 sm:hidden">{{rider.club}}</dd>
-                                </dl>
-                            </td>
-                            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{rider.first_name}}</td>
-                            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club|upper}}</td>
-                            <td class="px-3 py-4 text-sm text-gray-500">{{rider.uci_id}}</td>
-                        </tr>
-                        {% endfor %}
-                        <!-- More people... -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="text-2xl mt-4 pb-2 px-4 sm:px-6 lg:px-8">Celkem přihlášeno v této kategorii jezdců:  <span class="text-3xl">{{riders_sum}}</span> </div>
-    </div>
-        {% endif %}
-
 </div>
 
 {% endblock content %}

@@ -1,11 +1,11 @@
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     // Create an instance of the Stripe object with your publishable API key
     // var stripe = Stripe( "{{ STRIPE_PUBLIC_KEY }}");
-    var stripe = Stripe( "pk_test_51HeoE0F3rP8tXY4Cx7YEpcx0fSAQ6M3HYdQrTgiUlNqSxNxCAMbsDBUQt37DCFtDiZLS6sgExG3VDahuc8TEWRF600jwWQ7znp");
+    //const stripe = Stripe("pk_live_51HeoE0F3rP8tXY4CdmognZ850toJHFvgADoSmxzKuqbj8RwC0d0E0S9x6qFiW42HLkBTJDXcfUfdOttrwNHP7zpI00VwgIQ3bj");
+    const stripe = Stripe("pk_test_51KqNPjJlEL6OSOqYRVsjejRnzgpeJErpVUYfTBxaoNTFoGcvbeMEcS60r5yLi6oWnyc84mpsWou8IAEMaPV6NH0I00JGhHeaLm");
+
     var checkoutButton = document.getElementById("checkout-button");
     checkoutButton.addEventListener("click", function () {
-        console.log("Stisknuto tlačítko Zaplatit");
-        console.log(stripe);
       fetch("/event/confirm", {
         method: "POST",
         headers: {

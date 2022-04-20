@@ -9,7 +9,6 @@ from datetime import date
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-from ckeditor.fields import RichTextField
 
 # Create your models here.
 
@@ -191,17 +190,19 @@ class Event(models.Model):
     reg_open = models.BooleanField(default=True)
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
-    prices = RichTextField(max_length=10000, blank=True, null=True)
-    timeschedule = RichTextField(max_length=10000, blank=True, null=True)
-    notes = RichTextField(max_length=10000, blank=True, null=True)
-
     commission_fee = models.IntegerField(default=0)
+
+    proposition_path = models.FileField(upload_to='static/propositions', null = True, blank = True)
+    proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_riders_list = models.FileField(upload_to='static/bem_riders', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    bem_backup_path = models.FileField(upload_to='static/bem_backup', null = True, blank = True)
+    bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     full_results_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)

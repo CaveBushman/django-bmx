@@ -75,7 +75,8 @@
             <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club|upper}}</td>
             <td class="hidden px-3 py-4 text-sm text-gray-500 md:table-cell">{{rider.uci_id}}</td>
             {% if 'registered' in rider.class_20 %}
-            <td class="mt-1 text-sm truncate text-gray-700 bg-green-300">
+            <td class="mt-1 text-sm truncate">
+              <div class="text-white hover:text-gray-200 bg-green-700 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
                 type="checkbox"
@@ -85,7 +86,10 @@
                 checked
                 disabled
               />
+             
               {{rider.class_20|slice:":-10" }}
+            
+            </div>
             </td>
             {% else %}
             <td class="mt-1 text-sm truncate text-gray-700">
@@ -100,7 +104,8 @@
             </td>
             {% endif %}
             {% if 'registered' in rider.class_24 %}
-            <td class="mt-1 text-sm truncate text-gray-700 bg-green-300" >
+            <td class="mt-1 text-sm truncate text-gray-700 " >
+              <div class="text-white hover:text-gray-200 bg-green-700 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
                 type="checkbox"
@@ -109,7 +114,7 @@
                 name="checkbox_24"
                 checked
                 disabled
-              />{{rider.class_24|slice:":-10" }}
+              />{{rider.class_24|slice:":-10" }}</div>
             </td>
             {% else %}
             <td class="mt-1 text-sm truncate text-gray-700">

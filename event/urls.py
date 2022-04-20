@@ -9,6 +9,7 @@ urlpatterns = [
     path('results/<int:pk>', views.ResultsView, name='results'),
     path('events-by-year/<int:pk>', views.EventsListByYearView, name='events-by-year'),
     path('entry/<int:pk>', views.EntryView, name='entry'),
+    path('entry-riders/<int:pk>', views.EntryRidersView, name='entry-riders'),
     path('confirm', views.ConfirmView, name='confirm'),
     path('success/<int:pk>', views.SuccessView, name='success'),
     path('cancel', views.CancelView, name='cancel'),

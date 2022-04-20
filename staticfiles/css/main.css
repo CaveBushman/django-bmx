@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap");
 html {
-  margin-top: 5rem;
+  margin-top: 4rem;
 }
 
 .navbar {
@@ -204,10 +204,6 @@ html {
 #partners-image {
   width: 150px;
   height: 150px;
-}
-
-.maps {
-  padding-top: 2rem;
 }
 
 .contacts {
