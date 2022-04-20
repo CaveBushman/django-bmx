@@ -7,7 +7,7 @@
 </svg></div>
 
     <div class = "success-payment-header text-3xl text-center align-middle">DĚKUJEME.</div>
-    <div class = "text-center text-lg">Vaše platba byla přijata. Přihlášení jezdců do závodu si můžete zkontroloval <a href = "{% url 'event:event-detail' event_id %}" class="text-red-500">zde </a>.</div>
+    <div class = "text-center text-lg">Vaše platba byla přijata. Přihlášení jezdců do závodu si můžete zkontroloval <a href = "{% url 'event:entry-riders' event_id %}" class="text-red-500 text-2xl">zde </a>.</div>
 </div>
 
 {% endblock content %}
