@@ -1,7 +1,6 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404
-from sympy import EX
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -234,8 +233,6 @@ def EntryView(request, pk):
         request.session['riders_20'] = serializers.serialize('json', riders_20)
         request.session['riders_24'] = serializers.serialize('json', riders_24)
 
-    
-
         data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
                 'sum_24': sum_24}
         return render(request, 'event/checkout.html', data)
@@ -408,7 +405,7 @@ def ConfirmView(request):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                success_url= settings.YOUR_DOMAIN + '/event/success',
+                success_url= settings.YOUR_DOMAIN + '/event/success/'+str(this_event.id),
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
             # TODO: Need last check for registration in the same time
@@ -436,7 +433,7 @@ def ConfirmView(request):
             return JsonResponse(error=str(e)), 403
 
 
-def SuccessView(request):
+def SuccessView(request, pk):
     transactions = Entry.objects.filter(transaction_date__year=date.today().year,
                                         transaction_date__month=date.today().month,
                                         transaction_date__day=date.today().day,
@@ -445,12 +442,10 @@ def SuccessView(request):
 
     # check, if fees was paid
     for transaction in transactions:
-        print(transaction)
         try:
             confirm = stripe.checkout.Session.retrieve(
                 transaction.transaction_id, )
             if confirm['payment_status'] == "paid":
-                print("Platba je v pořádku")
                 transaction.payment_complete = True
                 transaction.save()
                 # fill list for confirm transaction via email
@@ -466,8 +461,9 @@ def SuccessView(request):
     for transaction_to_email in transactions_to_email:
         # threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
         pass
-
-    return render(request, 'event/success.html')
+ 
+    data = {'event_id':pk}
+    return render(request, 'event/success.html', data)
 
 
 def CancelView(request):
@@ -483,7 +479,7 @@ def stripe_webhook(request):
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
+            payload, sig_header, STRIPE_ENDPOINT_SECRET
         )
     except ValueError as e:
         # Invalid payload
@@ -800,7 +796,7 @@ def EventAdminView(request, pk):
         sum_of_fees += entry.fee_24
         sum_of_riders+=1
 
-    organizer_fee = sum_of_fees - ( sum_of_fees * event.commission_fee /100)
+    organizer_fee = int(sum_of_fees - ( sum_of_fees * event.commission_fee /100))
 
     print(f"Vybrané startovné činní částku {sum_of_fees} Kč.")
 

@@ -170,7 +170,7 @@ LOGIN_REDIRECT_URL = "news:home"
 LOGOUT_REDIRECT_URL = 'news:home'
 
 YOUR_DOMAIN = "http://app.czechbmx.cz"
-#YOUR_DOMAIN = "http://localhost:8000"
+# YOUR_DOMAIN = "http://localhost:8000"
 
 # email setting
 EMAIL_HOST = 'smtp.gmail.com'

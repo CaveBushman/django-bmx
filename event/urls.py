@@ -10,7 +10,7 @@ urlpatterns = [
     path('events-by-year/<int:pk>', views.EventsListByYearView, name='events-by-year'),
     path('entry/<int:pk>', views.EntryView, name='entry'),
     path('confirm', views.ConfirmView, name='confirm'),
-    path('success', views.SuccessView, name='success'),
+    path('success/<int:pk>', views.SuccessView, name='success'),
     path('cancel', views.CancelView, name='cancel'),
     path('event-admin/<int:pk>', views.EventAdminView, name='event-admin')
 ]
