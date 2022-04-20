@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+
+from django.conf import settings
 from bmx.sec import *
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +29,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config('SECRET_KEY')
+
+# STRIPE KEYS
+if DEBUG:
+    STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY_TEST')
+    STRIPE_SECRET_KEY_TEST = config('STRIPE_SECRET_KEY_TEST')
+else:
+    STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
+    STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+    STRIPE_ENDPOINT_SECRET = config('STRIPE_ENDPOINT_SECRET')
 
 # Application definition
 

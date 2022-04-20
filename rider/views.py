@@ -44,14 +44,16 @@ def RiderAdmin(request):
         # check if valid username and password
         basicAuthCredentials = (username, password)
         now = date.today().year
+        
         url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={riders[0].uci_id}&year={now}')
         try:
-            dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
+            dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
             if re.search("Http_Unauthorised", dataJSON.text):
                 messages.error (request, "Špatné přihlašovací údaje k API ČSC")
                 return render(request, 'rider/rider-admin.html')
         except Exception as e:
             messages.error (request, "Spojení se serverem ČSC se nezdařilo")
+            print(e)
             return render(request, 'rider/rider-admin.html')
 
         for rider in riders:

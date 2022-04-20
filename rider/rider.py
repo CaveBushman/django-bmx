@@ -5,12 +5,14 @@ import re
 
 def valid_licence(uci_id, username, password):
     """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
+
     basicAuthCredentials = (username, password)
     now = date.today().year
     url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={uci_id}&year={now}')
 
     try:
-        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials)
+        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+        print(dataJSON)
         if dataJSON.text == "false":
             return False
         elif re.search("Http_NotFound", dataJSON.text):

@@ -619,7 +619,7 @@ def EventAdminView(request, pk):
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T1")
             ws.cell(x,45,team_name_resolve(rider.club).upper())
-            if rider.have_valid_licence=="True":
+            if rider.have_valid_licence:
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
