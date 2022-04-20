@@ -63,7 +63,8 @@ db.sqlite3
 db.sqlite3-journal
 .env
 sec.py
-checkout.js
+static/js/checkout.js
+static/results/*
 
 # Flask stuff:
 instance/
