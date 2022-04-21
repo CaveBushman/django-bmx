@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
+from django.db.models import Q
 import pandas as pd
 from .result import GetResult
 from .func import *
@@ -459,11 +460,18 @@ def ConfirmView(request):
 
 
 def SuccessView(request, pk):
-    transactions = Entry.objects.filter(
+    transactions = Entry.objects.filter (Q(transaction_date__year=date.today().year,
+                                        transaction_date__month=date.today().month,
+                                        transaction_date__day=date.today().day,
                                         event=pk,
-                                        payment_complete=False,)
+                                        payment_complete=False,) |
+                                        (Q(transaction_date__year=date.today().year,
+                                        transaction_date__month=date.today().month,
+                                        transaction_date__day=date.today().day-1,
+                                        event=pk,
+                                        payment_complete=False,)))
+
     transactions_to_email = []
-    print(transactions.count())
     # check, if fees was paid
     for transaction in transactions:
         threading.Thread(target=is_paid(transaction.transaction_id)).start()
