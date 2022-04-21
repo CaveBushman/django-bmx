@@ -473,20 +473,21 @@ def SuccessView(request, pk):
 
     transactions_to_email = []
     # check, if fees was paid
+    print(transactions.count())
     for transaction in transactions:
-        threading.Thread(target=is_paid(transaction.transaction_id)).start()
-        
-        # try:
-        #     confirm = stripe.checkout.Session.retrieve(
-        #         transaction.transaction_id, )
-        #     if confirm['payment_status'] == "paid":
-        #         transaction.payment_complete = True
-        #         transaction.save()
-        #         # fill list for confirm transaction via email
-        #         if transaction.transaction_id not in transactions_to_email:
-        #             transactions_to_email.append(transaction.transaction_id)
-        # except Exception as e:
-        #     pass
+        # threading.Thread(target=is_paid(transaction.transaction_id)).start()
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                transaction.transaction_id, )
+            print(confirm)
+            if confirm['payment_status'] == "paid":
+                transaction.payment_complete = True
+                transaction.save()
+                # fill list for confirm transaction via email
+                if transaction.transaction_id not in transactions_to_email:
+                    transactions_to_email.append(transaction.transaction_id)
+        except Exception as e:
+            print(e)
     # clear duplitates
             
     transactions_to_email = set(transactions_to_email)
