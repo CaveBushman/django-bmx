@@ -463,11 +463,9 @@ def SuccessView(request, pk):
                                         event=pk,
                                         payment_complete=False,)
     transactions_to_email = []
-
+    print(transactions.count())
     # check, if fees was paid
     for transaction in transactions:
-        print (transaction.transaction_id)
-
         threading.Thread(is_paid(transaction.transaction_id)).start()
         
         # try:

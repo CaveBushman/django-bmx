@@ -400,15 +400,17 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
 
 def is_paid(transaction_id):
     entries = Entry.objects.filter(transaction_id=transaction_id)
-
+    print(transaction_id)
     for entry in entries:
         try:
             confirm = stripe.checkout.Session.retrieve(
                 transaction_id, )
+            print("Platba ověřena")
             if confirm['payment_status'] == "paid":
                 entry.payment_complete = True
+                print ("Platba dorazila")
                 entry.save()
             else:
-                pass
+                print("Platba nedorazila")
         except Exception as e:
-            pass
+            print ("chyba " + str(e))
