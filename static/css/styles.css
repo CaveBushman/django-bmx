@@ -1306,6 +1306,10 @@ p {
   width: max-content;
 }
 
+.w-80 {
+  width: 20rem;
+}
+
 .min-w-full {
   min-width: 100%;
 }
@@ -1817,6 +1821,11 @@ p {
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
+}
+
+.object-center {
+  -o-object-position: center;
+     object-position: center;
 }
 
 .p-10 {

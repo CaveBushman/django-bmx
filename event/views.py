@@ -754,13 +754,11 @@ def EventAdminView(request, pk):
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
-
             x += 1
-            print(rider.last_name)
+           
         del riders
         print("Čeští jezdci přidány")
         foreign_riders = ForeignRider.objects.all()
-        print("Přidávám zahraniční jezdce")
         for foreign_rider in foreign_riders:
             ws.cell(x,1,foreign_rider.uci_id)
             ws.cell(x,2,foreign_rider.uci_id)
@@ -790,7 +788,6 @@ def EventAdminView(request, pk):
             ws.cell(x,37,"T2")
             ws.cell(x,45,foreign_rider.club.upper())
             x+=1
-            print(foreign_rider.last_name)
         del foreign_riders
 
         wb.save(file_name)
