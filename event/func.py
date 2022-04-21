@@ -2,8 +2,9 @@ from datetime import date
 from openpyxl import load_workbook
 from sqlalchemy import true
 from club.models import Club
-from event.models import EntryClasses, Event
+from event.models import EntryClasses, Event, Entry
 from rider.models import Rider
+import stripe
 
 
 def expire_licence():
@@ -396,3 +397,18 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
         else:
             return event_classes.cr_women_40_and_over_fee
         
+
+def is_paid(transaction_id):
+    entries = Entry.objects.filter(transaction_id=transaction_id)
+
+    for entry in entries:
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                transaction_id, )
+            if confirm['payment_status'] == "paid":
+                entry.payment_complete = True
+                entry.save()
+            else:
+                pass
+        except Exception as e:
+            pass

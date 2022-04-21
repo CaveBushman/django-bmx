@@ -23,6 +23,7 @@ from django.core import serializers
 from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
+import threading
 
 
 # Create your views here.
@@ -465,18 +466,21 @@ def SuccessView(request, pk):
 
     # check, if fees was paid
     for transaction in transactions:
-        print (transaction.rider)
-        try:
-            confirm = stripe.checkout.Session.retrieve(
-                transaction.transaction_id, )
-            if confirm['payment_status'] == "paid":
-                transaction.payment_complete = True
-                transaction.save()
-                # fill list for confirm transaction via email
-                if transaction.transaction_id not in transactions_to_email:
-                    transactions_to_email.append(transaction.transaction_id)
-        except Exception as e:
-            pass
+        print (transaction.transaction_id)
+
+        threading.Thread(is_paid(transaction.transaction_id)).start()
+        
+        # try:
+        #     confirm = stripe.checkout.Session.retrieve(
+        #         transaction.transaction_id, )
+        #     if confirm['payment_status'] == "paid":
+        #         transaction.payment_complete = True
+        #         transaction.save()
+        #         # fill list for confirm transaction via email
+        #         if transaction.transaction_id not in transactions_to_email:
+        #             transactions_to_email.append(transaction.transaction_id)
+        # except Exception as e:
+        #     pass
     # clear duplitates
             
     transactions_to_email = set(transactions_to_email)
