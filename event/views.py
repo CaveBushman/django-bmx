@@ -458,13 +458,14 @@ def ConfirmView(request):
 
 
 def SuccessView(request, pk):
-    transactions = Entry.objects.filter(transaction_date__year=date.today().year,
+    transactions = Entry.objects.filter(
                                         event=pk,
                                         payment_complete=False,)
     transactions_to_email = []
 
     # check, if fees was paid
     for transaction in transactions:
+        print (transaction.rider)
         try:
             confirm = stripe.checkout.Session.retrieve(
                 transaction.transaction_id, )
