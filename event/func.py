@@ -180,7 +180,7 @@ def resolve_event_classes(event, gender, have_girl_bonus, rider_class, is_20):
             return event_classes.women_elite
 
     # Ženy bez bonusu
-    if is_20 and rider.gender == "Žena" and not rider.have_girl_bonus:
+    if is_20 and gender == "Žena" and not have_girl_bonus:
         if rider_class == "Girls 7":
             return event_classes.girls_8
         elif rider_class == "Girls 8":
@@ -398,19 +398,3 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
             return event_classes.cr_women_40_and_over_fee
         
 
-def is_paid(transaction_id):
-    entries = Entry.objects.filter(transaction_id=transaction_id)
-    print(transaction_id)
-    for entry in entries:
-        try:
-            confirm = stripe.checkout.Session.retrieve(
-                transaction_id, )
-            print("Platba ověřena")
-            if confirm['payment_status'] == "paid":
-                entry.payment_complete = True
-                print ("Platba dorazila")
-                entry.save()
-            else:
-                print("Platba nedorazila")
-        except Exception as e:
-            print ("chyba " + str(e))
