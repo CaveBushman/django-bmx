@@ -466,7 +466,7 @@ def SuccessView(request, pk):
     print(transactions.count())
     # check, if fees was paid
     for transaction in transactions:
-        threading.Thread(is_paid(transaction.transaction_id)).start()
+        threading.Thread(target=is_paid(transaction.transaction_id)).start()
         
         # try:
         #     confirm = stripe.checkout.Session.retrieve(
