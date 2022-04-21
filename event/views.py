@@ -460,7 +460,8 @@ def ConfirmView(request):
 def SuccessView(request, pk):
     transactions = Entry.objects.filter(transaction_date__year=date.today().year,
                                         transaction_date__month=date.today().month,
-                                        transaction_date__day=date.today().day,
+                                        transaction_date__day__lte=date.today().day,
+                                        transaction_date__day__gte=date.today().day-2,
                                         payment_complete=False,)
     transactions_to_email = []
 
