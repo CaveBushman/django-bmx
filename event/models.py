@@ -195,6 +195,9 @@ class Event(models.Model):
     proposition_path = models.FileField(upload_to='static/propositions', null = True, blank = True)
     proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    series_path = models.FileField(upload_to='static/series', null = True, blank = True)
+    series_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
     bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
