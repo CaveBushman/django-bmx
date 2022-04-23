@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from openpyxl import load_workbook
 from sqlalchemy import true
 from club.models import Club
@@ -86,7 +86,7 @@ def excel_first_line(ws):
 def is_registration_open(event_id):
     """ Function for check, if registration is open"""
     event = Event.objects.get(id=event_id)
-    this_date = date.today()
+    now = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
     # if results is uploaded, registration is close
     if event.xml_results:
@@ -96,10 +96,12 @@ def is_registration_open(event_id):
     if not event.reg_open:
         return False
 
+
     # check, id today is between reg_open_from and reg_open_to
-    if (this_date >= event.reg_open_from) and (this_date <= event.reg_open_to):
+    if (now >= event.reg_open_from.strftime("%m/%d/%Y, %H:%M:%S")) and (now <= event.reg_open_to.strftime("%m/%d/%Y, %H:%M:%S")):
         return True
-    return False
+    else:
+        return False
 
 
 def resolve_event_classes(event, gender, have_girl_bonus, rider_class, is_20):

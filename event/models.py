@@ -187,7 +187,7 @@ class Event(models.Model):
     director = models.CharField(max_length=255, null=True, blank=True)
 
     reg_open_from = models.DateField(default='2021-04-01')
-    reg_open_to = models.DateField(default='2021-12-31')
+    reg_open_to = models.DateTimeField(null=True, blank=True)
     reg_open = models.BooleanField(default=True)
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
