@@ -76,12 +76,12 @@
           <td class="py-2 text-sm font-medium sm:pr-6">
             <div class="flex flex-col justify-center h-full w-full">
             {% if event.reg_open%}
-            <a href="{% url 'event:entry' event.id %}" class="py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--yellow">Přihlásit</a>
+            <a href="{% url 'event:entry' event.id %}" class="py-1 w-full my-1 px-4 text-sm font-medium sm:pr-6 btn--yellow">Přihlásit</a>
             {% endif %}
             {% if event.xml_results %}
-            <div class="flex justify-end">
-              <span class="dropdown-main relative">
-                  <button class="dropdown-btn py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--green">Výsledky</button>
+            <div class="">
+              <div class="dropdown-main w-full relative">
+                  <button class="dropdown-btn w-full py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--green">Výsledky</button>
                   <div class="dropdown-content right-0 hidden absolute z-10 py-10 px-5 w-64 bg-white shadow-xl rounded-lg">
                       <ul>
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{% url 'event:results' event.id %}">HTML</a></li>
@@ -97,11 +97,11 @@
                         {% endif %} 
                       </ul>
                   </div>  
-              </span>
+                </div>
           </div>
             {% endif %}
             {% if request.user.is_superuser %}
-              <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 mx-2 text-sm font-medium sm:pr-6 btn--purple">Admin</a>
+              <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Admin</a>
             {% endif %}
             </div>
             </td>
