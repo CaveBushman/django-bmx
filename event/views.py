@@ -264,12 +264,14 @@ def EntryRidersView(request,pk):
     riders_20=[]
     riders_24=[]
 
-    for entry_20 in entries_20:
-        rider_20 = Rider.objects.get(uci_id = entry_20.rider)
-        rider_20.class_20 = entry_20.class_20
+    try:
+        for entry_20 in entries_20:
+            rider_20 = Rider.objects.get(uci_id = entry_20.rider)
+            rider_20.class_20 = entry_20.class_20
 
-        riders_20.append(rider_20)
-    
+            riders_20.append(rider_20)
+    except Exception:
+        pass    
     for entry_24 in entries_24:
         rider_24 = Rider.objects.get(uci_id = entry_24.rider)
         rider_24.class_24 = entry_24.class_24
