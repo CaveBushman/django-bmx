@@ -79,6 +79,7 @@ def EventDetailViews(request, pk):
     alert = False
     riders_sum = 0
     reg_open = is_registration_open(pk)
+    event.reg_open_to = event.reg_open_to
 
     if 'categoryInput' in request.POST:
         select_category = request.POST['categoryInput']

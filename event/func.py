@@ -4,7 +4,7 @@ from sqlalchemy import true
 from club.models import Club
 from event.models import EntryClasses, Event, Entry
 from rider.models import Rider
-import stripe
+from django.utils import timezone
 
 
 def expire_licence():
@@ -86,7 +86,7 @@ def excel_first_line(ws):
 def is_registration_open(event_id):
     """ Function for check, if registration is open"""
     event = Event.objects.get(id=event_id)
-    now = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    now = timezone.now().strftime("%m/%d/%Y, %H:%M:%S")
 
     # if results is uploaded, registration is close
     if event.xml_results:
