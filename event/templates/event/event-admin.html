@@ -144,7 +144,7 @@
       <th></th>
       <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete"
         {% if not event.xml_results %}
-        disabled
+        {% comment %} disabled {% endcomment %}
         {% endif%}
         >Smaž výsledky závodu</button></th>
     </tr>
