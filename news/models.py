@@ -22,9 +22,9 @@ class News (models.Model):
     content = RichTextField(max_length=10000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
 
-    photo_01 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True, default="static/images/news/AKBMX.jpg")
-    photo_02 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
-    photo_03 = models.ImageField (upload_to = 'static/images/news', null=True, blank=True)
+    photo_01 = models.ImageField (upload_to = 'images/news', null=True, blank=True, default="images/news/AKBMX.jpg")
+    photo_02 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
+    photo_03 = models.ImageField (upload_to = 'images/news', null=True, blank=True)
 
     time_to_read = models.IntegerField(default=0)
 

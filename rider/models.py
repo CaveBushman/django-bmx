@@ -52,7 +52,7 @@ class Rider(models.Model):
     zip=models.CharField(max_length=1000, blank=True, null=True, default="")
 
     photo = models.ImageField(
-        upload_to='static/images/riders/', blank=True, null=True, default='static/images/riders/uni.jpeg')
+        upload_to='images/riders/', blank=True, null=True, default='images/riders/uni.jpeg')
 
     club = models.ForeignKey(
         Club, related_name='rider_club', null=True, on_delete=models.SET_NULL)
