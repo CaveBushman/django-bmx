@@ -1,6 +1,7 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404
+from sympy import EX
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -623,7 +624,7 @@ def EventAdminView(request, pk):
 
     if 'btn-bem-file' in request.POST:
         print("Vytvoř startovku")
-        file_name = f'static/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        file_name = f'media/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
         wb = Workbook()
         ws = wb.active
         ws.title="BEM5_EXT"
@@ -632,38 +633,40 @@ def EventAdminView(request, pk):
         entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
         x = 2
         for entry_20 in entries_20:
-            rider = Rider.objects.get(uci_id=entry_20.rider)
-            ws.cell(x,1,rider.uci_id)
-            ws.cell(x,2,rider.uci_id)
-            ws.cell(x,3,rider.uci_id)
-            ws.cell(x,4,rider.uci_id)
-            ws.cell(x,5,rider.uci_id)
-            ws.cell(x,6,expire_licence())
-            ws.cell(x,7,"BMX-RACE")
-            ws.cell(x,9,str(rider.date_of_birth).replace('-', '/'))
-            ws.cell(x,10,rider.first_name)
-            ws.cell(x,11,rider.last_name.upper())
-            ws.cell(x,12,rider.email)
-            ws.cell(x,13,rider.phone)
-            ws.cell(x,14,rider.emergency_contact)
-            ws.cell(x,15,rider.emergency_phone)
-            ws.cell(x,16,gender_resolve(rider.gender))
-            ws.cell(x,17,team_name_resolve(rider.club))
-            ws.cell(x,18,"CZE")
-            ws.cell(x,19,"CZE")
-            ws.cell(x,20,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_20,1))
-            ws.cell(x,24,rider.plate)
-            ws.cell(x,25,rider.plate)
-            ws.cell(x,32,rider.transponder_20)
-            # ws.cell(x,33,rider.transponder_24)
-            ws.cell(x,36,"T1")
-            ws.cell(x,37,"T1")
-            ws.cell(x,45,team_name_resolve(rider.club).upper())
-            if rider.have_valid_licence:
-                ws.cell(x,46,"")
-            else:
-                ws.cell(x,46,"NEPLATNÁ LICENCE")
-
+            try:
+                rider = Rider.objects.get(uci_id=entry_20.rider)
+                ws.cell(x,1,rider.uci_id)
+                ws.cell(x,2,rider.uci_id)
+                ws.cell(x,3,rider.uci_id)
+                ws.cell(x,4,rider.uci_id)
+                ws.cell(x,5,rider.uci_id)
+                ws.cell(x,6,expire_licence())
+                ws.cell(x,7,"BMX-RACE")
+                ws.cell(x,9,str(rider.date_of_birth).replace('-', '/'))
+                ws.cell(x,10,rider.first_name)
+                ws.cell(x,11,rider.last_name.upper())
+                ws.cell(x,12,rider.email)
+                ws.cell(x,13,rider.phone)
+                ws.cell(x,14,rider.emergency_contact)
+                ws.cell(x,15,rider.emergency_phone)
+                ws.cell(x,16,gender_resolve(rider.gender))
+                ws.cell(x,17,team_name_resolve(rider.club))
+                ws.cell(x,18,"CZE")
+                ws.cell(x,19,"CZE")
+                ws.cell(x,20,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_20,1))
+                ws.cell(x,24,rider.plate)
+                ws.cell(x,25,rider.plate)
+                ws.cell(x,32,rider.transponder_20)
+                # ws.cell(x,33,rider.transponder_24)
+                ws.cell(x,36,"T1")
+                ws.cell(x,37,"T1")
+                ws.cell(x,45,team_name_resolve(rider.club).upper())
+                if rider.have_valid_licence:
+                    ws.cell(x,46,"")
+                else:
+                    ws.cell(x,46,"NEPLATNÁ LICENCE")
+            except Exception as E:
+                pass
             x += 1
 
             print (rider.last_name)
@@ -717,7 +720,7 @@ def EventAdminView(request, pk):
 
     if 'btn-riders-list' in request.POST:
         print("Vytvoř riders list")
-        file_name = f'static/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
+        file_name = f'media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
         ws = wb.active
         ws.title="BEM5_EXT"
