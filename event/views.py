@@ -565,9 +565,9 @@ def EventAdminView(request, pk):
                       
             event.xml_results = "media/xml_results" + uploaded_file_url
             event.save()
-            #RankingCount.set_ranking_points()
-            #ranking = RankPositionCount()
-            #ranking.count_ranking_position()
+            RankingCount.set_ranking_points()
+            ranking = RankPositionCount()
+            ranking.count_ranking_position()
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
@@ -594,9 +594,9 @@ def EventAdminView(request, pk):
         
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
-        # RankingCount.set_ranking_points(pk)
+        RankingCount.set_ranking_points(pk)
         print("Body dle rankingu přiděleny")
-        # RankPositionCount().count_ranking_position()
+        RankPositionCount().count_ranking_position()
         print("Ranking přepočítán")
 
         xml_file = event.xml_results
