@@ -251,6 +251,7 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
         else:
             new_photo = instance.photo
             if old_photo == "static/images/riders/uni.jpeg":
+                instance.photo="images/riders/uni.jpeg"
                 return
             if old_photo and old_photo.url != new_photo.url:
                 old_photo.delete(save=False)
