@@ -594,7 +594,7 @@ def EventAdminView(request, pk):
         
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
-        RankingCount.set_ranking_points(pk)
+        RankingCount.set_ranking_points()
         print("Body dle rankingu přiděleny")
         RankPositionCount().count_ranking_position()
         print("Ranking přepočítán")
