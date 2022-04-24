@@ -151,9 +151,9 @@ class RankingCount:
 
     def count_points(self):
         self.resolve_category()
-        threading.Thread(target = self.set_point_code_01()).start()
-        threading.Thread(target = self.set_point_code_02()).start()
-        threading.Thread(target = self.set_point_code_03()).start()
+        self.set_point_code_01()
+        self.set_point_code_02()
+        self.set_point_code_03()
         #threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod
@@ -166,7 +166,6 @@ class RankingCount:
             rider.points_20 = ranking.get_points_20()
             rider.points_24 = ranking.get_points_24()
             rider.save()
-        print("Výsledky zpracovány, body ze závodu všem jezdcům úspěšně přiděleny")
         del riders
 
 

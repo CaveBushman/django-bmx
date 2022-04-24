@@ -543,12 +543,12 @@ def EventAdminView(request, pk):
         else:
             result_file = request.FILES.get('result-file')
             result_file_name = result_file.name
-            fs = FileSystemStorage('static/results')
+            fs = FileSystemStorage('media/xml_results')
             filename = fs.save(result_file_name, result_file)
-            uploaded_file_url = fs.url(filename)
+            uploaded_file_url = fs.url(filename)[6:]
             event = Event.objects.get(id=pk)
             ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-            data = pd.read_excel('static/results' + uploaded_file_url, sheet_name="Results")
+            data = pd.read_excel('media/xml_results' + uploaded_file_url, sheet_name="Results")
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
                 category = data.iloc[i][5]
@@ -563,11 +563,11 @@ def EventAdminView(request, pk):
                                 last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
                       
-            event.xml_results = uploaded_file_url
+            event.xml_results = "media/xml_results" + uploaded_file_url
             event.save()
-            RankingCount.set_ranking_points()
-            ranking = RankPositionCount()
-            ranking.count_ranking_position()
+            #RankingCount.set_ranking_points()
+            #ranking = RankPositionCount()
+            #ranking.count_ranking_position()
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
@@ -591,19 +591,23 @@ def EventAdminView(request, pk):
 
     if 'btn-delete-xls' in request.POST:
         print("Mažu XLS výsledky")
-        try:
-            os.remove(f"static/results/{event.xml_results}")
-        except Exception as e:
-            print (f"Nebyl nalezen soubor {event.xml_results}")
         
         Result.objects.filter(event=pk).delete()
-
-        RankingCount.set_ranking_points()
-        RankPositionCount().count_ranking_position()
-
-        event.xml_results=""
         print("Výsledky vymazány")
-        event.save()
+        # RankingCount.set_ranking_points(pk)
+        print("Body dle rankingu přiděleny")
+        # RankPositionCount().count_ranking_position()
+        print("Ranking přepočítán")
+
+        xml_file = event.xml_results
+        print(f"Budu mazat xml_results {xml_file}")
+
+        try:
+            os.remove(f"{xml_file}")
+        except Exception as e:
+            print (f"Nebyl nalezen soubor {xml_file}")
+        
+        event.xml_results.delete(save=True)
 
         return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 

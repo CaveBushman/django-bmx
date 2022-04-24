@@ -233,8 +233,6 @@ class Rider(models.Model):
 # nastavení kategorie jezdce při ukládání
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
-    print("PRESAVE CZE")
-    print (instance)
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
@@ -433,7 +431,6 @@ class ForeignRider(models.Model):
 
 @receiver(pre_save, sender=ForeignRider)
 def set_class_foreign(sender, instance, *args, **kwargs):
-    print("PRESAVE FR")
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)

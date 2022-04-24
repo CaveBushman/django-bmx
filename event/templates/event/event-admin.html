@@ -129,7 +129,7 @@
       <th></th>
     </tr>
     <tr>
-      <th scope="row">Nahrát výsledky závodu (xls)</th>
+      <th scope="row" class="dark:dark--text">Nahrát výsledky závodu (xls)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
       <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls"
         {% if event.xml_results %}
@@ -142,7 +142,11 @@
       <th></th>
       <th></th>
       <th></th>
-      <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete">Smaž výsledky závodu</button></th>
+      <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete"
+        {% if not event.xml_results %}
+        disabled
+        {% endif%}
+        >Smaž výsledky závodu</button></th>
     </tr>
     <tr>
       <th scope="row">Nahrát výsledky závodu s časy (pdf)</th>

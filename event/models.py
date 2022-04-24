@@ -193,28 +193,28 @@ class Event(models.Model):
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
     commission_fee = models.IntegerField(default=0)
 
-    proposition_path = models.FileField(upload_to='static/propositions', null = True, blank = True)
+    proposition_path = models.FileField(upload_to='propositions/', null = True, blank = True)
     proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    series_path = models.FileField(upload_to='static/series', null = True, blank = True)
+    series_path = models.FileField(upload_to='series/', null = True, blank = True)
     series_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_entries = models.FileField(upload_to='static/bem_entries', null = True, blank = True)
+    bem_entries = models.FileField(upload_to='bem_entries/', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_riders_list = models.FileField(upload_to='static/bem_riders', null = True, blank = True)
+    bem_riders_list = models.FileField(upload_to='bem_riders/', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_backup_path = models.FileField(upload_to='static/bem_backup', null = True, blank = True)
+    bem_backup_path = models.FileField(upload_to='bem_backup/', null = True, blank = True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    full_results_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
+    full_results_path = models.FileField(upload_to='full_results/', null = True, blank = True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    fast_riders_path = models.FileField(upload_to='static/full_results', null = True, blank = True)
+    fast_riders_path = models.FileField(upload_to='full_results/', null = True, blank = True)
     fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    xml_results = models.FileField(upload_to='static/results', null=True, blank=True)
+    xml_results = models.FileField(upload_to='xml_results/', null=True, blank=True)
     xml_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     created = models.DateField(auto_now_add=True, null=True)
@@ -245,11 +245,15 @@ def delete_xml_results_file (sender, instance, **kwargs):
             return
         else:
             new_xml = instance.xml_results
-            if old_xml and old_xml.url != new_xml.url:
-                try:
-                    old_xml.delete(save=False)
-                except Exception as e:
-                    pass
+
+            try:
+                if old_xml and old_xml.url != new_xml.url:
+                    try:
+                        old_xml.delete(save=False)
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
 pre_save.connect(delete_xml_results_file, sender=Event)
 
 # vymazání celkových výsledků při aktualizaci
