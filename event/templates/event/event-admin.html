@@ -133,7 +133,7 @@
       <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
       <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls"
         {% if event.xml_results %}
-        disabled
+        {% comment %} disabled {% endcomment %}
         {% endif%}
       >Nahraj výsledky</button></td>
     </tr>
@@ -144,7 +144,7 @@
       <th></th>
       <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete"
         {% if not event.xml_results %}
-        {% comment %} disabled {% endcomment %}
+        disabled
         {% endif%}
         >Smaž výsledky závodu</button></th>
     </tr>
