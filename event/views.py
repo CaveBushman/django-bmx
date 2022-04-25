@@ -1,7 +1,6 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404
-from sympy import EX
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -597,7 +596,7 @@ def EventAdminView(request, pk):
         print("Výsledky vymazány")
         RankingCount.set_ranking_points()
         print("Body dle rankingu přiděleny")
-        RankPositionCount().count_ranking_position()
+        threading.Thread(target=RankPositionCount().count_ranking_position()).start()
         print("Ranking přepočítán")
 
         xml_file = event.xml_results
