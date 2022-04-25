@@ -162,7 +162,7 @@ class RankingCount:
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         for rider in riders:
             ranking = RankingCount(rider.uci_id)
-            threading.Thread(target =ranking.count_points()).start()
+            ranking.count_points()
             rider.points_20 = ranking.get_points_20()
             rider.points_24 = ranking.get_points_24()
             rider.save()
