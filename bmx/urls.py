@@ -18,6 +18,8 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic import TemplateView
+from django.views.static import serve
+from django.conf.urls import url
 
 urlpatterns = [
     path('api/', include('api.urls')),
@@ -28,9 +30,9 @@ urlpatterns = [
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('', include("django.contrib.auth.urls")),
-    path('bmx-admin/', admin.site.urls),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-#+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('bmx-admin/', admin.site.urls),]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 admin.site.site_header = "Czech BMX Website"
 admin.site.index_title = "Management"

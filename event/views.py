@@ -596,7 +596,7 @@ def EventAdminView(request, pk):
         print("Výsledky vymazány")
         RankingCount.set_ranking_points()
         print("Body dle rankingu přiděleny")
-        RankPositionCount().count_ranking_position()
+        threading.Thread(target=RankPositionCount().count_ranking_position()).start()
         print("Ranking přepočítán")
 
         xml_file = event.xml_results

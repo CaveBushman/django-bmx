@@ -100,8 +100,11 @@
                 </div>
           </div>
             {% endif %}
+            {% if event.proposition_path %}
+                <a href="{{event.proposition_path.url}}" target="_blank" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Propozice</a>
+            {% endif %}
             {% if request.user.is_superuser %}
-              <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Admin</a>
+                <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--red">Admin</a>
             {% endif %}
             </div>
             </td>
