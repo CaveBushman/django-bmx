@@ -150,10 +150,10 @@ class RankingCount:
         return self.points_24
 
     def count_points(self):
-        threading.Thread(target =self.resolve_category()).start()
-        threading.Thread(target =self.set_point_code_01()).start()
-        threading.Thread(target =self.set_point_code_02()).start()
-        threading.Thread(target =self.set_point_code_03()).start()
+        self.resolve_category()
+        threading.Thread(target = self.set_point_code_01(), daemon=True).start()
+        threading.Thread(target = self.set_point_code_02(), daemon=True).start()
+        threading.Thread(target = self.set_point_code_03(), daemon=True).start()
         #threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod
@@ -162,6 +162,7 @@ class RankingCount:
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         for rider in riders:
             ranking = RankingCount(rider.uci_id)
+            print(f"{rider.last_name} {rider.first_name}")
             ranking.count_points()
             rider.points_20 = ranking.get_points_20()
             rider.points_24 = ranking.get_points_24()

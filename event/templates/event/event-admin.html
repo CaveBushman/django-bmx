@@ -81,12 +81,12 @@
       <th></th>
     </tr>
     <tr>
-      <th scope="row">Registrovaní jezdci na závod - BEM FILE</th>
+      <th scope="row" class="dark:dark--text">Registrovaní jezdci na závod - BEM FILE</th>
       <td>Aktuální ke dni:</td>
       <td> {{event.bem_entries_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blurApp"
+            class="btn btn-outline-info blurApp dark:dark--text"
             tabindex="-1"
             role="button"
             name="btn-bem-file"
@@ -99,7 +99,7 @@
       <td>{{event.bem_riders_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blurApp"
+            class="btn btn-outline-info blurApp dark:dark--text"
             tabindex="-1"
             role="button"
             name="btn-riders-list"
@@ -111,7 +111,7 @@
     </tr>
     {% if invalid_licences%}
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Přihlášení jezdci s neplatnou licencí</th>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center dark:dark--text" >Přihlášení jezdci s neplatnou licencí</th>
     </tr>
     <tr>
       {% for rider in invalid_licences %}

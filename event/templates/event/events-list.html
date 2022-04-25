@@ -87,7 +87,7 @@
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{% url 'event:results' event.id %}">HTML</a></li>
                         <li class="border-b-2 p-2 cursor-pointer"><a href="../static/results{{event.xml_results.url}}" target="_blank">XML</a></li>
                         {% if event.full_results_path %}
-                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.full_results_path.url}}" target="_blank">PDF celkové výsledky</a></li>
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.full_results.url}}" target="_blank">PDF celkové výsledky</a></li>
                         {% endif %} 
                         {% if event.fast_riders_path %}
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.fast_riders_path.url}}" target="_blank">PDF 50 nejrychlejších jezdců</a></li>
@@ -104,7 +104,7 @@
                 <a href="{{event.proposition_path.url}}" target="_blank" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Propozice</a>
             {% endif %}
             {% if request.user.is_superuser %}
-                <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--red">Admin</a>
+                <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 w-full text-sm font-medium sm:pr-6 btn--red">Admin</a>
             {% endif %}
             </div>
             </td>

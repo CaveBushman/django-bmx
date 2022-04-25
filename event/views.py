@@ -596,7 +596,7 @@ def EventAdminView(request, pk):
         print("Výsledky vymazány")
         RankingCount.set_ranking_points()
         print("Body dle rankingu přiděleny")
-        threading.Thread(target=RankPositionCount().count_ranking_position()).start()
+        threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
         print("Ranking přepočítán")
 
         xml_file = event.xml_results
@@ -614,10 +614,13 @@ def EventAdminView(request, pk):
     if 'btn-delete-pdf' in request.POST:
         print("Mažu PDF výsledky")
         # TODO: Delete file with PDF results
-        event.results_uploaded = False
-        event.full_results_path =""
         event.full_results_uploaded=None
-        event.save()
+        pdf_file = event.full_results
+        try:
+            os.remove(f"{pdf_file}")
+        except Exception as e:
+            print (f"Nebyl nalezen soubor {pdf_file}")
+        event.full_results.delete(save=True)
 
         return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 

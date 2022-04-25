@@ -15,6 +15,9 @@ class EventAdmin(admin.ModelAdmin):
 
 class EntryClassesAdmin(admin.ModelAdmin):
     fieldsets = (
+        ('Název závodu', {
+            "fields": ('event_name',),
+        }),
         ('Kategorie muži', {
             "fields": (('boys_6', 'boys_7'), ('boys_8', 'boys_9'), ('boys_10', 'boys_11'),
             ('boys_12', 'boys_13'), ('boys_14','boys_15'),('boys_16', 'men_17_24'), ('men_25_29','men_30_34'),

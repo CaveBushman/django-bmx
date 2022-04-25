@@ -205,13 +205,13 @@ class Event(models.Model):
     bem_riders_list = models.FileField(upload_to='bem_riders/', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_backup_path = models.FileField(upload_to='bem_backup/', null = True, blank = True)
+    bem_backup = models.FileField(upload_to='bem_backup/', null = True, blank = True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    full_results_path = models.FileField(upload_to='full_results/', null = True, blank = True)
+    full_results = models.FileField(upload_to='full_results/', null = True, blank = True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    fast_riders_path = models.FileField(upload_to='full_results/', null = True, blank = True)
+    fast_riders = models.FileField(upload_to='full_results/', null = True, blank = True)
     fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     xml_results = models.FileField(upload_to='xml_results/', null=True, blank=True)
@@ -261,14 +261,14 @@ pre_save.connect(delete_xml_results_file, sender=Event)
 def delete_full_results_file (sender, instance, **kwargs):
     if instance.pk:
         try:
-            old_full_results_path = Event.objects.get(pk=instance.pk).full_results_path
+            old_full_results = Event.objects.get(pk=instance.pk).full_results
         except Event.DoesNotExist:
             return
         else:
-            new_full_results_path = instance.full_results_path
-            if old_full_results_path and old_full_results_path.url != new_full_results_path.url:
+            new_full_results = instance.full_results
+            if old_full_results and old_full_results.url != new_full_results.url:
                 try:
-                    old_full_results_path.delete(save=False)
+                    old_full_results.delete(save=False)
                 except Exception as e:
                     pass
 pre_save.connect(delete_full_results_file, sender=Event)
@@ -278,14 +278,14 @@ pre_save.connect(delete_full_results_file, sender=Event)
 def delete_fast_riders_file (sender, instance, **kwargs):
     if instance.pk:
         try:
-            old_fast_riders_path = Event.objects.get(pk=instance.pk).fast_riders_path
+            old_fast_riders = Event.objects.get(pk=instance.pk).fast_riders
         except Event.DoesNotExist:
             return
         else:
-            new_fast_riders_path = instance.fast_riders_path
-            if old_fast_riders_path and old_fast_riders_path.url != new_fast_riders_path.url:
+            new_fast_riders = instance.fast_riders
+            if old_fast_riders and old_fast_riders.url != new_fast_riders.url:
                 try:
-                    old_fast_riders_path.delete(save=False)
+                    old_fast_riders.delete(save=False)
                 except Exception as e:
                     pass
 pre_save.connect(delete_fast_riders_file, sender=Event)
