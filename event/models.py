@@ -141,7 +141,7 @@ class EntryClasses(models.Model):
     cr_women_30_39_fee = models.IntegerField(default=0)
     cr_women_40_and_over_fee = models.IntegerField(default=0)
 
-    is_enabled = models.BooleanField(default=true)
+    is_enabled = models.BooleanField(default=True)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
