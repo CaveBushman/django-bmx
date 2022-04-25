@@ -86,22 +86,22 @@
                       <ul>
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{% url 'event:results' event.id %}">HTML</a></li>
                         <li class="border-b-2 p-2 cursor-pointer"><a href="../static/results{{event.xml_results.url}}" target="_blank">XML</a></li>
-                        {% if event.full_results_path %}
+                        {% if event.full_results %}
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.full_results.url}}" target="_blank">PDF celkové výsledky</a></li>
                         {% endif %} 
-                        {% if event.fast_riders_path %}
-                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.fast_riders_path.url}}" target="_blank">PDF 50 nejrychlejších jezdců</a></li>
+                        {% if event.fast_riders %}
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.fast_riders.url}}" target="_blank">PDF 50 nejrychlejších jezdců</a></li>
                         {% endif %} 
-                        {% if event.series_path %}
-                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.series_path.url}}" target="_blank">Průběžné pořadí seriálu</a></li>
+                        {% if event.series %}
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.seriesurl}}" target="_blank">Průběžné pořadí seriálu</a></li>
                         {% endif %} 
                       </ul>
                   </div>  
                 </div>
           </div>
             {% endif %}
-            {% if event.proposition_path %}
-                <a href="{{event.proposition_path.url}}" target="_blank" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Propozice</a>
+            {% if event.proposition %}
+                <a href="{{event.proposition.url}}" target="_blank" class="py-1 my-1 px-4 text-sm font-medium sm:pr-6 btn--purple">Propozice</a>
             {% endif %}
             {% if request.user.is_superuser %}
                 <a href="{% url 'event:event-admin' event.id %}" class="py-1 my-1 px-4 w-full text-sm font-medium sm:pr-6 btn--red">Admin</a>

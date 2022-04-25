@@ -193,10 +193,10 @@ class Event(models.Model):
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
     commission_fee = models.IntegerField(default=0)
 
-    proposition_path = models.FileField(upload_to='propositions/', null = True, blank = True)
+    proposition = models.FileField(upload_to='propositions/', null = True, blank = True)
     proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    series_path = models.FileField(upload_to='series/', null = True, blank = True)
+    series = models.FileField(upload_to='series/', null = True, blank = True)
     series_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_entries = models.FileField(upload_to='bem_entries/', null = True, blank = True)
