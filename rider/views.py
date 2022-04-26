@@ -247,4 +247,4 @@ def LicenceCheckViews(request):
 def RankingCountViews(request):
     """ Function for recount ranking"""
     threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
-    return render(request, 'rider/rider-ranking.html')
+    return render(request, 'rider/rider-rank.html')
