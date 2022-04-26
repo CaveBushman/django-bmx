@@ -1,5 +1,4 @@
 import datetime
-import threading
 from rider.models import Rider
 from event.models import Result, Entry
 from django.db.models import Q
@@ -161,7 +160,6 @@ class RankingCount:
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         for rider in riders:
             ranking = RankingCount(rider.uci_id)
-            print(f"{rider.last_name} {rider.first_name}")
             ranking.count_points()
             rider.points_20 = ranking.get_points_20()
             rider.points_24 = ranking.get_points_24()

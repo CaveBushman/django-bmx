@@ -10,6 +10,7 @@ urlpatterns = [
     path('new', views.RiderNewView, name='new'),
     path('admin', views.RiderAdmin, name = "admin"),
     path('inactive', views.InactiveRidersViews, name="inactive"),
-    path('licence', views.LicenceCheckViews, name='licence')
+    path('licence', views.LicenceCheckViews, name='licence'),
+    path('ranking', views.RankingCountViews, name='ranking'),
 
 ]

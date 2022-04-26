@@ -23,18 +23,20 @@
 {% endif %}
 </div>
 
-<div class="flex flex-row space-x-4 justify-around mt-6">
-  <div class="col-sm">
-     
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-row mt-10">
+  <div class="basis-1/3 text-center">
+    <a href = "{% url 'rider:ranking'%}" class="btn--red blurApp">Přepočítej ranking</a>
   </div>
 
-  <div class="col-sm">
+  <div class="basis-1/3 text-center">
     <a href = "{% url 'rider:inactive' %}" class="btn--red blurApp">Neaktivní jezdci</a>
   </div>
 
-  <div class="col-sm">
+  <div class="basis-1/3 text-center">
     <a href = "{% url 'rider:licence'%}" class="btn--red blurApp">Zkontroluj platnost licencí</a>
   </div>
+</div>
 </div>
 
 {% include "spinner.html" %}

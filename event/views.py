@@ -25,6 +25,7 @@ from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
 import threading
+import logging
 
 
 # Create your views here.
@@ -565,9 +566,12 @@ def EventAdminView(request, pk):
                       
             event.xml_results = "media/xml_results" + uploaded_file_url
             event.save()
+            logging.info("Zahajuji počítání bodů")
             RankingCount.set_ranking_points()
             ranking = RankPositionCount()
+            logging.info("zahajuji výpočet rankingu")
             ranking.count_ranking_position()
+            logging.info("Výpočet rankingu proveden")
 
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 

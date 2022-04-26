@@ -8,6 +8,7 @@ from .rider import valid_licence_control, two_years_inactive
 from club.models import Club
 import urllib.request, json
 from event.models import Result
+from ranking.ranking import RankPositionCount
 import datetime
 from datetime import date
 import requests
@@ -241,4 +242,9 @@ def LicenceCheckViews(request):
     data={}
     return render (request, 'rider/rider-licence.html', data)
 
-   
+
+@staff_member_required
+def RankingCountViews(request):
+    """ Function for recount ranking"""
+    threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
+    return render(request, 'rider/rider-ranking.html')
