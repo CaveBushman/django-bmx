@@ -297,7 +297,7 @@ class RankPositionCount:
                         ranking = i + 1
                 else:
                     ranking = 1
-                threading.Thread (target = self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)).start()
+                target = self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)
 
         # RANKING POSITION FOR 24" (CRUISER)
         categories_24 = self.get_categories(is_20=False)
@@ -315,7 +315,7 @@ class RankPositionCount:
                         ranking = i + 1
                 else:
                     ranking = 1
-                threading.Thread (target = self.write_ranking(rider=riders_24[i].id, is_20=False, ranking=ranking)).start()
+                target = self.write_ranking(rider=riders_24[i].id, is_20=False, ranking=ranking)
 
         self.mark_same_position()
         print("Ranking všech jezdců přepočítán")
