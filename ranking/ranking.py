@@ -1,6 +1,5 @@
 import datetime
 import threading
-
 from rider.models import Rider
 from event.models import Result, Entry
 from django.db.models import Q
@@ -151,9 +150,9 @@ class RankingCount:
 
     def count_points(self):
         self.resolve_category()
-        threading.Thread(target = self.set_point_code_01(), daemon=True).start()
-        threading.Thread(target = self.set_point_code_02(), daemon=True).start()
-        threading.Thread(target = self.set_point_code_03(), daemon=True).start()
+        target = self.set_point_code_01()
+        target = self.set_point_code_02()
+        target = self.set_point_code_03()
         #threading.Thread(target = self.set_point_code_04()).start()
 
     @staticmethod

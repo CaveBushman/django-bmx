@@ -4,16 +4,21 @@ from django.core.mail import send_mail
 from django.views.decorators.cache import cache_control
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Rider
-from .rider import valid_licence
+from .rider import valid_licence_control, two_years_inactive
 from club.models import Club
 import urllib.request, json
 from event.models import Result
 import datetime
 from datetime import date
 import requests
+import requests.packages
+import urllib3
 import re
 import threading
+from decouple import config
 
+# Global variables
+now = date.today().year
 
 # Create your views here.
 
@@ -35,32 +40,6 @@ def RiderDetailView(request, pk):
 @staff_member_required
 def RiderAdmin(request):
 
-    if 'btnValidLicence' in request.POST:
-        print("Volána funkce pro kontrolu platnosti licencí")
-        username = request.POST['username']
-        password = request.POST['password']
-        riders = Rider.objects.all().exclude(is_active=False)
-
-        # check if valid username and password
-        basicAuthCredentials = (username, password)
-        now = date.today().year
-        
-        url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={riders[0].uci_id}&year={now}')
-        try:
-            dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-            if re.search("Http_Unauthorised", dataJSON.text):
-                messages.error (request, "Špatné přihlašovací údaje k API ČSC")
-                return render(request, 'rider/rider-admin.html')
-        except Exception as e:
-            messages.error (request, "Spojení se serverem ČSC se nezdařilo")
-            print(e)
-            return render(request, 'rider/rider-admin.html')
-
-        for rider in riders:
-            basicAuthCredentials = (username, password)
-            now = date.today().year
-            rider.have_valid_licence = valid_licence(rider.uci_id, username, password)
-            rider.save()
     return render(request, 'rider/rider-admin.html')
 
 
@@ -136,7 +115,7 @@ def RiderNewView(request):
 
                     return render(request, 'rider/rider-new-2.html', data_new_rider)
 
-        # get data form form and save new rider
+        # get data from form and save new rider
         else:
             # TODO: Dodělat ověření vyplnění všech údajů, v případě chyby zobrazit alert
             if request.POST['InputEmail'].strip() == "":
@@ -221,3 +200,45 @@ def RiderNewView(request):
 
     # rendering in GET method
     return render(request, 'rider/rider-new.html')
+
+
+@staff_member_required
+def InactiveRidersViews(request):
+    """ Function for views inactive riders, only request params"""
+    inactive_riders = two_years_inactive()
+
+    data={'riders': inactive_riders}
+
+
+    return render(request, 'rider/rider-inactive.html', data)
+
+
+@staff_member_required
+def LicenceCheckViews(request):
+    """ Function for licence check views """
+    username = config('LICENCE_USERNAME')
+    password = config('LICENCE_PASSWORD')
+    basicAuthCredentials = (username, password)
+
+    riders = Rider.objects.all().exclude(is_active=False)
+
+    urllib3.disable_warnings()
+    requests.packages.urllib3.disable_warnings()
+
+    url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={riders[0].uci_id}&year={now}')
+    try:
+        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+        if re.search("Http_Unauthorised", dataJSON.text):
+            messages.error (request, "Špatné přihlašovací údaje k API ČSC")
+            return render(request, 'rider/rider-lincence.html')
+    except Exception as e:
+        messages.error (request, "Spojení se serverem ČSC se nezdařilo")
+        print(e)
+        return render(request, 'rider/rider-licence.html')
+    
+    threading.Thread(target=valid_licence_control(), daemon=True).start()
+
+    data={}
+    return render (request, 'rider/rider-licence.html', data)
+
+   

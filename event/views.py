@@ -661,9 +661,9 @@ def EventAdminView(request, pk):
                 ws.cell(x,32,rider.transponder_20)
                 # ws.cell(x,33,rider.transponder_24)
                 ws.cell(x,36,"T1")
-                ws.cell(x,37,"T1")
+                ws.cell(x,37,"T2")
                 ws.cell(x,45,team_name_resolve(rider.club).upper())
-                if rider.have_valid_licence:
+                if rider.valid_licence:
                     ws.cell(x,46,"")
                 else:
                     ws.cell(x,46,"NEPLATNÁ LICENCE")
@@ -705,7 +705,7 @@ def EventAdminView(request, pk):
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T2")
             ws.cell(x,45,team_name_resolve(rider.club))
-            if rider.have_valid_licence:
+            if rider.valid_licence:
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
@@ -762,7 +762,7 @@ def EventAdminView(request, pk):
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T2")
             ws.cell(x,45,team_name_resolve(rider.club).upper())
-            if rider.have_valid_licence:
+            if rider.valid_licence:
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
@@ -820,7 +820,7 @@ def EventAdminView(request, pk):
     for check20 in check_20_entries:
         try:
             rider = Rider.objects.get(uci_id=check20.rider)
-            if not rider.have_valid_licence:
+            if not rider.valid_licence:
                 invalid_licences.append(rider)
         except Exception as e:
             pass    #TODO: Dodělat zprávu o chybě
@@ -828,7 +828,7 @@ def EventAdminView(request, pk):
     for check24 in check_24_entries:
         try:
             rider = Rider.objects.get(uci_id=check24.rider)
-            if not rider.have_valid_licence:
+            if not rider.valid_licence:
                 invalid_licences.append(rider)
         except Exception as e:
             pass    #TODO: Dodělat zprávu o chybě
