@@ -17,10 +17,10 @@ from django.conf import settings
 from bmx.sec import *
 from decouple import config
 
-import logging
+# import logging
 
 # START LOGING EVENTS
-logging.basicConfig(filename='django_bmx.log', encoding='utf-8', level=logging.DEBUG)
+# logging.basicConfig(filename='django_bmx.log', encoding='utf-8', level=logging.DEBUG)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
