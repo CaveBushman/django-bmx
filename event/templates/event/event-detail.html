@@ -91,7 +91,7 @@
                 {% if not event.results_uploaded and not event.canceled %}
                 <div class="bg-white overflow-hidden sm:rounded-md mt-2">
                     <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text basis-1/2">od {{event.reg_open_from}} do
-                        {{event.reg_open_to}}</div>
+                        {{event.reg_open_to}} hod.</div>
                 </div>
                 {% else %}
                 <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark--text basis-1/2">Registrace nebyla otevřena nebo už byla
@@ -104,20 +104,22 @@
                 <div class="mt-4 text-3xl dark:dark--text ">Systém závodů</div>
                 <div class="bg-white overflow-hidden sm:rounded-md mt-2">
                     <div class="text-lg text-gray-600 dark:dark--text">{{event.system}}</div>
-                    {% if event.is_uci_race %}
-                    <div role="alert">
-                        <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2 mt-4">
-                            Upozornění
-                        </div>
-                        <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-                            <p>Tento závod je zapsán v kalendáři UCI, proto Junior, Under 23 a Elite kategorie pojedou
-                                podle pravidel UCI a nikoliv platných prováděcích pokynů!</p>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
+        <!--UCI RACE -->
+        {% if event.is_uci_race %}
+            <div role="alert">
+                <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2 mt-4">
+                    Upozornění
+                </div>
+                <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                    <p> Tento závod je zapsán v kalendáři UCI, proto Junior, Under 23 a Elite kategorie pojedou
+                        podle pravidel UCI a nikoliv podle platných prováděcích pokynů!</p>
+                </div>
+            </div>
+        {% endif %}
+
     </div>
 </div>
 

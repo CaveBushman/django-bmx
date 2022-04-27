@@ -63,7 +63,7 @@ def RiderNewView(request):
         free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
 
         # get data from UCI API and put this data to the second form
-        if 'num11' in request.POST and 'InputFirstName' not in request.POST:
+        if 'num11' in request.POST and 'first-name' not in request.POST:
 
             num1 = request.POST['num1']
             num2 = request.POST['num2']
@@ -119,7 +119,7 @@ def RiderNewView(request):
         # get data from form and save new rider
         else:
             # TODO: Dodělat ověření vyplnění všech údajů, v případě chyby zobrazit alert
-            if request.POST['InputEmail'].strip() == "":
+            if request.POST['email'].strip() == "":
                 print("Není vyplněn e-mail")
                 messages.error(request, "Nevyplnil/a jsi e-mailovou adresu. Jedná se o povinný údaj.")
                 data_new_rider = {'first_name': request.session['first_name'],
@@ -133,7 +133,7 @@ def RiderNewView(request):
                 # TODO: Dodělat ověření správnosti e-mailové adresy
                 pass
 
-            if request.POST['SelectFreePlate'] == "Vyber...":
+            if request.POST['plate'] == "Vyber...":
                 print("Není vybráno startovní číslo")
                 messages.error(request, "Nevybral/a jsi startovní číslo. Jedná se o povinný údaj.")
                 data_new_rider = {'first_name': request.session['first_name'],
@@ -144,7 +144,7 @@ def RiderNewView(request):
                                   }
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
 
-            if ('CheckIs20') not in request.POST and ('CheckIs24') not in request.POST:
+            if ('is20') not in request.POST and ('is24') not in request.POST:
                 print("Není vybrána kategorie")
                 messages.error(request, "Nevyplnil/a jsi, zda budeš jezdit na 20-ti palcovém kole či na Cruiseru. Jedná se o povinný údaj.")
                 data_new_rider = {'first_name': request.session['first_name'],
@@ -155,7 +155,7 @@ def RiderNewView(request):
                                   }
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
 
-            if request.POST['SelectClub'] == "Vyber...":
+            if request.POST['club'] == "Vyber...":
                 print("Není vybrán klub")
                 messages.error(request,  "Nevybral jsi svůj klub. Jedná se o povinný údaj.")
                 data_new_rider = {'first_name': request.session['first_name'],
@@ -166,27 +166,30 @@ def RiderNewView(request):
                                   }
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
 
-            is_20 = 1 if 'CheckIs20' in request.POST else 0
-            is_24 = 1 if 'CheckIs24' in request.POST else 0
-            have_girls_bonus = 1 if 'CheckBonus' in request.POST else 0
-            is_elite = 1 if 'CheckElite' in request.POST else 0
+            is_20 = 1 if 'is20' in request.POST else 0
+            is_24 = 1 if 'is24' in request.POST else 0
+            have_girls_bonus = 1 if 'bonus' in request.POST else 0
+            is_elite = 1 if 'elite' in request.POST else 0
             new_rider = Rider.objects.create(
                 first_name=request.session['first_name'],
                 last_name=request.session['last_name'],
                 date_of_birth=datetime.datetime.strptime(request.session['date_of_birth'], "%Y-%m-%d"),
                 gender=request.session['gender'],
+                street=request.POST['street_address'],
+                city=request.POST['city'],
+                zip=request.POST['zip'],
                 uci_id=request.session['uci_id'],
                 is_20=is_20,
                 is_24=is_24,
                 is_elite=is_elite,
                 have_girl_bonus=have_girls_bonus,
-                email=request.POST['InputEmail'],
-                plate=request.POST['SelectFreePlate'],
-                club=Club.objects.get(id=request.POST['SelectClub']),
+                email=request.POST['email'],
+                plate=request.POST['plate'],
+                club=Club.objects.get(id=request.POST['club']),
                 is_active=1,
                 is_approwe=0,
-                emergency_contact=request.POST['InputEmergencyContact'],
-                emergency_phone=request.POST['InputEmergencyPhone'],
+                emergency_contact=request.POST['emergency-contact'],
+                emergency_phone=request.POST['emergency-phone'],
             )
             new_rider.save()
 

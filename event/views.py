@@ -25,7 +25,7 @@ from django.http import JsonResponse, HttpResponse
 from openpyxl import Workbook
 import stripe
 import threading
-import logging
+# import logging
 
 
 # Create your views here.
@@ -58,7 +58,6 @@ def EventsListByYearView(request, pk):
         else:
             event.reg_open = is_registration_open(event.id)
         
-        print(event.classes_and_fees_like.event_name)
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             print("Kategorie závodů nebyla stanovena")
             event.reg_open = False
@@ -74,7 +73,6 @@ def EventsListByYearView(request, pk):
 def EventDetailViews(request, pk):
     event = get_object_or_404(Event, pk=pk)
     categories = Categories.get_categories(pk)
-    print(categories)
     riders=""
     select_category=""
     alert = False
@@ -277,11 +275,10 @@ def EntryRidersView(request,pk):
     for entry_24 in entries_24:
         rider_24 = Rider.objects.get(uci_id = entry_24.rider)
         rider_24.class_24 = entry_24.class_24
-        print(rider_24.class_24)
         riders_24.append(rider_24)
 
     data={'event':event, 'riders_20':riders_20, 'riders_24':riders_24}
-    return render(request, 'event/entry-riders.html', data)
+    return render(request, 'event/entry-list.html', data)
 
 
 def ConfirmView(request):
