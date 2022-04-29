@@ -13,7 +13,7 @@ class Commissar (models.Model):
     last_name = models.CharField(max_length=200)
 
     photo = models.ImageField(
-        upload_to='static/images/commissar/', blank=True, null=True, default='static/images/users/blank-avatar-200x200.jpg')
+        upload_to='images/commissar/', blank=True, null=True, default='images/users/blank-avatar-200x200.jpg')
 
 
     level = models.CharField(max_length=100, choices=LEVEL, default="Národní rozhodčí", null=True, blank=True)
@@ -35,7 +35,8 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
             return
         else:
             new_photo = instance.photo
-            if old_photo == "static/images/commissar/uni.jpeg":
+            if old_photo == "static/images/users/blank-avatar-200x200.jpg":
+                instance.photo = new_photo
                 return
             if old_photo and old_photo.url != new_photo.url:
                 old_photo.delete(save=False)

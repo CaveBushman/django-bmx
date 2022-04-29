@@ -15,7 +15,7 @@ from django.db.models import Q
 import pandas as pd
 from .result import GetResult
 from .func import *
-from bmx.sec import * 
+from bmx.sec import *
 from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
@@ -57,7 +57,7 @@ def EventsListByYearView(request, pk):
             event.reg_open = False
         else:
             event.reg_open = is_registration_open(event.id)
-        
+
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             print("Kategorie závodů nebyla stanovena")
             event.reg_open = False
@@ -135,9 +135,9 @@ def EntryView(request, pk):
 
         for rider_20 in riders_20:
             if rider_20.class_20 == "Boys 6":
-                sum_fee+=fee.boys_6_fee 
+                sum_fee+=fee.boys_6_fee
             elif rider_20.class_20 == "Boys 7":
-                sum_fee+=fee.boys_7_fee       
+                sum_fee+=fee.boys_7_fee
             elif rider_20.class_20 == "Boys 8":
                 sum_fee+=fee.boys_8_fee
             elif rider_20.class_20 == "Boys 9":
@@ -177,7 +177,7 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Girls 9":
                 sum_fee+=fee.girls_9_fee
             elif rider_20.class_20 == "Girls 10":
-                sum_fee+=fee.girls_10_fee 
+                sum_fee+=fee.girls_10_fee
             elif rider_20.class_20 == "Girls 11":
                 sum_fee+=fee.girls_11_fee
             elif rider_20.class_20 == "Girls 12":
@@ -193,11 +193,11 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Women 17-24":
                 sum_fee+=fee. women_17_24_fee
             elif rider_20.class_20 == "Women 25 and over":
-                sum_fee+=fee. women_25_over_fee  
+                sum_fee+=fee. women_25_over_fee
 
         for rider_24 in riders_24:
             if rider_24.class_24 == "Boys 12 and under":
-                sum_fee+=fee.cr_boys_12_and_under_fee  
+                sum_fee+=fee.cr_boys_12_and_under_fee
             elif rider_24.class_24 == "Boys 13 and 14":
                 sum_fee+=fee.cr_boys_13_14_fee
             elif rider_24.class_24 == "Boys 15 and 16":
@@ -271,7 +271,7 @@ def EntryRidersView(request,pk):
 
             riders_20.append(rider_20)
     except Exception:
-        pass    
+        pass
     for entry_24 in entries_24:
         rider_24 = Rider.objects.get(uci_id = entry_24.rider)
         rider_24.class_24 = entry_24.class_24
@@ -294,7 +294,7 @@ def ConfirmView(request):
 
     if request.method == "POST":
         fee=0
-  
+
         # data for checkout session
         line_items = []
         for rider_20 in riders_20:
@@ -364,8 +364,8 @@ def ConfirmView(request):
                fee = entry_fee.women_u23_fee
             elif rider_20['fields']['class_20'] == "Women Elite":
                fee = entry_fee.women_elite_fee
-            
-    
+
+
             line_items += {
                 'price_data': {
                         'currency': 'czk',
@@ -424,10 +424,10 @@ def ConfirmView(request):
                     },
                     'quantity': 1,
                 },
-        
+
         try:
             print("Zkouším checkout")
-            
+
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -445,7 +445,7 @@ def ConfirmView(request):
                                     rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
                                     class_20=rider_20['fields']['class_20'], class_24="", fee_20 = current_fee)
                 entry.save()
-    
+
             for rider_24 in riders_24:
                 current_rider = Rider.objects.get(uci_id=rider_24['fields']['uci_id'])
                 current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24, 0)
@@ -453,7 +453,7 @@ def ConfirmView(request):
                                     rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
                                     class_24=rider_24['fields']['class_24'], class_20="", fee_24 = current_fee)
                 entry.save()
-                
+
             del entry
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
@@ -475,7 +475,7 @@ def SuccessView(request, pk):
     transactions_to_email = []
     # check, if fees was paid
 
-    for transaction in transactions:      
+    for transaction in transactions:
         try:
             confirm = stripe.checkout.Session.retrieve(
                 transaction.transaction_id, )
@@ -488,14 +488,14 @@ def SuccessView(request, pk):
         except Exception as e:
             print(e)
     # clear duplitates
-            
+
     transactions_to_email = set(transactions_to_email)
 
     # send e-mail about confirm registrations
     for transaction_to_email in transactions_to_email:
         # threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
         pass
- 
+
     data = {'event_id':pk}
     return render(request, 'event/success.html', data)
 
@@ -560,7 +560,7 @@ def EventAdminView(request, pk):
                     result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category, first_name,
                                 last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
-                      
+
             event.xml_results = "media/xml_results" + uploaded_file_url
             event.save()
             # logging.info("Zahajuji počítání bodů")
@@ -573,7 +573,7 @@ def EventAdminView(request, pk):
             return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-upload-pdf' in request.POST:
-        
+
         if 'result-file-pdf' not in request.FILES: # if pdf file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu s časy")
 
@@ -592,7 +592,7 @@ def EventAdminView(request, pk):
 
     if 'btn-delete-xls' in request.POST:
         print("Mažu XLS výsledky")
-        
+
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
         RankingCount.set_ranking_points()
@@ -607,7 +607,7 @@ def EventAdminView(request, pk):
             os.remove(f"{xml_file}")
         except Exception as e:
             print (f"Nebyl nalezen soubor {xml_file}")
-        
+
         event.xml_results.delete(save=True)
 
         return  HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
@@ -710,7 +710,7 @@ def EventAdminView(request, pk):
                 ws.cell(x,46,"")
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
-   
+
             x += 1
         del entries_24
 
@@ -768,7 +768,7 @@ def EventAdminView(request, pk):
             else:
                 ws.cell(x,46,"NEPLATNÁ LICENCE")
             x += 1
-           
+
         del riders
         print("Čeští jezdci přidány")
         foreign_riders = ForeignRider.objects.all()
@@ -833,8 +833,8 @@ def EventAdminView(request, pk):
                 invalid_licences.append(rider)
         except Exception as e:
             pass    #TODO: Dodělat zprávu o chybě
-        
-    invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24" 
+
+    invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24"
 
     # summary fees on event
     entries = Entry.objects.filter(event = event.id, payment_complete=1)
@@ -850,3 +850,24 @@ def EventAdminView(request, pk):
 
     data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees, "sum_of_riders":sum_of_riders, 'organizer_fee':organizer_fee}
     return render(request, 'event/event-admin.html', data)
+
+@staff_member_required
+def findPaymentView(request):
+    """ Views for find e-mail address recorded in payment status """
+
+    events = Event.objects.filter()
+
+    if 'find-payment' in request.POST:
+        rider = request.POST['rider']
+        event = request.POST['event']
+        try:
+            entry = Entry.objects.get(event=event.id, rider=rider.uci_id, payment_complete=True)
+            rider = Rider.objects.get(uci_id=rider)
+            event = Event.objects.get(id=event)
+        except Exception as e:
+            pass
+
+        data={'event':event, 'rider':rider, 'entry':entry}
+
+    data={'events':events}
+    return render(request, 'event/find-payment.html', data)

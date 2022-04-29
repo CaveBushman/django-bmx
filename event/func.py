@@ -1,6 +1,5 @@
 from datetime import date, datetime
 from openpyxl import load_workbook
-from sqlalchemy import true
 from club.models import Club
 from event.models import EntryClasses, Event, Entry
 from rider.models import Rider
