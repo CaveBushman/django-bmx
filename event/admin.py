@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Result, EntryClasses
+from .models import Event, Result, EntryClasses, Entry
 
 # Register your models here.
 
@@ -61,6 +61,14 @@ class EntryClassesAdmin(admin.ModelAdmin):
         )
     
 
+class EntryAdmin(admin.ModelAdmin):
+    list_display =  ('rider', 'event', 'transaction_date', 'customer_name', 'customer_email',)
+    list_display_links = ('rider',)
+    search_fields = ('rider', 'event',)
+    list_filter = ('event',)
+
+
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result)
 admin.site.register(EntryClasses, EntryClassesAdmin)
+admin.site.register(Entry, EntryAdmin)

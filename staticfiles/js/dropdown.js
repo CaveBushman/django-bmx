@@ -7,7 +7,7 @@ dropdowns.forEach(dropdown => {
     btn.addEventListener('click', () => {
         content.classList.toggle('hidden')
         btn.classList.toggle('bg-white')
-        btn.classList.toggle('text-green-500')
+        btn.classList.toggle('text-green-600')
         console.log(btn.classList)
     })
 
@@ -15,6 +15,6 @@ dropdowns.forEach(dropdown => {
         if(e.target.classList.contains('dropdown-btn')) return
         content.classList.add('hidden')
         btn.classList.remove('bg-white')
-        btn.classList.remove('text-green-500')
+        btn.classList.remove('text-green-600')
     })
 })

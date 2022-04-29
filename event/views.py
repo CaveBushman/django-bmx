@@ -230,14 +230,20 @@ def EntryView(request, pk):
         event_json = json.dumps({'event': event.id})
 
         # save sessions
+        request.session.set_expiry(300)
+
         request.session['sum_fee'] = sum_fee_json
         request.session['event'] = event_json
         request.session['riders_20'] = serializers.serialize('json', riders_20)
         request.session['riders_24'] = serializers.serialize('json', riders_24)
 
+     
         data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
                 'sum_24': sum_24}
-        return render(request, 'event/checkout.html', data)
+
+        response = render(request, 'event/checkout.html', data)
+        # response.set_cookie()
+        return response
 
     # disable riders, who was registered in event
     for rider in riders:
@@ -268,15 +274,17 @@ def EntryRidersView(request,pk):
         for entry_20 in entries_20:
             rider_20 = Rider.objects.get(uci_id = entry_20.rider)
             rider_20.class_20 = entry_20.class_20
-
             riders_20.append(rider_20)
     except Exception:
         pass
-    for entry_24 in entries_24:
-        rider_24 = Rider.objects.get(uci_id = entry_24.rider)
-        rider_24.class_24 = entry_24.class_24
-        riders_24.append(rider_24)
-
+    try:
+        for entry_24 in entries_24:
+            rider_24 = Rider.objects.get(uci_id = entry_24.rider)
+            rider_24.class_24 = entry_24.class_24
+            riders_24.append(rider_24)
+    except Exception as e:
+        pass
+    
     data={'event':event, 'riders_20':riders_20, 'riders_24':riders_24}
     return render(request, 'event/entry-list.html', data)
 
@@ -426,8 +434,6 @@ def ConfirmView(request):
                 },
 
         try:
-            print("Zkouším checkout")
-
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -481,6 +487,8 @@ def SuccessView(request, pk):
                 transaction.transaction_id, )
             if confirm['payment_status'] == "paid":
                 transaction.payment_complete = True
+                transaction.customer_name = confirm['customer_details']['name']
+                transaction.customer_email = confirm['customer_details']['email']
                 transaction.save()
                 # fill list for confirm transaction via email
                 if transaction.transaction_id not in transactions_to_email:
@@ -495,6 +503,16 @@ def SuccessView(request, pk):
     for transaction_to_email in transactions_to_email:
         # threading.Thread (target = SendConfirmEmail(transaction_to_email).send_email()).start()
         pass
+
+    # vymaž sessions
+    try:
+        del request.session['sum_fee']
+        del request.session['event'] 
+        del request.session['riders_20']
+        del request.session['riders_24'] 
+        
+    except Exception as e:
+        print(e)
 
     data = {'event_id':pk}
     return render(request, 'event/success.html', data)
@@ -850,6 +868,7 @@ def EventAdminView(request, pk):
 
     data = {'event':event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees, "sum_of_riders":sum_of_riders, 'organizer_fee':organizer_fee}
     return render(request, 'event/event-admin.html', data)
+
 
 @staff_member_required
 def findPaymentView(request):

@@ -22,9 +22,18 @@ class Entry(models.Model):
     fee_24 = models.IntegerField(null=True, blank=True, default=0)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
     payment_complete = models.BooleanField(default=False)
-    logout = models.BooleanField(default=False)
+    checkout = models.BooleanField(default=False)
     date_of_payment = models.DateField(auto_now_add=True, null=True)
+    customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
+    customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
 
+    class Meta:
+        verbose_name = "Registrace"
+        verbose_name_plural = 'Registrace'
+    
+
+class ForeignEntry(models.Model):
+    pass
 
 class EntryClasses(models.Model):
 
