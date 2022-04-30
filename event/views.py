@@ -265,10 +265,10 @@ def EntryView(request, pk):
 def EntryRidersView(request,pk):
     """ View for registrated riders in event"""
     event = Event.objects.get(id=pk)
-    entries_20 = Entry.objects.filter(event=pk, is_20=1, payment_complete=1, checkout=0)
-    entries_24 = Entry.objects.filter(event=pk, is_24=1, payment_complete=1, checkout=0)
+    entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
+    checkout = Entry.objects.filter(event=pk, payment_complete=1, checkout=1)
   
-    data={'event':event, 'entries_20':entries_20, 'entries_24':entries_24}
+    data={'event':event, 'entries':entries, 'checkout':checkout}
     return render(request, 'event/entry-list.html', data)
 
 
