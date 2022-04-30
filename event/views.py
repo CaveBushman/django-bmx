@@ -265,8 +265,8 @@ def EntryView(request, pk):
 def EntryRidersView(request,pk):
     """ View for registrated riders in event"""
     event = Event.objects.get(id=pk)
-    entries_20 = Entry.objects.filter(event=pk, is_20=1, payment_complete=1)
-    entries_24 = Entry.objects.filter(event=pk, is_24=1, payment_complete=1)
+    entries_20 = Entry.objects.filter(event=pk, is_20=1, payment_complete=1, checkout=0)
+    entries_24 = Entry.objects.filter(event=pk, is_24=1, payment_complete=1, checkout=0)
   
     data={'event':event, 'entries_20':entries_20, 'entries_24':entries_24}
     return render(request, 'event/entry-list.html', data)
@@ -642,7 +642,7 @@ def EventAdminView(request, pk):
         ws.title="BEM5_EXT"
         ws = excel_first_line(ws)
 
-        entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
+        entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=0)
         x = 2
         for entry_20 in entries_20:
             try:
@@ -686,7 +686,7 @@ def EventAdminView(request, pk):
 
         del entries_20
 
-        entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
+        entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
         for entry_24 in entries_24:
             rider = Rider.objects.get(uci_id=entry_24.rider)
             ws.cell(x,1,rider.uci_id)
