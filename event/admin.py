@@ -62,10 +62,10 @@ class EntryClassesAdmin(admin.ModelAdmin):
     
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display =  ('rider', 'event', 'transaction_date', 'customer_name', 'customer_email','checkout')
+    list_display =  ('rider', 'event', 'transaction_date', 'payment_complete', 'customer_name', 'customer_email','checkout')
     list_display_links = ('rider',)
     search_fields = ('rider', 'event',)
-    list_filter = ('event',)
+    list_filter = ('payment_complete','event',)
     list_editable = ('checkout',)
 
 
