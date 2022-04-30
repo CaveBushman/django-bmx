@@ -1,6 +1,6 @@
 import datetime
 from rider.models import Rider
-from event.models import Result, Entry
+from event.models import Result, Entry, Event
 from django.db.models import Q
 
 
@@ -342,7 +342,9 @@ class Categories:
                     pass
         # categories for entries
         else:
-            entries = Entry.objects.filter(event=event, payment_complete=True)
+            current_event = Event.objects.get(pk=event)
+            entries = Entry.objects.filter(event=current_event, payment_complete=True)
+            print(entries)
 
             # PREPARE CLASSES FROM REAL RIDER CLASSES
             categories20 = []

@@ -31,7 +31,7 @@ def RidersListView(request):
 
 
 def RiderDetailView(request, pk):
-    rider = get_object_or_404(Rider, pk=pk)
+    rider = get_object_or_404(Rider, uci_id=pk)
     results = Result.objects.filter(rider=rider.uci_id,
                                     date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('date')
     data = {'rider': rider, 'results': results}

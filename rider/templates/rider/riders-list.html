@@ -68,7 +68,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
           {% for rider in riders %}
-            <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" class="" style='cursor: pointer;'>
+            <tr onclick="window.location='{% url 'rider:detail' rider.uci_id %}';" class="" style='cursor: pointer;'>
               <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="relative">

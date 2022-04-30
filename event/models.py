@@ -2,6 +2,7 @@ from faulthandler import is_enabled
 from django.db import models
 from club.models import Club
 from commissar.models import Commissar
+from rider.models import Rider
 from datetime import date
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -10,27 +11,6 @@ from django.core.exceptions import FieldDoesNotExist
 
 # Create your models here.
 
-class Entry(models.Model):
-    transaction_id = models.CharField(max_length=255, default="")
-    event = models.IntegerField(default=0, null=True, blank=True)
-    rider = models.IntegerField(default=0)
-    is_20 = models.BooleanField(default=False)
-    is_24 = models.BooleanField(default=False)
-    class_20 = models.CharField(max_length=255, default="")
-    class_24 = models.CharField(max_length=255, default="")
-    fee_20 = models.IntegerField(null=True, blank=True, default=0)
-    fee_24 = models.IntegerField(null=True, blank=True, default=0)
-    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
-    payment_complete = models.BooleanField(default=False)
-    checkout = models.BooleanField(default=False)
-    date_of_payment = models.DateField(auto_now_add=True, null=True)
-    customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
-    customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
-
-    class Meta:
-        verbose_name = "Registrace"
-        verbose_name_plural = 'Registrace'
-    
 
 class ForeignEntry(models.Model):
     pass
@@ -330,3 +310,26 @@ class Result(models.Model):
 
     def __str__(self):
         return self.name + " " + str(self.last_name) + " " + self.first_name + " " + self.category
+
+
+class Entry(models.Model):
+    transaction_id = models.CharField(max_length=255, default="")
+    event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
+    rider = models.ForeignKey(Rider, to_field="uci_id", db_column="rider", on_delete=models.SET_NULL, null=True)
+    is_20 = models.BooleanField(default=False)
+    is_24 = models.BooleanField(default=False)
+    class_20 = models.CharField(max_length=255, default="")
+    class_24 = models.CharField(max_length=255, default="")
+    fee_20 = models.IntegerField(null=True, blank=True, default=0)
+    fee_24 = models.IntegerField(null=True, blank=True, default=0)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+    payment_complete = models.BooleanField(default=False)
+    checkout = models.BooleanField(default=False)
+    date_of_payment = models.DateField(auto_now_add=True, null=True)
+    customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
+    customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Registrace"
+        verbose_name_plural = 'Registrace'
+    

@@ -13,10 +13,10 @@ from bmx.sec import *
 class EntryClass:
     """ Class for saving entries to the Entry table in database """
 
-    def __init__(self, transaction_id, event, rider, is_20, is_24, class_20, class_24, fee_20=0, fee_24=0):
+    def __init__(self, transaction_id, event, uci_id, is_20, is_24, class_20, class_24, fee_20=0, fee_24=0):
         self.transaction_id = transaction_id
         self.event = event
-        self.rider = rider
+        self.uci_id = uci_id
         self.is_20 = is_20
         self.is_24 = is_24
         self.class_20 = class_20
@@ -25,20 +25,22 @@ class EntryClass:
         self.fee_24 = fee_24
 
     def save(self):
+        event = Event.objects.get(id=self.event)
+        rider = Rider.objects.get(uci_id=self.uci_id)
         new_entry = Entry.objects.create(
             transaction_id=self.transaction_id,
-            event=self.event,
-            rider=self.rider,
+            event=event,
+            rider=rider,
             is_20=self.is_20,
             is_24=self.is_24,
             fee_20=self.fee_20,
             fee_24=self.fee_24
             )
-        current_rider = Rider.objects.get(uci_id = self.rider)
+
         if self.is_20:
-            new_entry.class_20 = resolve_event_classes(self.event, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_20,1)
+            new_entry.class_20 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_20,1)
         if self.is_24:
-            new_entry.class_24 = resolve_event_classes(self.event, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24,0)
+            new_entry.class_24 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_24,0)
         new_entry.save()
 
 

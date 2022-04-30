@@ -72,7 +72,7 @@ def EventsListByYearView(request, pk):
 
 def EventDetailViews(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    categories = Categories.get_categories(pk)
+    # categories = Categories.get_categories(pk)
     riders=""
     select_category=""
     alert = False
@@ -109,7 +109,7 @@ def EventDetailViews(request, pk):
         if  riders_sum == 0:
             alert = True
 
-    data = {'event': event, 'categories':categories, 'riders': riders, 'alert': alert, 'select_category': select_category, 'riders_sum': riders_sum, 'reg_open': reg_open}
+    data = {'event': event, 'riders': riders, 'alert': alert, 'select_category': select_category, 'riders_sum': riders_sum, 'reg_open': reg_open}
     return render(request, 'event/event-detail.html', data)
 
 
@@ -267,25 +267,8 @@ def EntryRidersView(request,pk):
     event = Event.objects.get(id=pk)
     entries_20 = Entry.objects.filter(event=pk, is_20=1, payment_complete=1)
     entries_24 = Entry.objects.filter(event=pk, is_24=1, payment_complete=1)
-    riders_20=[]
-    riders_24=[]
-
-    try:
-        for entry_20 in entries_20:
-            rider_20 = Rider.objects.get(uci_id = entry_20.rider)
-            rider_20.class_20 = entry_20.class_20
-            riders_20.append(rider_20)
-    except Exception:
-        pass
-    try:
-        for entry_24 in entries_24:
-            rider_24 = Rider.objects.get(uci_id = entry_24.rider)
-            rider_24.class_24 = entry_24.class_24
-            riders_24.append(rider_24)
-    except Exception as e:
-        pass
-    
-    data={'event':event, 'riders_20':riders_20, 'riders_24':riders_24}
+  
+    data={'event':event, 'entries_20':entries_20, 'entries_24':entries_24}
     return render(request, 'event/entry-list.html', data)
 
 
@@ -299,6 +282,10 @@ def ConfirmView(request):
     current_event = Event.objects.get(id=event['event'])
 
     entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
+
+    if 'btn-add-event' in request.POST:
+        print("budu ukládat jezdce a nasměřuji uživatele na další závod")
+        pass
 
     if request.method == "POST":
         fee=0
@@ -448,17 +435,21 @@ def ConfirmView(request):
                 current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
                 current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_20, 1)
                 entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                    rider=rider_20['fields']['uci_id'], is_20=True, is_24=False,
+                                    uci_id=current_rider.uci_id, is_20=True, is_24=False,
                                     class_20=rider_20['fields']['class_20'], class_24="", fee_20 = current_fee)
                 entry.save()
+
+                # ulož do sessions
 
             for rider_24 in riders_24:
                 current_rider = Rider.objects.get(uci_id=rider_24['fields']['uci_id'])
                 current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus, current_rider.class_24, 0)
                 entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                    rider=rider_24['fields']['uci_id'], is_20=False, is_24=True,
+                                    uci_id=current_rider.uci_id, is_20=False, is_24=True,
                                     class_24=rider_24['fields']['class_24'], class_20="", fee_24 = current_fee)
                 entry.save()
+
+                # ulož do sessions
 
             del entry
             return JsonResponse({'id': checkout_session.id})

@@ -67,13 +67,13 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              {% for rider in riders_20 %}
-              <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" class="" style='cursor: pointer;'>
+              {% for entry in entries_20 %}
+              <tr onclick="window.location='{% url 'rider:detail' entry.rider_id %}';" class="" style='cursor: pointer;'>
                 <td class="px-6 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                       <div class="relative">
-                        <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
-                        {% if rider.valid_licence %}
+                        <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
+                        {% if entry.rider.valid_licence %}
                           <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
                         {% else %}
                           <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
@@ -81,23 +81,23 @@
                       </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">
-                        {{rider.last_name|upper}}
+                        {{entry.rider.last_name|upper}}
                       </div>
                       <div class="text-sm text-gray-500">
-                        {{rider.first_name}}
+                        {{entry.rider.first_name}}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-2 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+                  <div class="text-sm text-gray-900">{{entry.rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500">{{entry.rider.uci_id}}</div>
                 </td>
                 <td class="px-6 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="">
                       <div class="text-sm font-medium text-gray-500"> 
-                          {{rider.class_20}}
+                          {{entry.class_20}}
                       </div>
                       </div>
                     </div>
@@ -105,7 +105,7 @@
                 </td>
                 <td>
                 <div class="flex flex-row px-6 py-2 space-x-4">
-                {{rider.plate}}</div>
+                {{entry.rider.plate}}</div>
                 </div>
                 </td>
                 {% if user.is_superuser %}
@@ -114,13 +114,13 @@
               </tr>
               {% endfor%}
 
-              {% for rider in riders_24 %}
-              <tr onclick="window.location='{% url 'rider:detail' rider.id %}';" class="" style='cursor: pointer;'>
+              {% for entry in entries_24 %}
+              <tr onclick="window.location='{% url 'rider:detail' entry.rider.id %}';" class="" style='cursor: pointer;'>
                 <td class="px-6 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                       <div class="relative">
-                        <img class="h-10 w-10 rounded-full" src="{{rider.photo.url}}" alt="">
-                        {% if rider.valid_licence %}
+                        <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
+                        {% if entry.rider.valid_licence %}
                           <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
                         {% else %}
                           <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
@@ -128,23 +128,23 @@
                       </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">
-                        {{rider.last_name|upper}}
+                        {{entry.rider.last_name|upper}}
                       </div>
                       <div class="text-sm text-gray-500">
-                        {{rider.first_name}}
+                        {{entry.rider.first_name}}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-2 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+                  <div class="text-sm text-gray-900">{{entry.rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500">{{entry.rider.uci_id}}</div>
                 </td>
                 <td class="px-6 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="">
                       <div class="text-sm font-medium text-gray-500"> 
-                          {{rider.class_24}}
+                          {{entry.class_24}}
                       </div>
                       </div>
                     </div>
@@ -152,7 +152,7 @@
                 </td>
                 <td>
                 <div class="flex flex-row px-6 py-2 space-x-4">
-                {{rider.plate}}</div>
+                {{entry.rider.plate}}</div>
                 </div>
                 </td>
                 {% if user.is_superuser %}
