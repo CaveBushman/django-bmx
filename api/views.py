@@ -44,6 +44,17 @@ class ForeignRiderList(generics.ListAPIView):
     """API for list of all foreign BMX riders """
     queryset = ForeignRider.objects.filter()
     serializer_class = ForeignRiderSerializer
+    permission_classes = [IsAdminUser]
+
+
+
+class ForeignRiderDetail(generics.RetrieveAPIView):
+    """API for riders detail"""
+    queryset = ForeignRider.objects.all()
+    serializer_class = RiderSerializer
+    lookup_field = "uci_id"
+    permission_classes = [IsAdminUser]
+
 
 
 class EventList(generics.ListAPIView):

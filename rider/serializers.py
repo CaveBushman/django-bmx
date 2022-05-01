@@ -8,8 +8,9 @@ class RiderSerializer(serializers.ModelSerializer):
         exclude = ['email', 'emergency_contact', 'emergency_phone']
         read_only_fields = ['id']
 
-class ForeignRiderSerializer(serializers.ModelSerializer):
 
+class ForeignRiderSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = ForeignRider
         fields = '__all__'
