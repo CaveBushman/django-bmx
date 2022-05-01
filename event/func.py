@@ -106,7 +106,6 @@ def is_registration_open(event_id):
 def resolve_event_classes(event, gender, have_girl_bonus, rider_class, is_20):
     """ Function for resolve class in event by classes_code and xlsx file | is_20 = TRUE for 20" bike """
     event = Event.objects.get(id=event)
-  
     event_classes = EntryClasses.objects.get(event=event.id)
 
     if is_20 and (gender == "Muž" or gender == "Ostatní" ):
@@ -256,6 +255,10 @@ def foreign_club_resolve(state):
         return "Hungary - All Clubs"
     elif state == "AUT":
         return "Austria - All Clubs"
+    elif state == "FRA":
+        return "France - All Clubs"
+    elif state == "BEL":
+        return "Belgium - All Clubs"
     
 
 def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):

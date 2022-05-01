@@ -646,7 +646,7 @@ def EventAdminView(request, pk):
         x = 2
         for entry_20 in entries_20:
             try:
-                rider = Rider.objects.get(uci_id=entry_20.rider)
+                rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
                 ws.cell(x,1,rider.uci_id)
                 ws.cell(x,2,rider.uci_id)
                 ws.cell(x,3,rider.uci_id)
@@ -681,14 +681,13 @@ def EventAdminView(request, pk):
                 pass
             x += 1
 
-            print (rider.last_name)
             #TODO: Dodělat zobrazení přihlášených jezdců s neplatnou licencí
 
         del entries_20
 
         entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
         for entry_24 in entries_24:
-            rider = Rider.objects.get(uci_id=entry_24.rider)
+            rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
             ws.cell(x,1,rider.uci_id)
             ws.cell(x,2,rider.uci_id)
             ws.cell(x,3,rider.uci_id)
