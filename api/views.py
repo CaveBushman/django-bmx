@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from rest_framework import generics
 # from rest_framework.views import APIView
-from rider.models import Rider
+from rider.models import Rider, ForeignRider
 from event.models import Event
 from news.models import News
-from rider.serializers import RiderSerializer
+from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer
 from news.serializer import NewsSerializer
 from django.contrib.auth.models import User
@@ -38,6 +38,12 @@ class RiderAdminAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RiderSerializer
     lookup_field = "uci_id"
     permission_classes = [IsAdminUser]
+
+
+class ForeignRiderList(generics.ListAPIView):
+    """API for list of all foreign BMX riders """
+    queryset = ForeignRider.objects.filter()
+    serializer_class = ForeignRiderSerializer
 
 
 class EventList(generics.ListAPIView):

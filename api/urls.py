@@ -9,6 +9,8 @@ urlpatterns = [
     path('riders/new', views.RiderNewAPIView.as_view()),
     path('riders/admin/<int:uci_id>', views.RiderAdminAPIView.as_view()),
 
+    path('foreignriders', views.ForeignRiderList.as_view()),
+
     path('events', views.EventList.as_view()),
     path('events/<int:pk>', views.EventDetail.as_view()),
 
