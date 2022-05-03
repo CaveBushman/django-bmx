@@ -14,7 +14,6 @@ from pathlib import Path
 import os
 
 from django.conf import settings
-from bmx.sec import *
 from decouple import config
 
 # import logging

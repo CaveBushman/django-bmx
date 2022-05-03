@@ -7,7 +7,6 @@ from datetime import date, datetime, time, timezone
 import stripe
 import os
 import json
-from bmx.sec import * 
 
 
 class EntryClass:

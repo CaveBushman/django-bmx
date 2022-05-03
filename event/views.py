@@ -15,7 +15,6 @@ from django.db.models import Q
 import pandas as pd
 from .result import GetResult
 from .func import *
-from bmx.sec import *
 from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
