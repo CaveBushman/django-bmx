@@ -712,7 +712,7 @@ def EventAdminView(request, pk):
             ws.cell(x,33,rider.transponder_24)
             ws.cell(x,36,"T1")
             ws.cell(x,37,"T2")
-            ws.cell(x,45,team_name_resolve(rider.club))
+            ws.cell(x,45,team_name_resolve(rider.club).upper())
             if rider.valid_licence:
                 ws.cell(x,46,"")
             else:
