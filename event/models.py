@@ -319,7 +319,7 @@ class Entry(models.Model):
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
     class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
-    class_24 = models.CharField(max_length=255, default="", nul=True, blank=True)
+    class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
     fee_20 = models.IntegerField(null=True, blank=True, default=0)
     fee_24 = models.IntegerField(null=True, blank=True, default=0)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
