@@ -472,11 +472,11 @@ def SuccessView(request, pk):
     # check, if fees was paid
 
     for transaction in transactions:
-        print(f"Tansakce {transaction.id}")
         try:
             confirm = stripe.checkout.Session.retrieve(
                 transaction.transaction_id,)
             if confirm['payment_status'] == "paid":
+                print(f"Přidávám jezdce {transaction.rider}")
                 transaction.payment_complete = True
                 transaction.customer_name = confirm['customer_details']['name']
                 transaction.customer_email = confirm['customer_details']['email']
@@ -505,7 +505,7 @@ def SuccessView(request, pk):
         
     except Exception as e:
         print("Chyba " + str(e))
-        pass
+        
 
     data = {'event_id':pk}
     return render(request, 'event/success.html', data)
