@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -37,7 +37,7 @@ ALLOWED_HOSTS = ['*']
 SECRET_KEY = config('SECRET_KEY')
 
 # STRIPE KEYS
-if DEBUG:
+if not DEBUG:
     STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY_TEST')
     STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY_TEST')
 else:

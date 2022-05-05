@@ -472,21 +472,22 @@ def SuccessView(request, pk):
     # check, if fees was paid
 
     for transaction in transactions:
+        print(f"Tansakce {transaction.id}")
         try:
             confirm = stripe.checkout.Session.retrieve(
-                transaction.transaction_id, )
+                transaction.transaction_id,)
             if confirm['payment_status'] == "paid":
                 transaction.payment_complete = True
                 transaction.customer_name = confirm['customer_details']['name']
                 transaction.customer_email = confirm['customer_details']['email']
                 transaction.save()
                 # fill list for confirm transaction via email
-                if transaction.transaction_id not in transactions_to_email:
-                    transactions_to_email.append(transaction.transaction_id)
+                #if transaction.transaction_id not in transactions_to_email:
+                #    transactions_to_email.append(transaction.transaction_id)
         except Exception as e:
-            print(e)
+           print(transaction.id)
+          
     # clear duplitates
-
     transactions_to_email = set(transactions_to_email)
 
     # send e-mail about confirm registrations
@@ -496,13 +497,15 @@ def SuccessView(request, pk):
 
     # vymaž sessions
     try:
-        del request.session['sum_fee']
-        del request.session['event'] 
-        del request.session['riders_20']
-        del request.session['riders_24'] 
+        # del request.session['sum_fee']
+        # del request.session['event'] 
+        # del request.session['riders_20']
+        # del request.session['riders_24'] 
+        pass
         
     except Exception as e:
-        print(e)
+        print("Chyba " + str(e))
+        pass
 
     data = {'event_id':pk}
     return render(request, 'event/success.html', data)
