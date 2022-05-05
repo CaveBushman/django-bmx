@@ -7,7 +7,6 @@ from datetime import date, datetime, time, timezone
 import stripe
 import os
 import json
-from bmx.settings import STRIPE_SECRET_KEY
 
 
 class EntryClass:
@@ -44,7 +43,7 @@ class EntryClass:
 
 class SendConfirmEmail:
     """ Class for sending e-mail about registration """
-    stripe.api_key = STRIPE_SECRET_KEY
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def __init__(self, transaction_id):
         self.transaction_id = transaction_id
