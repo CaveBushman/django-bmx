@@ -35,11 +35,9 @@ class EntryClass:
             fee_20=self.fee_20,
             fee_24=self.fee_24
             )
-
-        if self.is_20:
-            new_entry.class_20 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_20,1)
-        if self.is_24:
-            new_entry.class_24 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_24,0)
+            
+        new_entry.class_20 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_20,1)
+        new_entry.class_24 = resolve_event_classes(self.event, rider.gender, rider.have_girl_bonus, rider.class_24,0)
         new_entry.save()
 
 
