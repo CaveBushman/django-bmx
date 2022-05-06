@@ -123,6 +123,8 @@ def EntryView(request, pk):
     event = get_object_or_404(Event, id=pk)
     riders = Rider.objects.filter(is_active=True, is_approwe=True)
     sum_fee = 0
+
+
     if request.POST:
         event = Event.objects.get(id=event.id)
         riders_20 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_20'))
@@ -247,6 +249,9 @@ def EntryView(request, pk):
     # disable riders, who was registered in event
     for rider in riders:
         was_registered = Entry.objects.filter(event=event.id, rider=rider.uci_id, payment_complete=True)
+        
+        rider.class_20 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_20, 1)
+        rider.class_24 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_24, 0)
 
         if was_registered.count() == 1:
             if was_registered[0].is_20:
@@ -266,8 +271,25 @@ def EntryRidersView(request,pk):
     event = Event.objects.get(id=pk)
     entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
     checkout = Entry.objects.filter(event=pk, payment_complete=1, checkout=1)
+
+    categories = []
+
+    for entry in entries:
+        if entry.class_20 not in categories:
+            categories.append(entry.class_20)
+        elif entry.class_24 not in categories:
+            categories.append(entry.class_24)
+    
+    categories.sort()
+
+    try:
+        categories.remove('')
+    except Exception as e:
+        pass
+
+    print(categories)
   
-    data={'event':event, 'entries':entries, 'checkout':checkout}
+    data={'event':event, 'entries':entries, 'checkout':checkout, 'categories':categories}
     return render(request, 'event/entry-list.html', data)
 
 
@@ -486,6 +508,7 @@ def SuccessView(request, pk):
                 #    transactions_to_email.append(transaction.transaction_id)
         except Exception as e:
            print(transaction.id)
+           print(e)
           
     # clear duplitates
     transactions_to_email = set(transactions_to_email)
@@ -497,11 +520,25 @@ def SuccessView(request, pk):
 
     # vymaž sessions
     try:
-        # del request.session['sum_fee']
-        # del request.session['event'] 
-        # del request.session['riders_20']
-        # del request.session['riders_24'] 
-        pass
+        if request.session.get('sum_fee'):
+            del request.session['sum_fee']
+        else:
+            print("Session sum_fee neexistuje")
+
+        if request.session.get('event'):
+            del request.session['event']
+        else:
+            print("Session event neexistuje")
+
+        if request.session.get('riders_20'):
+            del request.session['riders_20']
+        else:
+            print("Session riders_20 neexistuje")
+
+        if request.session.get('riders_24'):
+            del request.session['riders_24']
+        else:
+            print("Session riders_24 neexistuje")    
         
     except Exception as e:
         print("Chyba " + str(e))
@@ -524,7 +561,7 @@ def stripe_webhook(request):
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_ENDPOINT_SECRET
+            payload, sig_header, settings.STRIPE_ENDPOINT_SECRET
         )
     except ValueError as e:
         # Invalid payload

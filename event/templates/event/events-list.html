@@ -76,7 +76,7 @@
           <td class="py-2 text-sm font-medium sm:pr-6">
             <div class="flex flex-col justify-center h-full w-full">
             {% if event.reg_open%}
-            <a href="{% url 'event:entry' event.id %}" class="py-1 w-full my-1 px-4 text-sm font-medium sm:pr-6 btn--yellow">Přihlásit</a>
+            <a href="{% url 'event:entry' event.id %}" class="py-1 w-full my-1 px-4 text-sm font-medium sm:pr-6 btn--yellow blurApp">Přihlásit</a>
             {% endif %}
             {% if event.xml_results %}
             <div class="">
@@ -115,5 +115,6 @@
   </div>
 </div>
 </div>
+{% include "spinner.html" %}
 <script src="{% static 'js/dropdown.js' %}"></script>
 {% endblock content %}
