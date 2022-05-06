@@ -280,9 +280,8 @@ def EntryRidersView(request,pk):
         elif entry.class_24 not in categories:
             categories.append(entry.class_24)
     
-    categories.sort()
-
     try:
+        categories.sort()
         categories.remove('')
     except Exception as e:
         pass
