@@ -1,9 +1,9 @@
 {% extends 'base.html' %} {% block title %} Přihlášení na závody
 {% endblock title %} {% load static %} {% block content %}
 
-<header class="bg-white shadow">
+<header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold dark:text-gray-300">Seznam přihlášených jezdců na {{event.name}}</h1>
+    <h1 class="text-3xl font-bold">Seznam přihlášených jezdců na {{event.name}}</h1>
   </div>
 </header>
 
@@ -13,7 +13,7 @@
 
     <div class="col-sm mb-4">
       <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
         type="text"
         placeholder="Napiš příjmení"
         aria-label="default input example"
@@ -23,7 +23,7 @@
 
     <div class="col-sm">
       <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
         type="text"
         placeholder="Napiš klub"
         aria-label="default input example"
@@ -33,7 +33,7 @@
 
     <div class="col-sm mb-4">
       <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
         type="text"
         placeholder="Napiš kategorii"
         aria-label="default input example"
@@ -49,27 +49,27 @@
           <table class="min-w-full divide-y divide-gray-200" id="myTable">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Jméno
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Klub, UCI ID
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Kategorie
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Startovní číslo
                 </th>
                 {% if user.is_superuser %}
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info o platbě</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">Info o platbě</th>
                 {% endif %}
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               {% for entry in entries %}
               <tr onclick="window.location='{% url 'rider:detail' entry.rider_id %}';" class="" style='cursor: pointer;'>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                       <div class="relative">
                         <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
@@ -80,23 +80,23 @@
                         {% endif%}
                       </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
+                      <div class="text-sm font-medium text-gray-900 dark:dark">
                         {{entry.rider.last_name|upper}}
                       </div>
-                      <div class="text-sm text-gray-500">
+                      <div class="text-sm text-gray-500 dark:dark">
                         {{entry.rider.first_name}}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{entry.rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500">{{entry.rider.uci_id}}</div>
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
+                  <div class="text-sm text-gray-900 dark:dark">{{entry.rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500 dark:dark">{{entry.rider.uci_id}}</div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                     <div class="">
-                      <div class="text-sm font-medium text-gray-500"> 
+                      <div class="text-sm font-medium text-gray-500 dark:dark"> 
                         {% if entry.is_20 %}
                           {{entry.class_20}}
                         {% else %}
@@ -107,7 +107,7 @@
                     </div>
                   </div>
                 </td>
-                <td>
+                <td class="dark:dark">
                 <div class="flex flex-row px-6 py-2 space-x-4">
                 {{entry.rider.plate}}</div>
                 </div>
@@ -127,7 +127,7 @@
 </div>
 
   <div class="max-w-7xl mx-auto mt-6"
-    <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+    <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg dark:dark">
       <div class="text-3xl font-bold">Seznam odhlášených jezdců</div>
     </div>
   </div>
@@ -138,16 +138,16 @@
           <table class="min-w-full divide-y divide-gray-200" id="myTable">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Jméno
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Klub, UCI ID
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Kategorie
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                   Startovní číslo
                 </th>
                 {% if user.is_superuser %}
@@ -158,7 +158,7 @@
             <tbody class="bg-white divide-y divide-gray-200">
               {% for entry in checkout %}
               <tr onclick="window.location='{% url 'rider:detail' entry.rider_id %}';" class="" style='cursor: pointer;'>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                       <div class="relative">
                         <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
@@ -169,7 +169,7 @@
                         {% endif%}
                       </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
+                      <div class="text-sm font-medium text-gray-900 dark:dark">
                         {{entry.rider.last_name|upper}}
                       </div>
                       <div class="text-sm text-gray-500">
@@ -178,34 +178,34 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{entry.rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500">{{entry.rider.uci_id}}</div>
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
+                  <div class="text-sm text-gray-900 dark:dark">{{entry.rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500 dark:dark">{{entry.rider.uci_id}}</div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                     <div class="">
-                      <div class="text-sm font-medium text-gray-500"> 
+                      <div class="text-sm font-medium text-gray-500 dark:dark"> 
                           {{entry.class_20}}
                       </div>
                       </div>
                     </div>
                   </div>
                 </td>
-                <td>
+                <td class="dark:dark">
                 <div class="flex flex-row px-6 py-2 space-x-4">
                 {{entry.rider.plate}}</div>
                 </div>
                 </td>
                 {% if user.is_superuser %}
-                  <td></td>
+                  <td class="dark:dark"></td>
                 {% endif %}
               </tr>
               {% endfor%}
 
               {% for entry in entries_24 %}
               <tr onclick="window.location='{% url 'rider:detail' entry.rider.id %}';" class="" style='cursor: pointer;'>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                       <div class="relative">
                         <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
@@ -216,7 +216,7 @@
                         {% endif%}
                       </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
+                      <div class="text-sm font-medium text-gray-900 dark:dark">
                         {{entry.rider.last_name|upper}}
                       </div>
                       <div class="text-sm text-gray-500">
@@ -225,21 +225,21 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{entry.rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500">{{entry.rider.uci_id}}</div>
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
+                  <div class="text-sm text-gray-900 dark:dark">{{entry.rider.club|upper}}</div>
+                  <div class="text-sm text-gray-500 dark:dark">{{entry.rider.uci_id}}</div>
                 </td>
-                <td class="px-6 py-2 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap dark:dark">
                   <div class="flex items-center">
                     <div class="">
-                      <div class="text-sm font-medium text-gray-500"> 
+                      <div class="text-sm font-medium text-gray-500 dark:dark"> 
                           {{entry.class_24}}
                       </div>
                       </div>
                     </div>
                   </div>
                 </td>
-                <td>
+                <td class="dark:dark">
                 <div class="flex flex-row px-6 py-2 space-x-4">
                 {{entry.rider.plate}}</div>
                 </div>

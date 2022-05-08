@@ -5,8 +5,8 @@
   {% csrf_token %}
 
 <header class="shadow dark:dark">
-  <div class="fixed ml-0 p-0 w-full mx-auto py-2 bg-white dark:dark">
-      <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold text-gray-900 my-4">
+  <div class="fixed ml-0 p-0 w-full mx-auto py-2 dark:dark">
+      <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold my-4">
         <div>Přihlášení na {{event.name}}</div>
           <div>
             <button type="submit" class="text-md btn--green" id="">
@@ -27,7 +27,7 @@
     <div class="row">
       <div class="col-sm">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
           placeholder="Napiš příjmení jezdce"
           aria-label="default input example"
@@ -38,7 +38,7 @@
       <div class="col-sm"></div>
       <div class="col-sm">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
           placeholder="Napiš klub"
           aria-label="default input example"
@@ -53,37 +53,37 @@
       <table class="min-w-full divide-y divide-gray-300" id="myTable">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 sm:pl-6 text-center">Start.č.</th>
-            <th scope="col"></th>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Příjmení</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Jméno</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Klub</th>
-            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UCI ID</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">20"</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">24" (Cruiser)</th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 dark:dark sm:pl-6 text-center">Start.č.</th>
+            <th scope="col" class="dark:dark"></th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:dark sm:pl-6">Příjmení</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark lg:table-cell">Jméno</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark sm:table-cell">Klub</th>
+            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">UCI ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">20"</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">24" (Cruiser)</th>
           </tr>
         </thead>
 
         <tbody class="divide-y divide-gray-200 bg-white">
           {% for rider in riders %}
           <tr>
-            <td class="mt-1 truncate text-gray-700 text-center">{{rider.plate}}</td>
-            <td><img class="avatar img-fluid rounded-circle" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
+            <td class="mt-1 truncate text-gray-700 dark:dark text-center">{{rider.plate}}</td>
+            <td class="dark:dark"><img class="avatar img-fluid rounded-circle dark:dark" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
               style="width: 2rem; height: 2rem;"></td>
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:dark sm:w-auto sm:max-w-none sm:pl-6">
               {{rider.last_name}}
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate text-gray-700">{{rider.first_name}}</dd>
+                <dd class="mt-1 truncate text-gray-700 dark:dark">{{rider.first_name}}</dd>
                 <dt class="sr-only sm:hidden">Email</dt>
-                <dd class="mt-1 truncate text-gray-500 sm:hidden">{{rider.club|upper}}</dd>
+                <dd class="mt-1 truncate text-gray-500 dark:dark sm:hidden">{{rider.club|upper}}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{rider.first_name}}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{rider.club|upper}}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 md:table-cell">{{rider.uci_id}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark lg:table-cell">{{rider.first_name}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark sm:table-cell">{{rider.club|upper}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark md:table-cell">{{rider.uci_id}}</td>
             {% if 'registered' in rider.class_20 %}
-            <td class="mt-1 text-sm truncate">
+            <td class="mt-1 text-sm truncate dark:dark">
               <div class="text-white hover:text-gray-200 bg-green-700 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
@@ -100,7 +100,7 @@
             </div>
             </td>
             {% else %}
-            <td class="mt-1 text-sm truncate text-gray-700">
+            <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
               <input
                 class=""
                 type="checkbox"
@@ -112,7 +112,7 @@
             </td>
             {% endif %}
             {% if 'registered' in rider.class_24 %}
-            <td class="mt-1 text-sm truncate text-gray-700 " >
+            <td class="mt-1 text-sm truncate text-gray-700 dark:dark" >
               <div class="text-white hover:text-gray-200 bg-green-700 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
@@ -125,7 +125,7 @@
               />{{rider.class_24|slice:":-10" }}</div>
             </td>
             {% else %}
-            <td class="mt-1 text-sm truncate text-gray-700">
+            <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
               <input
                 class=""
                 type="checkbox"
