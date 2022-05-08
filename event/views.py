@@ -196,6 +196,9 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Women 25 and over":
                 sum_fee+=fee. women_25_over_fee
 
+            rider_20.class_20 = resolve_event_classes(pk, rider_20.gender, rider_20.have_girl_bonus, rider_20.class_20, 1)
+        
+
         for rider_24 in riders_24:
             if rider_24.class_24 == "Boys 12 and under":
                 sum_fee+=fee.cr_boys_12_and_under_fee
@@ -225,6 +228,8 @@ def EntryView(request, pk):
                 sum_fee+=fee.cr_women_30_39_fee
             elif rider_24.class_24 == "Women 40 and over":
                 sum_fee+=fee.cr_women_40_and_over_fee
+            
+            rider_24.class_24 = resolve_event_classes(pk, rider_24.gender, rider_24.have_girl_bonus, rider_24.class_24, 0)
 
         # convert to json format (need for sessions)
         sum_fee_json = json.dumps({'sum_fee': sum_fee})
@@ -379,8 +384,9 @@ def ConfirmView(request):
                fee = entry_fee.women_u23_fee
             elif rider_20['fields']['class_20'] == "Women Elite":
                fee = entry_fee.women_elite_fee
-
-
+        
+            rider_20['fields']['class_20'] = resolve_event_classes(event=event['event'], gender=rider_20['fields']['gender'], have_girl_bonus=rider_20['fields']['have_girl_bonus'], rider_class=rider_20['fields']['class_20'], is_20 = 1)
+            print(rider_20['fields']['class_20'])
             line_items += {
                 'price_data': {
                         'currency': 'czk',
@@ -426,13 +432,16 @@ def ConfirmView(request):
             elif rider_24['fields']['class_24'] == "Women 40 and over":
                 fee=entry_fee.cr_women_40_and_over_fee
 
+            rider_24['fields']['class_24'] = resolve_event_classes(event=event['event'], gender=rider_24['fields']['gender'], have_girl_bonus=rider_24['fields']['have_girl_bonus'], rider_class=rider_24['fields']['class_24'], is_20 = 0)
+            print(rider_24['fields']['class_24'])
+
             line_items += {
                 'price_data': {
                         'currency': 'czk',
                         'unit_amount': fee * 100,
                         'product_data': {
                             'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                                'first_name'] + ", (Cruiser) " + rider_24['fields']['class_24'],
+                                'first_name'] + ", " + rider_24['fields']['class_24'],
                             'images': [],
                             'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
                         },

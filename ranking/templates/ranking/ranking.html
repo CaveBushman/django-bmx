@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block title %} Ranking {% endblock title %}
 {% block content %}
 
-<header class="bg-white shadow">
+<header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold text-header">Ranking</h1>
   </div>
@@ -29,7 +29,7 @@
       <div class="mt-4 sm:mt-0 sm:ml-16 sm: basis-1/2">
         <form method="POST" id = "rankingForm">
             {% csrf_token %}
-        <select id="categoryInput" name="categoryInput" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+        <select id="categoryInput" name="categoryInput" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:dark">
             <option selected>Vyber kategorii</option>
                 {% for category in categories %}
             <option value="{{category}}">{{category}}</option>
@@ -49,45 +49,45 @@
       <table class="min-w-full divide-y divide-gray-300">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Pořadí</th>
-            <th></th>
-            <th scope="col" class="hidden py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 sm:table-cell">Jezdec</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">UCI ID</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Klub</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Počet bodů</th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:dark sm:pl-6">Pořadí</th>
+            <th class="dark:dark"></th>
+            <th scope="col" class="hidden py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:dark sm:pl-6 sm:table-cell">Jezdec</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark lg:table-cell">UCI ID</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark sm:table-cell">Klub</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">Počet bodů</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
         {% for result in results %}
           <tr>
             {% if cruiser %}
-            <td class="px-3 py-4 text-sm text-gray-500">{{result.ranking_24}}.</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:dark">{{result.ranking_24}}.</td>
             {% else %}
-            <td class="px-3 py-4 text-sm text-gray-500">{{result.ranking_20}}.</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:dark">{{result.ranking_20}}.</td>
             {% endif %}
-            <td class="hidden sm:table-cell"><img
-                class="avatar img-fluid rounded-circle "
+            <td class="hidden sm:table-cell dark:dark"><img
+                class="avatar img-fluid rounded-circle dark:dark"
                 src="{{result.photo.url}}"
                 sizes="10px"
                 style="width: 2rem; height: 2rem"
               /></td>
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:dark sm:w-auto sm:max-w-none sm:pl-6">
                 <a href="{% url 'rider:detail' result.uci_id %}">
                 {{result.last_name|upper}} {{result.first_name}}
                 </a>
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate text-gray-700">{{result.uci_id}}</dd>
+                <dd class="mt-1 truncate text-gray-700 dark:dark">{{result.uci_id}}</dd>
                 <dt class="sr-only sm:hidden">Email</dt>
-                <dd class="mt-1 truncate text-gray-500 sm:hidden">{{result.club|upper}}</dd>
+                <dd class="mt-1 truncate text-gray-500 dark:dark sm:hidden">{{result.club|upper}}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{result.uci_id}}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{result.club|upper}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark lg:table-cell">{{result.uci_id}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark sm:table-cell">{{result.club|upper}}</td>
             {% if cruiser %}
-            <td class="px-3 py-4 text-sm text-gray-500">{{result.points_24}}</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:dark">{{result.points_24}}</td>
             {% else %}
-            <td class="px-3 py-4 text-sm text-gray-500">{{result.points_20}}</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:dark">{{result.points_20}}</td>
             {% endif %}
           </tr>
         {% endfor %}

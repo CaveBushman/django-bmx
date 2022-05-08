@@ -3,8 +3,8 @@
 {% block title %} Potvrzení přihlášky {% endblock title %}
 {% block content %}
 
-<header class="bg-white shadow">
-  <div class="fixed ml-0 p-0 w-full mx-auto py-2 bg-white">
+<header class="bg-white dark:bg-slate-800 dark:dark--text shadow">
+  <div class="fixed ml-0 p-0 w-full mx-auto py-2 bg-white dark:bg-slate-800 dark:dark--text">
       <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold text-gray-900 my-4">
         <div>Potvrzení přihlášky na {{event.name}}</div>
         <div class="flex">
@@ -23,7 +23,7 @@
 
 {% if riders_20 %}
 
-<div class="bg-white max-w-5xl mx-auto pt-32">
+<div class="bg-white dark:bg-slate-800 dark:dark--text max-w-5xl mx-auto pt-32">
   <div class="py-16 px-4 sm:py-10 sm:px-6 lg:px-0">
     <h1 class="text-3xl font-extrabold text-center tracking-tight text-gray-900 sm:text-4xl">Challenge and Elite kategorie</h1>
       <form class="mt-12">
@@ -88,7 +88,7 @@
   </div>
 </div>
 
-<div class="mt-4 text-2xl max-w-5xl mx-auto">
+<div class="mt-4 text-2xl max-w-5xl mx-auto mb-6">
   Startovné: {{sum_fee}} CZK
 </div>
 

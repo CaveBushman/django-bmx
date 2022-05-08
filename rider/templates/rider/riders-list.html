@@ -3,16 +3,16 @@
 {% load static %} 
 {% block content %}
 
-<header class="bg-white shadow">
+<header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold text-header">Seznam jezdců BMX</h1>
   </div>
 </header>
 
-<div class="max-w-screen-2xl mx-auto">
+<div class="max-w-screen-3xl mx-auto">
 
 <div class="mt-8 mx-6">
-  <div class="d-flex flex-row-reverse bd-highlight mr-6">
+  <div class="flex flex-row-reverse bd-highlight mr-6">
       {% if request.user.is_superuser %}
       <a
       href="{% url 'rider:admin' %}" class="btn--red text-sm md:text-lg">Administrace jezdců</button>
@@ -22,19 +22,19 @@
   </div>
 
   <div class="search" style="margin-top: 2rem">
-    <div class="row">
-      <div class="col-sm">
+    <div class="flex flex-row mx-auto space-x-5 mb-6">
+      <div class="col-sm w-full">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
           placeholder="Napiš příjmení jezdce"
           aria-label="default input example"
           onkeyup="searchByLastName()"
           id="inputLastName"/>
       </div>
-      <div class="col-sm">
+      <div class="col-sm w-full">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
           placeholder="Napiš jméno klubu"
           aria-label="default input example"
@@ -42,7 +42,7 @@
           id="inputClub"/>
       </div>
     </div>
-    <div class="col-sm" style="margin-bottom: 2rem"></div>
+  </div>
 
 <!-- This example requires Tailwind CSS v2.0+ -->
 <div class="flex flex-col">
@@ -52,21 +52,21 @@
         <table class="min-w-full divide-y divide-gray-200" id="myTable">
           <thead class="bg-gray-50">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                 Jméno
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                 Klub, UCI ID
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                 Kategorie
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
                 Startovní číslo
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="dark:dark divide-y divide-gray-200">
           {% for rider in riders %}
             <tr onclick="window.location='{% url 'rider:detail' rider.uci_id %}';" class="" style='cursor: pointer;'>
               <td class="px-6 py-2 whitespace-nowrap">
@@ -80,7 +80,7 @@
                       {% endif%}
                     </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">
+                    <div class="text-sm font-medium text-gray-900 dark:dark">
                       {{rider.last_name|upper}}
                     </div>
                     <div class="text-sm text-gray-500">

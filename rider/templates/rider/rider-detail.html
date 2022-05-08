@@ -3,7 +3,7 @@
 {% block content %}
 {% load static %}
 
-<header class="bg-white shadow">
+<header class="shadow dark:dark">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl font-bold text-header">Detail jezdce</h1>
     </div>
@@ -12,7 +12,7 @@
 <div class="max-w-screen-2xl mx-auto">
     
 <!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
-<div class="mt-6 dark:bg-gray-800">
+<div class="mt-6">
     <div class="d-flex flex-row bd-highlight  mb-3 justify-content-center">
         <div class="p-2 bd-highlight align-self-end">
             {% if rider.is_20 %} 
@@ -138,7 +138,7 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
-        <p class="mt-2 ml-8 text-sm text-gray-700">Fialová barva v tabulce označuje bodované závody na 20-ti palových kolech, modrá na cruiserech, bílá označuje závody, které se do rankingu nezapočítají.</p>
+        <p class="mt-2 ml-8 text-sm text-gray-700 dark:text-gray-300">Fialová barva v tabulce označuje bodované závody na 20-ti palových kolech, modrá na cruiserech, bílá označuje závody, které se do rankingu nezapočítají.</p>
       </div>
 
     </div>
@@ -158,27 +158,27 @@
         <tbody class="divide-y divide-gray-200 bg-white">
             {% for result in results %}
             {% if result.marked_20 %}
-            <tr class="bg-purple-100 text-white dark:bg-purple-900" >
+            <tr class="bg-purple-100 text-white dark:bg-purple-600 dark:text-white" >
             {% elif result.marked_24 %}
             <tr class="bg-blue-100 text-white dark:bg-blue-800" >
             {% else %}
             <tr>
             {% endif %}
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-300 sm:w-auto sm:max-w-none sm:pl-6">
                 {{ result.date }}
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate text-gray-700">{{ result.name }}</dd>
+                <dd class="mt-1 truncate text-gray-700 dark:text-gray-300 ">{{ result.name }}</dd>
                 <dt class="sr-only sm:hidden">Organizátor</dt>
-                <dd class="mt-1 truncate text-gray-500 sm:hidden">{{ result.organizer|upper }}</dd>
+                <dd class="mt-1 truncate text-gray-500 dark:text-gray-300  sm:hidden">{{ result.organizer|upper }}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ result.name }}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 sm:table-cell">{{ result.organizer|upper }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500">{{ result.event_type }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500">{{ result.category }}</td>
-            <td class="px-3 py-4 text-sm text-gray-500">{{ result.place }}. místo</td>
-            <td class="px-3 py-4 text-sm text-gray-500">{{ result.points }}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-300  lg:table-cell">{{ result.name }}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-300 sm:table-cell">{{ result.organizer|upper }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.event_type }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.category }}</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.place }}. místo</td>
+            <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.points }}</td>
           </tr>
           {% endfor %}
           <!-- More people... -->
