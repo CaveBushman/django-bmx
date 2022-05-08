@@ -51,7 +51,7 @@ module.exports = {
     theme: {
         extend: {},
     },
-    darkMode: 'false',
+    darkMode: 'media',
     variants: {
         extend: {},
     },
