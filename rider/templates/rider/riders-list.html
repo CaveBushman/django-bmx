@@ -90,20 +90,20 @@
                 </div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{rider.club|upper}}</div>
-                <div class="text-sm text-gray-500">{{rider.uci_id}}</div>
+                <div class="text-sm text-gray-900 dark:dark">{{rider.club|upper}}</div>
+                <div class="text-sm text-gray-500 dark:dark">{{rider.uci_id}}</div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="">
-                    <div class="text-sm font-medium text-gray-500">20": 
+                    <div class="text-sm font-medium text-gray-500 dark:dark">20": 
                       {% if rider.is_20%}
                         {{rider.class_20}}
                       {% else %}
                        nejezdí
                       {% endif %}
                     </div>
-                    <div class="text-sm font-medium text-gray-500">24": 
+                    <div class="text-sm font-medium text-gray-500 dark:dark">24": 
                       {% if rider.is_24%}
                         {{rider.class_24}}
                       {% else %}
