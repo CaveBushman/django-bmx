@@ -196,9 +196,6 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Women 25 and over":
                 sum_fee+=fee. women_25_over_fee
 
-            rider_20.class_20 = resolve_event_classes(pk, rider_20.gender, rider_20.have_girl_bonus, rider_20.class_20, 1)
-        
-
         for rider_24 in riders_24:
             if rider_24.class_24 == "Boys 12 and under":
                 sum_fee+=fee.cr_boys_12_and_under_fee
@@ -229,8 +226,6 @@ def EntryView(request, pk):
             elif rider_24.class_24 == "Women 40 and over":
                 sum_fee+=fee.cr_women_40_and_over_fee
             
-            rider_24.class_24 = resolve_event_classes(pk, rider_24.gender, rider_24.have_girl_bonus, rider_24.class_24, 0)
-
         # convert to json format (need for sessions)
         sum_fee_json = json.dumps({'sum_fee': sum_fee})
         event_json = json.dumps({'event': event.id})
@@ -243,7 +238,12 @@ def EntryView(request, pk):
         request.session['riders_20'] = serializers.serialize('json', riders_20)
         request.session['riders_24'] = serializers.serialize('json', riders_24)
 
-     
+        for rider_20 in riders_20:
+            rider_20.class_20 = resolve_event_classes(pk, rider_20.gender, rider_20.have_girl_bonus, rider_20.class_20, 1)
+
+        for rider_24 in riders_24:
+            rider_24.class_24 = resolve_event_classes(pk, rider_24.gender, rider_24.have_girl_bonus, rider_24.class_24, 0)
+
         data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
                 'sum_24': sum_24}
 
