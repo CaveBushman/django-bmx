@@ -2284,7 +2284,7 @@ p {
 @media (prefers-color-scheme: dark) {
   .dark\:dark {
     --tw-bg-opacity: 1;
-    background-color: rgb(15 23 42 / var(--tw-bg-opacity));
+    background-color: rgb(30 41 59 / var(--tw-bg-opacity));
   }
 
   .dark\:dark {

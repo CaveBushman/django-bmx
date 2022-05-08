@@ -45,7 +45,7 @@ p {
   }
 
   .dark{
-    @apply text-gray-200 bg-slate-900
+    @apply text-gray-200 bg-slate-800
   }
 
   .text--header {
