@@ -2282,18 +2282,14 @@ p {
 }
 
 @media (prefers-color-scheme: dark) {
-  @media (prefers-color-scheme: dark) {
-    .dark\:dark {
-      --tw-bg-opacity: 1;
-      background-color: rgb(15 23 42 / var(--tw-bg-opacity));
-    }
+  .dark\:dark {
+    --tw-bg-opacity: 1;
+    background-color: rgb(15 23 42 / var(--tw-bg-opacity));
   }
 
-  @media (prefers-color-scheme: dark) {
-    .dark\:dark {
-      --tw-text-opacity: 1;
-      color: rgb(209 213 219 / var(--tw-text-opacity));
-    }
+  .dark\:dark {
+    --tw-text-opacity: 1;
+    color: rgb(209 213 219 / var(--tw-text-opacity));
   }
 
   .dark\:border-gray-800 {
