@@ -882,6 +882,13 @@ p {
   }
 }
 
+.dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(15 23 42 / var(--tw-bg-opacity));
+  --tw-text-opacity: 1;
+  color: rgb(209 213 219 / var(--tw-text-opacity));
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

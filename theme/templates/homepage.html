@@ -205,20 +205,33 @@
     Naši partneři
   </h1>
 
+  <!-- === PARTNERS === -->
   <div
     class="d-flex flex-row bd-highlight mb-3 justify-content-around flex-wrap"
   >
     <div class="p-2 bd-highlight">
-      <img src="{% static 'images/partners/csc.png' %}" id="partners-image" />
+      <picture>
+        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
+        <source srcset= {% static "images/partners/csc.png" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <img src="{% static 'images/partners/csc.png' %}" id="partners-image" />
+      </picture>
     </div>
     <div class="p-2 bd-highlight">
-      <img src="{% static 'images/partners/skoda.png' %}" id="partners-image" />
+      <picture>
+        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
+        <source srcset={% static "images/partners/skoda.png" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <img src="{% static 'images/partners/skoda.png' %}" id="partners-image" />
+      </picture>
     </div>
     <div class="p-2 bd-highlight">
-      <img
-        src="{% static 'images/partners/uci-logo.svg' %}"
-        id="partners-image"
-      />
+      <picture>
+        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
+        <source srcset={% static "images/partners/uci-logo.svg" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <img
+          src="{% static 'images/partners/uci-logo.svg' %}"
+          id="partners-image"
+        />
+      </picture>
     </div>
   </div>
 </section>
