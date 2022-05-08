@@ -20,10 +20,10 @@
     <author class="flex items-center px-6 pt-2 pb-4">
         <img class="w-10 h-10 rounded-full mr-4" src="{{news.created.photo.url}}" alt="Avatar of Writer">
         <div class="text-sm">
-        <p class="inline-block text-gray-900 leading-none dark:dark--text">{{ news.created }}, </p>
+        <p class="inline-block text-gray-900 dark:tetxt-gray-300 leading-none dark:dark">{{ news.created }}, </p>
         <p class="inline-block text-gray-500">{{news.publish_date}}</p>
             {% for tag in news.tags.all %}
-                <p class="inline-block bg-red-200 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{tag|upper}}</p>
+                <p class="inline-block bg-red-200 dark:bg-red-500 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 ml-8">{{tag|upper}}</p>
             {% endfor %}
         </div>
     </author>
