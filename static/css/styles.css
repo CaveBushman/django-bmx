@@ -1702,9 +1702,9 @@ p {
   background-color: rgb(21 128 61 / var(--tw-bg-opacity));
 }
 
-.bg-yellow-500 {
+.bg-yellow-600 {
   --tw-bg-opacity: 1;
-  background-color: rgb(234 179 8 / var(--tw-bg-opacity));
+  background-color: rgb(202 138 4 / var(--tw-bg-opacity));
 }
 
 .bg-indigo-50 {
@@ -1757,6 +1757,11 @@ p {
   background-color: rgb(30 64 175 / var(--tw-bg-opacity));
 }
 
+.bg-yellow-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(234 179 8 / var(--tw-bg-opacity));
+}
+
 .bg-black {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity));
@@ -1765,11 +1770,6 @@ p {
 .bg-red-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
-}
-
-.bg-yellow-600 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(202 138 4 / var(--tw-bg-opacity));
 }
 
 .object-contain {
@@ -1838,9 +1838,9 @@ p {
   padding-bottom: 2.5rem;
 }
 
-.px-12 {
-  padding-left: 3rem;
-  padding-right: 3rem;
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .py-12 {
@@ -1893,9 +1893,9 @@ p {
   padding-bottom: 1.25rem;
 }
 
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
+.px-12 {
+  padding-left: 3rem;
+  padding-right: 3rem;
 }
 
 .pt-2 {
@@ -1981,6 +1981,11 @@ p {
   line-height: 1.25rem;
 }
 
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
@@ -1989,11 +1994,6 @@ p {
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
-}
-
-.text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
 }
 
 .text-5xl {
@@ -2494,6 +2494,16 @@ p {
     padding-bottom: 6rem;
   }
 
+  .sm\:px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+
+  .sm\:px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
   .sm\:px-3 {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
@@ -2509,9 +2519,14 @@ p {
     padding-bottom: 2.5rem;
   }
 
-  .sm\:px-8 {
-    padding-left: 2rem;
-    padding-right: 2rem;
+  .sm\:px-24 {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+
+  .sm\:px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .sm\:pl-6 {
@@ -2527,9 +2542,9 @@ p {
     line-height: 1;
   }
 
-  .sm\:text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
+  .sm\:text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
   }
 
   .sm\:text-lg {
@@ -2545,11 +2560,6 @@ p {
   .sm\:text-4xl {
     font-size: 2.25rem;
     line-height: 2.5rem;
-  }
-
-  .sm\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
   }
 }
 
@@ -2710,14 +2720,24 @@ p {
     padding-right: 2rem;
   }
 
-  .lg\:px-0 {
-    padding-left: 0px;
-    padding-right: 0px;
+  .lg\:px-20 {
+    padding-left: 5rem;
+    padding-right: 5rem;
   }
 
   .lg\:px-12 {
     padding-left: 3rem;
     padding-right: 3rem;
+  }
+
+  .lg\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+
+  .lg\:px-24 {
+    padding-left: 6rem;
+    padding-right: 6rem;
   }
 
   .lg\:text-7xl {
