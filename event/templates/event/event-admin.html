@@ -4,7 +4,7 @@
 
 <div class = "blur-md"></div>
 
-<header class="bg-white shadow">
+<header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold text-header">Administrace závodu: {{event.name}}</h1>
   </div>
@@ -13,9 +13,9 @@
 <div class="max-w-7xl mx-auto">
 <!-- This example requires Tailwind CSS v2.0+ -->
 <div>
-  <dl class="mt-5 grid grid-cols-1 rounded-lg bg-white overflow-hidden shadow divide-y divide-gray-200 md:grid-cols-3 md:divide-y-0 md:divide-x">
+  <dl class="mt-5 grid grid-cols-1 rounded-lg dark:dark overflow-hidden shadow divide-y divide-gray-200 md:grid-cols-3 md:divide-y-0 md:divide-x">
     <div class="px-4 py-5 sm:p-6">
-      <dt class="text-base font-normal text-gray-900">Přihlášeno jezdců</dt>
+      <dt class="text-base font-normal dark:dark">Přihlášeno jezdců</dt>
       <dd class="mt-1 flex justify-between items-baseline md:block lg:flex">
         <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
           {{sum_of_riders}}
@@ -24,7 +24,7 @@
     </div>
 
     <div class="px-4 py-5 sm:p-6">
-      <dt class="text-base font-normal text-gray-900">Vybrané startovné</dt>
+      <dt class="text-base font-normal dark:dark">Vybrané startovné</dt>
       <dd class="mt-1 flex justify-between items-baseline md:block lg:flex">
         <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
           {{sum_of_fees}} CZK
@@ -33,7 +33,7 @@
     </div>
 
     <div class="px-4 py-5 sm:p-6">
-      <dt class="text-base font-normal text-gray-900">Poslat pořadateli</dt>
+      <dt class="text-base font-normal dark:dark">Poslat pořadateli</dt>
       <dd class="mt-1 flex justify-between items-baseline md:block lg:flex">
         <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
           {{organizer_fee}} CZK
@@ -68,25 +68,25 @@
 <table class="table table-borderless align-middle table-event-admin">
   <tbody>
     <tr>
-      <td><h6>Datum závodu: {{event.date}}</h6></td>
-      <td></td>
-      <td><h6>Pořadatel: {{event.organizer}}</h6></td>
-      <td></td>
-      <td><h6>Typ závodu: {{event.type_for_ranking}}</h6></td>
+      <td class="dark:dark"><h6>Datum závodu: {{event.date}}</h6></td>
+      <td class="dark:dark"></td>
+      <td class="dark:dark"><h6>Pořadatel: {{event.organizer}}</h6></td>
+      <td class="dark:dark"></td>
+      <td class="dark:dark"><h6>Typ závodu: {{event.type_for_ranking}}</h6></td>
     </tr>
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Soubory pro BEM</th>
+      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Soubory pro BEM</th>
     </tr>
     <tr>
       <th></th>
     </tr>
     <tr>
-      <th scope="row" class="dark:dark--text">Registrovaní jezdci na závod - BEM FILE</th>
-      <td>Aktuální ke dni:</td>
-      <td> {{event.bem_entries_created}}</td>
+      <th scope="row" class="dark:dark">Registrovaní jezdci na závod - BEM FILE</th>
+      <td class="dark:dark">Aktuální ke dni:</td>
+      <td class="dark:dark"> {{event.bem_entries_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blurApp dark:dark--text"
+            class="btn btn-outline-info blurApp dark:dark"
             tabindex="-1"
             role="button"
             name="btn-bem-file"
@@ -94,12 +94,12 @@
         <td><a href="../../{{event.bem_entries}}" class="btn btn-outline-success" download>Stáhnout</a></td>
     </tr>
     <tr>
-      <th scope="row">Riders list - BEM FILE</th>
-      <td>Aktuální ke dni:</td>
-      <td>{{event.bem_riders_created}}</td>
+      <th scope="row" class="dark:dark">Riders list - BEM FILE</th>
+      <td class="dark:dark">Aktuální ke dni:</td>
+      <td class="dark:dark">{{event.bem_riders_created}}</td>
       <td><button
             href="#"
-            class="btn btn-outline-info blurApp dark:dark--text"
+            class="btn btn-outline-info blurApp dark:dark"
             tabindex="-1"
             role="button"
             name="btn-riders-list"
@@ -111,25 +111,25 @@
     </tr>
     {% if invalid_licences%}
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center dark:dark--text" >Přihlášení jezdci s neplatnou licencí</th>
+      <th scope="row" colspan="5" class = "h5 table-warning text-center dark:dark" >Přihlášení jezdci s neplatnou licencí</th>
     </tr>
     <tr>
       {% for rider in invalid_licences %}
       <tr>
-        <td></td>
-        <td>{{rider.last_name|upper}} {{rider.first_name}}, UCI ID: {{rider.uci_id}}</td>
-        <td>klub: {{rider.club}}</td>
+        <td class="dark:dark"></td>
+        <td class="dark:dark">{{rider.last_name|upper}} {{rider.first_name}}, UCI ID: {{rider.uci_id}}</td>
+        <td class="dark:dark">klub: {{rider.club}}</td>
       </tr>
       {% endfor %}
     {% endif %}
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Výsledky závodu</th>
+      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Výsledky závodu</th>
     </tr>
     <tr>
       <th></th>
     </tr>
     <tr>
-      <th scope="row" class="dark:dark--text">Nahrát výsledky závodu (xls)</th>
+      <th scope="row" class="dark:dark">Nahrát výsledky závodu (xls)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
       <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls"
         {% if event.xml_results %}
@@ -138,7 +138,7 @@
       >Nahraj výsledky</button></td>
     </tr>
     <tr>
-      <th scope="row">Smazat výsledky závodu (xls)</th>
+      <th scope="row" class="dark:dark">Smazat výsledky závodu (xls)</th>
       <th></th>
       <th></th>
       <th></th>
@@ -149,7 +149,7 @@
         >Smaž výsledky závodu</button></th>
     </tr>
     <tr>
-      <th scope="row">Nahrát výsledky závodu s časy (pdf)</th>
+      <th scope="row" class="dark:dark">Nahrát výsledky závodu s časy (pdf)</th>
       <td colspan = "3"><input class="form-control" type="file" name="result-file-pdf"></td>
       <td><button type="text" class="btn btn-info blurApp" name = "btn-upload-pdf" value = "pdf"
         {% if event.full_results_path %}
@@ -158,7 +158,7 @@
         >Nahraj výsledky</button></td>
     </tr>
     <tr>
-      <th scope="row">Smazat výsledky závodu (pdf)</th>
+      <th scope="row" class="dark:dark">Smazat výsledky závodu (pdf)</th>
       <th></th>
       <th></th>
       <th></th>
@@ -172,21 +172,21 @@
     {% if event.event_type == "Mezinárodní závod" %}
 
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Evropský pohár</th>
+      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Evropský pohár</th>
     </tr>
     <tr>
       <th></th>
     </tr>
     {% endif %}
     <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center" >Notifikace</th>
+      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Notifikace</th>
     </tr>
     <tr>
       <th></th>
     </tr>
     <tr>
       <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
-      <td><button type="button" class="btn btn-warning">Odešli notifikaci</button></td>
+      <td><button type="button" class="btn btn-warning dark:dark">Odešli notifikaci</button></td>
     </tr>
   </tbody>
 </table>
