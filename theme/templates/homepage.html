@@ -202,36 +202,34 @@
   </div>
 </section>
 
+<!-- ==== SPONSORS ====-->
+
 <section class="container sponsors">
   <h1 class="text-4xl text-black-900 text-center mb-5 mt-5 dark:text-gray-300">
     Naši partneři
   </h1>
-
-  <!-- ==== PARTNERS ==== -->
-  <div
-    class="d-flex flex-row bd-highlight mb-3 justify-content-around flex-wrap"
-  >
-    <div class="p-2 bd-highlight">
+  <div class="d-flex flex-row bd-highlight justify-content-around flex-wrap mb-6">
+    <div class="px-12 w-full basis-1/3 my-auto">
       <picture>
-        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
-        <source srcset= {% static "images/partners/csc.png" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
-        <img src="{% static 'images/partners/csc.png' %}" id="partners-image" />
+        <source srcset="{% static 'images/partners/CSC_Logo_Horizontal_CZ_WHITE.png' %}" media="(prefers-color-scheme: dark)" />
+        <source srcset="{% static "images/partners/csc.png" %}" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <img src="{% static 'images/partners/csc.png' %}" id="" class="w-full"/>
       </picture>
     </div>
-    <div class="p-2 bd-highlight">
+    <div class="px-12 w-full basis-1/3 my-auto">
       <picture>
-        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
-        <source srcset={% static "images/partners/skoda.png" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
-        <img src="{% static 'images/partners/skoda.png' %}" id="partners-image" />
+        <source srcset="{% static "images/partners/skoda_dark.png" %}" media="(prefers-color-scheme: dark)" />
+        <source srcset="{% static "images/partners/skoda.png" %}" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <img src="{% static 'images/partners/skoda.png' %}" id="" />
       </picture>
     </div>
-    <div class="p-2 bd-highlight">
-      <picture>
-        <source srcset="settings-dark.png" media="(prefers-color-scheme: dark)" />
-        <source srcset={% static "images/partners/uci-logo.svg" %} media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+    <div class="px-12 w-full basis-1/3 my-auto">
+      <picture class="">
+        <source srcset="{% static 'images/partners/uci-logo_dark.png' %}" media="(prefers-color-scheme: dark)" />
+        <source srcset="{% static "images/partners/uci-logo.svg" %}" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
         <img
           src="{% static 'images/partners/uci-logo.svg' %}"
-          id="partners-image"
+          id=""
         />
       </picture>
     </div>
@@ -240,7 +238,7 @@
 
 <!-- ==== FOOTER ====-->
 
-<div class="mb-10">
+<div class="">
   <footer class="bg-gray-100 dark:dark">
     <div
       class="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
@@ -283,8 +281,7 @@
             />
           </svg>
         </a>
-
-        <a href="#" class="text-gray-400 hover:text-gray-500">
+<!--         <a href="#" class="text-gray-400 hover:text-gray-500">
           <span class="sr-only">Twitter</span>
           <svg
             class="h-6 w-6"
@@ -329,7 +326,10 @@
             />
           </svg>
         </a>
+           -->
       </div>
+   
+
       <div class="mt-8 md:mt-0 md:order-1">
         <p class="text-center text-base text-gray-400 dark:dark">
           &copy; {% now "Y" %} David Průša. Všechna práva vyhrazena.
