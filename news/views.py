@@ -29,7 +29,7 @@ def RulesView(request):
 
 def NewsListView(request):
 
-    ARTICLES_PER_PAGE = 6
+    ARTICLES_PER_PAGE = 9
 
     news = News.objects.filter(published=True).order_by('-publish_date')
     sum_of_news = News.sum_of_news()
@@ -38,8 +38,6 @@ def NewsListView(request):
 
     page_num = request.GET.get('page', 1)
     page = news_paginator.get_page(page_num)
-
-    show_page_num_1=0 
 
     data = {'news': page, 'sum_of_news':sum_of_news}
 
