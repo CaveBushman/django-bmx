@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator, EmptyPage
 from event.models import Event
 from rider.models import Rider
 from news.models import News
@@ -27,9 +28,20 @@ def RulesView(request):
 
 
 def NewsListView(request):
-    news = News.objects.all().order_by('-publish_date')
+
+    ARTICLES_PER_PAGE = 6
+
+    news = News.objects.filter(published=True).order_by('-publish_date')
     sum_of_news = News.sum_of_news()
-    data = {'news': news, 'sum_of_news':sum_of_news}
+
+    news_paginator = Paginator(news, ARTICLES_PER_PAGE)
+
+    page_num = request.GET.get('page', 1)
+    page = news_paginator.get_page(page_num)
+
+    show_page_num_1=0 
+
+    data = {'news': page, 'sum_of_news':sum_of_news}
 
     return render(request, 'news/news-list.html', data)
 
