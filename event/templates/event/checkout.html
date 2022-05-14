@@ -56,7 +56,7 @@
 {% endif %} 
 
 {% if riders_24 %}
-<div class="bg-white max-w-5xl mx-auto mt-4">
+<div class="dark:dark max-w-5xl mx-auto mt-4">
     <div class="py-16 px-4 sm:py-10 sm:px-6 lg:px-0">
       <h1 class="text-3xl mb-4 font-extrabold text-center tracking-tight dark:dark sm:text-4xl">Cruiser</h1>
       <form class="mt-12">
@@ -71,7 +71,7 @@
                 <div>
                     <div class="flex items-center justify-between">
                         <div class="text-sm">
-                          <a href="#" class="font-medium text-gray-700 hover:text-gray-800">{{rider_24.last_name|upper}} {{rider_24.first_name}}</a>
+                          <a href="#" class="font-medium text-gray-700 hover:text-gray-800 dark:text-gray-200">{{rider_24.last_name|upper}} {{rider_24.first_name}}</a>
                         </div>
                         <div class="ml-4 text-sm font-medium text-gray-500">UCI ID: {{rider_24.uci_id}}</div>
                     </div>

@@ -6,7 +6,7 @@
 
 <header class="shadow dark:dark">
   <div class="fixed ml-0 p-0 w-full mx-auto py-2 dark:dark">
-      <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold my-4">
+      <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold my-4 bg-white dark:dark">
         <div>Přihlášení na {{event.name}}</div>
           <div>
             <button type="submit" class="text-md btn--green" id="">
@@ -24,8 +24,8 @@
 <br>
 <div class = "max-w-7xl mx-auto dark:dark--text">
   <div class="">
-    <div class="row">
-      <div class="col-sm">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="">
         <input
           class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
@@ -35,8 +35,8 @@
           id="inputLastName"
         />
       </div>
-      <div class="col-sm"></div>
-      <div class="col-sm">
+    
+      <div class="">
         <input
           class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
           type="text"
