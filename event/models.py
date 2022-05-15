@@ -330,6 +330,7 @@ pre_save.connect(commission_fee, sender=Event)
 
 
 class Result(models.Model):
+    """ Model for results """
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
@@ -355,6 +356,7 @@ class Result(models.Model):
 
 
 class Entry(models.Model):
+    """ Models for entries to the race for Czech riders """
     transaction_id = models.CharField(max_length=255, default="")
     event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
     rider = models.ForeignKey(Rider, to_field="uci_id", db_column="rider", on_delete=models.SET_NULL, null=True)
@@ -374,4 +376,32 @@ class Entry(models.Model):
     class Meta:
         verbose_name = "Registrace"
         verbose_name_plural = 'Registrace'
-    
+
+
+class EntryForeign(models.Model):
+    """ Model for foreign riders entries """
+    transaction_id = models.CharField(max_length=255, default="")
+    event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    uci_id=models.CharField(max_length=20)
+    gender = models.CharField(max_length=20)
+    nationality = models.CharField(max_length=3)
+    club = models.CharField(max_length=50)
+    transponder = models.CharField(max_length=10)
+    is_20 = models.BooleanField(default=False)
+    is_24 = models.BooleanField(default=False)
+    class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
+    class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
+    fee_20 = models.IntegerField(null=True, blank=True, default=0)
+    fee_24 = models.IntegerField(null=True, blank=True, default=0)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+    payment_complete = models.BooleanField(default=False)
+    checkout = models.BooleanField(default=False)
+    date_of_payment = models.DateField(auto_now_add=True, null=True)
+    customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
+    customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Registrace zahraničních jezdců"
+        verbose_name_plural = 'Registrace zahraničních jezdců'
