@@ -94,7 +94,7 @@ class Downloads(models.Model):
     """ Model for downloads section """
     title = models.CharField(max_length=255)
     description = RichTextField(max_length=10000, blank=True, null=True)
-    tag=models.ForeignKey(DocumentTag, on_delete=models.SET_NULL, blank=True, null=True)
+    tag=models.ManyToManyField(DocumentTag)
     document = models.FileField(upload_to="documents", blank=True, null=True)
     published = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
