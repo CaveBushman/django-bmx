@@ -50,3 +50,10 @@ def NewsDetailView(request, pk):
     queryset = {'news': news}
 
     return render(request, 'news/news-detail.html', queryset)
+
+
+def DownloadsView(request):
+
+    data={}
+    view = render(request, 'downloads.html', data)
+    return view

@@ -50,6 +50,13 @@
               {% else%}
               <a href="{% url 'news:rules' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">PRAVIDLA</a>
               {% endif %}
+
+              {% if 'downloads' in request.path %}
+              <a href="{% url 'news:downloads' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">KE STAŽENÍ</a>
+              {% else%}
+              <a href="{% url 'news:downloads' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KE STAŽENÍ</a>
+              {% endif %}
+
             </div>
           </div>
         </div>
@@ -132,6 +139,8 @@
         <a href="{% url 'ranking:ranking' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Ranking</a>
 
         <a href="{% url 'news:rules' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Pravidla</a>
+
+        <a href="{% url 'news:downloads' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Ke stažení</a>
       </div>
       <div class="border-t border-gray-700 pt-4 pb-3">
         <div class="flex items-center px-5">

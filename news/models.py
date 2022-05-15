@@ -79,3 +79,18 @@ def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
             if old_photo_03 and old_photo_03.url != new_photo_03.url:
                 old_photo_03.delete(save=False)
 pre_save.connect(delete_photo_on_change_extension, sender=News)
+
+class Downloads(models.Model):
+    """ Model for downloads section """
+    title = models.CharField(max_length=255)
+    description = RichTextField(max_length=10000, blank=True, null=True)
+    document = models.FileField(upload_to="documents", blank=True, null=True)
+    published = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Ke stažení"
+        verbose_name_plural = 'Ke stažení'
