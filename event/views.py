@@ -930,7 +930,16 @@ def findPaymentView(request):
 
 
 def RankingTableView(request):
-
+    """ Function for viewing ranking table of points"""
     data={}
     views = render(request, 'event/ranking-table.html', data)
+    return views
+
+
+def EntryForeignView(request, pk):
+    """ View for foreign riders registrations"""
+    event = get_object_or_404(Event, pk=pk)
+
+    data={'event':event}
+    views = render(request, 'event/entry-foreign.html', data)
     return views
