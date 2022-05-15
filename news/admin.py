@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import News, Tag, Downloads
+from .models import News, Tag, Downloads, DocumentTag
 
 # Register your models here.
 
@@ -23,3 +23,4 @@ class DownloadsAdmin(admin.ModelAdmin):
     list_editable =('published',)
 
 admin.site.register(Downloads, DownloadsAdmin)
+admin.site.register(DocumentTag)
