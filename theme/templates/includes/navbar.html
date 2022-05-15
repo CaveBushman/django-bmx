@@ -10,45 +10,45 @@
             <div class="ml-10 flex items-baseline space-x-4">
               <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
               {% if '/' == request.path %}
-                <a href="{% url 'news:home' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Home</a>
+                <a href="{% url 'news:home' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">HOME</a>
               {% else%}
-                <a href="{% url 'news:home' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Home</a>
+                <a href="{% url 'news:home' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">HOME</a>
               {% endif %}
 
               {% if 'news' in request.path %}
-              <a href="{% url 'news:news-list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Články</a>
+              <a href="{% url 'news:news-list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">ČLÁNKY</a>
               {% else%}
-              <a href="{% url 'news:news-list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Články</a>
+              <a href="{% url 'news:news-list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">ČLÁNKY</a>
               {% endif %}
 
               {% if 'event' in request.path %}
-              <a href="{% url 'event:events' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Závody</a>
+              <a href="{% url 'event:events' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">ZÁVODY</a>
               {% else%}
-              <a href="{% url 'event:events' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Závody</a>
+              <a href="{% url 'event:events' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">ZÁVODY</a>
               {% endif %}
 
               {% if 'rider' in request.path %}
-              <a href="{% url 'rider:list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Jezdci</a>
+              <a href="{% url 'rider:list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">JEZDCI</a>
               {% else%}
-              <a href="{% url 'rider:list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Jezdci</a>
+              <a href="{% url 'rider:list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">JEZDCI</a>
               {% endif %}
 
               {% if 'club' in request.path %}
-              <a href="{% url 'club:clubs-list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Kluby</a>
+              <a href="{% url 'club:clubs-list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">KLUBY</a>
               {% else%}
-              <a href="{% url 'club:clubs-list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Kluby</a>
+              <a href="{% url 'club:clubs-list' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KLUBY</a>
               {% endif %}
 
               {% if 'ranking' in request.path %}
-              <a href="{% url 'ranking:ranking' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Ranking</a>
+              <a href="{% url 'ranking:ranking' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">RANKING</a>
               {% else%}
-              <a href="{% url 'ranking:ranking' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Ranking</a>
+              <a href="{% url 'ranking:ranking' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">RANKING</a>
               {% endif %}
 
               {% if 'rules' in request.path %}
-              <a href="{% url 'news:rules' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Pravidla</a>
+              <a href="{% url 'news:rules' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">PRAVIDLA</a>
               {% else%}
-              <a href="{% url 'news:rules' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Pravidla</a>
+              <a href="{% url 'news:rules' %}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">PRAVIDLA</a>
               {% endif %}
             </div>
           </div>
