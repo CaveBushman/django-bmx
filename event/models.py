@@ -276,6 +276,48 @@ def delete_fast_riders_file (sender, instance, **kwargs):
                     pass
 pre_save.connect(delete_fast_riders_file, sender=Event)
 
+# vymazání výsledků serie při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_series_file (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_series = Event.objects.get(pk=instance.pk).series
+        except Event.DoesNotExist:
+            return
+        else:
+            new_series = instance.series
+
+            try:
+                if old_series and old_series.url != new_series.url:
+                    try:
+                        old_series.delete(save=False)
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+pre_save.connect(delete_series_file, sender=Event)
+
+# vymazání propozic při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_prop_file (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_prop = Event.objects.get(pk=instance.pk).proposition
+        except Event.DoesNotExist:
+            return
+        else:
+            new_prop = instance.proposition
+
+            try:
+                if old_prop and old_prop.url != new_prop.url:
+                    try:
+                        old_prop.delete(save=False)
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+pre_save.connect(delete_prop_file, sender=Event)
+
 # nastavení provize Asociace klubů
 @receiver(pre_save, sender=Event)
 def commission_fee (sender, instance, **kwargs):
