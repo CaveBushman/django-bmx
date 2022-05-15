@@ -13,57 +13,60 @@
     
 <!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
 <div class="mt-6">
-    <div class="d-flex flex-row bd-highlight  mb-3 justify-content-center">
-        <div class="p-2 bd-highlight align-self-end">
+    <div class="grid grid-cols-3 bd-highlight justify-center">
+        <div class="p-2 flex justify-end items-end bd-highlight rounded-full font-bold text-xl">
             {% if rider.is_20 %} 
                 {% if rider.plate_color_20 == 'blue' %}
-                    <div class="plate small"
-                    style="background-color: darkblue; color: white">
+                    <div class="bg-blue-700 text-white p-8 rounded-full">
                     {{rider.plate}}
                 </div>
                 {% elif rider.plate_color_20 == 'gray'%}
-                <div class="plate small" style="background-color: gray; color: white">
+                <div class="bg-gray-500 text-black p-8 rounded-full">
                     {{rider.plate}}
                 </div>
                 {% elif rider.plate_color_20 == 'yellow'%}
-                <div class="plate small" style="background-color: yellow; color: black">
+                <div class="bg-yellow-300 text-black p-8 rounded-full">
                     {{rider.plate}}
                 </div>
                 {% elif rider.plate_color_20 == 'black'%}
-                <div class="plate small" style="background-color: black; color: white">
+                <div class="bg-black text-white p-8 rounded-full">
                     {{rider.plate}}
                 </div>
                 {% elif rider.plate_color_20 == 'white'%}
-                <div class="plate small"
-                    style="background-color: white; color: black; border: 1px black solid">
+                <div class="bg-white text-black border-2 p-8 rounded-full">
                     {{rider.plate}}
                 </div>
                 {% endif %}
-                {% endif %} 
+            {% else %}
+            <div class=""></div>
+            {% endif %} 
         </div>
         <div class="p-2 bd-highlight">
-            <div class="">
-                <img src="{{rider.photo.url}}" class="w-48 h-48 md:w-80 md:h-80 rounded-full mx-auto"/>
+            <div class="flex">
+                <img src="{{rider.photo.url}}" class="w-44 h-44 sm:w-60 sm:h-60 md:w-80 md:h-80 rounded-full mx-auto"/>
             </div>
+
         </div>
-        <div class="p-2 bd-highlight align-self-end">
+        <div class="space-x-4 p-2 bd-highlight flex justify-start items-end">
             {% if rider.is_24%}
-                <div class="plate small red">{{rider.plate}}</div>
+                <div class="bg-red-600 rounded-full text-white p-8 font-bold text-xl">{{rider.plate}}</div>
+            {% else %}
+                <div class=""></div>
             {% endif %}
         </div>
     </div>
-
-    <h1 class="display-4 text-center dark:text-purple-300" style="margin-bottom: 3rem">
+    <h1 class="text-4xl text-center dark:text-purple-300 mt-4" style="margin-bottom: 3rem">
         {{ rider.first_name|upper}} {{ rider.last_name|upper}}
     </h1>
+
     {% if rider.is_in_representation %}
-        <div class="d-flex flex-row bd-highlight mb-3 ">
+        <div class="flex flex-row bd-highlight mb-3 ">
             <div class="p-0 bd-highlight dark:text-gray-200" style="margin-bottom: 1rem;"><h5><span
                     class="repre">Člen národní reprezentace</span></h5></div>
         </div>
     {% endif %}
     {% if rider.is_in_talent_team %}
-        <div class="d-flex flex-row bd-highlight mb-3 ">
+        <div class="flex flex-row bd-highlight mb-3 ">
             <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
                     class="repre">Člen národního talent teamu</span></h5></div>
         </div>
@@ -71,18 +74,18 @@
 
     <div class="container dark:text-gray-200">
         <div class="container">
-            <div class="row">
-                <div class="col-sm">
+            <div class="grid grid-cols-2 text-center">
+                <div class="">
                     <h5>UCI ID: <b>{{rider.uci_id}}</b></h5>
                 </div>
-                <div class="col-sm">
+                <div class="">
                     <h5>Klub: <b>{{ rider.club }}</b></h5>
                 </div>
             </div>
         </div>
         <div class="container">
-            <div class="row">
-                <div class="col-sm mt-2">
+            <div class="grid grid-cols-2 text-center mt-2">
+                <div class="">
                     <h5>Transpondér pro 20": <b>
                         {% if rider.transponder_20 == "nan" %}
                             nemá přidělen
@@ -91,7 +94,7 @@
                         {% endif%}
                     </b></h5>
                 </div>
-                <div class="col-sm mt-2">
+                <div class="">
                     <h5>Transpondér pro 24": <b>
                         {% if rider.transponder_24 == "nan" %}
                             nemá přidělen
@@ -103,8 +106,8 @@
             </div>
         </div>
         <div class="container">
-            <div class="row">
-                <div class="col-sm mt-2">
+            <div class="grid grid-cols-2 text-center mt-4">
+                <div class="">
                     <h5>Pořadí v rankingu v <b>{{rider.class_20}}</b> (20"): <b>
                         {% if rider.ranking_20 == None or rider.ranking_20 == "0" %}
                         nejezdí/neboduje
@@ -113,7 +116,7 @@
                         {% endif %}
                     </b></h5>
                 </div>
-                <div class="col-sm mt-2">
+                <div class="">
                     <h5>Pořadí v rankingu v <b>{{rider.class_24}}</b> (24"): <b>
                         {% if rider.ranking_24 == None or rider.ranking_24 == "0" %}
                         nejezdí/neboduje
@@ -127,7 +130,7 @@
     </div>
 </div>
 
-<h3 class="display-6 text-center rider-detail-header dark:text-purple-300" style="margin-bottom: 2rem">
+<h3 class="text-3xl text-center rider-detail-header dark:text-purple-300" style="margin-bottom: 2rem">
     Umístění za poslední rok
 </h3>
 
@@ -155,30 +158,30 @@
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Počet bodů</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
+        <tbody class="divide-y divide-gray-200 bg-white dark:text-gray-600">
             {% for result in results %}
             {% if result.marked_20 %}
-            <tr class="bg-purple-100 text-white dark:bg-purple-600 dark:text-white" >
+            <tr class="bg-purple-100 text-gray-600 dark:bg-purple-600 dark:text-white" >
             {% elif result.marked_24 %}
-            <tr class="bg-blue-100 text-white dark:bg-blue-800" >
+            <tr class="bg-blue-100 text-gray-600 dark:text-white dark:bg-blue-800" >
             {% else %}
             <tr>
             {% endif %}
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-300 sm:w-auto sm:max-w-none sm:pl-6">
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-6">
                 {{ result.date }}
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate text-gray-700 dark:text-gray-300 ">{{ result.name }}</dd>
+                <dd class="mt-1 truncate ">{{ result.name }}</dd>
                 <dt class="sr-only sm:hidden">Organizátor</dt>
-                <dd class="mt-1 truncate text-gray-500 dark:text-gray-300  sm:hidden">{{ result.organizer|upper }}</dd>
+                <dd class="mt-1 truncate  sm:hidden">{{ result.organizer|upper }}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-300  lg:table-cell">{{ result.name }}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-300 sm:table-cell">{{ result.organizer|upper }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.event_type }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.category }}</td>
-            <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.place }}. místo</td>
-            <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-300 ">{{ result.points }}</td>
+            <td class="hidden px-3 py-4 text-sm lg:table-cell">{{ result.name }}</td>
+            <td class="hidden px-3 py-4 text-sm sm:table-cell">{{ result.organizer|upper }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.event_type }}</td>
+            <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.category }}</td>
+            <td class="px-3 py-4 text-sm">{{ result.place }}. místo</td>
+            <td class="px-3 py-4 text-sm">{{ result.points }}</td>
           </tr>
           {% endfor %}
           <!-- More people... -->
@@ -188,7 +191,7 @@
   </div>
  
 {% else %}
-    <h5 style = "text-align: center" class="dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</h5>
+    <div class="text-center text-xl mb-6 dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</div>
 {% endif %}
 </div>
 </div>
