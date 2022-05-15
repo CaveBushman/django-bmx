@@ -11,10 +11,6 @@ from django.core.exceptions import FieldDoesNotExist
 
 # Create your models here.
 
-
-class ForeignEntry(models.Model):
-    pass
-
 class EntryClasses(models.Model):
 
     event_name = models.CharField(max_length=200)
