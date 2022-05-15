@@ -15,5 +15,6 @@ urlpatterns = [
     path('success/<int:pk>', views.SuccessView, name='success'),
     path('cancel', views.CancelView, name='cancel'),
     path('event-admin/<int:pk>', views.EventAdminView, name='event-admin'),
-    path('find-payment', views.findPaymentView, name='find-payment')
+    path('find-payment', views.findPaymentView, name='find-payment'),
+    path('ranking-table', views.RankingTableView, name='ranking-table')
 ]

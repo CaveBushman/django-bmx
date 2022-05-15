@@ -927,3 +927,10 @@ def findPaymentView(request):
 
     data={'events':events}
     return render(request, 'event/find-payment.html', data)
+
+
+def RankingTableView(request):
+
+    data={}
+    views = render(request, 'event/ranking-table.html', data)
+    return views
