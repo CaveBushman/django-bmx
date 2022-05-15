@@ -80,10 +80,21 @@ def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
                 old_photo_03.delete(save=False)
 pre_save.connect(delete_photo_on_change_extension, sender=News)
 
+class DocumentTag(models.Model):
+    caption=models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.caption
+    
+    class Meta:
+        verbose_name = "Typ dokumentu"
+        verbose_name_plural = 'Typ dokumnentů'
+
 class Downloads(models.Model):
     """ Model for downloads section """
     title = models.CharField(max_length=255)
     description = RichTextField(max_length=10000, blank=True, null=True)
+    tag=models.ForeignKey(DocumentTag, on_delete=models.SET_NULL, blank=True, null=True)
     document = models.FileField(upload_to="documents", blank=True, null=True)
     published = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
