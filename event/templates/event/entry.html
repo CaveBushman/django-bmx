@@ -68,7 +68,7 @@
           {% for rider in riders %}
           <tr>
             <td class="mt-1 truncate text-gray-700 dark:dark text-center">{{rider.plate}}</td>
-            <td class="dark:dark"><img class="avatar img-fluid rounded-circle dark:dark" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
+            <td class="dark:dark"><img class="rounded-full img-fluid rounded-circle dark:dark" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
               style="width: 2rem; height: 2rem;"></td>
             <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:dark sm:w-auto sm:max-w-none sm:pl-6">
               {{rider.last_name}}
