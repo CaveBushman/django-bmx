@@ -1432,8 +1432,8 @@ p {
   margin-top: 2.5rem;
 }
 
-.mt-3 {
-  margin-top: 0.75rem;
+.mt-6 {
+  margin-top: 1.5rem;
 }
 
 .mb-2 {
@@ -1452,8 +1452,8 @@ p {
   margin-top: 0.5rem;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
+.mt-3 {
+  margin-top: 0.75rem;
 }
 
 .ml-3 {
@@ -2530,6 +2530,10 @@ p {
   padding-right: 2.5rem;
 }
 
+.pt-6 {
+  padding-top: 1.5rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -2849,6 +2853,23 @@ p {
 
 .ease-out {
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+[data-collapsible-body] {
+  display: none;
+  transition: transform .5s ease-in-out;
+}
+
+.collapsible-active [data-collapsible-body] {
+  display: block;
+}
+
+.close {
+  transition: .5s;
+}
+
+.collapsible-active .close {
+  transform: rotate(45deg);
 }
 
 .hover\:border-gray-300:hover {
@@ -3618,3 +3639,6 @@ p {
     height: 650px;
   }
 }
+
+
+

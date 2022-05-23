@@ -617,7 +617,7 @@ def EventAdminView(request, pk):
                                 last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
 
-            event.xml_results = "media/xml_results" + uploaded_file_url
+            event.xml_results = "xml_results" + uploaded_file_url
             event.save()
             # logging.info("Zahajuji počítání bodů")
             RankingCount.set_ranking_points()
