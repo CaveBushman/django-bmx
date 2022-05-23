@@ -1,4 +1,6 @@
-{% extends 'base.html' %} {% block title %} Ke stažení {% endblock title %}
+{% extends 'base.html' %} 
+{% block title %} Ke stažení {% endblock title %}
+{% load static %}
 {% block content %}
 
 <header class="shadow dark:dark">
@@ -6,5 +8,46 @@
     <h1 class="text-3xl font-bold">Ke stažení</h1>
   </div>
 </header>
+
+<div class="container px-5 mx-auto mt-6">
+  <div class="w-full pt-6" data-collapsible-main>
+    <div class="flex justify-between border-b text-3xl" data-collapsible-head>
+      <span>Pro jezdce</span>
+      <span class="close text-4xl text-blue-500">+</span>
+    </div>
+    <div class="p-3" data-collapsible-body>
+      <div>
+        Zde bude obsah
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full pt-6" data-collapsible-main>
+    <div class="flex justify-between border-b text-3xl" data-collapsible-head>
+      <span>Pro pořadatele</span>
+      <span class="close text-4xl text-blue-500">+</span>
+    </div>
+    <div class="p-3" data-collapsible-body>
+      <div>
+       Zde bude obsah
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full pt-6" data-collapsible-main>
+    <div class="flex justify-between border-b text-3xl" data-collapsible-head>
+      <span>Pro rozhodčí</span>
+      <span class="close text-4xl text-blue-500">+</span>
+    </div>
+    <div class="p-3" data-collapsible-body>
+      <div>
+       Zde bude obsah
+      </div>
+    </div>
+  </div>
+</div>
+<div class="hidden"></div>
+
+<script src = "{% static 'js/collapsible.js' %}"></script>
 
 {% endblock content %}

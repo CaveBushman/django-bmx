@@ -11,7 +11,7 @@ def set_all_riders_classes():
     print ("Kategorie jezdců nastaveny")
 
 def clear_transponders():
-    """ Function for clearing transponders field from nan value"""
+    """ Function for clearing transponders field from nan value """
     riders = Rider.objects.all()
     for rider in riders:
         if rider.transponder_20 == "nan":

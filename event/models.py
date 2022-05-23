@@ -190,6 +190,10 @@ class Event(models.Model):
     bem_backup = models.FileField(upload_to='bem_backup/', null = True, blank = True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    # for events with 2 block
+    bem_backup_2 = models.FileField(upload_to='bem_backup/', null = True, blank = True)
+    bem_backup_2_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
     full_results = models.FileField(upload_to='full_results/', null = True, blank = True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -237,6 +241,48 @@ def delete_xml_results_file (sender, instance, **kwargs):
             except Exception as e:
                 pass
 pre_save.connect(delete_xml_results_file, sender=Event)
+
+# vymazání BEM file při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_bem_backup (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_bem_backup = Event.objects.get(pk=instance.pk).bem_backup
+        except Event.DoesNotExist:
+            return
+        else:
+            new_bem_backup = instance.bem_backup
+
+            try:
+                if old_bem_backup and old_bem_backup != new_bem_backup:
+                    try:
+                        old_bem_backup.delete(save=False)
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+pre_save.connect(delete_bem_backup, sender=Event)
+
+# vymazání BEM_2 file při aktualizaci
+@receiver(pre_save, sender=Event)
+def delete_bem_2_backup (sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_bem_backup_2 = Event.objects.get(pk=instance.pk).bem_backup_2
+        except Event.DoesNotExist:
+            return
+        else:
+            new_bem_backup_2 = instance.bem_backup_2
+
+            try:
+                if old_bem_backup_2 and old_bem_backup_2 != new_bem_backup_2:
+                    try:
+                        old_bem_backup_2.delete(save=False)
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+pre_save.connect(delete_bem_2_backup, sender=Event)
 
 # vymazání celkových výsledků při aktualizaci
 @receiver(pre_save, sender=Event)
