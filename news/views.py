@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage
 from event.models import Event
 from rider.models import Rider
-from news.models import News
+from news.models import News, Downloads
 from club.models import Club
 
 from datetime import date
@@ -53,7 +53,7 @@ def NewsDetailView(request, pk):
 
 
 def DownloadsView(request):
-
-    data={}
+    documents = Downloads.objects.filter(published=True)
+    data={'documents':documents}
     view = render(request, 'downloads.html', data)
     return view

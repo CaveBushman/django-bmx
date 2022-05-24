@@ -9,6 +9,7 @@
   </div>
 </header>
 
+
 <div class="container px-5 mx-auto mt-6">
   <div class="w-full pt-6" data-collapsible-main>
     <div class="flex justify-between border-b text-3xl" data-collapsible-head>
@@ -16,10 +17,16 @@
       <span class="close text-4xl text-blue-500">+</span>
     </div>
     <div class="p-3" data-collapsible-body>
-      <div>
-        Zde bude obsah
+      {% for document in documents %}
+        {% for tag in document.tags.all %}
+          {% if tag.caption == 'Pro jezdce' %}
+          <div>
+            {{document.title}}
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
       </div>
-    </div>
   </div>
 
   <div class="w-full pt-6" data-collapsible-main>
@@ -28,9 +35,15 @@
       <span class="close text-4xl text-blue-500">+</span>
     </div>
     <div class="p-3" data-collapsible-body>
-      <div>
-       Zde bude obsah
-      </div>
+      {% for document in documents %}
+        {% for tag in document.tags.all %}
+          {% if tag.caption == 'Pro pořadatele' %}
+          <div>
+            {{document.title}}
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
     </div>
   </div>
 
@@ -40,10 +53,15 @@
       <span class="close text-4xl text-blue-500">+</span>
     </div>
     <div class="p-3" data-collapsible-body>
-      <div>
-       Zde bude obsah
-      </div>
-    </div>
+      {% for document in documents %}
+        {% for tag in document.tags.all %}
+          {% if tag.caption == 'Pro rozhodčí' %}
+          <div>
+            {{document.title}}
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
   </div>
 </div>
 <div class="hidden"></div>
