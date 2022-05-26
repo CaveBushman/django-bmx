@@ -95,7 +95,7 @@ class Downloads(models.Model):
     title = models.CharField(max_length=255)
     description = RichTextField(max_length=10000, blank=True, null=True)
     tags=models.ManyToManyField(DocumentTag)
-    document = models.FileField(upload_to="documents", blank=True, null=True)
+    path = models.FileField(upload_to="documents", blank=True, null=True)
     published = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
 

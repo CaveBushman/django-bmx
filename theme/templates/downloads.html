@@ -20,9 +20,22 @@
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro jezdce' %}
-          <div>
-            {{document.title}}
+          <div class="flex text-gray-800 dark:dark">
+            <div class="text-xl">{{document.title|upper}}</div> 
+            <div class="ml-8">
+              <a href="{{document.path.url}}" target="_blank">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
+            </svg>
+          </a>
+            </div>
           </div>
+          <div class="flex">
+            <div class="text-gray-500 dark:dark">
+              {{document.description|safe}}
+            </div>
+          </div>
+        
           {% endif %}
         {% endfor %}
       {% endfor %}
@@ -31,15 +44,22 @@
 
   <div class="w-full pt-6" data-collapsible-main>
     <div class="flex justify-between border-b text-3xl" data-collapsible-head>
-      <span>Pro pořadatele</span>
+      <span>Pro kluby</span>
       <span class="close text-4xl text-blue-500">+</span>
     </div>
     <div class="p-3" data-collapsible-body>
       {% for document in documents %}
         {% for tag in document.tags.all %}
-          {% if tag.caption == 'Pro pořadatele' %}
-          <div>
-            {{document.title}}
+          {% if tag.caption == 'Pro kluby' %}
+          <div class="flex">
+            <div>{{document.title}}</div> 
+            <div><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
+            </svg>
+            </div>
+          <div class="flex">
+            {{document.description}}
+          </div>
           </div>
           {% endif %}
         {% endfor %}
