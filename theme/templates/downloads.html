@@ -4,7 +4,7 @@
 {% block content %}
 
 <header class="shadow dark:dark">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <div class="container mx-auto py-6 px-5">
     <h1 class="text-3xl font-bold">Ke stažení</h1>
   </div>
 </header>
@@ -20,7 +20,7 @@
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro jezdce' %}
-          <div class="flex text-gray-800 dark:dark">
+          <div class="flex text-gray-800 dark:dark mt-6">
             <div class="text-xl">{{document.title|upper}}</div> 
             <div class="ml-8">
               <a href="{{document.path.url}}" target="_blank" class="hover:text-blue-500">
@@ -51,7 +51,7 @@
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro kluby' %}
-          <div class="flex text-gray-800 dark:dark">
+          <div class="flex text-gray-800 dark:dark mt-6">
             <div class="text-xl">{{document.title|upper}}</div> 
             <div class="ml-8">
               <a href="{{document.path.url}}" target="_blank" class="hover:text-blue-500">
@@ -81,7 +81,7 @@
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro rozhodčí' %}
-          <div class="flex text-gray-800 dark:dark">
+          <div class="flex text-gray-800 dark:dark mt-6">
             <div class="text-xl">{{document.title|upper}}</div> 
             <div class="ml-8">
               <a href="{{document.path.url}}" target="_blank" class="hover:text-blue-500">
