@@ -168,7 +168,7 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Men Junior":
                 sum_fee+=fee.men_junior_fee
             elif rider_20.class_20 == "Men Under 23":
-                sum_fee+=fee. men_u23_fee
+                sum_fee+=fee.men_u23_fee
             elif rider_20.class_20 == "Men Elite":
                 sum_fee+=fee.men_elite_fee
             elif rider_20.class_20 == "Girls 7":
@@ -192,9 +192,15 @@ def EntryView(request, pk):
             elif rider_20.class_20 == "Girls 16":
                 sum_fee+=fee.girls_16_fee
             elif rider_20.class_20 == "Women 17-24":
-                sum_fee+=fee. women_17_24_fee
+                sum_fee+=fee.women_17_24_fee
             elif rider_20.class_20 == "Women 25 and over":
-                sum_fee+=fee. women_25_over_fee
+                sum_fee+=fee.women_25_over_fee
+            elif rider_20.class_20 == "Women Junior":
+                sum_fee+=fee.women_junior_fee
+            elif rider_20.class_20 == "Women Under 23":
+                sum_fee+=fee.women_u23_fee
+            elif rider_20.class_20 == "Women Elite":
+                sum_fee+=fee.women_elite_fee
 
         for rider_24 in riders_24:
             if rider_24.class_24 == "Boys 12 and under":

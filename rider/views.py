@@ -249,5 +249,6 @@ def LicenceCheckViews(request):
 @staff_member_required
 def RankingCountViews(request):
     """ Function for recount ranking"""
-    threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
+    # threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
+    RankPositionCount().count_ranking_position()
     return render(request, 'rider/rider-rank.html')
