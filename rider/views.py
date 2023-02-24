@@ -79,8 +79,8 @@ def RiderNewView(request):
             uci_id = str(num1)+str(num2)+str(num3)+str(num4)+str(num5)+str(num6)+str(num7)+str(num8)+str(num9)+str(num10)+str(num11)
             # url_uci = f"https://ucibws.uci.ch/api/contacts/riders?filter.uciid={uci_id}"
 
-            username = 'licence'
-            password = ''
+            username = config('LICENCE_USERNAME')
+            password = config('LICENCE_PASSWORD')
             basicAuthCredentials = (username, password)
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
             print(url_uciid)
