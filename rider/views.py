@@ -81,10 +81,13 @@ def RiderNewView(request):
 
             username = config('LICENCE_USERNAME')
             password = config('LICENCE_PASSWORD')
+
+            print(username)
             basicAuthCredentials = (username, password)
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
             print(url_uciid)
             data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+            print(data_json)
             data_json = data_json.text
             data_json = json.loads(data_json)
             print(data_json)
