@@ -77,44 +77,40 @@ def RiderNewView(request):
             num10 = request.POST['num10']
             num11 = request.POST['num11']
             uci_id = str(num1)+str(num2)+str(num3)+str(num4)+str(num5)+str(num6)+str(num7)+str(num8)+str(num9)+str(num10)+str(num11)
-            url_uci = f"https://ucibws.uci.ch/api/contacts/riders?filter.uciid={uci_id}"
-            with urllib.request.urlopen(url_uci) as url:
-                data_json = json.loads(url.read().decode())
+            # url_uci = f"https://ucibws.uci.ch/api/contacts/riders?filter.uciid={uci_id}"
 
-                # check, if UCI ID exist
-                if len(data_json) == 0:
-                    messages.error(request, "Toto UCI ID v databázi UCI neexistuje. Zkontrolujte prosím jeho správnost.")
-                    data = {}
-                    return render(request, 'rider/rider-new.html', data)
-                else:
-                    # check, if rider is CZE nationality
-                    if data_json[0]['Nationality'] != "CZE":
-                        messages.error(request, "Držitel tohoto UCI ID nemá českou národnost. Pokud jste cizinec a chcete mít české startovní číslo, kontaktujte Komisi BMX Českého svazu cyklisitky.")
-                        data = {}
-                        return render(request, 'rider/rider-new.html', data)
+            username = 'licence'
+            password = ''
+            basicAuthCredentials = (username, password)
+            url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
+            print(url_uciid)
+            data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+            data_json = data_json.text
+            data_json = json.loads(data_json)
+            print(data_json)
+            print(data_json['lastname'])
+            print(data_json['sex'])
 
-                    # check, if rider have plate now
-                    rider_check = Rider.objects.filter(uci_id=uci_id)
-                    if len(rider_check) == 1:
-                        messages.error(request, f"UCI ID: {uci_id} je přiděleno jezdci {rider_check[0].first_name} {rider_check[0].last_name} a ten již má přiděleno startovní číslo {rider_check[0].plate}.")
-                        data = {}
-                        return render(request, 'rider/rider-new.html', data)
+            gender = data_json['sex']
+            if gender['code'] == "F":
+                gender = "Žena"
+            else:
+                gender = "Muž"
 
-                    # fill form in rider-new-2
-                    if data_json[0]['Gender'] == "Male":
-                        gender = "Muž"
-                    else:
-                        gender = "Žena"
-                    data_new_rider = {'first_name': data_json[0]['FirstName'], 'last_name': data_json[0]['LastName'],
-                                      'date_of_birth': data_json[0]['Birthdate'][0:10], 'gender': gender, 'clubs': clubs,
-                                      'free_plates': free_plates, 'uci_id': uci_id,}
-                    request.session['first_name'] = data_json[0]['FirstName']
-                    request.session['last_name'] = data_json[0]['LastName'].capitalize()
-                    request.session['date_of_birth'] = data_json[0]['Birthdate'][0:10]
-                    request.session['gender'] = gender
-                    request.session['uci_id'] = uci_id
+            try:
+                data_new_rider = {'first_name': data_json['firstname'], 'last_name': data_json['lastname'],
+                                 'date_of_birth': data_json['birth'][0:10], 'clubs': clubs,
+                                 'free_plates': free_plates, 'uci_id': data_json['uci_id'], 'gender': gender}
+                print(data_new_rider)
+                request.session['first_name'] = data_json['firstname']
+                request.session['last_name'] = data_json['lastname'].capitalize()
+                request.session['date_of_birth'] = data_json['birth'][0:10]
+                request.session['gender'] = gender
+                request.session['uci_id'] = uci_id
 
-                    return render(request, 'rider/rider-new-2.html', data_new_rider)
+                return render(request, 'rider/rider-new-2.html', data_new_rider)
+            except:
+                print("Chyba")
 
         # get data from form and save new rider
         else:
