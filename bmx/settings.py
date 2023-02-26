@@ -216,3 +216,5 @@ CKEDITOR_CONFIGS = {
         'extraPlugins': 'justify,liststyle,indent',
    },
 }
+
+TAILWIND_CSS_PATH = 'css/styles.css'

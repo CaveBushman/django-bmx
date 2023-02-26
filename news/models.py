@@ -19,6 +19,7 @@ class News (models.Model):
     """ Class for news on this website """
 
     title = models.CharField(max_length=255, default="")
+    prefix = RichTextField(max_length=4000, default="", blank=True, null=True)
     content = RichTextField(max_length=10000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
 
