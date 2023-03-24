@@ -334,7 +334,7 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
         elif rider_class == "Women Junior":
             return event_classes.women_junior_fee
         elif rider_class == "Women Under 23":
-            return event_classes.women_u2_fee3
+            return event_classes.women_u23_fee
         else: 
             return event_classes.women_elite_fee
 
@@ -359,11 +359,11 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
         elif rider_class == "Girls 15":
             return event_classes.girls_16_fee
         elif rider_class == "Girls 16":
-            return event_classes.girls_17_24_fee
+            return event_classes.women_17_24_fee
         elif rider_class == "Women 17-24":
             return event_classes.women_17_24_fee
         elif rider_class == "Women 25 and over":
-            return event_classes.girls_24_over_fee
+            return event_classes.women_25_over_fee
         elif rider_class == "Women Junior":
             return event_classes.women_junior_fee
         elif rider_class == "Women Under 23":
