@@ -10,6 +10,10 @@ def expire_licence():
     year = date.today().year
     return f"{year}/12/31"
 
+def rem_expire_licence():
+    year = date.today().year
+    return f"31.12.{year}"
+
 
 def team_name_resolve(club):
     club = Club.objects.get(team_name=club)
@@ -78,6 +82,35 @@ def excel_first_line(ws):
     ws.cell(1, 50, "POA Suspension")
     ws.cell(1, 51, "Suspension End Date")
     ws.cell(1, 52, "AdvancedRider")
+
+    return ws
+
+
+def excel_rem_first_line(ws):
+    """ set first line in REM and Riders list excel file """
+    ws.cell(1, 1, "CLUB_DESCRIPTION")
+    ws.cell(1, 2, "TEAM_DESCRIPTION")
+    ws.cell(1, 3, "RIDER_FIRST")
+    ws.cell(1, 4, "RIDER_LAST")
+    ws.cell(1, 5, "RIDER_SEX")
+    ws.cell(1, 6, "RIDER_BIRTHDATE")
+    ws.cell(1, 7, "RIDER_MAIL")
+    ws.cell(1, 8, "RIDER_TYPE")
+    ws.cell(1, 9, "RIDER_LICENCE_TYPE")
+    ws.cell(1, 10, "RIDER_UCIID")
+    ws.cell(1, 11, "RIDER_UCIID_EXP_DATE")
+    ws.cell(1, 12, "RIDER_PLATE1")
+    ws.cell(1, 13, "RIDER_CHAMP_PLATE1")
+    ws.cell(1, 14, "RIDER_TRANSPONDER1")
+    ws.cell(1, 15, "RIDER_PLATE2")
+    ws.cell(1, 16, "RIDER_CHAMP_PLATE2")
+    ws.cell(1, 17, "RIDER_TRANSPONDER2")
+    ws.cell(1, 18, "RIDER_PLATE3")
+    ws.cell(1, 19, "RIDER_CHAMP_PLATE3")
+    ws.cell(1, 20, "RIDER_TRANSPONDER3")
+    ws.cell(1, 21, "RIDER_IDENT")
+    ws.cell(1, 22, "RIDER_ACTIVE")
+    ws.cell(1, 23, "RIDER_LOCKED")
 
     return ws
 

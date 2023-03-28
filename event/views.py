@@ -869,6 +869,163 @@ def EventAdminView(request, pk):
         event.bem_riders_created = datetime.now()
         event.save()
 
+    # ON LINE ENTRIES FOR REM
+    if 'btn-rem-file' in request.POST:
+            print("Vytvoř startovku pro REM")
+            file_name = f'media/bem-files/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+            wb = Workbook()
+            ws = wb.active
+            ws.title="REM5_EXT"
+            ws = excel_rem_first_line(ws)
+
+            entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=0)
+            x = 2
+            for entry_20 in entries_20:
+                try:
+                    rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
+                    ws.cell(x,1,rider.club)
+                    ws.cell(x,3,rider.first_name)
+                    ws.cell(x,4,rider.last_name)
+                    ws.cell(x,5,rider.gender)
+                    ws.cell(x,6,)
+                    ws.cell(x,7,)
+                    ws.cell(x,9,)
+                    ws.cell(x,10,rider.first_name)
+                    ws.cell(x,11,rem_expire_licence())
+                    ws.cell(x,12,rider.plate)
+                    ws.cell(x,13,)
+                    ws.cell(x,14,rider.transponder_20)
+                    ws.cell(x,15,rider.plate)
+                    ws.cell(x,16,gender_resolve(rider.gender))
+                    ws.cell(x,17,rider.transponder_24)
+                    ws.cell(x,18,rider.plate)
+                    ws.cell(x,19,)
+                    ws.cell(x,20,)
+                    ws.cell(x,21,)
+                    ws.cell(x,22,)
+                    ws.cell(x,23,)
+
+                except Exception as E:
+                    pass
+                x += 1
+
+                #TODO: Dodělat zobrazení přihlášených jezdců s neplatnou licencí
+
+            del entries_20
+
+            entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
+            for entry_24 in entries_24:
+                try:
+                    rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
+                    ws.cell(x,1,rider.club)
+                    ws.cell(x,3,rider.first_name)
+                    ws.cell(x,4,rider.last_name)
+                    ws.cell(x,5,rider.gender)
+                    ws.cell(x,6,)
+                    ws.cell(x,7,)
+                    ws.cell(x,9,)
+                    ws.cell(x,10,rider.first_name)
+                    ws.cell(x,11,rem_expire_licence())
+                    ws.cell(x,12,rider.plate)
+                    ws.cell(x,13,)
+                    ws.cell(x,14,rider.transponder_20)
+                    ws.cell(x,15,rider.plate)
+                    ws.cell(x,16,gender_resolve(rider.gender))
+                    ws.cell(x,17,rider.transponder_24)
+                    ws.cell(x,18,rider.plate)
+                    ws.cell(x,19,)
+                    ws.cell(x,20,)
+                    ws.cell(x,21,)
+                    ws.cell(x,22,)
+                    ws.cell(x,23,)
+
+                except Exception as E:
+                    pass
+                x += 1
+            del entries_24
+
+            # TODO: Add foreign riders
+
+            wb.save(file_name)
+            event.bem_entries = file_name
+            event.bem_entries_created = datetime.now()
+            event.save()
+
+    # ALL RIDERS FOR REM
+    if 'btn-rem-riders-list' in request.POST:
+        print("Vytvoř riders list pro REM")
+        file_name = f'media/riders-list/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
+        wb = Workbook()
+        ws = wb.active
+        ws.title="BEM5_EXT"
+        ws = excel_rem_first_line(ws)
+
+        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+        x = 2
+        for rider in riders:
+            ws.cell(x,1,rider.club)
+            ws.cell(x,3,rider.first_name)
+            ws.cell(x,4,rider.last_name)
+            ws.cell(x,5,rider.gender)
+            ws.cell(x,6,)
+            ws.cell(x,7,)
+            ws.cell(x,9,)
+            ws.cell(x,10,rider.first_name)
+            ws.cell(x,11,rem_expire_licence())
+            ws.cell(x,12,rider.plate)
+            ws.cell(x,13,)
+            ws.cell(x,14,rider.transponder_20)
+            ws.cell(x,15,rider.plate)
+            ws.cell(x,16,gender_resolve(rider.gender))
+            ws.cell(x,17,rider.transponder_24)
+            ws.cell(x,18,rider.plate)
+            ws.cell(x,19,)
+            ws.cell(x,20,)
+            ws.cell(x,21,)
+            ws.cell(x,22,)
+            ws.cell(x,23,) 
+            x += 1
+
+            del riders
+            print("Čeští jezdci přidány")
+
+            foreign_riders = ForeignRider.objects.all()
+            for foreign_rider in foreign_riders:
+                ws.cell(x,1,foreign_rider.uci_id)
+                ws.cell(x,2,foreign_rider.uci_id)
+                ws.cell(x,3,foreign_rider.uci_id)
+                ws.cell(x,4,foreign_rider.uci_id)
+                ws.cell(x,5,foreign_rider.uci_id)
+                ws.cell(x,6,expire_licence())
+                ws.cell(x,7,"BMX-RACE")
+                ws.cell(x,9,str(foreign_rider.date_of_birth).replace('-', '/'))
+                ws.cell(x,10,foreign_rider.first_name)
+                ws.cell(x,11,foreign_rider.last_name.upper())
+                ws.cell(x,16,gender_resolve(foreign_rider.gender))
+                ws.cell(x,17,foreign_club_resolve(foreign_rider.state))
+                ws.cell(x,18,foreign_rider.state)
+                ws.cell(x,19,foreign_rider.state)
+                if foreign_rider.is_20:
+                    ws.cell(x,20,resolve_event_classes(event.id,foreign_rider.gender,True,foreign_rider.class_20,1))
+                if foreign_rider.is_24:
+                    ws.cell(x,21,resolve_event_classes(event.id,foreign_rider.gender,False,foreign_rider.class_24,0))
+                ws.cell(x,28,"")
+                ws.cell(x,29,"")
+                ws.cell(x,24,foreign_rider.plate)
+                ws.cell(x,25,foreign_rider.plate)
+                ws.cell(x,32,foreign_rider.transponder_20)
+                ws.cell(x,33,foreign_rider.transponder_24)
+                ws.cell(x,36,"T1")
+                ws.cell(x,37,"T2")
+                ws.cell(x,45,foreign_rider.club.upper())
+                x+=1
+            del foreign_riders
+
+            wb.save(file_name)
+            event.bem_riders_list = file_name
+            event.bem_riders_created = datetime.now()
+            event.save()
+
     # zjištění jezdců přihlášených na závod s neplatnou licencí
 
     check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
