@@ -15,10 +15,10 @@
   <div class="flex flex-row-reverse bd-highlight mr-6">
       {% if request.user.is_superuser %}
       <a
-      href="{% url 'rider:admin' %}" class="btn--red text-sm md:text-lg">Administrace jezdců</button>
+      href="{% url 'rider:admin' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Administrace jezdců</button>
       {% endif %}
     <a
-    href="{% url 'rider:new' %}" class="btn btn--green text-sm md:text-lg">Požádat o startovní číslo</a>
+    href="{% url 'rider:new' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Požádat o startovní číslo</a>
   </div>
 
   <div class="search" style="margin-top: 2rem">
