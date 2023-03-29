@@ -121,7 +121,7 @@ def ResultsView(request, pk):
 
 def EntryView(request, pk):
     event = get_object_or_404(Event, id=pk)
-    riders = Rider.objects.filter(is_active=True, is_approwe=True)
+    riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
     sum_fee = 0
 
 
@@ -872,7 +872,7 @@ def EventAdminView(request, pk):
     # ON LINE ENTRIES FOR REM
     if 'btn-rem-file' in request.POST:
             print("Vytvoř startovku pro REM")
-            file_name = f'media/bem-files/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+            file_name = f'media/rem-files/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
             wb = Workbook()
             ws = wb.active
             ws.title="REM5_EXT"
@@ -880,23 +880,28 @@ def EventAdminView(request, pk):
 
             entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=0)
             x = 2
+            print("Připravuji 20-ti palcová kola")
             for entry_20 in entries_20:
                 try:
                     rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
-                    ws.cell(x,1,rider.club)
+                    ws.cell(x,1,team_name_resolve(rider.club))
                     ws.cell(x,3,rider.first_name)
                     ws.cell(x,4,rider.last_name)
-                    ws.cell(x,5,rider.gender)
+                    ws.cell(x,5,gender_resolve(rider.gender))
                     ws.cell(x,6,)
                     ws.cell(x,7,)
-                    ws.cell(x,9,)
-                    ws.cell(x,10,rider.first_name)
+                    if rider.is_elite:
+                        ws.cell(x,8,"E")
+                    else:
+                        ws.cell(x,8,"C")
+                    ws.cell(x,9, "U")
+                    ws.cell(x,10,rider.uci_id)
                     ws.cell(x,11,rem_expire_licence())
                     ws.cell(x,12,rider.plate)
                     ws.cell(x,13,)
                     ws.cell(x,14,rider.transponder_20)
                     ws.cell(x,15,rider.plate)
-                    ws.cell(x,16,gender_resolve(rider.gender))
+                    ws.cell(x,16,)
                     ws.cell(x,17,rider.transponder_24)
                     ws.cell(x,18,rider.plate)
                     ws.cell(x,19,)
@@ -906,7 +911,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,23,)
 
                 except Exception as E:
-                    pass
+                    print ("Chyba při ukládání jezdce do REM: ", E)
                 x += 1
 
                 #TODO: Dodělat zobrazení přihlášených jezdců s neplatnou licencí
@@ -917,20 +922,24 @@ def EventAdminView(request, pk):
             for entry_24 in entries_24:
                 try:
                     rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
-                    ws.cell(x,1,rider.club)
+                    ws.cell(x,1,team_name_resolve(rider.club))
                     ws.cell(x,3,rider.first_name)
                     ws.cell(x,4,rider.last_name)
-                    ws.cell(x,5,rider.gender)
+                    ws.cell(x,5,gender_resolve(rider.gender))
                     ws.cell(x,6,)
                     ws.cell(x,7,)
-                    ws.cell(x,9,)
-                    ws.cell(x,10,rider.first_name)
+                    if rider.is_elite:
+                        ws.cell(x,8,"E")
+                    else:
+                        ws.cell(x,8,"C")
+                    ws.cell(x,9, "U")
+                    ws.cell(x,10,rider.uci_id)
                     ws.cell(x,11,rem_expire_licence())
                     ws.cell(x,12,rider.plate)
                     ws.cell(x,13,)
                     ws.cell(x,14,rider.transponder_20)
                     ws.cell(x,15,rider.plate)
-                    ws.cell(x,16,gender_resolve(rider.gender))
+                    ws.cell(x,16,)
                     ws.cell(x,17,rider.transponder_24)
                     ws.cell(x,18,rider.plate)
                     ws.cell(x,19,)
@@ -946,9 +955,11 @@ def EventAdminView(request, pk):
 
             # TODO: Add foreign riders
 
+            print (file_name)
             wb.save(file_name)
-            event.bem_entries = file_name
-            event.bem_entries_created = datetime.now()
+            print ("Soubor uložen")
+            event.rem_entries = file_name
+            event.rem_entries_created = datetime.now()
             event.save()
 
     # ALL RIDERS FOR REM
@@ -957,26 +968,31 @@ def EventAdminView(request, pk):
         file_name = f'media/riders-list/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
         ws = wb.active
-        ws.title="BEM5_EXT"
+        ws.title="REM5_EXT"
         ws = excel_rem_first_line(ws)
 
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         x = 2
         for rider in riders:
-            ws.cell(x,1,rider.club)
+            print("Přidávám " + rider.last_name)
+            ws.cell(x,1,team_name_resolve(rider.club))
             ws.cell(x,3,rider.first_name)
             ws.cell(x,4,rider.last_name)
-            ws.cell(x,5,rider.gender)
+            ws.cell(x,5,gender_resolve(rider.gender))
             ws.cell(x,6,)
             ws.cell(x,7,)
-            ws.cell(x,9,)
-            ws.cell(x,10,rider.first_name)
+            if rider.is_elite:
+                ws.cell(x,8,"E")
+            else:
+                ws.cell(x,8,"C")
+            ws.cell(x,9,"U")
+            ws.cell(x,10,rider.uci_id)
             ws.cell(x,11,rem_expire_licence())
             ws.cell(x,12,rider.plate)
             ws.cell(x,13,)
             ws.cell(x,14,rider.transponder_20)
             ws.cell(x,15,rider.plate)
-            ws.cell(x,16,gender_resolve(rider.gender))
+            ws.cell(x,16,)
             ws.cell(x,17,rider.transponder_24)
             ws.cell(x,18,rider.plate)
             ws.cell(x,19,)
@@ -986,45 +1002,25 @@ def EventAdminView(request, pk):
             ws.cell(x,23,) 
             x += 1
 
-            del riders
-            print("Čeští jezdci přidány")
+        del riders
+        print("Čeští jezdci přidány")
 
-            foreign_riders = ForeignRider.objects.all()
-            for foreign_rider in foreign_riders:
-                ws.cell(x,1,foreign_rider.uci_id)
-                ws.cell(x,2,foreign_rider.uci_id)
-                ws.cell(x,3,foreign_rider.uci_id)
-                ws.cell(x,4,foreign_rider.uci_id)
-                ws.cell(x,5,foreign_rider.uci_id)
-                ws.cell(x,6,expire_licence())
-                ws.cell(x,7,"BMX-RACE")
-                ws.cell(x,9,str(foreign_rider.date_of_birth).replace('-', '/'))
-                ws.cell(x,10,foreign_rider.first_name)
-                ws.cell(x,11,foreign_rider.last_name.upper())
-                ws.cell(x,16,gender_resolve(foreign_rider.gender))
-                ws.cell(x,17,foreign_club_resolve(foreign_rider.state))
-                ws.cell(x,18,foreign_rider.state)
-                ws.cell(x,19,foreign_rider.state)
-                if foreign_rider.is_20:
-                    ws.cell(x,20,resolve_event_classes(event.id,foreign_rider.gender,True,foreign_rider.class_20,1))
-                if foreign_rider.is_24:
-                    ws.cell(x,21,resolve_event_classes(event.id,foreign_rider.gender,False,foreign_rider.class_24,0))
-                ws.cell(x,28,"")
-                ws.cell(x,29,"")
-                ws.cell(x,24,foreign_rider.plate)
-                ws.cell(x,25,foreign_rider.plate)
-                ws.cell(x,32,foreign_rider.transponder_20)
-                ws.cell(x,33,foreign_rider.transponder_24)
-                ws.cell(x,36,"T1")
-                ws.cell(x,37,"T2")
-                ws.cell(x,45,foreign_rider.club.upper())
-                x+=1
-            del foreign_riders
+        foreign_riders = ForeignRider.objects.all()
+        for foreign_rider in foreign_riders:
+           
+            ws.cell(x,3,foreign_rider.first_name)
+            ws.cell(x,4,foreign_rider.last_name)
+            ws.cell(x,10,foreign_rider.uci_id)
+            ws.cell(x,11,rem_expire_licence())
+            ws.cell(x,12,foreign_rider.plate)
+                
+            x+=1
+        del foreign_riders
 
-            wb.save(file_name)
-            event.bem_riders_list = file_name
-            event.bem_riders_created = datetime.now()
-            event.save()
+        wb.save(file_name)
+        event.rem_riders_list = file_name
+        event.rem_riders_created = datetime.now()
+        event.save()
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí
 

@@ -107,6 +107,38 @@
       <td><a href="../../{{event.bem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
     </tr>
     <tr>
+      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Soubory pro REM</th>
+    </tr>
+    <tr>
+      <th></th>
+    </tr>
+    <tr>
+      <th scope="row" class="dark:dark">Registrovaní jezdci na závod - REM FILE</th>
+      <td class="dark:dark">Aktuální ke dni:</td>
+      <td class="dark:dark"> {{event.bem_entries_created}}</td>
+      <td><button
+            href="#"
+            class="btn btn-outline-info blurApp dark:dark"
+            tabindex="-1"
+            role="button"
+            name="btn-rem-file"
+            aria-disabled="true">Vytvořit/aktualizovat startovku pro REM</button></td>
+        <td><a href="../../{{event.rem_entries}}" class="btn btn-outline-success" download>Stáhnout</a></td>
+    </tr>
+    <tr>
+      <th scope="row" class="dark:dark">Riders list - REM FILE</th>
+      <td class="dark:dark">Aktuální ke dni:</td>
+      <td class="dark:dark">{{event.rem_riders_created}}</td>
+      <td><button
+            href="#"
+            class="btn btn-outline-info blurApp dark:dark"
+            tabindex="-1"
+            role="button"
+            name="btn-rem-riders-list"
+            aria-disabled="true">Vytvořit/aktualizovat riders list pro REM</button></td>
+      <td><a href="../../{{event.rem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
+    </tr>
+    <tr>
       <th></th>
     </tr>
     {% if invalid_licences%}
