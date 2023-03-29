@@ -888,7 +888,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,3,rider.first_name)
                     ws.cell(x,4,rider.last_name)
                     ws.cell(x,5,gender_resolve(rider.gender))
-                    ws.cell(x,6,)
+                    ws.cell(x,6,date_of_birth_resolve(rider.date_of_birth))
                     ws.cell(x,7,)
                     if rider.is_elite:
                         ws.cell(x,8,"E")
@@ -898,10 +898,10 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,rider.uci_id)
                     ws.cell(x,11,rem_expire_licence())
                     ws.cell(x,12,rider.plate)
-                    ws.cell(x,13,)
+                    ws.cell(x,13,rider.plate_champ_20)
                     ws.cell(x,14,rider.transponder_20)
                     ws.cell(x,15,rider.plate)
-                    ws.cell(x,16,)
+                    ws.cell(x,16,rider.plate_champ_24)
                     ws.cell(x,17,rider.transponder_24)
                     ws.cell(x,18,rider.plate)
                     ws.cell(x,19,)
@@ -926,7 +926,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,3,rider.first_name)
                     ws.cell(x,4,rider.last_name)
                     ws.cell(x,5,gender_resolve(rider.gender))
-                    ws.cell(x,6,)
+                    ws.cell(x,6,date_of_birth_resolve(rider.date_of_birth))
                     ws.cell(x,7,)
                     if rider.is_elite:
                         ws.cell(x,8,"E")
@@ -936,10 +936,10 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,rider.uci_id)
                     ws.cell(x,11,rem_expire_licence())
                     ws.cell(x,12,rider.plate)
-                    ws.cell(x,13,)
+                    ws.cell(x,13,rider.plate_champ_20)
                     ws.cell(x,14,rider.transponder_20)
                     ws.cell(x,15,rider.plate)
-                    ws.cell(x,16,)
+                    ws.cell(x,16,rider.plate_champ_24)
                     ws.cell(x,17,rider.transponder_24)
                     ws.cell(x,18,rider.plate)
                     ws.cell(x,19,)
@@ -979,7 +979,7 @@ def EventAdminView(request, pk):
             ws.cell(x,3,rider.first_name)
             ws.cell(x,4,rider.last_name)
             ws.cell(x,5,gender_resolve(rider.gender))
-            ws.cell(x,6,)
+            ws.cell(x,6,date_of_birth_resolve(rider.date_of_birth))
             ws.cell(x,7,)
             if rider.is_elite:
                 ws.cell(x,8,"E")
@@ -989,10 +989,10 @@ def EventAdminView(request, pk):
             ws.cell(x,10,rider.uci_id)
             ws.cell(x,11,rem_expire_licence())
             ws.cell(x,12,rider.plate)
-            ws.cell(x,13,)
+            ws.cell(x,13,rider.plate_champ_20)
             ws.cell(x,14,rider.transponder_20)
             ws.cell(x,15,rider.plate)
-            ws.cell(x,16,)
+            ws.cell(x,16,rider.plate_champ_24)
             ws.cell(x,17,rider.transponder_24)
             ws.cell(x,18,rider.plate)
             ws.cell(x,19,)
@@ -1007,12 +1007,16 @@ def EventAdminView(request, pk):
 
         foreign_riders = ForeignRider.objects.all()
         for foreign_rider in foreign_riders:
-           
+            ws.cell(x,1,foreign_rider.club)
             ws.cell(x,3,foreign_rider.first_name)
             ws.cell(x,4,foreign_rider.last_name)
             ws.cell(x,10,foreign_rider.uci_id)
             ws.cell(x,11,rem_expire_licence())
             ws.cell(x,12,foreign_rider.plate)
+            ws.cell(x,14,foreign_rider.transponder_20)
+            ws.cell(x,15,foreign_rider.plate)
+            ws.cell(x,16,)
+            ws.cell(x,17,foreign_rider.transponder_24)
                 
             x+=1
         del foreign_riders

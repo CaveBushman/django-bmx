@@ -79,6 +79,8 @@ class Rider(models.Model):
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
 
     plate = models.IntegerField(blank=True, null=True, default=0)
+    plate_champ_20 = models.IntegerField(null=True, blank=True)
+    plate_champ_24 = models.IntegerField(null=True, blank=True)
     plate_color_20 = models.CharField(max_length=10, default="yellow", null=True)
 
     emergency_contact = models.CharField(max_length=255, blank=True, null=True)

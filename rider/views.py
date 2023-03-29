@@ -218,28 +218,8 @@ def InactiveRidersViews(request):
 
 @staff_member_required
 def LicenceCheckViews(request):
-    """ Function for licence check views """
-    username = config('LICENCE_USERNAME')
-    password = config('LICENCE_PASSWORD')
-    basicAuthCredentials = (username, password)
-
-    riders = Rider.objects.all().exclude(is_active=False)
-
-    urllib3.disable_warnings()
-    requests.packages.urllib3.disable_warnings()
-
-    url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={riders[0].uci_id}&year={now}')
-    try:
-        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-        if re.search("Http_Unauthorised", dataJSON.text):
-            messages.error (request, "Špatné přihlašovací údaje k API ČSC")
-            return render(request, 'rider/rider-lincence.html')
-    except Exception as e:
-        messages.error (request, "Spojení se serverem ČSC se nezdařilo")
-        print(e)
-        return render(request, 'rider/rider-licence.html')
     
-    threading.Thread(target=valid_licence_control(), daemon=True).start()
+    valid_licence_control()
 
     data={}
     return render (request, 'rider/rider-licence.html', data)

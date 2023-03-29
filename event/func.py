@@ -19,6 +19,10 @@ def team_name_resolve(club):
     club = Club.objects.get(team_name=club)
     return club.team_name
 
+def date_of_birth_resolve(date):
+    date = str(date).replace('.', '-')
+    date = date[8:] + "-" + date [5:7] + "-" + date [:4]
+    return date
 
 def gender_resolve(rider):
     """ Set gender to BEM format """
