@@ -37,7 +37,7 @@ def valid_licence(uci_id):
 
 def valid_licence_control():
     """ Function for controling validations licence """
-    riders = Rider.objects.filter(is_active = True, valid_licence= False)
+    riders = Rider.objects.filter(is_active = True)
 
     for rider in riders:
         threading.Thread(target = valid_licence(rider.uci_id), daemon = True).start()
