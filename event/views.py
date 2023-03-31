@@ -963,11 +963,11 @@ def EventAdminView(request, pk):
     # ALL RIDERS FOR REM
     if 'btn-rem-riders-list' in request.POST:
         print("Vytvoř riders list pro REM")
-        file_name = f'media/riders-list/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
+        file_name = f'media/rem_riders/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
         ws = wb.active
         ws.title="REM5_EXT"
-        ws = excel_rem_first_line_online(ws)
+        ws = excel_rem_first_line(ws)
 
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         x = 2
