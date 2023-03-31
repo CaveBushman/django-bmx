@@ -24,6 +24,12 @@ def date_of_birth_resolve(date):
     date = date[8:] + "-" + date [5:7] + "-" + date [:4]
     return date
 
+def date_of_birth_resolve_rem_online(date):
+    date = str(date)
+    date = date[8:] + "." + date [5:7] + "." + date [:4]
+    return date
+
+
 def gender_resolve(rider):
     """ Set gender to BEM format """
     if rider == "Žena":
@@ -31,6 +37,12 @@ def gender_resolve(rider):
     else:
         return "M"
 
+def gender_resolve_rem_online(rider):
+    """ Set gender to BEM format """
+    if rider == "Žena":
+        return "Female"
+    else:
+        return "Male"
 
 def excel_first_line(ws):
     """ set first line in BEM and Riders list excel file """
@@ -120,7 +132,7 @@ def excel_rem_first_line(ws):
 
 
 def excel_rem_first_line_online(ws):
-    """ set first line in REM and Riders list excel file """
+    """ set first line in REM online entires excel file """
     ws.cell(1, 1, "uci_id")
     ws.cell(1, 2, "uci_code")
     ws.cell(1, 3, "first_name")
@@ -140,10 +152,11 @@ def excel_rem_first_line_online(ws):
     ws.cell(1, 17, "class_0")
     ws.cell(1, 18, "transponder_0")
     ws.cell(1, 19, "transponderhire_0")
-    ws.cell(1, 20, "class_1")
-    ws.cell(1, 21, "transponder_1")
-    ws.cell(1, 22, "transponderhire_1")
-    ws.cell(1, 23, "plate_1")
+    ws.cell(1, 20, "plate_0")
+    ws.cell(1, 21, "class_1")
+    ws.cell(1, 22, "transponder_1")
+    ws.cell(1, 23, "transponderhire_1")
+    ws.cell(1, 24, "plate_1")
 
     return ws
 
