@@ -12,7 +12,7 @@ def expire_licence():
 
 def rem_expire_licence():
     year = date.today().year
-    return f"31.12.{year}"
+    return f"31-12-{year}"
 
 
 def team_name_resolve(club):
@@ -115,6 +115,35 @@ def excel_rem_first_line(ws):
     ws.cell(1, 21, "RIDER_IDENT")
     ws.cell(1, 22, "RIDER_ACTIVE")
     ws.cell(1, 23, "RIDER_LOCKED")
+
+    return ws
+
+
+def excel_rem_first_line_online(ws):
+    """ set first line in REM and Riders list excel file """
+    ws.cell(1, 1, "uci_id")
+    ws.cell(1, 2, "uci_code")
+    ws.cell(1, 3, "first_name")
+    ws.cell(1, 4, "last_name")
+    ws.cell(1, 5, "email")
+    ws.cell(1, 6, "club")
+    ws.cell(1, 7, "country")
+    ws.cell(1, 8, "date_of_birth")
+    ws.cell(1, 9, "sex")
+    ws.cell(1, 10, "event")
+    ws.cell(1, 11, "event_date")
+    ws.cell(1, 12, "paid")
+    ws.cell(1, 13, "event_price")
+    ws.cell(1, 14, "admin_fee")
+    ws.cell(1, 15, "transponder_hire_price")
+    ws.cell(1, 16, "team_sponsor")
+    ws.cell(1, 17, "class_0")
+    ws.cell(1, 18, "transponder_0")
+    ws.cell(1, 19, "transponderhire_0")
+    ws.cell(1, 20, "class_1")
+    ws.cell(1, 21, "transponder_1")
+    ws.cell(1, 22, "transponderhire_1")
+    ws.cell(1, 23, "plate_1")
 
     return ws
 

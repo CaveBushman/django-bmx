@@ -969,7 +969,7 @@ def EventAdminView(request, pk):
         wb = Workbook()
         ws = wb.active
         ws.title="REM5_EXT"
-        ws = excel_rem_first_line(ws)
+        ws = excel_rem_first_line_online(ws)
 
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         x = 2
