@@ -190,8 +190,8 @@ class Event(models.Model):
     rem_entries = models.FileField(upload_to='rem_entries/', null = True, blank = True)
     rem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
-    bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    rem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
+    rem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_backup = models.FileField(upload_to='bem_backup/', null = True, blank = True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
