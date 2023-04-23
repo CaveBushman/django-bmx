@@ -260,18 +260,15 @@ def EntryView(request, pk):
     # disable riders, who was registered in event
     for rider in riders:
         was_registered = Entry.objects.filter(event=event.id, rider=rider.uci_id, payment_complete=True)
-        
+    
         rider.class_20 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_20, 1)
         rider.class_24 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_24, 0)
 
-        if was_registered.count() == 1:
+        if was_registered.count() > 0:
             if was_registered[0].is_20:
                 rider.class_20 += 'registered'
             if was_registered[0].is_24:
                 rider.class_24 += "registered"
-        elif was_registered.count() >= 2:
-            rider.class_20 += 'registered'
-            rider.class_24 += "registered"
 
     data = {'event': event, 'riders': riders}
     return render(request, 'event/entry.html', data)
