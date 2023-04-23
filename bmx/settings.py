@@ -189,7 +189,7 @@ LOGOUT_REDIRECT_URL = 'news:home'
 if DEBUG:
     YOUR_DOMAIN = "http://localhost:8000"
 else:
-    YOUR_DOMAIN = "http://app.czechbmx.cz"
+    YOUR_DOMAIN = "http://czechbmx.cz"
 
 
 # email setting
