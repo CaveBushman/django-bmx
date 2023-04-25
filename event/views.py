@@ -257,6 +257,10 @@ def EntryView(request, pk):
         # response.set_cookie()
         return response
 
+    if is_registration_open(event.id):
+        # TODO: Přesměrovat na chybovou stránku
+        pass
+
     # disable riders, who was registered in event
     for rider in riders:
         was_registered = Entry.objects.filter(event=event.id, rider=rider.uci_id, payment_complete=True)
