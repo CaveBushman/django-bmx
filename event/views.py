@@ -897,7 +897,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,)
                     ws.cell(x,11,)
                     ws.cell(x,12,"True")
-                    ws.cell(x,13,)
+                    ws.cell(x,13,) #TODO: Dodělat výši platby
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
@@ -934,7 +934,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,)
                     ws.cell(x,11,)
                     ws.cell(x,12,"True")
-                    ws.cell(x,13,)
+                    ws.cell(x,13,) #TODO: Dodělat výši platby
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
