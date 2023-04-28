@@ -879,7 +879,7 @@ def EventAdminView(request, pk):
             ws.title="REM5_EXT"
             ws = excel_rem_first_line_online(ws)
 
-            entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=0)
+            entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=False)
             x = 2
             print("Připravuji 20-ti palcová kola")
             for entry_20 in entries_20:
@@ -897,7 +897,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,)
                     ws.cell(x,11,)
                     ws.cell(x,12,"True")
-                    ws.cell(x,13,) #TODO: Dodělat výši platby
+                    ws.cell(x,13, entry_20.fee_20) #TODO: Dodělat výši platby
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
@@ -934,7 +934,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,10,)
                     ws.cell(x,11,)
                     ws.cell(x,12,"True")
-                    ws.cell(x,13,) #TODO: Dodělat výši platby
+                    ws.cell(x,13,entry_24.fee_24) #TODO: Dodělat výši platby
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
@@ -1027,8 +1027,8 @@ def EventAdminView(request, pk):
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí
 
-    check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1)
-    check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1)
+    check_20_entries = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout = False)
+    check_24_entries = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout = False)
 
     invalid_licences = []
     sum_of_fees = 0
