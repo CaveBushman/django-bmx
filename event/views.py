@@ -692,6 +692,7 @@ def EventAdminView(request, pk):
         print("Vytvoř startovku")
         file_name = f'media/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
         wb = Workbook()
+        wb.encoding = "utf-8"
         ws = wb.active
         ws.title="BEM5_EXT"
         ws = excel_first_line(ws)
@@ -787,6 +788,7 @@ def EventAdminView(request, pk):
         print("Vytvoř riders list")
         file_name = f'media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
+        wb.encoding = "utf-8"
         ws = wb.active
         ws.title="BEM5_EXT"
         ws = excel_first_line(ws)
@@ -873,8 +875,9 @@ def EventAdminView(request, pk):
     # ON LINE ENTRIES FOR REM
     if 'btn-rem-file' in request.POST:
             print("Vytvoř startovku pro REM")
-            file_name = f'media/rem-files/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+            file_name = f'media/rem_entries/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
             wb = Workbook()
+            wb.encoding = "utf-8"
             ws = wb.active
             ws.title="REM5_EXT"
             ws = excel_rem_first_line_online(ws)
@@ -966,6 +969,7 @@ def EventAdminView(request, pk):
         print("Vytvoř riders list pro REM")
         file_name = f'media/rem_riders/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
+        wb.encoding = "utf-8"
         ws = wb.active
         ws.title="REM5_EXT"
         ws = excel_rem_first_line(ws)
@@ -973,7 +977,6 @@ def EventAdminView(request, pk):
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         x = 2
         for rider in riders:
-            print("Přidávám " + rider.last_name)
             ws.cell(x,1,team_name_resolve(rider.club))
             ws.cell(x,3,rider.first_name)
             ws.cell(x,4,rider.last_name)
