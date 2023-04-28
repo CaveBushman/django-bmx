@@ -875,7 +875,7 @@ def EventAdminView(request, pk):
     # ON LINE ENTRIES FOR REM
     if 'btn-rem-file' in request.POST:
             print("Vytvoř startovku pro REM")
-            file_name = f'media/rem_entries/REM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+            file_name = f'media/rem_entries/REM_FOR_RACE_ID-{event.id}.xlsx'
             wb = Workbook()
             wb.encoding = "utf-8"
             ws = wb.active
@@ -960,7 +960,12 @@ def EventAdminView(request, pk):
             print (file_name)
             wb.save(file_name)
             print ("Soubor uložen")
-            event.rem_entries = file_name
+            
+            file = pd.read_excel(file_name)
+            file_name_to_txt = file_name [:-4] + "txt" 
+            file.to_csv(file_name_to_txt,sep="\t",index=False)
+
+            event.rem_entries = file_name_to_txt
             event.rem_entries_created = datetime.now()
             event.save()
 
@@ -1024,8 +1029,13 @@ def EventAdminView(request, pk):
         del foreign_riders
 
         wb.save(file_name)
-        event.rem_riders_list = file_name
-        event.rem_riders_created = datetime.now()
+
+        file = pd.read_excel(file_name)
+        file_name_to_txt = file_name [:-4] + "txt" 
+        file.to_csv(file_name_to_txt,sep="\t",index=False)
+
+        event.rem_entries = file_name_to_txt
+        event.rem_entries_created = datetime.now()
         event.save()
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí

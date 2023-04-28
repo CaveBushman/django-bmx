@@ -1,0 +1,267 @@
+uci_id	uci_code	first_name	last_name	email	club	country	date_of_birth	sex	event	event_date	paid	event_price	admin_fee	transponder_hire_price	team_sponsor	class_0	transponder_0	transponderhire_0	plate_0	class_1	transponder_1	transponderhire_1	plate_1
+10137474343	10137474343	Mathias	Miškovič	KamilaDiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	24.03.2017	Male			True	300			TJ Slovan Bohnice-BMX	Boys 6	PR-56928		843.0				
+10125997324	10125997324	Šimon	Klega	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.02.2014	Male			True	300			TJ Slovan Bohnice-BMX	Boys 9	HK-73656		629.0				
+10125224253	10125224253	Šimon	Aksamit	aksamit.simon@gmail.com	Bikrosclub Řepy	CZE	02.08.2009	Male			True	300			Bikrosclub Řepy	Boys 13/14	HW-43726		868.0				
+10138460208	10138460208	Marvin	Agner	KamilaDiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	26.03.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	PG-05967		845.0				
+10090699731	10090699731	Vít	Uher	info@bmxtrinec.net	TJ BMX Třinec	CZE	22.01.2014	Male			True	300			TJ BMX Třinec	Boys 9	KN-38625		503.0				
+10125998637	10125998637	Filip	Král	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	09.08.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	HS-42869		983.0				
+10046348907	10046348907	Adam	Bábek	linhartteam@seznam.cz	Bike team Uničov	CZE	22.09.2003	Male			True	500			Bike team Uničov	JM/U23/EM	PG-38694		922.0				
+10106521037	10106521037	Max	Roškot	zuzanahh@seznam.cz	Bikrosclub Řepy	CZE	02.04.2015	Male			True	300			Bikrosclub Řepy	Boys 8	NX-08447		524.0				
+10106521138	10106521138	Sam	Roškot	zuzanahh@seznam.cz	Bikrosclub Řepy	CZE	14.05.2013	Male			True	300			Bikrosclub Řepy	Boys 10	KZ-97220		541.0				
+10118110214	10118110214	Petr	Vacek	petr219@email.cz	SC BMX Benátky	CZE	24.01.2016	Male			True	300			SC BMX Benátky	Boys 7	FW-40087		327.0				
+10047253633	10047253633	Tobias	Bleier	josef@impra.cz	Bikrosclub Řepy	CZE	06.01.2009	Male			True	300			Bikrosclub Řepy	Boys 13/14	CW-53522		101.0				
+10105462323	10105462323	Jiří	Kabriel	zufka@email.cz	TJ Favorit Brno	CZE	26.04.2012	Male			True	300			TJ Favorit Brno	Boys 11	PK-03631		569.0				
+10117688464	10117688464	Josef	Hasman	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	16.02.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	PK-54364		516.0				
+10046524315	10046524315	Vít	Mádr	hmadrova@volny.cz	Bikrosclub Řepy	CZE	08.06.2006	Male			True	400			Bikrosclub Řepy	Men 17+	PR-91300		532.0				
+10047379733	10047379733	Robin	Petrus	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	09.12.2007	Male			True	400			TJ Slovan Bohnice-BMX	Boys 15/16	CR-53236		551.0				
+10047350532	10047350532	Václav	Najser	linhartteam@seznam.cz	Bike team Uničov	CZE	26.06.2009	Male			True	300			Bike team Uničov	Boys 13/14	HT-63082		989.0				
+10118660787	10118660787	Lukáš	Homolka	petr.homo@gmail.com	SC BMX Benátky	CZE	19.10.2016	Male			True	300			SC BMX Benátky	Boys 7	HS-26876		235.0				
+10113212421	10113212421	Viktor	Kudrna	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	09.10.2014	Male			True	300			TJ Slovan Bohnice-BMX	Boys 9	TX-50004		951.0				
+10048042363	10048042363	Adam	Quarda	peta024@seznam.cz	BMX Bílov	CZE	08.08.2006	Male			True	500			BMX Bílov	JM/U23/EM	CR-52861		209.0				
+10054541363	10054541363	Daren	Dvořák	leona.brnkova@seznam.cz	Bikros team Vyškov	CZE	16.04.2011	Male			True	300			Bikros team Vyškov	Boys 12	FW-66290		881.0				
+10092872430	10092872430	Benjamin	Fojtík	info@hfojtik.cz	Bikros team Vyškov	CZE	12.12.2012	Male			True	300			Bikros team Vyškov	Boys 11	HX-64856		89.0				
+10047411257	10047411257	Štěpán	Havelka	honhav@gmail.com	Bikros team Vyškov	CZE	17.04.2011	Male			True	300			Bikros team Vyškov	Boys 12	FR-47650		778.0				
+10047304860	10047304860	Jaromír	Honzák	holuha@seznam.cz	Bikros team Vyškov	CZE	27.02.2008	Male			True	400			Bikros team Vyškov	Boys 15/16	CS-31739		272.0				
+10112046603	10112046603	Jiří	Luska	jiri.luska@gmail.com	Bikros team Vyškov	CZE	07.05.2014	Male			True	300			Bikros team Vyškov	Boys 9	PR-85245		398.0				
+10106156376	10106156376	Petr	Netík	petrnet@seznam.cz	Bikros team Vyškov	CZE	11.10.2012	Male			True	300			Bikros team Vyškov	Boys 11	HV-57526		310.0				
+10058445009	10058445009	Tomáš	Otevřel	otevrel.pavel@post.cz	Bikros team Vyškov	CZE	09.01.2010	Male			True	300			Bikros team Vyškov	Boys 13/14	PW-40223		781.0				
+10093510812	10093510812	Ondřej	Průcha	lukas.prucha@bee-biker.com	Bikros team Vyškov	CZE	27.09.2013	Male			True	300			Bikros team Vyškov	Boys 10	HP-03960		406.0				
+10047278184	10047278184	Tomáš	Vrtílek	holuha@seznam.cz	Bikros team Vyškov	CZE	15.01.2007	Male			True	400			Bikros team Vyškov	Boys 15/16	FW-25188		151.0				
+10125483224	10125483224	Jakub	Šášek	serwuz@seznam.cz	Bikros team Vyškov	CZE	30.06.2015	Male			True	300			Bikros team Vyškov	Boys 8	KS-35425		630.0				
+10046526638	10046526638	Vojtěch	Polesný	Tereza.polesna@email.cz	Bikrosclub Řepy	CZE	25.12.2005	Male			True	500			Bikrosclub Řepy	JM/U23/EM	PR-85894		25.0				
+10118369585	10118369585	Josef	Koutek	ezra.kra@gmail.com	Bikrosclub Řepy	CZE	27.08.2016	Male			True	300			Bikrosclub Řepy	Boys 7	HT-90590		419.0				
+10047298493	10047298493	David	Kořínek	sabca21@seznam.cz	Bikrosclub Řepy	CZE	14.09.2004	Male			True	400			Bikrosclub Řepy	Men 17+	SN-31610		149.0				
+10091858172	10091858172	Štefan	Basulto	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	10.07.2012	Male			True	300			TJ Slovan Bohnice-BMX	Boys 11	CR-52868		876.0				
+10109299378	10109299378	Kryštof	Hlůže	martin.hluze@gmail.com	Bikrosclub Řepy	CZE	30.10.2014	Male			True	300			Bikrosclub Řepy	Boys 9	HK-10036		305.0				
+10078240584	10078240584	Lukáš	Vančo	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.10.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	HT-92390		373.0				
+10047379228	10047379228	Matyáš	Vančo	jurivanco@gmail.com	TJ Slovan Bohnice-BMX	CZE	01.12.2010	Male			True	300			TJ Slovan Bohnice-BMX	Boys 13/14	PK-05102		333.0				
+10091820079	10091820079	Mason	Carroll	katerina.janova@gmail.com	SC BMX Benátky	CZE	20.09.2012	Male			True	300			SC BMX Benátky	Boys 11	HH-51083		771.0				
+10047426415	10047426415	David	Balák	denisa.balakova@seznam.cz	TJ Favorit Brno	CZE	18.07.2007	Male			True	400			TJ Favorit Brno	Boys 15/16	CN-25377		477.0				
+10121352337	10121352337	Radim	Průcha	prucharadek@seznam.cz	Bikrosclub Řepy	CZE	07.01.2016	Male			True	300			Bikrosclub Řepy	Boys 7	HT-90485		735.0				
+10129448201	10129448201	Kryštof	Dvořák	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	05.02.2015	Male			True	300			SC BMX Benátky	Boys 8	HT-48261		93.0				
+10105469801	10105469801	Robin	Procházka	on_y18@centrum.cz	Bike team Uničov	CZE	17.09.2014	Male			True	300			Bike team Uničov	Boys 9	HT-66277		971.0				
+10105424533	10105424533	Dominika	Vysocká	peta024@seznam.cz	AMK BMX Studénka	CZE	25.03.2012	Female			True	300			AMK BMX Studénka	Boys 10	NX-95517		352.0				
+10129506195	10129506195	Martin	Čuban	zdenek.cuban@seznam.cz	SC BMX Benátky	CZE	13.06.2014	Male			True	300			SC BMX Benátky	Boys 9	HX-24222		136.0				
+10047343660	10047343660	Marek	Nováček	linhartteam@seznam.cz	Bike team Uničov	CZE	22.06.2007	Male			True	400			Bike team Uničov	Boys 15/16	KP-78306		413.0				
+10105469595	10105469595	Michaela	Nováčková	Vitula.Cerna@seznam.cz	Bike team Uničov	CZE	26.03.2013	Female			True	300			Bike team Uničov	Boys 9	HT-90135		776.0				
+10106036643	10106036643	Matěj	Plachý	petrplachy03@gmail.com	BMX Krupka	CZE	02.04.2010	Male			True	300			BMX Krupka	Boys 13/14	NZ-95856		877.0				
+10113211815	10113211815	Hugo	Jirava	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	28.02.2016	Male			True	300			TJ Slovan Bohnice-BMX	Boys 7	CR-54296		748.0				
+10056186020	10056186020	Kvido	Jirava	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	13.11.2011	Male			True	300			TJ Slovan Bohnice-BMX	Boys 12	VC-95401		941.0				
+10047376804	10047376804	David	Tichý	marektichy.1@seznam.cz	Bikrosclub Řepy	CZE	07.02.2008	Male			True	400			Bikrosclub Řepy	Boys 15/16	FW-26966		180.0				
+10078022437	10078022437	Jiří	Zouhar	info@bmxkrupka.cz	BMX Krupka	CZE	05.06.2011	Male			True	300			BMX Krupka	Boys 12	HN-44061		810.0				
+10105462727	10105462727	Nelly	Skřejpková	jspkejpek@gmail.com	TJ Favorit Brno	CZE	02.11.2013	Female			True	300			TJ Favorit Brno	Boys 9	HX-08439		646.0				
+10047265555	10047265555	Matěj	Psota	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	24.07.2007	Male			True	400			TJ Slovan Bohnice-BMX	Boys 15/16	CR-53833		247.0				
+10077055265	10077055265	Richard	Svoboda	svoboda@svoon.net	SC BMX Benátky	CZE	13.08.2011	Male			True	300			SC BMX Benátky	Boys 12	HW-00251		229.0				
+10091819473	10091819473	Denis	Krejčí	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	29.05.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	KT-40126		295.0				
+10047272225	10047272225	Matouš	Fiala	linhartteam@seznam.cz	Bike team Uničov	CZE	22.06.2011	Male			True	300			Bike team Uničov	Boys 12	HV-26988		344.0				
+10106193863	10106193863	Tomáš	Havrlant	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	23.10.2013	Male			True	300			SC BMX Benátky	Boys 10	HT-78026		403.0				
+10078222400	10078222400	Sebastian	Pňovský	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	09.08.2011	Male			True	300			TJ Slovan Bohnice-BMX	Boys 12	HT-71974		980.0				
+10047504621	10047504621	Albert	Vlček	moto65@seznam.cz	Bikrosclub Řepy	CZE	24.04.2008	Male			True	400			Bikrosclub Řepy	Boys 15/16	NV-02355		999.0				
+10141097796	10141097796	Rudolf	Hauf	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.03.2017	Male			True	300			TJ Slovan Bohnice-BMX	Boys 6	TL-80361		637.0				
+10046579784	10046579784	Jakub	Kratochvíl	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	21.05.2011	Male			True	300			TJ Slovan Bohnice-BMX	Boys 12	GZ-68198		521.0				
+10091819877	10091819877	Matouš	Čech	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.08.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	KW-20053		683.0				
+10104250429	10104250429	Dominik	Semenyšín	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	18.04.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	KW-29209		418.0				
+10011734354	10011734354	Jan	Herrman	davidherrman@email.cz	SC BMX Benátky	CZE	16.04.2008	Male			True	400			SC BMX Benátky	Boys 15/16	NX-02123		118.0				
+10047377612	10047377612	Jakub	Dlouhý	v.dlouhy81@gmail.com	Bikrosclub Řepy	CZE	12.10.2011	Male			True	300			Bikrosclub Řepy	Boys 12	HH-52309		84.0				
+10047397820	10047397820	Viktor	Weber	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	07.06.2009	Male			True	300			TJ Slovan Bohnice-BMX	Boys 13/14	HV-55562		991.0				
+10047413176	10047413176	Jiří	Suchánek	Jureli.s@seznam.cz	TJ Favorit Brno	CZE	31.12.2008	Male			True	400			TJ Favorit Brno	Boys 15/16	LL-62519		767.0				
+10091858475	10091858475	Jakub	Markvart	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	03.05.2012	Male			True	300			TJ Slovan Bohnice-BMX	Boys 11	HR-91575		324.0				
+10093079463	10093079463	Jakub	Vesecký	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	20.09.2004	Male			True	500			SC BMX Benátky	JM/U23/EM	CW-31001		30.0				
+10046497437	10046497437	Lukáš	Vesecký	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	20.09.2004	Male			True	500			SC BMX Benátky	JM/U23/EM	HX-11880		90.0				
+10116314906	10116314906	Adam	Slabyhoudek	slabyhoudkova@qsoft.cz	Bikrosclub Řepy	CZE	01.12.2014	Male			True	300			Bikrosclub Řepy	Boys 9	HT-13159		596.0				
+10092872834	10092872834	Matyáš	Haluza	tomas.haluza@gmail.com	TJ Favorit Brno	CZE	06.06.2013	Male			True	300			TJ Favorit Brno	Boys 10	HN-61687		663.0				
+10005522213	10005522213	Tomáš	Haluza	tomas.haluza@gmail.com	TJ Favorit Brno	CZE	09.08.1988	Male			True	500			TJ Favorit Brno	JM/U23/EM	GL-28201		85.0				
+10077045060	10077045060	Narottam	Suk	mail@ragini.cz	SC BMX Benátky	CZE	17.11.2011	Male			True	300			SC BMX Benátky	Boys 12	NF-01834		108.0				
+10059943051	10059943051	Ondřej	Hendrych	ona.hena@seznam.cz	SC BMX Benátky	CZE	19.08.2010	Male			True	300			SC BMX Benátky	Boys 13/14	HS-40536		80.0				
+10118111426	10118111426	Zdeněk	Otta	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	02.07.2007	Male			True	400			SC BMX Benátky	Boys 15/16	KZ-32179		705.0				
+10096232973	10096232973	Jan	Očenášek	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	16.03.2014	Male			True	300			SC BMX Benátky	Boys 9	FW-65855		955.0				
+10046591205	10046591205	Marek	Neužil	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	19.06.2004	Male			True	500			TJ Slovan Bohnice-BMX	JM/U23/EM	HW-71352		196.0				
+10105741906	10105741906	Kryštof	Šulc	hlavovaeva@seznam.cz	Bikrosclub Řepy	CZE	29.01.2015	Male			True	300			Bikrosclub Řepy	Boys 8	HV-83038		519.0				
+10106585503	10106585503	Pavel	Gutwirth	petr.miltner@seznam.cz	Faler bike team	CZE	09.01.2012	Male			True	300			Faler bike team	Boys 11	SL-53971		427.0				
+10091789363	10091789363	Jakub	Himmel	petr.miltner@seznam.cz	Faler bike team	CZE	02.08.2008	Male			True	400			Faler bike team	Boys 15/16	PF-20884		440.0				
+10091789969	10091789969	David	Mareš	petr.miltner@seznam.cz	Faler bike team	CZE	23.08.2007	Male			True	400			Faler bike team	Boys 15/16	KX-37685		906.0				
+10014478552	10014478552	Zden?k	Matys	petr.miltner@seznam.cz	Faler bike team	CZE	03.06.2014	Male			True	300			Faler bike team	Boys 9	LK-70422		436.0				
+10047425102	10047425102	Oliver	Miltner	petr.miltner@seznam.cz	Faler bike team	CZE	21.04.2008	Male			True	400			Faler bike team	Boys 15/16	NW-80206		421.0				
+10081970438	10081970438	Tomáš	Novotný	petr.miltner@seznam.cz	Faler bike team	CZE	25.10.2011	Male			True	300			Faler bike team	Boys 12	CN-98871		456.0				
+10106585907	10106585907	Jaroslav	Šebesta	petr.miltner@seznam.cz	Faler bike team	CZE	27.08.2013	Male			True	300			Faler bike team	Boys 10	SL-88262		478.0				
+10118106170	10118106170	Jim	Heerink	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	04.09.2006	Male			True	400			SC BMX Benátky	Men 17+	KZ-77670		332.0				
+10129503367	10129503367	Jakub	Křeček	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	20.06.2016	Male			True	300			SC BMX Benátky	Boys 7	SH-56757		485.0				
+10105741704	10105741704	Petr	Svátek	petr.svatek@husqvarnagroup.com	Bikrosclub Řepy	CZE	30.07.2015	Male			True	300			Bikrosclub Řepy	Boys 8	SW-07212		968.0				
+10083121203	10083121203	Adam	Dvořák	becka.radek@seznam.cz	BMX Bílina	CZE	23.03.2011	Male			True	300			BMX Bílina	Boys 12	SG-00056		529.0				
+10005701459	10005701459	Tomáš	Lohse	becka.radek@seznam.cz	BMX Bílina	CZE	14.02.2012	Male			True	300			BMX Bílina	Boys 11	SL-49925		429.0				
+10047359020	10047359020	David	Černý	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	07.03.2010	Male			True	300			TJ Slovan Bohnice-BMX	Boys 13/14	HH-52377		320.0				
+10091859889	10091859889	Michal	Černý	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	09.04.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	HH-42482		390.0				
+10081967307	10081967307	Alex	Ančinec	liborancinec@gmail.com	Bikrosclub Řepy	CZE	08.10.2012	Male			True	300			Bikrosclub Řepy	Boys 11	TZ-30922		466.0				
+10129448706	10129448706	Ladislav	Pejzl	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	15.05.2011	Male			True	300			SC BMX Benátky	Boys 12	HX-02720		699.0				
+10058328003	10058328003	Matěj	Procházka	chazka@atlas.cz	Tufír team	CZE	10.03.2008	Male			True	400			Tufír team	Boys 15/16	SS-44470		902.0				
+10007055217	10007055217	Oliver	Krejčí	krejcipetra@post.cz	Bikrosclub Řepy	CZE	13.08.2012	Male			True	300			Bikrosclub Řepy	Boys 11	CR-04484		813.0				
+10078221689	10078221689	Matěj	Tejmar	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	12.09.2013	Male			True	300			TJ Slovan Bohnice-BMX	Boys 10	HH-09835		912.0				
+10138458588	10138458588	Laura	Tejmarová	KamilaDiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	10.01.2017	Female			True	300			TJ Slovan Bohnice-BMX	Boys 6	FV-60491		844.0				
+10112026290	10112026290	Adam	Jindrák	linhartteam1@seznam.cz	Bike team Uničov	CZE	04.05.2011	Male			True	300			Bike team Uničov	Boys 12	RZ-58946		348.0				
+10106520633	10106520633	Markus	Grund	lenka-kubova@seznam.cz	Bikrosclub Řepy	CZE	30.10.2014	Male			True	300			Bikrosclub Řepy	Boys 9	SN-90676		471.0				
+10121349206	10121349206	Marek	Jílek	antonin.jilek@gmail.com	Bikrosclub Řepy	CZE	02.05.2016	Male			True	300			Bikrosclub Řepy	Boys 7	VC-35149		153.0				
+10093348942	10093348942	Miroslav	Dreiseitl	kristofova@centrum.cz	BMX Dracing Team	CZE	19.04.2013	Male			True	300			BMX Dracing Team	Boys 10	KZ-93484		408.0				
+10106267221	10106267221	Petra	Dreiseitlová	andrea.vesecka@centrum.cz	BMX Dracing Team	CZE	27.10.2011	Female			True	300			BMX Dracing Team	Boys 11	LC-00022		507.0				
+10047346488	10047346488	Radim	Boček	bocekrobert@gmail.com	TJ Favorit Brno	CZE	08.02.2010	Male			True	300			TJ Favorit Brno	Boys 13/14	HC-65107		82.0				
+10047339317	10047339317	Jiří	Halásek	halasek17@seznam.cz	Bikrosclub Řepy	CZE	04.10.2008	Male			True	400			Bikrosclub Řepy	Boys 15/16	CT-36262		300.0				
+10078253924	10078253924	Tadeáš	Jégl	linhartteam@seznam.cz	Bike team Uničov	CZE	04.11.2009	Male			True	300			Bike team Uničov	Boys 13/14	HX-82851		322.0				
+10081086425	10081086425	Karel	Trojek	kodlovnik@centrum.cz	Utopia bikes Zábřeh	CZE	07.10.2013	Male			True	300			Utopia bikes Zábřeh	Boys 10	HK-63433		861.0				
+10115371174	10115371174	Vilém	Trojek	radomir.huf@elit.cz	Utopia bikes Zábřeh	CZE	21.06.2016	Male			True	300			Utopia bikes Zábřeh	Boys 7	LC-00105		449.0				
+10047366801	10047366801	Michal	Klíma	jaroslav.klima@seznam.cz	TJ Favorit Brno	CZE	10.03.2008	Male			True	400			TJ Favorit Brno	Boys 15/16	CN-98487		198.0				
+10062335012	10062335012	Vít	Novotný	michal.novotny@k-net.cz	TJ Favorit Brno	CZE	19.05.2008	Male			True	400			TJ Favorit Brno	Boys 15/16	TG-78035		270.0				
+10048061763	10048061763	Petra	Behenská	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	18.04.2005	Female			True	400			TJ Slovan Bohnice-BMX	Boys 15/16	CR-53334		184.0				
+10047442074	10047442074	Max	Veselý	rostislav.vesely@seznam.cz	SC BMX Benátky	CZE	10.04.2009	Male			True	300			SC BMX Benátky	Boys 13/14	KN-33259		132.0				
+10118362212	10118362212	Samuel	Gibian	lukas.svambera@seznam.cz	Bikrosclub Řepy	CZE	16.06.2015	Male			True	300			Bikrosclub Řepy	Boys 8	GX-47105		889.0				
+10126577910	10126577910	Samuel	Blažíček	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	15.06.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	HH-45228		157.0				
+10047282733	10047282733	Vojtěch	Miko	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.11.2009	Male			True	300			TJ Slovan Bohnice-BMX	Boys 13/14	CR-52674		661.0				
+10007845462	10007845462	Petr	Soubusta	petrsoubusta@seznam.cz	CK Slavoj Terezín	CZE	10.07.1978	Male			True	400			CK Slavoj Terezín	Masters 30+	PR-38310		604.0				
+10047352249	10047352249	Petr	Soubusta	petrsoubusta@seznam.cz	CK Slavoj Terezín	CZE	04.10.2010	Male			True	300			CK Slavoj Terezín	Boys 13/14	HS-05572		796.0				
+10106727161	10106727161	Štěpánka	Soubustová	petrsoubusta@seznam.cz	CK Slavoj Terezín	CZE	22.04.2015	Female			True	300			CK Slavoj Terezín	Boys 7	SS-39146		130.0				
+10111187646	10111187646	Karol	Kubík	eva.tothova@fnusa.cz	BMX Dracing Team	CZE	20.02.2012	Male			True	300			BMX Dracing Team	Boys 11	NV-44055		601.0				
+10048096422	10048096422	Eliška	Bartuňková	bartunko@seznam.cz	Bikrosclub Řepy	CZE	08.05.2001	Female			True	400			Bikrosclub Řepy	Boys 15/16	KZ-39270		32.0				
+10047312540	10047312540	Damián	Bartůněk	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	06.11.2008	Male			True	400			TJ Slovan Bohnice-BMX	Boys 15/16	GW-49427		806.0				
+10125988331	10125988331	Michal	Berka	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	28.01.2016	Male			True	300			TJ Slovan Bohnice-BMX	Boys 7	PG-67099		288.0				
+10047225543	10047225543	Vít	Stloukal	linhartteam@seznam.cz	Bike team Uničov	CZE	21.09.2007	Male			True	400			Bike team Uničov	Boys 15/16	KX-52018		233.0				
+10125989543	10125989543	Vojtěch	Hrubý	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	10.07.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	HG-97856		171.0				
+10118660585	10118660585	Hugo	Busch	andrea.vesecka@centrum.cz	OK TEAM	CZE	26.09.2013	Male			True	300			OK TEAM	Boys 10	SZ-16777		926.0				
+10005996705	10005996705	Viktor	Karlík	ok.team@seznam.cz	OK TEAM	CZE	19.06.1985	Male			True	400			OK TEAM	Masters 30+	HT-81426		747.0				
+10009220539	10009220539	Miloš	Křeček	ok.team@seznam.cz	OK TEAM	CZE	24.09.1996	Male			True	400			OK TEAM	Men 17+	PV-50213		173.0				
+10109298772	10109298772	Jiří	Weiner	weinerjiri@seznam.cz	Bikrosclub Řepy	CZE	28.11.2007	Male			True	400			Bikrosclub Řepy	Boys 15/16	HK-02097		751.0				
+10104246385	10104246385	Rubiana	Hošková	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	21.07.2014	Female			True	300			TJ Slovan Bohnice-BMX	Boys 8	KR-87381		741.0				
+10091819069	10091819069	Erik	Martini	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	20.04.2012	Male			True	300			TJ Slovan Bohnice-BMX	Boys 11	LV-03846		774.0				
+10125997122	10125997122	Filip	Martini	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	10.04.2017	Male			True	300			TJ Slovan Bohnice-BMX	Boys 6	HH-10150		750.0				
+10046526436	10046526436	Adam	Pechač	pavla.pe@volny.cz	Bikrosclub Řepy	CZE	07.12.2002	Male			True	400			Bikrosclub Řepy	Men 17+	TX-58022		144.0				
+10047346185	10047346185	Jáchym	Černý	davidscerny@gmail.com	TJ Favorit Brno	CZE	20.05.2007	Male			True	400			TJ Favorit Brno	Boys 15/16	HG-88878		97.0				
+10115127159	10115127159	Tobiáš	Smrž	lukassmrz@seznam.cz	TJ Favorit Brno	CZE	23.10.2014	Male			True	300			TJ Favorit Brno	Boys 9	LF-24265		603.0				
+10092873743	10092873743	Štěpán	Smrž	lukassmrz@seznam.cz	TJ Favorit Brno	CZE	02.10.2012	Male			True	300			TJ Favorit Brno	Boys 11	HP-16103		200.0				
+10112502196	10112502196	Gabriel	Pán	radekpan@seznam.cz	TJ BMX Třinec	CZE	31.03.2015	Male			True	300			TJ BMX Třinec	Boys 8	KZ-11432		353.0				
+10047324260	10047324260	Oliver	Pán	info@bmxtrinec.net	TJ BMX Třinec	CZE	17.06.2009	Male			True	300			TJ BMX Třinec	Boys 13/14	CV-07085		176.0				
+10047393776	10047393776	Samuel	Pán	info@bmxtrinec.net	TJ BMX Třinec	CZE	26.10.2011	Male			True	300			TJ BMX Třinec	Boys 12	KS-17537		261.0				
+10118742835	10118742835	Josef	Švorčík	andrea.vesecka@centrum.cz	Utopia bikes Zábřeh	CZE	07.02.2015	Male			True	300			Utopia bikes Zábřeh	Boys 8	HH-41609		337.0				
+10138457982	10138457982	Jonáš	Láska	KamilaDiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	11.10.2016	Male			True	300			TJ Slovan Bohnice-BMX	Boys 7	HS-09086		841.0				
+10047339721	10047339721	Jakub	Kratochvíl	jan.kratochvil@seznam.cz	Bikrosclub Řepy	CZE	30.04.2009	Male			True	300			Bikrosclub Řepy	Boys 13/14	FL-73062		141.0				
+10120435988	10120435988	Oto	Zajkr	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	07.07.2012	Male			True	300			SC BMX Benátky	Boys 11	HS-30139		465.0				
+10084815265	10084815265	Viktorie	Adamcová	lindamichalcikova@seznam.cz	SK Jantar Opava	CZE	12.07.2006	Female			True	400			SK Jantar Opava	Boys 15/16	PR-44645		689.0				
+10079011635	10079011635	Teodor	Adamec	Karel.Adamec.ml@seznam.cz	SK Jantar Opava	CZE	20.03.2013	Male			True	300			SK Jantar Opava	Boys 10	CR-54732		369.0				
+10117150419	10117150419	Filip	Bednařík	radekpan@seznam.cz	SK Jantar Opava	CZE	25.09.2015	Male			True	300			SK Jantar Opava	Boys 8	KZ-72563		952.0				
+10127453940	10127453940	Alexandr	Botos		SK Jantar Opava	CZE	19.09.2010	Male			True	300			SK Jantar Opava	Boys 13/14	VF-68149		293.0				
+10126473634	10126473634	Elizabeth	Botos	k.dankova@centrum.cz	SK Jantar Opava	CZE	01.04.2012	Female			True	300			SK Jantar Opava	Boys 10	PR-67649		435.0				
+10114273256	10114273256	Zoe	Hanáková	andrea.vesecka@centrum.cz	SK Jantar Opava	CZE	05.03.2014	Female			True	300			SK Jantar Opava	Boys 8	GL-55962		811.0				
+10046326776	10046326776	Jakub	Klement	klementales@seznam.cz	SK Jantar Opava	CZE	25.02.2006	Male			True	500			SK Jantar Opava	JM/U23/EM	VC-79169		125.0				
+10047360737	10047360737	Matyáš	Buzek	buzekk.jiri@seznam.cz	BMX Krupka	CZE	11.02.2010	Male			True	300			BMX Krupka	Boys 13/14	FW-69746		316.0				
+10047442478	10047442478	Stella	Tamme	tamak@centrum.cz	Bikrosclub Řepy	CZE	06.11.2011	Female			True	300			Bikrosclub Řepy	Boys 11	TZ-80901		18.0				
+10118097076	10118097076	Tadeáš	Vlk	info@land-art.cz	BMX Krupka	CZE	12.04.2014	Male			True	300			BMX Krupka	Boys 9	LL-02799		474.0				
+10107825382	10107825382	Denis	Hlubůček	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	23.09.2010	Male			True	300			SC BMX Benátky	Boys 13/14	HZ-42359		431.0				
+10109299176	10109299176	Jakub	Slimák	martin.slimak@seznam.cz	Bikrosclub Řepy	CZE	03.04.2014	Male			True	300			Bikrosclub Řepy	Boys 9	HT-08291		733.0				
+10140383939	10140383939	Anna	Slimáková	martin.slimak@seznam.cz	Bikrosclub Řepy	CZE	15.03.2016	Female			True	300			Bikrosclub Řepy	Boys 6	RT-74460		833.0				
+10118095157	10118095157	Agáta	Krátilová	petr.miltner@seznam.cz	BMX Krupka	CZE	01.12.2013	Female			True	300			BMX Krupka	Boys 9	LK-64644		486.0				
+10131490958	10131490958	Vojtěch	Pikal	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	26.05.2017	Male			True	300			TJ Slovan Bohnice-BMX	Boys 6	CR-54051		526.0				
+10091858576	10091858576	Kryštof	Šipula	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	24.06.2012	Male			True	300			TJ Slovan Bohnice-BMX	Boys 11	FV-70122		624.0				
+10139291576	10139291576	Maxim	Jaitner	jakubjaitner@seznam.cz	BMX TEAM BRNO	CZE	16.12.2017	Male			True	300			BMX TEAM BRNO	Boys 6	FW-63798		855.0				
+10091267482	10091267482	Sára	Jechová	hajek-t@volny.cz	BMX TEAM BRNO	CZE	10.07.2011	Female			True	300			BMX TEAM BRNO	Boys 11	FW-51344		467.0				
+10054540555	10054540555	Sára	Kalábová	holuha@seznam.cz	BMX TEAM BRNO	CZE	22.06.2012	Female			True	300			BMX TEAM BRNO	Boys 10	HW-54252		226.0				
+10047387110	10047387110	Adam	Kovařík	holuha@seznam.cz	BMX TEAM BRNO	CZE	06.02.2009	Male			True	300			BMX TEAM BRNO	Boys 13/14	LK-66840		119.0				
+10047426011	10047426011	Adéla	Kovaříková	holuha@seznam.cz	BMX TEAM BRNO	CZE	21.07.2010	Female			True	300			BMX TEAM BRNO	Boys 12	HZ-60099		217.0				
+10139287435	10139287435	Jindřich	Luňák	lunak@centrum.cz	BMX TEAM BRNO	CZE	01.11.2016	Male			True	300			BMX TEAM BRNO	Boys 7	NV-46371		975.0				
+10139283492	10139283492	Aneta	Luňáková	lunak@centrum.cz	BMX TEAM BRNO	CZE	06.10.2014	Female			True	300			BMX TEAM BRNO	Boys 8	FW-44821		869.0				
+10124317911	10124317911	Ema	Mahdalová	salamjiri@seznam.cz	BMX TEAM BRNO	CZE	30.11.2016	Female			True	300			BMX TEAM BRNO	Boys 6	HX-32426		311.0				
+10048204031	10048204031	David	Matějík	holuha@seznam.cz	BMX TEAM BRNO	CZE	18.04.2007	Male			True	400			BMX TEAM BRNO	Boys 15/16	HZ-24177		165.0				
+10111183808	10111183808	Jáchym	Palásek	info@palasport.cz	BMX TEAM BRNO	CZE	10.11.2008	Male			True	400			BMX TEAM BRNO	Boys 15/16	LK-59141		182.0				
+10091267179	10091267179	Lukáš	Poledňa	j.poledna@seznam.cz	BMX TEAM BRNO	CZE	20.01.2013	Male			True	300			BMX TEAM BRNO	Boys 10	LF-48623		907.0				
+10091267280	10091267280	Adéla	Poledňová	hajek-t@volny.cz	BMX TEAM BRNO	CZE	09.06.2010	Female			True	300			BMX TEAM BRNO	Boys 12	FV-91280		908.0				
+10101061250	10101061250	Oliver	Smolík	bmx4xteambrno@gmail.com	BMX TEAM BRNO	CZE	25.02.2014	Male			True	300			BMX TEAM BRNO	Boys 9	CN-98649		525.0				
+10139292990	10139292990	Jakub	Střebický	jakub.strebicky@seznam.cz	BMX TEAM BRNO	CZE	06.06.2018	Male			True	300			BMX TEAM BRNO	Boys 6	FW-31793		866.0				
+10124889908	10124889908	Tomáš Orry	Tréger	bmx4xteambrno@gmail.com	BMX TEAM BRNO	CZE	17.04.2015	Male			True	300			BMX TEAM BRNO	Boys 8	CN-98620		891.0				
+10124890211	10124890211	Maxim	Vacek	bmx4xteambrno@gmail.com	BMX TEAM BRNO	CZE	27.09.2015	Male			True	300			BMX TEAM BRNO	Boys 8	PG-32253		827.0				
+10139292384	10139292384	Mia	Šantavá	nelluska@seznam.cz	BMX TEAM BRNO	CZE	13.01.2018	Female			True	300			BMX TEAM BRNO	Boys 6	FW-39669		731.0				
+10111185929	10111185929	Sebastien	Šantavý	nelluska@seznam.cz	BMX TEAM BRNO	CZE	28.08.2015	Male			True	300			BMX TEAM BRNO	Boys 8	LF-14768		282.0				
+10047322543	10047322543	Filip	Ševčík	holuha@seznam.cz	BMX TEAM BRNO	CZE	07.02.2008	Male			True	400			BMX TEAM BRNO	Boys 15/16	HR-99740		120.0				
+10047387312	10047387312	Veronika	Žáčková	holuha@seznam.cz	BMX TEAM BRNO	CZE	07.10.2010	Female			True	300			BMX TEAM BRNO	Boys 12	LF-20486		710.0				
+10054147404	10054147404	Matyáš	Blasl	blaslkamil@seznam.cz	TJ BMX Pardubice	CZE	08.01.2011	Male			True	300			TJ BMX Pardubice	Boys 12	FV-68409		69.0				
+10047221604	10047221604	Vít	Gruntorád	vit.g@seznam.cz	TJ BMX Pardubice	CZE	26.09.2007	Male			True	400			TJ BMX Pardubice	Boys 15/16	SC-12684		411.0				
+10127874777	10127874777	Dominik	Klouček	monikaklouckova1@seznam.cz	TJ BMX Pardubice	CZE	25.12.2007	Male			True	400			TJ BMX Pardubice	Boys 15/16	HW-64117		448.0				
+10120112454	10120112454	Oliver	Nešický	nesicky@seznam.cz	TJ BMX Pardubice	CZE	21.01.2016	Male			True	300			TJ BMX Pardubice	Boys 7	HS-05589		559.0				
+10047221503	10047221503	Sebastian	Pařízek	davidparizek21@gmail.com	TJ BMX Pardubice	CZE	22.12.2006	Male			True	400			TJ BMX Pardubice	Men 17+	CN-22850		72.0				
+10080008917	10080008917	Alan	Pětioký	o.petioky@post.cz	TJ BMX Pardubice	CZE	28.01.2011	Male			True	300			TJ BMX Pardubice	Boys 12	RV-95420		281.0				
+10083491419	10083491419	Dominik	Ráliš	hajkova.kate@seznam.cz	TJ BMX Pardubice	CZE	26.05.2011	Male			True	300			TJ BMX Pardubice	Boys 12	SH-92806		265.0				
+10046368610	10046368610	Jakub	Sokol	mike.sokol@seznam.cz	TJ BMX Pardubice	CZE	29.06.2007	Male			True	400			TJ BMX Pardubice	Boys 15/16	SW-87749		61.0				
+10046725082	10046725082	Vilém	Sokol	lukas.sok@seznam.cz	TJ BMX Pardubice	CZE	07.11.2005	Male			True	500			TJ BMX Pardubice	JM/U23/EM	HG-79771		17.0				
+10115694914	10115694914	Ondřej	Souček	martyn.soucek@seznam.cz	TJ BMX Pardubice	CZE	11.02.2011	Male			True	300			TJ BMX Pardubice	Boys 12	HS-35751		711.0				
+10115694308	10115694308	Tomáš	Souček	martyn.soucek@seznam.cz	TJ BMX Pardubice	CZE	16.04.2014	Male			True	300			TJ BMX Pardubice	Boys 9	HS-13256		768.0				
+10105523149	10105523149	Jan	Suchý	suchjan3063@gmail.com	TJ BMX Pardubice	CZE	22.08.2006	Male			True	400			TJ BMX Pardubice	Men 17+	HT-65591		826.0				
+10139432127	10139432127	Emma	Sulewska Vel Michalak	zdenekmerta57@gmail.com	TJ BMX Pardubice	CZE	08.10.2016	Female			True	300			TJ BMX Pardubice	Boys 6	GS-66314		91.0				
+10128858420	10128858420	Eliáš	Voříšek	ladyga@post.cz	TJ BMX Pardubice	CZE	12.11.2015	Male			True	300			TJ BMX Pardubice	Boys 8	KP-25589		808.0				
+10127875181	10127875181	Lukáš	Šenkeřík	p.senkerik@centrum.cz	TJ BMX Pardubice	CZE	02.04.2014	Male			True	300			TJ BMX Pardubice	Boys 9	KS-49882		996.0				
+10127875686	10127875686	Jan	Šoustek	kladno@centrum.cz	TJ BMX Pardubice	CZE	18.11.2011	Male			True	300			TJ BMX Pardubice	Boys 12	KR-84941		168.0				
+10128798402	10128798402	Sebastián	Štěpánek	kominictvi.stepanek@seznam.cz	TJ BMX Pardubice	CZE	28.11.2017	Male			True	300			TJ BMX Pardubice	Boys 6	PH-00484		285.0				
+10130692528	10130692528	Jakub	Novák	petr.novak3@skanska.cz	Bikrosclub Řepy	CZE	16.01.2016	Male			True	300			Bikrosclub Řepy	Boys 7	SN-00140		167.0				
+10047778241	10047778241	Petr	Heřman	bayerovalucka@seznam.cz	Bikrosclub Řepy	CZE	08.06.2007	Male			True	400			Bikrosclub Řepy	Boys 15/16	SL-01969		34.0				
+10048092984	10048092984	Matyáš	Mentlík	holuha@seznam.cz	TJ Slovan Bohnice-BMX	CZE	24.10.2004	Male			True	500			TJ Slovan Bohnice-BMX	JM/U23/EM	SL-79774		24.0				
+10105424432	10105424432	Matyáš Karel	Klapetek	peta024@seznam.cz	AMK BMX Studénka	CZE	11.07.2014	Male			True	300			AMK BMX Studénka	Boys 9	SF-14398		6.0				
+10047775514	10047775514	Vojtěch	Kašpar	v.kasparbmx@seznam.cz	CK Slavoj Terezín	CZE	31.07.2001	Male			True	400			CK Slavoj Terezín	Men 17+	TR-70819		668.0				
+10047419644	10047419644	Tobiáš	Svátek	z.svatek@seznam.cz	SC BMX Benátky	CZE	19.12.2011	Male			True	300			SC BMX Benátky	Boys 12	HN-79365		19.0				
+10047286571	10047286571	Šimon	Svátek	z.svatek@seznam.cz	SC BMX Benátky	CZE	01.05.2009	Male			True	300			SC BMX Benátky	Boys 13/14	KZ-45995		33.0				
+10119758507	10119758507	Lukáš	Gebauer	andrea.vesecka@centrum.cz	Utopia bikes Zábřeh	CZE	28.08.2014	Male			True	300			Utopia bikes Zábřeh	Boys 9	GT-20682		746.0				
+10119758709	10119758709	Adéla	Gebauerová	andrea.vesecka@centrum.cz	Utopia bikes Zábřeh	CZE	29.11.2011	Female			True	300			Utopia bikes Zábřeh	Boys 11	GS-84669		745.0				
+10078218861	10078218861	Vojtěch	Rekl	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	09.09.2010	Male			True	300			SC BMX Benátky	Boys 13/14	KZ-75641		990.0				
+10078218457	10078218457	Vít	Rekl	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	11.04.2013	Male			True	300			SC BMX Benátky	Boys 10	KZ-79465		880.0				
+10116314704	10116314704	Marek	Janda	aneta.kobrova@gmail.com	Bikrosclub Řepy	CZE	17.09.2013	Male			True	300			Bikrosclub Řepy	Boys 10	HK-03439		762.0				
+10055758210	10055758210	Jan	Strýček	isa_martina@seznam.cz	Tufír team	CZE	28.06.2010	Male			True	300			Tufír team	Boys 13/14	SW-48704		628.0				
+10138458285	10138458285	Filip	Novák	KamilaDiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	26.01.2015	Male			True	300			TJ Slovan Bohnice-BMX	Boys 8	FV-49470		726.0				
+10079358209	10079358209	Maxmilián	Linhart	linhartteam@seznam.cz	Bike team Uničov	CZE	30.09.2012	Male			True	300			Bike team Uničov	Boys 11	VC-96199		266.0				
+10035223411	10035223411	Mikuláš	Linhart	linhartteam@seznam.cz	Bike team Uničov	CZE	21.03.2014	Male			True	300			Bike team Uničov	Boys 9	HV-24977		277.0				
+10047377915	10047377915	Adam	Sedláček	sedlaced@seznam.cz	Bikrosclub Řepy	CZE	02.04.2010	Male			True	300			Bikrosclub Řepy	Boys 13/14	TX-46740		154.0				
+10129504882	10129504882	Patrik	Jeřábek	raje23@seznam.cz	SC BMX Benátky	CZE	12.02.2015	Male			True	300			SC BMX Benátky	Boys 8	NZ-99807		426.0				
+10048188772	10048188772	Ondřej	Popela	mestecak@seznam.cz	Bikrosclub Řepy	CZE	10.07.2007	Male			True	400			Bikrosclub Řepy	Boys 15/16	CR-54613		35.0				
+10118103847	10118103847	Maxim	Bureš	dartanan@email.cz	SC BMX Benátky	CZE	30.06.2011	Male			True	300			SC BMX Benátky	Boys 12	HK-05633		470.0				
+10106273786	10106273786	Alex	Molnár	kristofova@centrum.cz	BMX Dracing Team	CZE	04.03.2014	Male			True	300			BMX Dracing Team	Boys 9	CN-99474		896.0				
+10093348437	10093348437	Max	Molnár	kristofova@centrum.cz	BMX Dracing Team	CZE	13.01.2012	Male			True	300			BMX Dracing Team	Boys 11	PR-71597		986.0				
+10125978429	10125978429	Tobiáš	Lavička	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	01.08.2014	Male			True	300			TJ Slovan Bohnice-BMX	Boys 9	HH-08058		185.0				
+10127706342	10127706342	Tereza	Gebauerová	andrea.vesecka@centrum.cz	Utopia bikes Zábřeh	CZE	23.04.2016	Female			True	300			Utopia bikes Zábřeh	Boys 6	HK-56918		339.0				
+10055474381	10055474381	Kryštof	Kutil	info@netfinity.cz	Bikrosclub Řepy	CZE	11.12.2012	Male			True	300			Bikrosclub Řepy	Boys 11	TZ-41446		100.0				
+10047611119	10047611119	Jakub	Škutina	info@netfinity.cz	Bikrosclub Řepy	CZE	24.09.2008	Male			True	400			Bikrosclub Řepy	Boys 15/16	TZ-82560		99.0				
+10047269801	10047269801	Jakub	Cidlinský	tcidlinsky@seznam.cz	SC BMX Benátky	CZE	22.02.2006	Male			True	500			SC BMX Benátky	JM/U23/EM	NZ-02680		22.0				
+10106603687	10106603687	Matěj	Dvorský	info@bmxnizbor.cz	BMX Nižbor	CZE	05.08.2013	Male			True	300			BMX Nižbor	Boys 10	NZ-76535		349.0				
+10116909030	10116909030	Michael	Feistner	michael.feistner@centrum.cz	BMX Nižbor	CZE	19.10.2014	Male			True	300			BMX Nižbor	Boys 9	SH-56986		490.0				
+10004856044	10004856044	Ondřej	Lux	bocekrobert@gmail.com	TJ Favorit Brno	CZE	19.01.2010	Male			True	300			TJ Favorit Brno	Boys 13/14	HR-73874		514.0				
+10106194065	10106194065	Albert	Kohoutek	cedric46@seznam.cz	SC BMX Benátky	CZE	18.04.2015	Male			True	300			SC BMX Benátky	Boys 8	SS-51217		10.0				
+10115127260	10115127260	Denisa	Tománková	tomanek660@gmail.com	TJ Favorit Brno	CZE	08.04.2015	Female			True	300			TJ Favorit Brno	Boys 7	KZ-60202		804.0				
+10125999647	10125999647	Antonín	Příkaský	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	19.01.2016	Male			True	300			TJ Slovan Bohnice-BMX	Boys 7	HH-16778		194.0				
+10107825079	10107825079	Matyáš	Poddaný	michalpoddany@seznam.cz	SC BMX Benátky	CZE	02.06.2014	Male			True	300			SC BMX Benátky	Boys 9	NV-10529		60.0				
+10082749266	10082749266	Marek	Pajma	ondrej.pajma@centrum.cz	Bikrosclub Řepy	CZE	29.09.2012	Male			True	300			Bikrosclub Řepy	Boys 11	HT-18003		929.0				
+10109298974	10109298974	Adéla	Pajmová	ondrej.pajma@centrum.cz	Bikrosclub Řepy	CZE	27.09.2014	Female			True	300			Bikrosclub Řepy	Boys 8	KZ-39806		930.0				
+10124897988	10124897988	Markéta	Ficová	mfic@seznam.cz	PARDUS TUFO Prostějov	CZE	02.09.2013	Female			True	300			PARDUS TUFO Prostějov	Boys 9	TZ-97276		249.0				
+10083167982	10083167982	Lukáš	Nehoda	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	16.03.2011	Male			True	300			SC BMX Benátky	Boys 12	FW-31157		488.0				
+10096233175	10096233175	Marek	Nehoda	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	23.05.2014	Male			True	300			SC BMX Benátky	Boys 9	HV-20736		487.0				
+10091819170	10091819170	David	Lapka	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	17.04.2011	Male			True	300			TJ Slovan Bohnice-BMX	Boys 12	HK-65852		417.0				
+10104245577	10104245577	Elen	Lapková	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	22.02.2008	Female			True	300			TJ Slovan Bohnice-BMX	Boys 13/14	HH-25608		960.0				
+10047234738	10047234738	Richard	Adam	jarca.vavrichova@email.cz	SC BMX Benátky	CZE	13.12.2006	Male			True	400			SC BMX Benátky	Men 17+	PG-64906		206.0				
+10093348740	10093348740	Adam	Drábek	fotsirk92@seznam.cz	BMX Dracing Team	CZE	10.07.2012	Male			True	300			BMX Dracing Team	Boys 11	FV-76184		341.0				
+10106869328	10106869328	Sebastián	Pastrňák	ondrej.pastrnak@redbull.com	Bikrosclub Řepy	CZE	08.12.2015	Male			True	300			Bikrosclub Řepy	Boys 8	SK-97957		870.0				
+10047419442	10047419442	Kristýna	Utinková	hana@jakos.cz	Tufír team	CZE	08.07.2005	Female			True	400			Tufír team	Boys 15/16	TG-60442		114.0				
+10105740387	10105740387	Marek	Kašpar	marek@funlife.cz	Bikrosclub Řepy	CZE	20.10.2013	Male			True	300			Bikrosclub Řepy	Boys 10	SS-47963		376.0				
+10106520734	10106520734	Marek	Kašpar	marek@funlife.cz	Bikrosclub Řepy	CZE	06.04.1977	Male			True	400			Bikrosclub Řepy	Masters 30+	HP-99419		374.0				
+10105742108	10105742108	Natálie	Kašparová	marek@funlife.cz	Bikrosclub Řepy	CZE	03.06.2015	Female			True	300			Bikrosclub Řepy	Boys 7	HV-86791		375.0				
+10047455818	10047455818	Matěj	Blažek	blazaman@seznam.cz	SC BMX Benátky	CZE	24.03.2013	Male			True	300			SC BMX Benátky	Boys 10	NW-11546		404.0				
+10107825281	10107825281	Barbora	Blažková	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	22.01.2015	Female			True	300			SC BMX Benátky	Boys 7	NZ-58604		544.0				
+10092873238	10092873238	Jakub	Skřejpek	jskrejpek@gmail.com	TJ Favorit Brno	CZE	07.08.1984	Male			True	300			TJ Favorit Brno	Cruiser					SH-47269		146.0
+10047379430	10047379430	Pavel	Edl	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	22.05.2006	Male			True	300			TJ Slovan Bohnice-BMX	Cruiser					HN-80930		680.0
+10054442545	10054442545	Petr	Edl	kamiladiblikova@seznam.cz	TJ Slovan Bohnice-BMX	CZE	15.10.2002	Male			True	300			TJ Slovan Bohnice-BMX	Cruiser					CN-25613		53.0
+10093348538	10093348538	Petr	Dreiseitl	kristofova@centrum.cz	BMX Dracing Team	CZE	11.10.1979	Male			True	300			BMX Dracing Team	Cruiser					CN-99595		409.0
+10010867014	10010867014	Daniel	Havela	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	07.09.1998	Male			True	300			SC BMX Benátky	Cruiser					HX-26248		48.0
+10004919702	10004919702	Robert	Boček	bocekrobert@gmail.com	TJ Favorit Brno	CZE	19.11.1976	Male			True	300			TJ Favorit Brno	Cruiser					HR-96046		83.0
+10046497235	10046497235	Michal	Novotný	michal.novotny@k-net.cz	TJ Favorit Brno	CZE	08.01.1982	Male			True	300			TJ Favorit Brno	Cruiser					SW-71020		370.0
+10005996705	10005996705	Viktor	Karlík	ok.team@seznam.cz	OK TEAM	CZE	19.06.1985	Male			True	300			OK TEAM	Cruiser					CN-27085		747.0
+10047335374	10047335374	Vojtěch	Beneš	lucie-benesova@seznam.cz	SC BMX Benátky	CZE	16.12.2005	Male			True	300			SC BMX Benátky	Cruiser					NW-10349		73.0
+10139291172	10139291172	Jakub	Jaitner	jakubjaitner@seznam.cz	BMX TEAM BRNO	CZE	04.12.1986	Male			True	300			BMX TEAM BRNO	Cruiser					NV-95757		946.0
+10093348336	10093348336	Miloš	Molnár	kristofova@centrum.cz	BMX Dracing Team	CZE	05.04.1977	Male			True	300			BMX Dracing Team	Cruiser					FV-81043		547.0
+10127702504	10127702504	Lubomír	Gebauer	andrea.vesecka@centrum.cz	Utopia bikes Zábřeh	CZE	18.01.1983	Male			True	300			Utopia bikes Zábřeh	Cruiser					HK-62254		640.0
+10118372114	10118372114	Bohumil	Dvorský	bohumil.dvorsky@email.cz	BMX Nižbor	CZE	12.09.1982	Male			True	300			BMX Nižbor	Cruiser					PG-61752		389.0
+10047492291	10047492291	Karel	Dvořák	info@bmxnizbor.cz	BMX Nižbor	CZE	17.07.1984	Male			True	300			BMX Nižbor	Cruiser					HW-14109		515.0
+10084807383	10084807383	Ondřej	Svoboda	andrea.vesecka@centrum.cz	SC BMX Benátky	CZE	14.08.1981	Male			True	300			SC BMX Benátky	Cruiser					KR-10494		729.0
+0	0	Lukáš	Novák	tattooart29@seznam.cz	CK Slavoj Terezín	CZE	29.04.1982	Male			True	300			CK Slavoj Terezín	Cruiser							58.0
+10093348841	10093348841	Petr	Drábek	kristofova@centrum.cz	BMX Dracing Team	CZE	15.11.1973	Male			True	300			BMX Dracing Team	Cruiser					KZ-11523		342.0
+10113495741	10113495741	Alexandr	Rollo	rolloalexandr@gmail.com	Bikrosclub Řepy	CZE	07.12.1982	Male			True	300			Bikrosclub Řepy	Cruiser					HH-31702		617.0
+10106869429	10106869429	Ondřej	Pastrňák	ondrej.pastrnak@redbull.com	Bikrosclub Řepy	CZE	07.07.1982	Male			True	300			Bikrosclub Řepy	Cruiser					ST-20458		871.0
+10106520734	10106520734	Marek	Kašpar	marek@funlife.cz	Bikrosclub Řepy	CZE	06.04.1977	Male			True	300			Bikrosclub Řepy	Cruiser					KZ-39828		374.0
+10048065201	10048065201	Miroslav	Zámečník	zamo.bmx@seznam.cz	SK BMX Klatovy	CZE	18.05.1966	Male			True	300			SK BMX Klatovy	Cruiser					KN-40448		504.0
