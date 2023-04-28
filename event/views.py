@@ -959,8 +959,8 @@ def EventAdminView(request, pk):
 
             print (file_name)
             wb.save(file_name)
-            print ("Soubor uložen")
-            
+
+            # export to tab delimited txt file for import in REM
             file = pd.read_excel(file_name)
             file_name_to_txt = file_name [:-4] + "txt" 
             file.to_csv(file_name_to_txt,sep="\t",index=False)
@@ -968,6 +968,12 @@ def EventAdminView(request, pk):
             event.rem_entries = file_name_to_txt
             event.rem_entries_created = datetime.now()
             event.save()
+
+            # delete xlsx temporary file
+            try:
+                os.remove(f"{file_name}")
+            except Exception as e:
+                print (f"Nebyl nalezen soubor {file_name}")
 
     # ALL RIDERS FOR REM
     if 'btn-rem-riders-list' in request.POST:
@@ -1030,6 +1036,7 @@ def EventAdminView(request, pk):
 
         wb.save(file_name)
 
+        # export to tab delimited txt file for import in REM
         file = pd.read_excel(file_name)
         file_name_to_txt = file_name [:-4] + "txt" 
         file.to_csv(file_name_to_txt,sep="\t",index=False)
@@ -1037,6 +1044,12 @@ def EventAdminView(request, pk):
         event.rem_entries = file_name_to_txt
         event.rem_entries_created = datetime.now()
         event.save()
+
+        # delete xlsx temporary file
+        try:
+            os.remove(f"{file_name}")
+        except Exception as e:
+            print (f"Nebyl nalezen soubor {file_name}")
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí
 
