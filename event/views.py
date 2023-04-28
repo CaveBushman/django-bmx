@@ -918,7 +918,7 @@ def EventAdminView(request, pk):
 
             del entries_20
 
-            entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
+            entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=False)
             for entry_24 in entries_24:
                 try:
                     rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
@@ -1054,7 +1054,7 @@ def EventAdminView(request, pk):
     invalid_licences =  set(invalid_licences) #odstranění duplicit, pokud jezdec jede 20" i 24"
 
     # summary fees on event
-    entries = Entry.objects.filter(event = event.id, payment_complete=1)
+    entries = Entry.objects.filter(event = event.id, payment_complete=1, checkout = False)
 
     for entry in entries:
         sum_of_fees += entry.fee_20
