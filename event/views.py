@@ -944,7 +944,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,17,entry_24.class_24)
                     ws.cell(x,18,)
                     ws.cell(x,19,)
-                    ws.cell(x,20,)
+                    ws.cell(x,20,rider.plate)
                     ws.cell(x,21,)
                     ws.cell(x,22,rider.transponder_24)
                     ws.cell(x,23,)
