@@ -941,11 +941,11 @@ def EventAdminView(request, pk):
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
-                    ws.cell(x,17,entry_24.class_24)
+                    ws.cell(x,17,)
                     ws.cell(x,18,)
                     ws.cell(x,19,)
                     ws.cell(x,20,rider.plate)
-                    ws.cell(x,21,)
+                    ws.cell(x,21,entry_24.class_24)
                     ws.cell(x,22,rider.transponder_24)
                     ws.cell(x,23,)
                     ws.cell(x,24,rider.plate)
@@ -1018,8 +1018,8 @@ def EventAdminView(request, pk):
         del riders
         print("Čeští jezdci přidány")
 
-        foreign_riders = ForeignRider.objects.all()
-        for foreign_rider in foreign_riders:
+        """ foreign_riders = ForeignRider.objects.all()
+            for foreign_rider in foreign_riders:
             ws.cell(x,1,foreign_rider.club)
             ws.cell(x,3,foreign_rider.first_name)
             ws.cell(x,4,foreign_rider.last_name)
@@ -1032,7 +1032,7 @@ def EventAdminView(request, pk):
             ws.cell(x,17,foreign_rider.transponder_24)
                 
             x+=1
-        del foreign_riders
+        del foreign_riders """
 
         wb.save(file_name)
 
