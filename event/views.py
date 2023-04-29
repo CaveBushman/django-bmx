@@ -1041,8 +1041,8 @@ def EventAdminView(request, pk):
         file_name_to_txt = file_name [:-4] + "txt" 
         file.to_csv(file_name_to_txt,sep="\t",index=False)
 
-        event.rem_entries = file_name_to_txt
-        event.rem_entries_created = datetime.now()
+        event.rem_riders_list = file_name_to_txt
+        event.rem_riders_created = datetime.now()
         event.save()
 
         # delete xlsx temporary file
