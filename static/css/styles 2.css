@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.3.2 | MIT License | https://tailwindcss.com
+! tailwindcss v3.2.7 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -31,7 +31,6 @@
 3. Use a more readable tab size.
 4. Use the user's configured `sans` font-family by default.
 5. Use the user's configured `sans` font-feature-settings by default.
-6. Use the user's configured `sans` font-variation-settings by default.
 */
 
 html {
@@ -48,8 +47,6 @@ html {
   /* 4 */
   font-feature-settings: normal;
   /* 5 */
-  font-variation-settings: normal;
-  /* 6 */
 }
 
 /*
@@ -602,9 +599,6 @@ select {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -652,9 +646,6 @@ select {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -762,10 +753,6 @@ select {
   position: sticky;
 }
 
-.inset-0 {
-  inset: 0px;
-}
-
 .bottom-0 {
   bottom: 0px;
 }
@@ -837,11 +824,6 @@ select {
   margin-right: 2.5rem;
 }
 
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-
 .mx-4 {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -860,6 +842,11 @@ select {
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
+}
+
+.my-1 {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
 .my-24 {
@@ -891,8 +878,8 @@ select {
   margin-right: -0.5rem;
 }
 
-.mb-1 {
-  margin-bottom: 0.25rem;
+.mb-12 {
+  margin-bottom: 3rem;
 }
 
 .mb-2 {
@@ -959,9 +946,8 @@ select {
   margin-right: 1.5rem;
 }
 
-.ms-auto {
-  -webkit-margin-start: auto;
-          margin-inline-start: auto;
+.mr-auto {
+  margin-right: auto;
 }
 
 .mt-1 {
@@ -1235,12 +1221,24 @@ select {
   flex-shrink: 0;
 }
 
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+.grow-0 {
+  flex-grow: 0;
+}
+
 .basis-1\/2 {
   flex-basis: 50%;
 }
 
 .basis-1\/3 {
   flex-basis: 33.333333%;
+}
+
+.basis-auto {
+  flex-basis: auto;
 }
 
 .border-collapse {
@@ -1305,10 +1303,6 @@ select {
 
 .flex-wrap {
   flex-wrap: wrap;
-}
-
-.content-center {
-  align-content: center;
 }
 
 .content-between {
@@ -1711,11 +1705,6 @@ select {
   background-color: rgb(255 255 255 / 0.3);
 }
 
-.bg-yellow-200 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(254 240 138 / var(--tw-bg-opacity));
-}
-
 .bg-yellow-300 {
   --tw-bg-opacity: 1;
   background-color: rgb(253 224 71 / var(--tw-bg-opacity));
@@ -1724,11 +1713,6 @@ select {
 .bg-yellow-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(202 138 4 / var(--tw-bg-opacity));
-}
-
-.bg-fuchsia-200 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(245 208 254 / var(--tw-bg-opacity));
 }
 
 .bg-cover {
@@ -1842,11 +1826,6 @@ select {
   padding-bottom: 0.5rem;
 }
 
-.py-2\.5 {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
-}
-
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -1907,10 +1886,6 @@ select {
 
 .pr-4 {
   padding-right: 1rem;
-}
-
-.pt-10 {
-  padding-top: 2.5rem;
 }
 
 .pt-2 {
@@ -2064,6 +2039,11 @@ select {
   color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 
+.text-blue-600 {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity));
+}
+
 .text-gray-300 {
   --tw-text-opacity: 1;
   color: rgb(209 213 219 / var(--tw-text-opacity));
@@ -2127,6 +2107,11 @@ select {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.text-yellow-500 {
+  --tw-text-opacity: 1;
+  color: rgb(234 179 8 / var(--tw-text-opacity));
 }
 
 .no-underline {
@@ -2235,11 +2220,6 @@ select {
   background-color: rgb(199 210 254 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-indigo-500:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(99 102 241 / var(--tw-bg-opacity));
-}
-
 .hover\:bg-indigo-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(67 56 202 / var(--tw-bg-opacity));
@@ -2325,22 +2305,6 @@ select {
 
 .focus\:ring-offset-gray-800:focus {
   --tw-ring-offset-color: #1f2937;
-}
-
-.focus-visible\:outline:focus-visible {
-  outline-style: solid;
-}
-
-.focus-visible\:outline-2:focus-visible {
-  outline-width: 2px;
-}
-
-.focus-visible\:outline-offset-2:focus-visible {
-  outline-offset: 2px;
-}
-
-.focus-visible\:outline-indigo-600:focus-visible {
-  outline-color: #4f46e5;
 }
 
 .group:hover .group-hover\:bg-white\/50 {
@@ -2664,6 +2628,10 @@ select {
     margin-right: 0px;
   }
 
+  .md\:mb-0 {
+    margin-bottom: 0px;
+  }
+
   .md\:ml-6 {
     margin-left: 1.5rem;
   }
@@ -2696,8 +2664,16 @@ select {
     height: 20rem;
   }
 
+  .md\:w-3\/12 {
+    width: 25%;
+  }
+
   .md\:w-80 {
     width: 20rem;
+  }
+
+  .md\:w-9\/12 {
+    width: 75%;
   }
 
   .md\:grid-cols-2 {
@@ -2714,6 +2690,10 @@ select {
 
   .md\:items-center {
     align-items: center;
+  }
+
+  .md\:justify-start {
+    justify-content: flex-start;
   }
 
   .md\:justify-between {
@@ -2749,6 +2729,10 @@ select {
     padding-right: 1.5rem;
   }
 
+  .md\:text-left {
+    text-align: left;
+  }
+
   .md\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -2757,6 +2741,11 @@ select {
   .md\:text-4xl {
     font-size: 2.25rem;
     line-height: 2.5rem;
+  }
+
+  .md\:text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
   }
 }
 
@@ -2768,10 +2757,6 @@ select {
   .lg\:-mx-8 {
     margin-left: -2rem;
     margin-right: -2rem;
-  }
-
-  .lg\:mb-0 {
-    margin-bottom: 0px;
   }
 
   .lg\:flex {
@@ -2820,8 +2805,7 @@ select {
     height: 650px;
   }
 
-  .xl\:gap-x-12 {
-    -moz-column-gap: 3rem;
-         column-gap: 3rem;
+  .xl\:w-7\/12 {
+    width: 58.333333%;
   }
 }

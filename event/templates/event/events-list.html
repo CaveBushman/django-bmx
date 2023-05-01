@@ -58,6 +58,8 @@
         <tr class="bg-red-50">
         {% elif event.type_for_ranking == "Česká liga" or event.type_for_ranking == "Moravská liga" %}
         <tr class="bg-lime-50">
+        {% elif event.type_for_ranking == "Evropský pohár" %}
+        <tr class="bg-fuchsia-200">
         {% else %}
         <tr class="bg-amber-50">
         {% endif %}
