@@ -44,21 +44,30 @@
 </div>
 </div>
 
-<div class="container dark:dark--text">
+<div class="">
 
  {% if request.user.is_superuser %}
     <form method = "POST" class="form-group" enctype="multipart/form-data">
     {% csrf_token %}
-      <div id="message" class="container alert-container">
+      <div id="message" class="container mx-auto px-4 alert-container">
       {% if messages %}
       {% for message in messages %}
 
-      <div role="alert">
-        <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-          CHYBA!
-        </div>
-        <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-          <p>{{message}}</p>
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Chybové hlášení</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul role="list" class="list-disc space-y-1 pl-5">
+                <li>{{message}}</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
       {% endfor %}
@@ -75,6 +84,12 @@
   </div>
 </div>
 
+<div class="flex flex-row py-5">
+  <div class="basis-1/3">Datum závodu: {{event.date}}</div>
+  <div class="basis-1/3">Pořadatel: {{event.organizer}}</div>
+  <div class="basis-1/3">Typ závodu: {{event.type_for_ranking}}</div>
+</div>
+
     <div class="relative">
   <div class="absolute inset-0 flex items-center" aria-hidden="true">
     <div class="w-full border-t border-gray-300"></div>
@@ -84,14 +99,50 @@
   </div>
 </div>
 
-    <div class="relative">
-  <div class="absolute inset-0 flex items-center" aria-hidden="true">
-    <div class="w-full border-t border-gray-300"></div>
-  </div>
-  <div class="relative flex justify-center">
-    <span class="bg-white px-3 text-base font-semibold leading-6 text-gray-900">Soubory pro REM</span>
+<div class="grid grid-cols-4 gap-4 py-5">
+  <div class="font-bold">Registrovaní jezdci online </div>
+  <div class="">Aktuální ke dni {{event.bem_entries_created}}</div>
+  <div class=""><button href="#" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" tabindex="-1" role="button"
+      name="btn-bem-file" aria-disabled="true">Vytvořit/aktualizovat</button></div>
+  <div class=""><a href="../../{{event.bem_entries}}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>Stáhnout</a>
   </div>
 </div>
+
+<div class="grid grid-cols-4 gap-4 py-5">
+  <div class="font-bold">Všichni jezdci</div>
+  <div class="">Aktuální ke dni {{event.bem_riders_created}}</div>
+  <div class=""><button href="#" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" tabindex="-1" role="button"
+      name="btn-riders-list" aria-disabled="true">Vytvořit/aktualizovat</button></div>
+  <div class=""><a href="../../{{event.bem_riders_list}}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>Stáhnout</a>
+  </div>
+</div>
+
+    <div class="relative">
+      <div class="absolute inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300"></div>
+      </div>
+      <div class="relative flex justify-center">
+        <span class="bg-white px-3 text-base font-semibold leading-6 text-gray-900">Soubory pro REM</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4 py-5">
+      <div class="font-bold">Registrovaní jezdci online </div>
+      <div class="">Aktuální ke dni {{event.rem_entries_created}}</div>
+      <div class=""><button href="#" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" tabindex="-1" role="button"
+          name="btn-rem-file" aria-disabled="true">Vytvořit/aktualizovat</button></div>
+      <div class=""><a href="../../{{event.rem_entries}}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>Stáhnout</a>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-4 gap-4 py-5">
+      <div class="font-bold">Všichni jezdci</div>
+      <div class="">Aktuální ke dni {{event.rem_riders_created}}</div>
+      <div class=""><button href="#" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" tabindex="-1" role="button"
+          name="btn-rem-riders-list" aria-disabled="true">Vytvořit/aktualizovat</button></div>
+      <div class=""><a href="../../{{event.rem_riders_list}}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>Stáhnout</a>
+      </div>
+    </div>
 
     <div class="relative">
   <div class="absolute inset-0 flex items-center" aria-hidden="true">
@@ -102,6 +153,51 @@
   </div>
 </div>
 
+<div class = "grid grid-cols-4 gap-4 py-5">
+<div class="col-span-2">
+  <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Vyber soubor s výsledky závodu</label>
+  <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file">
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Pouze xls soubor</p>
+</div>
+<div class="my-auto mx-auto">
+  <button type="text" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name = "btn-upload-result" value = "xls"
+        {% if event.xml_results %}
+        {% comment %} disabled {% endcomment %}
+        {% endif%}
+      >Nahraj výsledky</button>
+</div>
+<div class="my-auto mx-auto">
+  <button class = "rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name="btn-delete-xls" value="delete"
+        {% if not event.xml_results %}
+        disabled
+        {% endif%}
+        >Smaž výsledky závodu</button>
+</div>
+</div>
+
+
+<div class = "grid grid-cols-4 gap-4 py-5">
+  <div class="col-span-2">
+    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Vyber soubor s 50-ti nejrychlejšími jezdci</label>
+    <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file">
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Pouze pdf soubor</p>
+  </div>
+  <div class="my-auto mx-auto">
+    <button type="text" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name = "btn-upload-pdf" value = "pdf"
+    {% if event.full_results_path %}
+    disabled
+    {% endif%}
+        >Nahraj výsledky</button>
+  </div>
+  <div class="my-auto mx-auto">
+    <button class = "rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name="btn-delete-pdf" value="delete"
+          {% if not event.xml_results %}
+          disabled
+          {% endif%}
+          >Smaž výsledky závodu</button>
+  </div>
+  </div>
+
     <div class="relative">
   <div class="absolute inset-0 flex items-center" aria-hidden="true">
     <div class="w-full border-t border-gray-300"></div>
@@ -111,169 +207,42 @@
   </div>
 </div>
 
+<div class = "grid grid-cols-4 gap-4 py-5">
+  <div class="col-span-2">
+    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Vyber soubor s výsledky závodu</label>
+    <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file">
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Pouze txt (tab delimited) soubor</p>
+  </div>
+  <div class="my-auto mx-auto">
+    <button type="text" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name = "btn-upload-txt" value = "txt"
+          {% if event.xml_results %}
+          {% comment %} disabled {% endcomment %}
+          {% endif%}
+        >Nahraj výsledky</button>
+  </div>
+  <div class="my-auto mx-auto">
+    <button class = "rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" name="btn-delete-txt" value="delete"
+          {% if not event.xml_results %}
+          disabled
+          {% endif%}
+          >Smaž výsledky závodu</button>
+  </div>
+  </div>
+
+{% if invalid_licences%}
+<div class="relative">
+  <div class="absolute inset-0 flex items-center" aria-hidden="true">
+    <div class="w-full border-t border-gray-300"></div>
+  </div>
+  <div class="relative flex justify-center">
+    <span class="bg-white px-3 text-base font-semibold leading-6 text-gray-900">Jezdci s neplatnou licencí</span>
+  </div>
+</div>
 </div>
 
-<table class="table table-borderless align-middle table-event-admin">
-  <tbody>
-    <tr>
-      <td class="dark:dark"><h6>Datum závodu: {{event.date}}</h6></td>
-      <td class="dark:dark"></td>
-      <td class="dark:dark"><h6>Pořadatel: {{event.organizer}}</h6></td>
-      <td class="dark:dark"></td>
-      <td class="dark:dark"><h6>Typ závodu: {{event.type_for_ranking}}</h6></td>
-    </tr>
+{% endif %}
 
-    <tr>
-      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Soubory pro BEM</th>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Registrovaní jezdci na závod - BEM FILE</th>
-      <td class="dark:dark">Aktuální ke dni:</td>
-      <td class="dark:dark"> {{event.bem_entries_created}}</td>
-      <td><button
-            href="#"
-            class="btn btn-outline-info blurApp dark:dark"
-            tabindex="-1"
-            role="button"
-            name="btn-bem-file"
-            aria-disabled="true">Vytvořit/aktualizovat startovku pro BEM</button></td>
-        <td><a href="../../{{event.bem_entries}}" class="btn btn-outline-success" download>Stáhnout</a></td>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Riders list - BEM FILE</th>
-      <td class="dark:dark">Aktuální ke dni:</td>
-      <td class="dark:dark">{{event.bem_riders_created}}</td>
-      <td><button
-            href="#"
-            class="btn btn-outline-info blurApp dark:dark"
-            tabindex="-1"
-            role="button"
-            name="btn-riders-list"
-            aria-disabled="true">Vytvořit/aktualizovat riders list pro BEM</button></td>
-      <td><a href="../../{{event.bem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
-    </tr>
-    <tr>
-      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Soubory pro REM</th>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Registrovaní jezdci na závod - REM FILE</th>
-      <td class="dark:dark">Aktuální ke dni:</td>
-      <td class="dark:dark"> {{event.rem_entries_created}}</td>
-      <td><button
-            href="#"
-            class="btn btn-outline-info blurApp dark:dark"
-            tabindex="-1"
-            role="button"
-            name="btn-rem-file"
-            aria-disabled="true">Vytvořit/aktualizovat startovku pro REM</button></td>
-        <td><a href="../../{{event.rem_entries}}" class="btn btn-outline-success" download>Stáhnout</a></td>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Riders list - REM FILE</th>
-      <td class="dark:dark">Aktuální ke dni:</td>
-      <td class="dark:dark">{{event.rem_riders_created}}</td>
-      <td><button
-            href="#"
-            class="btn btn-outline-info blurApp dark:dark"
-            tabindex="-1"
-            role="button"
-            name="btn-rem-riders-list"
-            aria-disabled="true">Vytvořit/aktualizovat riders list pro REM</button></td>
-      <td><a href="../../{{event.rem_riders_list}}" class="btn btn-outline-success" download>Stáhnout</a></td>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    {% if invalid_licences%}
-    <tr>
-      <th scope="row" colspan="5" class = "h5 table-warning text-center dark:dark" >Přihlášení jezdci s neplatnou licencí</th>
-    </tr>
-    <tr>
-      {% for rider in invalid_licences %}
-      <tr>
-        <td class="dark:dark"></td>
-        <td class="dark:dark">{{rider.last_name|upper}} {{rider.first_name}}, UCI ID: {{rider.uci_id}}</td>
-        <td class="dark:dark">klub: {{rider.club}}</td>
-      </tr>
-      {% endfor %}
-    {% endif %}
-    <tr>
-      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Výsledky závodu</th>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Nahrát výsledky závodu (xls)</th>
-      <td colspan = "3"><input class="form-control" type="file" name="result-file"></td>
-      <td><button type="text" class="btn btn-info blurApp px-auto" name = "btn-upload-result" value = "xls"
-        {% if event.xml_results %}
-        {% comment %} disabled {% endcomment %}
-        {% endif%}
-      >Nahraj výsledky</button></td>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Smazat výsledky závodu (xls)</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th><button class = "btn btn-danger blurApp" name="btn-delete-xls" value="delete"
-        {% if not event.xml_results %}
-        disabled
-        {% endif%}
-        >Smaž výsledky závodu</button></th>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Nahrát výsledky závodu s časy (pdf)</th>
-      <td colspan = "3"><input class="form-control" type="file" name="result-file-pdf"></td>
-      <td><button type="text" class="btn btn-info blurApp" name = "btn-upload-pdf" value = "pdf"
-        {% if event.full_results_path %}
-        disabled
-        {% endif%}
-        >Nahraj výsledky</button></td>
-    </tr>
-    <tr>
-      <th scope="row" class="dark:dark">Smazat výsledky závodu (pdf)</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th><button class = "btn btn-danger blurApp" name="btn-delete-pdf" value="delete">Smaž výsledky závodu</button></th>
-    </tr>
-
-    <tr>
-      <th></th>
-    </tr>
-
-    {% if event.event_type == "Mezinárodní závod" %}
-
-    <tr>
-      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Evropský pohár</th>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    {% endif %}
-    <tr>
-      <th scope="row" colspan="5" class = "h5 bg-yellow-600 dark:bg-slate-600 dark:text-gray-300 text-center" >Notifikace</th>
-    </tr>
-    <tr>
-      <th></th>
-    </tr>
-    <tr>
-      <th scope="row" colspan = "4"><input class="form-control form-control-lg" type="text" placeholder="Napiš notifikaci" aria-label=".form-control-lg example"></th>
-      <td><button type="button" class="btn btn-warning dark:dark">Odešli notifikaci</button></td>
-    </tr>
-  </tbody>
-</table>
-</div>
-<form>
-
+    
 {% include "spinner.html" %}
 
 {% endif %}
