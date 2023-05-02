@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
-    'compressor',
+    #'compressor',
     
     # My app
     'rider',
