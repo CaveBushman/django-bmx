@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
+    'compressor',
     
     # My app
     'rider',
@@ -217,4 +218,10 @@ CKEDITOR_CONFIGS = {
    },
 }
 
-TAILWIND_CSS_PATH = 'css/styles.css'
+TAILWIND_CSS_PATH = 'css/dist/styles.css'
+
+COMPRESS_ROOT = BASE_DIR / 'static'
+
+COMPRESS_ENABLED = True
+
+STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)

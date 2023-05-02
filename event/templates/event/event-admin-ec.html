@@ -1,0 +1,34 @@
+{% extends 'base.html' %} {% block title %}Administrace závodu{% endblock title %}
+{% load static %}
+{% block content %}
+
+<div class = "blur-md"></div>
+
+<header class="shadow dark:dark">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-header">Administrace závodu: {{event.name}}</h1>
+  </div>
+</header>
+
+<div class="max-w-7xl mx-auto">
+
+<div class="relative mt-4">
+  <div class="absolute inset-0 flex items-center" aria-hidden="true">
+    <div class="w-full border-t border-gray-300"></div>
+  </div>
+  <div class="relative flex justify-center">
+    <span class="bg-white px-3 text-base font-semibold leading-6 text-gray-900">Soubory pro Evropský pohár</span>
+  </div>
+</div>
+
+<div class="px-4">
+<div class="flex justify-center mt-4">
+  <div class="font-bold mx-5">XLS soubor pro Evropský pohár </div>
+  <div class="mx-5">Aktuální ke dni {{event.ec_file_created}}</div>
+ 
+  <div class="mx-5"><a href="../../{{event.ec_file}}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>Stáhnout</a>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
