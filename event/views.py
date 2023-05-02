@@ -662,6 +662,8 @@ def EventAdminView(request, pk):
         ws = wb.active
         ws.title="INSURANCE"
 
+        ws = insurance_first_line(ws)
+
         x = 2
         for entry_20 in entries_20:
             try:
