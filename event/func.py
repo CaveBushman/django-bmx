@@ -139,6 +139,15 @@ def excel_rem_first_line(ws):
     return ws
 
 
+def insurance_first_line(ws):
+    ws.cell(1, 1, "Kategorie")
+    ws.cell(1, 2, "Křestní jméno")
+    ws.cell(1, 3, "Příjmení")
+    ws.cell(1, 4, "Datum narození")
+    ws.cell(1, 5, "Adresa")
+
+    return ws
+
 def excel_rem_first_line_online(ws):
     """ set first line in REM online entires excel file """
     ws.cell(1, 1, "uci_id")
