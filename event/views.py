@@ -28,6 +28,7 @@ import threading
 from decouple import config
 import requests
 import requests.packages
+from django.utils import timezone
 # import logging
 
 
@@ -128,6 +129,9 @@ def EntryView(request, pk):
     riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
     sum_fee = 0
 
+    #Přesměrování po datu registrace
+    if event.canceled or not event.reg_open or (event.reg_open_to < timezone.now()):
+        return render (request, 'event/reg-close.html')
 
     if request.POST:
         event = Event.objects.get(id=event.id)
