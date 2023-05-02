@@ -25,6 +25,9 @@ from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
 import threading
+from decouple import config
+import requests
+import requests.packages
 # import logging
 
 
@@ -596,6 +599,9 @@ def EventAdminView(request, pk):
     """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
 
+    username = config('LICENCE_USERNAME')
+    password = config('LICENCE_PASSWORD')
+
     # Admin page for European Cup
     if event.type_for_ranking == "Evropský pohár":
         #TODO: Pripravit soubor pro EC
@@ -647,6 +653,61 @@ def EventAdminView(request, pk):
         event.ec_file_created = datetime.now()
         event.save()
 
+        # Insurance file 
+
+        print("Vytvoř soubor pro pojišťovnu")
+        file_name = f'media/ec-files/INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        wb = Workbook()
+        wb.encoding = "utf-8"
+        ws = wb.active
+        ws.title="INSURANCE"
+
+        x = 2
+        for entry_20 in entries_20:
+            try:
+                rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
+                uci_id = rider.uci_id
+                basicAuthCredentials = (username, password)
+                url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
+                data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+                data_json = data_json.text
+                data_json = json.loads(data_json)
+                rider_address = data_json['street'] + ", " + data_json['city'] + ", PSČ: " + data_json['postcode']
+
+                ws.cell(x, 1, rider.class_20)
+                ws.cell(x, 2, rider.first_name)
+                ws.cell(x, 3, rider.last_name)
+                ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
+                ws.cell(x, 5, rider_address)
+                x = x + 1
+            except:
+                pass
+
+        for entry_24 in entries_24:
+            try:
+                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
+                uci_id = rider.uci_id
+                basicAuthCredentials = (username, password)
+                url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
+                data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+                data_json = data_json.text
+                data_json = json.loads(data_json)
+                rider_address = data_json['street'] + ", " + data_json['city'] + ", PSČ: " + data_json['postcode']
+
+                ws.cell(x, 1, rider.class_24)
+                ws.cell(x, 2, rider.first_name)
+                ws.cell(x, 3, rider.last_name)
+                ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
+                ws.cell(x, 5, rider_address)
+                x = x + 1
+            except:
+                pass  
+
+        wb.save(file_name)
+        event.ec_insurance_file = file_name
+        event.ec_insurance_file_created = datetime.now()
+        event.save()
+        
         data={'event': event}
         return render(request, 'event/event-admin-ec.html', data)
 
