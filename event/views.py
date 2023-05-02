@@ -617,6 +617,7 @@ def EventAdminView(request, pk):
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
+                ws.cell(x, 7, rider.transponder_20)
                 if rider.is_elite:
                     ws.cell(x, 9,"x")
                 if rider.class_20 == "Under 23":
@@ -634,6 +635,7 @@ def EventAdminView(request, pk):
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
+                ws.cell(x, 7, rider.transponder_24)
                 ws.cell(x, 8, "x")
 
                 x=x+1
