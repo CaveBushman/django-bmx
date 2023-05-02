@@ -24,6 +24,7 @@ def date_of_birth_resolve(date):
     date = date[8:] + "-" + date [5:7] + "-" + date [:4]
     return date
 
+
 def date_of_birth_resolve_rem_online(date):
     date = str(date)
     date = date[8:] + "." + date [5:7] + "." + date [:4]
@@ -36,6 +37,13 @@ def gender_resolve(rider):
         return "F"
     else:
         return "M"
+
+def gender_resolve_small_letter(rider):
+    """ Set gender to BEM format """
+    if rider == "Žena":
+        return "f"
+    else:
+        return "m"
 
 def gender_resolve_rem_online(rider):
     """ Set gender to BEM format """

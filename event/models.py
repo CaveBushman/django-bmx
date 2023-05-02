@@ -209,6 +209,9 @@ class Event(models.Model):
     xml_results = models.FileField(upload_to='xml_results/', null=True, blank=True)
     xml_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    ec_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
+    ec_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
 
