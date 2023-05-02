@@ -1729,6 +1729,16 @@ select {
   background-color: rgb(253 224 71 / var(--tw-bg-opacity));
 }
 
+.bg-red-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(252 165 165 / var(--tw-bg-opacity));
+}
+
+.bg-green-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity));
+}
+
 .bg-cover {
   background-size: cover;
 }
