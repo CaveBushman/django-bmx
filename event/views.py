@@ -610,7 +610,7 @@ def EventAdminView(request, pk):
         entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
 
         print("Vytvoř startovku pro Evropský pohár")
-        file_name = f'media/ec-files/EC_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
         wb = load_workbook(filename = 'media/ec-files/Entries example - UEC.xlsx')
         ws = wb.active
 
