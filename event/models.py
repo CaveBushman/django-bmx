@@ -181,17 +181,12 @@ class Event(models.Model):
     series = models.FileField(upload_to='series/', null = True, blank = True)
     series_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    # file for BMX EVENT MANAGER
     bem_entries = models.FileField(upload_to='bem_entries/', null = True, blank = True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_riders_list = models.FileField(upload_to='bem_riders/', null = True, blank = True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    rem_entries = models.FileField(upload_to='rem_entries/', null = True, blank = True)
-    rem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    rem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
-    rem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     bem_backup = models.FileField(upload_to='bem_backup/', null = True, blank = True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -209,8 +204,18 @@ class Event(models.Model):
     xml_results = models.FileField(upload_to='xml_results/', null=True, blank=True)
     xml_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    # file for RACE EVENT MANAGER
+    rem_entries = models.FileField(upload_to='rem_entries/', null = True, blank = True)
+    rem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    rem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
+    rem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    # file for EUROPEAN CUP 
     ec_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
     ec_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    ec_insurance_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
+    ec_insurance_file_created =  models.FileField(upload_to='ec-files/', null=True, blank=True)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
