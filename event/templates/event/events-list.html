@@ -63,12 +63,18 @@
         {% else %}
         <tr class="bg-amber-50">
         {% endif %}
+
+        {% if event.canceled %}
+        <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6 line-through">
+            {{event.date}}
+        {% else %}
           <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-6">
             {{event.date}}
+        {% endif %}
             <dl class="font-normal lg:hidden">
-              <dt class="sr-only">{{event.name}}</dt>
+               <dt class="sr-only">{{event.name}}</dt>
               <dd class="mt-1 truncate text-gray-700"><a href="{% url 'event:event-detail' event.id %}" class="no-underline">{{event.name}}</dd>
-              <dt class="sr-only sm:hidden">{{event.organizer|upper}}</dt>
+                <dt class="sr-only sm:hidden">{{event.organizer|upper}}</dt>
               <dd class="mt-1 truncate text-gray-500 sm:hidden">{{event.organizer|upper}}</dd>
             </dl>
           </td>
