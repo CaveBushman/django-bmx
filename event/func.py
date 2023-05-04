@@ -38,19 +38,14 @@ def gender_resolve(rider):
     else:
         return "M"
 
+
 def gender_resolve_small_letter(rider):
-    """ Set gender to BEM format """
+    """ Set gender to EC form and REM format """
     if rider == "Žena":
         return "f"
     else:
         return "m"
 
-def gender_resolve_rem_online(rider):
-    """ Set gender to BEM format """
-    if rider == "Žena":
-        return "Female"
-    else:
-        return "Male"
 
 def excel_first_line(ws):
     """ set first line in BEM and Riders list excel file """
