@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
-    'django_crontab',
+    #'django_crontab',
     #'compressor',
     
     # My app
