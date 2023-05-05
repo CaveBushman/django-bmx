@@ -1027,10 +1027,6 @@ def EventAdminView(request, pk):
             for entry_20 in entries_20:
                 try:
                     rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
-
-                    if rider.plate_champ_20:
-                        rider.plate = "W" + rider.plate_champ_20
-
                     ws.cell(x,1,rider.uci_id)
                     ws.cell(x,2,rider.uci_id)
                     ws.cell(x,3,rider.first_name)
@@ -1050,7 +1046,10 @@ def EventAdminView(request, pk):
                     ws.cell(x,17,entry_20.class_20)
                     ws.cell(x,18,rider.transponder_20)
                     ws.cell(x,19,)
-                    ws.cell(x,20,rider.plate)
+                    if rider.plate_champ_20:
+                        ws.cell(x,20,"W" + rider.plate_champ_20)
+                    else:
+                        ws.cell(x,20,rider.plate)
                     ws.cell(x,21,)
                     ws.cell(x,22,)
                     ws.cell(x,23,)
@@ -1068,10 +1067,6 @@ def EventAdminView(request, pk):
             for entry_24 in entries_24:
                 try:
                     rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
-
-                    if rider.plate_champ_24:
-                        rider.plate = "W"+rider.plate_champ_24
-
                     ws.cell(x,1,rider.uci_id)
                     ws.cell(x,2,rider.uci_id)
                     ws.cell(x,3,rider.first_name)
@@ -1091,7 +1086,10 @@ def EventAdminView(request, pk):
                     ws.cell(x,17,)
                     ws.cell(x,18,)
                     ws.cell(x,19,)
-                    ws.cell(x,20,rider.plate)
+                    if rider.plate_champ_24:
+                        ws.cell(x,20,rider.plate_champ_24)
+                    else:
+                        ws.cell(x,20,rider.plate)
                     ws.cell(x,21,entry_24.class_24)
                     ws.cell(x,22,rider.transponder_24)
                     ws.cell(x,23,)
