@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
+    'django_crontab',
     #'compressor',
     
     # My app
@@ -225,3 +226,7 @@ COMPRESS_ROOT = BASE_DIR / 'static'
 COMPRESS_ENABLED = True
 
 STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
+
+CRONJOBS = [
+    ('*/180 * * * *', 'bmx.cron.valid_licence_scheduled')
+]
