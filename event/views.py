@@ -847,9 +847,11 @@ def EventAdminView(request, pk):
                 ws.cell(x,25,rider.plate) # plate for cruiser
 
                 if rider.plate_champ_20:
-                    rider.plate = rider.plate_champ_20
+                    world_plate = "W" + str(rider.plate_champ_20)
+                else:
+                    world_plate = rider.plate
                 
-                ws.cell(x,24,rider.plate)
+                ws.cell(x,24,world_plate)
                 ws.cell(x,32,rider.transponder_20)
                 ws.cell(x,33,rider.transponder_24)
                 ws.cell(x,36,"T1")
@@ -892,9 +894,11 @@ def EventAdminView(request, pk):
             ws.cell(x,24,rider.plate)
             
             if rider.plate_champ_24:
-                rider.plate = rider.plate_champ_24
+                world_plate = "W" + str(rider.plate_champ_24)
+            else:
+                world_plate = str(rider.plate)
 
-            ws.cell(x,25,rider.plate)
+            ws.cell(x,25,world_plate)
             ws.cell(x,32,rider.transponder_20)
             ws.cell(x,33,rider.transponder_24)
             ws.cell(x,36,"T1")
@@ -1047,7 +1051,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,18,rider.transponder_20)
                     ws.cell(x,19,)
                     if rider.plate_champ_20:
-                        world_plate = "W" + rider.plate_champ_20
+                        world_plate = "W" + str(rider.plate_champ_20)
                         ws.cell(x,20, world_plate)
                     else:
                         ws.cell(x,20,rider.plate)
@@ -1088,7 +1092,7 @@ def EventAdminView(request, pk):
                     ws.cell(x,18,)
                     ws.cell(x,19,)
                     if rider.plate_champ_24:
-                        ws.cell(x,20,rider.plate_champ_24)
+                        ws.cell(x,20,"W" + str(rider.plate_champ_24))
                     else:
                         ws.cell(x,20,rider.plate)
                     ws.cell(x,21,entry_24.class_24)
