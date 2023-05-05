@@ -844,8 +844,12 @@ def EventAdminView(request, pk):
                 ws.cell(x,18,"CZE")
                 ws.cell(x,19,"CZE")
                 ws.cell(x,20,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_20,1))
+                ws.cell(x,25,rider.plate) # plate for cruiser
+
+                if rider.plate_champ_20:
+                    rider.plate = rider.plate_champ_20
+                
                 ws.cell(x,24,rider.plate)
-                ws.cell(x,25,rider.plate)
                 ws.cell(x,32,rider.transponder_20)
                 ws.cell(x,33,rider.transponder_24)
                 ws.cell(x,36,"T1")
@@ -886,6 +890,10 @@ def EventAdminView(request, pk):
             ws.cell(x,19,"CZE")
             ws.cell(x,21,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_24,0))
             ws.cell(x,24,rider.plate)
+            
+            if rider.plate_champ_24:
+                rider.plate = rider.plate_champ_24
+
             ws.cell(x,25,rider.plate)
             ws.cell(x,32,rider.transponder_20)
             ws.cell(x,33,rider.transponder_24)
@@ -943,7 +951,15 @@ def EventAdminView(request, pk):
                 ws.cell(x,21,resolve_event_classes(event.id,rider.gender,rider.have_girl_bonus,rider.class_24,0))
             ws.cell(x,28,"")
             ws.cell(x,29,"")
+
+            if rider.plate_champ_20:
+                rider.plate = rider.plate_champ_20
+
             ws.cell(x,24,rider.plate)
+
+            if rider.plate_champ_24:
+                rider.plate = rider.plate_champ_24
+
             ws.cell(x,25,rider.plate)
             ws.cell(x,32,rider.transponder_20)
             ws.cell(x,33,rider.transponder_24)
@@ -1011,6 +1027,10 @@ def EventAdminView(request, pk):
             for entry_20 in entries_20:
                 try:
                     rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
+
+                    if rider.plate_champ_20:
+                        rider.plate = "W" + rider.plate_champ_20
+
                     ws.cell(x,1,rider.uci_id)
                     ws.cell(x,2,rider.uci_id)
                     ws.cell(x,3,rider.first_name)
@@ -1048,6 +1068,10 @@ def EventAdminView(request, pk):
             for entry_24 in entries_24:
                 try:
                     rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
+
+                    if rider.plate_champ_24:
+                        rider.plate = "W"+rider.plate_champ_24
+
                     ws.cell(x,1,rider.uci_id)
                     ws.cell(x,2,rider.uci_id)
                     ws.cell(x,3,rider.first_name)
