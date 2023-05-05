@@ -1047,7 +1047,8 @@ def EventAdminView(request, pk):
                     ws.cell(x,18,rider.transponder_20)
                     ws.cell(x,19,)
                     if rider.plate_champ_20:
-                        ws.cell(x,20,"W" + rider.plate_champ_20)
+                        world_plate = "W" + rider.plate_champ_20
+                        ws.cell(x,20, world_plate)
                     else:
                         ws.cell(x,20,rider.plate)
                     ws.cell(x,21,)
