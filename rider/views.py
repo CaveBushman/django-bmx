@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.views.decorators.cache import cache_control
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Rider
-from .rider import valid_licence_control, two_years_inactive
+from .rider import valid_licence_control, two_years_inactive, CheckValidLicenceThread
 from club.models import Club
 import urllib.request, json
 from event.models import Result
@@ -219,7 +219,9 @@ def InactiveRidersViews(request):
 @staff_member_required
 def LicenceCheckViews(request):
     
-    valid_licence_control()
+    #valid_licence_control()
+
+    CheckValidLicenceThread().start()
 
     data={}
     return render (request, 'rider/rider-licence.html', data)
