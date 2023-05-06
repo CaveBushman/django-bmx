@@ -1088,15 +1088,15 @@ def EventAdminView(request, pk):
                     ws.cell(x,14,)
                     ws.cell(x,15,)
                     ws.cell(x,16,team_name_resolve(rider.club))
-                    ws.cell(x,17,)
-                    ws.cell(x,18,)
+                    ws.cell(x,17,entry_24.class_24)
+                    ws.cell(x,18,rider.transponder_24)
                     ws.cell(x,19,)
                     if rider.plate_champ_24:
                         ws.cell(x,20,"W" + str(rider.plate_champ_24))
                     else:
                         ws.cell(x,20,rider.plate)
-                    ws.cell(x,21,entry_24.class_24)
-                    ws.cell(x,22,rider.transponder_24)
+                    ws.cell(x,21,)
+                    ws.cell(x,22,)
                     ws.cell(x,23,)
                     ws.cell(x,24,rider.plate)
 
