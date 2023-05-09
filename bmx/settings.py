@@ -35,7 +35,7 @@ ALLOWED_HOSTS = ['*']
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = config('SECRET_KEY')
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = "1" #config('SECRET_KEY')
 # STRIPE KEYS
 if  DEBUG:
     STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY_TEST')

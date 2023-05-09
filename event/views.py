@@ -623,7 +623,7 @@ def EventAdminView(request, pk):
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
                 ws.cell(x, 2,rider.uci_id)
-                ws.cell(x, 3, date_of_birth_resolve_rem_online(rider.date_of_birth))
+                ws.cell(x, 3, rider.date_of_birth.strftime("%d.%m.%Y"))
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
@@ -641,7 +641,7 @@ def EventAdminView(request, pk):
             try:
                 rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
                 ws.cell(x, 2,rider.uci_id)
-                ws.cell(x, 3, date_of_birth_resolve_rem_online(rider.date_of_birth))
+                ws.cell(x, 3, rider.date_of_birth.strftime("%d.%m.%Y"))
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
