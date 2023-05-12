@@ -12,6 +12,23 @@
 
 <div class="max-w-7xl mx-auto">
 
+  <div class="relative mt-4">
+  <div class="absolute inset-0 flex items-center" aria-hidden="true">
+    <div class="w-full border-t border-gray-300"></div>
+  </div>
+  <div class="relative flex justify-center">
+    <span class="bg-white px-3 text-base font-semibold leading-6 text-gray-900">Statistické informace pro Evropský pohár</span>
+  </div>
+</div>
+
+<div class = "grid grid-cols-3">
+  <div>
+  Počet přihlášených jezdců: 
+  </div>
+  <div></div>
+  <div><a href="{% url 'event:ec_by_club_pdf' event.id %}" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" download>PDF dle klubů</a></div>
+</div>
+
 <div class="relative mt-4">
   <div class="absolute inset-0 flex items-center" aria-hidden="true">
     <div class="w-full border-t border-gray-300"></div>

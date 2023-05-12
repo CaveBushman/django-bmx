@@ -415,7 +415,7 @@ class Entry(models.Model):
     """ Models for entries to the race for Czech riders """
     transaction_id = models.CharField(max_length=255, default="")
     event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
-    rider = models.ForeignKey(Rider, to_field="uci_id", db_column="rider", on_delete=models.SET_NULL, null=True)
+    rider = models.ForeignKey(Rider, to_field="id", db_column="rider", on_delete=models.SET_NULL, null=True)
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
     class_20 = models.CharField(max_length=255, default="", null=True, blank=True)

@@ -17,5 +17,6 @@ urlpatterns = [
     path('event-admin/<int:pk>', views.EventAdminView, name='event-admin'),
     path('find-payment', views.findPaymentView, name='find-payment'),
     path('ranking-table', views.RankingTableView, name='ranking-table'),
-    path('entry-foreign/<int:pk>', views.EntryForeignView, name='entry-foreign')
+    path('entry-foreign/<int:pk>', views.EntryForeignView, name='entry-foreign'),
+    path('ec_by_club_pdf/<int:pk>', views.ECbyClub_pdf, name = 'ec_by_club_pdf')
 ]
