@@ -19,8 +19,9 @@ from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories
 import re
+import io
 from django.core import serializers
-from django.http import JsonResponse, HttpResponse
+from django.http import FileResponse, JsonResponse, HttpResponse
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
@@ -29,6 +30,19 @@ from decouple import config
 import requests
 import requests.packages
 from django.utils import timezone
+
+# import Reportlab li
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import mm
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import portrait
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# import fonts
+pdfmetrics.registerFont(TTFont('Tahoma', 'Tahoma.ttf'))
+pdfmetrics.registerFont(TTFont('Tahoma Bold', 'Tahoma Bold.ttf'))
+
 # import logging
 
 
@@ -1281,3 +1295,36 @@ def EntryForeignView(request, pk):
     data={'event':event}
     views = render(request, 'event/entry-foreign.html', data)
     return views
+
+
+def ECbyClub_pdf (request, pk):
+    event = get_object_or_404(Event, pk=pk)
+    clubs = Club.objects.filter(is_active = True).order_by('team_name')
+    entries = Entry.objects.filter(event=pk, payment_complete = True)
+
+    print (f"Vytvářím pdf pro závod { event.name }")
+
+    buf = io.BytesIO()
+    c = canvas.Canvas (buf, pagesize = A4, bottomup=0)
+    textob = c.beginText()
+    textob.setTextOrigin(mm, mm)
+    textob.setFont('Tahoma', 14) 
+
+    lines = []
+
+    for club in clubs:
+        
+        for entry in entries:
+            rider = Rider.objects.get (uci_id = entry.rider.uci_id)
+            if rider.club.id == club.id:
+                line = f"Přidávám jezdce { rider.last_name} z { rider.club.team_name}"
+                lines.append(line)
+    print (lines)
+    for line in lines:
+        textob.textLine(line)
+    c.drawText(textob)
+    c.showPage()
+    c.save()
+    buf.seek(0)
+   
+    return FileResponse (buf, as_attachment=True, filename = "EC.pdf")
