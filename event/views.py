@@ -32,12 +32,12 @@ import requests.packages
 from django.utils import timezone
 
 # import Reportlab li
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.pagesizes import portrait
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+# from reportlab.pdfgen import canvas
+# from reportlab.lib.units import mm
+# from reportlab.lib.pagesizes import A4
+# from reportlab.lib.pagesizes import portrait
+# from reportlab.pdfbase import pdfmetrics
+# from reportlab.pdfbase.ttfonts import TTFont
 
 # import fonts
 # pdfmetrics.registerFont(TTFont('Tahoma', 'Tahoma.ttf'))
@@ -285,7 +285,7 @@ def EntryView(request, pk):
 
     # disable riders, who was registered in event
     for rider in riders:
-        was_registered = Entry.objects.filter(event=event.id, rider=rider.uci_id, payment_complete=True)
+        was_registered = Entry.objects.filter(event=event.id, rider=rider.id, payment_complete=True)
     
         rider.class_20 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_20, 1)
         rider.class_24 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_24, 0)
