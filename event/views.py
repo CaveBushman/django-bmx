@@ -40,8 +40,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # import fonts
-pdfmetrics.registerFont(TTFont('Tahoma', 'Tahoma.ttf'))
-pdfmetrics.registerFont(TTFont('Tahoma Bold', 'Tahoma Bold.ttf'))
+# pdfmetrics.registerFont(TTFont('Tahoma', 'Tahoma.ttf'))
+# pdfmetrics.registerFont(TTFont('Tahoma Bold', 'Tahoma Bold.ttf'))
 
 # import logging
 
