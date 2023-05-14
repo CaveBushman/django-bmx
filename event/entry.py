@@ -112,3 +112,4 @@ class SendConfirmEmail:
         #      from_email = "bmx@ceskysvazcyklistiky.cz",
         #      recipient_list = [recipient],)
         del event
+

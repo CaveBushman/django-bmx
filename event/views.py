@@ -31,18 +31,6 @@ import requests
 import requests.packages
 from django.utils import timezone
 
-# import Reportlab li
-# from reportlab.pdfgen import canvas
-# from reportlab.lib.units import mm
-# from reportlab.lib.pagesizes import A4
-# from reportlab.lib.pagesizes import portrait
-# from reportlab.pdfbase import pdfmetrics
-# from reportlab.pdfbase.ttfonts import TTFont
-
-# import fonts
-# pdfmetrics.registerFont(TTFont('Tahoma', 'Tahoma.ttf'))
-# pdfmetrics.registerFont(TTFont('Tahoma Bold', 'Tahoma Bold.ttf'))
-
 # import logging
 
 
@@ -621,11 +609,12 @@ def EventAdminView(request, pk):
     password = config('LICENCE_PASSWORD')
 
     # Admin page for European Cup
-    if event.type_for_ranking == "Evropský pohár":
-        #TODO: Pripravit soubor pro EC
-
+    if event.type_for_ranking == "Evropský pohár" or event.type_for_ranking == "Mistrovství Evropy":
+       
         entries_20 = Entry.objects.filter(event = event.id, is_20=True, payment_complete=1, checkout=0)
         entries_24 = Entry.objects.filter(event = event.id, is_24=True, payment_complete=1, checkout=0)
+
+        sum_entiries = entries_20.count() + entries_24.count()
 
         print("Vytvoř startovku pro Evropský pohár")
         file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
@@ -728,7 +717,7 @@ def EventAdminView(request, pk):
         event.ec_insurance_file_created = datetime.now()
         event.save()
         
-        data={'event': event}
+        data={'event': event, "sum_entries": sum_entiries}
         return render(request, 'event/event-admin-ec.html', data)
 
     # Admin page for Czech events
@@ -1297,34 +1286,39 @@ def EntryForeignView(request, pk):
     return views
 
 
-def ECbyClub_pdf (request, pk):
+def ECbyClub_xls (request, pk):
     event = get_object_or_404(Event, pk=pk)
     clubs = Club.objects.filter(is_active = True).order_by('team_name')
-    entries = Entry.objects.filter(event=pk, payment_complete = True)
+    entries = Entry.objects.filter(event=pk, payment_complete = True).order_by('rider')
 
-    print (f"Vytvářím pdf pro závod { event.name }")
+    print (f"Vytvářím xls pro závod { event.name } podle klubů")
 
-    buf = io.BytesIO()
-    c = canvas.Canvas (buf, pagesize = A4, bottomup=0)
-    textob = c.beginText()
-    textob.setTextOrigin(mm, mm)
-    textob.setFont('Tahoma', 14) 
+    file_name = f'media/ec-files/EC_RACE_ID_BY_CLUB-{event.id}-{event.name}.xlsx'
 
-    lines = []
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = f'attachment; filename="{ file_name }"'
 
+    wb = load_workbook(filename = 'media/ec-files/Club example - UEC.xlsx')
+    ws = wb.active
+
+    ws.cell(3, 2, event.name)
+
+    x = 6
     for club in clubs:
-        
+        print (f"Kontoluji jezdce klubu {club.team_name}")
+      
         for entry in entries:
-            rider = Rider.objects.get (uci_id = entry.rider.uci_id)
+            rider = Rider.objects.get (id = entry.rider.id)
             if rider.club.id == club.id:
-                line = f"Přidávám jezdce { rider.last_name} z { rider.club.team_name}"
-                lines.append(line)
-    print (lines)
-    for line in lines:
-        textob.textLine(line)
-    c.drawText(textob)
-    c.showPage()
-    c.save()
-    buf.seek(0)
+
+                ws.cell(x, 1, rider.last_name)
+                ws.cell(x, 2, rider.first_name)
+                ws.cell(x, 3, rider.uci_id)
+                ws.cell(x, 4, rider.club.team_name)
+
+                x = x + 1
+
+    wb.save(response)
    
-    return FileResponse (buf, as_attachment=True, filename = "EC.pdf")
+    return response
+    
