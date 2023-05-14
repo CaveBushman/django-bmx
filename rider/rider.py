@@ -17,26 +17,33 @@ class CheckValidLicenceThread (threading.Thread):
     def run(self):
         riders = Rider.objects.filter(is_active = True)
         for rider in riders:
-            LICENCE_USERNAME = config('LICENCE_USERNAME')
-            LICENCE_PASSWORD = config('LICENCE_PASSWORD')
-            basicAuthCredentials = (LICENCE_USERNAME, LICENCE_PASSWORD)
- 
-            url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
-            print (f"Kontroluji platnost licence jezdce {rider.first_name} {rider.last_name}")
-            try:
-                dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-                if dataJSON.text == "false":
-                    rider.valid_licence = False
-                    rider.save()
-                elif re.search("Http_NotFound", dataJSON.text):
-                    print(f"UCI ID {rider.uci_id} NEEXISTUJE V DATABÁZI ČSC")
-                    rider.valid_licence = False
-                    rider.save()
-                else:
-                    rider.valid_licence = True
-                    rider.save()
-            except:
-                print("CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE")
+
+            if rider.fix_valid_licence:
+                rider.valid_licence = True
+                rider.save()
+                
+            else:
+
+                LICENCE_USERNAME = config('LICENCE_USERNAME')
+                LICENCE_PASSWORD = config('LICENCE_PASSWORD')
+                basicAuthCredentials = (LICENCE_USERNAME, LICENCE_PASSWORD)
+    
+                url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
+                print (f"Kontroluji platnost licence jezdce {rider.first_name} {rider.last_name}")
+                try:
+                    dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+                    if dataJSON.text == "false":
+                        rider.valid_licence = False
+                        rider.save()
+                    elif re.search("Http_NotFound", dataJSON.text):
+                        print(f"UCI ID {rider.uci_id} NEEXISTUJE V DATABÁZI ČSC")
+                        rider.valid_licence = False
+                        rider.save()
+                    else:
+                        rider.valid_licence = True
+                        rider.save()
+                except:
+                    print("CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE")
 
 def valid_licence(uci_id):
     """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
