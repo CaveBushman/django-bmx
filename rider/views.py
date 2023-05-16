@@ -212,7 +212,6 @@ def InactiveRidersViews(request):
 
     data={'riders': inactive_riders}
 
-
     return render(request, 'rider/rider-inactive.html', data)
 
 

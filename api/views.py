@@ -2,10 +2,10 @@ from django.shortcuts import render
 from rest_framework import generics
 # from rest_framework.views import APIView
 from rider.models import Rider, ForeignRider
-from event.models import Event
+from event.models import Event, Entry
 from news.models import News
 from rider.serializers import RiderSerializer, ForeignRiderSerializer
-from event.serializers import EventSerializer
+from event.serializers import EventSerializer, EntrySerializer
 from news.serializer import NewsSerializer
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
@@ -73,3 +73,10 @@ class NewsListAPIView(generics.ListAPIView):
     """API for list of all news"""
     queryset = News.objects.all()
     serializer_class = NewsSerializer
+
+
+class EntryAdminAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """API for READ, PATCH, UPDATE, DELETE methods of riders object"""
+    queryset = Entry.objects.all()
+    serializer_class = EntrySerializer
+    lookup_field = "transaction_id"

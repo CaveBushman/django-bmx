@@ -16,6 +16,8 @@ urlpatterns = [
     path('events/<int:pk>', views.EventDetail.as_view()),
 
     path('news', views.NewsListAPIView.as_view()),
+
+    path('entry', views.EntryAdminAPIView.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
