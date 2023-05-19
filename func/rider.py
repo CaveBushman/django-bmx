@@ -8,7 +8,7 @@ def set_all_riders_classes():
     for rider in riders:
         threading.Thread(target=rider.set_class_20()).start()
         threading.Thread(target=rider.set_class_24()).start()
-    print ("Kategorie jezdců nastaveny")
+    print("Kategorie jezdců nastaveny")
 
 def clear_transponders():
     """ Function for clearing transponders field from nan value """

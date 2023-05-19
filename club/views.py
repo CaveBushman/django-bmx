@@ -4,16 +4,17 @@ from rider.models import Rider
 from event.models import Event
 from datetime import date
 
+
 # Create your views here.
 
-def ClubsListView(request):
+def clubs_list_view(request):
     clubs = Club.objects.filter(is_active=True).order_by('team_name')
     data = {'clubs': clubs}
 
     return render(request, 'club/clubs-list.html', data)
 
 
-def ClubDetailView(request, pk):
+def club_detail_view(request, pk):
     riders_of_club_count = Rider.objects.filter(is_active=True, is_approwe=True, club=pk).count()
     club = get_object_or_404(Club, pk=pk)
     this_year = date.today().year

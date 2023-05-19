@@ -10,11 +10,11 @@ from datetime import date
 
 # Create your views here.
 
-def HomepageView(request):
+def homepage_view(request):
     this_year = date.today().year
     events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count
     riders_sum = Rider.sum_of_riders()
-    clubs_sum = Club.active_club()-1 # odečítám "Bez klubové příslušnosti"
+    clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
     homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
 
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
@@ -23,12 +23,11 @@ def HomepageView(request):
     return render(request, "homepage.html", content)
 
 
-def RulesView(request):
+def rules_view(request):
     return render(request, 'rules.html')
 
 
-def NewsListView(request):
-
+def news_list_view(request):
     ARTICLES_PER_PAGE = 9
 
     news = News.objects.filter(published=True).order_by('-publish_date')
@@ -39,12 +38,12 @@ def NewsListView(request):
     page_num = request.GET.get('page', 1)
     page = news_paginator.get_page(page_num)
 
-    data = {'news': page, 'sum_of_news':sum_of_news}
+    data = {'news': page, 'sum_of_news': sum_of_news}
 
     return render(request, 'news/news-list.html', data)
 
 
-def NewsDetailView(request, pk):
+def news_detail_view(request, pk):
     news = get_object_or_404(News, pk=pk)
     print(news)
     queryset = {'news': news}
@@ -52,8 +51,8 @@ def NewsDetailView(request, pk):
     return render(request, 'news/news-detail.html', queryset)
 
 
-def DownloadsView(request):
+def downloads_view(request):
     documents = Downloads.objects.filter(published=True)
-    data={'documents':documents}
-    view = render(request, 'downloads.html', data)
-    return view
+    data = {'documents': documents}
+
+    return render(request, 'downloads.html', data)
