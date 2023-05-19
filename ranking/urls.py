@@ -5,6 +5,6 @@ app_name = 'ranking'
 
 urlpatterns = [
 
-    path('', views.RankingView, name = 'ranking')
+    path('', views.ranking_view, name = 'ranking')
 
 ]

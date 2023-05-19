@@ -23,14 +23,14 @@ now = date.today().year
 
 # Create your views here.
 
-def RidersListView(request):
+def riders_list_view(request):
     riders = Rider.objects.filter(is_active=True, is_approwe=True)
     data = {'riders': riders}
 
     return render(request, 'rider/riders-list.html', data)
 
 
-def RiderDetailView(request, pk):
+def rider_detail_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
     results = Result.objects.filter(rider=rider.uci_id,
                                     date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('date')
@@ -39,12 +39,12 @@ def RiderDetailView(request, pk):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
-def RiderAdmin(request):
+def rider_admin(request):
 
     return render(request, 'rider/rider-admin.html')
 
 
-def RiderNewView(request):
+def rider_new_view(request):
     """ View for new rider form """
     
     # User fill data and send form
@@ -206,7 +206,7 @@ def RiderNewView(request):
 
 
 @staff_member_required
-def InactiveRidersViews(request):
+def inactive_riders_views(request):
     """ Function for views inactive riders, only request params"""
     inactive_riders = two_years_inactive()
 
@@ -216,7 +216,7 @@ def InactiveRidersViews(request):
 
 
 @staff_member_required
-def LicenceCheckViews(request):
+def licence_check_views(request):
     
     #valid_licence_control()
 
@@ -227,7 +227,7 @@ def LicenceCheckViews(request):
 
 
 @staff_member_required
-def RankingCountViews(request):
+def ranking_count_views(request):
     """ Function for recount ranking"""
     # threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
     RankPositionCount().count_ranking_position()

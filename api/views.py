@@ -80,3 +80,4 @@ class EntryAdminAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Entry.objects.all()
     serializer_class = EntrySerializer
     lookup_field = "transaction_id"
+    permission_classes = [IsAdminUser]
