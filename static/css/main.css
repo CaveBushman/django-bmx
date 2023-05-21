@@ -566,4 +566,21 @@ html {
 .alert .close {
   line-height: 15px;
 }
+
+[data-collapsible-body] {
+    display: none;
+    transition: transform .5s ease-in-out;
+}
+
+.collapsible-active [data-collapsible-body] {
+    display: block;
+}
+
+.close {
+    transition: .5s;
+}
+
+.collapsible-active .close {
+    transform: rotate(45deg);
+}
 /*# sourceMappingURL=main.css.map */

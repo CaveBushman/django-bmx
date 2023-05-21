@@ -16,7 +16,7 @@
       <span>Pro jezdce</span>
       <span class="close text-4xl text-blue-500">+</span>
     </div>
-    <div class="p-3" data-collapsible-body>
+    <div class="p-3 hidden" data-collapsible-body>
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro jezdce' %}
@@ -47,7 +47,7 @@
       <span>Pro kluby</span>
       <span class="close text-4xl text-blue-500">+</span>
     </div>
-    <div class="p-3" data-collapsible-body>
+    <div class="p-3 hidden" data-collapsible-body>
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro kluby' %}
@@ -77,7 +77,7 @@
       <span>Pro rozhodčí</span>
       <span class="close text-4xl text-blue-500">+</span>
     </div>
-    <div class="p-3" data-collapsible-body>
+    <div class="p-3 hidden" data-collapsible-body>
       {% for document in documents %}
         {% for tag in document.tags.all %}
           {% if tag.caption == 'Pro rozhodčí' %}

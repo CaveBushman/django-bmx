@@ -9,5 +9,4 @@ collapsibles.forEach((collapsible) => {
     collapsible.classList.toggle("collapsible-active");
   });
 });
-
 console.log("Script collapsibles nahrán");
