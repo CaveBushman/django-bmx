@@ -7,7 +7,7 @@ class ResultAdmin(admin.ModelAdmin):
     pass
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('id','name', 'date', 'organizer', 'type_for_ranking', 'classes_and_fees_like','xml_results',)
+    list_display = ('id','name', 'date', 'organizer', 'type_for_ranking', 'classes_and_fees_like','xls_results',)
     list_display_links = ('name',)
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking',)

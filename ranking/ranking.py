@@ -2,7 +2,7 @@ import datetime
 from rider.models import Rider
 from event.models import Result, Entry, Event
 from django.db.models import Q
-
+import threading
 
 def sort_20(self, classes):
     CLASS_ORDER20 = {
@@ -11,14 +11,25 @@ def sort_20(self, classes):
     'Women Under 23', 'Women Elite'}
     pass
 
+
 def sort_24(self, classes):
     CLASS_ORDER_24 = {'Boys 12 and under', 'Boys 13 and 14', 'Boys 15 and 16', 'Men 17-24', 'Men 25-39', 'Men 30-34', 'Men 35-39','Men 40-49', 'Men 50 and over', 'Girls 12 and under', 'Girls 13-16', 'Women 17-29', 'Women 30-99', 'Women 40 and over'}
     pass
 
 
+class SetRanking (threading.Thread):
+    """ Class for setting ranking """
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        RankingCount.set_ranking_points()
+
+
 class RankingCount:
     """ Class for rankings count"""
-    CZECH_CUP = 8
+    CZECH_CUP = 10
     LIGA = 6
 
     def __init__(self, uci_id):
@@ -159,6 +170,7 @@ class RankingCount:
         """ Methods for setting ranking points for all riders """
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         for rider in riders:
+            print(f"Počítám ranking jezdce {rider.first_name} {rider.last_name}")
             ranking = RankingCount(rider.uci_id)
             ranking.count_points()
             rider.points_20 = ranking.get_points_20()

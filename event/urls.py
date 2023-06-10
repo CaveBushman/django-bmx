@@ -18,5 +18,5 @@ urlpatterns = [
     path('ranking-table', views.ranking_table_view, name='ranking-table'),
     path('entry-foreign/<int:pk>', views.entry_foreign_view, name='entry-foreign'),
     path('ec_by_club_xls/<int:pk>', views.ec_by_club_xls, name='ec_by_club_xls'),
-    path('summary_riders_in_event/<int:pk>', views.summary_riders_in_event, name='%% end')
+    path('summary_riders_in_event/<int:pk>', views.summary_riders_in_event, name='summary_riders_in_event')
 ]

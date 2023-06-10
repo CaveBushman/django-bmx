@@ -17,7 +17,7 @@ from .result import GetResult
 from .func import *
 from .entry import EntryClass, SendConfirmEmail
 from datetime import date, datetime
-from ranking.ranking import RankingCount, RankPositionCount, Categories
+from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 import re
 from django.core import serializers
 from django.http import FileResponse, JsonResponse, HttpResponse
@@ -29,6 +29,7 @@ from decouple import config
 import requests
 import requests.packages
 from django.utils import timezone
+import csv
 
 
 # Create your views here.
@@ -119,7 +120,7 @@ def event_detail_views(request, pk):
 
 def results_view(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    results = Result.objects.filter(event=pk)
+    results = Result.objects.filter(event=pk).order_by('category', 'place')
     data = {'results': results, 'event': event}
     return render(request, 'event/results.html', data)
 
@@ -730,20 +731,24 @@ def event_admin_view(request, pk):
 
     # Admin page for Czech events
     if 'btn-upload-result' in request.POST:
-
+        print("Stisknuto tlačítko nahrát výsledky v BEM")
+        print(request.POST)
+        print(request.FILES)
+  
         if 'result-file' not in request.FILES:  # if xls file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
         else:
+            print("Nahrávám výsledky")
             result_file = request.FILES.get('result-file')
             result_file_name = result_file.name
-            fs = FileSystemStorage('media/xml_results')
+            fs = FileSystemStorage('media/xls_results')
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)[6:]
             event = Event.objects.get(id=pk)
             ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-            data = pd.read_excel('media/xml_results' + uploaded_file_url, sheet_name="Results")
+            data = pd.read_excel('media/xls_results' + uploaded_file_url, sheet_name="Results")
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
                 category = data.iloc[i][5]
@@ -759,34 +764,17 @@ def event_admin_view(request, pk):
                                        last_name, club, event.organizer.team_name, event.type_for_ranking)
                     result.write_result()
 
-            event.xml_results = "xml_results" + uploaded_file_url
+            event.xls_results = "xls_results" + uploaded_file_url
             event.save()
             # logging.info("Zahajuji počítání bodů")
-            RankingCount.set_ranking_points()
-            ranking = RankPositionCount()
+            ranking = RankingCount()
+            ranking.set_ranking_points()
+            #ranking = RankPositionCount()
             # logging.info("zahajuji výpočet rankingu")
-            ranking.count_ranking_position()
+            #ranking.count_ranking_position()
             # logging.info("Výpočet rankingu proveden")
 
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
-
-    if 'btn-upload-pdf' in request.POST:
-
-        if 'result-file-pdf' not in request.FILES:  # if pdf file is not selected
-            messages.error(request, "Musíš vybrat soubor s výsledky závodu s časy")
-
-            return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
-        else:
-            print("Nahrávám soubor s výsledky ve formátu pdf")
-            pdf_file = request.FILES.get('result-file-pdf')
-            pdf_file_name = pdf_file.name
-            fs = FileSystemStorage('static/full_results')
-            filename = fs.save(pdf_file_name, pdf_file)
-            uploaded_file_url = fs.url(filename)
-
-            # TODO: Copy pdf file with results
-
-        return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-delete-xls' in request.POST:
         print("Mažu XLS výsledky")
@@ -798,28 +786,15 @@ def event_admin_view(request, pk):
         threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
         print("Ranking přepočítán")
 
-        xml_file = event.xml_results
-        print(f"Budu mazat xml_results {xml_file}")
+        xls_file = event.xls_results
+        print(f"Budu mazat xls_results {xls_file}")
 
         try:
-            os.remove(f"{xml_file}")
+            os.remove(f"{xls_file}")
         except Exception as e:
-            print(f"Nebyl nalezen soubor {xml_file}")
+            print(f"Nebyl nalezen soubor {xls_file}")
 
-        event.xml_results.delete(save=True)
-
-        return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
-
-    if 'btn-delete-pdf' in request.POST:
-        print("Mažu PDF výsledky")
-        # TODO: Delete file with PDF results
-        event.full_results_uploaded = None
-        pdf_file = event.full_results
-        try:
-            os.remove(f"{pdf_file}")
-        except Exception as e:
-            print(f"Nebyl nalezen soubor {pdf_file}")
-        event.full_results.delete(save=True)
+        event.xls_results.delete(save=True)
 
         return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
@@ -1212,6 +1187,64 @@ def event_admin_view(request, pk):
             os.remove(f"{file_name}")
         except Exception as e:
             print(f"Nebyl nalezen soubor {file_name}")
+
+    if 'btn-upload-txt' in request.POST:
+
+        if 'result-file-txt' not in request.FILES:  # if txt file is not selected
+            messages.error(request, "Musíš vybrat soubor s výsledky závodu")
+            return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+
+        if request.POST['btn-upload-txt'] == 'txt':
+            print("Nahrávám výsledky z REM")
+            print(request.FILES)
+            result_file = request.FILES.get('result-file-txt')
+            result_file_name = result_file.name
+            fs = FileSystemStorage('media/rem_results')
+            filename = fs.save(result_file_name, result_file)
+            uploaded_file_url = fs.url(filename)[6:]
+            print(uploaded_file_url)
+            event = Event.objects.get(id=pk)
+            ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
+
+            with open("media/rem_results" + uploaded_file_url, newline = '') as result:                                                                                          
+                results_reader=csv.reader(result, delimiter='\t')
+                for raw in results_reader:
+                    # Kategorie Příchozích neboduje do rankingu
+                    if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
+                        uci_id = str(raw[12])
+                        category = raw[4]
+                        place = str(raw[25])
+                        first_name = raw[1]
+                        last_name = raw[2]
+                        club = raw[3]
+                        result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
+                                       first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
+                        result.write_result() 
+
+            event.rem_results = "rem_results" + uploaded_file_url
+            event.save()
+
+            ranking = SetRanking()
+            ranking.run()
+            
+    if 'btn-txt-delete' in request.POST:
+        print("Mažu výsledky závodu")
+        Result.objects.filter(event=pk).delete()
+        print("Výsledky vymazány")
+        RankingCount.set_ranking_points()
+        print("Body dle rankingu přiděleny")
+        threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
+        print("Ranking přepočítán")
+
+        rem_file = event.rem_results
+        print(f"Budu mazat rem_results {rem_file}")
+
+        try:
+            os.remove(f"{rem_file}")
+        except Exception as e:
+            print(f"Nebyl nalezen soubor {rem_file}")
+        
+        event.rem_results.delete(save=True)
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí
 
