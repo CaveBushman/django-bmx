@@ -10,6 +10,7 @@ def expire_licence():
     year = date.today().year
     return f"{year}/12/31"
 
+
 def rem_expire_licence():
     year = date.today().year
     return f"31-12-{year}"
@@ -18,6 +19,7 @@ def rem_expire_licence():
 def team_name_resolve(club):
     club = Club.objects.get(team_name=club)
     return club.team_name
+
 
 def date_of_birth_resolve(date):
     date = str(date).replace('.', '-')
@@ -143,6 +145,7 @@ def insurance_first_line(ws):
 
     return ws
 
+
 def excel_rem_first_line_online(ws):
     """ set first line in REM online entires excel file """
     ws.cell(1, 1, "uci_id")
@@ -179,7 +182,7 @@ def is_registration_open(event_id):
     now = timezone.now().strftime("%m/%d/%Y, %H:%M:%S")
 
     # if results is uploaded, registration is close
-    if event.xml_results:
+    if event.xls_results:
         return False
     
     # event registration is manually close

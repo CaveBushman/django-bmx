@@ -201,8 +201,8 @@ class Event(models.Model):
     fast_riders = models.FileField(upload_to='full_results/', null = True, blank = True)
     fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    xml_results = models.FileField(upload_to='xml_results/', null=True, blank=True)
-    xml_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    xls_results = models.FileField(upload_to='xls_results/', null=True, blank=True)
+    xls_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # file for RACE EVENT MANAGER
     rem_entries = models.FileField(upload_to='rem_entries/', null = True, blank = True)
@@ -210,6 +210,9 @@ class Event(models.Model):
 
     rem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
     rem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    rem_results = models.FileField(upload_to='rem_results/', null=True, blank=True)
+    rem_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # file for EUROPEAN CUP 
     ec_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
@@ -235,26 +238,26 @@ class Event(models.Model):
         verbose_name_plural = 'Závody'
         ordering = ['-date',]
 
-# vymazání xml výsledků při aktualizaci
+# vymazání xls výsledků při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_xml_results_file (sender, instance, **kwargs):
+def delete_xls_results_file (sender, instance, **kwargs):
     if instance.pk:
         try:
-            old_xml = Event.objects.get(pk=instance.pk).xml_results
+            old_xls = Event.objects.get(pk=instance.pk).xls_results
         except Event.DoesNotExist:
             return
         else:
-            new_xml = instance.xml_results
+            new_xls = instance.xls_results
 
             try:
-                if old_xml and old_xml.url != new_xml.url:
+                if old_xls and old_xls.url != new_xls.url:
                     try:
-                        old_xml.delete(save=False)
+                        old_xls.delete(save=False)
                     except Exception as e:
                         pass
             except Exception as e:
                 pass
-pre_save.connect(delete_xml_results_file, sender=Event)
+pre_save.connect(delete_xls_results_file, sender=Event)
 
 # vymazání BEM file při aktualizaci
 @receiver(pre_save, sender=Event)
@@ -408,7 +411,7 @@ class Result(models.Model):
         verbose_name_plural = "Výsledky"
 
     def __str__(self):
-        return self.name + " " + str(self.last_name) + " " + self.first_name + " " + self.category
+        return str(self.name) + " " + str(self.last_name) + " " + str(self.first_name) + " " + str(self.category)
 
 
 class Entry(models.Model):

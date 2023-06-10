@@ -86,14 +86,16 @@
             {% if event.reg_open%}
             <a href="{% url 'event:entry' event.id %}" class="mb-1 rounded bg-indigo-600 py-1 px-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přihlásit</a>
             {% endif %}
-            {% if event.xml_results %}
+            {% if event.xls_results or event.rem_results %}
             <div class="">
               <div class="dropdown-main w-full relative">
                   <button class="dropdown-btn rounded bg-indigo-600 py-1 px-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Výsledky</button>
                   <div class="dropdown-content right-0 hidden absolute z-10 py-10 px-5 w-64 bg-white shadow-xl rounded-lg">
                       <ul>
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{% url 'event:results' event.id %}">HTML</a></li>
-                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.xml_results.url}}" target="_blank">XML</a></li>
+                        {% if event.xls_results %}
+                        <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.xls_results.url}}" target="_blank">XLS</a></li>
+                        {% endif %}
                         {% if event.full_results %}
                         <li class="border-b-2 p-2 cursor-pointer"><a href="{{event.full_results.url}}" target="_blank">PDF celkové výsledky</a></li>
                         {% endif %} 
