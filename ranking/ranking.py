@@ -25,6 +25,7 @@ class SetRanking (threading.Thread):
     
     def run(self):
         RankingCount.set_ranking_points()
+        RankPositionCount.count_ranking_position()
 
 
 class RankingCount:
