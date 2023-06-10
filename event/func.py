@@ -501,12 +501,15 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
         
 class SetResults (threading.Thread):
     
-    def __init__(self, file, event):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.file = file
-        self.event = event
     
+    def setFile (self,file):
+        self.file = file
 
+    def setEvent(self, event):
+        self.event=event
+    
     def run(self):
         event = Event.objects.get(id=self.event)
         ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
