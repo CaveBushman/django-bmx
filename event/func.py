@@ -531,5 +531,5 @@ class SetResults (threading.Thread):
             event.rem_results = "rem_results" + self.file
             event.save()
 
-            ranking = SetRanking()
-            ranking.run()
+            SetRanking().start()
+           

@@ -766,14 +766,9 @@ def event_admin_view(request, pk):
 
             event.xls_results = "xls_results" + uploaded_file_url
             event.save()
-            # logging.info("Zahajuji počítání bodů")
-            ranking = RankingCount()
-            ranking.set_ranking_points()
-            #ranking = RankPositionCount()
-            # logging.info("zahajuji výpočet rankingu")
-            #ranking.count_ranking_position()
-            # logging.info("Výpočet rankingu proveden")
 
+            SetRanking().start()
+   
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-delete-xls' in request.POST:
@@ -781,9 +776,7 @@ def event_admin_view(request, pk):
 
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
-        RankingCount.set_ranking_points()
-        print("Body dle rankingu přiděleny")
-        threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
+        SetRanking().start()
         print("Ranking přepočítán")
 
         xls_file = event.xls_results
@@ -1215,10 +1208,8 @@ def event_admin_view(request, pk):
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
-        RankingCount.set_ranking_points()
-        print("Body dle rankingu přiděleny")
-        threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
-        print("Ranking přepočítán")
+        
+        SetRanking().start()
 
         rem_file = event.rem_results
         print(f"Budu mazat rem_results {rem_file}")
