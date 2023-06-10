@@ -1206,8 +1206,10 @@ def event_admin_view(request, pk):
             event = Event.objects.get(id=pk)
             ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
 
-            results = SetResults(uploaded_file_url, pk)
-            results.run()
+            results = SetResults()
+            results.setEvent(pk)
+            results.setFile(uploaded_file_url)
+            results.start()
             
     if 'btn-txt-delete' in request.POST:
         print("Mažu výsledky závodu")
