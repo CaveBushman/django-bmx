@@ -2,8 +2,12 @@ from datetime import date, datetime
 from openpyxl import load_workbook
 from club.models import Club
 from event.models import EntryClasses, Event, Entry
+from ranking.ranking import SetRanking
+from .result import GetResult
 from rider.models import Rider
 from django.utils import timezone
+import threading
+import csv
 
 
 def expire_licence():
@@ -495,4 +499,34 @@ def resolve_event_fee(event, gender, have_girl_bonus, rider_class, is_20):
         else:
             return event_classes.cr_women_40_and_over_fee
         
+class SetResults (threading.Thread):
+    
+    def __init__(self, file, event):
+        threading.Thread.__init__(self)
+        self.file = file
+        self.event = event
+    
 
+    def run(self):
+        event = Event.objects.get(id=self.event)
+        ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
+        with open("media/rem_results" + self.file, newline = '') as result:                                                                                          
+            results_reader=csv.reader(result, delimiter='\t')
+            for raw in results_reader:
+                # Kategorie Příchozích neboduje do rankingu
+                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
+                    uci_id = str(raw[12])
+                    category = raw[4]
+                    place = str(raw[25])
+                    first_name = raw[1]
+                    last_name = raw[2]
+                    club = raw[3]
+                    result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
+                                       first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
+                    result.write_result() 
+
+            event.rem_results = "rem_results" + self.file
+            event.save()
+
+            ranking = SetRanking()
+            ranking.run()

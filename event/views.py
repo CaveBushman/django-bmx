@@ -1206,26 +1206,8 @@ def event_admin_view(request, pk):
             event = Event.objects.get(id=pk)
             ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
 
-            with open("media/rem_results" + uploaded_file_url, newline = '') as result:                                                                                          
-                results_reader=csv.reader(result, delimiter='\t')
-                for raw in results_reader:
-                    # Kategorie Příchozích neboduje do rankingu
-                    if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
-                        uci_id = str(raw[12])
-                        category = raw[4]
-                        place = str(raw[25])
-                        first_name = raw[1]
-                        last_name = raw[2]
-                        club = raw[3]
-                        result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
-                                       first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
-                        result.write_result() 
-
-            event.rem_results = "rem_results" + uploaded_file_url
-            event.save()
-
-            ranking = SetRanking()
-            ranking.run()
+            results = SetResults(uploaded_file_url, pk)
+            results.run()
             
     if 'btn-txt-delete' in request.POST:
         print("Mažu výsledky závodu")
