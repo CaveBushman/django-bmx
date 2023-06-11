@@ -18,3 +18,5 @@ dropdowns.forEach(dropdown => {
         btn.classList.remove('text-green-600')
     })
 })
+
+console.log("Script Dropdown nahrán v delší verzi")
