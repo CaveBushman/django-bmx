@@ -15,7 +15,7 @@ from django.db.models import Q
 import pandas as pd
 from .result import GetResult
 from .func import *
-from .entry import EntryClass, SendConfirmEmail
+from .entry import EntryClass, SendConfirmEmail, NumberInEvent
 from datetime import date, datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 import re
@@ -1346,6 +1346,9 @@ def summary_riders_in_event(request, pk):
     classes_20 = []
     classes_24 = []
 
+    count_20 = []
+    count_24 = []
+
     for entry in entries:
         try:
             if entry.is_20:
@@ -1355,21 +1358,29 @@ def summary_riders_in_event(request, pk):
         except:
             pass
 
-            # REMOVE DUPLICATES
-    clean_classes_20 = []
-    for category in classes_20:
-        if category not in clean_classes_20:
-            clean_classes_20.append(category)
+    # REMOVE DUPLICATES CLASSES
+    clean_classes_20 = list(set(classes_20))
     # TODO: Předělat řazení kategorií 20
     clean_classes_20.sort()
 
-    clean_classes_24 = []
-    for category in classes_24:
-        if category not in clean_classes_24:
-            clean_classes_24.append(category)
+    clean_classes_24 = list(set(classes_24))
     # TODO: Předělat řazení kategorií 24
     clean_classes_24.sort()
 
-    data = {'class_20': clean_classes_20, 'class_24': clean_classes_24, 'entries': entries}
+    for class_20 in clean_classes_20:
+        sum_20 = NumberInEvent()
+        sum_20.event = pk
+        sum_20.category_name = class_20
+        sum_20.count_riders_20()
+        count_20.append(sum_20)
+
+    for class_24 in clean_classes_24:
+        sum_24 = NumberInEvent()
+        sum_24.event = pk
+        sum_24.category_name = class_24
+        sum_24.count_riders_24()
+        count_24.append(sum_24)
+
+    data = { 'count_20': count_20, 'count_24': count_24}
 
     return render(request, 'event/riders-sum-event.html', data)
