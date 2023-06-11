@@ -8,27 +8,27 @@
     </div>
 </header>
 
-<div class="container mt-4">
-    <table class="table dark:dark">
-        <thead>
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50">
         <tr>
-            <th scope="col">Místo</th>
-            <th scope="col">Kategorie</th>
-            <th scope="col">Jméno</th>
-            <th scope="col">Příjmení</th>
-            <th scope="col">UCI ID</th>
-            <th scope="col">Klub</th>
+            <th scope="col" class="">Místo</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategorie</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Jméno</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Příjmení</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">UCI ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Klub</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-gray-200 bg-white">
         {% for result in results %}
         <tr>
             <th scope="row">{{result.place}}</th>
-            <td>{{result.category}}</td>
-            <td>{{result.first_name}}</td>
-            <td>{{result.last_name}}</td>
-            <td class = "text-sm">{{result.rider}}</td>
-            <td class = "text-sm">{{result.club | upper}}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500" >{{result.category}}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500" >{{result.first_name}}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 uppercase" >{{result.last_name}}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500" >{{result.rider}}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500" >{{result.club | upper}}</td>
         </tr>
         {% endfor %}
         </tbody>

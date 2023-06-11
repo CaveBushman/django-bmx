@@ -15,3 +15,5 @@ dropdowns.forEach(dropdown => {
 
     })
 })
+
+console.log("Script Dropdown nahrán")
