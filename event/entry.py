@@ -113,3 +113,27 @@ class SendConfirmEmail:
         #      recipient_list = [recipient],)
         del event
 
+
+class NumberInEvent:
+    """ Class for number on-line registration riders in event """
+    def __init__(self):
+        self.riders_in_category = 0
+        self.event = 0
+        self.category_name = ""
+
+    def count_riders_20(self):
+        """ function for count riders in class """
+        self.riders_in_category = Entry.objects.filter(event=self.event, class_20=self.category_name, is_20=True, payment_complete=True, checkout=False).count()
+        print(f"Jezdců v kategorii {self.category_name} je {self.riders_in_category}")
+
+    def count_riders_24(self):
+        """ function for count riders in class """
+        self.riders_in_category = Entry.objects.filter(event=self.event, class_24=self.category_name,is_24=True, payment_complete=True, checkout=False).count()
+        print(f"Jezdců v kategorii {self.category_name} je {self.riders_in_category}")
+
+
+
+
+
+
+
