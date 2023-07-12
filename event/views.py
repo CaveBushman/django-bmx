@@ -620,6 +620,8 @@ def event_admin_view(request, pk):
     # Admin page for European Cup
     if event.type_for_ranking == "Evropský pohár" or event.type_for_ranking == "Mistrovství Evropy":
 
+        payments = 0
+
         entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=0)
         entries_24 = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=0)
 
@@ -649,6 +651,8 @@ def event_admin_view(request, pk):
             except:
                 pass
 
+            payments += entry_20.fee_20
+
         for entry_24 in entries_24:
             try:
                 rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
@@ -663,6 +667,8 @@ def event_admin_view(request, pk):
                 x = x + 1
             except:
                 pass
+
+            payments += entry_24.fee_24
 
         wb.save(file_name)
         event.ec_file = file_name
@@ -726,7 +732,9 @@ def event_admin_view(request, pk):
         event.ec_insurance_file_created = datetime.now()
         event.save()
 
-        data = {'event': event, "sum_entries": sum_entiries}
+       
+
+        data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
         return render(request, 'event/event-admin-ec.html', data)
 
     # Admin page for Czech events
