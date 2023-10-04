@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Club
 from rider.models import Rider
-from event.models import Event
+from event.models import Event, Entry
 from datetime import date
 
 
@@ -22,3 +22,36 @@ def club_detail_view(request, pk):
     data = {'club': club, 'riders_of_club_count': riders_of_club_count, 'events': events}
 
     return render(request, 'club/club-detail.html', data)
+
+class Participation:
+    name = ""
+    sum = 0
+    count = 0
+
+def participation_in_races(request, pk):
+    this_year = date.today().year
+    club = get_object_or_404(Club, pk=pk)
+    events = Event.objects.filter(date__year = str(this_year)).order_by('date')
+
+    part_in_events =[] 
+  
+    for event in events:
+        fees = 0
+        count = 0
+        participation_in_race = Entry.objects.filter(event = event.id)
+        riders_in_club = Rider.objects.filter(club = club)
+
+        for rider_in_club in riders_in_club:
+            for participation in participation_in_race:
+                if participation.rider.id == rider_in_club.id:
+                    # print (f"Jezdec {rider_in_club.first_name} {rider_in_club.last_name} se zúčastnil závodu {event.name} se startovným {participation.fee_20}")
+                    fees += participation.fee_20 + participation.fee_24 
+                    count +=1
+        part = Participation()
+        part.name = event.name
+        part.count = count
+        part.sum = fees
+        part_in_events.append(part)
+    data = {'club':club, 'participations':part_in_events}
+
+    return render(request, 'club/club-participation.html', data)
