@@ -4,7 +4,7 @@
 
 <header class="shadow dark:dark">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-3xl font-bold text-header">{{club.team_name|upper}} - účast na závodech</h1>
+      <h1 class="text-3xl font-bold text-header">{{club.team_name|upper}} - účast na závodech v roce {{year}}</h1>
     </div>
   </header>
 
@@ -13,23 +13,31 @@
     <table class="min-w-full divide-y divide-gray-300">
         <thead>
           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Závod</th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Datum</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Název</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Počet jezdců</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Vybraná částka</th>
           </tr>
         </thead>
 
+    <tbody class="divide-y divide-gray-200">
   {% for participation in participations %}
-    
-  <tbody class="divide-y divide-gray-200">
+  
     <tr>
-      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ participation.name }}</td>
+      <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{{ participation.date }}</td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ participation.name }}</td>
       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ participation.count }}</td>
       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ participation.sum}} CZK</td>
     </tr>
-  </tbody>
-  
   {% endfor %}
+  <tr>
+    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-black font-bold  sm:pl-0">Celkem:</td>
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"></td>
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"></td>
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ sum}} CZK</td>
+  </tr>
+
+  </tbody>
     </table>
 </div>
 
