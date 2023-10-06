@@ -20,17 +20,21 @@ from django.conf import settings
 from django.views.generic import TemplateView
 from django.views.static import serve
 from django.urls import re_path as url
+from news.views import change_theme
 
 urlpatterns = [
     path('api/', include('api.urls')),
     path('', include('news.urls')),
+    path('change/', change_theme, name = 'change'),
     path('event/', include('event.urls')),
     path('rider/', include('rider.urls')),
     path('club/', include('club.urls')),
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('', include("django.contrib.auth.urls")),
-    path('bmx-admin/', admin.site.urls),]
+    path('bmx-admin/', admin.site.urls),
+    path("__reload__/", include("django_browser_reload.urls")),
+    ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

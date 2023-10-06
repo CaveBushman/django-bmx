@@ -34,7 +34,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = config('SECRET_KEY')
+#SECRET_KEY = config('SECRET_KEY')
 SECRET_KEY = "1" #config('SECRET_KEY')
 # STRIPE KEYS
 if  DEBUG:
@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'ckeditor',
     'tailwind',
+    'theme',
+    'django_browser_reload',
     #'django_crontab',
     #'compressor',
     
@@ -72,7 +74,7 @@ INSTALLED_APPS = [
     'ranking',
     'commissar',
     'accounts',
-    'theme',
+
 ]
 
 MIDDLEWARE = [
@@ -86,6 +88,8 @@ MIDDLEWARE = [
 
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = 'bmx.urls'
