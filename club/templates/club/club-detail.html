@@ -123,14 +123,12 @@
   </table>
   {% endif %} 
 
-  <h1 class="text-2xl text-black-900 text-center mt-5 py-3">
-  Navigace na trať
-</h1>
-
   {% if club.mapy_cz_svg %} 
+  <h1 class="text-2xl text-black-900 text-center mt-5 py-3">Navigace na trať</h1>
   <div class = "flex justify-center">
-  {{club.mapy_cz_svg|safe}} 
+    {{club.mapy_cz_svg|safe}} 
   </div>
   {% endif %}
+  
 </div>
 {% endblock content %}
