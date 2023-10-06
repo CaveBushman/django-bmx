@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+<html lang="en" class = "{% if request.session.is_dark_mode %}dark{% endif %}">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -14,10 +14,10 @@
       integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni"
       crossorigin="anonymous"
     />
-    <title>{% block title %}Czech BMX racing{% endblock %}</title>
+    <title> Czech BMX -{% block title %}{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href={% static 'images/homepage/bmx.png' %}>
   </head>
-  <body class="dark:dark">
+  <body class="dark:bg-gray-800">
 
   <!--==== NAVBAR ====-->
   {% include "includes/navbar.html" %} 

@@ -5,7 +5,7 @@
 
 <header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold text-header">Seznam jezdců BMX</h1>
+    <h1 class="text-3xl font-bold text-header dark:text-gray-200">Seznam jezdců BMX</h1>
   </div>
 </header>
 
@@ -80,30 +80,30 @@
                       {% endif%}
                     </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:dark">
+                    <div class="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {{rider.last_name|upper}}
                     </div>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-500 dark:text-gray-200">
                       {{rider.first_name}}
                     </div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:dark">{{rider.club|upper}}</div>
-                <div class="text-sm text-gray-500 dark:dark">{{rider.uci_id}}</div>
+                <div class="text-sm text-gray-900 dark:text-gray-200">{{rider.club|upper}}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-200">{{rider.uci_id}}</div>
               </td>
               <td class="px-6 py-2 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="">
-                    <div class="text-sm font-medium text-gray-500 dark:dark">20": 
+                    <div class="text-sm font-medium text-gray-500 dark:text-gray-200">20": 
                       {% if rider.is_20%}
                         {{rider.class_20}}
                       {% else %}
                        nejezdí
                       {% endif %}
                     </div>
-                    <div class="text-sm font-medium text-gray-500 dark:dark">24": 
+                    <div class="text-sm font-medium text-gray-500 dark:text-gray-200">24": 
                       {% if rider.is_24%}
                         {{rider.class_24}}
                       {% else %}

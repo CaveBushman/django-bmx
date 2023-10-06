@@ -27,31 +27,22 @@ class Participation:
     name = ""
     sum = 0
     count = 0
-<<<<<<< HEAD
-=======
     date = ""
->>>>>>> 9b85ac27cd5ea9f0629084bf1d1233aee0a6a552
+
 
 def participation_in_races(request, pk):
     this_year = date.today().year
     club = get_object_or_404(Club, pk=pk)
     events = Event.objects.filter(date__year = str(this_year)).order_by('date')
 
-    part_in_events =[] 
-<<<<<<< HEAD
-  
-    for event in events:
-        fees = 0
-        count = 0
-        participation_in_race = Entry.objects.filter(event = event.id)
-=======
+    part_in_events =[]     
     sum = 0
     for event in events:
         fees = 0
         count = 0
 
         participation_in_race = Entry.objects.filter(event = event.id, checkout = False)
->>>>>>> 9b85ac27cd5ea9f0629084bf1d1233aee0a6a552
+
         riders_in_club = Rider.objects.filter(club = club)
 
         for rider_in_club in riders_in_club:
@@ -62,12 +53,6 @@ def participation_in_races(request, pk):
                     count +=1
         part = Participation()
         part.name = event.name
-<<<<<<< HEAD
-        part.count = count
-        part.sum = fees
-        part_in_events.append(part)
-    data = {'club':club, 'participations':part_in_events}
-=======
         part.date = event.date
         part.count = count
         part.sum = fees
@@ -75,6 +60,5 @@ def participation_in_races(request, pk):
             part_in_events.append(part)
         sum += fees
     data = {'club':club, 'participations':part_in_events, 'sum':sum, 'year': this_year}
->>>>>>> 9b85ac27cd5ea9f0629084bf1d1233aee0a6a552
 
     return render(request, 'club/club-participation.html', data)
