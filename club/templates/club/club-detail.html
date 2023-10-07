@@ -4,7 +4,7 @@
 
 <header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold text-header">{{club.team_name|upper}}</h1>
+    <h1 class="text-3xl font-bold text-header dark:text-gray-200">{{club.team_name|upper}}</h1>
   </div>
 </header>
 {% if request.user.is_superuser %}
@@ -18,13 +18,13 @@
 <div class="max-w-7xl mx-auto">
   <div class="container">
     <div class="row">
-      <div class="col-sm club-num-rider">
+      <div class="col-sm club-num-rider dark:text-gray-200">
         Počet registrovaných jezdců v tomto klubu:
         <b>{{riders_of_club_count}}</b>
       </div>
     </div>
     <div class="row">
-      <div class="col-sm club-detail-address">
+      <div class="col-sm club-detail-address dark:text-gray-200">
         Adresa: {{club.street}}, {{club.zip_code}} {{club.city}},
         {{club.region}}
       </div>
@@ -72,7 +72,7 @@
   <br/>
   {% if events %}
   <h1
-    class="text-2xl text-black-900 text-center mt-5 py-3">
+    class="text-2xl text-black-900 text-center mt-5 py-3 dark:text-gray-200">
     Seznam závodů pořádaných klubem tento rok
   </div>
 
@@ -124,13 +124,10 @@
   {% endif %} 
 
   {% if club.mapy_cz_svg %} 
-<<<<<<< HEAD
-  {{club.mapy_cz_svg|safe}} 
-=======
+
   <h1 class="text-2xl text-black-900 text-center mt-5 py-3">Navigace na trať</h1>
   <div class = "flex justify-center">
     {{club.mapy_cz_svg|safe}} 
->>>>>>> 9b85ac27cd5ea9f0629084bf1d1233aee0a6a552
   </div>
   {% endif %}
   
