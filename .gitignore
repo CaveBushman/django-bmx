@@ -67,6 +67,7 @@ sec.py
 static/js/checkout.js
 static/results/*
 media/*
+node_modules/*
 
 # Flask stuff:
 instance/
