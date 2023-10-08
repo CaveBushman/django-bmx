@@ -66,6 +66,7 @@ bmx/.env
 sec.py
 static/js/checkout.js
 static/results/*
+static/images/*
 media/*
 node_modules/*
 
