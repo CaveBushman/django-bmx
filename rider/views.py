@@ -82,17 +82,11 @@ def rider_new_view(request):
             username = config('LICENCE_USERNAME')
             password = config('LICENCE_PASSWORD')
 
-            print(username)
             basicAuthCredentials = (username, password)
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
-            print(url_uciid)
             data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-            print(data_json)
             data_json = data_json.text
             data_json = json.loads(data_json)
-            print(data_json)
-            print(data_json['lastname'])
-            print(data_json['sex'])
 
             gender = data_json['sex']
             if gender['code'] == "F":
@@ -104,12 +98,18 @@ def rider_new_view(request):
                 data_new_rider = {'first_name': data_json['firstname'], 'last_name': data_json['lastname'],
                                  'date_of_birth': data_json['birth'][0:10], 'clubs': clubs,
                                  'free_plates': free_plates, 'uci_id': data_json['uci_id'], 'gender': gender}
-                print(data_new_rider)
                 request.session['first_name'] = data_json['firstname']
                 request.session['last_name'] = data_json['lastname'].capitalize()
                 request.session['date_of_birth'] = data_json['birth'][0:10]
                 request.session['gender'] = gender
                 request.session['uci_id'] = uci_id
+
+                rider_exist = Rider.objects.get(uci_id=request.session['uci_id'])
+                print (f"Jezdec: {rider_exist}")
+
+                if rider_exist:
+                    data={'rider':rider_exist}
+                    return render (request, 'rider/rider-new-error.html', data)
 
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
             except:
@@ -118,6 +118,7 @@ def rider_new_view(request):
         # get data from form and save new rider
         else:
             # TODO: Dodělat ověření vyplnění všech údajů, v případě chyby zobrazit alert
+
             if request.POST['email'].strip() == "":
                 print("Není vyplněn e-mail")
                 messages.error(request, "Nevyplnil/a jsi e-mailovou adresu. Jedná se o povinný údaj.")

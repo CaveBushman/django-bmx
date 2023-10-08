@@ -1,6 +1,6 @@
 {% load static %}
   <nav class="bg-gray-900 fixed top-0 left-0 right-0 z-20" id="navbar">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <div class="flex h-16 items-center justify-between">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -60,9 +60,10 @@
             </div>
           </div>
         </div>
+       
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6">
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and notification %}
             <button type="button" class="rounded-full bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
               <span class="sr-only">View notifications</span>
               <!-- Heroicon name: outline/bell -->
@@ -71,7 +72,9 @@
               </svg>
             </button>
             {% endif %}
+         
             
+        
             {% if request.session.is_dark_mode %}
             <a href="{% url 'change' %}" class="p-2 ml-3 bg-gray-800 rounded-full flex items-center text-gray-600 hover:text-blue-600 font-medium dark:text-gray-400 dark:hover:text-gray-500">
               <svg id="theme-toggle-light-icon" class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
@@ -85,6 +88,7 @@
               </svg>
             </a>
             {% endif %}
+        
 
             <!-- Profile dropdown -->
             <div class="relative ml-3">

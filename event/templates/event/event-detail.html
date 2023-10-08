@@ -3,7 +3,7 @@
 
 <header class="shadow dark:dark">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold text-header">{{event.name | upper}}</h1>
+        <h1 class="text-3xl font-bold text-header dark:text-gray-200">{{event.name | upper}}</h1>
     </div>
 </header>
 
@@ -29,7 +29,7 @@
     <div class="shadow-lg rounded-2xl px-12 pb-2">
 
         <div class="flex flex-row mt-4 py-4 dark:dark overflow-hidden sm:rounded-md">
-            <p class="text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600 dark:dark basis-1/2">{{event.date}}</p>
+            <p class="text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600 dark:dark basis-1/2 ">{{event.date}}</p>
             <p class="text-3xl px-4 sm:px-6 lg:px-8 text-indigo-600 dark:dark basis-1/2">{{event.organizer|upper}}</p>
         </div>
         {% if event.canceled %}
@@ -40,7 +40,7 @@
         {% endif %}
 
         <!-- Rozhodčí -->
-        <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark">Rozhodčí</div>
+        <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:text-gray-200">Rozhodčí</div>
         <div class="mt-4 dark:dark overflow-hidden sm:rounded-md">
             <ul role="list" class="divide-y divide-gray-200">
                 <li>
@@ -85,23 +85,23 @@
         <div class="flex flex-row mb-4">
             <div class="basis-1/2">
                 <!-- Registrace -->
-                <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:dark--text ">On-line registrace</div>
+                <div class="mt-4 px-4 sm:px-6 lg:px-8 text-3xl dark:text-gray-200 ">On-line registrace</div>
                 {% if not event.results_uploaded and not event.canceled %}
-                <div class="bg-white overflow-hidden sm:rounded-md mt-2">
-                    <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark basis-1/2">od {{event.reg_open_from}} do
+                <div class="bg-white dark:bg-gray-800 overflow-hidden sm:rounded-md mt-2">
+                    <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:text-gray-200 basis-1/2">od {{event.reg_open_from}} do
                         {{event.reg_open_to}} hod.</div>
                 </div>
                 {% else %}
-                <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:dark basis-1/2">Registrace nebyla otevřena nebo už byla
+                <div class="text-lg px-4 sm:px-6 lg:px-8 text-gray-600 dark:text-gray-200 basis-1/2">Registrace nebyla otevřena nebo už byla
                     ukončena</div>
                 {% endif %}
 
             </div>
 
             <div class="basis-1/2">
-                <div class="mt-4 text-3xl dark:dark">Systém závodů</div>
-                <div class="bg-white overflow-hidden sm:rounded-md mt-2">
-                    <div class="text-lg text-gray-600 dark:dark">{{event.system}}</div>
+                <div class="mt-4 text-3xl dark:text-gray-200">Systém závodů</div>
+                <div class="bg-white dark:bg-gray-800 overflow-hidden sm:rounded-md mt-2">
+                    <div class="text-lg text-gray-600 dark:text-gray-200">{{event.system}}</div>
                 </div>
             </div>
         </div>
