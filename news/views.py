@@ -24,10 +24,16 @@ def homepage_view(request):
     riders_sum = Rider.sum_of_riders()
     clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
     homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
+    notification = False
+
+    notification_request = Rider.objects.filter(is_approwe = False)
+    if notification_request:
+        notification = True
 
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
                'events_sum': events_sum,
-               'homepage_news': homepage_news}
+               'homepage_news': homepage_news,
+               'notification':notification}
     return render(request, "homepage.html", content)
 
 

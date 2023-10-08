@@ -65,11 +65,9 @@
             <td class="px-3 py-4 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-200">{{result.ranking_20}}.</td>
             {% endif %}
             <td class="hidden sm:table-cell dark:bg-gray-800 dark:text-gray-200"><img
-                class="avatar img-fluid rounded-circle dark:text-gray-200"
-                src="{{result.photo.url}}"
-                sizes="10px"
-                style="width: 2rem; height: 2rem"
-              /></td>
+                class="h-11 w-11 rounded-full dark:text-gray-200"
+                src="{{result.photo.url}}"/>
+            </td>
             <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:w-auto sm:max-w-none sm:pl-6">
                 <a href="{% url 'rider:detail' result.uci_id %}">
                 {{result.last_name|upper}} {{result.first_name}}
