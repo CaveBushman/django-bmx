@@ -63,7 +63,6 @@ def events_list_by_year_view(request, pk):
             event.reg_open = is_registration_open(event.id)
 
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
-            print("Kategorie závodů nebyla stanovena")
             event.reg_open = False
         event.save()
     year = pk
@@ -76,7 +75,6 @@ def events_list_by_year_view(request, pk):
 
 def event_detail_views(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    # categories = Categories.get_categories(pk)
     riders = ""
     select_category = ""
     alert = False
@@ -309,8 +307,6 @@ def entry_riders_view(request, pk):
     except Exception as e:
         pass
 
-    print(categories)
-
     data = {'event': event, 'entries': entries, 'checkout': checkout, 'categories': categories}
     return render(request, 'event/entry-list.html', data)
 
@@ -326,7 +322,6 @@ def confirm_view(request):
     entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
 
     if 'btn-add-event' in request.POST:
-        print("budu ukládat jezdce a nasměřuji uživatele na další závod")
         pass
 
     if request.method == "POST":
@@ -533,7 +528,6 @@ def success_view(request, pk):
             confirm = stripe.checkout.Session.retrieve(
                 transaction.transaction_id, )
             if confirm['payment_status'] == "paid":
-                print(f"Přidávám jezdce {transaction.rider}")
                 transaction.payment_complete = True
                 transaction.customer_name = confirm['customer_details']['name']
                 transaction.customer_email = confirm['customer_details']['email']
@@ -627,7 +621,6 @@ def event_admin_view(request, pk):
 
         sum_entiries = entries_20.count() + entries_24.count()
 
-        print("Vytvoř startovku pro Evropský pohár")
         file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
         wb = load_workbook(filename='media/ec-files/Entries example - UEC.xlsx')
         ws = wb.active
@@ -675,9 +668,7 @@ def event_admin_view(request, pk):
         event.ec_file_created = datetime.now()
         event.save()
 
-        # Insurance file 
-
-        print("Vytvoř soubor pro pojišťovnu")
+        # File for insurance company
         file_name = f'media/ec-files/INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
         wb = Workbook()
         wb.encoding = "utf-8"
@@ -740,9 +731,7 @@ def event_admin_view(request, pk):
     # Admin page for Czech events
     if 'btn-upload-result' in request.POST:
         print("Stisknuto tlačítko nahrát výsledky v BEM")
-        print(request.POST)
-        print(request.FILES)
-  
+
         if 'result-file' not in request.FILES:  # if xls file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
@@ -799,6 +788,7 @@ def event_admin_view(request, pk):
 
         return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
+    # ON LINE ENTRIES FOR BEM
     if 'btn-bem-file' in request.POST:
         print("Vytvoř startovku")
         file_name = f'media/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
@@ -907,6 +897,7 @@ def event_admin_view(request, pk):
         event.bem_entries_created = datetime.now()
         event.save()
 
+    # ALL RIDERS FOR BEM 
     if 'btn-riders-list' in request.POST:
         print("Vytvoř riders list")
         file_name = f'media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
@@ -1266,8 +1257,6 @@ def event_admin_view(request, pk):
         sum_of_riders += 1
 
     organizer_fee = int(sum_of_fees - (sum_of_fees * event.commission_fee / 100))
-
-    print(f"Vybrané startovné činní částku {sum_of_fees} Kč.")
 
     data = {'event': event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees,
             "sum_of_riders": sum_of_riders, 'organizer_fee': organizer_fee}

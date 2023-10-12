@@ -8,6 +8,7 @@ import threading
 from django.utils import timezone
 
 now = datetime.date.today().year
+INACTIVE_YEARS = 2 # for inactive riders function 
 
 class CheckValidLicenceThread (threading.Thread):
 
@@ -23,20 +24,17 @@ class CheckValidLicenceThread (threading.Thread):
                 rider.save()
                 
             else:
-
                 LICENCE_USERNAME = config('LICENCE_USERNAME')
                 LICENCE_PASSWORD = config('LICENCE_PASSWORD')
                 basicAuthCredentials = (LICENCE_USERNAME, LICENCE_PASSWORD)
     
                 url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
-                print (f"Kontroluji platnost licence jezdce {rider.first_name} {rider.last_name}")
                 try:
                     dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
                     if dataJSON.text == "false":
                         rider.valid_licence = False
                         rider.save()
                     elif re.search("Http_NotFound", dataJSON.text):
-                        print(f"UCI ID {rider.uci_id} NEEXISTUJE V DATABÁZI ČSC")
                         rider.valid_licence = False
                         rider.save()
                     else:
@@ -79,22 +77,17 @@ def valid_licence_control():
         threading.Thread(target = valid_licence(rider.uci_id), daemon = True).start()
 
 def two_years_inactive():
-    """ Function for find two years inactive riders """
-    # riders = Rider.objects.filter(is_active=True, is_approwe=True, created__lt = timezone.now()-datetime.timedelta(days=730))
-    riders = Rider.objects.filter(is_active=True, is_approwe=True)
-    last_two_years_events = Event.objects.filter(date__gte=timezone.now() - datetime.timedelta(days=730))
-    print(f"Počet závodů za poslední dva roky: {last_two_years_events.count()}")
+    """ Function for inactive riders """
+    riders = Rider.objects.filter(is_active=True, is_approwe=True).exclude(created__gte=timezone.now() - datetime.timedelta(days=365)).order_by('club')
+    events = Event.objects.filter(date__gte=timezone.now() - datetime.timedelta(days=INACTIVE_YEARS*365))
     inactive_riders = []
     for rider in riders:
         active = False
-        for event in last_two_years_events:
+        for event in events:
             activities = Result.objects.filter(rider=rider.uci_id, event = event.id )
             if activities.count()>0:
                 active=True
-            if active:
                 break   
         if not active:
             inactive_riders.append(rider)
-            print(f"Neaktivní jezdec {rider.last_name} {rider.first_name}")
-    print (inactive_riders)
     return inactive_riders

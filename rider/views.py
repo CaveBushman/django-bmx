@@ -4,18 +4,15 @@ from django.core.mail import send_mail
 from django.views.decorators.cache import cache_control
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Rider
-from .rider import valid_licence_control, two_years_inactive, CheckValidLicenceThread
+from .rider import two_years_inactive, CheckValidLicenceThread
 from club.models import Club
-import urllib.request, json
+import json
 from event.models import Result
 from ranking.ranking import RankPositionCount
 import datetime
 from datetime import date
 import requests
 import requests.packages
-import urllib3
-import re
-import threading
 from decouple import config
 
 # Global variables
@@ -194,12 +191,12 @@ def rider_new_view(request):
             new_rider.save()
 
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
-            # send_mail (
-            #     subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
-            #     message = "V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo. Prosím o její vyřízení",
-            #     from_email = "bmx@ceskysvazcyklistiky.cz",
-            #     recipient_list = ["david@black-ops.eu"],
-            #)
+            send_mail (
+                subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
+                message = f"V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
+                from_email = "bmx@ceskysvazcyklistiky.cz",
+                recipient_list = ["david@black-ops.eu"],
+            )
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
@@ -210,8 +207,8 @@ def rider_new_view(request):
 def inactive_riders_views(request):
     """ Function for views inactive riders, only request params"""
     inactive_riders = two_years_inactive()
-
-    data={'riders': inactive_riders}
+    
+    data={'riders': inactive_riders, 'sum': len(inactive_riders)}
 
     return render(request, 'rider/rider-inactive.html', data)
 
