@@ -29,13 +29,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = config('SECRET_KEY')
-SECRET_KEY = "1" #config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
+
 # STRIPE KEYS
 if  DEBUG:
     STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY_TEST')
@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'django_browser_reload',
     #'fontawesomefree',
     #'django_crontab',
-    #'compressor',
     
     # My app
     'rider',
@@ -111,16 +110,15 @@ TEMPLATES = [
     },
 ]
 
+#Tailwind settings
 TAILWIND_APP_NAME = 'theme'
-
-# TAILWIND_CSS_PATH = os.path.join(BASE_DIR, 'static/css/styles.css')
-
+TAILWIND_CSS_PATH = os.path.join(BASE_DIR, 'static/css/styles.css')
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-WSGI_APPLICATION = 'bmx.wsgi.application'
 
+WSGI_APPLICATION = 'bmx.wsgi.application'
 
 AUTH_USER_MODEL = 'accounts.Account'
 

@@ -69,6 +69,8 @@ static/results/*
 static/images/*
 media/*
 node_modules/*
+theme/static_src/*
+theme/static/*
 
 # Flask stuff:
 instance/

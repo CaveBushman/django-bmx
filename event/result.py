@@ -22,7 +22,7 @@ class GetResult:
         self.type = event_type
 
     def get_ranking_points(self):
-        """ Function for give points depend by place and ranking code """
+        """ Function for give points depend by event place and ranking code """
 
         # RANKING CODE 1 - Mistrovství ČR jednotlivců
         if self.ranking_code == 1:

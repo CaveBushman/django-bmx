@@ -89,7 +89,7 @@ class DocumentTag(models.Model):
     
     class Meta:
         verbose_name = "Typ dokumentu"
-        verbose_name_plural = 'Typ dokumnentů'
+        verbose_name_plural = 'Typ dokumentů'
 
 class Downloads(models.Model):
     """ Model for downloads section """
