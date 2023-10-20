@@ -3,6 +3,7 @@ from .models import Club
 from rider.models import Rider
 from event.models import Event, Entry
 from datetime import date
+import folium
 
 
 # Create your views here.
@@ -31,6 +32,7 @@ class Participation:
 
 
 def participation_in_races(request, pk):
+    """ Function for calculate how many riders was in the events and how many money was paid by club in current year"""
     this_year = date.today().year
     club = get_object_or_404(Club, pk=pk)
     events = Event.objects.filter(date__year = str(this_year)).order_by('date')
@@ -42,7 +44,6 @@ def participation_in_races(request, pk):
         count = 0
 
         participation_in_race = Entry.objects.filter(event = event.id, checkout = False)
-
         riders_in_club = Rider.objects.filter(club = club)
 
         for rider_in_club in riders_in_club:
@@ -51,6 +52,7 @@ def participation_in_races(request, pk):
                     # print (f"Jezdec {rider_in_club.first_name} {rider_in_club.last_name} se zúčastnil závodu {event.name} se startovným {participation.fee_20}")
                     fees += participation.fee_20 + participation.fee_24 
                     count +=1
+                    
         part = Participation()
         part.name = event.name
         part.date = event.date
@@ -62,3 +64,17 @@ def participation_in_races(request, pk):
     data = {'club':club, 'participations':part_in_events, 'sum':sum, 'year': this_year}
 
     return render(request, 'club/club-participation.html', data)
+
+
+def maps_of_tracks(request):
+    """ function for view tracks on map """
+    tracks = Club.objects.filter(is_active = True, have_track = True)
+
+    myMap = folium.Map(location=[49.7439047, 15.3381061], zoom_start=8)
+    for track in tracks:
+        folium.Marker([track.lon,track.lng]).add_to(myMap)
+        print(f"Přidávám trat na souřadnici {track.lon}, {track.lng}.")
+    file_path = 'club/templates/club/mylocation.html'
+    myMap.save(file_path)
+    
+    return render (request, 'club/mylocation.html')

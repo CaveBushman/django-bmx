@@ -17,6 +17,11 @@ class Commissar(models.Model):
         upload_to='images/commissar/', blank=True, null=True, default='images/users/blank-avatar-200x200.jpg')
 
     level = models.CharField(max_length=100, choices=LEVEL, default="Národní rozhodčí", null=True, blank=True)
+    
+    is_active = models.BooleanField(default=True)
+
+    created = models.DateTimeField(auto_now_add= True, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         verbose_name = "Rozhodčí"
@@ -26,7 +31,7 @@ class Commissar(models.Model):
         return f"{self.last_name} {self.first_name}"
 
 
-# vymazání staré fotky jezdce při její změně
+# vymazání staré fotky komisaře při její změně
 @receiver(pre_save, sender=Commissar)
 def delete_file_on_change_extension(sender, instance, **kwargs):
     if instance.pk:

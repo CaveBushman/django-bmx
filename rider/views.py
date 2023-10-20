@@ -95,22 +95,26 @@ def rider_new_view(request):
                 data_new_rider = {'first_name': data_json['firstname'], 'last_name': data_json['lastname'],
                                  'date_of_birth': data_json['birth'][0:10], 'clubs': clubs,
                                  'free_plates': free_plates, 'uci_id': data_json['uci_id'], 'gender': gender}
+                print(data_new_rider)
                 request.session['first_name'] = data_json['firstname']
                 request.session['last_name'] = data_json['lastname'].capitalize()
                 request.session['date_of_birth'] = data_json['birth'][0:10]
                 request.session['gender'] = gender
                 request.session['uci_id'] = uci_id
-
-                rider_exist = Rider.objects.get(uci_id=request.session['uci_id'])
-                print (f"Jezdec: {rider_exist}")
+                rider_exist = False
+                try:
+                    rider = Rider.objects.get(uci_id=request.session['uci_id'])
+                    rider_exist = True
+                except:
+                    pass
 
                 if rider_exist:
                     data={'rider':rider_exist}
                     return render (request, 'rider/rider-new-error.html', data)
 
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
-            except:
-                print("Chyba")
+            except Exception as error:
+                print(f"Chyba v session - {error}")
 
         # get data from form and save new rider
         else:
@@ -215,9 +219,7 @@ def inactive_riders_views(request):
 
 @staff_member_required
 def licence_check_views(request):
-    
-    #valid_licence_control()
-
+    """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
 
     data={}
@@ -227,6 +229,5 @@ def licence_check_views(request):
 @staff_member_required
 def ranking_count_views(request):
     """ Function for recount ranking"""
-    # threading.Thread(target=RankPositionCount().count_ranking_position(), daemon=True).start()
     RankPositionCount().count_ranking_position()
     return render(request, 'rider/rider-rank.html')
