@@ -968,7 +968,8 @@ select {
 }
 
 .ms-auto {
-  margin-inline-start: auto;
+  -webkit-margin-start: auto;
+          margin-inline-start: auto;
 }
 
 .mt-1 {
