@@ -34,7 +34,7 @@ def homepage_view(request):
                'events_sum': events_sum,
                'homepage_news': homepage_news,
                'notification':notification}
-    return render(request, "homepage_copy.html", content)
+    return render(request, "homepage.html", content)
 
 
 def rules_view(request):
