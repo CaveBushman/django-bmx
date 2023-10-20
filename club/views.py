@@ -3,7 +3,7 @@ from .models import Club
 from rider.models import Rider
 from event.models import Event, Entry
 from datetime import date
-import folium
+# import folium
 
 
 # Create your views here.
@@ -70,11 +70,11 @@ def maps_of_tracks(request):
     """ function for view tracks on map """
     tracks = Club.objects.filter(is_active = True, have_track = True)
 
-    myMap = folium.Map(location=[49.7439047, 15.3381061], zoom_start=8)
+    # myMap = folium.Map(location=[49.7439047, 15.3381061], zoom_start=8)
     for track in tracks:
-        folium.Marker([track.lon,track.lng]).add_to(myMap)
+        # folium.Marker([track.lon,track.lng]).add_to(myMap)
         print(f"Přidávám trat na souřadnici {track.lon}, {track.lng}.")
     file_path = 'club/templates/club/mylocation.html'
-    myMap.save(file_path)
+    # myMap.save(file_path)
     
     return render (request, 'club/mylocation.html')
