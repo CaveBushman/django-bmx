@@ -6,12 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.5/dist/flowbite.min.css" />
-    {% comment %} <link rel="stylesheet" href="{% static 'css/main.css' %}" /> {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-    <!-- Our project just needs Font Awesome Free's Solid and Brand files -->
-    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"
@@ -29,7 +24,7 @@
   <!--==== BLOCK CONTENT ====-->
   <div class = "mt-16">
 	{% block content %} 
-  {% endblock content%}
+    {% endblock content%}
   </div>
     <script
       src="https://code.jquery.com/jquery-3.6.0.js"
