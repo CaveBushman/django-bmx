@@ -79,6 +79,8 @@ def rider_new_view(request):
             username = config('LICENCE_USERNAME')
             password = config('LICENCE_PASSWORD')
 
+            print(f"Uživatelské jméno je : {username}")
+
             basicAuthCredentials = (username, password)
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
             data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
