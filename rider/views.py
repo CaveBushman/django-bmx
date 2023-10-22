@@ -111,7 +111,7 @@ def rider_new_view(request):
                     pass
 
                 if rider_exist:
-                    data={'rider':rider_exist}
+                    data={'rider':rider}
                     return render (request, 'rider/rider-new-error.html', data)
 
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
