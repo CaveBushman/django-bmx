@@ -4,33 +4,41 @@
 <form method="POST">
   {% csrf_token %}
 
-<header class="shadow bg-white dark:dark">
-  <div class="fixed ml-0 p-0 w-full mx-auto py-2 bg-white dark:dark">
+<header class="shadow ">
+  <div class="fixed ml-0 p-0 w-full mx-auto py-2 bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200">
       <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold my-4">
-        <div>Přihlášení na: {{event.name}}</div>
-          <div>
-           <!--  <a href="{% url 'event:entry-foreign' event.id %}" class="text-md btn--yellow" id="">
-            Entry form for no CZE riders
-            </a> -->
-            <button type="submit" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" id="">
-            Přejít k pokladně
-            </button>
+        <div>Přihlášení na závod: {{event.name}}</div>
+      <div  class="grid grid-cols-1">
+          {% if user.is_authenticated %}
+             <div>
+              <button type="submit" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" name="btn_add">
+                  Přidat do seznamu
+                </button>
+
+             </div>
+          {% else %}
+            <div>
+                <button type="submit" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" name="btn_go_to_pay">
+                    Přejít k pokladně
+                </button>
+            </div>
+          {% endif %}
           </div>
         </div>
     </div>
   </div>
 </header>
 
-<div class = "max-w-7xl mx-auto dark:dark--text pt-32">
+<div class = "max-w-7xl mx-auto pt-32">
   <div class="text-2xl ">Datum konání: <b>{{event.date}}</b></div>
 </div>
 <br>
-<div class = "max-w-7xl mx-auto dark:dark--text">
+<div class = "max-w-7xl mx-auto">
   <div class="">
     <div class="grid grid-cols-2 gap-4">
       <div class="">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200"
           type="text"
           placeholder="Napiš příjmení jezdce"
           aria-label="default input example"
@@ -41,7 +49,7 @@
     
       <div class="">
         <input
-          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
+          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200"
           type="text"
           placeholder="Napiš klub"
           aria-label="default input example"
@@ -52,42 +60,45 @@
     </div>
   </div>
 
-    <div class="-mx-4 mt-4 mb-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-      <table class="min-w-full divide-y divide-gray-300" id="myTable">
+    <div class="mx-4 mt-4 mb-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:mx-6 md:mx-0 md:rounded-lg">
+      <table class=" min-w-full divide-y divide-gray-300" id="myTable">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 dark:dark sm:pl-6 text-center">Start.č.</th>
-            <th scope="col" class="dark:dark"></th>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:dark sm:pl-6">Příjmení</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark lg:table-cell">Jméno</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark sm:table-cell">Klub</th>
-            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">UCI ID</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">20"</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:dark">24" (Cruiser)</th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:pl-6 text-center">Start.č.</th>
+            <th scope="col" class="dark:bg-gray-800 dark:text-gray-200 hidden lg:table-cell"></th>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:pl-6">Příjmení</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 lg:table-cell">Jméno</th>
+            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:table-cell">Klub</th>
+            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">UCI ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">20"</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">24" (Cruiser)</th>
+              {% if event.is_beginners_event %}
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Příchozí</th>
+              {% endif %}
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-200 bg-white">
+        <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:text-gray-200">
           {% for rider in riders %}
           <tr>
-            <td class="mt-1 truncate text-gray-700 dark:dark text-center">{{rider.plate}}</td>
-            <td class="dark:dark"><img class="rounded-full img-fluid rounded-circle dark:dark" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
+            <td class="mt-1 truncate text-gray-700 dark:text-gray-200 text-center">{{rider.plate}}</td>
+            <td class="dark:dark hidden lg:table-cell"><img class="rounded-full img-fluid rounded-circle dark:text-gray-200" src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
               style="width: 2rem; height: 2rem;"></td>
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:dark sm:w-auto sm:max-w-none sm:pl-6">
+            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900  dark:text-gray-200 sm:w-auto sm:max-w-none sm:pl-6">
               {{rider.last_name}}
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate text-gray-700 dark:dark">{{rider.first_name}}</dd>
+                <dd class="mt-1 truncate text-gray-700 dark:text-gray-200">{{rider.first_name}}</dd>
                 <dt class="sr-only sm:hidden">Email</dt>
-                <dd class="mt-1 truncate text-gray-500 dark:dark sm:hidden">{{rider.club|upper}}</dd>
+                <dd class="mt-1 truncate text-gray-500 dark:text-gray-200 sm:hidden">{{rider.club|upper}}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark lg:table-cell">{{rider.first_name}}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark sm:table-cell">{{rider.club|upper}}</td>
-            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:dark md:table-cell">{{rider.uci_id}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 lg:table-cell">{{rider.first_name}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 sm:table-cell">{{rider.club|upper}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 md:table-cell">{{rider.uci_id}}</td>
             
             {% if rider.class_20 == "NENÍ VYPSÁNO" %}
-            <td class="mt-1 text-sm truncate dark:dark">
+            <td class="mt-1 text-sm truncate dark:text-gray-200">
               <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
@@ -102,11 +113,9 @@
             
             </div>
             </td>
-
            {% elif 'registered' in rider.class_20 %}
-
             <td class="mt-1 text-sm truncate dark:dark">
-              <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
+              <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg dark:text-gray-200">
               <input
                 class=""
                 type="checkbox"
@@ -120,10 +129,9 @@
               {{rider.class_20|slice:":-10" }}
             
             </div>
-            </td> 
-
+            </td>
             {% else %}
-            <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
+            <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
               <input
                 class=""
                 type="checkbox"
@@ -135,8 +143,8 @@
             </td>
             {% endif %}
 
-{% if rider.class_24 == "NENÍ VYPSÁNO" %}
-      <td class="mt-1 text-sm truncate text-gray-700 dark:dark" >
+        {% if rider.class_24 == "NENÍ VYPSÁNO" %}
+            <td class="mt-1 text-sm truncate text-gray-700 dark:dark" >
               <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
               <input
                 class=""
@@ -145,10 +153,9 @@
                 id="checkbox_24"
                 name="checkbox_24"
                 disabled
-              />{{rider.class_24 }}</div>
+              />{{rider.class_24}}</div>
             </td>
-
-            {% elif 'registered' in rider.class_24 %}
+        {% elif 'registered' in rider.class_24 %}
             <td class="mt-1 text-sm truncate text-gray-700 dark:dark" >
               <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
               <input
@@ -159,10 +166,10 @@
                 name="checkbox_24"
                 checked
                 disabled
-              />{{rider.class_24|slice:":-10" }}</div>
+              />{{rider.class_24|slice:":-10"}}</div>
             </td>
-            {% else %}
-            <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
+        {% else %}
+            <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
               <input
                 class=""
                 type="checkbox"
@@ -172,7 +179,34 @@
               />
               {{rider.class_24}}
             </td>
-            {% endif %}
+        {% endif %}
+              {% if event.is_beginners_event %}
+              {% if 'registered' in rider.class_beginner %}
+              <td class="mt-1 text-sm truncate text-gray-700 dark:dark" >
+              <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
+              <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_beginner"
+                name="checkbox_beginner"
+                disabled
+                checked
+              /> {{rider.class_beginner|slice:":-10"}} </div>
+              </td>
+              {% elif rider.class_beginner %}
+              <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200" >
+                  <input
+                class=""
+                type="checkbox"
+                value="{{rider.uci_id}}"
+                id="checkbox_beginner"
+                name="checkbox_beginner"
+              /> {{rider.class_beginner}}
+              </td>
+              {% else %}
+              {% endif %}
+              {% endif %}
           </tr>
           {% endfor %}
         </tbody>

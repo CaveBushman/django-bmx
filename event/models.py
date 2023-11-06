@@ -3,6 +3,7 @@ from django.db import models
 from club.models import Club
 from commissar.models import Commissar
 from rider.models import Rider
+from accounts.models import Account
 from datetime import date
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -12,62 +13,69 @@ from django.core.exceptions import FieldDoesNotExist
 # Create your models here.
 
 class EntryClasses(models.Model):
-
     event_name = models.CharField(max_length=200)
-    
-    boys_6 = models.CharField(max_length=50, blank = True, null = True)
-    boys_7 = models.CharField(max_length=50, blank = True, null = True)
-    boys_8 = models.CharField(max_length=50, blank = True, null = True)
-    boys_9 = models.CharField(max_length=50, blank = True, null = True)
-    boys_10 = models.CharField(max_length=50, blank = True, null = True)
-    boys_11 = models.CharField(max_length=50, blank = True, null = True)
-    boys_12 = models.CharField(max_length=50, blank = True, null = True)
-    boys_13 = models.CharField(max_length=50, blank = True, null = True)
-    boys_14 = models.CharField(max_length=50, blank = True, null = True)
-    boys_15 = models.CharField(max_length=50, blank = True, null = True)
-    boys_16 = models.CharField(max_length=50, blank = True, null = True)
-    men_17_24 = models.CharField(max_length=50, blank = True, null = True)
-    men_25_29 = models.CharField(max_length=50, blank = True, null = True)
-    men_30_34 = models.CharField(max_length=50, blank = True, null = True)
-    men_35_over = models.CharField(max_length=50, blank = True, null = True)
 
-    girls_7 = models.CharField(max_length=50, blank = True, null = True)
-    girls_8 = models.CharField(max_length=50, blank = True, null = True)
-    girls_9 = models.CharField(max_length=50, blank = True, null = True)
-    girls_10 = models.CharField(max_length=50, blank = True, null = True)
-    girls_11 = models.CharField(max_length=50, blank = True, null = True)
-    girls_12 = models.CharField(max_length=50, blank = True, null = True)
-    girls_13 = models.CharField(max_length=50, blank = True, null = True)
-    girls_14 = models.CharField(max_length=50, blank = True, null = True)
-    girls_15 = models.CharField(max_length=50, blank = True, null = True)
-    girls_16 = models.CharField(max_length=50, blank = True, null = True)
-    women_17_24 = models.CharField(max_length=50, blank = True, null = True)
-    women_25_over = models.CharField(max_length=50, blank = True, null = True)
+    beginners_1 = models.CharField(max_length=50, blank=True, null=True)
+    beginners_2 = models.CharField(max_length=50, blank=True, null=True)
+    beginners_3 = models.CharField(max_length=50, blank=True, null=True)
 
-    men_junior = models.CharField(max_length=50, blank = True, null = True)
-    men_u23 = models.CharField(max_length=50, blank = True, null = True)
-    men_elite = models.CharField(max_length=50, blank = True, null = True)
+    boys_6 = models.CharField(max_length=50, blank=True, null=True)
+    boys_7 = models.CharField(max_length=50, blank=True, null=True)
+    boys_8 = models.CharField(max_length=50, blank=True, null=True)
+    boys_9 = models.CharField(max_length=50, blank=True, null=True)
+    boys_10 = models.CharField(max_length=50, blank=True, null=True)
+    boys_11 = models.CharField(max_length=50, blank=True, null=True)
+    boys_12 = models.CharField(max_length=50, blank=True, null=True)
+    boys_13 = models.CharField(max_length=50, blank=True, null=True)
+    boys_14 = models.CharField(max_length=50, blank=True, null=True)
+    boys_15 = models.CharField(max_length=50, blank=True, null=True)
+    boys_16 = models.CharField(max_length=50, blank=True, null=True)
+    men_17_24 = models.CharField(max_length=50, blank=True, null=True)
+    men_25_29 = models.CharField(max_length=50, blank=True, null=True)
+    men_30_34 = models.CharField(max_length=50, blank=True, null=True)
+    men_35_over = models.CharField(max_length=50, blank=True, null=True)
 
-    women_junior = models.CharField(max_length=50, blank = True, null = True)
-    women_u23 = models.CharField(max_length=50, blank = True, null = True)
-    women_elite = models.CharField(max_length=50, blank = True, null = True)
+    girls_7 = models.CharField(max_length=50, blank=True, null=True)
+    girls_8 = models.CharField(max_length=50, blank=True, null=True)
+    girls_9 = models.CharField(max_length=50, blank=True, null=True)
+    girls_10 = models.CharField(max_length=50, blank=True, null=True)
+    girls_11 = models.CharField(max_length=50, blank=True, null=True)
+    girls_12 = models.CharField(max_length=50, blank=True, null=True)
+    girls_13 = models.CharField(max_length=50, blank=True, null=True)
+    girls_14 = models.CharField(max_length=50, blank=True, null=True)
+    girls_15 = models.CharField(max_length=50, blank=True, null=True)
+    girls_16 = models.CharField(max_length=50, blank=True, null=True)
+    women_17_24 = models.CharField(max_length=50, blank=True, null=True)
+    women_25_over = models.CharField(max_length=50, blank=True, null=True)
 
-    cr_boys_12_and_under = models.CharField(max_length=50, blank = True, null = True)
-    cr_boys_13_14 = models.CharField(max_length=50, blank = True, null = True)
-    cr_boys_15_16 = models.CharField(max_length=50, blank = True, null = True)
+    men_junior = models.CharField(max_length=50, blank=True, null=True)
+    men_u23 = models.CharField(max_length=50, blank=True, null=True)
+    men_elite = models.CharField(max_length=50, blank=True, null=True)
 
-    cr_men_17_24 = models.CharField(max_length=50, blank = True, null = True)
-    cr_men_25_29 = models.CharField(max_length=50, blank = True, null = True)
-    cr_men_30_34 = models.CharField(max_length=50, blank = True, null = True)
-    cr_men_35_39 = models.CharField(max_length=50, blank = True, null = True)
-    cr_men_40_49 = models.CharField(max_length=50, blank = True, null = True)
-    cr_men_50_and_over = models.CharField(max_length=50, blank = True, null = True)
+    women_junior = models.CharField(max_length=50, blank=True, null=True)
+    women_u23 = models.CharField(max_length=50, blank=True, null=True)
+    women_elite = models.CharField(max_length=50, blank=True, null=True)
 
-    cr_girls_12_and_under = models.CharField(max_length=50, blank = True, null = True)
-    cr_girls_13_16 = models.CharField(max_length=50, blank = True, null = True)
-    cr_women_17_29 = models.CharField(max_length=50, blank = True, null = True)
-    cr_women_30_39 = models.CharField(max_length=50, blank = True, null = True)
-    cr_women_40_and_over = models.CharField(max_length=50, blank = True, null = True)
+    cr_boys_12_and_under = models.CharField(max_length=50, blank=True, null=True)
+    cr_boys_13_14 = models.CharField(max_length=50, blank=True, null=True)
+    cr_boys_15_16 = models.CharField(max_length=50, blank=True, null=True)
+
+    cr_men_17_24 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_25_29 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_30_34 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_35_39 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_40_49 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_50_and_over = models.CharField(max_length=50, blank=True, null=True)
+
+    cr_girls_12_and_under = models.CharField(max_length=50, blank=True, null=True)
+    cr_girls_13_16 = models.CharField(max_length=50, blank=True, null=True)
+    cr_women_17_29 = models.CharField(max_length=50, blank=True, null=True)
+    cr_women_30_39 = models.CharField(max_length=50, blank=True, null=True)
+    cr_women_40_and_over = models.CharField(max_length=50, blank=True, null=True)
+
+    beginners_1_fee = models.IntegerField(default=0)
+    beginners_2_fee = models.IntegerField(default=0)
+    beginners_3_fee = models.IntegerField(default=0)
 
     boys_6_fee = models.IntegerField(default=0)
     boys_7_fee = models.IntegerField(default=0)
@@ -88,13 +96,13 @@ class EntryClasses(models.Model):
     girls_7_fee = models.IntegerField(default=0)
     girls_8_fee = models.IntegerField(default=0)
     girls_9_fee = models.IntegerField(default=0)
-    girls_10_fee =models.IntegerField(default=0)
-    girls_11_fee =models.IntegerField(default=0)
-    girls_12_fee =models.IntegerField(default=0)
-    girls_13_fee =models.IntegerField(default=0)
-    girls_14_fee =models.IntegerField(default=0)
-    girls_15_fee =models.IntegerField(default=0)
-    girls_16_fee =models.IntegerField(default=0)
+    girls_10_fee = models.IntegerField(default=0)
+    girls_11_fee = models.IntegerField(default=0)
+    girls_12_fee = models.IntegerField(default=0)
+    girls_13_fee = models.IntegerField(default=0)
+    girls_14_fee = models.IntegerField(default=0)
+    girls_15_fee = models.IntegerField(default=0)
+    girls_16_fee = models.IntegerField(default=0)
     women_17_24_fee = models.IntegerField(default=0)
     women_25_over_fee = models.IntegerField(default=0)
 
@@ -102,7 +110,7 @@ class EntryClasses(models.Model):
     men_u23_fee = models.IntegerField(default=0)
     men_elite_fee = models.IntegerField(default=0)
 
-    women_junior_fee =models.IntegerField(default=0)
+    women_junior_fee = models.IntegerField(default=0)
     women_u23_fee = models.IntegerField(default=0)
     women_elite_fee = models.IntegerField(default=0)
 
@@ -116,7 +124,7 @@ class EntryClasses(models.Model):
     cr_men_35_39_fee = models.IntegerField(default=0)
     cr_men_40_49_fee = models.IntegerField(default=0)
     cr_men_50_and_over_fee = models.IntegerField(default=0)
-    
+
     cr_girls_12_and_under_fee = models.IntegerField(default=0)
     cr_girls_13_16_fee = models.IntegerField(default=0)
     cr_women_17_29_fee = models.IntegerField(default=0)
@@ -130,12 +138,12 @@ class EntryClasses(models.Model):
 
     def __str__(self):
         return self.event_name
-    
+
     class Meta:
         verbose_name = "Kategorie a startovné"
         verbose_name_plural = 'Kategorie a startovné'
-    
-    
+
+
 class Event(models.Model):
     """ class for event """
 
@@ -148,7 +156,8 @@ class Event(models.Model):
                   ('Mistrovství světa', 'Mistrovství světa'),
                   ('Nebodovaný závod', 'Nebodovaný závod'),)
 
-    RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'), ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
+    RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'),
+                   ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
 
     name = models.CharField(max_length=255, blank=False)
     date = models.DateField(null=True, blank=True)
@@ -160,55 +169,57 @@ class Event(models.Model):
     type_for_ranking = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
 
     # classes_code = models.IntegerField(default = 3)
-    classes_and_fees_like = models.ForeignKey(EntryClasses,  default = 6, on_delete=models.SET_DEFAULT, blank=True)
+    classes_and_fees_like = models.ForeignKey(EntryClasses, default=6, on_delete=models.SET_DEFAULT, blank=True)
 
     is_uci_race = models.BooleanField(default=False)
 
     pcp = models.ForeignKey(Commissar, related_name="PCP", on_delete=models.SET_NULL, blank=True, null=True)
-    pcp_assist = models.ForeignKey(Commissar, related_name="PCP_asist", on_delete=models.SET_NULL, blank=True, null=True)
+    pcp_assist = models.ForeignKey(Commissar, related_name="PCP_asist", on_delete=models.SET_NULL, blank=True,
+                                   null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
 
     reg_open_from = models.DateField(default='2021-04-01')
     reg_open_to = models.DateTimeField(null=True, blank=True)
     reg_open = models.BooleanField(default=True)
 
-    system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100, blank=True, null=True)
+    system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100,
+                              blank=True, null=True)
     commission_fee = models.IntegerField(default=0)
 
-    proposition = models.FileField(upload_to='propositions/', null = True, blank = True)
+    proposition = models.FileField(upload_to='propositions/', null=True, blank=True)
     proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    series = models.FileField(upload_to='series/', null = True, blank = True)
+    series = models.FileField(upload_to='series/', null=True, blank=True)
     series_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # file for BMX EVENT MANAGER
-    bem_entries = models.FileField(upload_to='bem_entries/', null = True, blank = True)
+    bem_entries = models.FileField(upload_to='bem_entries/', null=True, blank=True)
     bem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_riders_list = models.FileField(upload_to='bem_riders/', null = True, blank = True)
+    bem_riders_list = models.FileField(upload_to='bem_riders/', null=True, blank=True)
     bem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    bem_backup = models.FileField(upload_to='bem_backup/', null = True, blank = True)
+    bem_backup = models.FileField(upload_to='bem_backup/', null=True, blank=True)
     bem_backup_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # for events with 2 block
-    bem_backup_2 = models.FileField(upload_to='bem_backup/', null = True, blank = True)
+    bem_backup_2 = models.FileField(upload_to='bem_backup/', null=True, blank=True)
     bem_backup_2_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    full_results = models.FileField(upload_to='full_results/', null = True, blank = True)
+    full_results = models.FileField(upload_to='full_results/', null=True, blank=True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    fast_riders = models.FileField(upload_to='full_results/', null = True, blank = True)
+    fast_riders = models.FileField(upload_to='full_results/', null=True, blank=True)
     fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     xls_results = models.FileField(upload_to='xls_results/', null=True, blank=True)
     xls_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # file for RACE EVENT MANAGER
-    rem_entries = models.FileField(upload_to='rem_entries/', null = True, blank = True)
+    rem_entries = models.FileField(upload_to='rem_entries/', null=True, blank=True)
     rem_entries_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    rem_riders_list = models.FileField(upload_to='rem_riders/', null = True, blank = True)
+    rem_riders_list = models.FileField(upload_to='rem_riders/', null=True, blank=True)
     rem_riders_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     rem_results = models.FileField(upload_to='rem_results/', null=True, blank=True)
@@ -218,7 +229,7 @@ class Event(models.Model):
     ec_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
     ec_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     ec_insurance_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
-    ec_insurance_file_created =  models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    ec_insurance_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
@@ -233,14 +244,21 @@ class Event(models.Model):
         events_in_year = Event.objects.filter(date__year=year).count()
         return events_in_year
 
+    def is_beginners_event(self):
+        if self.type_for_ranking =="Mistrovství ČR jednotlivců" or self.type_for_ranking == "Mistrovství ČR družstev" or self.type_for_ranking=="Český pohár":
+            return False
+        else:
+            return True
+
     class Meta:
         verbose_name = "Závod"
         verbose_name_plural = 'Závody'
-        ordering = ['-date',]
+        ordering = ['-date', ]
+
 
 # vymazání xls výsledků při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_xls_results_file (sender, instance, **kwargs):
+def delete_xls_results_file(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_xls = Event.objects.get(pk=instance.pk).xls_results
@@ -257,11 +275,14 @@ def delete_xls_results_file (sender, instance, **kwargs):
                         pass
             except Exception as e:
                 pass
+
+
 pre_save.connect(delete_xls_results_file, sender=Event)
+
 
 # vymazání BEM file při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_bem_backup (sender, instance, **kwargs):
+def delete_bem_backup(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_bem_backup = Event.objects.get(pk=instance.pk).bem_backup
@@ -278,11 +299,14 @@ def delete_bem_backup (sender, instance, **kwargs):
                         pass
             except Exception as e:
                 pass
+
+
 pre_save.connect(delete_bem_backup, sender=Event)
+
 
 # vymazání BEM_2 file při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_bem_2_backup (sender, instance, **kwargs):
+def delete_bem_2_backup(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_bem_backup_2 = Event.objects.get(pk=instance.pk).bem_backup_2
@@ -299,11 +323,14 @@ def delete_bem_2_backup (sender, instance, **kwargs):
                         pass
             except Exception as e:
                 pass
+
+
 pre_save.connect(delete_bem_2_backup, sender=Event)
+
 
 # vymazání celkových výsledků při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_full_results_file (sender, instance, **kwargs):
+def delete_full_results_file(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_full_results = Event.objects.get(pk=instance.pk).full_results
@@ -316,11 +343,14 @@ def delete_full_results_file (sender, instance, **kwargs):
                     old_full_results.delete(save=False)
                 except Exception as e:
                     pass
+
+
 pre_save.connect(delete_full_results_file, sender=Event)
+
 
 # vymazání nejrychlejších jezdců
 @receiver(pre_save, sender=Event)
-def delete_fast_riders_file (sender, instance, **kwargs):
+def delete_fast_riders_file(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_fast_riders = Event.objects.get(pk=instance.pk).fast_riders
@@ -333,11 +363,14 @@ def delete_fast_riders_file (sender, instance, **kwargs):
                     old_fast_riders.delete(save=False)
                 except Exception as e:
                     pass
+
+
 pre_save.connect(delete_fast_riders_file, sender=Event)
+
 
 # vymazání výsledků serie při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_series_file (sender, instance, **kwargs):
+def delete_series_file(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_series = Event.objects.get(pk=instance.pk).series
@@ -354,11 +387,14 @@ def delete_series_file (sender, instance, **kwargs):
                         pass
             except Exception as e:
                 pass
+
+
 pre_save.connect(delete_series_file, sender=Event)
+
 
 # vymazání propozic při aktualizaci
 @receiver(pre_save, sender=Event)
-def delete_prop_file (sender, instance, **kwargs):
+def delete_prop_file(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_prop = Event.objects.get(pk=instance.pk).proposition
@@ -375,23 +411,27 @@ def delete_prop_file (sender, instance, **kwargs):
                         pass
             except Exception as e:
                 pass
+
+
 pre_save.connect(delete_prop_file, sender=Event)
+
 
 # nastavení provize Asociace klubů
 @receiver(pre_save, sender=Event)
-def commission_fee (sender, instance, **kwargs):
+def commission_fee(sender, instance, **kwargs):
     if instance.commission_fee == 0:
-        if instance.type_for_ranking =="Český pohár" or instance.type_for_ranking =="Česká liga" or instance.type_for_ranking =="Moravská liga":
-            instance.commission_fee=20
+        if instance.type_for_ranking == "Český pohár" or instance.type_for_ranking == "Česká liga" or instance.type_for_ranking == "Moravská liga":
+            instance.commission_fee = 20
         else:
-            instance.commission_fee=5
+            instance.commission_fee = 5
+
+
 pre_save.connect(commission_fee, sender=Event)
 
 
 class Result(models.Model):
     """ Model for results """
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True)
-    name = models.CharField(max_length=100, null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     event_type = models.CharField(max_length=255, null=True, blank=True)
     organizer = models.CharField(max_length=100, null=True, blank=True)
@@ -417,12 +457,16 @@ class Result(models.Model):
 class Entry(models.Model):
     """ Models for entries to the race for Czech riders """
     transaction_id = models.CharField(max_length=255, default="")
-    event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
-    rider = models.ForeignKey(Rider, db_constraint=False, db_index=False, to_field="id", db_column="rider", on_delete=models.SET_NULL, null=True, )
+    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True) # to_field='id', db_column='event'
+    rider = models.ForeignKey(Rider, db_constraint=False, db_index=False, to_field="id", db_column="rider",
+                              on_delete=models.SET_NULL, null=True, )
+    is_beginner = models.BooleanField(default=False)
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
+    class_beginner = models.CharField(max_length=255, default="", null=True, blank=True)
     class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
     class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
+    fee_beginner = models.IntegerField(null=True, blank=True, default=0)
     fee_20 = models.IntegerField(null=True, blank=True, default=0)
     fee_24 = models.IntegerField(null=True, blank=True, default=0)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -443,7 +487,7 @@ class EntryForeign(models.Model):
     event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    uci_id=models.CharField(max_length=20)
+    uci_id = models.CharField(max_length=20)
     gender = models.CharField(max_length=20)
     nationality = models.CharField(max_length=3)
     club = models.CharField(max_length=50)
@@ -464,3 +508,31 @@ class EntryForeign(models.Model):
     class Meta:
         verbose_name = "Registrace zahraničních jezdců"
         verbose_name_plural = 'Registrace zahraničních jezdců'
+
+
+class Order(models.Model):
+    """ Model for order the event """
+    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    rider = models.ForeignKey(Rider, on_delete=models.CASCADE, null=True, blank=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
+    is_beginner = models.BooleanField(default=False)
+    is_20 = models.BooleanField(default=False)
+    is_24 = models.BooleanField(default=False)
+    class_beginner = models.CharField(max_length=255, default="", null=True, blank=True)
+    class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
+    class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
+    fee_beginner = models.IntegerField(null=True, blank=True, default=0)
+    fee_20 = models.IntegerField(null=True, blank=True, default=0)
+    fee_24 = models.IntegerField(null=True, blank=True, default=0)
+    stripe_payload = models.CharField(max_length=255, blank=True, null=True)
+    confirmed = models.BooleanField(default=False)
+
+    created = models.DateField(auto_now_add=True, null=True)
+    updated = models.DateField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.rider} - {self.event}"
+
+    class Meta:
+        verbose_name = "Nákupní košík závodu"
+        verbose_name_plural = 'Nákupní košík závodů'

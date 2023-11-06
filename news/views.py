@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404 
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage
-from event.models import Event
+from event.models import Event, Order
+from event.func import update_cart
+from func.notification import update_plate_notify
 from rider.models import Rider
 from news.models import News, Downloads
 from club.models import Club
@@ -24,16 +26,11 @@ def homepage_view(request):
     riders_sum = Rider.sum_of_riders()
     clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
     homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
-    notification = False
-
-    notification_request = Rider.objects.filter(is_approwe = False)
-    if notification_request:
-        notification = True
-
+    update_cart(request)
+    update_plate_notify(request)
     content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
                'events_sum': events_sum,
-               'homepage_news': homepage_news,
-               'notification':notification}
+               'homepage_news': homepage_news}
     return render(request, "homepage.html", content)
 
 

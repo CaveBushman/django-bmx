@@ -10,9 +10,10 @@ import re
 
 # Create your models here.
 
-
 class Rider(models.Model):
     """ Class for rider """
+
+    CLASS_BEGINNERS = (('Beginners 1', 'Beginners 1'), ('Beginners 2', 'Beginners 2'),  ('Beginners 3', 'Beginners 3'), ('', ''))
 
     CLASS_20 = (
     ('Boys 6', 'Boys 6'), ('Boys 7', 'Boys 7'), ('Boys 8', 'Boys 8'), ('Boys 9', 'Boys 9'), ('Boys 10', 'Boys 10'),
@@ -27,8 +28,7 @@ class Rider(models.Model):
     CLASS_24 = (
     ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
     ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
-    ('Men 40-49',
-     'Men 40-49'), ('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
+    ('Men 40-44', 'Men 40-44'), ('Men 45-49', 'Men 45-49'),('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
     ('Girls 13-16', 'Girls 13-16'), ('Women 17-29', 'Women 17-29'), ('Women 30-39', 'Women 30-99'),
     ('Women 40 and over', 'Women 40 and over'))
 
@@ -74,6 +74,7 @@ class Rider(models.Model):
         max_length=50, choices=CLASS_20, default="Boys 6", null=True)
     class_24 = models.CharField(
         max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True)
+    class_beginner=models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="", null=True)
 
     transponder_20 = models.CharField(max_length=8, blank=True, null=True)
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
@@ -105,14 +106,29 @@ class Rider(models.Model):
 
     def get_age(self, rider):
         return date.today().year - rider.date_of_birth.year
-    
+
     def sum_of_riders():
         return Rider.objects.filter(is_active=True).count
 
     @staticmethod
-    def set_class_20(gender, age : int, is_elite):
-        if is_elite:
-            if gender == "Muž" or gender == "Ostatní":
+    def set_class_beginner(rider):
+        age: int = rider.get_age(rider)
+        if rider.have_girl_bonus:
+            age -= 1
+        if age <= 6:
+            return "Beginners 1"
+        elif age <= 8:
+            return "Beginners 2"
+        elif age <= 10:
+            return "Beginners 3"
+        else:
+            return ""
+
+    @staticmethod
+    def set_class_20(rider):
+        age = rider.get_age(rider)
+        if rider.is_elite:
+            if rider.gender == "Muž" or rider.gender == "Ostatní":
                 if age <= 18:
                     return "Men Junior"
                 elif age <= 22:
@@ -127,8 +143,8 @@ class Rider(models.Model):
                 else:
                     return "Women Elite"
 
-        if not is_elite:
-            if gender == "Muž" or gender == "Ostatní":
+        if not rider.is_elite:
+            if rider.gender == "Muž" or rider.gender == "Ostatní":
                 if age <= 6:
                     return "Boys 6"
                 elif age == 7:
@@ -187,8 +203,9 @@ class Rider(models.Model):
                     return "Women 25 and over"
 
     @staticmethod
-    def set_class_24(gender, age:int):
-        if gender == "Muž" or gender == "Ostatní":
+    def set_class_24(rider):
+        age = rider.get_age(rider)
+        if rider.gender == "Muž" or rider.gender == "Ostatní":
             if age <= 12:
                 return "Boys 12 and under"
             elif age <= 14:
@@ -203,8 +220,10 @@ class Rider(models.Model):
                 return "Men 30-34"
             elif age <= 39:
                 return "Men 35-39"
+            elif age <= 44:
+                return "Men 40-44"
             elif age <= 49:
-                return "Men 40-49"
+                return "Men 45-49"
             else:
                 return "Men 50 and over"
         else:
@@ -237,8 +256,9 @@ class Rider(models.Model):
 def set_class(sender, instance, **kwargs):
     age = instance.get_age(instance)
     is_elite = instance.is_elite
-    instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
-    instance.class_24 = instance.set_class_24(instance.gender, age)
+    instance.class_beginner = instance.set_class_beginner(instance)
+    instance.class_20 = instance.set_class_20(instance)
+    instance.class_24 = instance.set_class_24(instance)
     instance.plate_color_20 = instance.plate_color(instance.class_20)
 pre_save.connect (set_class, sender = Rider)
 
@@ -255,7 +275,8 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
             if old_photo == "static/images/riders/uni.jpeg":
                 instance.photo="images/riders/uni.jpeg"
                 return
-            if old_photo and old_photo.url != new_photo.url:
+
+            if old_photo and old_photo.url != new_photo.url and (old_photo != 'static/images/riders/uni.jpeg' or old_photo != "media/images/riders/uni.jpeg"):
                 old_photo.delete(save=False)
 pre_save.connect(delete_file_on_change_extension, sender=Rider)
 
@@ -272,11 +293,11 @@ class ForeignRider(models.Model):
     ('Women 17-24', 'Women 17-24'), ('Women 25 and over', 'Women 25 and over'), ('Men Junior', 'Men Junior'),
     ('Men Under 23', 'Men Under 23'), ('Men Elite', 'Men Elite'), ('Women Junior', 'Women Junior'),
     ('Women Under 23', 'Women Under 23'), ('Women Elite', 'Women Elite'))
+
     CLASS_24 = (
     ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
     ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
-    ('Men 40-49',
-     'Men 40-49'), ('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
+    ('Men 40-44','Men 40-44'),('Men 45-49', 'Men 45-49'),('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
     ('Girls 13-16', 'Girls 13-16'), ('Women 17-29', 'Women 17-29'), ('Women 30-39', 'Women 30-99'),
     ('Women 40 and over', 'Women 40 and over'))
 
@@ -323,7 +344,7 @@ class ForeignRider(models.Model):
         return date.today().year - rider.date_of_birth.year
 
     @staticmethod
-    def set_class_20(gender, age : int, is_elite):
+    def set_class_20(gender, age: int, is_elite):
         if is_elite:
             if gender == "Muž" or gender == "Ostatní":
                 if age <= 18:
@@ -400,7 +421,8 @@ class ForeignRider(models.Model):
                     return "Women 25 and over"
 
     @staticmethod
-    def set_class_24(gender, age:int):
+    def set_class_24(gender, age: int):
+        print(f" Nastavuji kategorii 24 - věk {age}, pohlaví {gender}")
         if gender == "Muž" or gender == "Ostatní":
             if age <= 12:
                 return "Boys 12 and under"
@@ -416,8 +438,10 @@ class ForeignRider(models.Model):
                 return "Men 30-34"
             elif age <= 39:
                 return "Men 35-39"
+            elif age <= 44:
+                return "Men 40-44"
             elif age <= 49:
-                return "Men 40-49"
+                return "Men 45-49"
             else:
                 return "Men 50 and over"
         else:

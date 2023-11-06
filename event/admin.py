@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Result, EntryClasses, Entry, EntryForeign
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, Order
 
 # Register your models here.
 
@@ -18,6 +18,12 @@ class EntryClassesAdmin(admin.ModelAdmin):
         ('Název závodu', {
             "fields": ('event_name',),
         }),
+
+        ('Kategorie příchozí', {
+            "fields": (('beginners_1', 'beginners_2', 'beginners_3')),
+            'description': "Zde vyplň katerogie příchozích, které se pojedou v závodě"
+        }),
+
         ('Kategorie muži', {
             "fields": (('boys_6', 'boys_7'), ('boys_8', 'boys_9'), ('boys_10', 'boys_11'),
             ('boys_12', 'boys_13'), ('boys_14','boys_15'),('boys_16', 'men_17_24'), ('men_25_29','men_30_34'),
@@ -40,6 +46,10 @@ class EntryClassesAdmin(admin.ModelAdmin):
             ('cr_girls_12_and_under', 'cr_girls_13_16'), ('cr_women_17_29', 'cr_women_30_39'), 'cr_women_40_and_over',
             ),
         'description': "Zde vyplň katerogie na 24-ti palcových kolech (cruiserech), které se pojedou v závodě "
+        }),
+
+        ('Startovné Příchozí', {
+            "fields": ('beginners_1_fee', 'beginners_2_fee', 'beginners_3_fee'),
         }),
 
         ('Startovné muži', {   
@@ -74,3 +84,4 @@ admin.site.register(Result)
 admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign)
+admin.site.register(Order)
