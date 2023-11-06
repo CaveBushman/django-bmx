@@ -13,7 +13,7 @@ def sort_20(self, classes):
 
 
 def sort_24(self, classes):
-    CLASS_ORDER_24 = {'Boys 12 and under', 'Boys 13 and 14', 'Boys 15 and 16', 'Men 17-24', 'Men 25-39', 'Men 30-34', 'Men 35-39','Men 40-49', 'Men 50 and over', 'Girls 12 and under', 'Girls 13-16', 'Women 17-29', 'Women 30-99', 'Women 40 and over'}
+    CLASS_ORDER_24 = {'Boys 12 and under', 'Boys 13 and 14', 'Boys 15 and 16', 'Men 17-24', 'Men 25-39', 'Men 30-34', 'Men 35-39', 'Men 40-44', 'Men 45-49', 'Men 50 and over', 'Girls 12 and under', 'Girls 13-16', 'Women 17-29', 'Women 30-99', 'Women 40 and over'}
     pass
 
 
@@ -171,7 +171,6 @@ class RankingCount:
         """ Methods for setting ranking points for all riders """
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
         for rider in riders:
-            print(f"Počítám ranking jezdce {rider.first_name} {rider.last_name}")
             ranking = RankingCount(rider.uci_id)
             ranking.count_points()
             rider.points_20 = ranking.get_points_20()
@@ -192,7 +191,6 @@ class RankPositionCount:
 
         if is_20:
             riders = Rider.objects.filter(is_active=True, is_approwe=True, is_20=True).exclude(points_20=0)
-
             for rider in riders:
                 if rider.class_20 not in categories:
                     categories.append(rider.class_20)

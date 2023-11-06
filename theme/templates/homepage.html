@@ -8,15 +8,15 @@
 
 <div class="bg-white dark:bg-gray-800 py-6 sm:py-8">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <ul role="list" class="mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+    <ul role="list" class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 lg:gap-y-16 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
       <li>
         <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg1.jpg' %}" alt="">
       </li>
        <li>
-        <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg2.jpg' %}" alt="">
+        <img class="aspect-[3/2] w-full rounded-2xl object-cover hidden sm:block" src="{% static 'images/homepage/bg2.jpg' %}" alt="">
       </li>
        <li>
-        <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg3.jpg' %}" alt="">
+        <img class="aspect-[3/2] w-full rounded-2xl object-cover hidden lg:block" src="{% static 'images/homepage/bg3.jpg' %}" alt="">
       </li>
     </ul>
   </div>
@@ -26,30 +26,17 @@
 
 <div class="bg-white dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <ul role="list" class="mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-x-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 text-center">
+    <ul role="list" class="mx-auto mt-4 md:mt-6 lg:mt-10  grid max-w-2xl grid-cols-1 gap-x-8 sm:grid-cols-3 lg:mx-0 lg:max-w-none text-center">
       <li>
-        <div class=" font-bold text-3xl md:text-4xl lg:text-7xl text-gray-600 dark:text-gray-200">{{riders_sum}}</div>
-      </li>
-       <li>
-        <div class=" font-bold text-3xl md:text-4xl lg:text-7xl text-gray-600 dark:text-gray-200">{{clubs_sum}}</div>
-      </li>
-       <li>
-        <div class="font-bold text-3xl md:text-4xl lg:text-7xl text-gray-600 dark:text-gray-200">{{events_sum}}</div>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div class="bg-white dark:bg-gray-800">
-  <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <ul role="list" class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 text-center">
-      <li>
+        <div class="font-bold text-3xl md:text-4xl lg:text-7xl mt-2 sm:mt-4 text-gray-600 dark:text-gray-200">{{riders_sum}}</div>
         <div class="sm:text-lg md:text-2xl lg:text-4xl text-gray-600 dark:text-gray-200">jezdců</div>
       </li>
        <li>
+        <div class=" font-bold text-3xl md:text-4xl lg:text-7xl mt-2 sm:mt-4 text-gray-600 dark:text-gray-200">{{clubs_sum}}</div>
         <div class="sm:text-lg md:text-2xl lg:text-4xl text-gray-600 dark:text-gray-200">klubů</div>
       </li>
        <li>
+        <div class="font-bold text-3xl md:text-4xl lg:text-7xl mt-2 sm:mt-4 text-gray-600 dark:text-gray-200">{{events_sum}}</div>
         <div class="sm:text-lg md:text-2xl lg:text-4xl text-gray-600 dark:text-gray-200">závodů v tomto roce</div>
       </li>
     </ul>
@@ -60,15 +47,15 @@
 
 <div class="bg-white dark:bg-gray-800 py-6 sm:py-8">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <ul role="list" class="mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+    <ul role="list" class="mx-auto mt-2 lg:mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
       <li>
         <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg4.jpg' %}" alt="">
       </li>
        <li>
-        <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg5.jpg' %}" alt="">
+        <img class="aspect-[3/2] w-full rounded-2xl object-cover hidden sm:block" src="{% static 'images/homepage/bg5.jpg' %}" alt="">
       </li>
        <li>
-        <img class="aspect-[3/2] w-full rounded-2xl object-cover" src="{% static 'images/homepage/bg6.jpg' %}" alt="">
+        <img class="aspect-[3/2] w-full rounded-2xl object-cover hidden lg:block" src="{% static 'images/homepage/bg6.jpg' %}" alt="">
       </li>
     </ul>
   </div>
@@ -186,15 +173,15 @@
       {% if request.session.is_dark_mode %}
         <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/skoda.png" %}" alt="Transistor" width="158" height="48">
         <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/CSC_Logo_Horizontal_CZ_WHITE.png" %}" alt="Reform" width="158" height="48">
-        <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/Sazka_wordmark_BW_negative_RGB.png" %}" alt="Tuple" width="158" height="48">
-        <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static "images/partners/uci-logo_dark.png" %}" alt="SavvyCal" width="158" height="48">
-        <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1" src= "{% static "images/partners/koop.svg" %}" alt="Statamic" width="158" height="48">
+        <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/sazka_dark.png" %}" alt="Sazka" width="158" height="48">
+        <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static "images/partners/uci-logo_dark.png" %}" alt="UCI" width="158" height="48">
+        <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1" src= "{% static "images/partners/koop.svg" %}" alt="Kooperativa" width="158" height="48">
       {% else %}
         <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/skoda.png" %}" alt="Transistor" width="158" height="48">
         <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/csc.png" %}" alt="Reform" width="158" height="48">
-        <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/Sazka_wordmark_BW_RGB.png" %}" alt="Tuple" width="158" height="48">
-        <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static "images/partners/uci-logo.svg" %}" alt="SavvyCal" width="158" height="48">
-        <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1" src= "{% static "images/partners/koop.svg" %}" alt="Statamic" width="158" height="48">
+        <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static "images/partners/sazka.png" %}" alt="Sazka" width="158" height="48">
+        <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static "images/partners/uci-logo.svg" %}" alt="UCI" width="158" height="48">
+        <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1" src= "{% static "images/partners/koop.svg" %}" alt="Kooperativa" width="158" height="48">
       {% endif %}
     </div>
   </div>
@@ -206,7 +193,7 @@
 <div class="">
   <footer class="bg-gray-100 dark:bg-gray-800  dark:text-gray-200">
     <div
-      class="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
+      class="max-w-7xl mx-auto py-6 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
     >
       <div class="flex justify-center space-x-6 md:order-2">
         <a
@@ -293,7 +280,7 @@
         </a>
            -->
       </div>
-      <div class="mt-8 md:mt-0 md:order-1">
+      <div class="mt-4 md:mt-0 md:order-1">
         <p class="text-center text-base">
           &copy; {% now "Y" %} David Průša. Všechna práva vyhrazena.
         </p>

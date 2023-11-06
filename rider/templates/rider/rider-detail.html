@@ -171,12 +171,12 @@
                 {{ result.date }}
               <dl class="font-normal lg:hidden">
                 <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate ">{{ result.name }}</dd>
+                <dd class="mt-1 truncate ">{{ result.event.name }}</dd>
                 <dt class="sr-only sm:hidden">Organizátor</dt>
                 <dd class="mt-1 truncate  sm:hidden">{{ result.organizer|upper }}</dd>
               </dl>
             </td>
-            <td class="hidden px-3 py-4 text-sm lg:table-cell">{{ result.name }}</td>
+            <td class="hidden px-3 py-4 text-sm lg:table-cell">{{ result.event.name }}</td>
             <td class="hidden px-3 py-4 text-sm sm:table-cell">{{ result.organizer|upper }}</td>
             <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.event_type }}</td>
             <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.category }}</td>

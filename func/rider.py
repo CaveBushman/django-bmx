@@ -6,8 +6,9 @@ def set_all_riders_classes():
     """ Function for setting classes for all riders """
     riders = Rider.objects.all()
     for rider in riders:
-        threading.Thread(target=rider.set_class_20()).start()
-        threading.Thread(target=rider.set_class_24()).start()
+        threading.Thread(target=rider.set_class_beginner(rider)).start()
+        threading.Thread(target=rider.set_class_20(rider)).start()
+        threading.Thread(target=rider.set_class_24(rider)).start()
     print("Kategorie jezdců nastaveny")
 
 def clear_transponders():

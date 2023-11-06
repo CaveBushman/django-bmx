@@ -2,92 +2,163 @@ import datetime
 import requests
 import re
 from decouple import config
+from openpyxl.workbook import Workbook
 from rider.models import Rider
-from event.models import Result, Event
+from event.models import Result, Event, Entry
 import threading
 from django.utils import timezone
 
-now = datetime.date.today().year
-INACTIVE_YEARS = 2 # for inactive riders function 
 
-class CheckValidLicenceThread (threading.Thread):
+now = datetime.date.today().year
+INACTIVE_YEARS = 2  # for inactive riders function
+
+
+class CheckValidLicenceThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-    
+
     def run(self):
-        riders = Rider.objects.filter(is_active = True)
+        riders = Rider.objects.filter(is_active=True)
         for rider in riders:
 
             if rider.fix_valid_licence:
                 rider.valid_licence = True
                 rider.save()
-                
+
             else:
-                LICENCE_USERNAME = config('LICENCE_USERNAME')
-                LICENCE_PASSWORD = config('LICENCE_PASSWORD')
-                basicAuthCredentials = (LICENCE_USERNAME, LICENCE_PASSWORD)
-    
-                url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
-                try:
-                    dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-                    if dataJSON.text == "false":
-                        rider.valid_licence = False
-                        rider.save()
-                    elif re.search("Http_NotFound", dataJSON.text):
-                        rider.valid_licence = False
-                        rider.save()
-                    else:
-                        rider.valid_licence = True
-                        rider.save()
-                except:
-                    print("CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE")
+                valid_licence(rider)
 
-def valid_licence(uci_id):
+
+def valid_licence(rider):
     """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
-    rider = Rider.objects.get(uci_id=uci_id)
 
-    LICENCE_USERNAME = config('LICENCE_USERNAME')
-    LICENCE_PASSWORD = config('LICENCE_PASSWORD')
-    basicAuthCredentials = (LICENCE_USERNAME, LICENCE_PASSWORD)
- 
+    __LICENCE_USERNAME = config('LICENCE_USERNAME')
+    __LICENCE_PASSWORD = config('LICENCE_PASSWORD')
+    basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
+
     url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
 
     try:
+        requests.packages.urllib3.disable_warnings()
         dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-        if dataJSON.text == "false":
+        if dataJSON.text == "false" or dataJSON.status_code != 200:
+            print(f"UCI ID {rider.uci_id}, jezdec {rider.first_name} {rider.last_name} NEEXISTUJE V DATABÁZI ČSC NEBO NEMÁ PLATNOU LICENCI")
             rider.valid_licence = False
             rider.save()
         elif re.search("Http_NotFound", dataJSON.text):
-            print(f"UCI ID {uci_id} NEEXISTUJE V DATABÁZI ČSC")
+            print(f"UCI ID {rider.uci_id} NEEXISTUJE V DATABÁZI ČSC")
             rider.valid_licence = False
             rider.save()
         else:
             rider.valid_licence = True
             rider.save()
-    except:
-        print("CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE")
-        
+    except Exception as e:
+        print(f"CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE: {e}")
 
-def valid_licence_control():
-    """ Function for controling validations licence """
-    riders = Rider.objects.filter(is_active = True)
-
-    for rider in riders:
-        threading.Thread(target = valid_licence(rider.uci_id), daemon = True).start()
 
 def two_years_inactive():
     """ Function for inactive riders """
-    riders = Rider.objects.filter(is_active=True, is_approwe=True).exclude(created__gte=timezone.now() - datetime.timedelta(days=365)).order_by('club')
-    events = Event.objects.filter(date__gte=timezone.now() - datetime.timedelta(days=INACTIVE_YEARS*365))
+    riders = Rider.objects.filter(is_active=True, is_approwe=True).exclude(
+        created__gte=timezone.now() - datetime.timedelta(days=365)).order_by('club')
+    events = Event.objects.filter(date__gte=timezone.now() - datetime.timedelta(days=INACTIVE_YEARS * 365))
     inactive_riders = []
     for rider in riders:
         active = False
         for event in events:
-            activities = Result.objects.filter(rider=rider.uci_id, event = event.id )
-            if activities.count()>0:
-                active=True
-                break   
+            activities = Result.objects.filter(rider=rider.uci_id, event=event.id)
+            if activities.count() > 0:
+                active = True
+                break
         if not active:
             inactive_riders.append(rider)
     return inactive_riders
+
+
+class Participation:
+    """ Class for count participation riders on events with export to excel file """
+
+    def __init__(self):
+        self.wb = Workbook()
+        self.ws = self.wb.active
+
+    def first_line(self):
+        self.ws.cell(1, 1, "Last_name")
+        self.ws.cell(1, 2, "First_name")
+        self.ws.cell(1, 3, "UCI ID")
+        self.ws.cell(1, 4, "Class_20")
+        self.ws.cell(1, 5, "Class_24")
+        self.ws.cell(1, 6, "CLub")
+        self.ws.cell(1, 7, "MČR")
+        self.ws.cell(1, 8, "ČP")
+        self.ws.cell(1, 9, "Ostatní")
+
+    def save(self):
+        self.wb.save(filename='media/participation/participation.xlsx')
+
+    def calculate(self):
+        self.first_line()
+        line = 2
+        riders = Rider.objects.filter(is_active=True)
+        for rider in riders:
+            mcr: int = 0
+            cp: int = 0
+            others: int = 0
+            participation = Result.objects.filter(rider=rider.uci_id, date__year=now)
+            for part in participation:
+                if part.event_type == "Mistrovství ČR jednotlivců":
+                    mcr = 1
+                elif part.event_type == "Český pohár":
+                    cp += 1
+                else:
+                    others += 1
+            self.ws.cell(line, 1, rider.last_name)
+            self.ws.cell(line, 2, rider.first_name)
+            self.ws.cell(line, 3, rider.uci_id)
+            self.ws.cell(line, 4, rider.class_20)
+            self.ws.cell(line, 5, rider.class_24)
+            self.ws.cell(line, 6, str(rider.club))
+            self.ws.cell(line, 7, mcr)
+            self.ws.cell(line, 8, cp)
+            self.ws.cell(line, 9, others)
+
+            line += 1
+
+    def count(self):
+        self.first_line()
+        self.calculate()
+        self.save()
+
+
+class Cruiser:
+    def __init__(self):
+        self.__NUMBER_OF_CUPS = 0
+        self.__NUMBER_OF_PCS = 0
+        self.year = now
+
+    def set_number_of_cups(self, number):
+        self.__NUMBER_OF_CUPS = number
+
+    def set_number_of_peaces(self, number):
+        self.__NUMBER_OF_PCS = number
+
+    def calculate_median(self):
+        entries = Entry.objects.filter(event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year, payment_complete=True, checkout=False).order_by('-rider__date_of_birth')
+        cruisers_in_events = []
+        for entry in entries:
+            if entry.rider not in cruisers_in_events:
+                cruisers_in_events.append(entry.rider)
+        cruiser_results = []
+        ages = []
+        position: int = 1
+        for cruiser in cruisers_in_events:
+            participations = Entry.objects.filter(rider=cruiser, event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year, payment_complete=True, checkout=False)
+            if len(participations) >= self.__NUMBER_OF_CUPS:
+                cruiser_results.append(cruiser)
+                age = cruiser.get_age(cruiser)+1
+                cruiser.age = age
+                cruiser.position = position
+                ages.append(age)
+                position += 1
+        return cruiser_results
+

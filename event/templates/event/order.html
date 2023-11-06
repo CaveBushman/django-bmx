@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Potvrzení přihlášky {% endblock title %}
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+<div class="bg-white dark:bg-gray-800 dark:text-gray-200">
+  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:pb-24">
+    <div class="max-w-xl">
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-200 sm:text-3xl">Potvrzení přihlášky na závody</h1>
+    </div>
+
+{% if duplicities %}
+    <div class="rounded-md bg-red-50 p-4 mt-4">
+  <div class="flex">
+    <div class="flex-shrink-0">
+      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+      </svg>
+    </div>
+    <div class="ml-3">
+      <h3 class="text-sm font-medium text-red-800">Z Vašeho košíku byly vymazáni jezdci, kteří již na závod přihlášeni jsou. Jde o:</h3>
+      <div class="mt-2 text-sm text-red-700">
+        <ul role="list" class="list-disc space-y-1 pl-5">
+          {% for duplicity in duplicities %}
+          {% if duplicity.is_beginner %}
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_beginner}}</li>
+          {% elif duplicity.is_20 %}
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_20}}</li>
+          {% else %}
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_24}}</li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+    <div class="mt-16">
+      <div class="space-y-20">
+        <div>
+          <div class="rounded-lg bg-gray-50 dark:bg-gray-700 px-4 py-6 sm:flex sm:items-center sm:justify-between sm:space-x-6 sm:px-6 lg:space-x-8">
+            <dl class="flex-auto space-y-6 divide-y divide-gray-200 text-sm text-gray-600 dark:text-gray-200 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:space-y-0 sm:divide-y-0 lg:w-1/2 lg:flex-none lg:gap-x-8">
+              <div class="flex justify-between sm:block">
+                <dt>Celková platba</dt>
+                <dd class="sm:mt-1">{{price}} CZK</dd>
+              </div>
+              <div class="flex justify-between pt-6 sm:block sm:pt-0">
+
+              </div>
+              <div class="flex justify-between pt-6 font-medium text-gray-900 dark:text-gray-200 sm:block sm:pt-0">
+                <dt>Počet položek</dt>
+                <dd class="sm:mt-1">{{sum}}</dd>
+              </div>
+            </dl>
+            <button type="submit" class="mt-6 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto" id="checkin-button" name="checkin-button">
+              Zaplatit
+            </button>
+          </div>
+
+          <table class="mt-4 w-full text-gray-500 sm:mt-6">
+
+            <thead class="sr-only text-left text-sm text-gray-500 sm:not-sr-only">
+              <tr>
+                <th scope="col" class="py-3 pr-8 font-normal sm:w-2/5 lg:w-1/3">Jezdec</th>
+                <th scope="col" class="hidden w-1/5 py-3 pr-8 font-normal sm:table-cell">Závod</th>
+                <th scope="col" class="hidden py-3 pr-8 font-normal sm:table-cell">Kategorie</th>
+                <th scope="col" class="w-0 py-3 text-right font-normal"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 border-b border-gray-200 text-sm sm:border-t">
+            {% for order in orders %}
+              <tr>
+                <td class="py-6 pr-8">
+                  <div class="flex items-center">
+                    <img src="{{order.rider.photo.url}}" alt="Detail of mechanical pencil tip with machined black steel shaft and chrome lead tip." class="mr-6 h-16 w-16 rounded-3xl object-cover object-center">
+                    <div>
+                      <div class="font-medium text-gray-900 dark:text-gray-200">{{order.rider.first_name}} {{order.rider.last_name}}</div>
+                      <div class="mt-1">{{order.rider.club}}</div>
+                      <div class="mt-1 sm:hidden">{{order.event}}</div>
+                      <div class="mt-1 sm:hidden">{{order.event_class}}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="hidden py-6 pr-8 sm:table-cell">{{order.event}}</td>
+                <td class="hidden py-6 pr-8 sm:table-cell">{{order.event_class}}</td>
+                <td class="whitespace-nowrap py-6 text-right font-medium">
+
+                  <button type="submit" class="text-indigo-600" id="btn-del" name="btn-del" value="{{order.id}}">Smazat</button>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</form>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{% static 'js/checkout.js' %}"></script>
+{% endblock %}

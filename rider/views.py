@@ -1,10 +1,16 @@
+import os
+
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.views.decorators.cache import cache_control
 from django.contrib.admin.views.decorators import staff_member_required
+
+from bmx import settings
 from .models import Rider
-from .rider import two_years_inactive, CheckValidLicenceThread
+from .rider import two_years_inactive, CheckValidLicenceThread, Participation, Cruiser
+from func.rider import set_all_riders_classes
 from club.models import Club
 import json
 from event.models import Result
@@ -83,7 +89,15 @@ def rider_new_view(request):
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
             data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
             data_json = data_json.text
+            print(type(data_json))
+            print (data_json)
+            if "\Http_NotFound" in data_json:
+                print ("Tato licence neexistuje")
+                message = f"Licence UCI ID: {uci_id} nebyla Českým svazem cyklistiky vystavena. Zkuste to znovu se správným číslem nebo kontaktujte Komisi BMX Českého svazu cyklistiky."
+                data = {'message': message}
+                return render(request, 'rider/rider-new-error.html', data)
             data_json = json.loads(data_json)
+
 
             gender = data_json['sex']
             if gender['code'] == "F":
@@ -108,7 +122,8 @@ def rider_new_view(request):
                     pass
 
                 if rider_exist:
-                    data={'rider':rider}
+                    message = f"Jezdec/jezdkyně {rider.first_name} {rider.last_name}, UCI ID {rider.uci_id}, již má přiděleno permanentní startovní číslo. Kontatujte Komisi BMX Českého svazu cyklistiky."
+                    data={'message':message}
                     return render (request, 'rider/rider-new-error.html', data)
 
                 return render(request, 'rider/rider-new-2.html', data_new_rider)
@@ -196,7 +211,7 @@ def rider_new_view(request):
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
             send_mail (
                 subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
-                message = f"V aplikaci www.czechbmx,cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
+                message = f"V aplikaci www.czechbmx.cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
                 from_email = "bmx@ceskysvazcyklistiky.cz",
                 recipient_list = ["david@black-ops.eu"],
             )
@@ -210,9 +225,7 @@ def rider_new_view(request):
 def inactive_riders_views(request):
     """ Function for views inactive riders, only request params"""
     inactive_riders = two_years_inactive()
-    
     data={'riders': inactive_riders, 'sum': len(inactive_riders)}
-
     return render(request, 'rider/rider-inactive.html', data)
 
 
@@ -220,9 +233,9 @@ def inactive_riders_views(request):
 def licence_check_views(request):
     """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
-
+    messages.success(request, "Platnost licencí je prověřována na pozadí.")
     data={}
-    return render (request, 'rider/rider-licence.html', data)
+    return render(request, 'rider/rider-success.html', data)
 
 
 @staff_member_required
@@ -230,3 +243,32 @@ def ranking_count_views(request):
     """ Function for recount ranking"""
     RankPositionCount().count_ranking_position()
     return render(request, 'rider/rider-rank.html')
+
+
+def participation_riders_on_event(request):
+    participation = Participation().count()
+
+    file_path = os.path.join(settings.MEDIA_ROOT, 'participation/participation.xlsx')
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+
+
+@staff_member_required
+def recalculate_riders_classes(request):
+    set_all_riders_classes()
+    messages.success(request, "Kategorie jezdců jsou přepočítávány na pozadí.")
+    data={}
+    return render(request, 'rider/rider-success.html', data)
+
+@staff_member_required
+def calculate_cruiser_median(request):
+    cruiser = Cruiser()
+    cruiser.set_number_of_cups(5)
+    cruiser_results = cruiser.calculate_median()
+    count_cruiser_results = len(cruiser_results)
+
+    data = {'cruisers': cruiser_results, 'sum': count_cruiser_results}
+    return render(request, 'rider/rider-cruiser.html', data)

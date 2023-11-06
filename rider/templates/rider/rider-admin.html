@@ -24,22 +24,36 @@
 </div>
 
 <div class="max-w-7xl mx-auto">
-<div class="flex flex-row mt-10">
-  <div class="basis-1/3 text-center">
-    <a href = "{% url 'rider:ranking'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přepočítej ranking</a>
+
+  <div class="grid grid-cols-4 mt-10">
+    <div class=" text-center">
+      <a href = "{% url 'rider:ranking'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přepočítej ranking</a>
+    </div>
+
+    <div class="text-center">
+      <a href = "{% url 'rider:inactive' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Neaktivní jezdci</a>
+    </div>
+
+    <div class="text-center">
+      <a href = "{% url 'rider:licence'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Zkontroluj platnost licencí</a>
+    </div>
+
+     <div class=" text-center">
+      <a href = "{% url 'rider:participation'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Účast jezdců na závodech</a>
+    </div>
   </div>
 
-  <div class="basis-1/3 text-center">
-    <a href = "{% url 'rider:inactive' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Neaktivní jezdci</a>
-  </div>
+  <div class="grid grid-cols-4 mt-10">
+    <div class=" text-center">
+      <a href = "{% url 'rider:recalculate-classes'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přepočítej kategorie</a>
+    </div>
+    
+    <div class=" text-center">
+      <a href = "{% url 'rider:cruiser'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přepočítej medián cruiserů</a>
+    </div>
+</div>
 
-  <div class="basis-1/3 text-center">
-    <a href = "{% url 'rider:licence'%}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Zkontroluj platnost licencí</a>
-  </div>
-</div>
 </div>
 
-{% include "spinner.html" %}
-</div>
 <script src = "{% static 'js/alert_timeout.js' %}"></script>
 {% endblock content %}

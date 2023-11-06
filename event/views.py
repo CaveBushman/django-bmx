@@ -1,7 +1,7 @@
 import json
 import os
-from django.shortcuts import render, get_object_or_404
-from .models import EntryClasses, Event, Result, Entry
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import EntryClasses, Event, Result, Entry, Order
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
@@ -15,8 +15,9 @@ from django.db.models import Q
 import pandas as pd
 from .result import GetResult
 from .func import *
-from .entry import EntryClass, SendConfirmEmail, NumberInEvent
+from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
 from datetime import date, datetime
+from django.utils import timezone
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 import re
 from django.core import serializers
@@ -24,12 +25,10 @@ from django.http import FileResponse, JsonResponse, HttpResponse
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
-import threading
 from decouple import config
 import requests
 import requests.packages
 from django.utils import timezone
-import csv
 
 
 # Create your views here.
@@ -123,121 +122,71 @@ def results_view(request, pk):
     return render(request, 'event/results.html', data)
 
 
-def entry_view(request, pk):
+def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
     riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
     sum_fee = 0
 
-    # Přesměrování po datu registrace
+    # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
     if event.canceled or not event.reg_open or (event.reg_open_to < timezone.now()):
         return render(request, 'event/reg-close.html')
 
     if request.POST:
-        event = Event.objects.get(id=event.id)
+        riders_beginner = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_beginner'))
         riders_20 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_20'))
         riders_24 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_24'))
+        sum_beginners = riders_beginner.count()
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
 
-        fee = EntryClasses.objects.get(id=event.classes_and_fees_like.id)
+        for rider_beginner in riders_beginner:
+            sum_fee += resolve_event_fee(event, rider_beginner, is_20=True, is_beginner=True)
+
+            # TODO: Dodělat uložení do košíku
+            if "btn_add" in request.POST:
+                cart = Cart()
+                cart.user = Account.objects.get(id=request.user.id)
+                cart.event = event
+                cart.rider = rider_beginner
+                cart.is_beginner = True
+                cart.fee_beginner = resolve_event_fee(event, rider_beginner, is_20=True, is_beginner=True)
+                cart.class_beginner = resolve_event_classes(event, rider_beginner, is_20=True, is_beginner=True)
+                if not Order.objects.filter(rider=rider_beginner, event=event, is_beginner=True):
+                    cart.save()
 
         for rider_20 in riders_20:
-            if rider_20.class_20 == "Boys 6":
-                sum_fee += fee.boys_6_fee
-            elif rider_20.class_20 == "Boys 7":
-                sum_fee += fee.boys_7_fee
-            elif rider_20.class_20 == "Boys 8":
-                sum_fee += fee.boys_8_fee
-            elif rider_20.class_20 == "Boys 9":
-                sum_fee += fee.boys_9_fee
-            elif rider_20.class_20 == "Boys 10":
-                sum_fee += fee.boys_10_fee
-            elif rider_20.class_20 == "Boys 11":
-                sum_fee += fee.boys_11_fee
-            elif rider_20.class_20 == "Boys 12":
-                sum_fee += fee.boys_12_fee
-            elif rider_20.class_20 == "Boys 13":
-                sum_fee += fee.boys_13_fee
-            elif rider_20.class_20 == "Boys 14":
-                sum_fee += fee.boys_14_fee
-            elif rider_20.class_20 == "Boys 15":
-                sum_fee += fee.boys_15_fee
-            elif rider_20.class_20 == "Boys 16":
-                sum_fee += fee.boys_16_fee
-            elif rider_20.class_20 == "Men 17-24":
-                sum_fee += fee.men_17_24_fee
-            elif rider_20.class_20 == "Men 25-29":
-                sum_fee += fee.men_25_29_fee
-            elif rider_20.class_20 == "Men 30-34":
-                sum_fee += fee.men_30_34_fee
-            elif rider_20.class_20 == "Men 35 and over":
-                sum_fee += fee.men_35_over_fee
-            elif rider_20.class_20 == "Men Junior":
-                sum_fee += fee.men_junior_fee
-            elif rider_20.class_20 == "Men Under 23":
-                sum_fee += fee.men_u23_fee
-            elif rider_20.class_20 == "Men Elite":
-                sum_fee += fee.men_elite_fee
-            elif rider_20.class_20 == "Girls 7":
-                sum_fee += fee.girls_7_fee
-            elif rider_20.class_20 == "Girls 8":
-                sum_fee += fee.girls_8_fee
-            elif rider_20.class_20 == "Girls 9":
-                sum_fee += fee.girls_9_fee
-            elif rider_20.class_20 == "Girls 10":
-                sum_fee += fee.girls_10_fee
-            elif rider_20.class_20 == "Girls 11":
-                sum_fee += fee.girls_11_fee
-            elif rider_20.class_20 == "Girls 12":
-                sum_fee += fee.girls_12_fee
-            elif rider_20.class_20 == "Girls 13":
-                sum_fee += fee.girls_13_fee
-            elif rider_20.class_20 == "Girls 14":
-                sum_fee += fee.girls_14_fee
-            elif rider_20.class_20 == "Girls 15":
-                sum_fee += fee.girls_15_fee
-            elif rider_20.class_20 == "Girls 16":
-                sum_fee += fee.girls_16_fee
-            elif rider_20.class_20 == "Women 17-24":
-                sum_fee += fee.women_17_24_fee
-            elif rider_20.class_20 == "Women 25 and over":
-                sum_fee += fee.women_25_over_fee
-            elif rider_20.class_20 == "Women Junior":
-                sum_fee += fee.women_junior_fee
-            elif rider_20.class_20 == "Women Under 23":
-                sum_fee += fee.women_u23_fee
-            elif rider_20.class_20 == "Women Elite":
-                sum_fee += fee.women_elite_fee
+            sum_fee += resolve_event_fee(event, rider_20, is_20=True)
+
+            # TODO: Dodělat uložení do košíku
+            if "btn_add" in request.POST:
+                cart = Cart()
+                cart.user = Account.objects.get(id=request.user.id)
+                cart.event = event
+                cart.rider = rider_20
+                cart.is_20 = True
+                cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
+                cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
+                if not Order.objects.filter(rider=rider_20, event=event, is_20=True):
+                    cart.save()
 
         for rider_24 in riders_24:
-            if rider_24.class_24 == "Boys 12 and under":
-                sum_fee += fee.cr_boys_12_and_under_fee
-            elif rider_24.class_24 == "Boys 13 and 14":
-                sum_fee += fee.cr_boys_13_14_fee
-            elif rider_24.class_24 == "Boys 15 and 16":
-                sum_fee += fee.cr_boys_15_16_fee
-            elif rider_24.class_24 == "Men 17-24":
-                sum_fee += fee.cr_men_17_24_fee
-            elif rider_24.class_24 == "Men 25-29":
-                sum_fee += fee.cr_men_25_29_fee
-            elif rider_24.class_24 == "Men 30-34":
-                sum_fee += fee.cr_men_30_34_fee
-            elif rider_24.class_24 == "Men 35-39":
-                sum_fee += fee.cr_men_35_39_fee
-            elif rider_24.class_24 == "Men 40-49":
-                sum_fee += fee.cr_men_40_49_fee
-            elif rider_24.class_24 == "Men 50 and over":
-                sum_fee += fee.cr_men_50_and_over_fee
-            elif rider_24.class_24 == "Girls 12 and under":
-                sum_fee += fee.cr_girls_12_and_under_fee
-            elif rider_24.class_24 == "Girls 13-16":
-                sum_fee += fee.cr_girls_13_16_fee
-            elif rider_24.class_24 == "Women 17-29":
-                sum_fee += fee.cr_women_17_29_fee
-            elif rider_24.class_24 == "Women 30-39":
-                sum_fee += fee.cr_women_30_39_fee
-            elif rider_24.class_24 == "Women 40 and over":
-                sum_fee += fee.cr_women_40_and_over_fee
+            sum_fee += resolve_event_fee(event, rider_24, is_20=False)
+
+            # TODO: Dodělat uložení do košíku
+            if "btn_add" in request.POST:
+                cart = Cart()
+                cart.user = Account.objects.get(id=request.user.id)
+                cart.event = event
+                cart.rider = rider_24
+                cart.is_24 = True
+                cart.fee_24 = resolve_event_fee(event, rider_24, is_20=False)
+                cart.class_24 = resolve_event_classes(event, rider_24, is_20=False)
+                if not Order.objects.filter(rider=rider_24, event=event, is_24=True):
+                    cart.save()
+
+        if "btn_add" in request.POST:
+            update_cart(request)
+            return redirect('event:events')
 
         # convert to json format (need for sessions)
         sum_fee_json = json.dumps({'sum_fee': sum_fee})
@@ -248,18 +197,21 @@ def entry_view(request, pk):
 
         request.session['sum_fee'] = sum_fee_json
         request.session['event'] = event_json
+        request.session['riders_beginner'] = serializers.serialize('json', riders_beginner)
         request.session['riders_20'] = serializers.serialize('json', riders_20)
         request.session['riders_24'] = serializers.serialize('json', riders_24)
 
+        for rider_beginner in riders_beginner:
+            rider_beginner.class_beginner = resolve_event_classes(event, rider_beginner, is_20=True, is_beginner=True)
+
         for rider_20 in riders_20:
-            rider_20.class_20 = resolve_event_classes(pk, rider_20.gender, rider_20.have_girl_bonus, rider_20.class_20,
-                                                      1)
+            rider_20.class_20 = resolve_event_classes(event, rider_20, is_20=True)
 
         for rider_24 in riders_24:
-            rider_24.class_24 = resolve_event_classes(pk, rider_24.gender, rider_24.have_girl_bonus, rider_24.class_24,
-                                                      0)
+            rider_24.class_24 = resolve_event_classes(event, rider_24, is_20=False)
 
-        data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'sum_fee': sum_fee, 'sum_20': sum_20,
+        data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'riders_beginner': riders_beginner,
+                'sum_fee': sum_fee, 'sum_beginners': sum_beginners, 'sum_20': sum_20,
                 'sum_24': sum_24}
 
         response = render(request, 'event/checkout.html', data)
@@ -273,11 +225,26 @@ def entry_view(request, pk):
     # disable riders, who was registered in event
     for rider in riders:
         was_registered = Entry.objects.filter(event=event.id, rider=rider.id, payment_complete=True)
+        age = rider.get_age(rider)
 
-        rider.class_20 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_20, 1)
-        rider.class_24 = resolve_event_classes(pk, rider.gender, rider.have_girl_bonus, rider.class_24, 0)
+        if event.is_beginners_event():
+            if age <= 6:
+                rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+            elif age <= 10 and rider.created:
+                diff = datetime.now().date() - rider.created.date()
+                if diff.days > 356:  # if rider have plate more then one year, rider cannot start in Beginners class
+                    rider.class_beginner = ""
+                else:
+                    rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+            else:
+                rider.class_beginner = ""
+
+        rider.class_20 = resolve_event_classes(event, rider, is_20=True)
+        rider.class_24 = resolve_event_classes(event, rider, is_20=False)
 
         if was_registered.count() > 0:
+            if was_registered[0].is_beginner:
+                rider.class_beginner += 'registered'
             if was_registered[0].is_20:
                 rider.class_20 += 'registered'
             if was_registered[0].is_24:
@@ -312,197 +279,71 @@ def entry_riders_view(request, pk):
 
 
 def confirm_view(request):
-    event = json.loads(request.session['event'])
-    this_event = Event.objects.get(id=event['event'])
-    riders_20 = json.loads(request.session['riders_20'])
-    riders_24 = json.loads(request.session['riders_24'])
-
-    current_event = Event.objects.get(id=event['event'])
-
-    entry_fee = EntryClasses.objects.get(id=current_event.classes_and_fees_like.id)
+    this_event = json.loads(request.session['event'])
+    event = Event.objects.get(id=this_event['event'])
+    riders_beginner_list = json.loads(request.session['riders_beginner'])
+    riders_20_list = json.loads(request.session['riders_20'])
+    riders_24_list = json.loads(request.session['riders_24'])
 
     if 'btn-add-event' in request.POST:
         pass
 
     if request.method == "POST":
-        fee = 0
 
-        # data for checkout session
+        # add entries for 20" bikes
         line_items = []
-        for rider_20 in riders_20:
-            if rider_20['fields']['class_20'] == "Boys 6":
-                fee = entry_fee.boys_6_fee
-            elif rider_20['fields']['class_20'] == "Boys 7":
-                fee = entry_fee.boys_7_fee
-            elif rider_20['fields']['class_20'] == "Boys 8":
-                fee = entry_fee.boys_8_fee
-            elif rider_20['fields']['class_20'] == "Boys 9":
-                fee = entry_fee.boys_9_fee
-            elif rider_20['fields']['class_20'] == "Boys 10":
-                fee = entry_fee.boys_10_fee
-            elif rider_20['fields']['class_20'] == "Boys 11":
-                fee = entry_fee.boys_11_fee
-            elif rider_20['fields']['class_20'] == "Boys 12":
-                fee = entry_fee.boys_12_fee
-            elif rider_20['fields']['class_20'] == "Boys 13":
-                fee = entry_fee.boys_13_fee
-            elif rider_20['fields']['class_20'] == "Boys 14":
-                fee = entry_fee.boys_14_fee
-            elif rider_20['fields']['class_20'] == "Boys 15":
-                fee = entry_fee.boys_15_fee
-            elif rider_20['fields']['class_20'] == "Boys 16":
-                fee = entry_fee.boys_16_fee
-            elif rider_20['fields']['class_20'] == "Men 17-24":
-                fee = entry_fee.men_17_24_fee
-            elif rider_20['fields']['class_20'] == "Men 25-29":
-                fee = entry_fee.men_25_29_fee
-            elif rider_20['fields']['class_20'] == "Men 30-34":
-                fee = entry_fee.men_30_34_fee
-            elif rider_20['fields']['class_20'] == "Men 35 and over":
-                fee = entry_fee.men_35_over_fee
-            elif rider_20['fields']['class_20'] == "Men Junior":
-                fee = entry_fee.men_junior_fee
-            elif rider_20['fields']['class_20'] == "Men Under 23":
-                fee = entry_fee.men_u23_fee
-            elif rider_20['fields']['class_20'] == "Men Elite":
-                fee = entry_fee.men_elite_fee
-            elif rider_20['fields']['class_20'] == "Girls 7":
-                fee = entry_fee.girls_7_fee
-            elif rider_20['fields']['class_20'] == "Girls 8":
-                fee = entry_fee.girls_8_fee
-            elif rider_20['fields']['class_20'] == "Girls 9":
-                fee = entry_fee.girls_9_fee
-            elif rider_20['fields']['class_20'] == "Girls 10":
-                fee = entry_fee.girls_10_fee
-            elif rider_20['fields']['class_20'] == "Girls 11":
-                fee = entry_fee.girls_11_fee
-            elif rider_20['fields']['class_20'] == "Girls 12":
-                fee = entry_fee.girls_12_fee
-            elif rider_20['fields']['class_20'] == "Girls 13":
-                fee = entry_fee.girls_13_fee
-            elif rider_20['fields']['class_20'] == "Girls 14":
-                fee = entry_fee.girls_14_fee
-            elif rider_20['fields']['class_20'] == "Girls 15":
-                fee = entry_fee.girls_15_fee
-            elif rider_20['fields']['class_20'] == "Girls 16":
-                fee = entry_fee.girls_16_fee
-            elif rider_20['fields']['class_20'] == "Women 17-24":
-                fee = entry_fee.women_17_24_fee
-            elif rider_20['fields']['class_20'] == "Women 25 and over":
-                fee = entry_fee.women_25_over_fee
-            elif rider_20['fields']['class_20'] == "Women Junior":
-                fee = entry_fee.women_junior_fee
-            elif rider_20['fields']['class_20'] == "Women Under 23":
-                fee = entry_fee.women_u23_fee
-            elif rider_20['fields']['class_20'] == "Women Elite":
-                fee = entry_fee.women_elite_fee
 
-            rider_20['fields']['class_20'] = resolve_event_classes(event=event['event'],
-                                                                   gender=rider_20['fields']['gender'],
-                                                                   have_girl_bonus=rider_20['fields'][
-                                                                       'have_girl_bonus'],
-                                                                   rider_class=rider_20['fields']['class_20'], is_20=1)
-            print(rider_20['fields']['class_20'])
-            line_items += {
-                'price_data': {
-                    'currency': 'czk',
-                    'unit_amount': fee * 100,
-                    'product_data': {
-                        'name': rider_20['fields']['last_name'] + " " + rider_20['fields'][
-                            'first_name'] + ", " + rider_20['fields']['class_20'],
-                        'images': [],
-                        'description': "UCI ID: " + str(rider_20['fields']['uci_id']) + ", " + this_event.name
-                    },
-                },
-                'quantity': 1,
-            },
+        for rider_beginner in riders_beginner_list:
+            rider = Rider.objects.get(uci_id=rider_beginner['fields']['uci_id'])
+            line_items += generate_stripe_line(event, rider, is_20=True, is_beginner=True)
 
-        # add fees for cruiser
-        for rider_24 in riders_24:
-            if rider_24['fields']['class_24'] == "Boys 12 and under":
-                fee = entry_fee.cr_boys_12_and_under_fee
-            elif rider_24['fields']['class_24'] == "Boys 13 and 14":
-                fee = entry_fee.cr_boys_13_14_fee
-            elif rider_24['fields']['class_24'] == "Boys 15 and 16":
-                fee = entry_fee.cr_boys_15_16_fee
-            elif rider_24['fields']['class_24'] == "Men 17-24":
-                fee = entry_fee.cr_men_17_24_fee
-            elif rider_24['fields']['class_24'] == "Men 25-29":
-                fee = entry_fee.cr_men_25_29_fee
-            elif rider_24['fields']['class_24'] == "Men 30-34":
-                fee = entry_fee.cr_men_30_34_fee
-            elif rider_24['fields']['class_24'] == "Men 35-39":
-                fee = entry_fee.cr_men_35_39_fee
-            elif rider_24['fields']['class_24'] == "Men 40-49":
-                fee = entry_fee.cr_men_40_49_fee
-            elif rider_24['fields']['class_24'] == "Men 50 and over":
-                fee = entry_fee.cr_men_50_and_over_fee
-            elif rider_24['fields']['class_24'] == "Girls 12 and under":
-                fee = entry_fee.cr_girls_12_and_under_fee
-            elif rider_24['fields']['class_24'] == "Girls 13-16":
-                fee = entry_fee.cr_girls_13_16_fee
-            elif rider_24['fields']['class_24'] == "Women 17-29":
-                fee = entry_fee.cr_women_17_29_fee
-            elif rider_24['fields']['class_24'] == "Women 30-39":
-                fee = entry_fee.cr_women_30_39_fee
-            elif rider_24['fields']['class_24'] == "Women 40 and over":
-                fee = entry_fee.cr_women_40_and_over_fee
+        for rider_20_list in riders_20_list:
+            rider = Rider.objects.get(uci_id=rider_20_list['fields']['uci_id'])
+            line_items += generate_stripe_line(event, rider, is_20=True)
 
-            rider_24['fields']['class_24'] = resolve_event_classes(event=event['event'],
-                                                                   gender=rider_24['fields']['gender'],
-                                                                   have_girl_bonus=rider_24['fields'][
-                                                                       'have_girl_bonus'],
-                                                                   rider_class=rider_24['fields']['class_24'], is_20=0)
-            print(rider_24['fields']['class_24'])
-
-            line_items += {
-                'price_data': {
-                    'currency': 'czk',
-                    'unit_amount': fee * 100,
-                    'product_data': {
-                        'name': rider_24['fields']['last_name'] + " " + rider_24['fields'][
-                            'first_name'] + ", " + rider_24['fields']['class_24'],
-                        'images': [],
-                        'description': "UCI ID: " + str(rider_24['fields']['uci_id']) + ", " + this_event.name
-                    },
-                },
-                'quantity': 1,
-            },
-
+        # add entries for cruiser
+        for rider_24_list in riders_24_list:
+            rider = Rider.objects.get(uci_id=rider_24_list['fields']['uci_id'])
+            line_items += generate_stripe_line(event, rider, is_20=True)
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                success_url=settings.YOUR_DOMAIN + '/event/success/' + str(this_event.id),
+                success_url=settings.YOUR_DOMAIN + '/event/success/' + str(event.id),
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
             # TODO: Need last check for registration in the same time
 
-            # save entry riders to database
-            for rider_20 in riders_20:
-                current_rider = Rider.objects.get(uci_id=rider_20['fields']['uci_id'])
-                current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus,
-                                                current_rider.class_20, 1)
-                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                   uci_id=current_rider.uci_id, is_20=True, is_24=False,
-                                   class_20=rider_20['fields']['class_20'], class_24="", fee_20=current_fee)
+            # save entries riders to database
+            for rider in riders_beginner_list:
+                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_fee = resolve_event_fee(event, current_rider, 1)
+                current_class = resolve_event_classes(event, current_rider, is_20=True, is_beginner=True)
+                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                                   rider=current_rider, is_beginner=True, is_20=False, is_24=False,
+                                   class_beginner=current_class, class_20="", class_24="", fee_beginner=current_fee)
                 entry.save()
 
-                # ulož do sessions
-
-            for rider_24 in riders_24:
-                current_rider = Rider.objects.get(uci_id=rider_24['fields']['uci_id'])
-                current_fee = resolve_event_fee(this_event.id, current_rider.gender, current_rider.have_girl_bonus,
-                                                current_rider.class_24, 0)
-                entry = EntryClass(transaction_id=checkout_session.id, event=this_event.id,
-                                   uci_id=current_rider.uci_id, is_20=False, is_24=True,
-                                   class_24=rider_24['fields']['class_24'], class_20="", fee_24=current_fee)
+            for rider in riders_20_list:
+                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_fee = resolve_event_fee(event, current_rider, 1)
+                current_class = resolve_event_classes(event, current_rider, is_20=True)
+                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                                   rider=current_rider, is_20=True, is_24=False, is_beginner=False,
+                                   class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
                 entry.save()
 
-                # ulož do sessions
-
+            for rider in riders_24_list:
+                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_fee = resolve_event_fee(event, current_rider, 0)
+                current_class = resolve_event_classes(event, current_rider, is_20=False)
+                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                                   rider=current_rider, is_20=False, is_24=True, is_beginner=False,
+                                   class_beginner="", class_24=current_class, class_20="", fee_24=current_fee)
+                entry.save()
             del entry
+
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
             return JsonResponse(error=str(e)), 403
@@ -608,9 +449,6 @@ def event_admin_view(request, pk):
     """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
 
-    username = config('LICENCE_USERNAME')
-    password = config('LICENCE_PASSWORD')
-
     # Admin page for European Cup
     if event.type_for_ranking == "Evropský pohár" or event.type_for_ranking == "Mistrovství Evropy":
 
@@ -691,7 +529,7 @@ def event_admin_view(request, pk):
 
                 ws.cell(x, 1, rider.class_20)
                 ws.cell(x, 2, rider.first_name)
-                ws.cell(x, 3, rider.last_name)
+                ws.cell(x, 3, rider.laást_name)
                 ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
                 ws.cell(x, 5, rider_address)
                 x = x + 1
@@ -722,8 +560,6 @@ def event_admin_view(request, pk):
         event.ec_insurance_file = file_name
         event.ec_insurance_file_created = datetime.now()
         event.save()
-
-       
 
         data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
         return render(request, 'event/event-admin-ec.html', data)
@@ -765,7 +601,7 @@ def event_admin_view(request, pk):
             event.save()
 
             SetRanking().start()
-   
+
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-delete-xls' in request.POST:
@@ -918,7 +754,7 @@ def event_admin_view(request, pk):
             ws.cell(x, 6, expire_licence())
             ws.cell(x, 7, "BMX-RACE")
             ws.cell(x, 9, str(rider.date_of_birth).replace('-', '/'))
-            ws.cell(x, 10, rider.first_name)
+            ws.cell(x, 10, rider.firstá_name)
             ws.cell(x, 11, rider.last_name.upper())
             ws.cell(x, 12, rider.email)
             ws.cell(x, 13, rider.phone)
@@ -996,189 +832,17 @@ def event_admin_view(request, pk):
 
     # ON LINE ENTRIES FOR REM
     if 'btn-rem-file' in request.POST:
-        print("Vytvoř startovku pro REM")
-        file_name = f'media/rem_entries/REM_FOR_RACE_ID-{event.id}.xlsx'
-        wb = Workbook()
-        wb.encoding = "utf-8"
-        ws = wb.active
-        ws.title = "REM5_EXT"
-        ws = excel_rem_first_line_online(ws)
 
-        entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=False)
-        x = 2
-        print("Připravuji 20-ti palcová kola")
-        for entry_20 in entries_20:
-            try:
-                rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
-                ws.cell(x, 1, rider.uci_id)
-                ws.cell(x, 2, rider.uci_id)
-                ws.cell(x, 3, rider.first_name)
-                ws.cell(x, 4, rider.last_name)
-                ws.cell(x, 5, rider.email)
-                ws.cell(x, 6, team_name_resolve(rider.club))
-                ws.cell(x, 7, "CZE")
-                ws.cell(x, 8, date_of_birth_resolve_rem_online(rider.date_of_birth))
-                ws.cell(x, 9, gender_resolve_small_letter(rider.gender))
-                ws.cell(x, 10, )
-                ws.cell(x, 11, )
-                ws.cell(x, 12, "True")
-                ws.cell(x, 13, entry_20.fee_20)
-                ws.cell(x, 14, )
-                ws.cell(x, 15, )
-                ws.cell(x, 16, team_name_resolve(rider.club))
-                ws.cell(x, 17, entry_20.class_20)
-                ws.cell(x, 18, rider.transponder_20)
-                ws.cell(x, 19, )
-                if rider.plate_champ_20:
-                    world_plate = "W" + str(rider.plate_champ_20)
-                    ws.cell(x, 20, world_plate)
-                else:
-                    ws.cell(x, 20, rider.plate)
-                ws.cell(x, 21, )
-                ws.cell(x, 22, )
-                ws.cell(x, 23, )
-                ws.cell(x, 24, )
-
-            except Exception as E:
-                print("Chyba při ukládání jezdce do REM: ", E)
-            x += 1
-
-            # TODO: Dodělat zobrazení přihlášených jezdců s neplatnou licencí
-
-        del entries_20
-
-        entries_24 = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=False)
-        for entry_24 in entries_24:
-            try:
-                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
-                ws.cell(x, 1, rider.uci_id)
-                ws.cell(x, 2, rider.uci_id)
-                ws.cell(x, 3, rider.first_name)
-                ws.cell(x, 4, rider.last_name)
-                ws.cell(x, 5, rider.email)
-                ws.cell(x, 6, team_name_resolve(rider.club))
-                ws.cell(x, 7, "CZE")
-                ws.cell(x, 8, date_of_birth_resolve_rem_online(rider.date_of_birth))
-                ws.cell(x, 9, gender_resolve_small_letter(rider.gender))
-                ws.cell(x, 10, )
-                ws.cell(x, 11, )
-                ws.cell(x, 12, "True")
-                ws.cell(x, 13, entry_24.fee_24)
-                ws.cell(x, 14, )
-                ws.cell(x, 15, )
-                ws.cell(x, 16, team_name_resolve(rider.club))
-                ws.cell(x, 17, entry_24.class_24)
-                ws.cell(x, 18, rider.transponder_24)
-                ws.cell(x, 19, )
-                if rider.plate_champ_24:
-                    ws.cell(x, 20, "W" + str(rider.plate_champ_24))
-                else:
-                    ws.cell(x, 20, rider.plate)
-                ws.cell(x, 21, )
-                ws.cell(x, 22, )
-                ws.cell(x, 23, )
-                ws.cell(x, 24, rider.plate)
-
-            except Exception as E:
-                pass
-            x += 1
-        del entries_24
-
-        # TODO: Add foreign riders
-
-        print(file_name)
-        wb.save(file_name)
-
-        # export to tab delimited txt file for import in REM
-        file = pd.read_excel(file_name)
-        file_name_to_txt = file_name[:-4] + "txt"
-        file.to_csv(file_name_to_txt, sep="\t", index=False)
-
-        event.rem_entries = file_name_to_txt
-        event.rem_entries_created = datetime.now()
-        event.save()
-
-        # delete xlsx temporary file
-        try:
-            os.remove(f"{file_name}")
-        except Exception as e:
-            print(f"Nebyl nalezen soubor {file_name}")
+        all_entries = REMRiders()
+        all_entries.event = event
+        all_entries.create_entries_list()
 
     # ALL RIDERS FOR REM
     if 'btn-rem-riders-list' in request.POST:
-        print("Vytvoř riders list pro REM")
-        file_name = f'media/rem_riders/REM_RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
-        wb = Workbook()
-        wb.encoding = "utf-8"
-        ws = wb.active
-        ws.title = "REM5_EXT"
-        ws = excel_rem_first_line(ws)
 
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
-        x = 2
-        for rider in riders:
-            ws.cell(x, 1, team_name_resolve(rider.club))
-            ws.cell(x, 3, rider.first_name)
-            ws.cell(x, 4, rider.last_name)
-            ws.cell(x, 5, gender_resolve(rider.gender))
-            ws.cell(x, 6, date_of_birth_resolve(rider.date_of_birth))
-            ws.cell(x, 7, )
-            if rider.is_elite:
-                ws.cell(x, 8, "E")
-            else:
-                ws.cell(x, 8, "C")
-            ws.cell(x, 9, "U")
-            ws.cell(x, 10, rider.uci_id)
-            ws.cell(x, 11, rem_expire_licence())
-            ws.cell(x, 12, rider.plate)
-            ws.cell(x, 13, rider.plate_champ_20)
-            ws.cell(x, 14, rider.transponder_20)
-            ws.cell(x, 15, rider.plate)
-            ws.cell(x, 16, rider.plate_champ_24)
-            ws.cell(x, 17, rider.transponder_24)
-            ws.cell(x, 18, rider.plate)
-            ws.cell(x, 19, )
-            ws.cell(x, 20, )
-            ws.cell(x, 21, )
-            ws.cell(x, 22, )
-            ws.cell(x, 23, )
-            x += 1
-
-        del riders
-        print("Čeští jezdci přidány")
-
-        """ foreign_riders = ForeignRider.objects.all()
-            for foreign_rider in foreign_riders:
-            ws.cell(x,1,foreign_rider.club)
-            ws.cell(x,3,foreign_rider.first_name)
-            ws.cell(x,4,foreign_rider.last_name)
-            ws.cell(x,10,foreign_rider.uci_id)
-            ws.cell(x,11,rem_expire_licence())
-            ws.cell(x,12,foreign_rider.plate)
-            ws.cell(x,14,foreign_rider.transponder_20)
-            ws.cell(x,15,foreign_rider.plate)
-            ws.cell(x,16,)
-            ws.cell(x,17,foreign_rider.transponder_24)
-                
-            x+=1
-        del foreign_riders """
-
-        wb.save(file_name)
-
-        # export to tab delimited txt file for import in REM
-        file = pd.read_excel(file_name)
-        file_name_to_txt = file_name[:-4] + "txt"
-        file.to_csv(file_name_to_txt, sep="\t", index=False)
-
-        event.rem_riders_list = file_name_to_txt
-        event.rem_riders_created = datetime.now()
-        event.save()
-
-        # delete xlsx temporary file
-        try:
-            os.remove(f"{file_name}")
-        except Exception as e:
-            print(f"Nebyl nalezen soubor {file_name}")
+        all_riders = REMRiders()
+        all_riders.event = event
+        all_riders.create_all_riders_list()
 
     if 'btn-upload-txt' in request.POST:
 
@@ -1188,26 +852,22 @@ def event_admin_view(request, pk):
 
         if request.POST['btn-upload-txt'] == 'txt':
             print("Nahrávám výsledky z REM")
-            print(request.FILES)
             result_file = request.FILES.get('result-file-txt')
             result_file_name = result_file.name
             fs = FileSystemStorage('media/rem_results')
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)[6:]
-            print(uploaded_file_url)
             event = Event.objects.get(id=pk)
-            ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-
             results = SetResults()
             results.setEvent(pk)
             results.setFile(uploaded_file_url)
             results.start()
-            
+
     if 'btn-txt-delete' in request.POST:
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
-        
+
         SetRanking().start()
 
         rem_file = event.rem_results
@@ -1217,7 +877,7 @@ def event_admin_view(request, pk):
             os.remove(f"{rem_file}")
         except Exception as e:
             print(f"Nebyl nalezen soubor {rem_file}")
-        
+
         event.rem_results.delete(save=True)
 
     # zjištění jezdců přihlášených na závod s neplatnou licencí
@@ -1226,9 +886,8 @@ def event_admin_view(request, pk):
     check_24_entries = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=False)
 
     invalid_licences = []
-    sum_of_fees = 0
-    sum_of_riders = 0
-    organizer_fee = 0
+    sum_of_fees: int = 0
+    sum_of_riders: int = 0
 
     for check20 in check_20_entries:
         try:
@@ -1306,8 +965,6 @@ def ec_by_club_xls(request, pk):
     clubs = Club.objects.filter(is_active=True).order_by('team_name')
     entries = Entry.objects.filter(event=pk, payment_complete=True).order_by('rider')
 
-    print(f"Vytvářím xls pro závod {event.name} podle klubů")
-
     file_name = f'media/ec-files/EC_RACE_ID_BY_CLUB-{event.id}-{event.name}.xlsx'
 
     response = HttpResponse(content_type='application/ms-excel')
@@ -1318,66 +975,159 @@ def ec_by_club_xls(request, pk):
 
     ws.cell(3, 2, event.name)
 
-    x = 6
+    line = 6
     for club in clubs:
-        print(f"Kontoluji jezdce klubu {club.team_name}")
-
         for entry in entries:
             rider = Rider.objects.get(id=entry.rider.id)
             if rider.club.id == club.id:
-                ws.cell(x, 1, rider.last_name)
-                ws.cell(x, 2, rider.first_name)
-                ws.cell(x, 3, rider.uci_id)
-                ws.cell(x, 4, rider.club.team_name)
+                ws.cell(line, 1, rider.last_name)
+                ws.cell(line, 2, rider.first_name)
+                ws.cell(line, 3, rider.uci_id)
+                ws.cell(line, 4, rider.club.team_name)
 
-                x = x + 1
-
+                line += 1
     wb.save(response)
 
     return response
 
 
 def summary_riders_in_event(request, pk):
-    entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
+    event = Event.objects.get(id=pk)
 
-    classes_20 = []
-    classes_24 = []
+    classes_20_24 = clean_classes_on_event(event)
 
-    count_20 = []
-    count_24 = []
+    count_20_24 = []
 
-    for entry in entries:
+    for class_20_24 in classes_20_24:
+        sum_20_24 = NumberInEvent()
+        sum_20_24.event = pk
+        sum_20_24.category_name = class_20_24
+        if ("Cruiser" or "cruiser") in class_20_24:
+            sum_20_24.count_riders_24()
+        else:
+            sum_20_24.count_riders_20()
+        if ("NENÍ VYPSÁNO" or "není vypsáno") not in class_20_24:
+            count_20_24.append(sum_20_24)
+
+    data = {'count_20': count_20_24}
+
+    return render(request, 'event/riders-sum-event.html', data)
+
+
+@login_required(login_url="/login/")
+def confirm_user_order(request):
+    orders = Order.objects.filter(user__id=request.user.id, confirmed=False).order_by('event__date', 'rider__last_name')
+    duplicities = []
+
+    if 'btn-del' in request.POST:
+        order = Order.objects.get(id=request.POST['btn-del'])
+        order.delete()
+        update_cart(request)
+        return redirect('event:order')
+
+    if request.POST:
+        line_items = []
+        price: int = 0
+        for order in orders:
+            if order.is_beginner:
+                line_items += generate_stripe_line(order.event, order.rider, is_20=True, is_beginner=True)
+                if check_entry_duplicity(order.event, order.rider, is_beginner=True):
+                    duplicities.append(order)
+                    order.delete()
+                else:
+                    price += order.fee_beginner + order.fee_20 + order.fee_24
+            elif order.is_20:
+                line_items += generate_stripe_line(order.event, order.rider, is_20=True)
+                if check_entry_duplicity(order.event, order.rider, is_20=True):
+                    duplicities.append(order)
+                    order.delete()
+                else:
+                    price += order.fee_beginner + order.fee_20 + order.fee_24
+            else:
+
+                if check_entry_duplicity(order.event, order.rider, is_24=True):
+                    duplicities.append(order)
+                    order.delete()
+                else:
+                    price += order.fee_beginner + order.fee_20 + order.fee_24
+        if duplicities:
+            orders = Order.objects.filter(user__id=request.user.id, confirmed=False).order_by('event__date',
+                                                                                       'rider__last_name')
+            sum: int = orders.count()
+            data = {'orders': orders, 'price': price, 'sum': sum, "duplicities": duplicities}
+            return render(request, 'event/order.html', data)
+
         try:
-            if entry.is_20:
-                classes_20.append(entry.class_20)
-            if entry.is_24:
-                classes_24.append(entry.class_24)
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url=settings.YOUR_DOMAIN + '/event/success',
+                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
+            )
+            for order in orders:
+                save_entries(order, transaction_id=checkout_session.id)
+                order.stripe_payload = checkout_session.id
+                order.save()
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            return JsonResponse(error=str(e)), 403
+
+    price: int = 0
+    sum: int = orders.count()
+    for order in orders:
+        price += order.fee_beginner + order.fee_20 + order.fee_24
+        if order.is_beginner:
+            order.event_class = order.class_beginner
+        elif order.is_20:
+            order.event_class = order.class_20
+        else:
+            order.event_class = order.class_24
+
+    data = {'orders': orders, 'price': price, 'sum': sum}
+    return render(request, 'event/order.html', data)
+
+
+def check_order_payments(request):
+    orders = Order.objects.filter(Q(updated__year=date.today().year,
+                                    updated__month=date.today().month,
+                                    updated__day=date.today().day,
+                                    confirmed=False, ) |
+                                  Q(updated__year=date.today().year,
+                                    updated__month=date.today().month,
+                                    updated__day=date.today().day - 1,
+                                    confirmed=False, ))
+    for order in orders:
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                order.stripe_payload, )
+            if confirm['payment_status'] == "paid":
+                order.confirmed = True
+                order.save()
+        except Exception as e:
+            print(e)
+
+    transactions = Entry.objects.filter(Q(transaction_date__year=date.today().year,
+                                          transaction_date__month=date.today().month,
+                                          transaction_date__day=date.today().day,
+                                          payment_complete=False, ) |
+                                        (Q(transaction_date__year=date.today().year,
+                                           transaction_date__month=date.today().month,
+                                           transaction_date__day=date.today().day - 1,
+                                           payment_complete=False, )))
+    for transaction in transactions:
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                transaction.transaction_id, )
+            if confirm['payment_status'] == "paid":
+                transaction.payment_complete = True
+                transaction.customer_name = confirm['customer_details']['name']
+                transaction.customer_email = confirm['customer_details']['email']
+                transaction.save()
         except:
             pass
 
-    # REMOVE DUPLICATES CLASSES
-    clean_classes_20 = list(set(classes_20))
-    # TODO: Předělat řazení kategorií 20
-    clean_classes_20.sort()
-
-    clean_classes_24 = list(set(classes_24))
-    # TODO: Předělat řazení kategorií 24
-    clean_classes_24.sort()
-
-    for class_20 in clean_classes_20:
-        sum_20 = NumberInEvent()
-        sum_20.event = pk
-        sum_20.category_name = class_20
-        sum_20.count_riders_20()
-        count_20.append(sum_20)
-
-    for class_24 in clean_classes_24:
-        sum_24 = NumberInEvent()
-        sum_24.event = pk
-        sum_24.category_name = class_24
-        sum_24.count_riders_24()
-        count_24.append(sum_24)
-
-    data = { 'count_20': count_20, 'count_24': count_24}
-
-    return render(request, 'event/riders-sum-event.html', data)
+    update_cart(request)
+    messages.success(request, "Vaše přihláška byla úspěšně přijata.")
+    data = {}
+    return render(request, 'event/success.html', data)
