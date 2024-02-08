@@ -12,10 +12,10 @@ class MyAccountManager(BaseUserManager):
             raise ValueError('Uživatel musí mít uživatelské jméno')
 
         user = self.model(
-            email = self.normalize_email(email),
-            username = username,
-            first_name = first_name,
-            last_name = last_name,
+            email=self.normalize_email(email),
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
         )
 
         user.set_password(password)
@@ -24,43 +24,43 @@ class MyAccountManager(BaseUserManager):
 
     def create_superuser(self, first_name, last_name, username, email, password):
         user = self.create_user(
-            email = self.normalize_email(email),
-            username = username,
-            password = password,
-            first_name = first_name,
-            last_name = last_name,
+            email=self.normalize_email(email),
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
         )
         user.is_admin = True
         user.is_active = True
         user.is_staff = True
         user.is_superuser = True
-        user.save(using = self._db)
+        user.save(using=self._db)
         return user
 
 class Account(AbstractBaseUser, PermissionsMixin):
-    first_name      = models.CharField(max_length = 100)
-    last_name       = models.CharField(max_length = 100)
-    username        = models.CharField(max_length = 50, unique = True)
-    email           = models.EmailField(max_length = 100, unique = True)
-    phone_number    = models.CharField(max_length = 50)
+    first_name      = models.CharField(max_length=100)
+    last_name       = models.CharField(max_length=100)
+    username        = models.CharField(max_length=50, unique=True)
+    email           = models.EmailField(max_length=100, unique=True)
+    phone_number    = models.CharField(max_length=50)
 
     # required
 
-    date_joined     = models.DateTimeField(auto_now_add = True)
-    last_login      = models.DateTimeField(auto_now_add = True)
-    is_admin        = models.BooleanField(default = False)
-    is_staff        = models.BooleanField(default = False)
-    is_active       = models.BooleanField(default = False)
-    is_superuser    = models.BooleanField(default = False)
-    is_rider        = models.BooleanField(default = False)
-    is_commission   = models.BooleanField(default = False)
-    is_commissar    = models.BooleanField(default = False)
+    date_joined     = models.DateTimeField(auto_now_add=True)
+    last_login      = models.DateTimeField(auto_now_add=True)
+    is_admin        = models.BooleanField(default=False)
+    is_staff        = models.BooleanField(default=False)
+    is_active       = models.BooleanField(default=False)
+    is_superuser    = models.BooleanField(default=False)
+    is_rider        = models.BooleanField(default=False)
+    is_commission   = models.BooleanField(default=False)
+    is_commissar    = models.BooleanField(default=False)
 
     # not required
     photo = models.ImageField(
         upload_to='images/users/', blank=True, null=True, default='images/users/blank-avatar-200x200.jpg')
 
-    USERNAME_FIELD  = 'email'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     objects = MyAccountManager()

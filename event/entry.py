@@ -143,6 +143,10 @@ class NumberInEvent:
         self.event = 0
         self.category_name = ""
 
+    def count_beginners(self):
+        self.riders_in_category = Entry.objects.filter(event=self.event, class_beginner=self.category_name,
+                                                       is_beginner=True, payment_complete=True, checkout=False).count()
+
     def count_riders_20(self):
         """ function for count riders in class """
         self.riders_in_category = Entry.objects.filter(event=self.event, class_20=self.category_name, is_20=True,
@@ -196,7 +200,6 @@ class REMRiders:
         self.ws.cell(1, 21, "RIDER_IDENT")
         self.ws.cell(1, 22, "RIDER_ACTIVE")
         self.ws.cell(1, 23, "RIDER_LOCKED")
-
 
     def first_line_entries(self):
         """ set first line in REM online entries excel file """

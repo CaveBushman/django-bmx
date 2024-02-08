@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, Order
+from .models import Event, Result, EntryClasses, Entry, EntryForeign
 
 # Register your models here.
 
@@ -84,4 +84,4 @@ admin.site.register(Result)
 admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign)
-admin.site.register(Order)
+

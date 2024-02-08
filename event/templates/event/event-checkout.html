@@ -1,0 +1,82 @@
+{% extends 'base.html' %} {% block title %} Seznam registrací na závody {% endblock title %}
+{% block content %}
+
+<header class="shadow dark:dark">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold dark:text-gray-200">Seznam registrací na závody - uživatel {{user.first_name}} {{user.last_name}}</h1>
+  </div>
+</header>
+
+<form method="POST">
+  {% csrf_token %}
+
+<div class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead>
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:bg-gray-800 dark:text-gray-200">Jezdec/jezdkyně</th>
+              <th scope="col" class="hidden sm:block px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Závod</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Kategorie</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Status</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center dark:bg-gray-800 dark:text-gray-200">Odhlásit/odhlášen</th>
+
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:text-gray-200">
+          {% for confirmed_event in confirmed_events %}
+          {% if confirmed_event.is_visible %}
+            <tr>
+              <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                <div class="flex items-center">
+                  <div class="h-11 w-11 flex-shrink-0">
+                    <img class="h-11 w-11 rounded-full" src="{{confirmed_event.rider.photo.url}}" alt="">
+                  </div>
+                  <div class="ml-4">
+                    <div class="font-medium text-gray-900 dark:text-gray-200">{{confirmed_event.rider}}</div>
+                    <div class="mt-1 text-gray-500 dark:text-gray-300">{{confirmed_event.rider.club}}</div>
+                    <div class="mt-1 sm:hidden text-gray-500 dark:text-gray-300">{{confirmed_event.event}}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden sm:block whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                <div class="grid grid-rows-1 sm:grid-rows-2">
+                  <div class="text-gray-900 dark:text-gray-200 ">{{confirmed_event.event}}</div>
+                  <div class="hidden sm:block mt-1 text-gray-500 dark:text-gray-300">{{confirmed_event.event.date}}</div>
+                </div>
+              </td>
+              {% if confirmed_event.is_beginner %}
+              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_beginner}}</td>
+              {% elif confirmed_event.is_20 %}
+              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_20}}</td>
+              {% else %}
+              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_24}}</td>
+              {% endif %}
+              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                {% if confirmed_event.checkout %}
+                <span class="text-red-700 font-medium rounded-lg text-sm py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:focus:ring-red-900">Odhlášen</span>
+                {% else %}
+                <span class="text-green-700 font-medium rounded-lg text-sm py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:focus:ring-green-800">Přihlášen</span>
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap text-center py-5 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                 {% if confirmed_event.checkout %}
+                <button type="submit" name="btn-change" id="btn-change-in" value = {{confirmed_event.id}} class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Přihlásit</button>
+                  {% else %}
+                <button type="submit" name="btn-change" id="btn-change-out" value = {{confirmed_event.id}} class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Odhlásit</button>
+                  {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</form>
+{% endblock %}

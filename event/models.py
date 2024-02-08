@@ -178,7 +178,7 @@ class Event(models.Model):
                                    null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
 
-    reg_open_from = models.DateField(default='2021-04-01')
+    reg_open_from = models.DateTimeField(default='2021-04-01 00:00:00')
     reg_open_to = models.DateTimeField(null=True, blank=True)
     reg_open = models.BooleanField(default=True)
 
@@ -456,10 +456,10 @@ class Result(models.Model):
 
 class Entry(models.Model):
     """ Models for entries to the race for Czech riders """
-    transaction_id = models.CharField(max_length=255, default="")
-    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True) # to_field='id', db_column='event'
-    rider = models.ForeignKey(Rider, db_constraint=False, db_index=False, to_field="id", db_column="rider",
-                              on_delete=models.SET_NULL, null=True, )
+    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True) # to_field='id', db_column='event'
+    transaction_id = models.CharField(max_length=255, default="", null=True, blank=True)
+    rider = models.ForeignKey(Rider, db_constraint=False, on_delete=models.SET_NULL, null=True, )
     is_beginner = models.BooleanField(default=False)
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
@@ -476,13 +476,20 @@ class Entry(models.Model):
     customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
 
+    created = models.DateField(auto_now_add=True, null=True)
+    updated = models.DateField(auto_now=True, null=True, blank=True)
+
     class Meta:
         verbose_name = "Registrace"
         verbose_name_plural = 'Registrace'
 
+    def __str__(self):
+        return f"{self.rider} - {self.event}"
+
 
 class EntryForeign(models.Model):
     """ Model for foreign riders entries """
+
     transaction_id = models.CharField(max_length=255, default="")
     event = models.ForeignKey(Event, to_field='id', db_column='event', on_delete=models.SET_NULL, null=True)
     first_name = models.CharField(max_length=100)
@@ -505,34 +512,8 @@ class EntryForeign(models.Model):
     customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
 
+
+
     class Meta:
         verbose_name = "Registrace zahraničních jezdců"
         verbose_name_plural = 'Registrace zahraničních jezdců'
-
-
-class Order(models.Model):
-    """ Model for order the event """
-    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
-    rider = models.ForeignKey(Rider, on_delete=models.CASCADE, null=True, blank=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
-    is_beginner = models.BooleanField(default=False)
-    is_20 = models.BooleanField(default=False)
-    is_24 = models.BooleanField(default=False)
-    class_beginner = models.CharField(max_length=255, default="", null=True, blank=True)
-    class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
-    class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
-    fee_beginner = models.IntegerField(null=True, blank=True, default=0)
-    fee_20 = models.IntegerField(null=True, blank=True, default=0)
-    fee_24 = models.IntegerField(null=True, blank=True, default=0)
-    stripe_payload = models.CharField(max_length=255, blank=True, null=True)
-    confirmed = models.BooleanField(default=False)
-
-    created = models.DateField(auto_now_add=True, null=True)
-    updated = models.DateField(auto_now=True, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.rider} - {self.event}"
-
-    class Meta:
-        verbose_name = "Nákupní košík závodu"
-        verbose_name_plural = 'Nákupní košík závodů'
