@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from club.models import Club
-from event.models import EntryClasses, Event, Entry, Order
+from event.models import EntryClasses, Event, Entry
 from accounts.models import Account
 from ranking.ranking import SetRanking
 from .entry import EntryClass
@@ -181,10 +181,9 @@ def excel_rem_first_line_online(ws):
     return ws
 
 
-def is_registration_open(event_id):
+def is_registration_open(event):
     """ Function for check, if registration is open"""
-    event = Event.objects.get(id=event_id)
-    now = timezone.now().strftime("%m/%d/%Y, %H:%M:%S")
+    now = timezone.now()  #.strftime("%m/%d/%Y, %H:%M:%S")
 
     # if results is uploaded, registration is close
     if event.xls_results:
@@ -195,8 +194,8 @@ def is_registration_open(event_id):
         return False
 
     # check, id today is between reg_open_from and reg_open_to
-    if (now >= event.reg_open_from.strftime("%m/%d/%Y, %H:%M:%S")) and (
-            now <= event.reg_open_to.strftime("%m/%d/%Y, %H:%M:%S")):
+    if (now >= event.reg_open_from) and (
+            now <= event.reg_open_to):
         return True
     else:
         return False
@@ -569,10 +568,10 @@ class Cart():
     class_beginner: str = ""
     class_20: str = ""
     class_24: str = ""
-    confirmed: bool = False
+    payment_complete: bool = False
 
     def save(self):
-        Order.objects.create(
+        Entry.objects.create(
             user=self.user,
             event=self.event,
             rider=self.rider,
@@ -585,7 +584,7 @@ class Cart():
             class_beginner=self.class_beginner,
             class_20=self.class_20,
             class_24=self.class_24,
-            confirmed=False,
+            payment_complete=self.payment_complete,
         )
 
 
@@ -646,7 +645,11 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
 
 def clean_classes_on_event(event):
     """ Function for return classes used in event """
-    classes = [event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
+    classes = []
+    if event.is_beginners_event():
+        classes += [event.classes_and_fees_like.beginners_1, event.classes_and_fees_like.beginners_2,
+                    event.classes_and_fees_like.beginners_3]
+    classes += [event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
                event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
                event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
                event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
@@ -675,7 +678,7 @@ def clean_classes_on_event(event):
 
 
 def update_cart(request):
-    sum = Order.objects.filter(user__id=request.user.id, confirmed=False).count()
+    sum = Entry.objects.filter(user__id=request.user.id, payment_complete=False).count()
     request.session['orders'] = sum
 
 
@@ -701,23 +704,65 @@ def save_entries(order, transaction_id):
 def check_entry_duplicity(event, rider, is_beginner=False, is_20=False, is_24=False):
     """ Function for checking, if rider is confirmed as entries on the event"""
     if is_beginner:
-        entries = Order.objects.filter(event=event, rider=rider, is_beginner=True, confirmed=True)
+        entries = Entry.objects.filter(event=event, rider=rider, is_beginner=True, payment_complete=True)
         if entries:
             return True
         else:
             return False
 
     if is_20:
-        entries = Order.objects.filter(event=event, rider=rider, is_20=True, confirmed=True)
+        entries = Entry.objects.filter(event=event, rider=rider, is_20=True, payment_complete=True)
         if entries:
             return True
         else:
             return False
 
     if is_24:
-        entries = Order.objects.filter(event=event, rider=rider, is_24=True, confirmed=True)
+        entries = Entry.objects.filter(event=event, rider=rider, is_24=True, payment_complete=True)
         if entries:
             return True
         else:
             return False
+
+
+def set_beginner_class(rider, event):
+    """ Function for set beginner class """
+    age = rider.get_age(rider)
+    if age <= 6:
+        return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+    elif age <= 10 and rider.created:
+        diff = datetime.now().date() - rider.created.date()
+        if diff.days > 356:  # if rider have plate more then one year, rider cannot start in Beginners class
+            return ""
+        else:
+            return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+    else:
+        return ""
+
+def invalid_licence_in_event(event):
+    """ Check invalid licence in event """
+    check_20_entries = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=False)
+    check_24_entries = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=False)
+
+    invalid_licences = []
+
+    for check20 in check_20_entries:
+        try:
+            rider = Rider.objects.get(uci_id=check20.rider)
+            if not rider.valid_licence:
+                invalid_licences.append(rider)
+        except Exception as e:
+            pass  # TODO: Dodělat zprávu o chybě
+
+    for check24 in check_24_entries:
+        try:
+            rider = Rider.objects.get(uci_id=check24.rider)
+            if not rider.valid_licence:
+                invalid_licences.append(rider)
+        except Exception as e:
+            pass  # TODO: Dodělat zprávu o chybě
+
+    invalid_licences = set(invalid_licences)  # odstranění duplicit, pokud jezdec jede 20" i 24"
+
+    return invalid_licences
 

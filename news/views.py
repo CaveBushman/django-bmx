@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404 
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage
-from event.models import Event, Order
+from event.models import Event
 from event.func import update_cart
 from func.notification import update_plate_notify
 from rider.models import Rider

@@ -1,7 +1,7 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import EntryClasses, Event, Result, Entry, Order
+from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
 from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
@@ -40,7 +40,7 @@ def events_list_view(request):
         if event.canceled:
             event.reg_open = False
         else:
-            event.reg_open = is_registration_open(event.id)
+            event.reg_open = is_registration_open(event)
 
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             event.reg_open = False
@@ -59,7 +59,7 @@ def events_list_by_year_view(request, pk):
         if event.canceled:
             event.reg_open = False
         else:
-            event.reg_open = is_registration_open(event.id)
+            event.reg_open = is_registration_open(event)
 
         if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             event.reg_open = False
@@ -74,43 +74,12 @@ def events_list_by_year_view(request, pk):
 
 def event_detail_views(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    riders = ""
     select_category = ""
     alert = False
     riders_sum = 0
-    reg_open = is_registration_open(pk)
-    event.reg_open_to = event.reg_open_to
+    reg_open = is_registration_open(event)
 
-    if 'categoryInput' in request.POST:
-        select_category = request.POST['categoryInput']
-
-        # check, if category is Cruiser
-        if re.search("Cruiser", select_category):
-            cruiser = 1
-        else:
-            cruiser = 0
-
-        # get Cruiser entry riders in selected category
-        if cruiser:
-            entries_24 = Entry.objects.filter(event=event.id, class_24=select_category, payment_complete=True)
-            list_24 = []
-            for entry_24 in entries_24:
-                list_24.append(entry_24.rider)
-            riders = Rider.objects.filter(uci_id__in=list_24)
-
-        # get 20" bike entry riders in selected category
-        else:
-            entries_20 = Entry.objects.filter(event=event.id, class_20=select_category, payment_complete=True)
-            list_20 = []
-            for entry_20 in entries_20:
-                list_20.append(entry_20.rider)
-            riders = Rider.objects.filter(uci_id__in=list_20)
-
-        riders_sum = riders.count()
-        if riders_sum == 0:
-            alert = True
-
-    data = {'event': event, 'riders': riders, 'alert': alert, 'select_category': select_category,
+    data = {'event': event, 'alert': alert, 'select_category': select_category,
             'riders_sum': riders_sum, 'reg_open': reg_open}
     return render(request, 'event/event-detail.html', data)
 
@@ -139,19 +108,19 @@ def add_entries_view(request, pk):
         sum_20 = riders_20.count()
         sum_24 = riders_24.count()
 
-        for rider_beginner in riders_beginner:
-            sum_fee += resolve_event_fee(event, rider_beginner, is_20=True, is_beginner=True)
+        for rider in riders_beginner:
+            sum_fee += resolve_event_fee(event, rider, is_20=True, is_beginner=True)
 
             # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
                 cart.user = Account.objects.get(id=request.user.id)
                 cart.event = event
-                cart.rider = rider_beginner
+                cart.rider = rider
                 cart.is_beginner = True
-                cart.fee_beginner = resolve_event_fee(event, rider_beginner, is_20=True, is_beginner=True)
-                cart.class_beginner = resolve_event_classes(event, rider_beginner, is_20=True, is_beginner=True)
-                if not Order.objects.filter(rider=rider_beginner, event=event, is_beginner=True):
+                cart.fee_beginner = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
+                cart.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+                if not Entry.objects.filter(rider=rider, event=event, is_beginner=True):
                     cart.save()
 
         for rider_20 in riders_20:
@@ -166,7 +135,7 @@ def add_entries_view(request, pk):
                 cart.is_20 = True
                 cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
                 cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-                if not Order.objects.filter(rider=rider_20, event=event, is_20=True):
+                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True):
                     cart.save()
 
         for rider_24 in riders_24:
@@ -181,7 +150,7 @@ def add_entries_view(request, pk):
                 cart.is_24 = True
                 cart.fee_24 = resolve_event_fee(event, rider_24, is_20=False)
                 cart.class_24 = resolve_event_classes(event, rider_24, is_20=False)
-                if not Order.objects.filter(rider=rider_24, event=event, is_24=True):
+                if not Entry.objects.filter(rider=rider_24, event=event, is_24=True):
                     cart.save()
 
         if "btn_add" in request.POST:
@@ -218,27 +187,13 @@ def add_entries_view(request, pk):
         # response.set_cookie()
         return response
 
-    if is_registration_open(event.id):
-        # TODO: Přesměrovat na chybovou stránku
-        pass
-
     # disable riders, who was registered in event
     for rider in riders:
-        was_registered = Entry.objects.filter(event=event.id, rider=rider.id, payment_complete=True)
-        age = rider.get_age(rider)
+        was_registered = Entry.objects.filter(event=event, rider=rider, payment_complete=True)
 
+        # classes for Beginners
         if event.is_beginners_event():
-            if age <= 6:
-                rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-            elif age <= 10 and rider.created:
-                diff = datetime.now().date() - rider.created.date()
-                if diff.days > 356:  # if rider have plate more then one year, rider cannot start in Beginners class
-                    rider.class_beginner = ""
-                else:
-                    rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-            else:
-                rider.class_beginner = ""
-
+            rider.class_beginner = set_beginner_class(rider, event)
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
 
@@ -314,13 +269,13 @@ def confirm_view(request):
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
             # TODO: Need last check for registration in the same time
-
+            print("Jsem pod TRY")
             # save entries riders to database
             for rider in riders_beginner_list:
                 current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
                 current_fee = resolve_event_fee(event, current_rider, 1)
                 current_class = resolve_event_classes(event, current_rider, is_20=True, is_beginner=True)
-                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                entry = Entry(transaction_id=checkout_session.id, event=event,
                                    rider=current_rider, is_beginner=True, is_20=False, is_24=False,
                                    class_beginner=current_class, class_20="", class_24="", fee_beginner=current_fee)
                 entry.save()
@@ -329,7 +284,8 @@ def confirm_view(request):
                 current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
                 current_fee = resolve_event_fee(event, current_rider, 1)
                 current_class = resolve_event_classes(event, current_rider, is_20=True)
-                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                print(checkout_session.id)
+                entry = Entry(transaction_id=checkout_session.id, event=event,
                                    rider=current_rider, is_20=True, is_24=False, is_beginner=False,
                                    class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
                 entry.save()
@@ -338,7 +294,7 @@ def confirm_view(request):
                 current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
                 current_fee = resolve_event_fee(event, current_rider, 0)
                 current_class = resolve_event_classes(event, current_rider, is_20=False)
-                entry = EntryClass(transaction_id=checkout_session.id, event=event.id,
+                entry = Entry(transaction_id=checkout_session.id, event=event,
                                    rider=current_rider, is_20=False, is_24=True, is_beginner=False,
                                    class_beginner="", class_24=current_class, class_20="", fee_24=current_fee)
                 entry.save()
@@ -346,6 +302,7 @@ def confirm_view(request):
 
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
+            print(e)
             return JsonResponse(error=str(e)), 403
 
 
@@ -448,6 +405,8 @@ def stripe_webhook(request):
 def event_admin_view(request, pk):
     """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
+    __LICENCE_USERNAME = config('LICENCE_USERNAME')
+    __LICENCE_PASSWORD = config('LICENCE_PASSWORD')
 
     # Admin page for European Cup
     if event.type_for_ranking == "Evropský pohár" or event.type_for_ranking == "Mistrovství Evropy":
@@ -520,7 +479,7 @@ def event_admin_view(request, pk):
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
                 uci_id = rider.uci_id
-                basicAuthCredentials = (username, password)
+                basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
                 url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
                 data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
                 data_json = data_json.text
@@ -540,7 +499,7 @@ def event_admin_view(request, pk):
             try:
                 rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
                 uci_id = rider.uci_id
-                basicAuthCredentials = (username, password)
+                basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
                 url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
                 data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
                 data_json = data_json.text
@@ -633,6 +592,8 @@ def event_admin_view(request, pk):
         ws = wb.active
         ws.title = "BEM5_EXT"
         ws = excel_first_line(ws)
+
+        #TODO: entries beginners classes
 
         entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=0)
         x = 2
@@ -880,37 +841,17 @@ def event_admin_view(request, pk):
 
         event.rem_results.delete(save=True)
 
-    # zjištění jezdců přihlášených na závod s neplatnou licencí
-
-    check_20_entries = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=False)
-    check_24_entries = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=False)
-
-    invalid_licences = []
     sum_of_fees: int = 0
     sum_of_riders: int = 0
 
-    for check20 in check_20_entries:
-        try:
-            rider = Rider.objects.get(uci_id=check20.rider)
-            if not rider.valid_licence:
-                invalid_licences.append(rider)
-        except Exception as e:
-            pass  # TODO: Dodělat zprávu o chybě
+    # check riders with invalid licences
+    invalid_licences = invalid_licence_in_event(event)
 
-    for check24 in check_24_entries:
-        try:
-            rider = Rider.objects.get(uci_id=check24.rider)
-            if not rider.valid_licence:
-                invalid_licences.append(rider)
-        except Exception as e:
-            pass  # TODO: Dodělat zprávu o chybě
-
-    invalid_licences = set(invalid_licences)  # odstranění duplicit, pokud jezdec jede 20" i 24"
-
-    # summary fees on event
+    # sum fees on event
     entries = Entry.objects.filter(event=event.id, payment_complete=1, checkout=False)
 
     for entry in entries:
+        sum_of_fees += entry.fee_beginner
         sum_of_fees += entry.fee_20
         sum_of_fees += entry.fee_24
         sum_of_riders += 1
@@ -947,14 +888,12 @@ def find_payment_view(request):
 def ranking_table_view(request):
     """ Function for viewing ranking table of points"""
     data = {}
-    views = render(request, 'event/ranking-table.html', data)
-    return views
+    return render(request, 'event/ranking-table.html', data)
 
 
 def entry_foreign_view(request, pk):
     """ View for foreign riders registrations"""
     event = get_object_or_404(Event, pk=pk)
-
     data = {'event': event}
     views = render(request, 'event/entry-foreign.html', data)
     return views
@@ -1004,6 +943,8 @@ def summary_riders_in_event(request, pk):
         sum_20_24.category_name = class_20_24
         if ("Cruiser" or "cruiser") in class_20_24:
             sum_20_24.count_riders_24()
+        elif ("Příchozí") in class_20_24:
+            sum_20_24.count_beginners()
         else:
             sum_20_24.count_riders_20()
         if ("NENÍ VYPSÁNO" or "není vypsáno") not in class_20_24:
@@ -1016,11 +957,11 @@ def summary_riders_in_event(request, pk):
 
 @login_required(login_url="/login/")
 def confirm_user_order(request):
-    orders = Order.objects.filter(user__id=request.user.id, confirmed=False).order_by('event__date', 'rider__last_name')
+    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False).order_by('event__date', 'rider__last_name')
     duplicities = []
 
     if 'btn-del' in request.POST:
-        order = Order.objects.get(id=request.POST['btn-del'])
+        order = Entry.objects.get(id=request.POST['btn-del'])
         order.delete()
         update_cart(request)
         return redirect('event:order')
@@ -1044,19 +985,19 @@ def confirm_user_order(request):
                 else:
                     price += order.fee_beginner + order.fee_20 + order.fee_24
             else:
-
+                line_items += generate_stripe_line(order.event, order.rider, is_20=False)
                 if check_entry_duplicity(order.event, order.rider, is_24=True):
                     duplicities.append(order)
                     order.delete()
                 else:
                     price += order.fee_beginner + order.fee_20 + order.fee_24
         if duplicities:
-            orders = Order.objects.filter(user__id=request.user.id, confirmed=False).order_by('event__date',
+            orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False).order_by('event__date',
                                                                                        'rider__last_name')
             sum: int = orders.count()
             data = {'orders': orders, 'price': price, 'sum': sum, "duplicities": duplicities}
             return render(request, 'event/order.html', data)
-
+        print(line_items)
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -1066,8 +1007,7 @@ def confirm_user_order(request):
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
             for order in orders:
-                save_entries(order, transaction_id=checkout_session.id)
-                order.stripe_payload = checkout_session.id
+                order.transaction_id = checkout_session.id
                 order.save()
             return redirect(checkout_session.url, code=303)
         except Exception as e:
@@ -1083,20 +1023,19 @@ def confirm_user_order(request):
             order.event_class = order.class_20
         else:
             order.event_class = order.class_24
-
     data = {'orders': orders, 'price': price, 'sum': sum}
     return render(request, 'event/order.html', data)
 
 
 def check_order_payments(request):
-    orders = Order.objects.filter(Q(updated__year=date.today().year,
+    orders = Entry.objects.filter(Q(updated__year=date.today().year,
                                     updated__month=date.today().month,
                                     updated__day=date.today().day,
-                                    confirmed=False, ) |
+                                    payment_complete=False, ) |
                                   Q(updated__year=date.today().year,
                                     updated__month=date.today().month,
                                     updated__day=date.today().day - 1,
-                                    confirmed=False, ))
+                                    payment_complete=False, ))
     for order in orders:
         try:
             confirm = stripe.checkout.Session.retrieve(
@@ -1131,3 +1070,30 @@ def check_order_payments(request):
     messages.success(request, "Vaše přihláška byla úspěšně přijata.")
     data = {}
     return render(request, 'event/success.html', data)
+
+@login_required(login_url="/login/")
+def checkout_view(request):
+    user_id = request.user.id
+    user = Account.objects.get(id=user_id)
+    confirmed_events = Entry.objects.filter(user__id=user_id, payment_complete=True,
+                                            event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name',
+                                                                                      'rider__first_name')
+    for confirmed_event in confirmed_events:
+        if is_registration_open(confirmed_event.event):
+            confirmed_event.is_visible = True
+        else:
+            confirmed_event.is_visible = False
+    # if user want change status
+    if 'btn-change' in request.POST:
+        confirmed_event = Entry.objects.get(id=request.POST['btn-change'])
+        if confirmed_event.checkout:
+            confirmed_event.checkout = False
+            confirmed_event.save()
+        else:
+            confirmed_event.checkout = True
+            confirmed_event.save()
+        return redirect('event:checkout')
+
+    else:
+        data = {'confirmed_events': confirmed_events, 'user': user}
+        return render(request, 'event/event-checkout.html', data)

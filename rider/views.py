@@ -209,12 +209,12 @@ def rider_new_view(request):
             new_rider.save()
 
             # TODO: Vylepšit odeslání e-mailového potvrzení HTML
-            send_mail (
-                subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
-                message = f"V aplikaci www.czechbmx.cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
-                from_email = "bmx@ceskysvazcyklistiky.cz",
-                recipient_list = ["david@black-ops.eu"],
-            )
+            # send_mail (
+            #     subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
+            #     message = f"V aplikaci www.czechbmx.cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
+            #     from_email = "bmx@ceskysvazcyklistiky.cz",
+            #     recipient_list = ["david@black-ops.eu"],)
+
         return render(request, 'rider/rider-new-3.html')
 
     # rendering in GET method
@@ -272,3 +272,5 @@ def calculate_cruiser_median(request):
 
     data = {'cruisers': cruiser_results, 'sum': count_cruiser_results}
     return render(request, 'rider/rider-cruiser.html', data)
+
+

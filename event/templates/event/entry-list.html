@@ -101,7 +101,9 @@
                   <div class="flex items-center">
                     <div class="">
                       <div class="text-sm font-medium text-gray-500 dark:dark"> 
-                        {% if entry.is_20 %}
+                        {% if entry.is_beginner %}
+                          {{entry.class_beginner}}
+                        {% elif entry.is_20%}
                           {{entry.class_20}}
                         {% else %}
                           {{entry.class_24}}
