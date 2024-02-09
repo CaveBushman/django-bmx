@@ -663,7 +663,7 @@ def clean_classes_on_event(event):
                event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
                event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
                event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
-               event.classes_and_fees_like.cr_men_40_49, event.classes_and_fees_like.cr_women_40_and_over,
+               event.classes_and_fees_like.cr_men_40_44,event.classes_and_fees_like.cr_men_45_49, event.classes_and_fees_like.cr_women_40_and_over,
                event.classes_and_fees_like.cr_men_50_and_over, event.classes_and_fees_like.boys_11,
                event.classes_and_fees_like.girls_11, event.classes_and_fees_like.boys_12,
                event.classes_and_fees_like.girls_12, event.classes_and_fees_like.boys_13,
