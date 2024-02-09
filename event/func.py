@@ -334,8 +334,10 @@ def resolve_event_classes(event, rider, is_20, is_beginner=False):
             return event_classes.cr_men_30_34
         elif rider.class_24 == "Men 35-39":
             return event_classes.cr_men_35_39
-        elif rider.class_24 == "Men 40-49":
-            return event_classes.cr_men_40_49
+        elif rider.class_24 == "Men 40-44":
+            return event_classes.cr_men_40_44
+        elif rider.class_24 == "Men 45-49":
+            return event_classes.cr_men_45_49
         elif rider.class_24 == "Men 50 and over":
             return event_classes.cr_men_50_and_over
         elif rider.class_24 == "Girls 12 and under":

@@ -64,7 +64,8 @@ class EntryClasses(models.Model):
     cr_men_25_29 = models.CharField(max_length=50, blank=True, null=True)
     cr_men_30_34 = models.CharField(max_length=50, blank=True, null=True)
     cr_men_35_39 = models.CharField(max_length=50, blank=True, null=True)
-    cr_men_40_49 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_40_44 = models.CharField(max_length=50, blank=True, null=True)
+    cr_men_45_49 = models.CharField(max_length=50, blank=True, null=True)
     cr_men_50_and_over = models.CharField(max_length=50, blank=True, null=True)
 
     cr_girls_12_and_under = models.CharField(max_length=50, blank=True, null=True)
@@ -122,7 +123,8 @@ class EntryClasses(models.Model):
     cr_men_25_29_fee = models.IntegerField(default=0)
     cr_men_30_34_fee = models.IntegerField(default=0)
     cr_men_35_39_fee = models.IntegerField(default=0)
-    cr_men_40_49_fee = models.IntegerField(default=0)
+    cr_men_40_44_fee = models.IntegerField(default=0)
+    cr_men_45_49_fee = models.IntegerField(default=0)
     cr_men_50_and_over_fee = models.IntegerField(default=0)
 
     cr_girls_12_and_under_fee = models.IntegerField(default=0)
@@ -178,7 +180,7 @@ class Event(models.Model):
                                    null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
 
-    reg_open_from = models.DateTimeField(blank=True)
+    reg_open_from = models.DateTimeField(null=True, blank=True)
     reg_open_to = models.DateTimeField(null=True, blank=True)
     reg_open = models.BooleanField(default=True)
 
