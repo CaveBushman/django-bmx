@@ -74,7 +74,7 @@ class Rider(models.Model):
         max_length=50, choices=CLASS_20, default="Boys 6", null=True)
     class_24 = models.CharField(
         max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True)
-    class_beginner=models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="", null=True)
+    class_beginner=models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="", blank=True, null=True)
 
     transponder_20 = models.CharField(max_length=8, blank=True, null=True)
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
