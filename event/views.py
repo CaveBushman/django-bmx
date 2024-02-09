@@ -196,6 +196,7 @@ def add_entries_view(request, pk):
             rider.class_beginner = set_beginner_class(rider, event)
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
+        print(f"Jezdec: {rider.last_name}, kategorie {rider.class_24}")
 
         if was_registered.count() > 0:
             if was_registered[0].is_beginner:
