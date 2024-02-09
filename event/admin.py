@@ -42,7 +42,7 @@ class EntryClassesAdmin(admin.ModelAdmin):
 
         ('Kategorie Cruiser', {
             'fields': (('cr_boys_12_and_under', 'cr_boys_13_14'), ('cr_boys_15_16', 'cr_men_17_24'),
-            ('cr_men_25_29', 'cr_men_30_34'), ('cr_men_35_39', 'cr_men_40_49'), 'cr_men_50_and_over',
+            ('cr_men_25_29', 'cr_men_30_34'), ('cr_men_35_39', 'cr_men_40_44'), ('cr_men_45_49', 'cr_men_50_and_over'),
             ('cr_girls_12_and_under', 'cr_girls_13_16'), ('cr_women_17_29', 'cr_women_30_39'), 'cr_women_40_and_over',
             ),
         'description': "Zde vyplň katerogie na 24-ti palcových kolech (cruiserech), které se pojedou v závodě "
@@ -64,7 +64,7 @@ class EntryClassesAdmin(admin.ModelAdmin):
         }),
         ('Startovné Cruiser', {
             'fields': (('cr_boys_12_and_under_fee', 'cr_boys_13_14_fee','cr_boys_15_16_fee', 'cr_men_17_24_fee'),
-            ('cr_men_25_29_fee', 'cr_men_30_34_fee','cr_men_35_39_fee', 'cr_men_40_49_fee'), 'cr_men_50_and_over_fee',
+            ('cr_men_25_29_fee', 'cr_men_30_34_fee','cr_men_35_39_fee', 'cr_men_40_44_fee'), ('cr_men_45_49_fee','cr_men_50_and_over_fee'),
             ('cr_girls_12_and_under_fee', 'cr_girls_13_16_fee', 'cr_women_17_29_fee', 'cr_women_30_39_fee'), 'cr_women_40_and_over_fee',
             )
         }),

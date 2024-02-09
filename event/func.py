@@ -503,8 +503,10 @@ def resolve_event_fee(event, rider, is_20, is_beginner=False):
             return event_classes.cr_men_30_34_fee
         elif rider.class_24 == "Men 35-39":
             return event_classes.cr_men_35_39_fee
-        elif rider.class_24 == "Men 40-49":
-            return event_classes.cr_men_40_49_fee
+        elif rider.class_24 == "Men 40-44":
+            return event_classes.cr_men_40_44_fee
+        elif rider.class_24 == "Men 45-49":
+            return event_classes.cr_men_45_49_fee
         elif rider.class_24 == "Men 50 and over":
             return event_classes.cr_men_50_and_over_fee
         elif rider.class_24 == "Girls 12 and under":
