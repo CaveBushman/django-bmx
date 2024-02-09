@@ -178,7 +178,7 @@ class Event(models.Model):
                                    null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
 
-    reg_open_from = models.DateTimeField(default='2021-04-01 00:00:00')
+    reg_open_from = models.DateTimeField(blank=True)
     reg_open_to = models.DateTimeField(null=True, blank=True)
     reg_open = models.BooleanField(default=True)
 
