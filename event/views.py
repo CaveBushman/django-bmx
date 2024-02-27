@@ -261,7 +261,7 @@ def confirm_view(request):
         # add entries for cruiser
         for rider_24_list in riders_24_list:
             rider = Rider.objects.get(uci_id=rider_24_list['fields']['uci_id'])
-            line_items += generate_stripe_line(event, rider, is_20=True)
+            line_items += generate_stripe_line(event, rider, is_24=True)
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -481,6 +481,7 @@ def event_admin_view(request, pk):
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
                 uci_id = rider.uci_id
+                print(f"Přidávám jezdce {rider.last_name} řádek {x}")
                 basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
                 url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
                 data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
@@ -490,12 +491,12 @@ def event_admin_view(request, pk):
 
                 ws.cell(x, 1, rider.class_20)
                 ws.cell(x, 2, rider.first_name)
-                ws.cell(x, 3, rider.laást_name)
+                ws.cell(x, 3, rider.last_name)
                 ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
                 ws.cell(x, 5, rider_address)
                 x = x + 1
-            except:
-                pass
+            except Exception as e:
+                print(f"Chyba souboru pojištění: {e}")
 
         for entry_24 in entries_24:
             try:
