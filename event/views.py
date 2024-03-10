@@ -261,7 +261,9 @@ def confirm_view(request):
         # add entries for cruiser
         for rider_24_list in riders_24_list:
             rider = Rider.objects.get(uci_id=rider_24_list['fields']['uci_id'])
-            line_items += generate_stripe_line(event, rider, is_24=True)
+            line_items += generate_stripe_line(event, rider, is_20=False)
+
+        print(line_items)
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -271,7 +273,6 @@ def confirm_view(request):
                 cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
             )
             # TODO: Need last check for registration in the same time
-            print("Jsem pod TRY")
             # save entries riders to database
             for rider in riders_beginner_list:
                 current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
