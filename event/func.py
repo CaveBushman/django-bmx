@@ -33,6 +33,7 @@ def date_of_birth_resolve(rider) -> str:
 
 
 def date_of_birth_resolve_rem_online(date):
+    """Set date of birth to REM format"""
     date: str = str(date)
     date = date[8:] + "." + date[5:7] + "." + date[:4]
     return date
