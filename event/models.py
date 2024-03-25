@@ -232,6 +232,7 @@ class Event(models.Model):
     ec_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     ec_insurance_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
     ec_insurance_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    price_of_insurance = models.IntegerField(default = 0)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)

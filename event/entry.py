@@ -8,7 +8,7 @@ from .func import *
 from datetime import date, datetime, time, timezone
 import stripe
 import json
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 
 class EntryClass:
@@ -164,7 +164,8 @@ class REMRiders:
     def __init__(self):
         self.event = None
         self.file_name = None
-        self.wb = Workbook()
+        self.template_name = f"media/rem_entries/Rider_and_Registration.xlsx"
+        self.wb = load_workbook(self.template_name)
         self.wb.encoding = "utf-8"
         self.ws = self.wb.active
         self.ws.title = "REM5_EXT"
@@ -230,89 +231,86 @@ class REMRiders:
 
     def create_all_riders_list(self):
         self.file_name = f'media/rem_riders/REM_RIDERS_LIST_FOR_RACE_ID-{self.event.id}.xlsx'
-        self.first_line()
+        # self.first_line()
 
-        line: int = 2
+        row: int = 2
         for rider in self.riders:
-            self.ws.cell(line, 1, rider.club.team_name)
-            self.ws.cell(line, 3, rider.first_name)
-            self.ws.cell(line, 4, rider.last_name)
-            if rider.gender == "Žena":
-                self.ws.cell(line, 5, "F")
-            else:
-                self.ws.cell(line, 5, "M")
-            self.ws.cell(line, 6, event.func.date_of_birth_resolve(rider))
-            self.ws.cell(line, 7, )
+            self.ws.cell(row, 1, )
+            self.ws.cell(row, 2, rider.first_name)
+            self.ws.cell(row, 3, rider.last_name)
+            self.ws.cell(row, 4, rider.email)
+            self.ws.cell(row, 5, event.func.team_name_resolve(rider.club))
+            self.ws.cell(row, 6, )
+            self.ws.cell(row, 7, "CZE")
+            self.ws.cell(row, 8, event.func.date_of_birth_resolve(rider))
+            self.ws.cell(row, 9,)
+            self.ws.cell(row, 10, rider.uci_id)
             if rider.is_elite:
-                self.ws.cell(line, 8, "E")
+                self.ws.cell(row, 11, "E")
             else:
-                self.ws.cell(line, 8, "C")
-            self.ws.cell(line, 9, "U")
-            self.ws.cell(line, 10, rider.uci_id)
-            self.ws.cell(line, 11, event.func.rem_expire_licence())
-            self.ws.cell(line, 12, rider.plate)
-            self.ws.cell(line, 13, rider.plate_champ_20)
-            self.ws.cell(line, 14, rider.transponder_20)
-            self.ws.cell(line, 15, rider.plate)
-            self.ws.cell(line, 16, rider.plate_champ_24)
-            self.ws.cell(line, 17, rider.transponder_24)
-            self.ws.cell(line, 18, rider.plate)
-            self.ws.cell(line, 19, )
-            self.ws.cell(line, 20, )
-            self.ws.cell(line, 21, )
-            self.ws.cell(line, 22, )
-            self.ws.cell(line, 23, )
-            line += 1
+                self.ws.cell(row, 11, "C")
+            self.ws.cell(row, 12, "U")
+            self.ws.cell(row, 13, )
+            self.ws.cell(row, 14, )
+            self.ws.cell(row, 15, )
+            self.ws.cell(row, 16, )
+            self.ws.cell(row, 17, )
+            self.ws.cell(row, 18, )
+            self.ws.cell(row, 19, rider.plate)
+            self.ws.cell(row, 20, rider.transponder_20)
+            self.ws.cell(row, 21, rider.plate)
+            self.ws.cell(row, 22, rider.transponder_24)
+            self.ws.cell(row, 23, )
+            row += 1
 
         self.wb.save(self.file_name)
 
-        # export to tab delimited txt file for import in REM
-        file = pd.read_excel(self.file_name)
-        file_name_to_txt = self.file_name[:-4] + "txt"
-        file.to_csv(file_name_to_txt, sep="\t", index=False)
+        # # export to tab delimited txt file for import in REM
+        # file = pd.read_excel(self.file_name)
+        # file_name_to_txt = self.file_name[:-4] + "txt"
+        # file.to_csv(file_name_to_txt, sep="\t", index=False)
 
-        self.event.rem_riders_list = file_name_to_txt
+        self.event.rem_riders_list = self.file_name
         self.event.rem_riders_created = datetime.now()
         self.event.save()
 
-        self.remove_temp_file()
+        # self.remove_temp_file()
 
     def create_entries_list(self):
         file_name = f'media/rem_entries/REM_FOR_RACE_ID-{self.event.id}.xlsx'
-        self.first_line_entries()
+        # self.first_line_entries()
         entries_20 = Entry.objects.filter(event=self.event.id, is_20=True, payment_complete=1, checkout=False)
         row: int = 2
         for entry_20 in entries_20:
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
-                self.ws.cell(row, 1, rider.uci_id)
-                self.ws.cell(row, 2, rider.uci_id)
-                self.ws.cell(row, 3, rider.first_name)
-                self.ws.cell(row, 4, rider.last_name)
-                self.ws.cell(row, 5, rider.email)
-                self.ws.cell(row, 6, event.func.team_name_resolve(rider.club))
+                self.ws.cell(row, 1, self.event.name)
+                self.ws.cell(row, 2, rider.first_name)
+                self.ws.cell(row, 3, rider.last_name)
+                self.ws.cell(row, 4, rider.email)
+                self.ws.cell(row, 5, event.func.team_name_resolve(rider.club))
+                self.ws.cell(row, 6, )
                 self.ws.cell(row, 7, "CZE")
                 self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(rider.date_of_birth))
                 self.ws.cell(row, 9, event.func.gender_resolve_small_letter(rider.gender))
-                self.ws.cell(row, 10, )
-                self.ws.cell(row, 11, )
-                self.ws.cell(row, 12, "True")
-                self.ws.cell(row, 13, entry_20.fee_20)
-                self.ws.cell(row, 14, )
-                self.ws.cell(row, 15, )
-                self.ws.cell(row, 16, event.func.team_name_resolve(rider.club))
-                self.ws.cell(row, 17, entry_20.class_20)
-                self.ws.cell(row, 18, rider.transponder_20)
-                self.ws.cell(row, 19, )
+                self.ws.cell(row, 10, rider.uci_id)
+                if rider.is_elite:
+                    self.ws.cell(row, 11, "E")
+                else:
+                    self.ws.cell(row, 11, "C")
+                self.ws.cell(row, 12, "U")
+                self.ws.cell(row, 13, )
+                self.ws.cell(row, 14, "true")
+                self.ws.cell(row, 15, entry_20.fee_20)
+                self.ws.cell(row, 16,)
+                self.ws.cell(row, 17,)
+                self.ws.cell(row, 18,entry_20.class_20)
                 if rider.plate_champ_20:
                     world_plate = "W" + str(rider.plate_champ_20)
-                    self.ws.cell(row, 20, world_plate)
+                    self.ws.cell(row, 19, world_plate)
                 else:
-                    self.ws.cell(row, 20, rider.plate)
-                self.ws.cell(row, 21, )
-                self.ws.cell(row, 22, )
-                self.ws.cell(row, 23, )
-                self.ws.cell(row, 24, )
+                    self.ws.cell(row, 19, rider.plate)
+                self.ws.cell(row, 20, rider.transponder_20)
 
             except Exception as E:
                 print("Chyba při ukládání jezdce do REM: ", E)
@@ -324,33 +322,30 @@ class REMRiders:
         for entry_24 in entries_24:
             try:
                 rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
-                self.ws.cell(row, 1, rider.uci_id)
-                self. ws.cell(row, 2, rider.uci_id)
-                self.ws.cell(row, 3, rider.first_name)
-                self.ws.cell(row, 4, rider.last_name)
-                self.ws.cell(row, 5, rider.email)
-                self.ws.cell(row, 6, event.func.team_name_resolve(rider.club))
+                self.ws.cell(row, 1, self.event.name)
+                self.ws.cell(row, 2, rider.first_name)
+                self.ws.cell(row, 3, rider.last_name)
+                self.ws.cell(row, 4, rider.email)
+                self.ws.cell(row, 5, event.func.team_name_resolve(rider.club))
+                self.ws.cell(row, 6, )
                 self.ws.cell(row, 7, "CZE")
                 self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(rider.date_of_birth))
                 self.ws.cell(row, 9, event.func.gender_resolve_small_letter(rider.gender))
-                self.ws.cell(row, 10, )
-                self.ws.cell(row, 11, )
-                self.ws.cell(row, 12, "True")
-                self.ws.cell(row, 13, entry_24.fee_24)
-                self.ws.cell(row, 14, )
-                self.ws.cell(row, 15, )
-                self.ws.cell(row, 16, event.func.team_name_resolve(rider.club))
-                self.ws.cell(row, 17, entry_24.class_24)
-                self.ws.cell(row, 18, rider.transponder_24)
-                self.ws.cell(row, 19, )
+                self.ws.cell(row, 10, rider.uci_id)
+                self.ws.cell(row, 11, "C")
+                self.ws.cell(row, 12, "U")
+                self.ws.cell(row, 13, )
+                self.ws.cell(row, 14, "true")
+                self.ws.cell(row, 15,entry_24.fee_24 )
+                self.ws.cell(row, 16, )
+                self.ws.cell(row, 17, )
+                self.ws.cell(row, 18, entry_24.class_24)
                 if rider.plate_champ_24:
-                    self.ws.cell(row, 20, "W" + str(rider.plate_champ_24))
+                    self.ws.cell(row, 19, "W" + str(rider.plate_champ_24))
                 else:
-                    self.ws.cell(row, 20, rider.plate)
-                self.ws.cell(row, 21, )
-                self.ws.cell(row, 22, )
-                self.ws.cell(row, 23, )
-                self.ws.cell(row, 24, rider.plate)
+                    self.ws.cell(row, 19, rider.plate)
+                self.ws.cell(row, 20,rider.transponder_24 )
+
 
             except Exception as E:
                 pass
@@ -361,13 +356,13 @@ class REMRiders:
 
         self.wb.save(file_name)
 
-        # export to tab delimited txt file for import in REM
-        file = pd.read_excel(file_name)
-        file_name_to_txt = file_name[:-4] + "txt"
-        file.to_csv(file_name_to_txt, sep="\t", index=False)
+        # # export to tab delimited txt file for import in REM
+        # file = pd.read_excel(file_name)
+        # file_name_to_txt = file_name[:-4] + "txt"
+        # file.to_csv(file_name_to_txt, sep="\t", index=False)
 
-        self.event.rem_entries = file_name_to_txt
+        self.event.rem_entries = file_name
         self.event.rem_entries_created = datetime.now()
         self.event.save()
 
-        self.remove_temp_file()
+        # self.remove_temp_file()
