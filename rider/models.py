@@ -87,6 +87,8 @@ class Rider(models.Model):
     emergency_contact = models.CharField(max_length=255, blank=True, null=True)
     emergency_phone = models.CharField(max_length=255, blank=True, null=True)
 
+    have_valid_insurance = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_approwe = models.BooleanField(default=False)
     valid_licence = models.BooleanField(default=True)
