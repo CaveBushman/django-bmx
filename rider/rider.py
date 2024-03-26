@@ -1,4 +1,5 @@
 import datetime
+import json
 import requests
 import re
 from decouple import config
@@ -51,6 +52,13 @@ def valid_licence(rider):
             rider.valid_licence = False
             rider.save()
         else:
+            url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={rider.uci_id}"
+            data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
+            data_json = data_json.text
+            data_json = json.loads(data_json)
+            rider.street = data_json['street']
+            rider.city = data_json['city']
+            rider.zip = data_json['postcode']
             rider.valid_licence = True
             rider.save()
     except Exception as e:

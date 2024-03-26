@@ -10,7 +10,9 @@
         <div class="flex">
           <div>
             {% csrf_token %}
+            {% if user.is_authenticated %}
             <button type="button" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" id="btn-add-event">Přidat další závod</button>
+            {% endif %}
           </div>
           <div>
             <button type="button" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" id="checkin-button">Přejít k placení</button>
