@@ -481,13 +481,8 @@ def event_admin_view(request, pk):
         for entry_20 in entries_20:
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id, have_valid_insurance=False)
-                uci_id = rider.uci_id
-                basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
-                url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
-                data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-                data_json = data_json.text
-                data_json = json.loads(data_json)
-                rider_address = data_json['street'] + ", " + data_json['city'] + ", PSČ: " + data_json['postcode']
+
+                rider_address = rider.street + ", " + rider.city + ", PSČ: " + rider.zip
 
                 ws.cell(x, 1, rider.class_20)
                 ws.cell(x, 2, rider.first_name)
@@ -500,7 +495,7 @@ def event_admin_view(request, pk):
 
         for entry_24 in entries_24:
             try:
-                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
+                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id, have_valid_insurace=False)
 
                 rider_address = rider.street + ", " + rider.city + ", PSČ: " + rider.zip
 
@@ -510,8 +505,8 @@ def event_admin_view(request, pk):
                 ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
                 ws.cell(x, 5, rider_address)
                 x = x + 1
-            except:
-                pass
+            except Exception as e:
+                print(f"Chyba souboru pojištění: {e}")
 
         wb.save(file_name)
         event.ec_insurance_file = file_name
