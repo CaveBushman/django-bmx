@@ -184,7 +184,7 @@ def excel_rem_first_line_online(ws):
 
 def is_registration_open(event):
     """ Function for check, if registration is open"""
-    now = timezone.now()  #.strftime("%m/%d/%Y, %H:%M:%S")
+    now = timezone.now()  # .strftime("%m/%d/%Y, %H:%M:%S")
 
     # if results is uploaded, registration is close
     if event.xls_results:
@@ -615,6 +615,8 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
 
     elif is_20:
         fee: int = resolve_event_fee(event, rider, is_20=True)
+        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+            fee = fee - event.price_of_insurance
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         line_item = {
             'price_data': {
@@ -632,6 +634,8 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
 
     else:
         fee: int = resolve_event_fee(event, rider, is_20=False)
+        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+            fee = fee - event.price_of_insurance
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         line_item = {
             'price_data': {
@@ -655,29 +659,30 @@ def clean_classes_on_event(event):
         classes += [event.classes_and_fees_like.beginners_1, event.classes_and_fees_like.beginners_2,
                     event.classes_and_fees_like.beginners_3]
     classes += [event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
-               event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
-               event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
-               event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
-               event.classes_and_fees_like.girls_10, event.classes_and_fees_like.cr_boys_12_and_under,
-               event.classes_and_fees_like.cr_girls_12_and_under, event.classes_and_fees_like.cr_boys_13_14,
-               event.classes_and_fees_like.cr_girls_13_16, event.classes_and_fees_like.cr_boys_15_16,
-               event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
-               event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
-               event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
-               event.classes_and_fees_like.cr_men_40_44,event.classes_and_fees_like.cr_men_45_49, event.classes_and_fees_like.cr_women_40_and_over,
-               event.classes_and_fees_like.cr_men_50_and_over, event.classes_and_fees_like.boys_11,
-               event.classes_and_fees_like.girls_11, event.classes_and_fees_like.boys_12,
-               event.classes_and_fees_like.girls_12, event.classes_and_fees_like.boys_13,
-               event.classes_and_fees_like.girls_13, event.classes_and_fees_like.boys_14,
-               event.classes_and_fees_like.girls_14, event.classes_and_fees_like.boys_15,
-               event.classes_and_fees_like.girls_15, event.classes_and_fees_like.boys_16,
-               event.classes_and_fees_like.girls_16, event.classes_and_fees_like.men_17_24,
-               event.classes_and_fees_like.women_17_24, event.classes_and_fees_like.men_25_29,
-               event.classes_and_fees_like.women_25_over, event.classes_and_fees_like.men_30_34,
-               event.classes_and_fees_like.men_35_over, event.classes_and_fees_like.men_junior,
-               event.classes_and_fees_like.women_junior, event.classes_and_fees_like.men_u23,
-               event.classes_and_fees_like.women_u23, event.classes_and_fees_like.men_elite,
-               event.classes_and_fees_like.women_elite]
+                event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
+                event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
+                event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
+                event.classes_and_fees_like.girls_10, event.classes_and_fees_like.cr_boys_12_and_under,
+                event.classes_and_fees_like.cr_girls_12_and_under, event.classes_and_fees_like.cr_boys_13_14,
+                event.classes_and_fees_like.cr_girls_13_16, event.classes_and_fees_like.cr_boys_15_16,
+                event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
+                event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
+                event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
+                event.classes_and_fees_like.cr_men_40_44, event.classes_and_fees_like.cr_men_45_49,
+                event.classes_and_fees_like.cr_women_40_and_over,
+                event.classes_and_fees_like.cr_men_50_and_over, event.classes_and_fees_like.boys_11,
+                event.classes_and_fees_like.girls_11, event.classes_and_fees_like.boys_12,
+                event.classes_and_fees_like.girls_12, event.classes_and_fees_like.boys_13,
+                event.classes_and_fees_like.girls_13, event.classes_and_fees_like.boys_14,
+                event.classes_and_fees_like.girls_14, event.classes_and_fees_like.boys_15,
+                event.classes_and_fees_like.girls_15, event.classes_and_fees_like.boys_16,
+                event.classes_and_fees_like.girls_16, event.classes_and_fees_like.men_17_24,
+                event.classes_and_fees_like.women_17_24, event.classes_and_fees_like.men_25_29,
+                event.classes_and_fees_like.women_25_over, event.classes_and_fees_like.men_30_34,
+                event.classes_and_fees_like.men_35_over, event.classes_and_fees_like.men_junior,
+                event.classes_and_fees_like.women_junior, event.classes_and_fees_like.men_u23,
+                event.classes_and_fees_like.women_u23, event.classes_and_fees_like.men_elite,
+                event.classes_and_fees_like.women_elite]
     classes = list(dict.fromkeys(classes))
     return classes
 
@@ -744,6 +749,7 @@ def set_beginner_class(rider, event):
     else:
         return ""
 
+
 def invalid_licence_in_event(event):
     """ Check invalid licence in event """
     check_20_entries = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=False)
@@ -770,4 +776,3 @@ def invalid_licence_in_event(event):
     invalid_licences = set(invalid_licences)  # odstranění duplicit, pokud jezdec jede 20" i 24"
 
     return invalid_licences
-

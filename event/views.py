@@ -3,6 +3,7 @@ import os
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import EntryClasses, Event, Result, Entry
 from rider.models import Rider, ForeignRider
+from club.models import Club
 from django.shortcuts import render, reverse, HttpResponseRedirect
 from django.conf import settings
 from django.contrib import messages
@@ -495,7 +496,7 @@ def event_admin_view(request, pk):
 
         for entry_24 in entries_24:
             try:
-                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id, have_valid_insurace=False)
+                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id, have_valid_insurance=False)
 
                 rider_address = rider.street + ", " + rider.city + ", PSČ: " + rider.zip
 
@@ -1092,3 +1093,21 @@ def checkout_view(request):
     else:
         data = {'confirmed_events': confirmed_events, 'user': user}
         return render(request, 'event/event-checkout.html', data)
+
+@login_required(login_url="/login/")
+def fees_on_event(request, pk):
+    """ Function for print fees in event by club"""
+    event = Event.objects.get(pk=pk)
+    entries = Entry.objects.filter(event=pk, checkout=False)
+    clubs = Club.objects.filter(is_active=True).order_by('team_name')
+    club_in_event = []
+    for club in clubs:
+        fee = 0
+        for entry in entries:
+            if club == entry.rider.club:
+                fee += entry.fee_20 + entry.fee_24 + entry.fee_beginner
+        if fee > 0:
+            club.fee = fee
+            club_in_event.append(club)
+    data = {"clubs": club_in_event, "event": event}
+    return render(request, 'event/fees-on-event.html', data)

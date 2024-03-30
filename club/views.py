@@ -50,7 +50,7 @@ def participation_in_races(request, pk):
             for participation in participation_in_race:
                 if participation.rider.id == rider_in_club.id:
                     # print (f"Jezdec {rider_in_club.first_name} {rider_in_club.last_name} se zúčastnil závodu {event.name} se startovným {participation.fee_20}")
-                    fees += participation.fee_20 + participation.fee_24 
+                    fees += participation.fee_20 + participation.fee_24 + participation.fee_beginner
                     count +=1
                     
         part = Participation()
@@ -62,7 +62,7 @@ def participation_in_races(request, pk):
             part_in_events.append(part)
         sum += fees
     print(part_in_events)
-    data = {'club':club, 'participations':part_in_events, 'sum':sum, 'year': this_year}
+    data = {'club': club, 'participations': part_in_events, 'sum': sum, 'year': this_year}
 
     return render(request, 'club/club-participation.html', data)
 
