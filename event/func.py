@@ -41,7 +41,7 @@ def date_of_birth_resolve_rem_online(date):
 
 def gender_resolve(rider):
     """ Set gender to BEM format """
-    if rider == "Žena":
+    if rider.gender == "Žena":
         return "F"
     else:
         return "M"
