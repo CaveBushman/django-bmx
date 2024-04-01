@@ -24,12 +24,11 @@ from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -37,7 +36,7 @@ ALLOWED_HOSTS = ['*']
 SECRET_KEY = config('SECRET_KEY')
 
 # STRIPE KEYS
-if  DEBUG:
+if DEBUG:
     STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY_TEST')
     STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY_TEST')
 else:
@@ -62,9 +61,9 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',
     'django_browser_reload',
-    #'fontawesomefree',
-    #'django_crontab',
-    
+    # 'fontawesomefree',
+    # 'django_crontab',
+
     # My app
     'rider',
     'event',
@@ -110,13 +109,12 @@ TEMPLATES = [
     },
 ]
 
-#Tailwind settings
+# Tailwind settings
 TAILWIND_APP_NAME = 'theme'
 TAILWIND_CSS_PATH = os.path.join(BASE_DIR, 'static/css/styles.css')
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
-
 
 WSGI_APPLICATION = 'bmx.wsgi.application'
 
@@ -131,7 +129,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -151,7 +148,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -165,14 +161,13 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS =  [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
@@ -188,14 +183,13 @@ REST_FRAMEWORK = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-LOGIN_REDIRECT_URL = "news:home"
-LOGOUT_REDIRECT_URL = 'news:home'
+LOGIN_REDIRECT_URL = 'accounts:login'
+LOGOUT_REDIRECT_URL = 'accounts:logout'
 
 if DEBUG:
     YOUR_DOMAIN = "http://localhost:8000"
 else:
     YOUR_DOMAIN = "http://czechbmx.cz"
-
 
 # email setting
 EMAIL_HOST = 'smtp.gmail.com'
@@ -206,20 +200,20 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 CKEDITOR_CONFIGS = {
-   'default': {
-       'toolbar_Full': [
+    'default': {
+        'toolbar_Full': [
             ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
             ['Link', 'Unlink', 'Anchor'],
             ['Image', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'SpecialChar'], ['Source'],
-            ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-            ['NumberedList','BulletedList'],
-            ['Indent','Outdent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['NumberedList', 'BulletedList'],
+            ['Indent', 'Outdent'],
             ['Maximize'],
         ],
         'extraPlugins': 'justify,liststyle,indent',
-   },
+    },
 }
 
 TAILWIND_CSS_PATH = 'css/dist/styles.css'

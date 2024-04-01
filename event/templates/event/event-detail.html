@@ -21,7 +21,7 @@
 
         <div class=""><a href="{% url 'event:entry-riders' event.id %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Přihlášení jezdci</a></div>
         <div class=""><a href="{% url 'event:summary_riders_in_event' event.id %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Počet přihlášených jezdců v kategoriích</a></div>
-        {% if request.user.is_superuser %}
+        {% if request.user.is_admin %}
                 <div class=""><a href="{% url 'event:fees-on-event' event.id %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Vybrané startovné</a></div>
         <div class=""><a href="{% url 'event:event-admin' event.id %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Administrace závodu</a></div>
         {% endif %}

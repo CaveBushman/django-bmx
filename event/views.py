@@ -14,21 +14,16 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.db.models import Q
 import pandas as pd
-from .result import GetResult
 from .func import *
 from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
 from datetime import date, datetime
-from django.utils import timezone
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
-import re
 from django.core import serializers
 from django.http import FileResponse, JsonResponse, HttpResponse
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
 from decouple import config
-import requests
-import requests.packages
 from django.utils import timezone
 
 
@@ -121,12 +116,12 @@ def add_entries_view(request, pk):
                 cart.is_beginner = True
                 cart.fee_beginner = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
                 cart.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-                if not Entry.objects.filter(rider=rider, event=event, is_beginner=True):
+                if not Entry.objects.filter(rider=rider, event=event, is_beginner=True, payment_complete=True):
                     cart.save()
 
         for rider_20 in riders_20:
             sum_fee += resolve_event_fee(event, rider_20, is_20=True)
-
+            print(rider_20)
             # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
@@ -136,12 +131,12 @@ def add_entries_view(request, pk):
                 cart.is_20 = True
                 cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
                 cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True):
+                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True,payment_complete=True):
                     cart.save()
 
         for rider_24 in riders_24:
             sum_fee += resolve_event_fee(event, rider_24, is_20=False)
-
+            print(rider_24)
             # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
@@ -151,7 +146,7 @@ def add_entries_view(request, pk):
                 cart.is_24 = True
                 cart.fee_24 = resolve_event_fee(event, rider_24, is_20=False)
                 cart.class_24 = resolve_event_classes(event, rider_24, is_20=False)
-                if not Entry.objects.filter(rider=rider_24, event=event, is_24=True):
+                if not Entry.objects.filter(rider=rider_24, event=event, is_24=True, payment_complete=True):
                     cart.save()
 
         if "btn_add" in request.POST:
@@ -953,7 +948,7 @@ def summary_riders_in_event(request, pk):
 
 @login_required(login_url="/login/")
 def confirm_user_order(request):
-    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False).order_by('event__date', 'rider__last_name')
+    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False, event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name', 'rider__first_name')
     duplicities = []
 
     if 'btn-del' in request.POST:

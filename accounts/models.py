@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+
+
 # Create your models here.
 
 class MyAccountManager(BaseUserManager):
@@ -10,16 +12,16 @@ class MyAccountManager(BaseUserManager):
 
         if not username:
             raise ValueError('Uživatel musí mít uživatelské jméno')
-
+        email = self.normalize_email(email)
         user = self.model(
-            email=self.normalize_email(email),
-            username=username,
+            email=email,
+            username=username.strip(),
             first_name=first_name,
             last_name=last_name,
         )
 
         user.set_password(password)
-        user.save(using = self._db)
+        user.save(using=self._db)
         return user
 
     def create_superuser(self, first_name, last_name, username, email, password):
@@ -37,24 +39,25 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class Account(AbstractBaseUser, PermissionsMixin):
-    first_name      = models.CharField(max_length=100)
-    last_name       = models.CharField(max_length=100)
-    username        = models.CharField(max_length=50, unique=True)
-    email           = models.EmailField(max_length=100, unique=True)
-    phone_number    = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    username = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(max_length=100, unique=True)
+    phone_number = models.CharField(max_length=50, default="")
 
     # required
 
-    date_joined     = models.DateTimeField(auto_now_add=True)
-    last_login      = models.DateTimeField(auto_now_add=True)
-    is_admin        = models.BooleanField(default=False)
-    is_staff        = models.BooleanField(default=False)
-    is_active       = models.BooleanField(default=False)
-    is_superuser    = models.BooleanField(default=False)
-    is_rider        = models.BooleanField(default=False)
-    is_commission   = models.BooleanField(default=False)
-    is_commissar    = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(auto_now_add=True)
+    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_rider = models.BooleanField(default=False)
+    is_commission = models.BooleanField(default=False)
+    is_commissar = models.BooleanField(default=False)
 
     # not required
     photo = models.ImageField(

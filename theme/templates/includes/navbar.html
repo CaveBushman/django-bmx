@@ -104,12 +104,15 @@
                 <!-- Active: "bg-gray-100", Not Active: "" -->
                 {% if user.is_authenticated %}
 <!--                <a href="{% url 'event:order' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Objednávky</a>-->
-                <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-4">Seznam registrací</a>
-                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Administrace</a>
-                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Odhlášení</a>
+                <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Seznam zaplacených registrací</a>
+                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
+                <a href="{% url 'accounts:signout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-3">Odhlášení</a>
                 {% else %}
-                <a href="{% url 'login' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-3">Přihlášení</a>
+                <a href="{% url 'accounts:signin' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-4">Přihlášení</a>
+                <a href="{% url 'accounts:signup' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-5">Registrace</a>
                 {% endif %}
+
+
               </div>
             </div>
           </div>
