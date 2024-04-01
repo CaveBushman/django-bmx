@@ -243,7 +243,7 @@ class REMRiders:
             self.ws.cell(row, 6, )
             self.ws.cell(row, 7, "CZE")
             self.ws.cell(row, 8, event.func.date_of_birth_resolve(rider))
-            self.ws.cell(row, 9,)
+            self.ws.cell(row, 9, gender_resolve(rider))
             self.ws.cell(row, 10, rider.uci_id)
             if rider.is_elite:
                 self.ws.cell(row, 11, "E")
