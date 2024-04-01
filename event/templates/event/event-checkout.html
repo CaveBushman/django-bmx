@@ -3,7 +3,7 @@
 
 <header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold dark:text-gray-200">Seznam registrací na závody - uživatel {{user.first_name}} {{user.last_name}}</h1>
+    <h1 class="text-2xl font-bold dark:text-gray-200">Seznam zaplacených registrací na závody - uživatel {{user.first_name}} {{user.last_name}}</h1>
   </div>
 </header>
 
@@ -21,7 +21,7 @@
               <th scope="col" class="hidden sm:block px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Závod</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Kategorie</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Status</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center dark:bg-gray-800 dark:text-gray-200">Odhlásit/odhlášen</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 text-center dark:bg-gray-800 dark:text-gray-200">Změnit stav přihlášení</th>
 
             </tr>
           </thead>
@@ -69,8 +69,10 @@
                   {% endif %}
               </td>
             </tr>
+
             {% endif %}
             {% endfor %}
+          <tr><td></td><td></td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
         </div>

@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('', include('news.urls')),
     path('change/', change_theme, name='change'),
+    path('accounts/', include('accounts.urls')),
     path('event/', include('event.urls')),
     path('rider/', include('rider.urls')),
     path('club/', include('club.urls')),
