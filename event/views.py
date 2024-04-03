@@ -25,6 +25,7 @@ from openpyxl import load_workbook
 import stripe
 from decouple import config
 from django.utils import timezone
+from event.func import update_cart
 
 
 # Create your views here.
@@ -948,6 +949,14 @@ def summary_riders_in_event(request, pk):
 
 @login_required(login_url="/login/")
 def confirm_user_order(request):
+    # aktualizuj košík
+    update_cart(request)
+    # vymaž propadnuté registrace, rigistrace již byla ukončena a nebyla zaplacena
+    delete_reg = Entry.objects.filter(user__id=request.user.id, payment_complete=False, event__reg_open_to__lt=datetime.now())
+    if delete_reg:
+        delete_reg.delete()
+        return redirect('event:order')
+    # načti platné registrace v nákupním košíku
     orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False, event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name', 'rider__first_name')
     duplicities = []
 

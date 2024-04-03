@@ -24,6 +24,9 @@ class GetResult:
     def get_ranking_points(self):
         """ Function for give points depend by event place and ranking code """
 
+        if "Beginner" or "beginner" in self.category:
+            return 0
+
         # RANKING CODE 1 - Mistrovství ČR jednotlivců
         if self.ranking_code == 1:
             if self.place == "1":
