@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from rider.models import Rider
-from .ranking import RankingCount, Categories
-from event.models import Result
+from .ranking import Categories
 import re
-import datetime
+
 
 
 # Create your views here.
