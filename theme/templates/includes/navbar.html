@@ -105,7 +105,9 @@
                 {% if user.is_authenticated %}
 <!--                <a href="{% url 'event:order' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Objednávky</a>-->
                 <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Seznam zaplacených registrací</a>
+                {% if user.is_admin %}
                 <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
+                {% endif %}
                 <a href="{% url 'accounts:signout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-3">Odhlášení</a>
                 {% else %}
                 <a href="{% url 'accounts:signin' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-4">Přihlášení</a>
@@ -175,12 +177,15 @@
         </div>
         <div class="mt-3 space-y-1 px-2">
 
-          {% if user.is_authenticated%}
+          {% if user.is_authenticated %}
           {% comment %} <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Your Profile</a> {% endcomment %}
+          {% if user.is_admin %}
           <a href="{% url 'admin:index' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Administrace</a>
-          <a href="{% url 'logout' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Odhlášení</a>
+          {% endif %}
+          <a href="{% url 'accounts:signout' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Odhlášení</a>
           {% else %}
-          <a href="{% url 'login' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Přihlášení</a>
+          <a href="{% url 'accounts:signin' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Přihlášení</a>
+          <a href="{% url 'accounts:signup' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Registrace</a>
           {% endif %}
         </div>
       </div>
