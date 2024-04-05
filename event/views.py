@@ -686,7 +686,6 @@ def event_admin_view(request, pk):
 
     # ALL RIDERS FOR BEM 
     if 'btn-riders-list' in request.POST:
-        print("Vytvoř riders list")
         file_name = f'media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
         wb = Workbook()
         wb.encoding = "utf-8"
