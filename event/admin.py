@@ -20,7 +20,7 @@ class EntryClassesAdmin(admin.ModelAdmin):
         }),
 
         ('Kategorie příchozí', {
-            "fields": (('beginners_1', 'beginners_2', 'beginners_3')),
+            "fields": (('beginners_1', 'beginners_2', 'beginners_3', 'beginners_4')),
             'description': "Zde vyplň katerogie příchozích, které se pojedou v závodě"
         }),
 
@@ -49,7 +49,7 @@ class EntryClassesAdmin(admin.ModelAdmin):
         }),
 
         ('Startovné Příchozí', {
-            "fields": ('beginners_1_fee', 'beginners_2_fee', 'beginners_3_fee'),
+            "fields": ('beginners_1_fee', 'beginners_2_fee', 'beginners_3_fee', 'beginners_4_fee'),
         }),
 
         ('Startovné muži', {   

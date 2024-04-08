@@ -92,6 +92,8 @@
                   <div class="mt-1">
                     {% if order.fee_20 %}
                       Startovné: {{order.fee_20}} CZK
+                    {% elif order.fee_beginner %}
+                      Startovné: {{order.fee_beginner}} CZK
                     {% else %}
                       Startovné: {{order.fee_24}} CZK
                     {% endif %}

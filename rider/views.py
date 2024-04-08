@@ -9,7 +9,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from bmx import settings
 from .models import Rider
-from .rider import two_years_inactive, CheckValidLicenceThread, Participation, Cruiser
+from .rider import two_years_inactive, CheckValidLicenceThread, Participation, Cruiser, RiderSetClassesThread
 from func.rider import set_all_riders_classes
 from club.models import Club
 import json
@@ -234,7 +234,7 @@ def licence_check_views(request):
     """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
     messages.success(request, "Platnost licencí je prověřována na pozadí.")
-    data={}
+    data = {}
     return render(request, 'rider/rider-success.html', data)
 
 
@@ -258,9 +258,10 @@ def participation_riders_on_event(request):
 
 @staff_member_required
 def recalculate_riders_classes(request):
-    set_all_riders_classes()
+    # set_all_riders_classes()
+    RiderSetClassesThread().start()
     messages.success(request, "Kategorie jezdců jsou přepočítávány na pozadí.")
-    data={}
+    data = {}
     return render(request, 'rider/rider-success.html', data)
 
 @staff_member_required
