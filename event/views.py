@@ -47,7 +47,7 @@ def events_list_view(request):
     last_year = int(year) - 1
     data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
 
-    return render(request, 'event/events-list.html', data)
+    return render(request, 'event/events-list_new.html', data)
 
 
 def events_list_by_year_view(request, pk):
@@ -66,7 +66,7 @@ def events_list_by_year_view(request, pk):
     last_year = int(year) - 1
     data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
 
-    return render(request, 'event/events-list.html', data)
+    return render(request, 'event/events-list_new.html', data)
 
 
 def event_detail_views(request, pk):
