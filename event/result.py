@@ -24,7 +24,7 @@ class GetResult:
     def get_ranking_points(self):
         """ Function for give points depend by event place and ranking code """
 
-        if "Beginner" or "beginner" in self.category:
+        if ("beginners" in self.category) or ("Beginners" in self.category):
             return 0
 
         # RANKING CODE 1 - Mistrovství ČR jednotlivců
@@ -66,9 +66,7 @@ class GetResult:
 
         # RANKING CODE 2 - Český pohár
         elif self.ranking_code == 2:
-            if "Beginner" in self.category:
-                return 0
-            elif self.place == "1":
+            if self.place == "1":
                 return 150
             elif self.place == "2":
                 return 130
@@ -105,10 +103,7 @@ class GetResult:
 
         # RANKING CODE 3 - Česká liga, Moravská liga, Volný závod
         elif self.ranking_code == 3:
-
-            if "Beginner" in self.category:
-                return 0
-            elif self.place == "1":
+            if self.place == "1":
                 return 90
             elif self.place == "2":
                 return 70
@@ -137,9 +132,7 @@ class GetResult:
 
         # RANKING CODE 4 - Volný závod - nyní nepoužívat
         elif self.ranking_code == 4:
-            if "Beginner" in self.category:
-                return 0
-            elif self.place == "1":
+            if self.place == "1":
                 return 60
             elif self.place == "2":
                 return 45
