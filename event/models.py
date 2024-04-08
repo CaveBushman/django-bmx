@@ -18,6 +18,7 @@ class EntryClasses(models.Model):
     beginners_1 = models.CharField(max_length=50, blank=True, null=True)
     beginners_2 = models.CharField(max_length=50, blank=True, null=True)
     beginners_3 = models.CharField(max_length=50, blank=True, null=True)
+    beginners_4 = models.CharField(max_length=50, blank=True, null=True)
 
     boys_6 = models.CharField(max_length=50, blank=True, null=True)
     boys_7 = models.CharField(max_length=50, blank=True, null=True)
@@ -77,6 +78,7 @@ class EntryClasses(models.Model):
     beginners_1_fee = models.IntegerField(default=0)
     beginners_2_fee = models.IntegerField(default=0)
     beginners_3_fee = models.IntegerField(default=0)
+    beginners_4_fee = models.IntegerField(default=0)
 
     boys_6_fee = models.IntegerField(default=0)
     boys_7_fee = models.IntegerField(default=0)

@@ -13,7 +13,7 @@ import re
 class Rider(models.Model):
     """ Class for rider """
 
-    CLASS_BEGINNERS = (('Beginners 1', 'Beginners 1'), ('Beginners 2', 'Beginners 2'),  ('Beginners 3', 'Beginners 3'), ('', ''))
+    CLASS_BEGINNERS = (('Beginners 1', 'Beginners 1'), ('Beginners 2', 'Beginners 2'),  ('Beginners 3', 'Beginners 3'), ('Beginners 4', 'Beginners 4'))
 
     CLASS_20 = (
     ('Boys 6', 'Boys 6'), ('Boys 7', 'Boys 7'), ('Boys 8', 'Boys 8'), ('Boys 9', 'Boys 9'), ('Boys 10', 'Boys 10'),
@@ -25,6 +25,7 @@ class Rider(models.Model):
     ('Women 17-24', 'Women 17-24'), ('Women 25 and over', 'Women 25 and over'), ('Men Junior', 'Men Junior'),
     ('Men Under 23', 'Men Under 23'), ('Men Elite', 'Men Elite'), ('Women Junior', 'Women Junior'),
     ('Women Under 23', 'Women Under 23'), ('Women Elite', 'Women Elite'))
+
     CLASS_24 = (
     ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
     ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
@@ -39,6 +40,8 @@ class Rider(models.Model):
     middle_name = models.CharField(max_length=255, blank=True, null=True)
     last_name = models.CharField(max_length=255, blank=False)
 
+    nationality = models.CharField(max_length=3, default="CZE")
+
     date_of_birth = models.DateField(blank=False)
     rc = models.CharField(max_length=1000, blank=True, null=True, default="")
     gender = models.CharField(choices=GENDER, max_length=10)
@@ -49,7 +52,7 @@ class Rider(models.Model):
 
     street = models.CharField(max_length=1000, blank=True, null=True, default="")
     city = models.CharField(max_length=1000, blank=True, null=True, default="")
-    zip=models.CharField(max_length=1000, blank=True, null=True, default="")
+    zip = models.CharField(max_length=1000, blank=True, null=True, default="")
 
     photo = models.ImageField(
         upload_to='images/riders/', blank=True, null=True, default='images/riders/uni.jpeg')
@@ -74,7 +77,7 @@ class Rider(models.Model):
         max_length=50, choices=CLASS_20, default="Boys 6", null=True)
     class_24 = models.CharField(
         max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True)
-    class_beginner=models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="", blank=True, null=True)
+    class_beginner = models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="Beginners 4", blank=True, null=True)
 
     transponder_20 = models.CharField(max_length=8, blank=True, null=True)
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
@@ -124,7 +127,7 @@ class Rider(models.Model):
         elif age <= 10:
             return "Beginners 3"
         else:
-            return ""
+            return "Beginners 4"
 
     @staticmethod
     def set_class_20(rider):

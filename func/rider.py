@@ -1,5 +1,6 @@
 from rider.models import Rider
 from datetime import date
+import time
 import threading
 
 def set_all_riders_classes():
@@ -9,6 +10,8 @@ def set_all_riders_classes():
         threading.Thread(target=rider.set_class_beginner(rider)).start()
         threading.Thread(target=rider.set_class_20(rider)).start()
         threading.Thread(target=rider.set_class_24(rider)).start()
+        while threading.active_count() > 150:
+            time.sleep(5)
     print("Kategorie jezdců nastaveny")
 
 def clear_transponders():

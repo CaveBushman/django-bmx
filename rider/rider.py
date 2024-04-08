@@ -9,7 +9,6 @@ from event.models import Result, Event, Entry
 import threading
 from django.utils import timezone
 
-
 now = datetime.date.today().year
 INACTIVE_YEARS = 2  # for inactive riders function
 
@@ -31,6 +30,20 @@ class CheckValidLicenceThread(threading.Thread):
                 valid_licence(rider)
 
 
+class RiderSetClassesThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        riders = Rider.objects.filter(is_active=True)
+        for rider in riders:
+            rider.class_beginner = rider.set_class_beginner(rider)
+            rider.class_20 = rider.set_class_20(rider)
+            rider.class_24 = rider.set_class_24(rider)
+            rider.save()
+
+
+
 def valid_licence(rider):
     """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
 
@@ -44,7 +57,8 @@ def valid_licence(rider):
         requests.packages.urllib3.disable_warnings()
         dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
         if dataJSON.text == "false" or dataJSON.status_code != 200:
-            print(f"UCI ID {rider.uci_id}, jezdec {rider.first_name} {rider.last_name} NEEXISTUJE V DATABÁZI ČSC NEBO NEMÁ PLATNOU LICENCI")
+            print(
+                f"UCI ID {rider.uci_id}, jezdec {rider.first_name} {rider.last_name} NEEXISTUJE V DATABÁZI ČSC NEBO NEMÁ PLATNOU LICENCI")
             rider.valid_licence = False
             rider.save()
         elif re.search("Http_NotFound", dataJSON.text):
@@ -151,7 +165,8 @@ class Cruiser:
         self.__NUMBER_OF_PCS = number
 
     def calculate_median(self):
-        entries = Entry.objects.filter(event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year, payment_complete=True, checkout=False).order_by('-rider__date_of_birth')
+        entries = Entry.objects.filter(event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year,
+                                       payment_complete=True, checkout=False).order_by('-rider__date_of_birth')
         cruisers_in_events = []
         for entry in entries:
             if entry.rider not in cruisers_in_events:
@@ -160,13 +175,13 @@ class Cruiser:
         ages = []
         position: int = 1
         for cruiser in cruisers_in_events:
-            participations = Entry.objects.filter(rider=cruiser, event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year, payment_complete=True, checkout=False)
+            participations = Entry.objects.filter(rider=cruiser, event__type_for_ranking="Český pohár", is_24=True,
+                                                  event__date__year=self.year, payment_complete=True, checkout=False)
             if len(participations) >= self.__NUMBER_OF_CUPS:
                 cruiser_results.append(cruiser)
-                age = cruiser.get_age(cruiser)+1
+                age = cruiser.get_age(cruiser) + 1
                 cruiser.age = age
                 cruiser.position = position
                 ages.append(age)
                 position += 1
         return cruiser_results
-

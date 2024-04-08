@@ -214,7 +214,7 @@ def resolve_event_classes(event, rider, is_20, is_beginner=False):
         elif rider.class_beginner == "Beginners 3":
             return event_classes.beginners_3
         else:
-            return None
+            return event_classes.beginners_4
 
     if is_20 and (rider.gender == "Muž" or rider.gender == "Ostatní"):
         if rider.class_20 == "Boys 6":
@@ -748,6 +748,17 @@ def set_beginner_class(rider, event):
             return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
     else:
         return ""
+
+
+def is_beginner(rider):
+    """ Function for resolve, if rider can registration to beginners class """
+    entries = Entry.objects.filter(checkout=False, payment_complete=True, rider=rider, event__date__year=datetime.today().year)
+    if entries.count() >= 3 or rider.is_elite:
+        print(f"Jezdec {rider.last_name} má {entries.count()} registrací v roce {datetime.today().year}")
+        return False
+    else:
+        print(f"{rider.last_name} {rider.class_beginner}")
+        return True
 
 
 def invalid_licence_in_event(event):

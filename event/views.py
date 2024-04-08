@@ -122,7 +122,6 @@ def add_entries_view(request, pk):
 
         for rider_20 in riders_20:
             sum_fee += resolve_event_fee(event, rider_20, is_20=True)
-            print(rider_20)
             # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
@@ -137,7 +136,6 @@ def add_entries_view(request, pk):
 
         for rider_24 in riders_24:
             sum_fee += resolve_event_fee(event, rider_24, is_20=False)
-            print(rider_24)
             # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
@@ -190,7 +188,9 @@ def add_entries_view(request, pk):
 
         # classes for Beginners
         if event.is_beginners_event():
-            rider.class_beginner = set_beginner_class(rider, event)
+            rider.is_beginner = is_beginner(rider)
+            if rider.is_beginner:
+                rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         if rider.is_elite:
@@ -934,7 +934,7 @@ def summary_riders_in_event(request, pk):
             pass
         elif ("Cruiser" or "cruiser") in class_20_24:
             sum_20_24.count_riders_24()
-        elif ("Příchozí") in class_20_24:
+        elif "Příchozí" or "Beginners" in class_20_24:
             sum_20_24.count_beginners()
         else:
             sum_20_24.count_riders_20()
@@ -969,6 +969,7 @@ def confirm_user_order(request):
         line_items = []
         price: int = 0
         for order in orders:
+            print(order)
             if order.is_beginner:
                 line_items += generate_stripe_line(order.event, order.rider, is_20=True, is_beginner=True)
                 if check_entry_duplicity(order.event, order.rider, is_beginner=True):
