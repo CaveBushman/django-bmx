@@ -538,19 +538,14 @@ def event_admin_view(request, pk):
                 first_name = data.iloc[i][2]
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
-
-                # Kategorie Příchozích neboduje do rankingu
-                if category.find("Příchozí") == -1 and category.find("Prichozi") == -1:
-                    result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
+                result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
                                        first_name,
                                        last_name, club, event.organizer.team_name, event.type_for_ranking)
-                    result.write_result()
-
+                result.write_result()
             event.xls_results = "xls_results" + uploaded_file_url
             event.save()
 
             SetRanking().start()
-
             return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
 
     if 'btn-delete-xls' in request.POST:
