@@ -13,9 +13,9 @@
 
 <div class="mt-8 mx-6">
   <div class="flex flex-row-reverse bd-highlight mr-6">
-      {% if request.user.is_superuser %}
+      {% if request.user.is_admin %}
       <a
-      href="{% url 'rider:admin' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Administrace jezdců</button>
+      href="{% url 'rider:admin' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Administrace jezdců</a>
       {% endif %}
     <a
     href="{% url 'rider:new' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Požádat o startovní číslo</a>
@@ -147,7 +147,6 @@
   </div>
   <script src="{% static 'js/rider.js' %}"></script>
   <script src="{% static 'js/arrow.js' %}"></script>
-</div>
 </div>
 
 {% endblock content %}
