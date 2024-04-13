@@ -53,13 +53,10 @@ def events_list_view(request):
 def events_list_by_year_view(request, pk):
     events = Event.objects.filter(date__year=pk).order_by('date')
     for event in events:
-        if event.canceled:
+        if event.canceled or event.classes_and_fees_like.event_name == "Dosud nenastaveno":
             event.reg_open = False
         else:
             event.reg_open = is_registration_open(event)
-
-        if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
-            event.reg_open = False
         event.save()
     year = pk
     next_year = int(year) + 1
@@ -131,7 +128,7 @@ def add_entries_view(request, pk):
                 cart.is_20 = True
                 cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
                 cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True,payment_complete=True):
+                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True, payment_complete=True):
                     cart.save()
 
         for rider_24 in riders_24:
@@ -188,6 +185,7 @@ def add_entries_view(request, pk):
 
         # classes for Beginners
         if event.is_beginners_event():
+            event.is_beginners_race = True
             rider.is_beginner = is_beginner(rider)
             if rider.is_beginner:
                 rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
@@ -276,8 +274,8 @@ def confirm_view(request):
                 current_fee = resolve_event_fee(event, current_rider, 1)
                 current_class = resolve_event_classes(event, current_rider, is_20=True, is_beginner=True)
                 entry = Entry(transaction_id=checkout_session.id, event=event,
-                                   rider=current_rider, is_beginner=True, is_20=False, is_24=False,
-                                   class_beginner=current_class, class_20="", class_24="", fee_beginner=current_fee)
+                              rider=current_rider, is_beginner=True, is_20=False, is_24=False,
+                              class_beginner=current_class, class_20="", class_24="", fee_beginner=current_fee)
                 entry.save()
 
             for rider in riders_20_list:
@@ -286,8 +284,8 @@ def confirm_view(request):
                 current_class = resolve_event_classes(event, current_rider, is_20=True)
                 print(checkout_session.id)
                 entry = Entry(transaction_id=checkout_session.id, event=event,
-                                   rider=current_rider, is_20=True, is_24=False, is_beginner=False,
-                                   class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
+                              rider=current_rider, is_20=True, is_24=False, is_beginner=False,
+                              class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
                 entry.save()
 
             for rider in riders_24_list:
@@ -295,8 +293,8 @@ def confirm_view(request):
                 current_fee = resolve_event_fee(event, current_rider, 0)
                 current_class = resolve_event_classes(event, current_rider, is_20=False)
                 entry = Entry(transaction_id=checkout_session.id, event=event,
-                                   rider=current_rider, is_20=False, is_24=True, is_beginner=False,
-                                   class_beginner="", class_24=current_class, class_20="", fee_24=current_fee)
+                              rider=current_rider, is_20=False, is_24=True, is_beginner=False,
+                              class_beginner="", class_24=current_class, class_20="", fee_24=current_fee)
                 entry.save()
             del entry
 
@@ -539,8 +537,8 @@ def event_admin_view(request, pk):
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
                 result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
-                                       first_name,
-                                       last_name, club, event.organizer.team_name, event.type_for_ranking)
+                                   first_name,
+                                   last_name, club, event.organizer.team_name, event.type_for_ranking)
                 result.write_result()
             event.xls_results = "xls_results" + uploaded_file_url
             event.save()
@@ -578,7 +576,7 @@ def event_admin_view(request, pk):
         ws.title = "BEM5_EXT"
         ws = excel_first_line(ws)
 
-        #TODO: entries beginners classes
+        # TODO: entries beginners classes
 
         entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=0)
         x = 2
@@ -777,14 +775,12 @@ def event_admin_view(request, pk):
 
     # ON LINE ENTRIES FOR REM
     if 'btn-rem-file' in request.POST:
-
         all_entries = REMRiders()
         all_entries.event = event
         all_entries.create_entries_list()
 
     # ALL RIDERS FOR REM
     if 'btn-rem-riders-list' in request.POST:
-
         all_riders = REMRiders()
         all_riders.event = event
         all_riders.create_all_riders_list()
@@ -946,12 +942,15 @@ def confirm_user_order(request):
     # aktualizuj košík
     update_cart(request)
     # vymaž propadnuté registrace, rigistrace již byla ukončena a nebyla zaplacena
-    delete_reg = Entry.objects.filter(user__id=request.user.id, payment_complete=False, event__reg_open_to__lt=datetime.now())
+    delete_reg = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
+                                      event__reg_open_to__lt=datetime.now())
     if delete_reg:
         delete_reg.delete()
         return redirect('event:order')
     # načti platné registrace v nákupním košíku
-    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False, event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name', 'rider__first_name')
+    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
+                                  event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name',
+                                                                            'rider__first_name')
     duplicities = []
 
     if 'btn-del' in request.POST:
@@ -988,7 +987,7 @@ def confirm_user_order(request):
                     price += order.fee_beginner + order.fee_20 + order.fee_24
         if duplicities:
             orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False).order_by('event__date',
-                                                                                       'rider__last_name')
+                                                                                                     'rider__last_name')
             sum: int = orders.count()
             data = {'orders': orders, 'price': price, 'sum': sum, "duplicities": duplicities}
             return render(request, 'event/order.html', data)
@@ -1066,6 +1065,7 @@ def check_order_payments(request):
     data = {}
     return render(request, 'event/success.html', data)
 
+
 @login_required(login_url="/login/")
 def checkout_view(request):
     user_id = request.user.id
@@ -1092,6 +1092,7 @@ def checkout_view(request):
     else:
         data = {'confirmed_events': confirmed_events, 'user': user}
         return render(request, 'event/event-checkout.html', data)
+
 
 @login_required(login_url="/login/")
 def fees_on_event(request, pk):

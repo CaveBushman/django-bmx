@@ -1,14 +1,11 @@
-import os
-import pandas as pd
 from django.conf import settings
 import event
 from .models import Entry, Event
 from rider.models import Rider
-from .func import *
-from datetime import date, datetime, time, timezone
+from datetime import datetime
 import stripe
 import json
-from openpyxl import Workbook, load_workbook
+from openpyxl import Workbook
 
 
 class EntryClass:
@@ -159,79 +156,48 @@ class NumberInEvent:
 
 
 class REMRiders:
-    """ Class for create all riders file for REM"""
+    """ Class for create riders lists xlsx file for REM ě"""
 
     def __init__(self):
         self.event = None
         self.file_name = None
         self.template_name = f"media/rem_entries/Rider_and_Registration.xlsx"
-        self.wb = load_workbook(self.template_name)
+        # self.wb = load_workbook(self.template_name)
+        self.wb = Workbook()
         self.wb.encoding = "utf-8"
         self.ws = self.wb.active
-        self.ws.title = "REM5_EXT"
+        self.ws.title = "Rider-Registration"
         self.riders = Rider.objects.filter(is_active=True, is_approwe=True)
 
-    def remove_temp_file(self):
-        try:
-            os.remove(f"{self.file_name}")
-        except Exception as e:
-            print(f"Nebyl nalezen soubor {self.file_name}")
-
     def first_line(self):
-        self.ws.cell(1, 1, "CLUB_DESCRIPTION")
-        self.ws.cell(1, 2, "TEAM_DESCRIPTION")
-        self.ws.cell(1, 3, "RIDER_FIRST")
-        self.ws.cell(1, 4, "RIDER_LAST")
-        self.ws.cell(1, 5, "RIDER_SEX")
-        self.ws.cell(1, 6, "RIDER_BIRTHDATE")
-        self.ws.cell(1, 7, "RIDER_MAIL")
-        self.ws.cell(1, 8, "RIDER_TYPE")
-        self.ws.cell(1, 9, "RIDER_LICENCE_TYPE")
-        self.ws.cell(1, 10, "RIDER_UCIID")
-        self.ws.cell(1, 11, "RIDER_UCIID_EXP_DATE")
-        self.ws.cell(1, 12, "RIDER_PLATE1")
-        self.ws.cell(1, 13, "RIDER_CHAMP_PLATE1")
-        self.ws.cell(1, 14, "RIDER_TRANSPONDER1")
-        self.ws.cell(1, 15, "RIDER_PLATE2")
-        self.ws.cell(1, 16, "RIDER_CHAMP_PLATE2")
-        self.ws.cell(1, 17, "RIDER_TRANSPONDER2")
-        self.ws.cell(1, 18, "RIDER_PLATE3")
-        self.ws.cell(1, 19, "RIDER_CHAMP_PLATE3")
-        self.ws.cell(1, 20, "RIDER_TRANSPONDER3")
-        self.ws.cell(1, 21, "RIDER_IDENT")
-        self.ws.cell(1, 22, "RIDER_ACTIVE")
-        self.ws.cell(1, 23, "RIDER_LOCKED")
-
-    def first_line_entries(self):
         """ set first line in REM online entries excel file """
-        self.ws.cell(1, 1, "uci_id")
-        self.ws.cell(1, 2, "uci_code")
-        self.ws.cell(1, 3, "first_name")
-        self.ws.cell(1, 4, "last_name")
-        self.ws.cell(1, 5, "email")
-        self.ws.cell(1, 6, "club")
-        self.ws.cell(1, 7, "country")
-        self.ws.cell(1, 8, "date_of_birth")
-        self.ws.cell(1, 9, "sex")
-        self.ws.cell(1, 10, "event")
-        self.ws.cell(1, 11, "event_date")
-        self.ws.cell(1, 12, "paid")
-        self.ws.cell(1, 13, "event_price")
-        self.ws.cell(1, 14, "admin_fee")
-        self.ws.cell(1, 15, "transponder_hire_price")
-        self.ws.cell(1, 16, "team_sponsor")
-        self.ws.cell(1, 17, "class_0")
-        self.ws.cell(1, 18, "transponder_0")
-        self.ws.cell(1, 19, "transponderhire_0")
-        self.ws.cell(1, 20, "plate_0")
-        self.ws.cell(1, 21, "class_1")
-        self.ws.cell(1, 22, "transponder_1")
-        self.ws.cell(1, 23, "transponderhire_1")
-        self.ws.cell(1, 24, "plate_1")
+        self.ws.cell(1, 1, "Event")
+        self.ws.cell(1, 2, "First")
+        self.ws.cell(1, 3, "Last")
+        self.ws.cell(1, 4, "Email")
+        self.ws.cell(1, 5, "Club")
+        self.ws.cell(1, 6, "Team")
+        self.ws.cell(1, 7, "Country")
+        self.ws.cell(1, 8, "Birthdate")
+        self.ws.cell(1, 9, "Sex")
+        self.ws.cell(1, 10, "UCIID")
+        self.ws.cell(1, 11, "Rider_type")
+        self.ws.cell(1, 12, "Rider_licence_type")
+        self.ws.cell(1, 13, "Rider_ident")
+        self.ws.cell(1, 14, "Paid")
+        self.ws.cell(1, 15, "Event_price")
+        self.ws.cell(1, 16, "Admin_fee")
+        self.ws.cell(1, 17, "Transponder_hire_price")
+        self.ws.cell(1, 18, "Class")
+        self.ws.cell(1, 19, "Plate")
+        self.ws.cell(1, 20, "Transponder")
+        self.ws.cell(1, 21, "Plate_1")  # cruiser
+        self.ws.cell(1, 22, "Transponder_1")  # cruiser
+        self.ws.cell(1, 23, "Transponder_hire_flag")
 
     def create_all_riders_list(self):
-        self.file_name = f'media/rem_riders/REM_RIDERS_LIST_FOR_RACE_ID-{self.event.id}.xlsx'
-        # self.first_line()
+        self.file_name = f'media/rem_riders/REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx'
+        self.first_line()
 
         row: int = 2
         for rider in self.riders:
@@ -277,8 +243,8 @@ class REMRiders:
         # self.remove_temp_file()
 
     def create_entries_list(self):
-        file_name = f'media/rem_entries/REM_FOR_RACE_ID-{self.event.id}.xlsx'
-        # self.first_line_entries()
+        file_name = f'media/rem_entries/REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx'
+        self.first_line()
         entries_20 = Entry.objects.filter(event=self.event.id, is_20=True, payment_complete=1, checkout=False)
         row: int = 2
         for entry_20 in entries_20:
@@ -302,9 +268,9 @@ class REMRiders:
                 self.ws.cell(row, 13, )
                 self.ws.cell(row, 14, "true")
                 self.ws.cell(row, 15, entry_20.fee_20)
-                self.ws.cell(row, 16,)
-                self.ws.cell(row, 17,)
-                self.ws.cell(row, 18,entry_20.class_20)
+                self.ws.cell(row, 16, )
+                self.ws.cell(row, 17, )
+                self.ws.cell(row, 18, entry_20.class_20)
                 if rider.plate_champ_20:
                     world_plate = "W" + str(rider.plate_champ_20)
                     self.ws.cell(row, 19, world_plate)
@@ -336,7 +302,7 @@ class REMRiders:
                 self.ws.cell(row, 12, "U")
                 self.ws.cell(row, 13, )
                 self.ws.cell(row, 14, "true")
-                self.ws.cell(row, 15,entry_24.fee_24 )
+                self.ws.cell(row, 15, entry_24.fee_24)
                 self.ws.cell(row, 16, )
                 self.ws.cell(row, 17, )
                 self.ws.cell(row, 18, entry_24.class_24)
@@ -344,7 +310,7 @@ class REMRiders:
                     self.ws.cell(row, 19, "W" + str(rider.plate_champ_24))
                 else:
                     self.ws.cell(row, 19, rider.plate)
-                self.ws.cell(row, 20,rider.transponder_24 )
+                self.ws.cell(row, 20, rider.transponder_24)
 
 
             except Exception as E:
@@ -355,14 +321,7 @@ class REMRiders:
         # TODO: Add foreign riders
 
         self.wb.save(file_name)
-
-        # # export to tab delimited txt file for import in REM
-        # file = pd.read_excel(file_name)
-        # file_name_to_txt = file_name[:-4] + "txt"
-        # file.to_csv(file_name_to_txt, sep="\t", index=False)
-
         self.event.rem_entries = file_name
         self.event.rem_entries_created = datetime.now()
         self.event.save()
 
-        # self.remove_temp_file()
