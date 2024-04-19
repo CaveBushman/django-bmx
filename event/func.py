@@ -657,7 +657,7 @@ def clean_classes_on_event(event):
     classes = []
     if event.is_beginners_event():
         classes += [event.classes_and_fees_like.beginners_1, event.classes_and_fees_like.beginners_2,
-                    event.classes_and_fees_like.beginners_3]
+                    event.classes_and_fees_like.beginners_3, event.classes_and_fees_like.beginners_4]
     classes += [event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
                 event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
                 event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
