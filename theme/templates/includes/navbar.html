@@ -104,7 +104,7 @@
                 <!-- Active: "bg-gray-100", Not Active: "" -->
                 {% if user.is_authenticated %}
 <!--                <a href="{% url 'event:order' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Objednávky</a>-->
-                <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Seznam zaplacených python3 mregistrací</a>
+                <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Seznam zaplacených registrací</a>
                 {% if user.is_admin %}
                 <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
                 {% endif %}
