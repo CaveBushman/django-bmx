@@ -147,7 +147,7 @@ class NumberInEvent:
     def count_riders_20(self):
         """ function for count riders in class """
         self.riders_in_category = Entry.objects.filter(event=self.event, class_20=self.category_name, is_20=True,
-                                                       payment_complete=True, checkout=False).count()
+                                                       payment_complete=True, checkout=False, is_beginner=False).count()
 
     def count_riders_24(self):
         """ function for count riders in class """

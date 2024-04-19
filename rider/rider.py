@@ -59,6 +59,7 @@ def valid_licence(rider):
         if dataJSON.text == "false" or dataJSON.status_code != 200:
             print(
                 f"UCI ID {rider.uci_id}, jezdec {rider.first_name} {rider.last_name} NEEXISTUJE V DATABÁZI ČSC NEBO NEMÁ PLATNOU LICENCI")
+            print(dataJSON.text)
             rider.valid_licence = False
             rider.save()
         elif re.search("Http_NotFound", dataJSON.text):

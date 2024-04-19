@@ -914,7 +914,6 @@ def summary_riders_in_event(request, pk):
     event = Event.objects.get(id=pk)
 
     classes_20_24 = clean_classes_on_event(event)
-
     count_20_24 = []
 
     for class_20_24 in classes_20_24:
@@ -925,7 +924,7 @@ def summary_riders_in_event(request, pk):
             pass
         elif ("Cruiser" or "cruiser") in class_20_24:
             sum_20_24.count_riders_24()
-        elif "Příchozí" or "Beginners" in class_20_24:
+        elif "Beginners" in class_20_24:
             sum_20_24.count_beginners()
         else:
             sum_20_24.count_riders_20()
