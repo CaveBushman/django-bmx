@@ -141,16 +141,17 @@ class NumberInEvent:
         self.category_name = ""
 
     def count_beginners(self):
+        """ function for count riders in class Beginners """
         self.riders_in_category = Entry.objects.filter(event=self.event, class_beginner=self.category_name,
                                                        is_beginner=True, payment_complete=True, checkout=False).count()
 
     def count_riders_20(self):
-        """ function for count riders in class """
+        """ function for count riders in class Challenge and Championschip """
         self.riders_in_category = Entry.objects.filter(event=self.event, class_20=self.category_name, is_20=True,
                                                        payment_complete=True, checkout=False, is_beginner=False).count()
 
     def count_riders_24(self):
-        """ function for count riders in class """
+        """ function for count riders in class Cruiser"""
         self.riders_in_category = Entry.objects.filter(event=self.event, class_24=self.category_name, is_24=True,
                                                        payment_complete=True, checkout=False).count()
 
