@@ -246,7 +246,7 @@ class REMRiders:
     def create_entries_list(self):
         file_name = f'media/rem_entries/REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx'
         self.first_line()
-        entries_20 = Entry.objects.filter(event=self.event.id, is_20=True, payment_complete=1, checkout=False)
+        entries_20 = Entry.objects.filter(event=self.event.id, is_24=False, payment_complete=1, checkout=False)
         row: int = 2
         for entry_20 in entries_20:
             try:
@@ -268,10 +268,17 @@ class REMRiders:
                 self.ws.cell(row, 12, "U")
                 self.ws.cell(row, 13, )
                 self.ws.cell(row, 14, "true")
-                self.ws.cell(row, 15, entry_20.fee_20)
+                if entry_20.is_beginner:
+                    self.ws.cell(row, 15, entry_20.fee_beginner)
+                else:
+                    self.ws.cell(row, 15, entry_20.fee_20)
                 self.ws.cell(row, 16, )
                 self.ws.cell(row, 17, )
-                self.ws.cell(row, 18, entry_20.class_20)
+                if entry_20.is_beginner:
+                    print("Našel jsem nováčka")
+                    self.ws.cell(row, 18, entry_20.class_beginner)
+                else:
+                    self.ws.cell(row, 18, entry_20.class_20)
                 if rider.plate_champ_20:
                     world_plate = "W" + str(rider.plate_champ_20)
                     self.ws.cell(row, 19, world_plate)
