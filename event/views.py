@@ -511,6 +511,8 @@ def event_admin_view(request, pk):
         data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
         return render(request, 'event/event-admin-ec.html', data)
 
+    if event.type_for_ranking == "Mistrovství světa":
+        pass
     # Admin page for Czech events
     if 'btn-upload-result' in request.POST:
         print("Stisknuto tlačítko nahrát výsledky v BEM")

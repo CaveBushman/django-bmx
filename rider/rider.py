@@ -43,7 +43,6 @@ class RiderSetClassesThread(threading.Thread):
             rider.save()
 
 
-
 def valid_licence(rider):
     """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
 
