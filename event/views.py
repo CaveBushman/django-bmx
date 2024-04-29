@@ -180,15 +180,18 @@ def add_entries_view(request, pk):
         return response
 
     # disable riders, who was registered in event
+
+    if event.is_beginners_event():
+        event.is_beginners_race = True
+
     for rider in riders:
         was_registered = Entry.objects.filter(event=event, rider=rider, payment_complete=True)
 
         # classes for Beginners
-        if event.is_beginners_event():
-            event.is_beginners_race = True
-            rider.is_beginner = is_beginner(rider)
-            if rider.is_beginner:
-                rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+        if event.is_beginners_race and is_beginner(rider):
+            rider.is_beginner = True
+            rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         if rider.is_elite:
@@ -207,7 +210,7 @@ def add_entries_view(request, pk):
 
 
 def entry_riders_view(request, pk):
-    """ View for registrated riders in event"""
+    """ View for registered riders in event"""
     event = Event.objects.get(id=pk)
     entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
     checkout = Entry.objects.filter(event=pk, payment_complete=1, checkout=1)

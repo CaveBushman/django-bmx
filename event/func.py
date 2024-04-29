@@ -381,8 +381,10 @@ def resolve_event_fee(event, rider, is_20, is_beginner=False):
             return event_classes.beginners_1_fee
         elif rider.class_beginner == "Beginners 2":
             return event_classes.beginners_2_fee
-        else:
+        elif rider.class_beginner == "Beginners 3":
             return event_classes.beginners_3_fee
+        else:
+            return event_class.beginners_4_fee
 
     if is_20 and (rider.gender == "Muž" or rider.gender == "Ostatní"):
         if rider.class_20 == "Boys 6":
@@ -735,7 +737,7 @@ def check_entry_duplicity(event, rider, is_beginner=False, is_20=False, is_24=Fa
             return False
 
 
-def set_beginner_class(rider, event):
+def set_beginner_class(rider, event): # NOT IN USE NOW
     """ Function for set beginner class """
     age = rider.get_age(rider)
     if age <= 6:
@@ -754,10 +756,8 @@ def is_beginner(rider):
     """ Function for resolve, if rider can registration to beginners class """
     entries = Entry.objects.filter(checkout=False, payment_complete=True, is_20=True, rider=rider, event__date__year=datetime.today().year)
     if entries.count() >= 3 or rider.is_elite:
-        print(f"Jezdec {rider.last_name} má {entries.count()} registrací v roce {datetime.today().year}")
         return False
     else:
-        print(f"{rider.last_name} {rider.class_beginner}")
         return True
 
 
