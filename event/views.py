@@ -183,6 +183,8 @@ def add_entries_view(request, pk):
 
     if event.is_beginners_event():
         event.is_beginners_race = True
+    else:
+        event.is_beginners_race = False
 
     for rider in riders:
         was_registered = Entry.objects.filter(event=event, rider=rider, payment_complete=True)
