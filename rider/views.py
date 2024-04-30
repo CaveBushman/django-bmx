@@ -238,7 +238,7 @@ def inactive_riders_views(request):
 def licence_check_views(request):
     """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
-    messages.success(request, "Platnost licencí je prověřována na pozadí.")
+    messages.success(request, "Ověřování platnosti licencí probíhá na pozadí.")
     data = {}
     return render(request, 'rider/rider-success.html', data)
 
