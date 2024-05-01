@@ -422,7 +422,10 @@ def event_admin_view(request, pk):
         sum_entiries = entries_20.count() + entries_24.count()
 
         file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
-        wb = load_workbook(filename='media/ec-files/Entries example - UEC.xlsx')
+        if event.type_for_ranking == "Evropský pohár":
+            wb = load_workbook(filename='media/ec-files/Entries example - UEC.xlsx')
+        else:
+            wb = load_workbook(filename='media/ec-files/Entries_upload_UEC_Champ_2024.xlsx')
         ws = wb.active
 
         x = 3
