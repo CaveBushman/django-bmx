@@ -12,6 +12,20 @@ from django.core.exceptions import FieldDoesNotExist
 
 # Create your models here.
 
+class SeasonSettings(models.Model):
+    year = models.IntegerField(default=2024)
+    qualify_to_cn = models.IntegerField (default=2)
+    best_cup = models.IntegerField(default=8)
+    best_cl = models.IntegerField(default=10)
+    best_ml = models.IntegerField(default=10)
+
+    def __str__(self):
+        return str(self.year)
+
+    class Meta:
+        verbose_name = "Nastavení sezony"
+        verbose_name_plural = 'Nastavení sezony'
+
 class EntryClasses(models.Model):
     event_name = models.CharField(max_length=200)
 

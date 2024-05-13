@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Result, EntryClasses, Entry, EntryForeign
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings
 
 # Register your models here.
 
@@ -79,9 +79,11 @@ class EntryAdmin(admin.ModelAdmin):
     list_editable = ('checkout',)
 
 
+
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result)
 admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign)
+admin.site.register(SeasonSettings)
 
