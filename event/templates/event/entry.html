@@ -134,120 +134,124 @@
                     <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 md:table-cell">
                         {{rider.uci_id}}
                     </td>
+                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_20 == False %}
 
-                    {% if rider.class_20 == "NENÍ VYPSÁNO" %}
-                    <td class="mt-1 text-sm truncate dark:text-gray-200">
-                        <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
+                        <td class = "text-red-500">Nekvalifikoval se</td>
+
+                    {% elif rider.class_20 == "NENÍ VYPSÁNO" %}
+                        <td class="mt-1 text-sm truncate dark:text-gray-200">
+                            <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
+                                <input
+                                        class=""
+                                        type="checkbox"
+                                        value="{{rider.uci_id}}"
+                                        id="checkbox_20"
+                                        name="checkbox_20"
+                                        disabled
+                                />
+                                {{rider.class_20}}
+                            </div>
+                        </td>
+                        {% elif 'registered' in rider.class_20 %}
+                        <td class="mt-1 text-sm truncate dark:dark">
+                            <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg dark:text-gray-200">
+                                <input
+                                        class=""
+                                        type="checkbox"
+                                        value="{{rider.uci_id}}"
+                                        id="checkbox_20"
+                                        name="checkbox_20"
+                                        checked
+                                        disabled
+                                />
+                                {{rider.class_20|slice:":-10" }}
+                            </div>
+                        </td>
+                        {% else %}
+                        <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
                             <input
                                     class=""
                                     type="checkbox"
                                     value="{{rider.uci_id}}"
                                     id="checkbox_20"
                                     name="checkbox_20"
-                                    disabled
                             />
                             {{rider.class_20}}
-                        </div>
-                    </td>
-                    {% elif 'registered' in rider.class_20 %}
-                    <td class="mt-1 text-sm truncate dark:dark">
-                        <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg dark:text-gray-200">
-                            <input
-                                    class=""
-                                    type="checkbox"
-                                    value="{{rider.uci_id}}"
-                                    id="checkbox_20"
-                                    name="checkbox_20"
-                                    checked
-                                    disabled
-                            />
-                            {{rider.class_20|slice:":-10" }}
-                        </div>
-                    </td>
-                    {% else %}
-                    <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                        <input
-                                class=""
-                                type="checkbox"
-                                value="{{rider.uci_id}}"
-                                id="checkbox_20"
-                                name="checkbox_20"
-                        />
-                        {{rider.class_20}}
-                    </td>
-                    {% endif %}
-
-                    {% if rider.class_24 == "NENÍ VYPSÁNO" %}
-                    <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                        <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
-                            <input
-                                    class=""
-                                    type="checkbox"
-                                    value="{{rider.uci_id}}"
-                                    id="checkbox_24"
-                                    name="checkbox_24"
-                                    disabled
-                            />{{rider.class_24}}
-                        </div>
-                    </td>
-                    {% elif rider.class_24 == "NELZE PŘIHLÁSIT" %}
-                    <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                    </td>
-                    {% elif 'registered' in rider.class_24 %}
-                    <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                        <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
-                            <input
-                                    class=""
-                                    type="checkbox"
-                                    value="{{rider.uci_id}}"
-                                    id="checkbox_24"
-                                    name="checkbox_24"
-                                    checked
-                                    disabled
-                            />{{rider.class_24|slice:":-10"}}
-                        </div>
-                    </td>
-                    {% else %}
-                    <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                        <input
-                                class=""
-                                type="checkbox"
-                                value="{{rider.uci_id}}"
-                                id="checkbox_24"
-                                name="checkbox_24"
-                        />
-                        {{rider.class_24}}
-                    </td>
-                    {% endif %}
-                    {% if event.is_beginners_race %}
-                        {% if 'registered' in rider.class_beginner %}
+                        </td>
+                        {% endif %}
+                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_24 == False %}
+                            <td class="text-red-500">Nekvalifikoval se</td>
+                        {% elif rider.class_24 == "NENÍ VYPSÁNO" %}
+                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
+                            <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
+                                <input
+                                        class=""
+                                        type="checkbox"
+                                        value="{{rider.uci_id}}"
+                                        id="checkbox_24"
+                                        name="checkbox_24"
+                                        disabled
+                                />{{rider.class_24}}
+                            </div>
+                        </td>
+                        {% elif rider.class_24 == "NELZE PŘIHLÁSIT" %}
+                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
+                        </td>
+                        {% elif 'registered' in rider.class_24 %}
                         <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
                             <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
                                 <input
                                         class=""
                                         type="checkbox"
                                         value="{{rider.uci_id}}"
-                                        id="checkbox_beginner"
-                                        name="checkbox_beginner"
-                                        disabled
+                                        id="checkbox_24"
+                                        name="checkbox_24"
                                         checked
-                                /> {{rider.class_beginner|slice:":-10"}}
+                                        disabled
+                                />{{rider.class_24|slice:":-10"}}
                             </div>
                         </td>
-                        {% elif rider.is_beginner %}
+                        {% else %}
                         <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
                             <input
                                     class=""
                                     type="checkbox"
                                     value="{{rider.uci_id}}"
-                                    id="checkbox_beginner"
-                                    name="checkbox_beginner"
-                            /> {{rider.class_beginner}}
+                                    id="checkbox_24"
+                                    name="checkbox_24"
+                            />
+                            {{rider.class_24}}
                         </td>
-                        {% else %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark"></td>
                         {% endif %}
-                    {% endif %}
+                        {% if event.is_beginners_race %}
+                            {% if 'registered' in rider.class_beginner %}
+                            <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
+                                <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
+                                    <input
+                                            class=""
+                                            type="checkbox"
+                                            value="{{rider.uci_id}}"
+                                            id="checkbox_beginner"
+                                            name="checkbox_beginner"
+                                            disabled
+                                            checked
+                                    /> {{rider.class_beginner|slice:":-10"}}
+                                </div>
+                            </td>
+                            {% elif rider.is_beginner %}
+                            <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
+                                <input
+                                        class=""
+                                        type="checkbox"
+                                        value="{{rider.uci_id}}"
+                                        id="checkbox_beginner"
+                                        name="checkbox_beginner"
+                                /> {{rider.class_beginner}}
+                            </td>
+                            {% else %}
+                            <td class="mt-1 text-sm truncate text-gray-700 dark:dark"></td>
+                            {% endif %}
+                        {% endif %}
                 </tr>
                 {% endfor %}
                 </tbody>
