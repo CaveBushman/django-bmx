@@ -11,7 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from bmx import settings
 from .models import Rider
 from .rider import two_years_inactive, CheckValidLicenceThread, Participation, Cruiser, RiderSetClassesThread, \
-    first_line_riders_by_club_and_class
+    first_line_riders_by_club_and_class, RiderQualifyToCNThread
 from func.rider import set_all_riders_classes
 from club.models import Club
 import json
@@ -346,3 +346,9 @@ def riders_by_class_and_club(request):
     wb.save(response)
 
     return response
+
+def qualify_to_cn(request):
+    RiderQualifyToCNThread().start()
+    messages.success(request, "Kvalifikace na Mistrovství České republiky je počítána na pozadí.")
+    data = {}
+    return render(request, 'rider/rider-success.html', data)

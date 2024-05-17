@@ -194,11 +194,6 @@ def add_entries_view(request, pk):
             rider.is_beginner = True
             rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
 
-        # check CN and fill qualify
-        if event.type_for_ranking == "Mistrovství ČR jednotlivců":
-            rider = qualify_riders_to_cn(datetime.today().year, rider)
-            print(f"Jezdec {rider} je kvalifikován: {rider.is_qualify_20}")
-
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         if rider.is_elite:

@@ -73,6 +73,9 @@ class Rider(models.Model):
     is_in_talent_team = models.BooleanField(default=False)
     is_in_representation = models.BooleanField(default=False)
 
+    is_qualify_to_cn_20 = models.BooleanField(default=False)
+    is_qualify_to_cn_24 = models.BooleanField(default=False)
+
     class_20 = models.CharField(
         max_length=50, choices=CLASS_20, default="Boys 6", null=True)
     class_24 = models.CharField(
