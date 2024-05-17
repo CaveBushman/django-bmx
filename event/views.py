@@ -196,9 +196,7 @@ def add_entries_view(request, pk):
 
         # check CN and fill qualify
         if event.type_for_ranking == "Mistrovství ČR jednotlivců":
-            rider.is_qualify_20 = qualify_riders_to_cn_20(datetime.today().year, rider)
-            rider.is_qualify_24 = qualify_riders_to_cn_24(datetime.today().year, rider)
-
+            rider = qualify_riders_to_cn(datetime.today().year, rider)
             print(f"Jezdec {rider} je kvalifikován: {rider.is_qualify_20}")
 
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
