@@ -235,7 +235,8 @@ class RiderQualifyToCNThread(threading.Thread):
         for rider in riders:
 
             qualify = 0
-            settings = SeasonSettings.objects.get(year=datetime.today().year)
+            year = datetime.datetime.today().year
+            settings = SeasonSettings.objects.get(year=year)
             entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
                                               is_20=True, is_beginner=False)
 
@@ -245,12 +246,13 @@ class RiderQualifyToCNThread(threading.Thread):
 
             if qualify >= settings.qualify_to_cn:
                 rider.is_qualify_to_cn_20 = True
+                print(f'Jezdec: {rider} se kvalifikoval')
             else:
                 rider.is_qualify_to_cn_20 = False
 
+            qualify = 0
             entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
                                               is_24=True)
-
             for entry in entries_24:
                 if entry.rider == rider:
                     qualify += 1
