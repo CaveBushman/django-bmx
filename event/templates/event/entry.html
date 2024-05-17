@@ -134,7 +134,7 @@
                     <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 md:table-cell">
                         {{rider.uci_id}}
                     </td>
-                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_20 == False %}
+                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_to_cn_20 == False %}
 
                         <td class = "text-red-500">Nekvalifikoval se</td>
 
@@ -179,7 +179,7 @@
                             {{rider.class_20}}
                         </td>
                         {% endif %}
-                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_24 == False %}
+                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and rider.is_qualify_to_cn_24 == False %}
                             <td class="text-red-500">Nekvalifikoval se</td>
                         {% elif rider.class_24 == "NENÍ VYPSÁNO" %}
                         <td class="mt-1 text-sm truncate text-gray-700 dark:dark">

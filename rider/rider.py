@@ -5,7 +5,7 @@ import re
 from decouple import config
 from openpyxl.workbook import Workbook
 from rider.models import Rider
-from event.models import Result, Event, Entry
+from event.models import Result, Event, Entry, SeasonSettings
 import threading
 from django.utils import timezone
 
@@ -223,3 +223,41 @@ def first_line_riders_by_club_and_class(ws):
     ws.cell(1, 33, 'MEN ELITE')
     ws.cell(1, 34, 'WOMEN ELITE')
 
+
+class RiderQualifyToCNThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+
+        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+
+        for rider in riders:
+
+            qualify = 0
+            settings = SeasonSettings.objects.get(year=datetime.today().year)
+            entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
+                                              is_20=True, is_beginner=False)
+
+            for entry in entries_20:
+                if entry.rider == rider:
+                    qualify += 1
+
+            if qualify >= settings.qualify_to_cn:
+                rider.is_qualify_20 = True
+            else:
+                rider.is_qualify_20 = False
+
+            entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
+                                              is_24=True)
+
+            for entry in entries_24:
+                if entry.rider == rider:
+                    qualify += 1
+
+            if qualify >= settings.qualify_to_cn:
+                rider.is_qualify_24 = True
+            else:
+                rider.is_qualify_24 = False
+
+            rider.save()
