@@ -225,6 +225,7 @@ def first_line_riders_by_club_and_class(ws):
 
 
 class RiderQualifyToCNThread(threading.Thread):
+    """ Class for set qualify to CN rider's status"""
     def __init__(self):
         threading.Thread.__init__(self)
 
@@ -241,15 +242,11 @@ class RiderQualifyToCNThread(threading.Thread):
             entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year,
                                               checkout=False, rider=rider, is_24=True).count()
 
+            rider.is_qualify_to_cn_20 = False
             if entries_20 >= settings.qualify_to_cn:
                 rider.is_qualify_to_cn_20 = True
-                print(f'Jezdec {rider} se kvalifikoval')
-            else:
-                rider.is_qualify_to_cn_20 = False
-                print(f'Jezdec {rider} se nekvalifikoval')
 
+            rider.is_qualify_to_cn_24 = False
             if entries_24 >= settings.qualify_to_cn:
                 rider.is_qualify_to_cn_24 = True
-            else:
-                rider.is_qualify_to_cn_24 = False
             rider.save()
