@@ -236,30 +236,20 @@ class RiderQualifyToCNThread(threading.Thread):
 
         for rider in riders:
 
-            entries = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year,
-                                           checkout=False)
-            qualify = 0
+            entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year,
+                                           checkout=False, rider=rider, is_20=True, is_beginner=False).count()
+            entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year,
+                                              checkout=False, rider=rider, is_24=True).count()
 
-            for entry in entries:
+            if entries_20 >= settings.qualify_to_cn:
+                rider.is_qualify_to_cn_20 = True
+                print(f'Jezdec {rider} se kvalifikoval')
+            else:
+                rider.is_qualify_to_cn_20 = False
+                print(f'Jezdec {rider} se nekvalifikoval')
 
-                if entry.is_20 and not entry.checkout and not entry.is_beginner:
-
-                    if entry.rider == rider:
-                        qualify += 1
-
-                    if qualify >= settings.qualify_to_cn:
-                        rider.is_qualify_to_cn_20 = True
-                    else:
-                        rider.is_qualify_to_cn_20 = False
-
-                elif entry.is_24:
-
-                    qualify = 0
-                    if entry.rider == rider:
-                        qualify += 1
-
-                    if qualify >= settings.qualify_to_cn:
-                        rider.is_qualify_to_cn_24 = True
-                    else:
-                        rider.is_qualify_to_cn_24 = False
+            if entries_24 >= settings.qualify_to_cn:
+                rider.is_qualify_to_cn_24 = True
+            else:
+                rider.is_qualify_to_cn_24 = False
             rider.save()
