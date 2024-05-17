@@ -788,36 +788,39 @@ def invalid_licence_in_event(event):
 
     return invalid_licences
 
-def qualify_riders_to_cn_20(year, rider):
+
+def qualify_riders_to_cn(year, rider):
     """ Function for resolve qualify to CN"""
     qualify = 0
     settings = SeasonSettings.objects.get(year=datetime.today().year)
-    entries = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False, is_20=True, is_beginner=False)
+    entries_20  = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
+                                       is_20=True, is_beginner=False)
 
-    for entry in entries:
-
-        if entry.rider == rider:
-            qualify +=1
-
-    if qualify >= settings.qualify_to_cn:
-        return True
-    else:
-        return False
-
-def qualify_riders_to_cn_24(year, rider):
-    """ Function for resolve qualify to CN"""
-    qualify = 0
-    settings = SeasonSettings.objects.get(year=datetime.today().year)
-    entries = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False, is_24=True)
-
-    for entry in entries:
+    for entry in entries_20:
 
         if entry.rider == rider:
-            qualify +=1
+            qualify += 1
 
     if qualify >= settings.qualify_to_cn:
-        return True
+        rider.is_qualify_20 = True
     else:
-        return False
+        rider.is_qualify_20 = False
+
+    entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
+                                   is_24=True)
+
+    for entry in entries_24:
+
+        if entry.rider == rider:
+            qualify += 1
+
+    if qualify >= settings.qualify_to_cn:
+        rider.is_qualify_24 = True
+    else:
+        rider.is_qualify_24 = False
+
+    return rider
+
+
 
 
