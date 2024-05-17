@@ -244,9 +244,9 @@ class RiderQualifyToCNThread(threading.Thread):
                     qualify += 1
 
             if qualify >= settings.qualify_to_cn:
-                rider.is_qualify_20 = True
+                rider.is_qualify_to_cn_20 = True
             else:
-                rider.is_qualify_20 = False
+                rider.is_qualify_to_cn_20 = False
 
             entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
                                               is_24=True)
@@ -256,8 +256,8 @@ class RiderQualifyToCNThread(threading.Thread):
                     qualify += 1
 
             if qualify >= settings.qualify_to_cn:
-                rider.is_qualify_24 = True
+                rider.is_qualify_to_cn_24 = True
             else:
-                rider.is_qualify_24 = False
+                rider.is_qualify_to_cn_24 = False
 
             rider.save()
