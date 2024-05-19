@@ -105,7 +105,7 @@ class RankingCount:
                 event.marked_24 = False
                 event.save()
 
-            num_race = events.count() if events.count() <= self.CZECH_CUP  else self.CZECH_CUP
+            num_race = events.count() if events.count() <= self.CZECH_CUP else self.CZECH_CUP
 
             for i in range(0, num_race):
                 if events[i].points > 0:
