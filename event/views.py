@@ -429,6 +429,8 @@ def event_admin_view(request, pk):
         ws = wb.active
 
         x = 3
+
+
         for entry_20 in entries_20:
             try:
                 rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
@@ -607,11 +609,11 @@ def event_admin_view(request, pk):
                 ws.cell(x, 13, rider.phone)
                 ws.cell(x, 14, rider.emergency_contact)
                 ws.cell(x, 15, rider.emergency_phone)
-                ws.cell(x, 16, gender_resolve(rider.gender))
+                ws.cell(x, 16, gender_resolve(rider))
                 ws.cell(x, 17, team_name_resolve(rider.club))
                 ws.cell(x, 18, "CZE")
                 ws.cell(x, 19, "CZE")
-                ws.cell(x, 20, resolve_event_classes(event.id, rider.gender, rider.have_girl_bonus, rider.class_20, 1))
+                ws.cell(x, 20, resolve_event_classes(event, rider, is_20=True))
                 ws.cell(x, 25, rider.plate)  # plate for cruiser
 
                 if rider.plate_champ_20:
@@ -654,11 +656,11 @@ def event_admin_view(request, pk):
             ws.cell(x, 13, rider.phone)
             ws.cell(x, 14, rider.emergency_contact)
             ws.cell(x, 15, rider.emergency_phone)
-            ws.cell(x, 16, gender_resolve(rider.gender))
+            ws.cell(x, 16, gender_resolve(rider))
             ws.cell(x, 17, team_name_resolve(rider.club))
             ws.cell(x, 18, "CZE")
             ws.cell(x, 19, "CZE")
-            ws.cell(x, 21, resolve_event_classes(event.id, rider.gender, rider.have_girl_bonus, rider.class_24, 0))
+            ws.cell(x, 21, resolve_event_classes(event, rider, is_20=False))
             ws.cell(x, 24, rider.plate)
 
             if rider.plate_champ_24:
@@ -707,20 +709,20 @@ def event_admin_view(request, pk):
             ws.cell(x, 6, expire_licence())
             ws.cell(x, 7, "BMX-RACE")
             ws.cell(x, 9, str(rider.date_of_birth).replace('-', '/'))
-            ws.cell(x, 10, rider.firstá_name)
+            ws.cell(x, 10, rider.first_name)
             ws.cell(x, 11, rider.last_name.upper())
             ws.cell(x, 12, rider.email)
             ws.cell(x, 13, rider.phone)
             ws.cell(x, 14, rider.emergency_contact)
             ws.cell(x, 15, rider.emergency_phone)
-            ws.cell(x, 16, gender_resolve(rider.gender))
+            ws.cell(x, 16, gender_resolve(rider))
             ws.cell(x, 17, team_name_resolve(rider.club))
             ws.cell(x, 18, "CZE")
             ws.cell(x, 19, "CZE")
             if rider.is_20:
-                ws.cell(x, 20, resolve_event_classes(event.id, rider.gender, rider.have_girl_bonus, rider.class_20, 1))
+                ws.cell(x, 20, resolve_event_classes(event, rider,  is_20=True))
             if rider.is_24:
-                ws.cell(x, 21, resolve_event_classes(event.id, rider.gender, rider.have_girl_bonus, rider.class_24, 0))
+                ws.cell(x, 21, resolve_event_classes(event, rider, is_20=False))
             ws.cell(x, 28, "")
             ws.cell(x, 29, "")
 
@@ -746,37 +748,37 @@ def event_admin_view(request, pk):
 
         del riders
         print("Čeští jezdci přidány")
-        foreign_riders = ForeignRider.objects.all()
-        for foreign_rider in foreign_riders:
-            ws.cell(x, 1, foreign_rider.uci_id)
-            ws.cell(x, 2, foreign_rider.uci_id)
-            ws.cell(x, 3, foreign_rider.uci_id)
-            ws.cell(x, 4, foreign_rider.uci_id)
-            ws.cell(x, 5, foreign_rider.uci_id)
-            ws.cell(x, 6, expire_licence())
-            ws.cell(x, 7, "BMX-RACE")
-            ws.cell(x, 9, str(foreign_rider.date_of_birth).replace('-', '/'))
-            ws.cell(x, 10, foreign_rider.first_name)
-            ws.cell(x, 11, foreign_rider.last_name.upper())
-            ws.cell(x, 16, gender_resolve(foreign_rider.gender))
-            ws.cell(x, 17, foreign_club_resolve(foreign_rider.state))
-            ws.cell(x, 18, foreign_rider.state)
-            ws.cell(x, 19, foreign_rider.state)
-            if foreign_rider.is_20:
-                ws.cell(x, 20, resolve_event_classes(event.id, foreign_rider.gender, True, foreign_rider.class_20, 1))
-            if foreign_rider.is_24:
-                ws.cell(x, 21, resolve_event_classes(event.id, foreign_rider.gender, False, foreign_rider.class_24, 0))
-            ws.cell(x, 28, "")
-            ws.cell(x, 29, "")
-            ws.cell(x, 24, foreign_rider.plate)
-            ws.cell(x, 25, foreign_rider.plate)
-            ws.cell(x, 32, foreign_rider.transponder_20)
-            ws.cell(x, 33, foreign_rider.transponder_24)
-            ws.cell(x, 36, "T1")
-            ws.cell(x, 37, "T2")
-            ws.cell(x, 45, foreign_rider.club.upper())
-            x += 1
-        del foreign_riders
+        # foreign_riders = ForeignRider.objects.all()
+        # for foreign_rider in foreign_riders:
+        #     ws.cell(x, 1, foreign_rider.uci_id)
+        #     ws.cell(x, 2, foreign_rider.uci_id)
+        #     ws.cell(x, 3, foreign_rider.uci_id)
+        #     ws.cell(x, 4, foreign_rider.uci_id)
+        #     ws.cell(x, 5, foreign_rider.uci_id)
+        #     ws.cell(x, 6, expire_licence())
+        #     ws.cell(x, 7, "BMX-RACE")
+        #     ws.cell(x, 9, str(foreign_rider.date_of_birth).replace('-', '/'))
+        #     ws.cell(x, 10, foreign_rider.first_name)
+        #     ws.cell(x, 11, foreign_rider.last_name.upper())
+        #     ws.cell(x, 16, gender_resolve(foreign_rider))
+        #     ws.cell(x, 17, foreign_club_resolve(foreign_rider.state))
+        #     ws.cell(x, 18, foreign_rider.state)
+        #     ws.cell(x, 19, foreign_rider.state)
+        #     if foreign_rider.is_20:
+        #         ws.cell(x, 20, resolve_event_classes(event.id, foreign_rider.gender, True, foreign_rider.class_20, 1))
+        #     if foreign_rider.is_24:
+        #         ws.cell(x, 21, resolve_event_classes(event.id, foreign_rider.gender, False, foreign_rider.class_24, 0))
+        #     ws.cell(x, 28, "")
+        #     ws.cell(x, 29, "")
+        #     ws.cell(x, 24, foreign_rider.plate)
+        #     ws.cell(x, 25, foreign_rider.plate)
+        #     ws.cell(x, 32, foreign_rider.transponder_20)
+        #     ws.cell(x, 33, foreign_rider.transponder_24)
+        #     ws.cell(x, 36, "T1")
+        #     ws.cell(x, 37, "T2")
+        #     ws.cell(x, 45, foreign_rider.club.upper())
+        #     x += 1
+        # del foreign_riders
 
         wb.save(file_name)
         event.bem_riders_list = file_name
