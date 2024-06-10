@@ -794,7 +794,7 @@ def qualify_riders_to_cn(year, rider):
     qualify = 0
     settings = SeasonSettings.objects.get(year=datetime.today().year)
     entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                       is_20=True, is_beginner=False)
+                                       is_20=True, is_beginner=False, payment_complete=True)
 
     for entry in entries_20:
         if entry.rider == rider:
@@ -806,7 +806,7 @@ def qualify_riders_to_cn(year, rider):
         rider.is_qualify_20 = False
 
     entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                   is_24=True)
+                                   is_24=True, payment_complete=True)
 
     for entry in entries_24:
         if entry.rider == rider:
