@@ -791,28 +791,29 @@ def invalid_licence_in_event(event):
 
 def qualify_riders_to_cn(year, rider):
     """ Function for resolve qualify to CN"""
-    qualify = 0
+    qualify_20 = 0
+    qualify_24 = 0
     settings = SeasonSettings.objects.get(year=datetime.today().year)
     entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                       is_20=True, is_beginner=False, payment_complete=True)
+                                       is_20=True, is_beginner=False, payment_complete=True, rider__nationality="CZE")
 
     for entry in entries_20:
         if entry.rider == rider:
-            qualify += 1
+            qualify_20 += 1
 
-    if qualify >= settings.qualify_to_cn:
+    if qualify_20 >= settings.qualify_to_cn:
         rider.is_qualify_20 = True
     else:
         rider.is_qualify_20 = False
 
     entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                   is_24=True, payment_complete=True)
+                                   is_24=True, payment_complete=True, rider__nationality="CZE")
 
     for entry in entries_24:
         if entry.rider == rider:
-            qualify += 1
+            qualify_24 += 1
 
-    if qualify >= settings.qualify_to_cn:
+    if qualify_24 >= settings.qualify_to_cn:
         rider.is_qualify_24 = True
     else:
         rider.is_qualify_24 = False
