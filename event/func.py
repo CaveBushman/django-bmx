@@ -384,7 +384,7 @@ def resolve_event_fee(event, rider, is_20, is_beginner=False):
         elif rider.class_beginner == "Beginners 3":
             return event_classes.beginners_3_fee
         else:
-            return event_class.beginners_4_fee
+            return event_classes.beginners_4_fee
 
     if is_20 and (rider.gender == "Muž" or rider.gender == "Ostatní"):
         if rider.class_20 == "Boys 6":

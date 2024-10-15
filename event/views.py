@@ -322,6 +322,7 @@ def success_view(request, pk):
                                            payment_complete=False, )))
 
     transactions_to_email = []
+    print(transactions)
     # check, if fees was paid
 
     for transaction in transactions:
@@ -337,6 +338,7 @@ def success_view(request, pk):
                 # if transaction.transaction_id not in transactions_to_email:
                 #    transactions_to_email.append(transaction.transaction_id)
         except Exception as e:
+            print("Chyba")
             print(transaction.id)
             print(e)
 
