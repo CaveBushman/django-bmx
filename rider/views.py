@@ -68,6 +68,7 @@ def rider_new_view(request):
 
         # create free plates list
         free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
+        print(free_plates)
 
         # get data from UCI API and put this data to the second form
         if 'num11' in request.POST and 'first-name' not in request.POST:
@@ -94,8 +95,7 @@ def rider_new_view(request):
             url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
             data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
             data_json = data_json.text
-            print(type(data_json))
-            print(data_json)
+
             if "\Http_NotFound" in data_json:
                 print("Tato licence neexistuje")
                 message = f"Licence UCI ID: {uci_id} nebyla Českým svazem cyklistiky vystavena. Zkuste to znovu se správným číslem nebo kontaktujte Komisi BMX Českého svazu cyklistiky."
