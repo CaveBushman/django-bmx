@@ -470,7 +470,7 @@ class Result(models.Model):
         verbose_name_plural = "Výsledky"
 
     def __str__(self):
-        return str(self.name) + " " + str(self.last_name) + " " + str(self.first_name) + " " + str(self.category)
+        return str(self.event.name) + " " + str(self.last_name) + " " + str(self.first_name) + " " + str(self.category)
 
 
 class Entry(models.Model):
