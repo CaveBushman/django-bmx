@@ -87,13 +87,17 @@
             </a>
             {% endif %}
 
+            {% if user.is_authenticated %}
+            <div class="m-2 p-2 text-s font-semibold text-blue-500">{{user.credit}} CZK</div>
+            {% endif %}
+
             <!-- Profile dropdown -->
             <div class="relative ml-3">
               <div>
                 <button type="button" class="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="sr-only">Open user menu</span>
                   {% if user.is_authenticated %}
-                  <img class="h-8 w-8 rounded-full" src="{{user.photo.url}}" alt="" />
+                  <div><img class="m-2 h-8 w-8 rounded-full" src="{{user.photo.url}}" alt="" /></div>
                   {% else %}
                   <img class="h-8 w-8 rounded-full" src="{% static 'images/users/blank-avatar-200x200.jpg' %}" alt="" />
                   {% endif %}
@@ -105,6 +109,7 @@
                 {% if user.is_authenticated %}
 <!--                <a href="{% url 'event:order' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-0">Objednávky</a>-->
                 <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Seznam zaplacených registrací</a>
+                <a href="{% url 'event:credit' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-credit">Dobití kreditu</a>
                 {% if user.is_admin %}
                 <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
                 {% endif %}

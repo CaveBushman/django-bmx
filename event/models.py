@@ -1,4 +1,3 @@
-from faulthandler import is_enabled
 from django.db import models
 from club.models import Club
 from commissar.models import Commissar
@@ -8,6 +7,7 @@ from datetime import date
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.core.exceptions import FieldDoesNotExist
+import datetime
 
 
 # Create your models here.
@@ -172,6 +172,7 @@ class Event(models.Model):
                   ('Evropský pohár', 'Evropský pohár'),
                   ('Mistrovství Evropy', 'Mistrovství Evropy'),
                   ('Mistrovství světa', 'Mistrovství světa'),
+                  ('Světový pohár', 'Světový pohár'),
                   ('Nebodovaný závod', 'Nebodovaný závod'),)
 
     RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'),
@@ -532,7 +533,50 @@ class EntryForeign(models.Model):
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
 
 
-
     class Meta:
         verbose_name = "Registrace zahraničních jezdců"
         verbose_name_plural = 'Registrace zahraničních jezdců'
+
+
+class DebetTransaction (models.Model):
+    """ Model for transactions """
+    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    entry = models.ForeignKey(Entry, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.IntegerField(default=0)  
+    payment_valid = models.BooleanField(default=True)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "Debetní transakce"
+        verbose_name_plural = 'Debetní transakce'
+
+    def __str__(self):
+        return f"{self.user} -{self.entry.event} - {self.entry.rider}"
+
+class CreditTransaction (models.Model):
+    """ Model for transactions """
+    user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.IntegerField(default=0)  
+    transaction_id = models.CharField(max_length=255, default="")
+    payment_complete = models.BooleanField(default=False)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+    
+
+    class Meta:
+        verbose_name = "Kreditní transakce"
+        verbose_name_plural = 'Kreditní transakce'
+    
+    def __str__(self):
+        return f"{self.user} - {self.amount}"
+
+
+class StripeFee (models.Model):
+    """ Model for card transaction fee"""
+
+    date = models.DateField(default=datetime.date.today)
+    fee = models.DecimalField(default = 0, decimal_places=2, max_digits = 10)
+    created = models.DateTimeField(auto_now_add = True, null=True)
+
+    class Meta:
+        verbose_name = "Karetní poplatek"
+        verbose_name_plural = 'Karetní poplatky (STRIPE)'

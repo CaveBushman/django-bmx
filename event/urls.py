@@ -22,6 +22,9 @@ urlpatterns = [
     path('ec_by_club_xls/<int:pk>', views.ec_by_club_xls, name='ec_by_club_xls'),
     path('summary_riders_in_event/<int:pk>', views.summary_riders_in_event, name='summary_riders_in_event'),
     path('checkout', views.checkout_view, name='checkout'),
-    path('fees-on-event/<int:pk>', views.fees_on_event, name='fees-on-event')
+    path('fees-on-event/<int:pk>', views.fees_on_event, name='fees-on-event'),
+    path('credit', views.credit_view, name='credit'),
+    path('success-credit', views.success_credit_view, name='success-credit'),
+    path('success-credit-update', views.success_credit_update_view, name='success-credit-update')
 
 ]
