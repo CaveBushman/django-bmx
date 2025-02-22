@@ -57,8 +57,7 @@ def news_list_view(request):
 def news_detail_view(request, pk):
     news = get_object_or_404(News, pk=pk)
     print(news)
-    queryset = {'news': news}
-
+    queryset = {'news': news, "absolute_image_url": request.build_absolute_uri(news.photo_01.url) if news.photo_01 else None}
     return render(request, 'news/news-detail.html', queryset)
 
 

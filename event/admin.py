@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee
 
 # Register your models here.
 
@@ -72,13 +72,25 @@ class EntryClassesAdmin(admin.ModelAdmin):
     
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display =  ('rider', 'event', 'transaction_date', 'payment_complete', 'customer_name', 'customer_email','checkout')
+    list_display =  ('rider', 'event', 'transaction_date', 'payment_complete','user', 'customer_name', 'customer_email','checkout',)
     list_display_links = ('rider',)
-    search_fields = ('rider__last_name', 'event__name',)
+    search_fields = ('rider__last_name', 'event__name', 'user',)
     list_filter = ('payment_complete','event',)
     list_editable = ('checkout',)
 
+class CreditTransactionAdmin(admin.ModelAdmin):
+    list_display=('user', 'amount', 'transaction_id', 'payment_complete', 'transaction_date',)
+    list_display_links = ('user',)
+    search_fields = ('user', 'transaction_date', 'transaction_id',)
 
+class DebetTransactionAdmin(admin.ModelAdmin):
+    list_display=('user', 'entry', 'amount', 'transaction_date',)
+    list_display_links = ('user',)
+    search_fields = ('user', 'transaction_date', 'entry',)
+
+class StripeFeeAdmin(admin.ModelAdmin):
+    list_display=('date', 'fee',)
+    list_display_links = ('date',)
 
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result)
@@ -86,4 +98,7 @@ admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign)
 admin.site.register(SeasonSettings)
+admin.site.register(CreditTransaction, CreditTransactionAdmin)
+admin.site.register(DebetTransaction, DebetTransactionAdmin)
+admin.site.register(StripeFee, StripeFeeAdmin)
 

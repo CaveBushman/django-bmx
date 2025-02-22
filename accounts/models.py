@@ -47,6 +47,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     phone_number = models.CharField(max_length=50, default="", null=True, blank=True)
 
+    # credit
+
+    credit = models.IntegerField(default=0)
+
     # required
 
     date_joined = models.DateTimeField(auto_now_add=True)

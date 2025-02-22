@@ -1,7 +1,8 @@
 import json
 import os
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import EntryClasses, Event, Result, Entry
+from .models import EntryClasses, Event, Result, Entry, CreditTransaction, DebetTransaction
+from accounts.models import Account
 from rider.models import Rider, ForeignRider
 from club.models import Club
 from django.shortcuts import render, reverse, HttpResponseRedirect
@@ -16,7 +17,8 @@ from django.db.models import Q
 import pandas as pd
 from .func import *
 from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
-from datetime import date, datetime
+from datetime import date,timedelta
+import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 from django.core import serializers
 from django.http import FileResponse, JsonResponse, HttpResponse
@@ -322,7 +324,6 @@ def success_view(request, pk):
                                            payment_complete=False, )))
 
     transactions_to_email = []
-    print(transactions)
     # check, if fees was paid
 
     for transaction in transactions:
@@ -954,17 +955,36 @@ def summary_riders_in_event(request, pk):
 def confirm_user_order(request):
     # aktualizuj košík
     update_cart(request)
-    # vymaž propadnuté registrace, rigistrace již byla ukončena a nebyla zaplacena
+    # vymaž propadnuté registrace, registrace již byla ukončena a nebyla zaplacena
     delete_reg = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
-                                      event__reg_open_to__lt=datetime.now())
+                                      event__reg_open_to__lt=datetime.datetime.now())
+
+    #TODO: Vymazat duplicitní položky v košíku
+
     if delete_reg:
         delete_reg.delete()
         return redirect('event:order')
     # načti platné registrace v nákupním košíku
     orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
-                                  event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name',
-                                                                            'rider__first_name')
+                                  event__date__gte=datetime.datetime.now()).order_by('event__date', 'rider__last_name','rider__first_name')
+
+    #Odstranění duplicit v košíku
     duplicities = []
+    for order in orders:
+        if order.is_beginner:
+            if Entry.objects.filter(event=order.event, rider=order.rider, is_beginner=True).count() > 1:
+                duplicities.append(order)
+                order.delete()
+        elif order.is_20:
+            if Entry.objects.filter(event=order.event, rider=order.rider, is_20=True).count()>1:
+                duplicities.append(order)
+                order.delete()
+        else:
+            if Entry.objects.filter(event=order.event, rider=order.rider, is_24=True).count() > 1:
+                duplicities.append(order)
+                order.delete()
+        if duplicities:
+            return redirect ('event:order')
 
     if 'btn-del' in request.POST:
         order = Entry.objects.get(id=request.POST['btn-del'])
@@ -976,47 +996,36 @@ def confirm_user_order(request):
         line_items = []
         price: int = 0
         for order in orders:
-            print(order)
             if order.is_beginner:
                 line_items += generate_stripe_line(order.event, order.rider, is_20=True, is_beginner=True)
-                if check_entry_duplicity(order.event, order.rider, is_beginner=True):
-                    duplicities.append(order)
-                    order.delete()
-                else:
-                    price += order.fee_beginner + order.fee_20 + order.fee_24
             elif order.is_20:
                 line_items += generate_stripe_line(order.event, order.rider, is_20=True)
-                if check_entry_duplicity(order.event, order.rider, is_20=True):
-                    duplicities.append(order)
-                    order.delete()
-                else:
-                    price += order.fee_beginner + order.fee_20 + order.fee_24
             else:
                 line_items += generate_stripe_line(order.event, order.rider, is_20=False)
-                if check_entry_duplicity(order.event, order.rider, is_24=True):
-                    duplicities.append(order)
-                    order.delete()
-                else:
-                    price += order.fee_beginner + order.fee_20 + order.fee_24
-        if duplicities:
-            orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False).order_by('event__date',
-                                                                                                     'rider__last_name')
-            sum: int = orders.count()
-            data = {'orders': orders, 'price': price, 'sum': sum, "duplicities": duplicities}
-            return render(request, 'event/order.html', data)
-        print(line_items)
+
+        user = Account.objects.get(id=request.user.id)
+
+        if price > user.credit:
+            #TODO: Dodělat kontrolu kreditu
+            data = {}
+            return render (request, 'event/order_error.html', data)
+
         try:
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=line_items,
-                mode='payment',
-                success_url=settings.YOUR_DOMAIN + '/event/success',
-                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
-            )
+            #TODO: Dodělat debetní transakce
             for order in orders:
-                order.transaction_id = checkout_session.id
+                amount = order.fee_beginner + order.fee_20 + order.fee_24
+                debet_transaction = DebetTransaction(user_id = request.user.id, amount = amount, entry = order)
+                debet_transaction.save()
+
+                user.credit = user.credit - amount
+                user.save()
+
+                order.payment_complete = True
                 order.save()
-            return redirect(checkout_session.url, code=303)
+
+                update_cart(request)
+
+            return redirect ('event:checkout')
         except Exception as e:
             return JsonResponse(error=str(e)), 403
 
@@ -1084,7 +1093,7 @@ def checkout_view(request):
     user_id = request.user.id
     user = Account.objects.get(id=user_id)
     confirmed_events = Entry.objects.filter(user__id=user_id, payment_complete=True,
-                                            event__date__gte=datetime.now()).order_by('event__date', 'rider__last_name',
+                                            event__date__gte=datetime.datetime.now()).order_by('event__date', 'rider__last_name',
                                                                                       'rider__first_name')
     for confirmed_event in confirmed_events:
         if is_registration_open(confirmed_event.event):
@@ -1094,14 +1103,16 @@ def checkout_view(request):
     # if user want change status
     if 'btn-change' in request.POST:
         confirmed_event = Entry.objects.get(id=request.POST['btn-change'])
-        if confirmed_event.checkout:
-            confirmed_event.checkout = False
-            confirmed_event.save()
-        else:
-            confirmed_event.checkout = True
-            confirmed_event.save()
-        return redirect('event:checkout')
+        amount = confirmed_event.fee_beginner+confirmed_event.fee_20+confirmed_event.fee_24
+        user.credit = user.credit + amount
+        user.save()
 
+        debet_transaction = DebetTransaction.objects.filter(user = user, entry=confirmed_event)
+        debet_transaction.delete()
+
+        confirmed_event.delete()
+
+        return redirect('event:checkout')
     else:
         data = {'confirmed_events': confirmed_events, 'user': user}
         return render(request, 'event/event-checkout.html', data)
@@ -1124,3 +1135,86 @@ def fees_on_event(request, pk):
             club_in_event.append(club)
     data = {"clubs": club_in_event, "event": event}
     return render(request, 'event/fees-on-event.html', data)
+
+
+@login_required(login_url="/login")
+def credit_view (request):
+    user_id = request.user.id
+    user = Account.objects.get(id=user_id)
+
+    if request.POST:
+        amount = request.POST['price']
+        amount = int(amount)
+
+        line_item = {
+            'price_data': {
+                'currency': 'czk',
+                'unit_amount': amount * 100,
+                'product_data': {
+                    'name': user.first_name + " " + user.last_name,
+                    'images': [],
+                    'description': "nabytí kreditu pro registraci na závody BMX Racing" ,
+                },
+            },
+            'quantity': 1,
+        },
+        #TODO: Dodělat stripe
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_item,
+                mode='payment',
+                success_url=settings.YOUR_DOMAIN + '/event/success-credit',
+                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
+            )
+
+            credit_transaction = CreditTransaction(transaction_id = checkout_session.id, amount = amount, user_id = user_id)
+            credit_transaction.save()
+
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            return JsonResponse(error=str(e)), 403
+
+    else:     
+        credits = CreditTransaction.objects.filter(user__id=user_id, payment_complete = True, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-transaction_date')
+        debets = DebetTransaction.objects.filter(user__id=user_id, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-transaction_date')
+        data = {'credits': credits, 'debets': debets}
+        return render(request, 'event/credit.html', data)
+
+
+@login_required(login_url="/login")
+def success_credit_view(request):
+
+    credit_transactions =  CreditTransaction.objects.filter(Q(transaction_date__year=date.today().year,
+                                          transaction_date__month=date.today().month,
+                                          transaction_date__day=date.today().day,
+                                          payment_complete=False, ) |
+                                        (Q(transaction_date__year=date.today().year,
+                                           transaction_date__month=date.today().month,
+                                           transaction_date__day=date.today().day - 1,
+                                           payment_complete=False, )))
+
+    for credit_transaction in credit_transactions:
+        try:
+            confirm = stripe.checkout.Session.retrieve(
+                credit_transaction.transaction_id, )
+            if confirm['payment_status'] == "paid":
+                credit_transaction.payment_complete = True
+                credit_transaction.save()
+                user = credit_transaction.user
+                amount = credit_transaction.amount
+                user = Account.objects.get(id=user.id)
+                current_credit = user.credit
+                new_credit = int(current_credit) + int (amount)
+                user.credit = new_credit
+                user.save()
+        except:
+            pass
+
+    return redirect ('event:success-credit-update')
+
+
+def success_credit_update_view(request):
+    messages.success(request, "Váš kredit byl úspěšně navýšen.")
+    data={}
+    return render(request, 'event/success_credit.html', data)

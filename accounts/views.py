@@ -23,8 +23,6 @@ def sign_up(request):
             # TODO: Dodělat chybové hlášení
             messages.success(request, "Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu")
             return render(request, 'accounts/signup.html')
-            pass
-        return redirect('news:home')
     else:
         data = {}
         return render(request, 'accounts/signup.html', data)

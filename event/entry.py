@@ -302,3 +302,6 @@ class REMRiders:
         self.event.rem_entries_created = datetime.now()
         self.event.save()
 
+
+
+

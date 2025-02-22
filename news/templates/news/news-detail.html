@@ -1,4 +1,14 @@
 {% extends 'base.html' %} {% block title %} {{ news.title }} {% endblock title %}
+
+{% block meta_tags %}
+    <meta property="og:title" content="{{ news.title }}">
+    <meta property="og:description" content="{{ news.prefix }}">
+    <meta property="og:image" content="{{ absolute_image_url }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Czech BMX website">
+{% endblock %}
+
 {% block content %}
 
 <header class="shadow dark:dark">

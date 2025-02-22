@@ -821,5 +821,7 @@ def qualify_riders_to_cn(year, rider):
     return rider
 
 
-
+def changeCredit (userID, amount):
+    #TODO: Dodělat odečet / přičtení kreditu
+    return True
 
