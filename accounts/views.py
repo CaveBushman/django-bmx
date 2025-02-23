@@ -6,7 +6,6 @@ from django.contrib import messages
 
 def sign_up(request):
     if request.method == 'POST':
-        print(request.POST)
         first_name = request.POST['firstname']
         last_name = request.POST['lastname']
         username = request.POST['username']
@@ -33,7 +32,6 @@ def sign_in(request):
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
-        print(user)
         if user is not None:
             login(request, user)
             return redirect('news:home')

@@ -12,7 +12,6 @@ def set_all_riders_classes():
         threading.Thread(target=rider.set_class_24(rider)).start()
         while threading.active_count() > 150:
             time.sleep(5)
-    print("Kategorie jezdců nastaveny")
 
 def clear_transponders():
     """ Function for clearing transponders field from nan value """

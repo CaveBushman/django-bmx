@@ -25,6 +25,6 @@ urlpatterns = [
     path('fees-on-event/<int:pk>', views.fees_on_event, name='fees-on-event'),
     path('credit', views.credit_view, name='credit'),
     path('success-credit', views.success_credit_view, name='success-credit'),
-    path('success-credit-update', views.success_credit_update_view, name='success-credit-update')
-
+    path('success-credit-update', views.success_credit_update_view, name='success-credit-update'),
+    path('not-reg', views.not_reg_view, name='not-reg'),
 ]

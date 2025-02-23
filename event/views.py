@@ -86,10 +86,11 @@ def results_view(request, pk):
     data = {'results': results, 'event': event}
     return render(request, 'event/results.html', data)
 
-
+@login_required(login_url="/event/not-reg")
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
-    riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
+    #riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
+    riders = Rider.objects.filter(is_active=True, is_approwe=True)
     sum_fee = 0
 
     # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
@@ -265,7 +266,6 @@ def confirm_view(request):
             rider = Rider.objects.get(uci_id=rider_24_list['fields']['uci_id'])
             line_items += generate_stripe_line(event, rider, is_20=False)
 
-        print(line_items)
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -289,7 +289,6 @@ def confirm_view(request):
                 current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
                 current_fee = resolve_event_fee(event, current_rider, 1)
                 current_class = resolve_event_classes(event, current_rider, is_20=True)
-                print(checkout_session.id)
                 entry = Entry(transaction_id=checkout_session.id, event=event,
                               rider=current_rider, is_20=True, is_24=False, is_beginner=False,
                               class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
@@ -307,7 +306,6 @@ def confirm_view(request):
 
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
-            print(e)
             return JsonResponse(error=str(e)), 403
 
 
@@ -339,8 +337,6 @@ def success_view(request, pk):
                 # if transaction.transaction_id not in transactions_to_email:
                 #    transactions_to_email.append(transaction.transaction_id)
         except Exception as e:
-            print("Chyba")
-            print(transaction.id)
             print(e)
 
     # clear duplitates
@@ -387,7 +383,6 @@ def cancel_view(request):
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-    print(payload)
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
 
@@ -993,20 +988,18 @@ def confirm_user_order(request):
         return redirect('event:order')
 
     if request.POST:
-        line_items = []
         price: int = 0
         for order in orders:
             if order.is_beginner:
-                line_items += generate_stripe_line(order.event, order.rider, is_20=True, is_beginner=True)
+                price += order.fee_beginner
             elif order.is_20:
-                line_items += generate_stripe_line(order.event, order.rider, is_20=True)
+                price+=order.fee_20
             else:
-                line_items += generate_stripe_line(order.event, order.rider, is_20=False)
+                price+=order.fee_24
 
         user = Account.objects.get(id=request.user.id)
 
         if price > user.credit:
-            #TODO: Dodělat kontrolu kreditu
             data = {}
             return render (request, 'event/order_error.html', data)
 
@@ -1043,6 +1036,7 @@ def confirm_user_order(request):
     return render(request, 'event/order.html', data)
 
 
+@login_required(login_url="/login")
 def check_order_payments(request):
     orders = Entry.objects.filter(Q(updated__year=date.today().year,
                                     updated__month=date.today().month,
@@ -1205,8 +1199,7 @@ def success_credit_view(request):
                 amount = credit_transaction.amount
                 user = Account.objects.get(id=user.id)
                 current_credit = user.credit
-                new_credit = int(current_credit) + int (amount)
-                user.credit = new_credit
+                user.credit = int(current_credit) + int (amount)
                 user.save()
         except:
             pass
@@ -1214,7 +1207,13 @@ def success_credit_view(request):
     return redirect ('event:success-credit-update')
 
 
+@login_required(login_url="/login")
 def success_credit_update_view(request):
     messages.success(request, "Váš kredit byl úspěšně navýšen.")
     data={}
     return render(request, 'event/success_credit.html', data)
+
+
+def not_reg_view(request):
+    data = {}
+    return render(request, 'event/not-reg.html', data)

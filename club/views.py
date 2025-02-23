@@ -61,7 +61,6 @@ def participation_in_races(request, pk):
         if fees != 0:
             part_in_events.append(part)
         sum += fees
-    print(part_in_events)
     data = {'club': club, 'participations': part_in_events, 'sum': sum, 'year': this_year}
 
     return render(request, 'club/club-participation.html', data)
