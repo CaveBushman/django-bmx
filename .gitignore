@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+git # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -149,3 +149,4 @@ dmypy.json
 cython_debug/
 
 static/images
+node_modules

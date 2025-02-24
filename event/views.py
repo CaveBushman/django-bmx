@@ -468,7 +468,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.ec_file = file_name
-        event.ec_file_created = datetime.now()
+        event.ec_file_created = datetime.datetime.now()
         event.save()
 
         # File for insurance company
@@ -513,7 +513,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.ec_insurance_file = file_name
-        event.ec_insurance_file_created = datetime.now()
+        event.ec_insurance_file_created = datetime.datetime.now()
         event.save()
 
         data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
