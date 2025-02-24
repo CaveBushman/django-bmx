@@ -1151,7 +1151,7 @@ def credit_view (request):
                 'product_data': {
                     'name': user.first_name + " " + user.last_name,
                     'images': [],
-                    'description': "nabytí kreditu pro registraci na závody BMX Racing" ,
+                    'description': "nabití kreditu pro registraci na závody BMX Racing" ,
                 },
             },
             'quantity': 1,
