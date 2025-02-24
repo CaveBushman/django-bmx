@@ -265,7 +265,7 @@ class Event(models.Model):
         return events_in_year
 
     def is_beginners_event(self):
-        if self.type_for_ranking =="Mistrovství ČR jednotlivců" or self.type_for_ranking == "Mistrovství ČR družstev" or self.type_for_ranking=="Český pohár":
+        if self.type_for_ranking =="Mistrovství ČR jednotlivců" or self.type_for_ranking == "Mistrovství ČR družstev" or self.type_for_ranking=="Český pohár" or self.type_for_ranking=="Evropský pohár" or self.type_for_ranking=="Mistrovství Evropy" or self.type_for_ranking=="Mistrovství světa" or self.type_for_ranking=="Světový pohár":
             return False
         else:
             return True
