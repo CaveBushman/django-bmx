@@ -1140,6 +1140,10 @@ def credit_view (request):
         amount = request.POST['price']
         amount = int(amount)
 
+        if amount < 100:
+            messages.error(request, "Minimální částka pro nákup kreditu je 100 Kč.")
+            return redirect('event:credit')
+
         line_item = {
             'price_data': {
                 'currency': 'czk',
