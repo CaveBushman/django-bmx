@@ -1196,8 +1196,10 @@ def success_credit_view(request):
         try:
             confirm = stripe.checkout.Session.retrieve(
                 credit_transaction.transaction_id, )
+            print (confirm)
             if confirm['payment_status'] == "paid":
                 credit_transaction.payment_complete = True
+                credit_transaction.payment_intent = confirm['payment_intent']
                 credit_transaction.save()
                 user = credit_transaction.user
                 amount = credit_transaction.amount

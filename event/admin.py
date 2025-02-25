@@ -79,9 +79,9 @@ class EntryAdmin(admin.ModelAdmin):
     list_editable = ('checkout',)
 
 class CreditTransactionAdmin(admin.ModelAdmin):
-    list_display=('user', 'amount', 'transaction_id', 'payment_complete', 'transaction_date',)
+    list_display=('user', 'amount', 'payment_intent', 'payment_complete', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user__last_name', 'transaction_date', 'transaction_id',)
+    search_fields = ('user__last_name', 'transaction_date', 'payment_intent',)
 
 class DebetTransactionAdmin(admin.ModelAdmin):
     list_display=('user', 'entry', 'amount', 'transaction_date',)
