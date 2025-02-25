@@ -81,12 +81,12 @@ class EntryAdmin(admin.ModelAdmin):
 class CreditTransactionAdmin(admin.ModelAdmin):
     list_display=('user', 'amount', 'transaction_id', 'payment_complete', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user', 'transaction_date', 'transaction_id',)
+    search_fields = ('user__last_name', 'transaction_date', 'transaction_id',)
 
 class DebetTransactionAdmin(admin.ModelAdmin):
     list_display=('user', 'entry', 'amount', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user', 'transaction_date', 'entry',)
+    search_fields = ('user__last_name', 'transaction_date', 'entry',)
 
 class StripeFeeAdmin(admin.ModelAdmin):
     list_display=('date', 'fee',)
