@@ -1185,12 +1185,15 @@ def success_credit_view(request):
 
     credit_transactions =  CreditTransaction.objects.filter(Q(transaction_date__year=date.today().year,
                                           transaction_date__month=date.today().month,
-                                          transaction_date__day=date.today().day,
-                                          payment_complete=False, ) |
+                                          transaction_date__day=date.today().day,) |
                                         (Q(transaction_date__year=date.today().year,
                                            transaction_date__month=date.today().month,
                                            transaction_date__day=date.today().day - 1,
-                                           payment_complete=False, )))
+                                           payment_complete=False,))|
+                                        (Q(transaction_date__year=date.today().year,
+                                           transaction_date__month=date.today().month,
+                                           transaction_date__day=date.today().day - 2,
+                                           payment_complete=False,)))
 
     for credit_transaction in credit_transactions:
         try:
