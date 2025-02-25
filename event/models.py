@@ -558,6 +558,7 @@ class CreditTransaction (models.Model):
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     amount = models.IntegerField(default=0)  
     transaction_id = models.CharField(max_length=255, default="")
+    payment_intent = models.CharField(max_length=255, default="")
     payment_complete = models.BooleanField(default=False)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
     
