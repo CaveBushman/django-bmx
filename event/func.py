@@ -754,7 +754,8 @@ def set_beginner_class(rider, event): # NOT IN USE NOW
 
 def is_beginner(rider):
     """ Function for resolve, if rider can registration to beginners class """
-    entries = Entry.objects.filter(checkout=False, payment_complete=True, is_20=True, rider=rider, event__date__year=datetime.today().year)
+    #entries = Entry.objects.filter(checkout=False, payment_complete=True, is_20=True, rider=rider, event__date__year=datetime.today().year)
+    entries = Entry.objects.filter(checkout=False, payment_complete=True, is_20=True, rider=rider,)
     if entries.count() >= 3 or rider.is_elite:
         return False
     else:

@@ -228,6 +228,9 @@ class Event(models.Model):
     full_results = models.FileField(upload_to='full_results/', null=True, blank=True)
     full_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    html_results = models.FileField(upload_to='html_results/', null=True, blank=True)
+    html_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
     fast_riders = models.FileField(upload_to='full_results/', null=True, blank=True)
     fast_riders_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
