@@ -69,11 +69,14 @@
                 {% if event.reg_open %}
                   <a href="{% url 'event:entry' event.id %}" class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Registrace otevřena</a>
                 {% endif %}
-                {% if event.xls_results or event.rem_results %}
-                  <a href="{% url 'event:results' event.id %}" class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-orange-700 bg-orange-50 ring-orange-600/20">Výsledky závodu</a>
+                {% if event.html_results  %}
+                  <a href="{{event.html_results.url}}" class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-orange-700 bg-orange-50 ring-orange-600/20">Výsledky závodu</a>
                 {% endif %}
 
-                {% if event.series%}
+                {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
+                <a href="{{event.series.url}}"
+                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky družstev</a>
+                {% elif event.series %}
                 <a href="{{event.series.url}}"
                   class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky seriálu</a>
                 {% endif %}
