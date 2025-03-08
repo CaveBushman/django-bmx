@@ -313,11 +313,12 @@ class ForeignRider(models.Model):
 
     uci_id = models.IntegerField(unique=True)
     first_name = models.CharField(max_length=255, blank=False)
-    middle_name = models.CharField(max_length=255, blank=True, null=True)
     last_name = models.CharField(max_length=255, blank=False)
 
     date_of_birth = models.DateField(blank=False)
     gender = models.CharField(choices=GENDER, max_length=10)
+
+    nationality = models.CharField(max_length=3, default="")
 
     class_20 = models.CharField(
         max_length=50, choices=CLASS_20, default="Boys 6", null=True)

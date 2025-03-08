@@ -1,5 +1,6 @@
 import json
 import os
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import EntryClasses, Event, Result, Entry, CreditTransaction, DebetTransaction
 from accounts.models import Account
@@ -21,13 +22,14 @@ from datetime import date,timedelta
 import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 from django.core import serializers
-from django.http import FileResponse, JsonResponse, HttpResponse
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
 from decouple import config
 from django.utils import timezone
 from event.func import update_cart
+# from weasyprint import HTML
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -1223,3 +1225,39 @@ def success_credit_update_view(request):
 def not_reg_view(request):
     data = {}
     return render(request, 'event/not-reg.html', data)
+
+def check_rider(request):
+    uci_id = request.GET.get('uci_id', None)
+    if uci_id:
+        uci_id = ''.join(filter(str.isdigit, uci_id))
+        uci_id = int(uci_id)
+        try:
+            rider = ForeignRider.objects.get(uci_id=uci_id)
+            data = {
+                'first_name': rider.first_name,
+                'last_name': rider.last_name,
+                'date_of_birth': rider.date_of_birth,
+                'sex': rider.gender,
+                'plate': rider.plate,
+                'transponder_20': rider.transponder_20,
+                'transponder_24': rider.transponder_24,
+                'nationality': rider.nationality
+            }
+            return JsonResponse(data)
+        except ForeignRider.DoesNotExist:
+            return JsonResponse({'error': 'Rider not found'}, status=404)
+    return JsonResponse({'error': 'UCI ID is required'}, status=400)
+
+def transponders_for_rent_generate_pdf(request):
+    pass
+"""
+    # Vytvoření HTML kódu pomocí šablony
+    html_content = render_to_string('pdf_template.html', {'data': 'nějaká data'})  # Místo 'nějaká data' použij skutečná data
+
+    # Generování PDF z HTML
+    pdf_file = HTML(string=html_content).write_pdf()
+
+    # Vrácení PDF jako odpověď
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="document.pdf"'  # Pokud chceš, aby se soubor otevřel v prohlížeči
+    return response """
