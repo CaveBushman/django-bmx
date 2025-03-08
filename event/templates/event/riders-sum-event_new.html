@@ -1,77 +1,61 @@
-riders-sum-event.html{% extends 'base.html' %} {% block title %} Počet jezdců {% endblock title %}
+{% extends 'base.html' %}
+
+{% block title %}Počet jezdců{% endblock title %}
+
 {% block content %}
 
-<div class="flex flex-col items-center mt-20 mb-10">
-  <div class="px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col items-center mt-10 mb-16">
+  <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold leading-6 text-gray-900 dark:text-gray-200">
+        <h1 class="text-3xl font-semibold leading-6 text-gray-900 dark:text-gray-100">
           Počet jezdců v kategoriích
         </h1>
-        <p class="mt-2 text-sm text-gray-700">
+        <p class="mt-2 text-lg text-gray-700 dark:text-gray-300">
+          Přehled počtu jezdců v jednotlivých kategoriích pro tuto událost.
         </p>
       </div>
     </div>
-    <div class="mt-8 flow-root">
-      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div
-            class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg"
-          >
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th
-                    scope="col"
-                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 sm:pl-6"
-                  >
-                    Kategorie
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200"
-                  >
-                    Počet jezdců
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800">
-                {% for class_20 in count_20 %}
-                    <tr>
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-200 sm:pl-6">
-                            {{ class_20.category_name }}
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200 text-center">
-                            {{ class_20.riders_in_category }}
-                        </td>
-                    </tr>
-                 {% endfor %}
+    <div class="mt-10">
+      <div class="overflow-hidden bg-white dark:bg-gray-900 shadow-xl sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
+                Kategorie
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
+                Počet jezdců
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800">
+            {% for class_20 in count_20 %}
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+              <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                {{ class_20.category_name }}
+              </td>
+              <td class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-200">
+                {{ class_20.riders_in_category }}
+              </td>
+            </tr>
+            {% endfor %}
 
-                {% for class_24 in count_24 %}
-                    <tr>
-                    <td
-                        class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                    >
-                        {{ class_24.category_name }}
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center">
-                        {{ class_24.riders_in_category }}
-                    </td>
-                    </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            {% for class_24 in count_24 %}
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+              <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                {{ class_24.category_name }}
+              </td>
+              <td class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-200">
+                {{ class_24.riders_in_category }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
 
 {% endblock content %}
-
-
-
-
-
-

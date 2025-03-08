@@ -8,8 +8,9 @@ urlpatterns = [
     path('<int:pk>', views.event_detail_views, name='event-detail'),
     path('results/<int:pk>', views.results_view, name='results'),
     path('events-by-year/<int:pk>', views.events_list_by_year_view, name='events-by-year'),
+    path('emtry-riders/<int:pk>', views.entry_riders_view, name='entry-riders'),
     path('entry/<int:pk>', views.add_entries_view, name='entry'),
-    path('entry-rid/<int:pk>', views.entry_riders_view, name='entry-riders'),
+    path('entry-foreign/<int:pk>', views.entry_foreign_view, name='entry-foreign'),
     path('confirm', views.confirm_view, name='confirm'),
     path('order', views.confirm_user_order, name='order'),
     path('success', views.check_order_payments, name="check-payments"),
@@ -27,4 +28,6 @@ urlpatterns = [
     path('success-credit', views.success_credit_view, name='success-credit'),
     path('success-credit-update', views.success_credit_update_view, name='success-credit-update'),
     path('not-reg', views.not_reg_view, name='not-reg'),
+    path('check-rider/', views.check_rider, name='check-rider'),
+    path('transponders_for_rent_generate_pdf', views.transponders_for_rent_generate_pdf, name='transponders_for_rent_generate_pdf'),
 ]
