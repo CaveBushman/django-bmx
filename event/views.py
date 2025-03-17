@@ -1177,7 +1177,7 @@ def credit_view (request):
 
     else:     
         credits = CreditTransaction.objects.filter(user__id=user_id, payment_complete = True, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-transaction_date')
-        debets = DebetTransaction.objects.filter(user__id=user_id, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-transaction_date')
+        debets = DebetTransaction.objects.filter(user__id=user_id, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-entry__event__date')
         data = {'credits': credits, 'debets': debets}
         return render(request, 'event/credit.html', data)
 
