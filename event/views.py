@@ -848,10 +848,10 @@ def event_admin_view(request, pk):
         sum_of_fees += entry.fee_24
         sum_of_riders += 1
 
-    organizer_fee = int(sum_of_fees - (sum_of_fees * event.commission_fee / 100))
+    asociation_fee = int(sum_of_fees * event.commission_fee / 100)
 
     data = {'event': event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees,
-            "sum_of_riders": sum_of_riders, 'organizer_fee': organizer_fee}
+            "sum_of_riders": sum_of_riders, 'asociation_fee':asociation_fee}
     return render(request, 'event/event-admin.html', data)
 
 
@@ -943,7 +943,7 @@ def summary_riders_in_event(request, pk):
         if class_20_24 is not None and ("NENÍ VYPSÁNO" or "není vypsáno") not in class_20_24:
             count_20_24.append(sum_20_24)
 
-    data = {'count_20': count_20_24}
+    data = {'count_riders': count_20_24}
 
     return render(request, 'event/riders-sum-event.html', data)
 
