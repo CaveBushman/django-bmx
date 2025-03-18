@@ -1,7 +1,7 @@
 const myfunction = function myFunc() {
 
     const inputs = document.querySelectorAll(
-      '.uciid-container .inputs-container input'
+      '[data-uciid-inputs] input'
     )
 
     inputs[0].focus()
