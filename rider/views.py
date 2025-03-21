@@ -48,7 +48,10 @@ def rider_detail_view(request, pk):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def rider_admin(request):
-    return render(request, 'rider/rider-admin.html')
+    total_riders = Rider.objects.filter().count()
+    active_riders = Rider.objects.filter(is_active=True).count()
+    data = {'total_riders': total_riders, 'active_riders': active_riders}
+    return render(request, 'rider/rider-admin.html', data)
 
 
 def rider_new_view(request):

@@ -8,6 +8,7 @@ from rider.models import Rider
 from event.models import Result, Event, Entry, SeasonSettings
 import threading
 from django.utils import timezone
+from django.db.models import Q, Exists, OuterRef
 
 now = datetime.date.today().year
 INACTIVE_YEARS = 2  # for inactive riders function
@@ -81,20 +82,28 @@ def valid_licence(rider):
 
 def two_years_inactive():
     """ Function for inactive riders """
-    riders = Rider.objects.filter(is_active=True, is_approwe=True).exclude(
-        created__gte=timezone.now() - datetime.timedelta(days=365)).order_by('club')
-    events = Event.objects.filter(date__gte=timezone.now() - datetime.timedelta(days=INACTIVE_YEARS * 365))
-    inactive_riders = []
-    for rider in riders:
-        active = False
-        for event in events:
-            activities = Result.objects.filter(rider=rider.uci_id, event=event.id)
-            if activities.count() > 0:
-                active = True
-                break
-        if not active:
-            inactive_riders.append(rider)
-    return inactive_riders
+    two_years_ago = timezone.now() - datetime.timedelta(days=INACTIVE_YEARS * 365)
+
+    # Filtrovat aktivní jezdce
+    riders = Rider.objects.filter(
+        is_active=True, 
+        is_approwe=True
+    ).exclude(
+        created__gte=timezone.now() - datetime.timedelta(days=365)
+    )
+
+    # Subdotaz na kontrolu existence výsledků za poslední dva roky
+    recent_results = Result.objects.filter(
+        rider=OuterRef('uci_id'),
+        event__date__gte=two_years_ago
+    )
+
+    # Vrátí pouze jezdce, kteří nemají žádný recentní výsledek
+    inactive_riders = riders.annotate(
+        has_results=Exists(recent_results)
+    ).filter(has_results=False).order_by('club')
+
+    return list(inactive_riders)
 
 
 class Participation:

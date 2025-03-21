@@ -10,8 +10,13 @@ from club.models import Club
 
 from datetime import date
 
-
 # Create your views here.
+
+
+
+def get_image_dimensions(image_field):
+    image = Image.open(BytesIO(image_field.read()))
+    return image.width, image.height
 
 def change_theme(request):
     if 'is_dark_mode' in request.session:
@@ -28,8 +33,8 @@ def homepage_view(request):
     homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
     update_cart(request)
     update_plate_notify(request)
-    content = {'clubs_sum': clubs_sum, 'riders_sum': riders_sum,
-               'events_sum': events_sum,
+    content = {'clubs_count': clubs_sum, 'riders_count': riders_sum,
+               'races_count': events_sum,
                'homepage_news': homepage_news}
     return render(request, "homepage.html", content)
 
@@ -38,18 +43,26 @@ def rules_view(request):
     return render(request, 'rules.html')
 
 
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import News
+
 def news_list_view(request):
     ARTICLES_PER_PAGE = 9
 
     news = News.objects.filter(published=True).order_by('-publish_date')
     sum_of_news = News.sum_of_news()
 
-    news_paginator = Paginator(news, ARTICLES_PER_PAGE)
+    # Set up pagination
+    paginator = Paginator(news, ARTICLES_PER_PAGE)  # Show 10 news per page
+    page_number = request.GET.get('page')  # Get the current page number from query params
+    news_page = paginator.get_page(page_number)
 
-    page_num = request.GET.get('page', 1)
-    page = news_paginator.get_page(page_num)
+    # Define the range of pages to show (here we show 10 pages max)
+    start_page = max(1, news_page.number - 5)
+    end_page = min(news_page.paginator.num_pages, news_page.number + 4)
 
-    data = {'news': page, 'sum_of_news': sum_of_news}
+    data = {'news': news_page, 'sum_of_news': sum_of_news, 'start_page': start_page, 'end_page': end_page}
 
     return render(request, 'news/news-list.html', data)
 
@@ -62,6 +75,6 @@ def news_detail_view(request, pk):
 
 def downloads_view(request):
     documents = Downloads.objects.filter(published=True)
-    data = {'documents': documents}
-
-    return render(request, 'downloads.html', data)
+    categories = ['Pro jezdce', 'Pro kluby', 'Pro rozhodčí']
+    data = {'documents': documents, 'categories': categories}
+    return render(request, 'downloads.html', data )

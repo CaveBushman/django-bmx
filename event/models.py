@@ -554,7 +554,10 @@ class DebetTransaction (models.Model):
         verbose_name_plural = 'Debetní transakce'
 
     def __str__(self):
-        return f"{self.user} -{self.entry.event} - {self.entry.rider}"
+        user = self.user if self.user else "Neznámý uživatel"
+        event = self.entry.event if self.entry else "Neznámý závod"
+        rider = self.entry.rider if self.entry else "Neznámý jezdec"
+        return f"{user} - {event} - {rider}"
 
 class CreditTransaction (models.Model):
     """ Model for transactions """
@@ -571,7 +574,8 @@ class CreditTransaction (models.Model):
         verbose_name_plural = 'Kreditní transakce'
     
     def __str__(self):
-        return f"{self.user} - {self.amount}"
+        user = self.user if self.user else "Neznámý uživatel"
+        return f"{user} - {self.amount} Kč"
 
 
 class StripeFee (models.Model):
@@ -584,3 +588,20 @@ class StripeFee (models.Model):
     class Meta:
         verbose_name = "Karetní poplatek"
         verbose_name_plural = 'Karetní poplatky (STRIPE)'
+
+
+class Invoice(models.Model):
+    number = models.CharField(max_length=255, unique=True)
+    issue_date = models.DateField()
+    due_date = models.DateField()
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    #supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Club, on_delete=models.CASCADE)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"Faktura {self.number}"
+    
+    class Meta:
+        verbose_name = "Faktura"
+        verbose_name_plural = 'Faktury'

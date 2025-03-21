@@ -32,6 +32,7 @@ urlpatterns = [
     path('club/', include('club.urls')),
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),
+    path('admin-stats/', include('admin_stats.urls')),
     path('', include("django.contrib.auth.urls")),
     path('bmx-admin/', admin.site.urls),
     path("__reload__/", include("django_browser_reload.urls")),

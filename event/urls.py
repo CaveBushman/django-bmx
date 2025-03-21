@@ -29,5 +29,8 @@ urlpatterns = [
     path('success-credit-update', views.success_credit_update_view, name='success-credit-update'),
     path('not-reg', views.not_reg_view, name='not-reg'),
     path('check-rider/', views.check_rider, name='check-rider'),
-    path('transponders_for_rent_generate_pdf', views.transponders_for_rent_generate_pdf, name='transponders_for_rent_generate_pdf'),
+    path('generate_pdf/<int:pk>', views.generate_pdf, name='generate_pdf'),
+    path('generate_invoice_preparation_pdf/<int:pk>', views.generate_invoice_preparation_pdf, name='generate_invoice_preparation_pdf'),
+    path('generate_invoices_pdf/<int:pk>', views.generate_invoices_pdf, name='generate_invoices_pdf'),
+    path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
 ]

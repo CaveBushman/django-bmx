@@ -2,12 +2,14 @@
 {% block title %} Účast na závodech {% endblock title %}
 {% block content %}
 
-<header class="bg-white shadow dark:bg-gray-800">
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold text-header dark:text-gray-200">{{ club.team_name|upper }} - účast na závodech v roce
-      {{ year }}</h1>
+    <h1 class="text-4xl font-bold text-white">
+      {{ club.team_name|upper }} - ÚČAST NA ZÁVODECH V ROCE {{ year }}
+    </h1>
   </div>
 </header>
+
 
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 dark:text-gray-200">
 
