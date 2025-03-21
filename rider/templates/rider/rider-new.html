@@ -1,0 +1,148 @@
+{% extends 'base.html' %} {% block title %} Žádost o startovní číslo
+{% endblock title %}
+{% load static %}
+{% block content %}
+
+<style>
+  .remove-number-select::-webkit-inner-spin-button,
+  .remove-number-select::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+  .remove-number-select {
+    -moz-appearance: textfield;
+  }
+</style>
+
+<div class="border border-black w-5/6 p-12 mx-auto mt-20 max-w-screen-lg rounded-lg">
+      <div class="flex flex-col md:flex-row">
+        <div class="flex flex-col items-center md:items-start">
+          <div class="md:ml-8 m-6 w-52"><img src="{% static 'images/riders/uci-logo.svg' %}" alt="logo" /></div>
+          <div class="md:ml-8 w-36"><img class="w-36 h-36 rounded-full" src="{% static 'images/riders/uni.jpeg' %}" alt="" /></div>
+        </div>
+        <div class="mt-20 ml-10">
+          <div class="text-xl">
+            <h2>LICENCE ČLENA ČESKÉHO SVAZU CYKLISTIKY</h2>
+          </div>
+          <div class="mt-10">
+            <label>Sem zadejte svoje UCI ID, které naleznete na své licenci</label>
+          </div>
+        </div>
+      </div>
+
+      <form method = "POST">
+        {% csrf_token %}
+      <div data-uciid-inputs class="flex content-center items-center mt-6">
+      <div  class="flex justify-center w-full flex-wrap">
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num1"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num2"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num3"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num4"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-xl md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num5"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num6"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num7"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num8"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num9"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num10"
+        /></div>
+        <div class="m-1 md:m-2 bd-highlight w-8 md:w-14"><input
+          type="number"
+          class="w-8 h-8 text-md md:w-14 md:h-14 md:text-3xl m-0.5 text-center remove-number-select border-gray-300 border"
+          required
+          min="0"
+          max="9"
+          placeholder="0"
+          name="num11"
+        /></div>
+      </div>
+      </div>
+      <div class="d-flex flex-column bd-highlight mb-3">
+        <div class="grid content-between mt-4">
+          <button type="submit" name="submit" class ="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-5 rounded-full">Další krok</button>
+        </div>
+      </div>
+  </form>
+</div>
+
+<script src="{% static 'js/alert_timeout.js' %}"></script>
+<script src = "{% static 'js/licence.js' %}"></script>
+<script src="{% static 'js/new_rider.js' %}"></script>
+{% endblock content %}
