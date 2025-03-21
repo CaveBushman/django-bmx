@@ -18,6 +18,12 @@
     <title>Czech BMX - {% block title %}{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
 
+    {% block extrahead %}
+      <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+      <link rel="stylesheet" href="{% static 'admin/css/widgets.css' %}">
+      {{ block.super }}
+    {% endblock %}
+
     <!-- Open Graph meta tagy -->
     {% block meta_tags %}
     {% endblock %}
