@@ -1,18 +1,29 @@
 from django.contrib import admin
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee
 
-# Register your models here.
 
-class ResultAdmin(admin.ModelAdmin):
+# Base Admin Class for common fields
+class BaseAdmin(admin.ModelAdmin):
+    search_fields = ()
+    list_display_links = ()
+    list_filter = ()
+    list_editable = ()
+    list_select_related = ()
+    autocomplete_fields = ()
+
+
+class ResultAdmin(BaseAdmin):
     pass
 
-class EventAdmin(admin.ModelAdmin):
+
+class EventAdmin(BaseAdmin):
     list_display = ('id', 'name', 'date', 'organizer', 'type_for_ranking', 'classes_and_fees_like', 'xls_results',)
     list_display_links = ('name',)
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking',)
 
-class EntryClassesAdmin(admin.ModelAdmin):
+
+class EntryClassesAdmin(BaseAdmin):
     fieldsets = (
         ('Název závodu', {
             "fields": ('event_name',),
@@ -51,7 +62,8 @@ class EntryClassesAdmin(admin.ModelAdmin):
         }),
     )
 
-class EntryAdmin(admin.ModelAdmin):
+
+class EntryAdmin(BaseAdmin):
     list_display = ('rider', 'event', 'transaction_date', 'payment_complete', 'user', 'checkout',)
     list_display_links = ('rider',)
     search_fields = ('rider__last_name', 'event__name', 'user__last_name',)
@@ -60,24 +72,29 @@ class EntryAdmin(admin.ModelAdmin):
     autocomplete_fields = ('rider', 'event', 'user')
     list_select_related = ('rider', 'event', 'user')
 
-class CreditTransactionAdmin(admin.ModelAdmin):
+
+class CreditTransactionAdmin(BaseAdmin):
     list_display = ('user', 'amount', 'payment_intent', 'payment_complete', 'transaction_date',)
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'transaction_date', 'payment_intent',)
     list_filter = ('transaction_date',)
 
-class DebetTransactionAdmin(admin.ModelAdmin):
+
+class DebetTransactionAdmin(BaseAdmin):
     list_display = ('user', 'entry', 'amount', 'transaction_date',)
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'transaction_date', 'entry__rider__last_name',)
     list_filter = ('transaction_date',)
 
-class StripeFeeAdmin(admin.ModelAdmin):
+
+class StripeFeeAdmin(BaseAdmin):
     list_display = ('date', 'fee',)
     list_display_links = ('date',)
 
+
+# Registering models
 admin.site.register(Event, EventAdmin)
-admin.site.register(Result)
+admin.site.register(Result, ResultAdmin)
 admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign)
