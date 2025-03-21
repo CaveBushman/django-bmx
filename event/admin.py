@@ -69,7 +69,7 @@ class CreditTransactionAdmin(admin.ModelAdmin):
 class DebetTransactionAdmin(admin.ModelAdmin):
     list_display = ('user', 'entry', 'amount', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user__last_name', 'transaction_date', 'entry',)
+    search_fields = ('user__last_name', 'transaction_date', 'entry__rider__last_name',)
     list_filter = ('transaction_date',)
 
 class StripeFeeAdmin(admin.ModelAdmin):
