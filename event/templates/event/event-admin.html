@@ -2,11 +2,10 @@
 {% block title %}Administrace závodu{% endblock title%} 
 {% load static %} {% block content %}
 
-
-<header class="bg-gradient-to-r from-indigo-600 to-indigo-800 shadow-md">
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <h1 class="text-4xl font-bold text-white">
-        Administrace závodu: {{event.name}}
+        {{event.name | upper}}
       </h1>
   </div>
 </header>
@@ -165,6 +164,18 @@
   </div>
 </div>
 {% endif %}
+
+<div class="flex justify-end mb-4">
+  <!-- Odkaz na generování protokolu Čipy k půjčení, otevře se v nové stránce -->
+  <a href="{% url 'event:generate_pdf' pk=event.pk %}" target="_blank" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+    Čipy k půjčení
+  </a>
+  
+  <!-- Odkaz na generování protokolu Podklad pro fakturaci čipů, otevře se v nové stránce -->
+  <a href="{% url 'event:generate_invoice_preparation_pdf' pk=event.pk %}" target="_blank" class="bg-green-500 ml-4 text-white py-2 px-4 rounded hover:bg-green-600">
+    Podklad pro fakturaci čipů
+  </a>
+</div>
 
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}

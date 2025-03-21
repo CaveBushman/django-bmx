@@ -1,6 +1,7 @@
 import json
 import os
 from django.http import JsonResponse, HttpResponse
+from django.db.models import Prefetch
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import EntryClasses, Event, Result, Entry, CreditTransaction, DebetTransaction
 from accounts.models import Account
@@ -17,8 +18,11 @@ from django.views.decorators.cache import cache_control
 from django.db.models import Q
 import pandas as pd
 from .func import *
+from .invoices import *
+from .credit import *
 from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
 from datetime import date,timedelta
+from datetime import datetime
 import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 from django.core import serializers
@@ -28,8 +32,20 @@ import stripe
 from decouple import config
 from django.utils import timezone
 from event.func import update_cart
-# from weasyprint import HTML
 from django.template.loader import render_to_string
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle, Image
+from reportlab.lib import colors
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.units import cm
+from django.db import transaction
+from django.db.models import F
+from datetime import date
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.db.models import Q
 
 
 # Create your views here.
@@ -92,7 +108,9 @@ def results_view(request, pk):
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
     #riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
-    riders = Rider.objects.filter(is_active=True, is_approwe=True)
+    
+    # Načíst jezdce jedním dotazem s potřebnými daty
+    riders = Rider.objects.filter(is_active=True, is_approwe=True).prefetch_related('entry_set')
     sum_fee = 0
 
     # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
@@ -100,12 +118,41 @@ def add_entries_view(request, pk):
         return render(request, 'event/reg-close.html')
 
     if request.POST:
-        riders_beginner = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_beginner'))
-        riders_20 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_20'))
-        riders_24 = Rider.objects.filter(uci_id__in=request.POST.getlist('checkbox_24'))
-        sum_beginners = riders_beginner.count()
-        sum_20 = riders_20.count()
-        sum_24 = riders_24.count()
+
+        # Získání seznamů ID jezdců z formuláře
+        selected_ids = {
+            "beginner": set(request.POST.getlist('checkbox_beginner')),
+            "20": set(request.POST.getlist('checkbox_20')),
+            "24": set(request.POST.getlist('checkbox_24')),
+            }
+
+        # Jeden dotaz místo tří
+        riders = Rider.objects.filter(uci_id__in=set.union(*selected_ids.values()))
+
+        # Roztřídění jezdců do kategorií
+        selected_riders = {
+            "beginner": [],
+            "20": [],
+            "24": []
+        }
+
+        for rider in riders:
+            if str(rider.uci_id) in selected_ids["beginner"]:
+                selected_riders["beginner"].append(rider)
+            if str(rider.uci_id) in selected_ids["20"]:
+                selected_riders["20"].append(rider)
+            if str(rider.uci_id) in selected_ids["24"]:
+                selected_riders["24"].append(rider)
+
+            # Přiřazení do proměnných
+            riders_beginner = selected_riders["beginner"]
+            riders_20 = selected_riders["20"]
+            riders_24 = selected_riders["24"]
+
+            # Výpočty počtu jezdců
+        sum_beginners = len(riders_beginner)
+        sum_20 = len(riders_20)
+        sum_24 = len(riders_24)
 
         for rider in riders_beginner:
             sum_fee += resolve_event_fee(event, rider, is_20=True, is_beginner=True)
@@ -185,11 +232,7 @@ def add_entries_view(request, pk):
         return response
 
     # disable riders, who was registered in event
-
-    if event.is_beginners_event():
-        event.is_beginners_race = True
-    else:
-        event.is_beginners_race = False
+    event.is_beginners_race = event.is_beginners_event()
 
     for rider in riders:
         was_registered = Entry.objects.filter(event=event, rider=rider, payment_complete=True)
@@ -214,8 +257,8 @@ def add_entries_view(request, pk):
 
     data = {'event': event, 'riders': riders}
     return render(request, 'event/entry.html', data)
-
-
+    
+    
 def entry_riders_view(request, pk):
     """ View for registered riders in event"""
     event = Event.objects.get(id=pk)
@@ -1184,35 +1227,46 @@ def credit_view (request):
 
 @login_required(login_url="/login")
 def success_credit_view(request):
-
-    credit_transactions =  CreditTransaction.objects.filter(Q(transaction_date__year=date.today().year,
-                                          transaction_date__month=date.today().month,
-                                          transaction_date__day=date.today().day,
-                                          payment_complete=False, ) |
-                                        (Q(transaction_date__year=date.today().year,
-                                           transaction_date__month=date.today().month,
-                                           transaction_date__day=date.today().day - 1,
-                                           payment_complete=False, )))
+    credit_transactions = CreditTransaction.objects.filter(
+        Q(transaction_date__year=date.today().year,
+          transaction_date__month=date.today().month,
+          transaction_date__day=date.today().day,
+          payment_complete=False) |
+        Q(transaction_date__year=date.today().year,
+          transaction_date__month=date.today().month,
+          transaction_date__day=date.today().day - 1,
+          payment_complete=False)
+    )
 
     for credit_transaction in credit_transactions:
         try:
-            confirm = stripe.checkout.Session.retrieve(
-                credit_transaction.transaction_id, )
-            print (confirm)
-            if confirm['payment_status'] == "paid":
-                credit_transaction.payment_complete = True
-                credit_transaction.payment_intent = confirm['payment_intent']
-                credit_transaction.save()
-                user = credit_transaction.user
-                amount = credit_transaction.amount
-                user = Account.objects.get(id=user.id)
-                current_credit = user.credit
-                user.credit = int(current_credit) + int (amount)
-                user.save()
-        except:
-            pass
+            # Zablokování řádku pro úpravu
+            with transaction.atomic():
+                credit_transaction = CreditTransaction.objects.select_for_update().get(id=credit_transaction.id)
 
-    return redirect ('event:success-credit-update')
+                # Ověření, že platba ještě není dokončena
+                if credit_transaction.payment_complete:
+                    continue
+
+                confirm = stripe.checkout.Session.retrieve(credit_transaction.transaction_id)
+                
+                if confirm['payment_status'] == "paid":
+                    credit_transaction.payment_complete = True
+                    credit_transaction.payment_intent = confirm['payment_intent']
+                    credit_transaction.save()
+
+                    # Atomická aktualizace kreditu
+                    Account.objects.filter(id=credit_transaction.user.id).update(
+                        credit=F('credit') + credit_transaction.amount
+                    )
+        except CreditTransaction.DoesNotExist:
+            continue  # Pokud byl mezitím smazán, přeskočíme
+        except stripe.error.StripeError as e:
+            print(f"Stripe error: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+    return redirect('event:success-credit-update')
 
 
 @login_required(login_url="/login")
@@ -1248,16 +1302,291 @@ def check_rider(request):
             return JsonResponse({'error': 'Rider not found'}, status=404)
     return JsonResponse({'error': 'UCI ID is required'}, status=400)
 
-def transponders_for_rent_generate_pdf(request):
-    pass
-"""
-    # Vytvoření HTML kódu pomocí šablony
-    html_content = render_to_string('pdf_template.html', {'data': 'nějaká data'})  # Místo 'nějaká data' použij skutečná data
 
-    # Generování PDF z HTML
-    pdf_file = HTML(string=html_content).write_pdf()
+def generate_pdf(request, pk):
+    try:
+        event = Event.objects.get(pk=pk)
+    except Event.DoesNotExist:
+        return HttpResponse("Event not found", status=404)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="protokol_cipy.pdf"'
 
-    # Vrácení PDF jako odpověď
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = 'inline; filename="document.pdf"'  # Pokud chceš, aby se soubor otevřel v prohlížeči
-    return response """
+    # Vytvoření PDF souboru na šířku (landscape)
+    p = canvas.Canvas(response, pagesize=landscape(A4))
+    width, height = landscape(A4)
+
+    # Okraje
+    margin = 2 * cm
+    content_width = width - 2 * margin
+    content_height = height - 2 * margin
+
+    # Cesta k fontům
+    font_regular = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
+    font_bold = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
+    pdfmetrics.registerFont(TTFont('DejaVuSans', font_regular))
+    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', font_bold))
+
+    # Logo v pravém horním rohu
+    logo_path = os.path.join(settings.BASE_DIR, "static/images/logo.png")
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, width - margin - 75, height - margin - 15, width=100, height=50, preserveAspectRatio=True, mask='auto')
+
+    # Název závodu v levém horním rohu
+    p.setFont("DejaVuSans", 12)
+    p.drawString(margin, height - margin, event.name.upper())
+
+    # Nadpis
+    p.setFont("DejaVuSans-Bold", 18)
+    p.drawCentredString(width / 2, height - margin - 30, "PROTOKOL – ČIPY K PŮJČENÍ")
+    p.line(margin, height - margin - 35, width - margin, height - margin - 35)  # Podtržení
+
+    # Načtení dat z databáze
+    entries = Entry.objects.filter(
+        event=pk,
+        payment_complete=True,
+        rider__transponder_20__isnull=True,
+        rider__transponder_24__isnull=True,
+        is_beginner=False
+    ).order_by('rider__last_name', 'rider__first_name')
+
+    # Hlavička tabulky
+    header = ["JEZDEC", "ČÍSLO", "KATEGORIE", "KLUB", "ZÁLOHA", "ČIP", "PŘED.", "VRÁC."]
+
+    # Naplnění tabulky daty z databáze
+    data = [header]  # Hlavička tabulky je první řádek
+    for entry in entries:
+        # Dynamický výběr kategorie
+        category = entry.rider.class_20 if entry.is_20 else entry.rider.class_24 if entry.is_24 else ""
+
+        data.append([
+            f"{entry.rider.last_name} {entry.rider.first_name}",  # Jezdec
+            entry.rider.plate or "",  # Startovní číslo
+            category,  # Dynamická kategorie
+            entry.rider.club or "",  # Klub
+            "",  # Záloha
+            "",  # Čip
+            "☐",  # Předáno
+            "☐",  # Vráceno
+        ])
+    
+    for i in range(1, 10):
+        data.append(["", "", "", "", "", "", "☐", "☐"])
+
+    # Šířky sloupců (rozšířeno pro lepší čitelnost)
+    col_widths = [
+        content_width * 0.30,  # Jezdec (30 %)
+        content_width * 0.12,  # Startovní číslo (12 %)
+        content_width * 0.12,  # Kategorie (12 %)
+        content_width * 0.18,  # Klub (18 %)
+        content_width * 0.08,  # Záloha (8 %)
+        content_width * 0.08,  # Čip (8 %)
+        content_width * 0.05,  # Předáno (5 %)
+        content_width * 0.05,  # Vráceno (5 %)
+    ]
+
+    # Pro stránkování
+    rows_per_page = 10
+    total_pages = (len(data) // rows_per_page) + (1 if len(data) % rows_per_page > 0 else 0)
+    current_row = 0
+
+    def draw_table_page(start_row, current_page):
+        # Pokud je to první stránka, vykreslíme hlavičku
+        if start_row == 0:
+            page_data = data[start_row:start_row + rows_per_page]
+        else:
+            page_data = [header] + data[start_row:start_row + rows_per_page]  # Přidáme hlavičku na každou stránku
+
+        table = Table(page_data, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Šedý pozadí pro první řádek (hlavičku)
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'DejaVuSans'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),  # Zvětšení spodního paddingu pro větší výšku řádku
+            ('TOPPADDING', (0, 0), (-1, -1), 12),  # Zvětšení horního paddingu pro větší výšku řádku
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        # Umístění tabulky
+        table_width, table_height = table.wrap(0, 0)
+        x_position = margin
+        y_position = height - margin - 60 - table_height  # 10px mezera pod nadpisem
+
+        table.drawOn(p, x_position, y_position)
+
+        # Přidání stránkování (Stránka 1 z X) do pravého dolního rohu
+        p.setFont("DejaVuSans", 10)
+        page_number_text = f"Stránka {current_page} z {total_pages}"
+        p.drawRightString(width - margin - 10, margin + 10, page_number_text)
+
+        # Přidání textu "VYTIŠTĚNO DNE:" do levého dolního rohu
+        current_date = datetime.datetime.now().strftime("%d.%m.%Y")
+        printed_text = f"VYTIŠTĚNO DNE: {current_date}"
+        p.setFont("DejaVuSans", 10)
+        p.drawString(margin, margin + 10, printed_text)
+
+        # Pokud máme více řádků, přidáme stránkování
+        if start_row + rows_per_page < len(data):
+            p.showPage()  # Nová stránka
+            draw_table_page(start_row + rows_per_page, current_page + 1)  # Rekurzivně vykreslíme další stránku
+
+    # První stránka s hlavičkou tabulky
+    draw_table_page(0, 1)  # Začneme od řádku 1, protože řádek 0 je hlavička
+
+    p.showPage()
+    p.save()
+
+    return response
+
+
+def generate_invoice_preparation_pdf(request, pk):
+    event = Event.objects.get(pk=pk)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="podklad_pro_fakturaci.pdf"'
+
+    # Vytvoření PDF souboru na výšku (portrait)
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+
+    # Okraje
+    margin = 2 * cm
+    content_width = width - 2 * margin
+    content_height = height - 2 * margin
+
+    # Cesta k fontům
+    font_regular = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
+    font_bold = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
+    pdfmetrics.registerFont(TTFont('DejaVuSans', font_regular))
+    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', font_bold))
+
+    # Logo v pravém horním rohu
+    logo_path = os.path.join(settings.BASE_DIR, "static/images/logo.png")
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, width - margin - 75, height - margin - 15, width=100, height=50, preserveAspectRatio=True, mask='auto')
+
+    # Datum a název závodu v levém horním rohu
+    p.setFont("DejaVuSans", 12)
+    event_date = event.date.strftime("%d.%m.%Y")  # Datum konání
+    p.drawString(margin, height - margin, f"{event_date} - {event.name.upper()}")
+
+    # Nadpis
+    p.setFont("DejaVuSans-Bold", 18)
+    p.drawCentredString(width / 2, height - margin - 30, "PODKLAD PRO FAKTURACI")
+    p.line(margin, height - margin - 35, width - margin, height - margin - 35)  # Podtržení
+
+    # Hlavička tabulky
+    header = ["JEZDEC A ST. ČÍSLO", "ČIP", "KLUB", "FAKTURA", "HOTOVOST"]
+
+    # Naplnění tabulky daty z databáze
+    data = [header]  # Hlavička tabulky je první řádek
+
+    
+    for i in range(1, 17):
+        data.append(["", "", "", "☐", "☐"])
+
+    # Šířky sloupců (rozšířeno pro lepší čitelnost)
+    col_widths = [
+        content_width * 0.30,  # Jezdec (30 %)
+        content_width * 0.12,  # Startovní číslo (12 %)
+        content_width * 0.30,  # Klub (30 %)
+        content_width * 0.15,  # Faktura (15 %)
+        content_width * 0.15,  # Hotovost (15 %)
+    ]
+
+    # Pro stránkování
+    rows_per_page = 17
+    total_pages = (len(data) // rows_per_page) + (1 if len(data) % rows_per_page > 0 else 0)
+    current_row = 0
+
+    def draw_table_page(start_row, current_page):
+        # Pokud je to první stránka, vykreslíme hlavičku
+        if start_row == 0:
+            page_data = data[start_row:start_row + rows_per_page]
+        else:
+            page_data = [header] + data[start_row:start_row + rows_per_page]  # Přidáme hlavičku na každou stránku
+
+        table = Table(page_data, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Šedý pozadí pro první řádek (hlavičku)
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'DejaVuSans'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),  # Zvětšení spodního paddingu pro větší výšku řádku
+            ('TOPPADDING', (0, 0), (-1, -1), 12),  # Zvětšení horního paddingu pro větší výšku řádku
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        # Umístění tabulky
+        table_width, table_height = table.wrap(0, 0)
+        x_position = margin
+        y_position = height - margin - 60 - table_height  # 10px mezera pod nadpisem
+
+        table.drawOn(p, x_position, y_position)
+
+        # Přidání stránkování (Stránka 1 z X) do pravého dolního rohu
+        p.setFont("DejaVuSans", 10)
+        page_number_text = f"Stránka {current_page} z {total_pages}"
+        p.drawRightString(width - margin - 10, margin + 10, page_number_text)
+
+        # Přidání textu "VYTIŠTĚNO DNE:" do levého dolního rohu
+        current_date = datetime.datetime.now().strftime("%d.%m.%Y")
+        printed_text = f"VYTIŠTĚNO DNE: {current_date}"
+        p.setFont("DejaVuSans", 10)
+        p.drawString(margin, margin + 10, printed_text)
+
+        # Pokud máme více řádků, přidáme stránkování
+        if start_row + rows_per_page < len(data):
+            p.showPage()  # Nová stránka
+            draw_table_page(start_row + rows_per_page, current_page + 1)  # Rekurzivně vykreslíme další stránku
+
+    # První stránka s hlavičkou tabulky
+    draw_table_page(0, 1)  # Začneme od řádku 1, protože řádek 0 je hlavička
+
+    p.showPage()
+    p.save()
+
+    return response
+
+
+def generate_invoices_pdf(request, pk):
+    # Get the event object based on the provided pk
+    event = Event.objects.get(pk=pk)
+    entries = Entry.objects.filter(event=pk, payment_complete=True)
+
+    invoices_data = []
+
+    # Initialize a dictionary to hold the sum for each club
+    clubs = {}
+
+    # Iterate through entries to accumulate the amount by club
+    for entry in entries:
+        club_name = entry.rider.club
+        amount = entry.fee_20+entry.fee_24+entry.fee_beginner
+
+        if club_name not in clubs:
+            clubs[club_name] = 0  # Initialize the sum for the club
+
+        # Add the amount for the current entry to the club's total
+        clubs[club_name] += amount
+
+    # Convert the dictionary to a list of dictionaries for invoices_data
+    for club, total_amount in clubs.items():
+        invoices_data.append({
+            'club': club.id,
+            'suma': total_amount,
+        })
+
+    print(invoices_data)
+    
+    # Generate the invoice and return the response
+    return generate_invoice(request, event)
+
+
+@login_required(login_url="/login")
+@staff_member_required
+def recalculate_balances_view(request):
+    try:
+        recalculate_all_balances()
+        return JsonResponse({"status": "success", "message": "Zůstatky byly úspěšně přepočítány."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500)  

@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+from event.credit import calculate_user_balance
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 # Create your models here.
@@ -84,3 +87,8 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, add_label):
         return self.is_superuser
+
+@receiver(pre_save, sender=Account)
+def update_credit_before_save(sender, instance, **kwargs):
+    if instance.pk:  # Pouze pokud uživatel existuje (není to nový záznam)
+        instance.credit = calculate_user_balance(instance.pk)

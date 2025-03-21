@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     'ranking',
     'commissar',
     'accounts',
-
+    'admin_stats',
 ]
 
 MIDDLEWARE = [
@@ -89,6 +89,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+
+    "admin_stats.middleware.VisitMiddleware",
 ]
 
 ROOT_URLCONF = 'bmx.urls'
@@ -152,7 +154,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
-LANGUAGE_CODE = 'cs-CS'
+LANGUAGES = [
+    ('cs', 'Czech'),
+    # další jazyky...
+]
+
+LANGUAGE_CODE = 'cs'  # Nastav na češtinu
 
 TIME_ZONE = 'Europe/Prague'
 
@@ -228,3 +235,4 @@ STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
 CRONJOBS = [
     ('*/180 * * * *', 'bmx.cron.valid_licence_scheduled')
 ]
+

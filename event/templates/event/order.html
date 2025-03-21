@@ -2,13 +2,20 @@
 {% load static %}
 {% block title %} Potvrzení přihlášky {% endblock title %}
 {% block content %}
+
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-4xl font-bold text-white">
+         POTVRZENÍ REGISTRACE
+      </h1>
+  </div>
+</header>
+
 <form method="POST">
   {% csrf_token %}
 <div class="bg-white dark:bg-gray-800 dark:text-gray-200">
   <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:pb-24">
-    <div class="max-w-7xl">
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-200 sm:text-3xl">Potvrzení registrace na závody pro uživatele {{user.first_name}} {{user.last_name}}</h1>
-    </div>
+   
 
 {% if duplicities %}
     <div class="rounded-md bg-red-50 p-4 mt-4">
