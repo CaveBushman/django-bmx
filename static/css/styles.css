@@ -3541,6 +3541,10 @@ select {
   --tw-ring-offset-color: #1f2937;
 }
 
+.focus\:ring-offset-indigo-800:focus {
+  --tw-ring-offset-color: #3730a3;
+}
+
 .focus-visible\:outline:focus-visible {
   outline-style: solid;
 }
