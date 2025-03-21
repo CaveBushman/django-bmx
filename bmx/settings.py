@@ -221,7 +221,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'ERROR',
+            'level': 'DEBUG',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             'class': 'logging.FileHandler',
             'filename': 'logfile.log',
         },
@@ -229,7 +229,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             'propagate': True,
         },
     },
