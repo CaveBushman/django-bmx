@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en" class = "{% if request.session.is_dark_mode %}dark{% endif %}">
+<html lang="en" class="{% if request.session.is_dark_mode %}dark{% endif %}">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -14,9 +14,9 @@
       crossorigin="anonymous"
     />
     <!-- Přidání Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <title>Czech BMX -{% block title %}{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href={% static 'images/homepage/bmx.png' %}>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>Czech BMX - {% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
 
     <!-- Open Graph meta tagy -->
     {% block meta_tags %}
@@ -25,18 +25,16 @@
   <body class="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200">
 
     <!--==== NAVBAR ====-->
-  {% include "includes/navbar.html" %} 
+    {% include "includes/navbar.html" %}
 
-  <!--==== BLOCK CONTENT ====-->
-  <div class = "mt-16">
-	{% block content %} 
-    {% endblock content%}
-  </div>
-    <script
-      src="https://code.jquery.com/jquery-3.6.0.js"
-      integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
-      crossorigin="anonymous"
-    ></script>
+    <!--==== BLOCK CONTENT ====-->
+    <div class="mt-16">
+      {% block content %}
+      {% endblock content %}
+    </div>
+
+    <!-- Scripty -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <script src="{% static 'js/navbar.js' %}"></script>
   </body>
 </html>
