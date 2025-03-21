@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %} Kluby {% endblock title %}
+{% block content %}
+
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-bold text-white">
+      ČESKÉ KLUBY BMX RACING
+    </h1>
+  </div>
+</header>
+
+<div class="max-w-screen-2xl mx-auto">
+
+  <!-- This example requires Tailwind CSS v2.0+ -->
+  <div class="px-4 sm:px-6 lg:px-8">
+    <div class="-mx-4 my-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50 dark:bg-gray-200 dark:text-gray-200">
+          <tr>
+            <th scope="col"
+              class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-200 dark:bg-gray-800">
+              Název klubu</th>
+            <th scope="col"
+              class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-200 dark:bg-gray-800">
+              Kraj</th>
+            <th scope="col"
+              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:hidden dark:text-gray-200 dark:bg-gray-800">
+              Kontakt</th>
+            <th scope="col"
+              class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell dark:text-gray-200 dark:bg-gray-800">
+              Kontaktní osoba</th>
+            <th scope="col"
+              class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell dark:text-gray-200 dark:bg-gray-800">
+              e-mail</th>
+            <th scope="col"
+              class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell dark:text-gray-200 dark:bg-gray-800">
+              telefon</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          {% for club in clubs %}
+          {% if club.team_name != "Bez klubové příslušnosti" %}
+          <tr>
+            <td
+              class="w-1/2 max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-200 dark:bg-gray-800 sm:w-auto sm:max-w-none sm:pl-6">
+              <a href="{% url 'club:club-detail' club.id %}">
+                {{club.team_name|upper}}</a>
+              <dl class="font-normal lg:hidden">
+                <dt class="sr-only">Title</dt>
+                <dd class="mt-1 truncate text-gray-700 dark:text-gray-200 dark:bg-gray-800">{{club.region}}</dd>
+              </dl>
+            </td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 lg:table-cell">
+              {{ club.region }}
+            </td>
+            <td
+              class="w-1/2 max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-200 dark:bg-gray-800 sm:w-auto sm:max-w-none sm:pl-6">
+              {{club.contact_person}}
+              <dl class="font-normal sm:hidden">
+                <dt class="sr-only">Title</dt>
+                <dd class="mt-1 truncate text-gray-700 dark:text-gray-200 dark:bg-gray-800">{{club.contact_email}}</dd>
+                <dt class="sr-only sm:hidden">Email</dt>
+                <dd class="mt-1 truncate text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:hidden">
+                  {{club.contact_phone}}</dd>
+              </dl>
+            </td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:table-cell">
+              {{club.contact_email}}</td>
+            <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:table-cell">
+              {{club.contact_phone}}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock content %}

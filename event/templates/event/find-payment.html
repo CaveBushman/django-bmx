@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block title %} Vyhledání e-mailové adresy platby {% endblock title %}
+{% block content %}
+
+<header class="bg-white shadow">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="text-3xl font-bold text-header">Vyhledání platby</div>
+  </div>
+</header>
+
+<div class="max-w-7xl">
+
+<form method="POST">
+  {% {% csrf_token %} %}
+
+  
+
+</form>
+
+</div>
+
+{% endblock content %}

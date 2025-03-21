@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}
+{{ news.title }}
+{% endblock title %}
+
+{% block meta_tags %}
+<meta property="og:title" content="{{ news.title }}">
+<meta property="og:description" content="{{ news.prefix }}">
+<meta property="og:image" content="{{ absolute_image_url }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Czech BMX website">
+{% endblock %}
+
+{% block content %}
+
+<header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold text-white text-center tracking-tight">
+            {{ news.title|upper }}
+        </h1>
+    </div>
+</header>
+
+<div class="max-w-screen-lg mx-auto pt-6">
+    <div class="flex gap-8">
+
+        <!-- Left side: Image and Author Info -->
+        <div class="w-1/2 flex flex-col justify-between min-h-full">
+            <!-- Image -->
+            <div class="flex justify-center items-center mb-6">
+                <img class="object-contain w-full h-auto rounded-lg shadow-xl" src="{{ news.photo_01.url }}" alt="News photo" />
+            </div>
+
+            <!-- Author Info, Date, and Tags -->
+            <div class="flex items-center justify-start space-x-4 mb-6">
+                <img class="w-12 h-12 rounded-full" src="{{ news.created.photo.url }}" alt="Author avatar">
+                <div class="text-sm">
+                    <p class="text-gray-800 dark:text-gray-300">{{ news.created }}</p>
+                    <p class="text-gray-500">{{ news.publish_date }}</p>
+                </div>
+                         <!-- Tags -->
+            <div class="flex flex-wrap space-x-2 ml-6">
+                {% for tag in news.tags.all %}
+                <span
+                    class="inline-block bg-indigo-600 text-white rounded-full px-3 py-1 text-xs font-semibold ml-6 mr-2 mb-2">{{ tag|upper }}</span>
+                {% endfor %}
+            </div>
+            </div>
+
+   
+        </div>
+
+        <!-- Right side: Information (Perex) -->
+        <div class="w-1/2 flex flex-col justify-between min-h-full">
+            <!-- Perex -->
+            <div
+                class="py-4 px-6 bg-gray-100 border-l-4 border-indigo-600 text-lg font-semibold text-gray-900 rounded-lg shadow-md mb-6">
+                <p>{{ news.prefix|safe }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content of the article -->
+    <div class="text-gray-800 dark:text-gray-300 mb-8">
+        <p class="text-base leading-relaxed mb-4">{{ news.content|safe }}</p>
+    </div>
+</div>
+
+{% endblock content %}

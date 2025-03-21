@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %} Entry form for foreign riders{% endblock title %}
+{% load static %}
+{% block content %}
+
+<header class="shadow bg-gray-100 dark:bg-gray-800">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+      Entry form for the event: {{ event.name }}
+    </h1>
+  </div>
+</header>
+
+<div class="mx-auto mt-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg">
+  <form id="ridersForm" onsubmit="return validateForm()">
+    <div class="overflow-x-auto">
+      <table class="w-full table-auto border-collapse border border-gray-300 dark:border-gray-700 text-sm">
+        <thead class="bg-gray-200 dark:bg-gray-800">
+          <tr class="text-left">
+            <th class="border px-4 py-2 w-[120px]">UCI ID</th>
+            <th class="border px-4 py-2">First name</th>
+            <th class="border px-4 py-2">Last name</th>
+            <th class="border px-4 py-2">DOB</th>
+            <th class="border px-4 py-2">Sex</th>
+            <th class="border px-4 py-2">PLATE</th>
+            <th class="border px-4 py-2">20</th>
+            <th class="border px-4 py-2">ELITE</th>
+            <th class="border px-4 py-2">Transponder 20</th>
+            <th class="border px-4 py-2">24</th>
+            <th class="border px-4 py-2">Transponder 24</th>
+            <th class="border px-4 py-2">Nationality</th>
+            <th class="border px-4 py-2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="ridersTable">
+          <tr class="riderRow bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <td class="border px-4 py-2">
+              <input type="text" name="uci_id[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onblur="fetchRiderData(this)" maxlength="11">
+            </td>
+            <td class="border px-4 py-2">
+              <input type="text" name="first_name[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
+            </td>
+            <td class="border px-4 py-2">
+              <input type="text" name="last_name[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
+            </td>
+            <td class="border px-4 py-2">
+              <input type="date" name="dob[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
+            </td>
+            <td class="border px-4 py-2 min-w-[100px]">
+              <select name="sex[]"
+                class="w-[5ch] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none"
+                id="sex-select">
+                <option value="M">M</option>
+                <option value="F">F</option>
+              </select>
+            </td>
+            <td class="border px-4 py-2">
+              <input type="number" name="plate[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" min="1"
+                step="1" readonly>
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <input type="checkbox" name="category_20[]">
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <input type="checkbox" name="category_elite[]">
+            </td>
+            <td class="border px-4 py-2">
+              <input type="text" name="transponder_20[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-YYYYY">
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <input type="checkbox" name="category_24[]">
+            </td>
+            <td class="border px-4 py-2">
+              <input type="text" name="transponder_24[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-YYYYY">
+            </td>
+            <td class="border px-4 py-2">
+              <input type="text" name="nationality[]"
+                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <button type="button" onclick="removeRow(this)"
+                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex justify-between">
+      <button type="button" onclick="addRow()"
+        class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+        Add rider
+      </button>
+      <button type="submit"
+        class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+        Send form
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function addRow() {
+    const table = document.getElementById("ridersTable");
+    const rows = document.getElementsByClassName("riderRow");
+    const lastRow = rows[rows.length - 1]; // Poslední řádek
+    const newRow = lastRow.cloneNode(true); // Klonování řádku
+
+    // Vymazání hodnot v novém řádku
+    newRow.querySelectorAll("input").forEach(input => {
+      input.value = "";
+      input.readOnly = false; // Povolení úprav
+    });
+
+    newRow.querySelectorAll("select").forEach(select => {
+      select.value = "";
+      select.disabled = false; // Povolení výběru
+    });
+
+    newRow.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
+      checkbox.checked = false;
+      checkbox.disabled = false; // Povolení zaškrtnutí
+    });
+
+    table.appendChild(newRow); // Přidání nového řádku
+  }
+
+  function removeRow(button) {
+    const row = button.closest("tr");
+    const rows = document.getElementsByClassName("riderRow");
+
+    if (rows.length > 1) {
+      row.remove();
+    } else {
+      alert("It must remain at least one line.");
+    }
+  }
+
+  function getCSRFToken() {
+    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
+    return csrfToken ? csrfToken[1] : '';
+  }
+
+  function fetchRiderData(input) {
+    const uciId = input.value;
+    const csrfToken = getCSRFToken(); // Získání CSRF tokenu z cookies
+
+    if (uciId) {
+      fetch(`/event/check-rider/?uci_id=${uciId}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            // Pokud odpověď není OK (např. 404, 500), vrátíme chybovou zprávu
+            return Promise.reject('Server returned an error: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const row = input.closest("tr");
+
+          if (!data.error) {
+            row.querySelector('[name="first_name[]"]').value = data.first_name;
+            row.querySelector('[name="last_name[]"]').value = data.last_name;
+            row.querySelector('[name="dob[]"]').value = data.date_of_birth;
+            row.querySelector('[name="sex[]"]').value = data.sex;
+            row.querySelector('[name="plate[]"]').value = data.plate;
+            row.querySelector('[name="transponder_20[]"]').value = data.transponder_20;
+            row.querySelector('[name="transponder_24[]"]').value = data.transponder_24;
+            row.querySelector('[name="nationality[]"]').value = data.nationality;
+
+            row.querySelector('[name="uci_id[]"]').readOnly = true;
+            row.querySelector('[name="first_name[]"]').readOnly = true;
+            row.querySelector('[name="last_name[]"]').readOnly = true;
+            row.querySelector('[name="dob[]"]').readOnly = true;
+            row.querySelector('[name="sex[]"]').disabled = true;
+            row.querySelector('[name="plate[]"]').readOnly = false;
+            row.querySelector('[name="nationality[]"]').readOnly = true;
+
+            row.querySelector('[name="transponder_20[]"]').readOnly = false;
+            row.querySelector('[name="transponder_24[]"]').readOnly = false;
+            row.querySelector('[name="category_20[]"]').disabled = false;
+            row.querySelector('[name="category_24[]"]').disabled = false;
+            row.querySelector('[name="category_elite[]"]').disabled = false;
+          } else {
+            row.querySelector('[name="first_name[]"]').readOnly = false;
+            row.querySelector('[name="last_name[]"]').readOnly = false;
+            row.querySelector('[name="dob[]"]').readOnly = false;
+            row.querySelector('[name="sex[]"]').disabled = false;
+            row.querySelector('[name="plate[]"]').readOnly = false;
+            row.querySelector('[name="nationality[]"]').readOnly = false;
+            row.querySelector('[name="transponder_20[]"]').readOnly = true;
+            row.querySelector('[name="transponder_24[]"]').readOnly = true;
+            row.querySelector('[name="category_20[]"]').disabled = false;
+            row.querySelector('[name="category_24[]"]').disabled = false;
+            row.querySelector('[name="category_elite[]"]').disabled = false;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error); // Zobrazení chyby v konzoli
+          alert('Error: ' + error); // Ukázání chyby uživateli
+        });
+    }
+  }
+</script>
+
+{% endblock %}
