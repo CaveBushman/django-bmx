@@ -68,6 +68,7 @@ static/js/checkout.js
 static/results/*
 static/images/*
 static/videos/*
+staticfiles/videos/*
 media/*
 node_modules/*
 theme/static_src/*
