@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
     #'material',
     #'material.admin',
+    'django_cleanup',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -164,12 +165,12 @@ USE_TZ = True
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, '/static')]
+STATIC_ROOT = os.path.join(BASE_DIR, '/staticfiles')
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, '/media')
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
