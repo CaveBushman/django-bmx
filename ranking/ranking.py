@@ -28,6 +28,9 @@ class SetRanking (threading.Thread):
         RankPositionCount.count_ranking_position()
 
 
+from django.db.models import Q
+from datetime import datetime, timedelta
+
 class RankingCount:
     """ Class for rankings count"""
     CZECH_CUP = 10
@@ -35,149 +38,59 @@ class RankingCount:
 
     def __init__(self, uci_id):
         self.uci_id = uci_id
-        self.class_20 = ""
-        self.class_24 = ""
-        self.is_20 = 0
-        self.is_24 = 0
-
         self.points_20 = 0
         self.points_24 = 0
+        self.rider = None
 
     def resolve_category(self):
-        rider = Rider.objects.get(uci_id=self.uci_id)
-        self.is_20 = rider.is_20
-        self.is_24 = rider.is_24
-        self.class_20 = rider.class_20
-        self.class_24 = rider.class_24
+        self.rider = Rider.objects.select_related().get(uci_id=self.uci_id)
 
-    def set_point_code_01(self):
-        """ Methods for setting points from MCR """
-        if self.is_20:
-            results = Result.objects.filter(event_type="Mistrovství ČR jednotlivců", is_20=1,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id)
-            try:
-                result = results[0]
-                result.marked_20 = True
-                result.save()
-                self.points_20 += result.points
-            except:
-                pass
+    def set_points(self, event_types, max_races, is_20):
+        """ General method for setting points based on event type """
+        results = (
+            Result.objects.filter(event_type__in=event_types, is_20=is_20,
+                                  date__gte=datetime.now() - timedelta(days=365),
+                                  rider=self.uci_id)
+            .order_by('-points', '-date')
+        )
 
-        if self.is_24:
-            results = Result.objects.filter(event_type="Mistrovství ČR jednotlivců", is_20=0,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id)
-            try:
-                result = results[0]
-                result.marked_24 = True
-                result.save()
-                self.points_24 += result.points
-            except:
-                pass
+        # Reset previous markings
+        results.update(marked_20=False) if is_20 else results.update(marked_24=False)
 
-    def set_point_code_02(self):
-        """ Methods for getings points from Czech Cup """
-        if self.is_20:
-            events = Result.objects.filter(event_type="Český pohár", is_20=1,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
+        # Get top races
+        num_race = min(results.count(), max_races)
+        selected_results = results[:num_race]
 
-            for event in events:
-                event.marked_20 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.CZECH_CUP  else self.CZECH_CUP
-
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_20 = True
-                self.points_20 += events[i].points
-                events[i].save()
-            del events
-
-        if self.is_24:
-            events = Result.objects.filter(event_type="Český pohár", is_20=0,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
-
-            for event in events:
-                event.marked_24 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.CZECH_CUP else self.CZECH_CUP
-
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_24 = True
-                self.points_24 += events[i].points
-                events[i].save()
-            del events
-
-    def set_point_code_03(self):
-        """ Methods for setting points from Czech and Moravian Legue """
-        if self.is_20:
-            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga") | Q(event_type="Volný závod"), is_20=1,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
-            
-            # smazání označení předchozích výsledků jako bodovaných
-            for event in events:
-                event.marked_20 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.LIGA  else self.LIGA
-
-            # zapsání nejlepších výsledků jako bodovaných do rankingu
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_20 = True
-                self.points_20 += events[i].points
-                events[i].save()
-            del events
-
-        if self.is_24:
-            events = Result.objects.filter(Q(event_type="Česká liga") | Q(event_type="Moravská liga") | Q(event_type="Volný závod"), is_20=0,
-                                           date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-                                           rider=self.uci_id).order_by('-points', '-date')
-            for event in events:
-                event.marked_24 = False
-                event.save()
-
-            num_race = events.count() if events.count() <= self.LIGA else self.LIGA
-
-            for i in range(0, num_race):
-                if events[i].points > 0:
-                    events[i].marked_24 = True
-                self.points_24 += events[i].points
-                events[i].save()
-            del events
-
-    def get_points_20(self):
-        return self.points_20
-
-    def get_points_24(self):
-        return self.points_24
+        # Update selected results
+        if is_20:
+            self.points_20 += sum(result.points for result in selected_results)
+            results.filter(id__in=[r.id for r in selected_results]).update(marked_20=True)
+        else:
+            self.points_24 += sum(result.points for result in selected_results)
+            results.filter(id__in=[r.id for r in selected_results]).update(marked_24=True)
 
     def count_points(self):
         self.resolve_category()
-        target = self.set_point_code_01()
-        target = self.set_point_code_02()
-        target = self.set_point_code_03()
-        #threading.Thread(target = self.set_point_code_04()).start()
+        if self.rider.is_20:
+            self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=1)
+            self.set_points(["Český pohár"], self.CZECH_CUP, is_20=1)
+            self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=1)
+
+        if self.rider.is_24:
+            self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=0)
+            self.set_points(["Český pohár"], self.CZECH_CUP, is_20=0)
+            self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=0)
 
     @staticmethod
     def set_ranking_points():
         """ Methods for setting ranking points for all riders """
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
-        for rider in riders:
+        for rider in Rider.objects.filter(is_active=True, is_approwe=True).iterator():
             ranking = RankingCount(rider.uci_id)
             ranking.count_points()
-            rider.points_20 = ranking.get_points_20()
-            rider.points_24 = ranking.get_points_24()
-            rider.save()
-        del riders
-
+            Rider.objects.filter(uci_id=rider.uci_id).update(
+                points_20=ranking.points_20,
+                points_24=ranking.points_24
+            )
 
 class RankPositionCount:
     """ Class for counting ranking positions of riders"""

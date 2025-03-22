@@ -15,12 +15,21 @@
 
 <div class="mt-8 mx-6">
   <div class="flex flex-row-reverse bd-highlight mr-6">
-      {% if request.user.is_admin %}
-      <a
-      href="{% url 'rider:admin' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Administrace jezdců</a>
-      {% endif %}
+    {% if request.user.is_admin %}
     <a
-    href="{% url 'rider:new' %}" class="rounded-md bg-indigo-600 mx-2 py-2.5 px-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Požádat o startovní číslo</a>
+      href="{% url 'rider:admin' %}"
+      class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+    >
+      <i class="fas fa-cogs mr-2"></i> Administrace jezdců
+    </a>
+    {% endif %}
+    
+    <a
+      href="{% url 'rider:new' %}"
+      class="flex mx-2 items-center bg-indigo-500 text-white py-3 px-6 rounded-md hover:bg-indigo-600 transition-all duration-300"
+    >
+      <i class="fas fa-id-card mr-2"></i> Požádat o startovní číslo
+    </a>
   </div>
 
   <div class="search" style="margin-top: 2rem">

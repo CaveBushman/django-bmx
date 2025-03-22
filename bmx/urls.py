@@ -22,6 +22,9 @@ from django.views.static import serve
 from django.urls import re_path as url
 from news.views import change_theme
 
+
+app_name = "bmx"
+
 urlpatterns = [
     path('api/', include('api.urls')),
     path('', include('news.urls')),

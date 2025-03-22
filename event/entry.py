@@ -3,6 +3,7 @@ import event
 from .models import Entry, Event
 from rider.models import Rider
 from datetime import datetime
+from django.utils import timezone
 import stripe
 import json
 from openpyxl import Workbook
@@ -299,7 +300,7 @@ class REMRiders:
 
         self.wb.save(file_name)
         self.event.rem_entries = file_name
-        self.event.rem_entries_created = datetime.now()
+        self.event.rem_entries_created = timezone.now()
         self.event.save()
 
 

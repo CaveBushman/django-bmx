@@ -90,5 +90,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
 @receiver(pre_save, sender=Account)
 def update_credit_before_save(sender, instance, **kwargs):
-    if instance.pk:  # Pouze pokud uživatel existuje (není to nový záznam)
-        instance.credit = calculate_user_balance(instance.pk)
+    if instance.pk:  # Only if the user already exists (not a new record)
+        try:
+            instance.credit = calculate_user_balance(instance.pk)
+        except Exception as e:
+            # Log error or handle the exception as needed
+            instance.credit = 0  # Default to 0 in case of error

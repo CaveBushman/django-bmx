@@ -16,13 +16,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.db.models import Q
+from django.utils import timezone
 import pandas as pd
 from .func import *
 from .invoices import *
 from .credit import *
 from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
-from datetime import date,timedelta
-from datetime import datetime
+from datetime import datetime, date
 import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 from django.core import serializers
@@ -513,7 +513,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.ec_file = file_name
-        event.ec_file_created = datetime.datetime.now()
+        event.ec_file_created = timezone.now()
         event.save()
 
         # File for insurance company
@@ -558,7 +558,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.ec_insurance_file = file_name
-        event.ec_insurance_file_created = datetime.datetime.now()
+        event.ec_insurance_file_created = timezone.now()
         event.save()
 
         data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
@@ -729,7 +729,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.bem_entries = file_name
-        event.bem_entries_created = datetime.now()
+        event.bem_entries_created = timezone.now()
         event.save()
 
     # ALL RIDERS FOR BEM 
@@ -825,7 +825,7 @@ def event_admin_view(request, pk):
 
         wb.save(file_name)
         event.bem_riders_list = file_name
-        event.bem_riders_created = datetime.now()
+        event.bem_riders_created = timezone.now()
         event.save()
 
     # ON LINE ENTRIES FOR REM

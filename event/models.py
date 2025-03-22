@@ -8,6 +8,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.core.exceptions import FieldDoesNotExist
 import datetime
+from django.utils import timezone
 
 
 # Create your models here.
@@ -576,6 +577,15 @@ class CreditTransaction (models.Model):
     def __str__(self):
         user = self.user if self.user else "Neznámý uživatel"
         return f"{user} - {self.amount} Kč"
+    
+@receiver(pre_save, sender=CreditTransaction)
+def update_user_balance(sender, instance, **kwargs):
+    """ Před uložením transakce přepočítá kredit uživatele """
+    if instance.user:
+        from credit import calculate_user_balance  # Import funkce
+        new_balance = calculate_user_balance(instance.user.id)  # Spočítá nový kredit
+        instance.user.credit = new_balance  # Aktualizuje kredit
+        instance.user.save()  # Uloží změnu do modelu Account
 
 
 class StripeFee (models.Model):
