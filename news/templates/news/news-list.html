@@ -39,7 +39,7 @@
                         </a>
                       </h3>
                       <p class="mt-5 text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                        {{article.prefix|safe|truncatechars:400}}</p>
+                        {{ article.prefix|safe|truncatechars_html:400 }}</p>
                     </div>
                   </div>
                 </div>
