@@ -4,7 +4,7 @@ from commissar.models import Commissar
 from rider.models import Rider
 from accounts.models import Account
 from datetime import date
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.core.exceptions import FieldDoesNotExist
 import datetime
@@ -581,6 +581,16 @@ class CreditTransaction (models.Model):
 @receiver(post_save, sender=CreditTransaction)
 def update_user_balance(sender, instance, **kwargs):
     """ Před uložením transakce přepočítá kredit uživatele """
+    if instance.user:
+        from .credit import calculate_user_balance  # Použití relativního importu
+        new_balance = calculate_user_balance(instance.user.id)  # Spočítá nový kredit
+        instance.user.credit = new_balance  # Aktualizuje kredit
+        instance.user.save()  # Uloží změnu do modelu Account
+
+
+@receiver(post_delete, sender=CreditTransaction)
+def update_user_balance_after_delete(sender, instance, **kwargs):
+    """ Po smazání transakce přepočítá kredit uživatele """
     if instance.user:
         from .credit import calculate_user_balance  # Použití relativního importu
         new_balance = calculate_user_balance(instance.user.id)  # Spočítá nový kredit
