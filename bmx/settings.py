@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -33,6 +33,10 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+
+    #'material',
+    #'material.admin',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -221,7 +225,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            'level': 'ERROR',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             'class': 'logging.FileHandler',
             'filename': 'logfile.log',
         },
@@ -229,7 +233,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'DEBUG',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            'level': 'ERROR',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             'propagate': True,
         },
     },
