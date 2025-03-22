@@ -238,3 +238,18 @@ LOGGING = {
         },
     },
 }
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Django BMX Admin",
+    "site_header": "Django BMX Admin",
+    "site_brand": "BMX",
+    "welcome_sign": "Welcome to the Django BMX Admin",
+    "topmenu_links": [
+        {"name": "Home", "url": "/", "new_window": False},
+        {"name": "Logout", "url": "/admin-bmx/logout/", "new_window": False},
+    ],
+    "user_menu_links": [
+        {"name": "My Profile", "url": "/admin-bmx/profile/", "new_window": False},
+        {"name": "Change Password", "url": "/admin-bmx/password_change/", "new_window": False},
+    ],
+}
