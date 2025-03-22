@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -164,7 +164,7 @@ USE_TZ = True
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -240,16 +240,16 @@ LOGGING = {
 }
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Django BMX Admin",
-    "site_header": "Django BMX Admin",
+    "site_title": "Django Czech BMX Admin",
+    "site_header": "Django Czech BMX Admin",
     "site_brand": "BMX",
-    "welcome_sign": "Welcome to the Django BMX Admin",
+    "welcome_sign": "Welcome to the Django Czech BMX Admin",
     "topmenu_links": [
         {"name": "Home", "url": "/", "new_window": False},
-        {"name": "Logout", "url": "/admin-bmx/logout/", "new_window": False},
+        {"name": "Logout", "url": "/bmx-admin/logout/", "new_window": False},  # Opravený odkaz na logout
     ],
     "user_menu_links": [
-        {"name": "My Profile", "url": "/admin-bmx/profile/", "new_window": False},
-        {"name": "Change Password", "url": "/admin-bmx/password_change/", "new_window": False},
+        {"name": "My Profile", "url": "/bmx-admin/profile/", "new_window": False},
+        {"name": "Change Password", "url": "/bmx-admin/password_change/", "new_window": False},
     ],
 }

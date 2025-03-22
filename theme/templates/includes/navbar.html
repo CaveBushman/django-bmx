@@ -168,7 +168,7 @@
                 <a href="{% url 'event:checkout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-1">Aktivní registrace</a>
                 <a href="{% url 'event:credit' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-credit">Kredit</a>
                 {% if user.is_admin %}
-                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
+                <a href="{% url 'admin:index' %}" target="_blank" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
                 <a href="{% url 'event:recalculate_balances_view' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-2">Kontrola kreditu</a>
                 <a href="{% url 'admin_stats:visit_stats' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
                   id="user-menu-item-2">Statistika webu</a>
@@ -269,7 +269,7 @@
           <a href="{% url 'event:credit' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem" tabindex="-1"
             id="user-menu-item-credit">Kreditu</a>
           {% if user.is_admin %}
-          <a href="{% url 'admin:index' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Administrace</a>
+          <a href="{% url 'admin:index' %}" target="_blank" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Administrace</a>
           <a href="{% url 'admin_stats:visit_stats' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem"
             tabindex="-1" id="user-menu-item-2">Statistika webu</a>
           {% endif %}
