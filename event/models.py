@@ -578,11 +578,11 @@ class CreditTransaction (models.Model):
         user = self.user if self.user else "Neznámý uživatel"
         return f"{user} - {self.amount} Kč"
     
-@receiver(pre_save, sender=CreditTransaction)
+@receiver(post_save, sender=CreditTransaction)
 def update_user_balance(sender, instance, **kwargs):
     """ Před uložením transakce přepočítá kredit uživatele """
     if instance.user:
-        from credit import calculate_user_balance  # Import funkce
+        from .credit import calculate_user_balance  # Použití relativního importu
         new_balance = calculate_user_balance(instance.user.id)  # Spočítá nový kredit
         instance.user.credit = new_balance  # Aktualizuje kredit
         instance.user.save()  # Uloží změnu do modelu Account
