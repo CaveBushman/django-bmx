@@ -4,12 +4,20 @@ import requests
 import re
 from decouple import config
 from openpyxl.workbook import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 from rider.models import Rider
 from event.models import Result, Event, Entry, SeasonSettings
 import threading
 from django.utils import timezone
 from django.db.models import Q, Exists, OuterRef
 from datetime import datetime, date
+from concurrent.futures import ThreadPoolExecutor
+from openpyxl import Workbook
+from django.utils import timezone
+from rider.models import Rider
+from event.models import Entry
+
 
 now = datetime.today().year
 INACTIVE_YEARS = 2  # for inactive riders function
@@ -77,6 +85,48 @@ def get_api_token():
     except Exception as e:
         print(f"❌ Chyba při získávání tokenu: {e}")
         return None
+
+
+def get_rider_data(uci_id):
+    print(f"\U0001f50d Načítám data pro UCI ID: {uci_id}")
+
+    token = get_api_token()
+    if not token:
+        print("❌ Nepodařilo se získat access token.")
+        return None, "Nepodařilo se získat token k API ČSC."
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    url = f"https://portal.api.czechcyclingfederation.com/api/services/licenseinfo?uciId={uci_id}"
+
+    print(f"🌐 Odesílám požadavek na: {url}")
+    print(f"➡️ Hlavičky: {headers}")
+
+    try:
+        response = requests.get(url, headers=headers, verify=True)
+        print(f"📡 Status kód: {response.status_code}")
+        print(f"📥 Tělo odpovědi: {response.text}")
+
+        if response.status_code == 404 or "Http_NotFound" in response.text:
+            print("❌ Licence nebyla nalezena v databázi ČSC.")
+            return None, f"Licence UCI ID: {uci_id} nebyla nalezena."
+
+        if not response.ok:
+            print(f"⚠️ Neočekávaná odpověď: {response.status_code}")
+            return None, f"Nastala chyba: {response.status_code}"
+
+        data = response.json()
+        print(f"✅ Úspěšně načteno: {data}")
+        return data, None
+
+    except Exception as e:
+        print(f"❌ Výjimka při volání API ČSC: {e}")
+        return None, f"Chyba při komunikaci s API ČSC: {e}"
+
+
 
 
 def valid_licence(rider):
@@ -297,3 +347,137 @@ class RiderQualifyToCNThread(threading.Thread):
             if entries_24 >= settings.qualify_to_cn:
                 rider.is_qualify_to_cn_24 = True
             rider.save()
+
+
+def generate_insurance_file(event):
+
+    """Vygeneruje stylovaný Excel pro pojištění jezdců s využitím dat z modelu a API"""
+
+    entries = Entry.objects.filter(event=event, payment_complete=True, checkout=False).select_related('rider')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "INSURANCE"
+
+    # Styl záhlaví
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="4F46E5")  # indigo
+    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+
+    headers = ["Kategorie", "Jméno", "Příjmení", "Datum narození", "Adresa"]
+    ws.append(headers)
+
+    # Styluj záhlaví
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_align
+        cell.border = border
+
+    def process_entry(entry):
+        rider = entry.rider
+        try:
+            rider_class = rider.class_20 if entry.is_20 else rider.class_24
+            first_name = rider.first_name
+            last_name = rider.last_name
+            birth = str(rider.date_of_birth)
+            street = rider.street or ""
+            city = rider.city or ""
+            zip_code = rider.zip or ""
+
+            if not street or not city or not zip_code:
+                api_data, error = get_rider_data(rider.uci_id)
+                if api_data and not error:
+                    street = street or api_data.get("street", "")
+                    city = city or api_data.get("city", "")
+                    zip_code = zip_code or api_data.get("postcode", "")
+                    first_name = api_data.get("firstName", first_name)
+                    last_name = api_data.get("lastName", last_name)
+                    birth = api_data.get("birth", birth)[:10]
+
+            address = f"{street}, {city}, PSČ: {zip_code}".strip().strip(',')
+            return [rider_class, first_name, last_name, birth, address]
+
+        except Exception as e:
+            print(f"❌ Chyba u jezdce {rider.uci_id}: {e}")
+            return None
+
+    # Použij ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        rows = list(executor.map(process_entry, entries))
+
+    # Přidej řádky a styluj je
+    for row_idx, row in enumerate(rows, start=2):
+        if row:
+            ws.append(row)
+            for col_idx, _ in enumerate(row, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.alignment = center_align
+                cell.border = border
+
+    # Nastav šířky sloupců
+    column_widths = [18, 16, 18, 16, 40]
+    for i, width in enumerate(column_widths, start=1):
+        col_letter = get_column_letter(i)
+        ws.column_dimensions[col_letter].width = width
+
+    # Ulož soubor
+    file_path = f"media/ec-files/INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx"
+    wb.save(file_path)
+
+    # Ulož do eventu
+    event.ec_insurance_file = file_path
+    event.ec_insurance_file_created = timezone.now()
+    event.save()
+
+    return file_path
+   
+
+def resolve_api_category_code(rider, is_20=False, is_24=False, is_beginner=False):
+    """Vrací API kód kategorie závodníka podle pravidel ČSC a tříd v modelu Rider"""
+
+    class20_to_api = {
+        'Boys 6': 'B 6', 'Boys 7': 'B 7', 'Boys 8': 'B 8', 'Boys 9': 'B 9', 'Boys 10': 'B 10',
+        'Boys 11': 'B 11', 'Boys 12': 'B 12', 'Boys 13': 'B 13', 'Boys 14': 'B 14',
+        'Boys 15': 'B 15', 'Boys 16': 'B 16', 'Men 17-24': 'M 17/24', 'Men 25-29': 'M 25/29',
+        'Men 30-34': 'M 30+', 'Men 35 and over': 'M 30+', 'Girls 7': 'G 7', 'Girls 8': 'G 8',
+        'Girls 9': 'G 9', 'Girls 10': 'G 10', 'Girls 11': 'G 11', 'Girls 12': 'G 12',
+        'Girls 13': 'G 13', 'Girls 14': 'G 14', 'Girls 15': 'G 15', 'Girls 16': 'G 16',
+        'Women 17-24': 'WOMEN 17+', 'Women 25 and over': 'WOMEN 17+',
+        'Men Junior': 'JUNIOR MEN', 'Women Junior': 'JUNIOR WOMEN',
+        'Men Under 23': 'U23 MEN', 'Women Under 23': 'U23 WOMEN',
+        'Men Elite': 'ELITE MEN', 'Women Elite': 'ELITE  WOMEN',
+    }
+
+    class24_to_api = {
+        'Boys 12 and under': 'CRUISER', 'Boys 13 and 14': 'CRUISER', 'Boys 15 and 16': 'CRUISER',
+        'Men 17-24': 'CRUISER', 'Men 25-29': 'CRUISER', 'Men 30-34': 'CRUISER',
+        'Men 35-39': 'CRUISER', 'Men 40-44': 'CRUISER', 'Men 45-49': 'CRUISER',
+        'Men 50 and over': 'CRUISER', 'Girls 12 and under': 'CRUISER',
+        'Girls 13-16': 'CRUISER', 'Women 17-29': 'CRUISER',
+        'Women 30-39': 'CRUISER', 'Women 40 and over': 'CRUISER'
+    }
+
+    beginners_to_api = {
+        'Beginners 1': 'ČL', 'Beginners 2': 'ČL',
+        'Beginners 3': 'ČL', 'Beginners 4': 'ČL',
+    }
+
+    if is_beginner:
+        return beginners_to_api.get(rider.class_beginner, 'ČL')
+
+    if is_20:
+        return class20_to_api.get(rider.class_20, "")
+
+    if is_24:
+        return class24_to_api.get(rider.class_24, "CRUISER")
+
+    return ""
+    

@@ -21,7 +21,7 @@ import requests
 import requests.packages
 from decouple import config
 from openpyxl import Workbook
-from rider.rider import get_api_token
+from rider.rider import get_rider_data
 
 # Global variables
 now = date.today().year
@@ -51,47 +51,6 @@ def rider_admin(request):
     active_riders = Rider.objects.filter(is_active=True).count()
     data = {'total_riders': total_riders, 'active_riders': active_riders}
     return render(request, 'rider/rider-admin.html', data)
-
-
-def get_rider_data(uci_id):
-    print(f"\U0001f50d Načítám data pro UCI ID: {uci_id}")
-
-    token = get_api_token()
-    if not token:
-        print("❌ Nepodařilo se získat access token.")
-        return None, "Nepodařilo se získat token k API ČSC."
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json"
-    }
-
-    url = f"https://portal.api.czechcyclingfederation.com/api/services/licenseinfo?uciId={uci_id}"
-
-    print(f"🌐 Odesílám požadavek na: {url}")
-    print(f"➡️ Hlavičky: {headers}")
-
-    try:
-        response = requests.get(url, headers=headers, verify=True)
-        print(f"📡 Status kód: {response.status_code}")
-        print(f"📥 Tělo odpovědi: {response.text}")
-
-        if response.status_code == 404 or "Http_NotFound" in response.text:
-            print("❌ Licence nebyla nalezena v databázi ČSC.")
-            return None, f"Licence UCI ID: {uci_id} nebyla nalezena."
-
-        if not response.ok:
-            print(f"⚠️ Neočekávaná odpověď: {response.status_code}")
-            return None, f"Nastala chyba: {response.status_code}"
-
-        data = response.json()
-        print(f"✅ Úspěšně načteno: {data}")
-        return data, None
-
-    except Exception as e:
-        print(f"❌ Výjimka při volání API ČSC: {e}")
-        return None, f"Chyba při komunikaci s API ČSC: {e}"
-
 
 
 def rider_new_view(request):

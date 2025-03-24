@@ -31,7 +31,7 @@ urlpatterns = [
     path('check-rider/', views.check_rider, name='check-rider'),
     path('generate_pdf/<int:pk>', views.generate_pdf, name='generate_pdf'),
     path('generate_invoice_preparation_pdf/<int:pk>', views.generate_invoice_preparation_pdf, name='generate_invoice_preparation_pdf'),
-    path('generate_invoices_pdf/<int:pk>', views.generate_invoices_pdf, name='generate_invoices_pdf'),
+    path('generate_invoices_pdf/<int:pk>', views.invoice_view, name='generate_invoices_pdf'),
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
     path("export-results/<int:event_id>/", views.export_event_results, name="export_event_results"),
 ]
