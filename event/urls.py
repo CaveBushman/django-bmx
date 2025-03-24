@@ -33,4 +33,5 @@ urlpatterns = [
     path('generate_invoice_preparation_pdf/<int:pk>', views.generate_invoice_preparation_pdf, name='generate_invoice_preparation_pdf'),
     path('generate_invoices_pdf/<int:pk>', views.generate_invoices_pdf, name='generate_invoices_pdf'),
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
+    path("export-results/<int:event_id>/", views.export_event_results, name="export_event_results"),
 ]

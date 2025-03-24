@@ -1,189 +1,188 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% load static %}
-{% block title %} Žádost o startovní číslo
-{% endblock title %} {% block content %}
+{% block title %} Žádost o startovní číslo {% endblock title %}
+{% block content %}
 
 <!-- HEADER -->
-<header class="bg-white shadow">
-    <div class="ml-0 p-0 w-full mx-auto py-2 bg-white">
-        <div class="flex justify-between max-w-7xl text-3xl mx-auto font-bold text-gray-900 my-4 pl-4">
-          <div>Žádost o přidělení startovního čísla</div>
-        </div>
-    </div>
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-bold text-white">ŽÁDOST O PŘIDĚLENÍ STARTOVNÍHO ČÍSLA</h1>
+  </div>
 </header>
 
 <!-- ALERT -->
-<div id="message" class="container alert-container">
-    {% if messages %}
-        {% for message in messages %}
-        <div role="alert">
-            <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-              CHYBA!
-            </div>
-            <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-              <p>{{message}}</p>
-            </div>
-          </div>
-        {% endfor %}
-    {% endif %}
-</div>
-
-<!-- FORM -->
-<div class="max-w-7xl mx-auto space-y-6 mt-6">
-    <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
-        <div class="md:grid md:grid-cols-3 md:gap-6">
-          <div class="md:col-span-1">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Osobní informace</h3>
-            <p class="mt-1 text-sm text-gray-500">Pro udělení startovního čísla nezbytně potřebujeme znát následující informace.</p>
-          </div>
-          <div class="mt-5 md:mt-0 md:col-span-2">
-            <form action="#" method="POST">
-                {% csrf_token %}
-              <div class="grid grid-cols-6 gap-6">
-                <div class="col-span-6 sm:col-span-3">
-                    <label for="first-name" class="block text-sm font-medium text-gray-700">UCI ID</label>
-                    <input type="text" name="first-name" disabled id="first-name" value="{{uci_id}}" autocomplete="given-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                  </div>
-                <div>
-                  
-                </div>
-
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="first-name" class="block text-sm font-medium text-gray-700">Křestní jméno</label>
-                  <input type="text" name="first-name" disabled id="first-name" value="{{first_name}}" autocomplete="given-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-    
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="last-name" class="block text-sm font-medium text-gray-700">Příjmení</label>
-                  <input type="text" name="last-name" disabled id="last-name" value="{{last_name}}" autocomplete="family-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-
-                <div class="col-span-6 sm:col-span-3">
-                    <label for="first-name" class="block text-sm font-medium text-gray-700">Datum narození</label>
-                    <input type="text" name="first-name" disabled id="first-name" value="{{date_of_birth}}" autocomplete="given-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                  </div>
-      
-                  <div class="col-span-6 sm:col-span-3">
-                    <label for="last-name" class="block text-sm font-medium text-gray-700">Pohlaví</label>
-                    <input type="text" name="last-name" disabled id="last-name" value="{{gender}}" autocomplete="family-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                  </div>
-    
-                <div class="col-span-6 sm:col-span-4">
-                  <label for="email" class="block text-sm font-medium text-gray-700">E-mailová adresa</label>
-                  <input type="text" name="email" id="email" autocomplete="email" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-    
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="club" class="block text-sm font-medium text-gray-700">Klub</label>
-                  <select id="club" name="club" autocomplete="club-name" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option>Vyber...</option>
-                    {% for club in clubs %}
-                        <option value="{{club.id}}">{{club.team_name|upper}}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-    
-                  <div class="col-span-6 sm:col-span-3">
-                  <label for="plate" class="block text-sm font-medium text-gray-700">Startovní číslo</label>
-                  <select id="plate" name="plate" autocomplete="SelectFreePlate-name" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option>Vyber...</option>
-                    {% for free_plate in free_plates %}
-                        <option value="{{free_plate}}">{{free_plate}}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-    
-                <div class="col-span-6">
-                  <label for="street_address" class="block text-sm font-medium text-gray-700">Ulice</label>
-                  <input type="text" name="street_address" id="street_address" autocomplete="street-address" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-    
-                <div class="col-span-6 sm:col-span-6 lg:col-span-2">
-                  <label for="city" class="block text-sm font-medium text-gray-700">Město</label>
-                  <input type="text" name="city" id="city" autocomplete="address-level2" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-    
-                <div class="col-span-6 sm:col-span-3 lg:col-span-2">
-                  <label for="zip" class="block text-sm font-medium text-gray-700">PSČ</label>
-                  <input type="text" name="zip" id="zip" autocomplete="address-level1" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-                <div></div>
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="emergency-contact" class="block text-sm font-medium text-gray-700">Nouzový kontakt</label>
-                  <input type="text" name="emergency-contact" id="emergency-contact" autocomplete="given-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-    
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="emergency-phone" class="block text-sm font-medium text-gray-700">Telefon na nouzový kontakt</label>
-                  <input type="text" name="emergency-phone" id="emergency-phone" autocomplete="family-name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                </div>
-              </div>
-          </div>
-        </div>
+{% if messages %}
+<div class="flex justify-center mt-6 px-4">
+  <div class="w-full max-w-2xl">
+    {% for message in messages %}
+    <div class="rounded-xl shadow-lg overflow-hidden animate-fade-in">
+      <div class="flex items-center gap-2 bg-red-600 text-white font-bold px-4 py-3">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2.25m0 3.75h.008v.008H12v-.008z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>CHYBA!</span>
+      </div>
+      <div class="bg-red-100 border border-t-0 border-red-400 text-red-700 px-4 py-4 text-base leading-relaxed">
+        <p>{{ message }}</p>
       </div>
     </div>
-    
-    <div class="bg-white max-w-7xl mx-auto mt-6 mb-6 shadow px-4 py-5 sm:rounded-lg sm:p-6">
-        <div class="md:grid md:grid-cols-3 md:gap-6">
-          <div class="md:col-span-1">
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Kategorie</h3>
-            <p class="mt-1 text-sm text-gray-500">Ještě prosím vyplň tyto údaje, abychom věděli, jakou kategorii budeš jezdit.</p>
-          </div>
-          <div class="mt-5 md:mt-0 md:col-span-2">
-              <fieldset>
-                <legend class="text-base font-medium text-gray-900">Zaškrtni</legend>
-                <div class="mt-4 space-y-4">
-                  <div class="flex items-start">
-                    <div class="h-5 flex items-center">
-                      <input id="is20" name="is20" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                      <label for="is20" class="font-medium text-gray-700">20" palcová kola</label>
-                      <p class="text-gray-500">pokud budeš jezdit Challenge nebo Championship kategorii.</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start">
-                    <div class="flex items-center h-5">
-                      <input id="is24" name="is24" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                      <label for="is24" class="font-medium text-gray-700">24" palcová kole</label>
-                      <p class="text-gray-500">pokud budeš jezdit kategorii Cruiser</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start">
-                    <div class="flex items-center h-5">
-                      <input id="elite" name="elite" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                      <label for="elite" class="font-medium text-gray-700">Elite</label>
-                      <p class="text-gray-500">pokud jsi jezdec kategorie Junior, Under 23 nebo Elite</p>
-                    </div>
-                  </div>
-                  {% if gender == "Žena" %}
-                  <div class="flex items-start">
-                    <div class="flex items-center h-5">
-                      <input id="bonus" name="bonus" type="checkbox" checked class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                      <label for="bonus" class="font-medium text-gray-700">Bonus pro dívky</label>
-                      <p class="text-gray-500">pokud chceš jezdi z chlapci o rok mladšími</p>
-                    </div>
-                  </div>
-                  {% endif %}
-                </div >
-              </fieldset>
-    
-              <div class="flex justify-end mt-5">
-                <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Zruš</button>
-                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Odešli</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div
+    {% endfor %}
   </div>
 </div>
-<script src = "{% static 'js/alert_timeout.js' %}"></script>
+{% endif %}
+
+<!-- FORM -->
+<div class="max-w-4xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow-xl rounded-2xl p-8 space-y-8">
+    <form method="POST" onsubmit="return validateForm()">
+      {% csrf_token %}
+
+      <div class="space-y-6">
+        <!-- Osobní údaje -->
+        <fieldset class="border border-gray-300 rounded-xl p-6">
+          <legend class="text-lg font-bold text-gray-800 px-2">Osobní údaje</legend>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+  
+            <div>
+              <label class="block text-sm font-semibold text-gray-700">Jméno</label>
+              <input type="text" value="{{ first_name|default:'' }}"
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed" disabled>
+              <input type="hidden" name="first_name" value="{{ first_name }}">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700">Příjmení</label>
+              <input type="text" value="{{ last_name|default:'' }}"
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed" disabled>
+              <input type="hidden" name="last_name" value="{{ last_name }}">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700">Datum narození</label>
+              <input type="date" value="{{ date_of_birth|default:'' }}"
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed" disabled>
+              <input type="hidden" name="date_of_birth" value="{{ date_of_birth }}">
+            </div>
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-700">UCI ID</label>
+                        <input type="text" value="{{ uci_id|default:'' }}"
+                          class="mt-1 w-full rounded-xl border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed" disabled>
+                        <input type="hidden" name="uci_id" value="{{ uci_id }}">
+                      </div>
+          </div>
+        </fieldset>
+
+        <!-- Klub a číslo -->
+        <fieldset class="border border-gray-300 rounded-xl p-6">
+          <legend class="text-lg font-bold text-gray-800 px-2">Klub a startovní číslo</legend>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+            <div>
+              <label for="plate" class="block text-sm font-semibold text-gray-700">Startovní číslo</label>
+              <select name="plate" id="plate" required
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <option disabled selected>Vyber...</option>
+                {% for plate in free_plates %}
+                <option value="{{ plate }}">{{ plate }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="club" class="block text-sm font-semibold text-gray-700">Klub</label>
+              <select name="club" id="club" required
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <option disabled selected>Vyber...</option>
+                {% for club in clubs %}
+                <option value="{{ club.id }}">{{ club.team_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Kategorie -->
+        <fieldset class="border border-gray-300 rounded-xl p-6">
+          <legend class="text-lg font-bold text-gray-800 px-2">Kategorie a nastavení</legend>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+            <div class="flex items-start">
+              <input type="checkbox" name="is20" id="is20" class="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded">
+              <label for="is20" class="ml-3 block text-sm font-medium text-gray-700">20" kolo</label>
+            </div>
+            <div class="flex items-start">
+              <input type="checkbox" name="is24" id="is24" class="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded">
+              <label for="is24" class="ml-3 block text-sm font-medium text-gray-700">Cruiser 24"</label>
+            </div>
+            <div class="flex items-start">
+              <input type="checkbox" name="elite" id="elite"
+                class="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded">
+              <label for="elite" class="ml-3 block text-sm font-medium text-gray-700">Elite</label>
+            </div>
+            <div class="flex items-start">
+              <input type="checkbox" name="bonus" id="bonus"
+                class="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded">
+              <label for="bonus" class="ml-3 block text-sm font-medium text-gray-700">Dívčí bonus
+                <span class="block text-xs text-gray-500">(dívkám se věkově posouvá kategorie o rok dolů)</span>
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Nouzový kontakt -->
+        <fieldset class="border border-gray-300 rounded-xl p-6">
+          <legend class="text-lg font-bold text-gray-800 px-2">Nouzový kontakt</legend>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+            <div>
+              <label for="emergency-contact" class="block text-sm font-semibold text-gray-700">Jméno kontaktu</label>
+              <input type="text" name="emergency-contact" id="emergency-contact" required
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+              <label for="emergency-phone" class="block text-sm font-semibold text-gray-700">Telefon</label>
+              <input type="text" name="emergency-phone" id="emergency-phone" required
+                class="mt-1 w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="flex justify-end mt-10">
+        <button type="submit"
+          class="inline-flex justify-center items-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          Odeslat žádost
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function validateForm() {
+    const phone = document.getElementById('emergency-phone');
+    if (!/^\+?\d{6,15}$/.test(phone.value)) {
+      alert('Zadejte platné telefonní číslo (6–15 číslic).');
+      phone.focus();
+      return false;
+    }
+    return true;
+  }
+</script>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out;
+  }
+</style>
+
+<script src="{% static 'js/alert_timeout.js' %}"></script>
 {% endblock content %}

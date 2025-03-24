@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Prefetch
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1585,8 +1586,91 @@ def generate_invoices_pdf(request, pk):
 @login_required(login_url="/login")
 @staff_member_required
 def recalculate_balances_view(request):
+
+    #TODO: Dodělat hlášení na webovou stránku
     try:
         recalculate_all_balances()
         return JsonResponse({"status": "success", "message": "Zůstatky byly úspěšně přepočítány."})
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500)  
+
+
+@login_required(login_url="/login")
+@staff_member_required
+def export_event_results(request, event_id):
+    # === Konfigurace API ===
+    API_URL = "https://api.example.com"
+    LOGIN_ENDPOINT = f"{API_URL}/auth/login"
+    POST_RESULTS_ENDPOINT = f"{API_URL}/results"
+
+    USERNAME = "tvuj_uzivatel"
+    PASSWORD = "tve_heslo"
+
+    # === Přihlášení a získání tokenu ===
+    try:
+        login_response = requests.post(LOGIN_ENDPOINT, json={
+            "username": USERNAME,
+            "password": PASSWORD
+        })
+        login_response.raise_for_status()
+        token = login_response.json().get("token")
+        if not token:
+            return JsonResponse({"success": False, "error": "Token nebyl vrácen API."})
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": "Nepodařilo se přihlásit k API.",
+            "detail": str(e)
+        })
+
+    # === Výběr výsledků daného závodu ===
+    results = Result.objects.filter(event__id=event_id)
+
+    payload = []
+
+    for res in results:
+        try:
+            rider = Rider.objects.get(id=res.rider)
+        except Rider.DoesNotExist:
+            continue  # Přeskočit, pokud jezdec neexistuje
+
+        payload.append({
+            "category": res.category or "",
+            "rank": res.place,
+            "bib": res.rider,
+            "uciid": str(rider.uci_id),
+            "lastName": rider.last_name,
+            "firstName": rider.first_name,
+            "country": rider.nationality,
+            "team": rider.club.team_name if rider.club else "",
+            "gender": rider.gender,
+            "phase": "",                   # např. "Final", "Semifinal" – doplníš podle potřeby
+            "heat": "",                    # můžeš později doplnit
+            "result": str(res.place),     # POZOR: tady je výsledek = pořadí
+            "irm": "",                    # např. DNF, DNS – doplníš podle potřeby
+            "sortOrder": res.place
+        })
+
+    # === Odeslání výsledků na API ===
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        post_response = requests.post(POST_RESULTS_ENDPOINT, json=payload, headers=headers)
+        post_response.raise_for_status()
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": "Nepodařilo se odeslat výsledky na API.",
+            "detail": str(e)
+        })
+
+    return JsonResponse({
+        "success": True,
+        "message": "Výsledky byly úspěšně odeslány.",
+        "odeslano": len(payload)
+    })
+
+
+@login_required(login_url="/login")
+@staff_member_required
+def price_money_pdf(request, pk):
+    pass
