@@ -9,8 +9,9 @@ from event.models import Result, Event, Entry, SeasonSettings
 import threading
 from django.utils import timezone
 from django.db.models import Q, Exists, OuterRef
+from datetime import datetime, date
 
-now = datetime.date.today().year
+now = datetime.today().year
 INACTIVE_YEARS = 2  # for inactive riders function
 
 
@@ -44,40 +45,77 @@ class RiderSetClassesThread(threading.Thread):
             rider.save()
 
 
-def valid_licence(rider):
-    """ Function for checking valid UCI ID in API ČSC,  PARAMS: UCI ID """
+def get_api_token():
+    """ Získá access token z /connect/token pomocí dat v těle """
+    TOKEN_URL = "https://portal.api.czechcyclingfederation.com/connect/token"
 
-    __LICENCE_USERNAME = config('LICENCE_USERNAME')
-    __LICENCE_PASSWORD = config('LICENCE_PASSWORD')
-    basicAuthCredentials = (__LICENCE_USERNAME, __LICENCE_PASSWORD)
+    data = {
+        "grant_type": "password",
+        "username": config("LICENCE_USERNAME"),
+        "password": config("LICENCE_PASSWORD"),
+        "client_id": "CSSC_Blazor",
+        "scope": "CSSC openid profile email roles"
+    }
 
-    url_uciid = (f'https://data.ceskysvazcyklistiky.cz/licence-api/is-valid?uciId={rider.uci_id}&year={now}')
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
 
     try:
-        requests.packages.urllib3.disable_warnings()
-        dataJSON = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-        if dataJSON.text == "false" or dataJSON.status_code != 200:
-            print(
-                f"UCI ID {rider.uci_id}, jezdec {rider.first_name} {rider.last_name} NEEXISTUJE V DATABÁZI ČSC NEBO NEMÁ PLATNOU LICENCI")
-            print(dataJSON.text)
-            rider.valid_licence = False
-            rider.save()
-        elif re.search("Http_NotFound", dataJSON.text):
-            print(f"UCI ID {rider.uci_id} NEEXISTUJE V DATABÁZI ČSC")
-            rider.valid_licence = False
-            rider.save()
-        else:
-            url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={rider.uci_id}"
-            data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-            data_json = data_json.text
-            data_json = json.loads(data_json)
-            rider.street = data_json['street']
-            rider.city = data_json['city']
-            rider.zip = data_json['postcode']
-            rider.valid_licence = True
-            rider.save()
+        response = requests.post(
+            TOKEN_URL,
+            data=data,
+            headers=headers,
+            verify=True  # nebo False pokud testuješ
+        )
+        response.raise_for_status()
+        token = response.json().get("access_token")
+        if not token:
+            raise ValueError("Token nebyl vrácen v odpovědi.")
+        return token
+
     except Exception as e:
-        print(f"CHYBA PŘI OVĚŘOVÁNÍ PLATNOSTI LICENCE: {e}")
+        print(f"❌ Chyba při získávání tokenu: {e}")
+        return None
+
+
+def valid_licence(rider):
+    """ Ověření platnosti licence pomocí správného endpointu + access tokenu """
+    token = get_api_token()
+    if not token:
+        print(f"⚠️ Nelze ověřit licenci – token se nezískal.")
+        return
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    year = date.today().year
+    base_url = "https://portal.api.czechcyclingfederation.com"
+    check_url = f"{base_url}/api/services/validuciid"
+
+    params = {
+        "year": year,
+        "uciId": rider.uci_id
+    }
+
+    try:
+        response = requests.get(check_url, headers=headers, params=params, verify=True)
+        response.raise_for_status()
+
+        data = response.json()
+        is_valid = data.get("valid", False)
+
+        rider.valid_licence = is_valid
+        rider.save()
+
+        if is_valid:
+            print(f"✅ {rider.uci_id} – {rider.first_name} {rider.last_name}: licence je platná.")
+        else:
+            print(f"❌ {rider.uci_id} – {rider.first_name} {rider.last_name}: licence NENÍ platná.")
+
+    except Exception as e:
+        print(f"⚠️ Chyba při ověřování licence {rider.uci_id}: {e}")
 
 
 def two_years_inactive():

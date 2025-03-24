@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Mapa klubů{% endblock title %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+{% block content %}
+
+<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-extrabold uppercase">MAPA KLUBŮ</h1>
+  </div>
+</header>
+
+<div id="map" class="h-[600px] w-full"></div>
+
+<!-- Leaflet knihovna -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  const map = L.map('map').setView([49.75, 15.5], 7); // Střed ČR
+
+  // Základní dlaždice
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap přispěvatelé'
+  }).addTo(map);
+
+  // Markery klubů
+  {% for klub in kluby %}
+    L.marker([{{ klub.lon }}, {{ klub.lng }}]).addTo(map)
+      .bindPopup(`
+        <b>{{ klub.team_name }}</b>
+        {% if klub.have_track %} 🏁{% endif %}
+        <br>{{ klub.city }}
+        {% if klub.web %}
+          <br><a href="{{ klub.web }}" target="_blank">Web</a>
+        {% endif %}
+      `);
+  {% endfor %}
+</script>
+
+{% endblock %}

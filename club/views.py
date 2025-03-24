@@ -66,15 +66,19 @@ def participation_in_races(request, pk):
     return render(request, 'club/club-participation.html', data)
 
 
-def maps_of_tracks(request):
-    """ function for view tracks on map """
-    tracks = Club.objects.filter(is_active = True, have_track = True)
+def mapa_klubu(request):
+    kluby = Club.objects.filter(is_active=True).exclude(lon=0, lng=0)
 
-    # myMap = folium.Map(location=[49.7439047, 15.3381061], zoom_start=8)
-    for track in tracks:
-        # folium.Marker([track.lon,track.lng]).add_to(myMap)
-        print(f"Přidávám trat na souřadnici {track.lon}, {track.lng}.")
-    file_path = 'club/templates/club/mylocation.html'
-    # myMap.save(file_path)
-    
-    return render (request, 'club/mylocation.html')
+    upravene_kluby = []
+    for klub in kluby:
+        lon = str(klub.lon).replace(',', '.')
+        lng = str(klub.lng).replace(',', '.')
+        upravene_kluby.append({
+            'team_name': klub.team_name,
+            'city': klub.city,
+            'lon': lon,
+            'lng': lng,
+            'web': klub.web,
+        })
+
+    return render(request, 'club/maps.html', {'kluby': upravene_kluby})

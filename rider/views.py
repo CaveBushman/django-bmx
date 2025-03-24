@@ -1,5 +1,4 @@
 import os
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -7,7 +6,6 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.views.decorators.cache import cache_control
 from django.contrib.admin.views.decorators import staff_member_required
-
 from bmx import settings
 from .models import Rider
 from .rider import two_years_inactive, CheckValidLicenceThread, Participation, Cruiser, RiderSetClassesThread, \
@@ -23,6 +21,7 @@ import requests
 import requests.packages
 from decouple import config
 from openpyxl import Workbook
+from rider.rider import get_api_token
 
 # Global variables
 now = date.today().year
@@ -54,178 +53,139 @@ def rider_admin(request):
     return render(request, 'rider/rider-admin.html', data)
 
 
+def get_rider_data(uci_id):
+    print(f"\U0001f50d Načítám data pro UCI ID: {uci_id}")
+
+    token = get_api_token()
+    if not token:
+        print("❌ Nepodařilo se získat access token.")
+        return None, "Nepodařilo se získat token k API ČSC."
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    url = f"https://portal.api.czechcyclingfederation.com/api/services/licenseinfo?uciId={uci_id}"
+
+    print(f"🌐 Odesílám požadavek na: {url}")
+    print(f"➡️ Hlavičky: {headers}")
+
+    try:
+        response = requests.get(url, headers=headers, verify=True)
+        print(f"📡 Status kód: {response.status_code}")
+        print(f"📥 Tělo odpovědi: {response.text}")
+
+        if response.status_code == 404 or "Http_NotFound" in response.text:
+            print("❌ Licence nebyla nalezena v databázi ČSC.")
+            return None, f"Licence UCI ID: {uci_id} nebyla nalezena."
+
+        if not response.ok:
+            print(f"⚠️ Neočekávaná odpověď: {response.status_code}")
+            return None, f"Nastala chyba: {response.status_code}"
+
+        data = response.json()
+        print(f"✅ Úspěšně načteno: {data}")
+        return data, None
+
+    except Exception as e:
+        print(f"❌ Výjimka při volání API ČSC: {e}")
+        return None, f"Chyba při komunikaci s API ČSC: {e}"
+
+
+
 def rider_new_view(request):
-    """ View for new rider form """
-
-    # User fill data and send form
     if request.method == "POST":
-
         clubs = Club.objects.filter(is_active=True)
-
-        # getting all used plates list
-        used_plates = []
-        riders = Rider.objects.filter(is_active=True)
-
-        for rider in riders:
-            used_plates += [rider.plate]
-
-        # create free plates list
+        used_plates = list(Rider.objects.filter(is_active=True).values_list('plate', flat=True))
         free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
-        print(free_plates)
 
-        # get data from UCI API and put this data to the second form
+        # FÁZE 1: Načtení dat z UCI API pomocí UCI ID
         if 'num11' in request.POST and 'first-name' not in request.POST:
+            uci_id = ''.join([request.POST.get(f'num{i}', '') for i in range(1, 12)])
+            data_json, error_msg = get_rider_data(uci_id)
 
-            num1 = request.POST['num1']
-            num2 = request.POST['num2']
-            num3 = request.POST['num3']
-            num4 = request.POST['num4']
-            num5 = request.POST['num5']
-            num6 = request.POST['num6']
-            num7 = request.POST['num7']
-            num8 = request.POST['num8']
-            num9 = request.POST['num9']
-            num10 = request.POST['num10']
-            num11 = request.POST['num11']
-            uci_id = str(num1) + str(num2) + str(num3) + str(num4) + str(num5) + str(num6) + str(num7) + str(
-                num8) + str(num9) + str(num10) + str(num11)
-            # url_uci = f"https://ucibws.uci.ch/api/contacts/riders?filter.uciid={uci_id}"
+            if error_msg or not data_json:
+                return render(request, 'rider/rider-new-error.html', {'message': error_msg})
 
-            username = config('LICENCE_USERNAME')
-            password = config('LICENCE_PASSWORD')
+            first_name = data_json.get('firstName')
+            last_name = data_json.get('lastName')
+            birth = data_json.get('birth', '')[:10]
+            gender_code = data_json.get('sex', {}).get('code', 'M')
+            gender = "Žena" if gender_code == "F" else "Muž"
 
-            basicAuthCredentials = (username, password)
-            url_uciid = f"https://data.ceskysvazcyklistiky.cz/licence-api/get-by?uciId={uci_id}"
-            data_json = requests.get(url_uciid, auth=basicAuthCredentials, verify=False)
-            data_json = data_json.text
+            if Rider.objects.filter(uci_id=uci_id).exists():
+                existing = Rider.objects.get(uci_id=uci_id)
+                msg = f"Jezdec/jezdkyně {existing.first_name} {existing.last_name}, UCI ID {uci_id}, již má přidělené číslo."
+                return render(request, 'rider/rider-new-error.html', {'message': msg})
 
-            if "\Http_NotFound" in data_json:
-                print("Tato licence neexistuje")
-                message = f"Licence UCI ID: {uci_id} nebyla Českým svazem cyklistiky vystavena. Zkuste to znovu se správným číslem nebo kontaktujte Komisi BMX Českého svazu cyklistiky."
-                data = {'message': message}
-                return render(request, 'rider/rider-new-error.html', data)
-            data_json = json.loads(data_json)
+            # Uložíme do session pro další krok
+            request.session['first_name'] = first_name
+            request.session['last_name'] = last_name.capitalize() if last_name else ""
+            request.session['date_of_birth'] = birth
+            request.session['gender'] = gender
+            request.session['uci_id'] = uci_id
 
-            gender = data_json['sex']
-            if gender['code'] == "F":
-                gender = "Žena"
-            else:
-                gender = "Muž"
+            return render(request, 'rider/rider-new-2.html', {
+                'first_name': first_name,
+                'last_name': last_name,
+                'date_of_birth': birth,
+                'gender': gender,
+                'clubs': clubs,
+                'free_plates': free_plates,
+                'uci_id': uci_id,
+            })
 
-            try:
-                data_new_rider = {'first_name': data_json['firstname'], 'last_name': data_json['lastname'],
-                                  'date_of_birth': data_json['birth'][0:10], 'clubs': clubs,
-                                  'free_plates': free_plates, 'uci_id': data_json['uci_id'], 'gender': gender}
-                request.session['first_name'] = data_json['firstname']
-                request.session['last_name'] = data_json['lastname'].capitalize()
-                request.session['date_of_birth'] = data_json['birth'][0:10]
-                request.session['gender'] = gender
-                request.session['uci_id'] = uci_id
-                rider_exist = False
-                try:
-                    rider = Rider.objects.get(uci_id=request.session['uci_id'])
-                    rider_exist = True
-                except:
-                    pass
-
-                if rider_exist:
-                    message = f"Jezdec/jezdkyně {rider.first_name} {rider.last_name}, UCI ID {rider.uci_id}, již má přiděleno permanentní startovní číslo. Kontatujte Komisi BMX Českého svazu cyklistiky."
-                    data = {'message': message}
-                    return render(request, 'rider/rider-new-error.html', data)
-
-                return render(request, 'rider/rider-new-2.html', data_new_rider)
-            except Exception as error:
-                print(f"Chyba v session - {error}")
-
-        # get data from form and save new rider
+        # FÁZE 2: Uložení formuláře do databáze
         else:
-            # TODO: Dodělat ověření vyplnění všech údajů, v případě chyby zobrazit alert
+            required_fields = ['plate', 'club', 'emergency-contact', 'emergency-phone']
+            for field in required_fields:
+                if not request.POST.get(field) or request.POST.get(field) in ["", "Vyber..."]:
+                    messages.error(request, f"Pole {field} je povinné.")
+                    return render(request, 'rider/rider-new-2.html', {
+                        'first_name': request.session['first_name'],
+                        'last_name': request.session['last_name'],
+                        'date_of_birth': request.session['date_of_birth'],
+                        'gender': request.session['gender'],
+                        'clubs': clubs,
+                        'free_plates': free_plates,
+                        'uci_id': request.session['uci_id'],
+                    })
 
-            if request.POST['email'].strip() == "":
-                print("Není vyplněn e-mail")
-                messages.error(request, "Nevyplnil/a jsi e-mailovou adresu. Jedná se o povinný údaj.")
-                data_new_rider = {'first_name': request.session['first_name'],
-                                  'last_name': request.session['last_name'],
-                                  'date_of_birth': request.session['date_of_birth'],
-                                  'gender': request.session['gender'],
-                                  'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
-                                  }
-                return render(request, 'rider/rider-new-2.html', data_new_rider)
-            else:
-                # TODO: Dodělat ověření správnosti e-mailové adresy
-                pass
+            if 'is20' not in request.POST and 'is24' not in request.POST:
+                messages.error(request, 'Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.')
+                return render(request, 'rider/rider-new-2.html', {
+                    'first_name': request.session['first_name'],
+                    'last_name': request.session['last_name'],
+                    'date_of_birth': request.session['date_of_birth'],
+                    'gender': request.session['gender'],
+                    'clubs': clubs,
+                    'free_plates': free_plates,
+                    'uci_id': request.session['uci_id'],
+                })
 
-            if request.POST['plate'] == "Vyber...":
-                print("Není vybráno startovní číslo")
-                messages.error(request, "Nevybral/a jsi startovní číslo. Jedná se o povinný údaj.")
-                data_new_rider = {'first_name': request.session['first_name'],
-                                  'last_name': request.session['last_name'],
-                                  'date_of_birth': request.session['date_of_birth'],
-                                  'gender': request.session['gender'],
-                                  'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
-                                  }
-                return render(request, 'rider/rider-new-2.html', data_new_rider)
-
-            if ('is20') not in request.POST and ('is24') not in request.POST:
-                print("Není vybrána kategorie")
-                messages.error(request,
-                               "Nevyplnil/a jsi, zda budeš jezdit na 20-ti palcovém kole či na Cruiseru. Jedná se o povinný údaj.")
-                data_new_rider = {'first_name': request.session['first_name'],
-                                  'last_name': request.session['last_name'],
-                                  'date_of_birth': request.session['date_of_birth'],
-                                  'gender': request.session['gender'],
-                                  'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
-                                  }
-                return render(request, 'rider/rider-new-2.html', data_new_rider)
-
-            if request.POST['club'] == "Vyber...":
-                print("Není vybrán klub")
-                messages.error(request, "Nevybral jsi svůj klub. Jedná se o povinný údaj.")
-                data_new_rider = {'first_name': request.session['first_name'],
-                                  'last_name': request.session['last_name'],
-                                  'date_of_birth': request.session['date_of_birth'],
-                                  'gender': request.session['gender'],
-                                  'clubs': clubs, 'free_plates': free_plates, 'uci_id': request.session['uci_id'],
-                                  }
-                return render(request, 'rider/rider-new-2.html', data_new_rider)
-
-            is_20 = 1 if 'is20' in request.POST else 0
-            is_24 = 1 if 'is24' in request.POST else 0
-            have_girls_bonus = 1 if 'bonus' in request.POST else 0
-            is_elite = 1 if 'elite' in request.POST else 0
+            # Vytvoření záznamu jezdce
             new_rider = Rider.objects.create(
                 first_name=request.session['first_name'],
                 last_name=request.session['last_name'],
                 date_of_birth=datetime.datetime.strptime(request.session['date_of_birth'], "%Y-%m-%d"),
                 gender=request.session['gender'],
-                street=request.POST['street_address'],
-                city=request.POST['city'],
-                zip=request.POST['zip'],
                 uci_id=request.session['uci_id'],
-                is_20=is_20,
-                is_24=is_24,
-                is_elite=is_elite,
-                have_girl_bonus=have_girls_bonus,
-                email=request.POST['email'],
+                is_20='is20' in request.POST,
+                is_24='is24' in request.POST,
+                is_elite='elite' in request.POST,
+                have_girl_bonus='bonus' in request.POST,
                 plate=request.POST['plate'],
                 club=Club.objects.get(id=request.POST['club']),
-                is_active=1,
-                is_approwe=0,
+                is_active=True,
+                is_approwe=False,
                 emergency_contact=request.POST['emergency-contact'],
                 emergency_phone=request.POST['emergency-phone'],
             )
-            new_rider.save()
 
-            # TODO: Vylepšit odeslání e-mailového potvrzení HTML
-            # send_mail (
-            #     subject = "NOVÁ ŽÁDOST O PERMANENTNÍ STARTOVNÍ ČÍSLO",
-            #     message = f"V aplikaci www.czechbmx.cz byla podána nová žádost o startovní číslo jezdce {request.session['first_name']} {request.session['last_name']}. Prosím o její vyřízení",
-            #     from_email = "bmx@ceskysvazcyklistiky.cz",
-            #     recipient_list = ["david@black-ops.eu"],)
+            return render(request, 'rider/rider-new-3.html')
 
-        return render(request, 'rider/rider-new-3.html')
-
-    # rendering in GET method
+    # GET metoda – první krok
     return render(request, 'rider/rider-new.html')
 
 

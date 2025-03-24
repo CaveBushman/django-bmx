@@ -475,7 +475,8 @@ class Result(models.Model):
         verbose_name_plural = "Výsledky"
 
     def __str__(self):
-        return str(self.event.name) + " " + str(self.last_name) + " " + str(self.first_name) + " " + str(self.category)
+        event_name = self.event.name if self.event else "Bez závodu"
+        return f"{event_name} – {self.last_name} {self.first_name} ({self.category})"
 
 
 class Entry(models.Model):
@@ -560,6 +561,7 @@ class DebetTransaction (models.Model):
         rider = self.entry.rider if self.entry else "Neznámý jezdec"
         return f"{user} - {event} - {rider}"
 
+
 class CreditTransaction (models.Model):
     """ Model for transactions """
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
@@ -600,7 +602,6 @@ def update_user_balance_after_delete(sender, instance, **kwargs):
 
 class StripeFee (models.Model):
     """ Model for card transaction fee"""
-
     date = models.DateField(default=datetime.date.today)
     fee = models.DecimalField(default = 0, decimal_places=2, max_digits = 10)
     created = models.DateTimeField(auto_now_add = True, null=True)
