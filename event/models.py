@@ -255,6 +255,11 @@ class Event(models.Model):
     ec_insurance_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     price_of_insurance = models.IntegerField(default = 0)
 
+    #ID pro výsledkový servis Českého svazu cyklisitiky
+    ccf_id = models.IntegerField(default = 0)
+    created = models.DateField(auto_now_add=True, null=True)
+    ccf_uploaded = models.BooleanField(default=False)
+
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
 

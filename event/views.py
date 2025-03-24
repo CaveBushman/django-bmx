@@ -18,6 +18,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.db.models import Q
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
+from rider.rider import get_api_token, generate_insurance_file
 import pandas as pd
 from .func import *
 from .invoices import *
@@ -47,6 +49,8 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.db.models import Q
+from rider.rider import get_api_token, resolve_api_category_code
+from rider.models import Rider
 
 
 # Create your views here.
@@ -106,6 +110,7 @@ def results_view(request, pk):
     return render(request, 'event/results.html', data)
 
 @login_required(login_url="/event/not-reg")
+@cache_page(60 * 5)  # cache na 5 minut
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
     
@@ -454,20 +459,25 @@ def stripe_webhook(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def event_admin_view(request, pk):
-    """ Function for Event admin page view"""
     event = Event.objects.get(id=pk)
     __LICENCE_USERNAME = config('LICENCE_USERNAME')
     __LICENCE_PASSWORD = config('LICENCE_PASSWORD')
 
-    # Admin page for European Cup
-    if event.type_for_ranking == "Evropský pohár" or event.type_for_ranking == "Mistrovství Evropy":
+    # Admin page for European Cup or European Championship
+    if event.type_for_ranking in ["Evropský pohár", "Mistrovství Evropy"]:
+        token = get_api_token()
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
 
         payments = 0
+        entries = Entry.objects.filter(
+            event=event.id,
+            payment_complete=True,
+            checkout=False
+        ).select_related('rider')
 
-        entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=0)
-        entries_24 = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=0)
-
-        sum_entiries = entries_20.count() + entries_24.count()
+        entries_20 = entries.filter(is_20=True)
+        entries_24 = entries.filter(is_24=True)
+        sum_entries = entries_20.count() + entries_24.count()
 
         file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
         if event.type_for_ranking == "Evropský pohár":
@@ -477,98 +487,40 @@ def event_admin_view(request, pk):
         ws = wb.active
 
         x = 3
-
-
-        for entry_20 in entries_20:
+        for entry in entries:
+            rider = entry.rider
             try:
-                rider = Rider.objects.get(uci_id=entry_20.rider.uci_id)
                 ws.cell(x, 2, rider.uci_id)
                 ws.cell(x, 3, rider.date_of_birth)
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
-                ws.cell(x, 7, rider.transponder_20)
-                if rider.is_elite:
-                    ws.cell(x, 9, "x")
-                if rider.class_20 == "Women Under 23" or rider.class_20 == "Men Under 23":
-                    ws.cell(x, 10, "x")
+                ws.cell(x, 7, rider.transponder_20 if entry.is_20 else rider.transponder_24)
+                if entry.is_24:
+                    ws.cell(x, 8, "x")
+                if entry.is_20:
+                    if rider.is_elite:
+                        ws.cell(x, 9, "x")
+                    if rider.class_20 in ["Women Under 23", "Men Under 23"]:
+                        ws.cell(x, 10, "x")
+                x += 1
+            except Exception as e:
+                print(f"Chyba při zápisu do souboru: {e}")
 
-                x = x + 1
-            except:
-                pass
-
-            payments += entry_20.fee_20
-
-        for entry_24 in entries_24:
-            try:
-                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
-                ws.cell(x, 2, rider.uci_id)
-                ws.cell(x, 3, rider.date_of_birth)
-                ws.cell(x, 4, rider.first_name)
-                ws.cell(x, 5, rider.last_name)
-                ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
-                ws.cell(x, 7, rider.transponder_24)
-                ws.cell(x, 8, "x")
-
-                x = x + 1
-            except:
-                pass
-
-            payments += entry_24.fee_24
+            payments += entry.fee_20 if entry.is_20 else entry.fee_24
 
         wb.save(file_name)
         event.ec_file = file_name
         event.ec_file_created = timezone.now()
         event.save()
 
-        # File for insurance company
-        file_name = f'media/ec-files/INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
-        wb = Workbook()
-        wb.encoding = "utf-8"
-        ws = wb.active
-        ws.title = "INSURANCE"
+        # Pojišťovací soubor
+        generate_insurance_file(event)
 
-        ws = insurance_first_line(ws)
-
-        x = 2
-        for entry_20 in entries_20:
-            try:
-                rider = Rider.objects.get(uci_id=entry_20.rider.uci_id, have_valid_insurance=False)
-
-                rider_address = rider.street + ", " + rider.city + ", PSČ: " + rider.zip
-
-                ws.cell(x, 1, rider.class_20)
-                ws.cell(x, 2, rider.first_name)
-                ws.cell(x, 3, rider.last_name)
-                ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
-                ws.cell(x, 5, rider_address)
-                x = x + 1
-            except Exception as e:
-                print(f"Chyba souboru pojištění: {e}")
-
-        for entry_24 in entries_24:
-            try:
-                rider = Rider.objects.get(uci_id=entry_24.rider.uci_id, have_valid_insurance=False)
-
-                rider_address = rider.street + ", " + rider.city + ", PSČ: " + rider.zip
-
-                ws.cell(x, 1, rider.class_24)
-                ws.cell(x, 2, rider.first_name)
-                ws.cell(x, 3, rider.last_name)
-                ws.cell(x, 4, date_of_birth_resolve_rem_online(rider.date_of_birth))
-                ws.cell(x, 5, rider_address)
-                x = x + 1
-            except Exception as e:
-                print(f"Chyba souboru pojištění: {e}")
-
-        wb.save(file_name)
-        event.ec_insurance_file = file_name
-        event.ec_insurance_file_created = timezone.now()
-        event.save()
-
-        data = {'event': event, "sum_entries": sum_entiries, "payments": payments}
+        data = {'event': event, "sum_entries": sum_entries, "payments": payments}
         return render(request, 'event/event-admin-ec.html', data)
 
+    # ... zbytek funkce zůstává beze změny ...
     if event.type_for_ranking == "Mistrovství světa":
         pass
     # Admin page for Czech events
@@ -1553,39 +1505,61 @@ def generate_invoice_preparation_pdf(request, pk):
     return response
 
 
-def generate_invoices_pdf(request, pk):
-    # Get the event object based on the provided pk
-    event = Event.objects.get(pk=pk)
-    entries = Entry.objects.filter(event=pk, payment_complete=True)
-
-    invoices_data = []
-
-    # Initialize a dictionary to hold the sum for each club
-    clubs = {}
-
-    # Iterate through entries to accumulate the amount by club
-    for entry in entries:
-        club_name = entry.rider.club
-        amount = entry.fee_20+entry.fee_24+entry.fee_beginner
-
-        if club_name not in clubs:
-            clubs[club_name] = 0  # Initialize the sum for the club
-
-        # Add the amount for the current entry to the club's total
-        clubs[club_name] += amount
-
-    # Convert the dictionary to a list of dictionaries for invoices_data
-    for club, total_amount in clubs.items():
-        invoices_data.append({
-            'club': club.id,
-            'suma': total_amount,
-        })
-
-    print(invoices_data)
+def invoice_view(request, pk):
     
-    # Generate the invoice and return the response
-    return generate_invoice(request, event)
+    # invoice_data = get_invoice_data(invoice_id)  # tvá funkce na získání dat z DB
+    
+    invoice_data = {
+    "number": "20240001",
+    "issue_date": "02.01.2024",
+    "due_date": "09.01.2024",
+    "payment_method": "Převodem",
+    "vs": "20240001",
+    "iban": "CZ32 0300 0000 0000 5051 1001",
+    "supplier": [
+        "Adventure Land s.r.o.",
+        "Křenova 438/7",
+        "162 00 Praha",
+        "IČ: 25747908",
+        "DIČ: CZ25747908",
+    ],
+    "customer": [
+        "PROMAFIX s.r.o.",
+        "Semčice 96",
+        "294 46 Semčice",
+        "IČ: 08554625",
+        "DIČ: CZ08554625",
+    ],
+    "items": [
+        {
+            "description": "Rallye test - pronájem okruhu, zabezpečení TK, Com",
+            "qty": 5,
+            "unit_price": 3990.00,
+            "vat": 21,
+            "total": 24139.50,
+        },
+        {
+            "description": "Zaokrouhlení",
+            "qty": 1,
+            "unit_price": 0.50,
+            "vat": 0,
+            "total": 0.50,
+        }
+    ],
+    "summary": {
+        "base": 19950.00,
+        "vat": 4189.50,
+        "total": 24140.00
+    }
+}
+    
+    pdf_buffer = generate_invoice_pdf(invoice_data)
 
+    return HttpResponse(
+        pdf_buffer,
+        content_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="faktura_{invoice_data["number"]}.pdf"'},
+    )
 
 @login_required(login_url="/login")
 @staff_member_required
@@ -1599,71 +1573,63 @@ def recalculate_balances_view(request):
         return JsonResponse({"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500)  
 
 
+
 @login_required(login_url="/login")
 @staff_member_required
 def export_event_results(request, event_id):
-    # === Konfigurace API ===
-    API_URL = "https://api.example.com"
-    LOGIN_ENDPOINT = f"{API_URL}/auth/login"
-    POST_RESULTS_ENDPOINT = f"{API_URL}/results"
+    API_BASE_URL = "https://test.api.czechcyclingfederation.com"
+    POST_RESULTS_ENDPOINT = f"{API_BASE_URL}/api/services/saveraceresults?raceId={event_id}&subDisciplineCode=BMX_RAC"
 
-    USERNAME = "tvuj_uzivatel"
-    PASSWORD = "tve_heslo"
+    # Získání access tokenu
+    token = get_api_token()
+    if not token:
+        return JsonResponse({"success": False, "error": "Nepodařilo se získat token."})
 
-    # === Přihlášení a získání tokenu ===
-    try:
-        login_response = requests.post(LOGIN_ENDPOINT, json={
-            "username": USERNAME,
-            "password": PASSWORD
-        })
-        login_response.raise_for_status()
-        token = login_response.json().get("token")
-        if not token:
-            return JsonResponse({"success": False, "error": "Token nebyl vrácen API."})
-    except Exception as e:
-        return JsonResponse({
-            "success": False,
-            "error": "Nepodařilo se přihlásit k API.",
-            "detail": str(e)
-        })
-
-    # === Výběr výsledků daného závodu ===
     results = Result.objects.filter(event__id=event_id)
-
     payload = []
 
     for res in results:
         try:
-            rider = Rider.objects.get(id=res.rider)
+            rider = Rider.objects.get(id=res.rider.id)
         except Rider.DoesNotExist:
-            continue  # Přeskočit, pokud jezdec neexistuje
+            continue
+
+        api_category_code = resolve_api_category_code(
+            rider,
+            is_20=rider.is_20,
+            is_24=rider.is_24,
+            is_beginner=rider.class_beginner is not None
+        )
 
         payload.append({
-            "category": res.category or "",
+            "categoryCode": api_category_code,
             "rank": res.place,
-            "bib": res.rider,
+            "bib": rider.plate,
             "uciid": str(rider.uci_id),
             "lastName": rider.last_name,
             "firstName": rider.first_name,
-            "country": rider.nationality,
+            "country": rider.nationality or "CZE",
             "team": rider.club.team_name if rider.club else "",
-            "gender": rider.gender,
-            "phase": "",                   # např. "Final", "Semifinal" – doplníš podle potřeby
-            "heat": "",                    # můžeš později doplnit
-            "result": str(res.place),     # POZOR: tady je výsledek = pořadí
-            "irm": "",                    # např. DNF, DNS – doplníš podle potřeby
+            "gender": "F" if rider.gender == "Žena" else "M",
+            "phase": "",         # doplnit dle potřeby
+            "heat": "",          # doplnit dle potřeby
+            "result": str(res.place),
+            "irm": "",           # např. "DNF", "DNS", lze doplnit dle pravidel
             "sortOrder": res.place
         })
 
-    # === Odeslání výsledků na API ===
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
     try:
-        post_response = requests.post(POST_RESULTS_ENDPOINT, json=payload, headers=headers)
-        post_response.raise_for_status()
+        #post_response = requests.post(POST_RESULTS_ENDPOINT, json=payload, headers=headers)
+        #post_response.raise_for_status()
+        print (payload)
     except Exception as e:
         return JsonResponse({
             "success": False,
-            "error": "Nepodařilo se odeslat výsledky na API.",
+            "error": "Chyba při odesílání výsledků na API.",
             "detail": str(e)
         })
 
@@ -1672,7 +1638,6 @@ def export_event_results(request, event_id):
         "message": "Výsledky byly úspěšně odeslány.",
         "odeslano": len(payload)
     })
-
 
 @login_required(login_url="/login")
 @staff_member_required

@@ -277,14 +277,16 @@
         </a>
       </div>
 
+      {% if not event.ccf_uploaded and results_exist %}
       <div
         class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
-        <a href="#" target="_blank" 
+        <a href="{% url 'event:export_event_results' event.id %}" target="_blank"
           class="flex items-center bg-violet-500 text-white py-3 px-6 rounded-md hover:bg-violet-600 transition-all duration-300"
-          aria-label="Generovat protokol Price money">
+          aria-label="Odešli výsledky">
           <i class="fas fa-paper-plane text-xl mr-2"></i> Odešli výsledky
         </a>
       </div>
+    {% endif %}
 
     </div>
   </div>
