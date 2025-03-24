@@ -108,10 +108,14 @@ def results_view(request, pk):
 @login_required(login_url="/event/not-reg")
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
-    #riders = Rider.objects.filter(is_active=True, is_approwe=True, valid_licence=True)
     
     # Načíst jezdce jedním dotazem s potřebnými daty
-    riders = Rider.objects.filter(is_active=True, is_approwe=True).prefetch_related('entry_set')
+    riders = Rider.objects.filter(
+    is_active=True,
+    is_approwe=True
+).filter(
+    Q(valid_licence=True) | Q(fix_valid_licence=True)
+).prefetch_related('entry_set')
     sum_fee = 0
 
     # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
