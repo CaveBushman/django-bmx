@@ -62,7 +62,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 .env
-bmx/.env
+.env
 sec.py
 static/js/checkout.js
 static/results/*
