@@ -46,7 +46,7 @@ def sign_in(request):
                 # Pokud není zaškrtnuto, platí session pouze do zavření prohlížeče
                 request.session.set_expiry(0)  # Vyprší po zavření prohlížeče
 
-            return redirect('news:home')  # Přesměrování po úspěšném přihlášení
+            return redirect('news:homepage')  # Přesměrování po úspěšném přihlášení
 
     return render(request, 'accounts/signin.html')
 

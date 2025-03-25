@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 from django.conf import settings
 from decouple import config
@@ -14,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -225,18 +227,32 @@ CRONJOBS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'ERROR',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-            'class': 'logging.FileHandler',
-            'filename': 'logfile.log',
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'chatbot_file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'chatbot.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 14,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',  # Loguje všechny zprávy (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-            'propagate': True,
+        'api.views': {
+            'handlers': ['console', 'chatbot_file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }

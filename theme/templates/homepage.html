@@ -48,10 +48,10 @@
                 class="flex flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div class="flex flex-col justify-between">
                     <div class="relative w-full overflow-hidden rounded-xl">
-                        <meta property="og:image" content="{{article.photo_01.url}}" />
-                        <!-- Obrázek pro portrait a landscape režim -->
-                        <img src="{{article.photo_01.url}}" alt="" class="w-full h-auto object-cover transform hover:scale-105 transition-all duration-300
-                                   max-w-full max-h-[400px]">
+                        <meta property="og:image" content="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}" />
+                        <img src="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}"
+                             alt="{{ article.title }}"
+                             class="w-full h-auto object-cover transform hover:scale-105 transition-all duration-300 max-w-full max-h-[400px]">
                     </div>
                     <div class="px-6 py-4">
                         <div class="flex items-center gap-x-4 text-xs text-gray-500 dark:text-gray-300">
@@ -98,7 +98,7 @@
         <div class="mx-auto max-w-2xl text-center">
             <h2
                 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-200 sm:text-3xl transform transition-all duration-500 hover:scale-110 hover:text-indigo-600">
-                KONTAKTUJTE NÁS 
+                KONTAKTUJTE NÁS
             </h2>
         </div>
 

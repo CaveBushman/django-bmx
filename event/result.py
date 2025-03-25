@@ -1,5 +1,6 @@
 from .models import Result
 import re
+import unidecode
 
 
 class GetResult:
@@ -19,6 +20,7 @@ class GetResult:
         self.category = category
         self.point = 0
         self.is_20 = 1
+        self.is_beginner = 0
         self.type = event_type
 
     def get_ranking_points(self):
@@ -163,16 +165,37 @@ class GetResult:
             return 0
 
     def cruiser_resolve(self):
-        """ Resolve, if category is Cruiser """
-        if re.search('cruiser', self.category.lower()):
-            return 0 # if is Cruiser
-        else:
-            return 1 # if is 20
+        """Určí, zda je kategorie Cruiser (tedy 24") nebo ne (tedy 20")"""
+        if not self.category:
+            return 1  # výchozí – považuj za 20"
+
+        category = unidecode.unidecode(self.category).lower()
+
+        if re.search(r'\b(cruiser|cruisers|24)\b', category):
+            return 0
+        return 1  # 20"
+
+    def is_beginner_category(self):
+        """
+        Zjistí, jestli kategorie je 'Příchozí' nebo 'Beginners' – různé varianty, nezávisle na velikosti písmen a diakritice.
+        """
+        if not self.category:
+            return 0
+
+        category = unidecode.unidecode(self.category).lower()
+
+        if re.search(r'\b(prichozi|prichozí|beginners?|beginner)\b', category):
+            return 1
+        return 0
 
     def write_result(self):
 
         self.point = self.get_ranking_points()
         self.is_20 = self.cruiser_resolve()
+        self.is_beginner  = self.is_beginner_category()
+
+        if self.is_beginner:
+            self.is_20=False
 
         result = Result.objects.create()
         try:
@@ -192,9 +215,13 @@ class GetResult:
         result.event_type = self.type
 
         result.place = self.place
-        result.points = self.point
+        if self.is_beginner:
+            result.points = 0
+        else:
+            result.points = self.point
 
         result.is_20 = self.is_20
+        result.is_beginner = self.is_beginner
 
         result.save()
 

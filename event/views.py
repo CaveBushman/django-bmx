@@ -1,5 +1,6 @@
 import json
-import os
+from event.models import RaceRun
+import pandas as pd
 import requests
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Prefetch
@@ -20,7 +21,6 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rider.rider import get_api_token, generate_insurance_file
-import pandas as pd
 from .func import *
 from .invoices import *
 from .credit import *
@@ -817,6 +817,61 @@ def event_admin_view(request, pk):
             results.setFile(uploaded_file_url)
             results.start()
 
+            # ✨ Nová logika pro vytvoření RaceRun záznamů
+            file_path = os.path.join(fs.location, filename)
+            df = pd.read_csv(file_path, sep="\t")
+
+            for _, row in df.iterrows():
+                plate = row.get("PLATE")
+                if pd.isna(plate):
+                    continue
+
+                result = Result.objects.filter(event=event, rider=int(plate)).first()
+                if not result:
+                    continue
+
+                # MOTO jízdy
+                for i in range(1, 10):
+                    if not pd.isna(row.get(f"MOTO{i}_PLACE")):
+                        if not RaceRun.objects.filter(result=result, round_type="MOTO", round_number=i).exists():
+                            RaceRun.objects.create(
+                                result=result,
+                                round_type="MOTO",
+                                round_number=i,
+                                gate=row.get(f"MOTO{i}_GATE"),
+                                lane=row.get(f"MOTO{i}_LANE"),
+                                place=row.get(f"MOTO{i}_PLACE"),
+                                race_points=row.get(f"MOTO{i}_RACE_POINTS"),
+                                moto_points=row.get(f"MOTO{i}_MOTO_POINTS"),
+                                finish_time=row.get(f"MOTO{i}_TIME"),
+                                hill_time=None,
+                                split_1=None,
+                                split_2=None,
+                                split_3=None,
+                                split_4=None,
+                            )
+
+                # Finále a eliminace
+                for phase in ["FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"]:
+                    if not pd.isna(row.get(f"{phase}_PLACE")):
+                        if not RaceRun.objects.filter(result=result, round_type=phase).exists():
+                            RaceRun.objects.create(
+                                result=result,
+                                round_type=phase,
+                                round_number=None,
+                                gate=row.get(f"{phase}_GATE"),
+                                lane=row.get(f"{phase}_LANE"),
+                                place=row.get(f"{phase}_PLACE"),
+                                race_points=row.get(f"{phase}_RACE_POINTS"),
+                                moto_points=row.get(f"{phase}_MOTO_POINTS"),
+                                finish_time=row.get(f"{phase}_TIME"),
+                                hill_time=None,
+                                split_1=None,
+                                split_2=None,
+                                split_3=None,
+                                split_4=None,
+                            )
+
     if 'btn-txt-delete' in request.POST:
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
@@ -1204,6 +1259,10 @@ def success_credit_view(request):
             with transaction.atomic():
                 credit_transaction = CreditTransaction.objects.select_for_update().get(id=credit_transaction.id)
 
+                # Kontrola, zda transakce již byla zpracována podle UUID
+                if CreditTransaction.objects.filter(uuid=credit_transaction.uuid, payment_complete=True).exists():
+                    continue
+
                 # Ověření, že platba ještě není dokončena
                 if credit_transaction.payment_complete:
                     continue
@@ -1215,10 +1274,14 @@ def success_credit_view(request):
                     credit_transaction.payment_intent = confirm['payment_intent']
                     credit_transaction.save()
 
-                    # Atomická aktualizace kreditu
-                    Account.objects.filter(id=credit_transaction.user.id).update(
-                        credit=F('credit') + credit_transaction.amount
-                    )
+                    # Bezpečná kontrola, zda platba již nebyla zpracována, a pak přičtení kreditu
+                    if not credit_transaction.payment_complete:
+                        Account.objects.filter(id=credit_transaction.user.id).update(
+                            credit=F('credit') + credit_transaction.amount
+                        )
+                        credit_transaction.payment_complete = True
+                        credit_transaction.payment_intent = confirm['payment_intent']
+                        credit_transaction.save()
         except CreditTransaction.DoesNotExist:
             continue  # Pokud byl mezitím smazán, přeskočíme
         except stripe.error.StripeError as e:

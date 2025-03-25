@@ -460,12 +460,12 @@ def resolve_api_category_code(rider, is_20=False, is_24=False, is_beginner=False
     }
 
     beginners_to_api = {
-        'Beginners 1': 'ČL', 'Beginners 2': 'ČL',
-        'Beginners 3': 'ČL', 'Beginners 4': 'ČL',
+        'Beginners 1': 'ČL1', 'Beginners 2': 'ČL1',
+        'Beginners 3': 'ČL2', 'Beginners 4': 'ČL2',
     }
 
     if is_beginner:
-        return beginners_to_api.get(rider.class_beginner, 'ČL')
+        return beginners_to_api.get(rider.class_beginner, "")
 
     if is_20:
         return class20_to_api.get(rider.class_20, "")
