@@ -6,6 +6,9 @@ from logging.handlers import TimedRotatingFileHandler
 from django.conf import settings
 from decouple import config
 
+import openai
+from django.conf import settings
+
 # START LOGING EVENTS
 # logging.basicConfig(filename='django_bmx.log', encoding='utf-8', level=logging.DEBUG)
 
@@ -22,6 +25,8 @@ ALLOWED_HOSTS = ['*']
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
+OPENAI_API_KEY = config("OPENAI_API_KEY")
+OPENROUTER_API_KEY = config("OPENROUTER_API_KEY")
 
 # STRIPE KEYS
 if DEBUG:
@@ -68,6 +73,7 @@ INSTALLED_APPS = [
     'commissar',
     'accounts',
     'admin_stats',
+    'chat',
 ]
 
 MIDDLEWARE = [
