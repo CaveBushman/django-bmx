@@ -257,7 +257,7 @@ class Event(models.Model):
 
     #ID pro výsledkový servis Českého svazu cyklisitiky
     ccf_id = models.IntegerField(default = 0)
-    created = models.DateField(auto_now_add=True, null=True)
+    ccf_created = models.DateField(auto_now_add=True, null=True)
     ccf_uploaded = models.BooleanField(default=False)
 
     created = models.DateField(auto_now_add=True, null=True)
@@ -465,13 +465,15 @@ class Result(models.Model):
     event_type = models.CharField(max_length=255, null=True, blank=True)
     organizer = models.CharField(max_length=100, null=True, blank=True)
     rider = models.IntegerField(default=0)
+    country = models.CharField(max_length=3, null=True, blank=True, default="CZE")
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     club = models.CharField(max_length=255, null=True, blank=True)
     category = models.CharField(max_length=100, null=True, blank=True)
     place = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
-    is_20 = models.BooleanField(default=1)
+    is_beginner = models.BooleanField(default=False)
+    is_20 = models.BooleanField(default=True)
     marked_20 = models.BooleanField(default=0)
     marked_24 = models.BooleanField(default=0)
 

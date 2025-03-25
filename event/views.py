@@ -26,6 +26,7 @@ from .invoices import *
 from .credit import *
 from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
 from datetime import datetime, date
+from django.utils.timezone import now
 import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
 from django.core import serializers
@@ -850,8 +851,10 @@ def event_admin_view(request, pk):
 
     asociation_fee = int(sum_of_fees * event.commission_fee / 100)
 
+    results_exist = Result.objects.filter(event=event).exists()
+
     data = {'event': event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees,
-            "sum_of_riders": sum_of_riders, 'asociation_fee':asociation_fee}
+            "sum_of_riders": sum_of_riders, 'asociation_fee':asociation_fee,  'results_exist': results_exist}
     return render(request, 'event/event-admin.html', data)
 
 
@@ -1573,71 +1576,77 @@ def recalculate_balances_view(request):
         return JsonResponse({"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500)  
 
 
-
-@login_required(login_url="/login")
+@login_required(login_url="/login/")
 @staff_member_required
 def export_event_results(request, event_id):
-    API_BASE_URL = "https://test.api.czechcyclingfederation.com"
-    POST_RESULTS_ENDPOINT = f"{API_BASE_URL}/api/services/saveraceresults?raceId={event_id}&subDisciplineCode=BMX_RAC"
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return render(request, "error.html", {"message": "Závod nebyl nalezen."})
 
-    # Získání access tokenu
+    if event.ccf_uploaded:
+        return render(request, "error.html", {
+            "message": "Výsledky už byly odeslány.",
+            "detail": f"Závod {event.name} byl již odeslán {event.ccf_created.strftime('%d.%m.%Y %H:%M:%S')}."
+        })
+
     token = get_api_token()
     if not token:
-        return JsonResponse({"success": False, "error": "Nepodařilo se získat token."})
+        return render(request, "error.html", {"message": "Nepodařilo se získat token pro přihlášení k API ČSC."})
 
-    results = Result.objects.filter(event__id=event_id)
+    results = Result.objects.filter(event=event)
     payload = []
 
     for res in results:
-        try:
-            rider = Rider.objects.get(id=res.rider.id)
-        except Rider.DoesNotExist:
+        rider = Rider.objects.filter(uci_id=res.rider).first()
+        if not rider:
             continue
-
-        api_category_code = resolve_api_category_code(
-            rider,
+        category_code = resolve_api_category_code(
+            rider=rider,
             is_20=rider.is_20,
             is_24=rider.is_24,
-            is_beginner=rider.class_beginner is not None
+            is_beginner=rider.class_20 in ["Beginners 1", "Beginners 2", "Beginners 3", "Beginners 4"]
         )
 
         payload.append({
-            "categoryCode": api_category_code,
+            "category": category_code,
             "rank": res.place,
             "bib": rider.plate,
             "uciid": str(rider.uci_id),
             "lastName": rider.last_name,
             "firstName": rider.first_name,
-            "country": rider.nationality or "CZE",
+            "country": res.country,
             "team": rider.club.team_name if rider.club else "",
             "gender": "F" if rider.gender == "Žena" else "M",
-            "phase": "",         # doplnit dle potřeby
-            "heat": "",          # doplnit dle potřeby
+            "phase": "",
+            "heat": "",
             "result": str(res.place),
-            "irm": "",           # např. "DNF", "DNS", lze doplnit dle pravidel
+            "irm": "",
             "sortOrder": res.place
         })
 
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
+    api_url = f"https://test.api.czechcyclingfederation.com/api/services/saveraceresults?raceId={event.id}&subDisciplineCode=BMX_RAC"
+    headers = {"Authorization": f"Bearer {token}"}
 
     try:
-        #post_response = requests.post(POST_RESULTS_ENDPOINT, json=payload, headers=headers)
-        #post_response.raise_for_status()
-        print (payload)
+        response = requests.post(api_url, json=payload, headers=headers)
+        response.raise_for_status()
     except Exception as e:
-        return JsonResponse({
-            "success": False,
-            "error": "Chyba při odesílání výsledků na API.",
+        return render(request, "error.html", {
+            "message": "Nepodařilo se odeslat výsledky na API.",
             "detail": str(e)
         })
 
-    return JsonResponse({
-        "success": True,
-        "message": "Výsledky byly úspěšně odeslány.",
-        "odeslano": len(payload)
+    # ✅ aktualizuj timestamp a flag
+    event.ccf_created = now()
+    event.ccf_uploaded = True
+    event.save()
+
+    return render(request, "event/results_sent.html", {
+        "event": event,
+        "sent_count": len(payload)
     })
+
 
 @login_required(login_url="/login")
 @staff_member_required
