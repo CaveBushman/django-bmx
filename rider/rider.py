@@ -1,7 +1,5 @@
-import datetime
-import json
+from django.utils import timezone
 import requests
-import re
 from decouple import config
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -9,12 +7,10 @@ from openpyxl.utils import get_column_letter
 from rider.models import Rider
 from event.models import Result, Event, Entry, SeasonSettings
 import threading
-from django.utils import timezone
 from django.db.models import Q, Exists, OuterRef
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from openpyxl import Workbook
-from django.utils import timezone
 from rider.models import Rider
 from event.models import Entry
 
@@ -170,14 +166,13 @@ def valid_licence(rider):
 
 def two_years_inactive():
     """ Function for inactive riders """
-    two_years_ago = timezone.now() - datetime.timedelta(days=INACTIVE_YEARS * 365)
+    two_years_ago = timezone.now() - timedelta(days=INACTIVE_YEARS * 365)
 
-    # Filtrovat aktivní jezdce
+    # Filtrovat aktivní jezdce (vytvořené alespoň před rokem)
     riders = Rider.objects.filter(
-        is_active=True, 
-        is_approwe=True
-    ).exclude(
-        created__gte=timezone.now() - datetime.timedelta(days=365)
+        is_active=True,
+        is_approwe=True,
+        created__lte=timezone.now() - timedelta(days=365)
     )
 
     # Subdotaz na kontrolu existence výsledků za poslední dva roky
@@ -192,7 +187,6 @@ def two_years_inactive():
     ).filter(has_results=False).order_by('club')
 
     return list(inactive_riders)
-
 
 class Participation:
     """ Class for count participation riders on events with export to excel file """
