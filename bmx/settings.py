@@ -9,6 +9,8 @@ from decouple import config
 import openai
 from django.conf import settings
 
+print(f"SECRET_KEY from .env: {config('SECRET_KEY')}")
+
 # START LOGING EVENTS
 # logging.basicConfig(filename='django_bmx.log', encoding='utf-8', level=logging.DEBUG)
 
