@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 from club.models import Club
 from commissar.models import Commissar
 from rider.models import Rider
@@ -248,7 +249,7 @@ class Event(models.Model):
     rem_results = models.FileField(upload_to='rem_results/', null=True, blank=True)
     rem_results_uploaded = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    # file for EUROPEAN CUP 
+    # file for EUROPEAN CUP
     ec_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
     ec_file_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     ec_insurance_file = models.FileField(upload_to='ec-files/', null=True, blank=True)
@@ -486,6 +487,38 @@ class Result(models.Model):
         return f"{event_name} – {self.last_name} {self.first_name} ({self.category})"
 
 
+class RaceRun(models.Model):
+    result = models.ForeignKey(Result, on_delete=models.CASCADE, related_name="runs")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
+    rider = models.ForeignKey(Rider, on_delete=models.SET_NULL, null=True, blank=True)
+    round_type = models.CharField(max_length=20)  # např. MOTO, FINAL, F2, ...
+    round_number = models.IntegerField(null=True, blank=True)  # např. 1 až 8 pro MOTO, None pro FINAL
+
+    gate = models.IntegerField(null=True, blank=True)
+    lane = models.IntegerField(null=True, blank=True)
+    place = models.CharField(max_length=10, null=True, blank=True)  # např. "1st", "DNF"
+    race_points = models.IntegerField(null=True, blank=True)
+    moto_points = models.IntegerField(null=True, blank=True)
+
+    hill_time = models.FloatField(null=True, blank=True)     # ⛰️ čas na kopci (start hill)
+    finish_time = models.FloatField(null=True, blank=True)   # 🏁 čas v cíli
+
+    split_1 = models.FloatField(null=True, blank=True)
+    split_2 = models.FloatField(null=True, blank=True)
+    split_3 = models.FloatField(null=True, blank=True)
+    split_4 = models.FloatField(null=True, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Jízda závodníka"
+        verbose_name_plural = "Jízdy závodníka"
+
+    def __str__(self):
+        return f"{self.result} – {self.round_type} {self.round_number or ''} ({self.place})"
+
+
 class Entry(models.Model):
     """ Models for entries to the race for Czech riders """
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
@@ -554,7 +587,7 @@ class DebetTransaction (models.Model):
     """ Model for transactions """
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     entry = models.ForeignKey(Entry, on_delete=models.SET_NULL, null=True, blank=True)
-    amount = models.IntegerField(default=0)  
+    amount = models.IntegerField(default=0)
     payment_valid = models.BooleanField(default=True)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -572,11 +605,12 @@ class DebetTransaction (models.Model):
 class CreditTransaction (models.Model):
     """ Model for transactions """
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
-    amount = models.IntegerField(default=0)  
+    amount = models.IntegerField(default=0)
     transaction_id = models.CharField(max_length=255, default="")
     payment_intent = models.CharField(max_length=255, default="")
     payment_complete = models.BooleanField(default=False)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=False, editable=False)
     
 
     class Meta:

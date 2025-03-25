@@ -10,10 +10,10 @@
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             {% if '/' == request.path %}
-            <a href="{% url 'news:home' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
+            <a href="{% url 'news:homepage' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
               aria-current="page">HOME</a>
             {% else %}
-            <a href="{% url 'news:home' %}"
+            <a href="{% url 'news:homepage' %}"
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">HOME</a>
             {% endif %}
         
@@ -202,7 +202,7 @@
     <div class="hidden" id="mobile-menu">
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-        <a href="{% url 'news:home' %}" class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Home</a>
+        <a href="{% url 'news:homepage' %}" class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Home</a>
 
         <a href="{% url 'news:news-list' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Články</a>
 
