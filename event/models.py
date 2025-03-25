@@ -180,7 +180,7 @@ class Event(models.Model):
                    ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
 
     name = models.CharField(max_length=255, blank=False)
-    date = models.DateField(null=True, blank=True)
+    date = models.DateField(null=True, blank=True, db_index=True)
 
     double_race = models.BooleanField(default=False)
 
