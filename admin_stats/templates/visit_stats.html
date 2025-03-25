@@ -16,6 +16,36 @@
             <p class="text-lg text-gray-700">Unikátní IP adresy za posledních <span class="font-semibold">{{ last_days }}</span> dní:</p>
             <p class="text-2xl font-bold text-green-600">{{ unique_visits }}</p>
         </div>
+
+        <div class="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg">
+            <p class="text-lg text-gray-700">Nejčastější geolokace:</p>
+            <ul class="list-disc list-inside mt-2 text-yellow-700">
+                {% for loc, count in top_locations %}
+                    <li><span class="font-medium">{{ loc }}</span>: {{ count }} návštěv</li>
+                {% empty %}
+                    <li>Žádná data k dispozici.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="p-4 bg-purple-100 border-l-4 border-purple-500 rounded-lg">
+            <p class="text-lg text-gray-700">Typy zařízení:</p>
+            <ul class="list-disc list-inside mt-2 text-purple-700">
+                {% if device_stats %}
+                    {% for device, count in device_stats %}
+                        <li><span class="font-medium">
+                            {% if device == "unknown" or not device %}
+                                Neznámé zařízení
+                            {% else %}
+                                {{ device }}
+                            {% endif %}
+                        </span>: {{ count }} návštěv</li>
+                    {% endfor %}
+                {% else %}
+                    <li>Žádná data k dispozici.</li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
 </div>
 {% endblock content %}

@@ -1692,8 +1692,9 @@ def export_event_results(request, event_id):
     headers = {"Authorization": f"Bearer {token}"}
 
     try:
-        response = requests.post(api_url, json=payload, headers=headers)
-        response.raise_for_status()
+        #response = requests.post(api_url, json=payload, headers=headers)
+        #response.raise_for_status()
+        print(payload)
     except Exception as e:
         return render(request, "error.html", {
             "message": "Nepodařilo se odeslat výsledky na API.",
