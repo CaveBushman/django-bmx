@@ -2,21 +2,13 @@ from pathlib import Path
 import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
-
 from django.conf import settings
-
-import openai
 from django.conf import settings
+from decouple import config
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-from decouple import AutoConfig
-config = AutoConfig(search_path=BASE_DIR)
-
-print(f"SECRET_KEY from .env: {config('SECRET_KEY')}")
-
-# START LOGING EVENTS
-# logging.basicConfig(filename='django_bmx.log', encoding='utf-8', level=logging.DEBUG)
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
