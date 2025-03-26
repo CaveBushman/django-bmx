@@ -115,7 +115,7 @@ class ChatbotAPIView(APIView):
             match = re.search(r"(startovní\s+)?číslo\s+(\d+)", user_message.lower())
             if match:
                 plate = match.group(2)
-                rider = Rider.objects.filter(plate=plate).first()
+                rider = Rider.objects.filter(plate=plate, is_active=True).first()
                 if rider:
                     answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
                 else:
