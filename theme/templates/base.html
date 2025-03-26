@@ -64,7 +64,7 @@
       <div id="chatbot-box" class="rounded-md hidden" style="position:fixed; bottom:5rem; right:1.5rem; width:24rem; max-height:80vh; background:white; border:1px solid #ccc; border-radius:0.5rem; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:999999; flex-direction:column;">
         <div style="background-color:#4f46e5; color:white; padding:0.5rem 1rem; display:flex; justify-content:space-between; align-items:center;">
           <span class="font-semibold">Asistentka CHIPKA – podle čipu na kole 😄</span>
-          <button onclick="toggleChat()" style="color:white;">&times;</button>
+          <button type="button" onclick="window.toggleChat()" style="color:white; cursor: pointer;">&times;</button>
         </div>
       <div id="chat-messages" style="padding:1rem; overflow-y:auto; max-height:400px; font-size:0.875rem; background:#f9fafb;">
           <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-0"></div>
@@ -188,6 +188,7 @@
           console.log("🕒 setTimeout 300ms scroll");
         }, 300);
       }
+      window.toggleChat = toggleChat;
       </script>
       <script>
       function sendMessage() {
@@ -315,6 +316,7 @@
           localStorage.setItem("chipkaVisible", "false");
         }
       }
+      window.toggleChat = toggleChat;
       </script>
 
     <!-- Scripty -->

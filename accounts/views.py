@@ -13,11 +13,14 @@ def sign_up(request):
         password = request.POST['password']
         password2 = request.POST['password2']
         if password == password2:
+            if Account.objects.filter(email=email).exists():
+                messages.error(request, "Uživatel s tímto e-mailem již existuje.")
+                return render(request, 'accounts/signup.html')
             user = Account.objects.create_user(first_name, last_name, username, email, password)
             user.is_active = True
             user.save()
             login(request, user)
-            return redirect('news:home')
+            return redirect('news:homepage')
         else:
             # TODO: Dodělat chybové hlášení
             messages.success(request, "Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu")
@@ -53,4 +56,4 @@ def sign_in(request):
 
 def sign_out(request):
     logout(request)
-    return redirect('news:home')
+    return redirect('news:homepage')
