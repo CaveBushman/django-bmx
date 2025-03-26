@@ -21,7 +21,7 @@ from django.views.generic import TemplateView
 from django.views.static import serve
 from django.urls import re_path as url
 from news.views import change_theme
-
+from accounts import views as account_views
 
 app_name = "bmx"
 
@@ -36,7 +36,9 @@ urlpatterns = [
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('admin-stats/', include('admin_stats.urls')),
-    path('', include("django.contrib.auth.urls")),
+    path('login/', account_views.sign_in, name='login'),
+    path('logout/', account_views.sign_out, name='logout'),
+    path('signup/', account_views.sign_up, name='signup'),
     path('bmx-admin/', admin.site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
     ]
