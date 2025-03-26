@@ -173,9 +173,9 @@
                 <a href="{% url 'admin_stats:visit_stats' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
                   id="user-menu-item-2">Statistika webu</a>
                 {% endif %}
-                <a href="{% url 'accounts:signout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-3">Odhlášení</a>
+                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-3">Odhlášení</a>
                 {% else %}
-                <a href="{% url 'accounts:signin' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-4">Přihlášení</a>
+                <a href="{% url 'accounts:login' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-4">Přihlášení</a>
                 <a href="{% url 'accounts:signup' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="user-menu-item-5">Registrace</a>
                 {% endif %}
 
@@ -273,9 +273,9 @@
           <a href="{% url 'admin_stats:visit_stats' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem"
             tabindex="-1" id="user-menu-item-2">Statistika webu</a>
           {% endif %}
-          <a href="{% url 'accounts:signout' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Odhlášení</a>
+          <a href="{% url 'accounts:logout' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Odhlášení</a>
           {% else %}
-          <a href="{% url 'accounts:signin' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Přihlášení</a>
+          <a href="{% url 'accounts:login' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Přihlášení</a>
           <a href="{% url 'accounts:signup' %}" class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Registrace</a>
           {% endif %}
         </div>

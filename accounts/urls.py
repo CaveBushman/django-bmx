@@ -6,8 +6,8 @@ app_name = "accounts"
 
 urlpatterns = [
     path('signup/', views.sign_up, name='signup'),
-    path('signin/', views.sign_in, name='signin'),
-    path('signout/', views.sign_out, name='signout'),
+    path('login/', views.sign_in, name='login'),
+    path('logout/', views.sign_out, name='logout'),
         # URL pro začátek procesu resetování hesla
     path('reset_password/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     
