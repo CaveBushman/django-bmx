@@ -2,12 +2,7 @@ from dotenv import load_dotenv
 import os
 from django.db import models
 from chat.models import ChatLog
-
-load_dotenv()
-
 from django.conf import settings
-settings.OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
@@ -19,10 +14,17 @@ import re
 from rider.models import Rider, ForeignRider
 from event.models import Event, Entry
 from news.models import News
+from club.models import Club
 from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer, EntrySerializer
 from news.serializer import NewsSerializer
+from club.serializers import ClubSerializer
 import logging
+
+
+load_dotenv()
+settings.OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 
 # Create your views here.
 
@@ -75,6 +77,10 @@ class EventList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
+class ClubList(generics.ListAPIView):
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+
 
 class EventDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Event.objects.all()
@@ -119,7 +125,7 @@ class ChatbotAPIView(APIView):
                 if rider:
                     answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
                 else:
-                    answer = f"Startovní číslo {plate} nebylo nalezeno v seznamu přihlášených jezdců."
+                    answer = f"Startovní číslo {plate} nebylo nalezeno v seznamu jezdců."
             else:
                 chip_match = re.search(r"(komu patří|kdo má|čí je)?\s*čip\s*([A-Z]{2}-\d{5})", user_message, re.IGNORECASE)
                 if chip_match:
@@ -130,7 +136,7 @@ class ChatbotAPIView(APIView):
                     if rider:
                         answer = f"Čip {chip_number} patří jezdci {rider.first_name} {rider.last_name} z klubu {rider.club}."
                     else:
-                        answer = f"Čip {chip_number} nebyl nalezen v seznamu přihlášených jezdců."
+                        answer = f"Čip {chip_number} nebyl nalezen v seznamu jezdců."
                 elif user_message.lower() in faq:
                     answer = faq[user_message.lower()]
                 else:
