@@ -12,6 +12,8 @@ urlpatterns = [
     path('foreignriders', views.ForeignRiderList.as_view()),
     path('foreignriders/<int:uci_id>', views.ForeignRiderDetail.as_view()),
 
+    path('clubs', views.ClubList.as_view()),
+
     path('events', views.EventList.as_view()),
     path('events/<int:pk>', views.EventDetail.as_view()),
 

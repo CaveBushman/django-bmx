@@ -1,243 +1,247 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en" class="{% if request.session.is_dark_mode %}dark{% endif %}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="initial-scale=1.0" />
-    <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.5/dist/flowbite.min.css" />
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"
-      integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni"
-      crossorigin="anonymous"
-    />
-    <!-- Přidání Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <title>Czech BMX - {% block title %}{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
 
-    <!-- Open Graph meta tagy -->
-    {% block meta_tags %}
-    {% endblock %}
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.5/dist/flowbite.min.css" />
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"
+    integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni" crossorigin="anonymous" />
+  <!-- Přidání Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <title>Czech BMX - {% block title %}{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
 
-    <!-- Extra head -->
-    {% block extra_head %}
-    {% endblock %}
-  </head>
-  <body class="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+  <!-- Open Graph meta tagy -->
+  {% block meta_tags %}
+  {% endblock %}
 
-    <!--==== NAVBAR ====-->
-    {% include "includes/navbar.html" %}
+  <!-- Extra head -->
+  {% block extra_head %}
+  {% endblock %}
+</head>
 
-    <!--==== BLOCK CONTENT ====-->
-    <div class="mt-16">
-      {% block content %}
-      {% endblock content %}
+<body class="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+
+  <!--==== NAVBAR ====-->
+  {% include "includes/navbar.html" %}
+
+  <!--==== BLOCK CONTENT ====-->
+  <div class="mt-16">
+    {% block content %}
+    {% endblock content %}
+  </div>
+
+  <!--==== CHAT BOT ====-->
+
+
+  <div id="chatbot" class="fixed z-[999999]">
+    <div id="chatbot-toggle" class="fixed bottom-6 right-6 z-[999999]">
+      <button onclick="toggleChat()" class="bg-indigo-600 p-6 rounded-full shadow-md">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="48" height="48" fill="none">
+  <!-- Hlavní kruh -->
+  <circle cx="16" cy="16" r="15" stroke="#4f46e5" stroke-width="2" fill="white" />
+  <!-- Helma -->
+  <path d="M10 8c0-1.3 1.1-2.5 2.5-2.5h7c1.4 0 2.5 1.2 2.5 2.5v3h-12v-3Z" fill="#4f46e5" />
+  <circle cx="16" cy="13" r="2" fill="white" />
+  <!-- Tělo -->
+  <path d="M9 18c0-0.8 0.7-1.5 1.5-1.5h11c0.8 0 1.5 0.7 1.5 1.5v2.5l2.5 4v1.5h-2.5l-2-3-2 3h-5l-2-3-2 3h-2.5v-1.5l2.5-4V18Z" fill="#4f46e5" />
+  <!-- Kola -->
+  <circle cx="9" cy="30" r="4" stroke="#4f46e5" stroke-width="1.5" fill="white" />
+  <circle cx="23" cy="30" r="4" stroke="#4f46e5" stroke-width="1.5" fill="white" />
+  <!-- Rám kola -->
+  <path d="M9 30 L16 18 L23 30 Z" stroke="#4f46e5" stroke-width="1.5" fill="none" />
+</svg>
+      </button>
     </div>
 
-    <style>
-      #chatbot-toggle, #chatbot-box {
-        z-index: 999999 !important;
-      }
-      </style>
-      
-<div id="chatbot-toggle" class="fixed bottom-6 right-6 z-[999999]">
-        <button onclick="toggleChat()" class="bg-indigo-600 p-6 rounded-full shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="48" height="48" fill="none">
-        <circle cx="32" cy="32" r="31" stroke="#4f46e5" stroke-width="2" fill="white"/>
-        <!-- Helma -->
-        <path d="M28 16c0-2.2 1.8-4 4-4s4 1.8 4 4v4h-8v-4Z" fill="#4f46e5"/>
-        <path d="M32 20c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z" fill="white"/>
-        <!-- Tělo -->
-        <path d="M26 26c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v4l4 6v2h-3l-2-3-2 3h-6l-2-3-2 3h-3v-2l4-6v-4Z" fill="#4f46e5"/>
-        <!-- Kola -->
-        <circle cx="20" cy="48" r="6" stroke="#4f46e5" stroke-width="2" fill="white"/>
-        <circle cx="44" cy="48" r="6" stroke="#4f46e5" stroke-width="2" fill="white"/>
-        <!-- Rám kola -->
-        <path d="M20 48 L28 32 L36 48 Z" stroke="#4f46e5" stroke-width="2" fill="none"/>
-      </svg>
+    <div id="chatbot-box"
+      class="rounded-md hidden fixed bottom-20 right-6 w-96 max-h-[80vh] bg-white border border-gray-300 shadow-lg flex flex-col z-[999999]">
+      <div class="bg-indigo-600 text-white p-2 flex justify-between items-center">
+        <span class="font-semibold">Asistentka CHIPKA – podle čipu na kole 😄</span>
+        <button type="button" onclick="toggleChat()" class="z-50 relative text-white cursor-pointer">&times;</button>
+      </div>
+      <div id="chat-messages" class="p-4 overflow-y-auto max-h-[400px] text-sm bg-gray-50">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-0"></div>
+        <div id="chat-messages-list" class="space-y-2">
+          <!-- dynamické zprávy se vkládají sem -->
+        </div>
+      </div>
+
+      <div id="chatbot-controls" class="flex justify-center gap-2 py-2 px-4 relative z-50 hidden">
+        <button onclick="toggleImportantFilter()" id="important-filter-toggle"
+          class="px-3 py-1 mx-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition relative z-[999999]">
+          🔎 Zobrazit jen důležité
+        </button>
+        <button onclick="clearAllMessages()"
+          class="px-3 py-1 mx-2 rounded-md text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition z-50 relative">
+          🗑️ Smazat všechny zprávy
         </button>
       </div>
-      
-<div id="chatbot-box" class="rounded-md hidden fixed bottom-20 right-6 w-96 max-h-[80vh] bg-white border border-gray-300 shadow-lg flex flex-col z-[999999]">
-<div class="bg-indigo-600 text-white p-2 flex justify-between items-center">
-    <span class="font-semibold">Asistentka CHIPKA – podle čipu na kole 😄</span>
-    <button type="button" onclick="toggleChat()" class="z-50 relative text-white cursor-pointer">&times;</button>
-</div>
-<div id="chat-messages" class="p-4 overflow-y-auto max-h-[400px] text-sm bg-gray-50">
-          <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-0"></div>
-          <div id="chat-messages-list" class="space-y-2">
-            <!-- dynamické zprávy se vkládají sem -->
-          </div>
-        </div>
 
-        <div id="chatbot-controls" class="flex justify-center gap-2 py-2 px-4 relative z-50 hidden">
-          <button onclick="toggleImportantFilter()" id="important-filter-toggle"
-            class="px-3 py-1 mx-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition relative z-[999999]">
-            🔎 Zobrazit jen důležité
-          </button>
-          <button onclick="clearAllMessages()"
-            class="px-3 py-1 mx-2 rounded-md text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition z-50 relative">
-            🗑️ Smazat všechny zprávy
-          </button>
-        </div>
-
-        <div style="border-top:1px solid #e5e7eb; padding:0.5rem; display:flex;">
-          <input id="chat-input" type="text" placeholder="Napiš sem dotaz na Chipku…" class="placeholder-gray-400 focus:ring-indigo-500" style="flex:1; padding:0.5rem; border:1px solid #ccc; border-radius:0.375rem; z-index:1;" onkeydown="if(event.key==='Enter') sendMessage()" autocomplete="off">
-<button onclick="sendMessage()" id="sendButton" class="z-50 relative ml-2 bg-indigo-600 text-white py-2 px-4 rounded-lg">Odeslat</button>
-        </div>
+      <div style="border-top:1px solid #e5e7eb; padding:0.5rem; display:flex;">
+        <input id="chat-input" type="text" placeholder="Napiš sem dotaz na Chipku…"
+          class="placeholder-gray-400 focus:ring-indigo-500 dark:text-gray-700"
+          style="flex:1; padding:0.5rem; border:1px solid #ccc; border-radius:0.375rem; z-index:1;"
+          onkeydown="if(event.key==='Enter') sendMessage()" autocomplete="off">
+        <button onclick="sendMessage()" id="sendButton"
+          class="z-50 relative ml-2 bg-indigo-600 text-white py-2 px-4 rounded-lg">Odeslat</button>
       </div>
-      
+    </div>
 
-      <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          const sendButton = document.getElementById("sendButton");
-          console.log("Odeslat button element:", sendButton);
-          
-          // Ujistíme se, že tlačítko volá sendMessage()
-          if (sendButton) {
-              sendButton.addEventListener("click", function(event) {
-                console.log()
-                  event.preventDefault(); // Zabrání odeslání formuláře
-                  sendMessage(); // Zavolání funkce pro odeslání zprávy
-              });
-          }
-      
-          const input = document.getElementById("query");
-          input.addEventListener("keydown", function(event) {
-              if (event.key === "Enter" && !event.shiftKey) { // Pokud stiskne Enter bez Shift
-                  event.preventDefault(); // Zabrání vložení nového řádku
-                  sendMessage(); // Zavolání funkce pro odeslání zprávy
-              }
-          });
+  </div>
+
+  <style>
+    #chatbot-toggle,
+    #chatbot-box {
+      z-index: 999999 !important;
+    }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sendButton = document.getElementById("sendButton");
+      console.log("Odeslat button element:", sendButton);
+
+      // Ujistíme se, že tlačítko volá sendMessage()
+      if (sendButton) {
+        sendButton.addEventListener("click", function (event) {
+          console.log()
+          event.preventDefault(); // Zabrání odeslání formuláře
+          sendMessage(); // Zavolání funkce pro odeslání zprávy
+        });
+      }
+
+    });
+
+    function scrollToBottom() {
+      const chatMessages = document.getElementById("chat-messages");
+
+
+      const observer = new ResizeObserver(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
       });
-      
-      function scrollToBottom() {
-        const chatMessages = document.getElementById("chat-messages");
+      observer.observe(chatMessages);
 
-       
-        const observer = new ResizeObserver(() => {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-        observer.observe(chatMessages);
-       
-        requestAnimationFrame(() => {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-       
-        setTimeout(() => {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 50);
-        setTimeout(() => {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 150);
-        setTimeout(() => {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 300);
-      }
-      
-      function clearAllMessages() {
-        if (!confirm("Opravdu chceš smazat všechny zprávy?")) return;
- 
-        const chatList = document.getElementById("chat-messages-list");
-        if (chatList) chatList.innerHTML = "";
- 
-        localStorage.removeItem("chatMessages");
-        localStorage.removeItem("importantReplies");
- 
-        showOnlyImportant = false;
- 
-        const toggleBtn = document.getElementById("important-filter-toggle");
-        if (toggleBtn) {
-          toggleBtn.innerHTML = "🔎 Zobrazit jen důležité";
-          document.getElementById("chatbot-controls").classList.add("hidden");
-        }
-        document.getElementById("chatbot-box").classList.add("hidden");
-        localStorage.setItem("chipkaVisible", "false");
-      }
-      window.clearAllMessages = clearAllMessages;
+      requestAnimationFrame(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
 
-      function saveMessageToLocal(role, content, time) {
-        let messages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
-        messages.push({ role, content, time });
-        localStorage.setItem("chatMessages", JSON.stringify(messages));
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 50);
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 150);
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 300);
+    }
+
+    function clearAllMessages() {
+      if (!confirm("Opravdu chceš smazat všechny zprávy?")) return;
+
+      const chatList = document.getElementById("chat-messages-list");
+      if (chatList) chatList.innerHTML = "";
+
+      localStorage.removeItem("chatMessages");
+      localStorage.removeItem("importantReplies");
+
+      showOnlyImportant = false;
+
+      const toggleBtn = document.getElementById("important-filter-toggle");
+      if (toggleBtn) {
+        toggleBtn.innerHTML = "🔎 Zobrazit jen důležité";
+        document.getElementById("chatbot-controls").classList.add("hidden");
       }
-      
-      window.csrfToken = "{{ csrf_token }}";
-      </script>
-      
-      <!-- ==== JAVASCRIPTS ====-->
-      <script>
-      function sendMessage() {
-        const input = document.getElementById("chat-input");
-        const message = input.value.trim();
-        if (!message) return;
-      
-        const chatMessages = document.getElementById("chat-messages-list");
-        const now = new Date();
-        const formattedTime = now.toLocaleString('cs-CZ', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        });
-      
-        // Uživatelská zpráva
-        const userMsg = document.createElement("div");
-        userMsg.className = "user-message mb-4 flex justify-end items-end gap-2";
-      
-        const userAvatar = document.createElement("div");
-        userAvatar.innerHTML = `
+      document.getElementById("chatbot-box").classList.add("hidden");
+      localStorage.setItem("chipkaVisible", "false");
+    }
+    window.clearAllMessages = clearAllMessages;
+
+    function saveMessageToLocal(role, content, time) {
+      let messages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
+      messages.push({ role, content, time });
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+
+    window.csrfToken = "{{ csrf_token }}";
+  </script>
+
+  <!-- ==== JAVASCRIPTS ====-->
+  <script>
+    function sendMessage() {
+      const input = document.getElementById("chat-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatMessages = document.getElementById("chat-messages-list");
+      const now = new Date();
+      const formattedTime = now.toLocaleString('cs-CZ', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      // Uživatelská zpráva
+      const userMsg = document.createElement("div");
+      userMsg.className = "user-message mb-4 flex justify-end items-end gap-2";
+
+      const userAvatar = document.createElement("div");
+      userAvatar.innerHTML = `
           <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">TY</div>
         `;
-      
-        const userBubble = document.createElement("div");
-        userBubble.className = "relative bg-indigo-100 text-sm text-gray-800 p-3 rounded-lg max-w-xs shadow";
-        userBubble.innerHTML = `
+
+      const userBubble = document.createElement("div");
+      userBubble.className = "relative bg-indigo-100 text-sm text-gray-800 p-3 rounded-lg max-w-xs shadow";
+      userBubble.innerHTML = `
           <div class="absolute right-[-8px] top-3 w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-indigo-100 border-b-8 border-b-transparent"></div>
           ${message}
           <div class="text-xs text-gray-500 mt-2 text-right">${formattedTime}</div>
         `;
-      
-        userMsg.appendChild(userBubble);
-        userMsg.appendChild(userAvatar);
-        chatMessages.appendChild(userMsg);
-        document.getElementById("chatbot-controls").classList.remove("hidden");
-        input.value = "";
-        scrollToBottom();
-        saveMessageToLocal("user", message, formattedTime); // pro uživatele
-      
-        // Hláška o přemýšlení
-        const loading = document.createElement("div");
-        loading.id = "chatbot-loading";
-        loading.className = "text-sm text-gray-400 italic mb-4";
-        loading.textContent = "Czech BMX chatbot přemýšlí...";
-        chatMessages.appendChild(loading);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      
-        // Dotaz na API
-        fetch("/api/chatbot", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": window.csrfToken,
-          },
-          credentials: "include",
-          body: JSON.stringify({ message })
-        })
+
+      userMsg.appendChild(userBubble);
+      userMsg.appendChild(userAvatar);
+      chatMessages.appendChild(userMsg);
+      document.getElementById("chatbot-controls").classList.remove("hidden");
+      input.value = "";
+      scrollToBottom();
+      saveMessageToLocal("user", message, formattedTime); // pro uživatele
+
+      // Hláška o přemýšlení
+      const loading = document.createElement("div");
+      loading.id = "chatbot-loading";
+      loading.className = "text-sm text-gray-400 italic mb-4";
+      loading.textContent = "Czech BMX chatbot přemýšlí...";
+      chatMessages.appendChild(loading);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Dotaz na API
+      fetch("/api/chatbot", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": window.csrfToken,
+        },
+        credentials: "include",
+        body: JSON.stringify({ message })
+      })
         .then(response => response.json())
         .then(data => {
           const loadingElem = document.getElementById("chatbot-loading");
           if (loadingElem) loadingElem.remove();
-      
+
           const reply = document.createElement("div");
           reply.className = "reply-message mb-4 flex justify-start items-end gap-2";
-      
+
           const replyAvatar = document.createElement("div");
           replyAvatar.innerHTML = `
             <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold">BMX</div>
           `;
-      
+
           const replyBubble = document.createElement("div");
           replyBubble.className = "relative bg-gray-100 text-sm text-gray-800 p-3 rounded-lg max-w-xs shadow";
           replyBubble.innerHTML = `
@@ -246,142 +250,135 @@
             <div class="text-xs text-gray-500 mt-2 text-left">${formattedTime}</div>
             <button onclick="toggleImportant(this)" class="ml-2 text-xs text-yellow-500">☆</button>
           `;
-      
+
           reply.appendChild(replyAvatar);
           reply.appendChild(replyBubble);
           chatMessages.appendChild(reply);
           scrollToBottom();
           saveMessageToLocal("bot", data.reply, formattedTime); // pro odpověď
         });
-      }
-      </script>
-      
-      <style>
-      .reply-message.important {
-        border: 2px solid gold;
-      }
-      </style>
-      
-      <script>
-      function toggleImportant(btn) {
-        const replyBubble = btn.closest("div.relative");
-        const wrapper = btn.closest(".reply-message");
-        const contentText = replyBubble.childNodes[2]?.textContent?.trim() || "";
-        let stored = JSON.parse(localStorage.getItem("importantReplies") || "[]");
+    }
+  </script>
 
-        if (wrapper.classList.contains("important")) {
-          wrapper.classList.remove("important");
-          stored = stored.filter(t => t !== contentText);
-          btn.textContent = "☆";
+  <style>
+    .reply-message.important {
+      border: 2px solid gold;
+    }
+  </style>
+
+  <script>
+    function toggleImportant(btn) {
+      const replyBubble = btn.closest("div.relative");
+      const wrapper = btn.closest(".reply-message");
+      const contentText = replyBubble.childNodes[2]?.textContent?.trim() || "";
+      let stored = JSON.parse(localStorage.getItem("importantReplies") || "[]");
+
+      if (wrapper.classList.contains("important")) {
+        wrapper.classList.remove("important");
+        stored = stored.filter(t => t !== contentText);
+        btn.textContent = "☆";
+      } else {
+        wrapper.classList.add("important");
+        stored.push(contentText);
+        btn.textContent = "★";
+      }
+
+      localStorage.setItem("importantReplies", JSON.stringify(stored));
+      toggleImportantFilter();
+    }
+  </script>
+
+  <script>
+    function toggleChat() {
+      const chatbox = document.getElementById("chatbot-box");
+      chatbox.classList.toggle("hidden");
+    }
+    window.toggleChat = toggleChat;
+  </script>
+
+  <!-- Scripty -->
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+    crossorigin="anonymous"></script>
+  <script src="{% static 'js/navbar.js' %}"></script>
+  <script src="https://unpkg.com/flowbite@1.4.5/dist/flowbite.js"></script>
+
+  <script>
+    let showOnlyImportant = false;
+
+    function toggleImportantFilter() {
+      const allReplies = document.querySelectorAll("#chat-messages-list .reply-message");
+      const allUserMessages = document.querySelectorAll("#chat-messages-list .user-message");
+      const toggleBtn = document.getElementById("important-filter-toggle");
+
+      if (!toggleBtn || allReplies.length === 0) return;
+
+      showOnlyImportant = !showOnlyImportant;
+
+      allReplies.forEach(msg => {
+        if (showOnlyImportant && !msg.classList.contains("important")) {
+          msg.style.display = "none";
         } else {
-          wrapper.classList.add("important");
-          stored.push(contentText);
-          btn.textContent = "★";
+          msg.style.display = "";
         }
+      });
 
-        localStorage.setItem("importantReplies", JSON.stringify(stored));
-        toggleImportantFilter();
-      }
-      </script>
-      
-      <script>
-      function toggleChat() {
-        console.log("Toggling chat visibility...");
-        const chatbox = document.getElementById("chatbot-box");
-        if (chatbox.classList.contains("hidden")) {
-          chatbox.classList.remove("hidden");
-          localStorage.setItem("chipkaVisible", "true");
-        } else {
-          chatbox.classList.add("hidden");
-          localStorage.setItem("chipkaVisible", "false");
-        }
-      }
-      window.toggleChat = toggleChat;
-      </script>
+      allUserMessages.forEach(msg => {
+        msg.style.display = showOnlyImportant ? "none" : "";
+      });
 
-    <!-- Scripty -->
-    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <script src="{% static 'js/navbar.js' %}"></script>
-    <script src="https://unpkg.com/flowbite@1.4.5/dist/flowbite.js"></script>
-    
-    <script>
-      let showOnlyImportant = false;
+      toggleBtn.innerHTML = showOnlyImportant ? "👁️ Zobrazit všechny zprávy" : "🔎 Zobrazit jen důležité";
+      localStorage.setItem("showOnlyImportant", showOnlyImportant);
+      scrollToBottom();
+    }
 
-      function toggleImportantFilter() {
-        const allReplies = document.querySelectorAll("#chat-messages-list .reply-message");
-        const allUserMessages = document.querySelectorAll("#chat-messages-list .user-message");
-        const toggleBtn = document.getElementById("important-filter-toggle");
- 
-        if (!toggleBtn || allReplies.length === 0) return;
- 
-        showOnlyImportant = !showOnlyImportant;
- 
-        allReplies.forEach(msg => {
-          if (showOnlyImportant && !msg.classList.contains("important")) {
-            msg.style.display = "none";
-          } else {
-            msg.style.display = "";
-          }
-        });
- 
-        allUserMessages.forEach(msg => {
-          msg.style.display = showOnlyImportant ? "none" : "";
-        });
- 
-    toggleBtn.innerHTML = showOnlyImportant ? "👁️ Zobrazit všechny zprávy" : "🔎 Zobrazit jen důležité";
-    localStorage.setItem("showOnlyImportant", showOnlyImportant);
-    scrollToBottom();
-      }
+    window.addEventListener("load", () => {
+      const savedMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
+      const container = document.getElementById("chat-messages-list");
+      savedMessages.forEach(msg => {
+        const wrapper = document.createElement("div");
+        wrapper.className = msg.role === "user"
+          ? "user-message mb-4 flex justify-end items-end gap-2"
+          : "reply-message mb-4 flex justify-start items-end gap-2";
 
-      window.addEventListener("load", () => {
-        const savedMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
-        const container = document.getElementById("chat-messages-list");
-        savedMessages.forEach(msg => {
-          const wrapper = document.createElement("div");
-          wrapper.className = msg.role === "user"
-            ? "user-message mb-4 flex justify-end items-end gap-2"
-            : "reply-message mb-4 flex justify-start items-end gap-2";
-        
-          const avatar = document.createElement("div");
-          avatar.innerHTML = `
+        const avatar = document.createElement("div");
+        avatar.innerHTML = `
             <div class="w-8 h-8 rounded-full ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-gray-400'} text-white flex items-center justify-center text-xs font-bold">
               ${msg.role === 'user' ? 'TY' : 'BMX'}
             </div>
           `;
-        
-          const bubble = document.createElement("div");
-          bubble.className = "relative text-sm text-gray-800 p-3 rounded-lg max-w-xs shadow " + (msg.role === 'user' ? 'bg-indigo-100' : 'bg-gray-100');
-          bubble.innerHTML = msg.role === 'user'
-            ? `<div class="absolute right-[-8px] top-3 w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-indigo-100 border-b-8 border-b-transparent"></div>
+
+        const bubble = document.createElement("div");
+        bubble.className = "relative text-sm text-gray-800 p-3 rounded-lg max-w-xs shadow " + (msg.role === 'user' ? 'bg-indigo-100' : 'bg-gray-100');
+        bubble.innerHTML = msg.role === 'user'
+          ? `<div class="absolute right-[-8px] top-3 w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-indigo-100 border-b-8 border-b-transparent"></div>
                ${msg.content}
                <div class="text-xs text-gray-500 mt-2 text-right">${msg.time}</div>`
-            : `<div class="absolute left-[-8px] top-3 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-gray-100 border-b-8 border-b-transparent"></div>
+          : `<div class="absolute left-[-8px] top-3 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-gray-100 border-b-8 border-b-transparent"></div>
                ${msg.content}
                <div class="text-xs text-gray-500 mt-2 text-left">${msg.time}</div>
                <button onclick="toggleImportant(this)" class="ml-2 text-xs text-yellow-500">☆</button>`;
 
-          wrapper.appendChild(avatar);
-          wrapper.appendChild(bubble);
-          container.appendChild(wrapper);
-        });
-        if (savedMessages.length > 0) {
-          document.getElementById("chatbot-controls").classList.remove("hidden");
-        }
-        const chatbotBox = document.getElementById("chatbot-box");
-        const chatboxVisible = localStorage.getItem("chipkaVisible") === "true";
-        chatbotBox.classList.toggle("hidden", !chatboxVisible);
- 
-        const toggleBtn = document.getElementById("important-filter-toggle");
-        if (toggleBtn) {
-          toggleBtn.textContent = "🔎 Zobrazit jen důležité";
-          const previousFilter = localStorage.getItem("showOnlyImportant") === "true";
-          if (previousFilter) {
-            showOnlyImportant = true;
-            toggleImportantFilter();
-          }
-        }
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+        container.appendChild(wrapper);
       });
-    </script>
-    
-  </body>
+      if (savedMessages.length > 0) {
+        document.getElementById("chatbot-controls").classList.remove("hidden");
+      }
+
+
+      const toggleBtn = document.getElementById("important-filter-toggle");
+      if (toggleBtn) {
+        toggleBtn.textContent = "🔎 Zobrazit jen důležité";
+        const previousFilter = localStorage.getItem("showOnlyImportant") === "true";
+        if (previousFilter) {
+          showOnlyImportant = true;
+          toggleImportantFilter();
+        }
+      }
+    });
+  </script>
+
+</body>
+
 </html>
