@@ -7,20 +7,19 @@ Přihlášení
 {% load static %}
 
 {% block content %}
-<div role="alert" id="message" class="mx-auto max-w-4xl mt-6">
-    {% if form.errors %}
-    <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-        CHYBA
+{% if messages %}
+    <div class="mx-auto sm:mx-auto sm:w-full sm:max-w-md mt-4">
+      {% for message in messages %}
+        <div class="rounded-md bg-red-100 p-4 mb-4 mt-24 text-red-700 font-semibold">
+          {{ message }}
+        </div>
+      {% endfor %}
     </div>
-    <div class="border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-        <p>Špatné přihlašovací údaje</p>
-    </div>
-    {% endif %}
-</div>
+{% endif %}
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Přihlášení</h2>
+        <h2 class="text-center text-3xl font-extrabold text-gray-900">Přihlášení</h2>
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

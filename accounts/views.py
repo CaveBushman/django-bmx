@@ -36,20 +36,20 @@ def sign_in(request):
         password = request.POST['password']
         
         user = authenticate(request, username=username, password=password)
+        print(user)
         if user is not None:
             login(request, user)
             
-            # Zkontrolujeme, zda je zaškrtnuto "Zapamatuj si mě"
             remember_me = request.POST.get('remember-me')
             
             if remember_me:
-                # Pokud je zaškrtnuto, nastavíme dobu platnosti session na 14 dní
                 request.session.set_expiry(1209600)  # 14 dní (v sekundách)
             else:
-                # Pokud není zaškrtnuto, platí session pouze do zavření prohlížeče
                 request.session.set_expiry(0)  # Vyprší po zavření prohlížeče
 
             return redirect('news:homepage')  # Přesměrování po úspěšném přihlášení
+        else:
+            messages.error(request, "Neplatné uživatelské jméno nebo heslo.")
 
     return render(request, 'accounts/signin.html')
 

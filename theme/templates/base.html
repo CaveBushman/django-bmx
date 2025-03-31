@@ -3,6 +3,9 @@
 <html lang="en" class="{% if request.session.is_dark_mode %}dark{% endif %}">
 
 <head>
+
+  <meta http-equiv="Cache-Control" content="no-store" />
+
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="initial-scale=1.0" />
@@ -39,34 +42,22 @@
   <!--==== CHAT BOT ====-->
 
 
-  <div id="chatbot" class="fixed z-[999999]">
-    <div id="chatbot-toggle" class="fixed bottom-6 right-6 z-[999999]">
-      <button onclick="toggleChat()" class="bg-indigo-600 p-6 rounded-full shadow-md">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="48" height="48" fill="none">
-  <!-- Hlavní kruh -->
-  <circle cx="16" cy="16" r="15" stroke="#4f46e5" stroke-width="2" fill="white" />
-  <!-- Helma -->
-  <path d="M10 8c0-1.3 1.1-2.5 2.5-2.5h7c1.4 0 2.5 1.2 2.5 2.5v3h-12v-3Z" fill="#4f46e5" />
-  <circle cx="16" cy="13" r="2" fill="white" />
-  <!-- Tělo -->
-  <path d="M9 18c0-0.8 0.7-1.5 1.5-1.5h11c0.8 0 1.5 0.7 1.5 1.5v2.5l2.5 4v1.5h-2.5l-2-3-2 3h-5l-2-3-2 3h-2.5v-1.5l2.5-4V18Z" fill="#4f46e5" />
-  <!-- Kola -->
-  <circle cx="9" cy="30" r="4" stroke="#4f46e5" stroke-width="1.5" fill="white" />
-  <circle cx="23" cy="30" r="4" stroke="#4f46e5" stroke-width="1.5" fill="white" />
-  <!-- Rám kola -->
-  <path d="M9 30 L16 18 L23 30 Z" stroke="#4f46e5" stroke-width="1.5" fill="none" />
-</svg>
+  <div id="chatbot" class="fixed bottom-0 right-0 z-[999999]">
+    <div id="chatbot-toggle" class="fixed bottom-5 right-5 z-[9999999] pointer-events-auto">
+      <button onclick="toggleChat()" class="pointer-events-auto">
+        <img src="{% static 'images/assist_2_bmx.png' %}" alt="Chipka" class="w-16 h-16" />
       </button>
     </div>
 
     <div id="chatbot-box"
-      class="rounded-md hidden fixed bottom-20 right-6 w-96 max-h-[80vh] bg-white border border-gray-300 shadow-lg flex flex-col z-[999999]">
+      class="rounded-md absolute w-96 max-h-[80vh] bg-white border border-gray-300 shadow-lg flex flex-col z-[99999999] translate-x-[calc(100%-6rem)] translate-y-[-100%]"
+      style="display: none; bottom:5rem; right:1.5rem;">
       <div class="bg-indigo-600 text-white p-2 flex justify-between items-center">
         <span class="font-semibold">Asistentka CHIPKA – podle čipu na kole 😄</span>
         <button type="button" onclick="toggleChat()" class="z-50 relative text-white cursor-pointer">&times;</button>
       </div>
       <div id="chat-messages" class="p-4 overflow-y-auto max-h-[400px] text-sm bg-gray-50">
-        <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-0 pointer-events-none"></div>
         <div id="chat-messages-list" class="space-y-2">
           <!-- dynamické zprávy se vkládají sem -->
         </div>
@@ -291,7 +282,16 @@
   <script>
     function toggleChat() {
       const chatbox = document.getElementById("chatbot-box");
-      chatbox.classList.toggle("hidden");
+      const isHidden = window.getComputedStyle(chatbox).display === "none";
+      console.log("Toggle Chat Clicked. Hidden:", !isHidden);
+
+      if (isHidden) {
+        chatbox.style.display = "flex";
+      } else {
+        chatbox.style.display = "none";
+      }
+
+      console.log("Bounding box:", chatbox.getBoundingClientRect());
     }
     window.toggleChat = toggleChat;
   </script>

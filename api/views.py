@@ -169,8 +169,8 @@ class ChatbotAPIView(APIView):
                     else:
                         answer = "Odpověď od modelu nebyla ve správném formátu."
 
-            print("Dotaz:", user_message)
-            print("Odpověď:", answer)
+            logger.info(f"Dotaz: {user_message}")
+            logger.info(f"Odpověď: {answer}")
 
             # Uložení do logu
             ChatLog.objects.create(
