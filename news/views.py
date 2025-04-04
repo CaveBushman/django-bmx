@@ -7,12 +7,9 @@ from func.notification import update_plate_notify
 from rider.models import Rider
 from news.models import News, Downloads
 from club.models import Club
-
 from datetime import date
 
 # Create your views here.
-
-
 
 def get_image_dimensions(image_field):
     image = Image.open(BytesIO(image_field.read()))
@@ -43,9 +40,6 @@ def rules_view(request):
     return render(request, 'rules.html')
 
 
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import News
 
 def news_list_view(request):
     ARTICLES_PER_PAGE = 9

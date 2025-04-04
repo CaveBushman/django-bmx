@@ -14,14 +14,18 @@
 
 {% block content %}
 
-<header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-lg">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold text-white text-center tracking-tight">
-            {{ news.title|upper }}
-        </h1>
-    </div>
-</header>
 
+<!-- Desktop layout -->
+<div class="hidden md:block">
+
+    <header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-white text-center tracking-tight">
+                {{ news.title|upper }}
+            </h1>
+        </div>
+    </header>
+    
 <div class="max-w-screen-lg mx-auto pt-6">
     <div class="flex gap-8">
 
@@ -66,5 +70,36 @@
         <p class="text-base leading-relaxed mb-4">{{ news.content|safe }}</p>
     </div>
 </div>
+</div>
+<!-- Mobile layout -->
+<div class="block md:hidden">
+    <div class="bg-indigo-700 text-white px-4 py-4 text-center shadow-md">
+        <h1 class="text-2xl font-bold">{{ news.title }}</h1>
+    </div>
+
+    <div class="px-4 py-4">
+        <img class="w-full h-auto rounded-lg mb-4 shadow" src="{{ news.photo_01.url }}" alt="News photo">
+        <div class="flex items-center gap-x-4 mb-3">
+            <img class="w-10 h-10 rounded-full" src="{{ news.created.photo.url }}" alt="Author avatar">
+            <div>
+                <p class="text-sm font-semibold">{{ news.created }}</p>
+                <p class="text-xs text-gray-500">{{ news.publish_date }}</p>
+                {% for tag in news.tags.all %}
+                <span class="inline-block bg-indigo-600 text-white rounded-full px-3 py-1 text-xs font-semibold mr-2 mb-2">{{ tag|upper }}</span>
+            </div>
+        </div>
+        <div class="mb-4 text-sm font-medium text-indigo-700 bg-indigo-100 p-3 rounded">
+            {{ news.prefix|safe }}
+        </div>
+        <div class="text-gray-800 dark:text-gray-300 text-sm">
+            {{ news.content|safe }}
+        </div>
+        <div class="mt-4">
+
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 
 {% endblock content %}
