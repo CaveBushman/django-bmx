@@ -11,30 +11,72 @@ import re
 
 # Create your models here.
 
+
 class Rider(models.Model):
     """ Class for rider """
 
-    CLASS_BEGINNERS = (('Beginners 1', 'Beginners 1'), ('Beginners 2', 'Beginners 2'),  ('Beginners 3', 'Beginners 3'), ('Beginners 4', 'Beginners 4'))
+    CLASS_BEGINNERS = (
+        ("Beginners 1", "Beginners 1"),
+        ("Beginners 2", "Beginners 2"),
+        ("Beginners 3", "Beginners 3"),
+        ("Beginners 4", "Beginners 4"),
+    )
 
     CLASS_20 = (
-    ('Boys 6', 'Boys 6'), ('Boys 7', 'Boys 7'), ('Boys 8', 'Boys 8'), ('Boys 9', 'Boys 9'), ('Boys 10', 'Boys 10'),
-    ('Boys 11', 'Boys 11'), ('Boys 12', 'Boys 12'), ('Boys 13', 'Boys 13'), ('Boys 14', 'Boys 14'),
-    ('Boys 15', 'Boys 15'), ('Boys 16', 'Boys 16'), ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-29'),
-    ('Men 30-34', 'Men 30-34'), ('Men 35 and over', 'Men 35 and over'), ('Girls 7', 'Girls 7'),
-    ('Girls 8', 'Girls 8'), ('Girls 9', 'Girls 9'), ('Girls 10', 'Girls 10'), ('Girls 11', 'Girls 11'),
-    ('Girls 12', 'Girls 12'), ('Girls 13', 'Girls 13'), ('Girls 14', 'Girls 14'), ('Girls 15', 'Girls 15'),('Girls 16', 'Girls 16'),
-    ('Women 17-24', 'Women 17-24'), ('Women 25 and over', 'Women 25 and over'), ('Men Junior', 'Men Junior'),
-    ('Men Under 23', 'Men Under 23'), ('Men Elite', 'Men Elite'), ('Women Junior', 'Women Junior'),
-    ('Women Under 23', 'Women Under 23'), ('Women Elite', 'Women Elite'))
+        ("Boys 6", "Boys 6"),
+        ("Boys 7", "Boys 7"),
+        ("Boys 8", "Boys 8"),
+        ("Boys 9", "Boys 9"),
+        ("Boys 10", "Boys 10"),
+        ("Boys 11", "Boys 11"),
+        ("Boys 12", "Boys 12"),
+        ("Boys 13", "Boys 13"),
+        ("Boys 14", "Boys 14"),
+        ("Boys 15", "Boys 15"),
+        ("Boys 16", "Boys 16"),
+        ("Men 17-24", "Men 17-24"),
+        ("Men 25-29", "Men 25-29"),
+        ("Men 30-34", "Men 30-34"),
+        ("Men 35 and over", "Men 35 and over"),
+        ("Girls 7", "Girls 7"),
+        ("Girls 8", "Girls 8"),
+        ("Girls 9", "Girls 9"),
+        ("Girls 10", "Girls 10"),
+        ("Girls 11", "Girls 11"),
+        ("Girls 12", "Girls 12"),
+        ("Girls 13", "Girls 13"),
+        ("Girls 14", "Girls 14"),
+        ("Girls 15", "Girls 15"),
+        ("Girls 16", "Girls 16"),
+        ("Women 17-24", "Women 17-24"),
+        ("Women 25 and over", "Women 25 and over"),
+        ("Men Junior", "Men Junior"),
+        ("Men Under 23", "Men Under 23"),
+        ("Men Elite", "Men Elite"),
+        ("Women Junior", "Women Junior"),
+        ("Women Under 23", "Women Under 23"),
+        ("Women Elite", "Women Elite"),
+    )
 
     CLASS_24 = (
-    ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
-    ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
-    ('Men 40-44', 'Men 40-44'), ('Men 45-49', 'Men 45-49'),('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
-    ('Girls 13-16', 'Girls 13-16'), ('Women 17-29', 'Women 17-29'), ('Women 30-39', 'Women 30-99'),
-    ('Women 40 and over', 'Women 40 and over'))
+        ("Boys 12 and under", "Boys 12 and under"),
+        ("Boys 13 and 14", "Boys 13 and 14"),
+        ("Boys 15 and 16", "Boys 15 and 16"),
+        ("Men 17-24", "Men 17-24"),
+        ("Men 25-29", "Men 25-39"),
+        ("Men 30-34", "Men 30-34"),
+        ("Men 35-39", "Men 35-39"),
+        ("Men 40-44", "Men 40-44"),
+        ("Men 45-49", "Men 45-49"),
+        ("Men 50 and over", "Men 50 and over"),
+        ("Girls 12 and under", "Girls 12 and under"),
+        ("Girls 13-16", "Girls 13-16"),
+        ("Women 17-29", "Women 17-29"),
+        ("Women 30-39", "Women 30-99"),
+        ("Women 40 and over", "Women 40 and over"),
+    )
 
-    GENDER = (('Muž', 'Muž'), ('Žena', 'Žena'), ('Ostatní', 'Ostatní'))
+    GENDER = (("Muž", "Muž"), ("Žena", "Žena"), ("Ostatní", "Ostatní"))
 
     uci_id = models.IntegerField(unique=True)
     first_name = models.CharField(max_length=255, blank=False)
@@ -56,10 +98,15 @@ class Rider(models.Model):
     zip = models.CharField(max_length=1000, blank=True, null=True, default="")
 
     photo = models.ImageField(
-        upload_to='images/riders/', blank=True, null=True, default='images/riders/uni.jpeg')
+        upload_to="images/riders/",
+        blank=True,
+        null=True,
+        default="images/riders/uni.jpeg",
+    )
 
     club = models.ForeignKey(
-        Club, related_name='rider_club', null=True, on_delete=models.SET_NULL)
+        Club, related_name="rider_club", null=True, on_delete=models.SET_NULL
+    )
 
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
@@ -78,10 +125,18 @@ class Rider(models.Model):
     is_qualify_to_cn_24 = models.BooleanField(default=False)
 
     class_20 = models.CharField(
-        max_length=50, choices=CLASS_20, default="Boys 6", null=True)
+        max_length=50, choices=CLASS_20, default="Boys 6", null=True
+    )
     class_24 = models.CharField(
-        max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True)
-    class_beginner = models.CharField (max_length=50, choices=CLASS_BEGINNERS, default="Beginners 4", blank=True, null=True)
+        max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True
+    )
+    class_beginner = models.CharField(
+        max_length=50,
+        choices=CLASS_BEGINNERS,
+        default="Beginners 4",
+        blank=True,
+        null=True,
+    )
 
     transponder_20 = models.CharField(max_length=8, blank=True, null=True)
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
@@ -100,18 +155,18 @@ class Rider(models.Model):
     is_approwe = models.BooleanField(default=False)
     valid_licence = models.BooleanField(default=True)
     fix_valid_licence = models.BooleanField(default=False)
-    
+
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.first_name + " " + self.last_name
 
     class Meta:
-        db_table = 'Jezdci'
-        ordering = ['last_name', 'first_name']
+        db_table = "Jezdci"
+        ordering = ["last_name", "first_name"]
         verbose_name = "Jezdec"
-        verbose_name_plural = 'Jezdci'
+        verbose_name_plural = "Jezdci"
 
     def get_age(self, rider):
         return date.today().year - rider.date_of_birth.year
@@ -260,6 +315,7 @@ class Rider(models.Model):
         else:
             return "yellow"
 
+
 # nastavení kategorie jezdce při ukládání
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
@@ -269,7 +325,9 @@ def set_class(sender, instance, **kwargs):
     instance.class_20 = instance.set_class_20(instance)
     instance.class_24 = instance.set_class_24(instance)
     instance.plate_color_20 = instance.plate_color(instance.class_20)
-pre_save.connect (set_class, sender = Rider)
+
+
+pre_save.connect(set_class, sender=Rider)
 
 # vymazání staré fotky jezdce při její změně
 @receiver(pre_save, sender=Rider)
@@ -282,35 +340,81 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
         else:
             new_photo = instance.photo
             if old_photo == "static/images/riders/uni.jpeg":
-                instance.photo="images/riders/uni.jpeg"
+                instance.photo = "images/riders/uni.jpeg"
                 return
 
-            if old_photo and old_photo.url != new_photo.url and (old_photo != 'static/images/riders/uni.jpeg' or old_photo != "media/images/riders/uni.jpeg"):
+            if (
+                old_photo
+                and old_photo.url != new_photo.url
+                and (
+                    old_photo != "static/images/riders/uni.jpeg"
+                    or old_photo != "media/images/riders/uni.jpeg"
+                )
+            ):
                 old_photo.delete(save=False)
+
+
 pre_save.connect(delete_file_on_change_extension, sender=Rider)
+
 
 class ForeignRider(models.Model):
     """ Class for foreign rider """
 
     CLASS_20 = (
-    ('Boys 6', 'Boys 6'), ('Boys 7', 'Boys 7'), ('Boys 8', 'Boys 8'), ('Boys 9', 'Boys 9'), ('Boys 10', 'Boys 10'),
-    ('Boys 11', 'Boys 11'), ('Boys 12', 'Boys 12'), ('Boys 13', 'Boys 13'), ('Boys 14', 'Boys 14'),
-    ('Boys 15', 'Boys 15'), ('Boys 16', 'Boys 16'), ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-29'),
-    ('Men 30-34', 'Men 30-34'), ('Men 35 and over', 'Men 35 and over'), ('Girls 7', 'Girls 7'),
-    ('Girls 8', 'Girls 8'), ('Girls 9', 'Girls 9'), ('Girls 10', 'Girls 10'), ('Girls 11', 'Girls 11'),
-    ('Girls 12', 'Girls 12'), ('Girls 13', 'Girls 13'), ('Girls 14', 'Girls 14'), ('Girls 15', 'Girls 15'),('Girls 16', 'Girls 16'),
-    ('Women 17-24', 'Women 17-24'), ('Women 25 and over', 'Women 25 and over'), ('Men Junior', 'Men Junior'),
-    ('Men Under 23', 'Men Under 23'), ('Men Elite', 'Men Elite'), ('Women Junior', 'Women Junior'),
-    ('Women Under 23', 'Women Under 23'), ('Women Elite', 'Women Elite'))
+        ("Boys 6", "Boys 6"),
+        ("Boys 7", "Boys 7"),
+        ("Boys 8", "Boys 8"),
+        ("Boys 9", "Boys 9"),
+        ("Boys 10", "Boys 10"),
+        ("Boys 11", "Boys 11"),
+        ("Boys 12", "Boys 12"),
+        ("Boys 13", "Boys 13"),
+        ("Boys 14", "Boys 14"),
+        ("Boys 15", "Boys 15"),
+        ("Boys 16", "Boys 16"),
+        ("Men 17-24", "Men 17-24"),
+        ("Men 25-29", "Men 25-29"),
+        ("Men 30-34", "Men 30-34"),
+        ("Men 35 and over", "Men 35 and over"),
+        ("Girls 7", "Girls 7"),
+        ("Girls 8", "Girls 8"),
+        ("Girls 9", "Girls 9"),
+        ("Girls 10", "Girls 10"),
+        ("Girls 11", "Girls 11"),
+        ("Girls 12", "Girls 12"),
+        ("Girls 13", "Girls 13"),
+        ("Girls 14", "Girls 14"),
+        ("Girls 15", "Girls 15"),
+        ("Girls 16", "Girls 16"),
+        ("Women 17-24", "Women 17-24"),
+        ("Women 25 and over", "Women 25 and over"),
+        ("Men Junior", "Men Junior"),
+        ("Men Under 23", "Men Under 23"),
+        ("Men Elite", "Men Elite"),
+        ("Women Junior", "Women Junior"),
+        ("Women Under 23", "Women Under 23"),
+        ("Women Elite", "Women Elite"),
+    )
 
     CLASS_24 = (
-    ('Boys 12 and under', 'Boys 12 and under'), ('Boys 13 and 14', 'Boys 13 and 14'), ('Boys 15 and 16', 'Boys 15 and 16'),
-    ('Men 17-24', 'Men 17-24'), ('Men 25-29', 'Men 25-39'), ('Men 30-34', 'Men 30-34'), ('Men 35-39', 'Men 35-39'),
-    ('Men 40-44','Men 40-44'),('Men 45-49', 'Men 45-49'),('Men 50 and over', 'Men 50 and over'), ('Girls 12 and under', 'Girls 12 and under'),
-    ('Girls 13-16', 'Girls 13-16'), ('Women 17-29', 'Women 17-29'), ('Women 30-39', 'Women 30-99'),
-    ('Women 40 and over', 'Women 40 and over'))
+        ("Boys 12 and under", "Boys 12 and under"),
+        ("Boys 13 and 14", "Boys 13 and 14"),
+        ("Boys 15 and 16", "Boys 15 and 16"),
+        ("Men 17-24", "Men 17-24"),
+        ("Men 25-29", "Men 25-39"),
+        ("Men 30-34", "Men 30-34"),
+        ("Men 35-39", "Men 35-39"),
+        ("Men 40-44", "Men 40-44"),
+        ("Men 45-49", "Men 45-49"),
+        ("Men 50 and over", "Men 50 and over"),
+        ("Girls 12 and under", "Girls 12 and under"),
+        ("Girls 13-16", "Girls 13-16"),
+        ("Women 17-29", "Women 17-29"),
+        ("Women 30-39", "Women 30-99"),
+        ("Women 40 and over", "Women 40 and over"),
+    )
 
-    GENDER = (('Muž', 'Muž'), ('Žena', 'Žena'), ('Ostatní', 'Ostatní'))
+    GENDER = (("Muž", "Muž"), ("Žena", "Žena"), ("Ostatní", "Ostatní"))
 
     uci_id = models.IntegerField(unique=True)
     first_name = models.CharField(max_length=255, blank=False)
@@ -322,10 +426,12 @@ class ForeignRider(models.Model):
     nationality = models.CharField(max_length=3, default="")
 
     class_20 = models.CharField(
-        max_length=50, choices=CLASS_20, default="Boys 6", null=True)
+        max_length=50, choices=CLASS_20, default="Boys 6", null=True
+    )
     class_24 = models.CharField(
-        max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True)
-    
+        max_length=50, choices=CLASS_24, default="Boys 12 and under", null=True
+    )
+
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
     is_elite = models.BooleanField(default=False)
@@ -342,13 +448,13 @@ class ForeignRider(models.Model):
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.first_name + " " + self.last_name
 
     class Meta:
-        db_table = 'Zahranicni_jezdci'
-        ordering = ['last_name', 'first_name']
+        db_table = "Zahranicni_jezdci"
+        ordering = ["last_name", "first_name"]
         verbose_name = "Zahranicni jezdec"
-        verbose_name_plural = 'Zahranicni jezdci'
+        verbose_name_plural = "Zahranicni jezdci"
 
     def get_age(self, rider):
         return date.today().year - rider.date_of_birth.year
@@ -466,11 +572,13 @@ class ForeignRider(models.Model):
             else:
                 return "Women 40 and over"
 
+
 @receiver(pre_save, sender=ForeignRider)
 def set_class_foreign(sender, instance, *args, **kwargs):
     age = instance.get_age(instance)
     is_elite = instance.is_elite
     instance.class_20 = instance.set_class_20(instance.gender, age, is_elite)
     instance.class_24 = instance.set_class_24(instance.gender, age)
-pre_save.connect (set_class_foreign, sender = ForeignRider)
 
+
+pre_save.connect(set_class_foreign, sender=ForeignRider)

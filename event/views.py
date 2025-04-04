@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 import json
 from event.models import RaceRun
 import pandas as pd
@@ -5,7 +7,14 @@ import requests
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Prefetch
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import EntryClasses, Event, Result, Entry, CreditTransaction, DebetTransaction
+from .models import (
+    EntryClasses,
+    Event,
+    Result,
+    Entry,
+    CreditTransaction,
+    DebetTransaction,
+)
 from accounts.models import Account
 from rider.models import Rider, ForeignRider
 from club.models import Club
@@ -56,8 +65,9 @@ from rider.models import Rider
 
 # Create your views here.
 
+
 def events_list_view(request):
-    events = Event.objects.filter(date__year=date.today().year).order_by('date')
+    events = Event.objects.filter(date__year=date.today().year).order_by("date")
 
     for event in events:
         if event.canceled:
@@ -71,15 +81,23 @@ def events_list_view(request):
     year = date.today().year
     next_year = int(year) + 1
     last_year = int(year) - 1
-    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
+    data = {
+        "events": events,
+        "year": year,
+        "next_year": next_year,
+        "last_year": last_year,
+    }
 
-    return render(request, 'event/events-list_new.html', data)
+    return render(request, "event/events-list_new.html", data)
 
 
 def events_list_by_year_view(request, pk):
-    events = Event.objects.filter(date__year=pk).order_by('date')
+    events = Event.objects.filter(date__year=pk).order_by("date")
     for event in events:
-        if event.canceled or event.classes_and_fees_like.event_name == "Dosud nenastaveno":
+        if (
+            event.canceled
+            or event.classes_and_fees_like.event_name == "Dosud nenastaveno"
+        ):
             event.reg_open = False
         else:
             event.reg_open = is_registration_open(event)
@@ -87,9 +105,14 @@ def events_list_by_year_view(request, pk):
     year = pk
     next_year = int(year) + 1
     last_year = int(year) - 1
-    data = {'events': events, 'year': year, 'next_year': next_year, 'last_year': last_year}
+    data = {
+        "events": events,
+        "year": year,
+        "next_year": next_year,
+        "last_year": last_year,
+    }
 
-    return render(request, 'event/events-list_new.html', data)
+    return render(request, "event/events-list_new.html", data)
 
 
 def event_detail_views(request, pk):
@@ -99,53 +122,53 @@ def event_detail_views(request, pk):
     riders_sum = 0
     reg_open = is_registration_open(event)
 
-    data = {'event': event, 'alert': alert, 'select_category': select_category,
-            'riders_sum': riders_sum, 'reg_open': reg_open}
-    return render(request, 'event/event-detail.html', data)
+    data = {
+        "event": event,
+        "alert": alert,
+        "select_category": select_category,
+        "riders_sum": riders_sum,
+        "reg_open": reg_open,
+    }
+    return render(request, "event/event-detail.html", data)
 
 
 def results_view(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    results = Result.objects.filter(event=pk).order_by('category', 'place')
-    data = {'results': results, 'event': event}
-    return render(request, 'event/results.html', data)
+    results = Result.objects.filter(event=pk).order_by("category", "place")
+    data = {"results": results, "event": event}
+    return render(request, "event/results.html", data)
+
 
 @login_required(login_url="/event/not-reg")
 @cache_page(60 * 5)  # cache na 5 minut
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
-    
+
     # Načíst jezdce jedním dotazem s potřebnými daty
-    riders = Rider.objects.filter(
-    is_active=True,
-    is_approwe=True
-).filter(
-    Q(valid_licence=True) | Q(fix_valid_licence=True)
-).prefetch_related('entry_set')
+    riders = (
+        Rider.objects.filter(is_active=True, is_approwe=True)
+        .filter(Q(valid_licence=True) | Q(fix_valid_licence=True))
+        .prefetch_related("entry_set")
+    )
     sum_fee = 0
 
     # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
     if event.canceled or not event.reg_open or (event.reg_open_to < timezone.now()):
-        return render(request, 'event/reg-close.html')
+        return render(request, "event/reg-close.html")
 
     if request.POST:
-
         # Získání seznamů ID jezdců z formuláře
         selected_ids = {
-            "beginner": set(request.POST.getlist('checkbox_beginner')),
-            "20": set(request.POST.getlist('checkbox_20')),
-            "24": set(request.POST.getlist('checkbox_24')),
-            }
+            "beginner": set(request.POST.getlist("checkbox_beginner")),
+            "20": set(request.POST.getlist("checkbox_20")),
+            "24": set(request.POST.getlist("checkbox_24")),
+        }
 
         # Jeden dotaz místo tří
         riders = Rider.objects.filter(uci_id__in=set.union(*selected_ids.values()))
 
         # Roztřídění jezdců do kategorií
-        selected_riders = {
-            "beginner": [],
-            "20": [],
-            "24": []
-        }
+        selected_riders = {"beginner": [], "20": [], "24": []}
 
         for rider in riders:
             if str(rider.uci_id) in selected_ids["beginner"]:
@@ -175,9 +198,15 @@ def add_entries_view(request, pk):
                 cart.event = event
                 cart.rider = rider
                 cart.is_beginner = True
-                cart.fee_beginner = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
-                cart.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-                if not Entry.objects.filter(rider=rider, event=event, is_beginner=True, payment_complete=True):
+                cart.fee_beginner = resolve_event_fee(
+                    event, rider, is_20=True, is_beginner=True
+                )
+                cart.class_beginner = resolve_event_classes(
+                    event, rider, is_20=True, is_beginner=True
+                )
+                if not Entry.objects.filter(
+                    rider=rider, event=event, is_beginner=True, payment_complete=True
+                ):
                     cart.save()
 
         for rider_20 in riders_20:
@@ -191,7 +220,9 @@ def add_entries_view(request, pk):
                 cart.is_20 = True
                 cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
                 cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-                if not Entry.objects.filter(rider=rider_20, event=event, is_20=True, payment_complete=True):
+                if not Entry.objects.filter(
+                    rider=rider_20, event=event, is_20=True, payment_complete=True
+                ):
                     cart.save()
 
         for rider_24 in riders_24:
@@ -205,28 +236,34 @@ def add_entries_view(request, pk):
                 cart.is_24 = True
                 cart.fee_24 = resolve_event_fee(event, rider_24, is_20=False)
                 cart.class_24 = resolve_event_classes(event, rider_24, is_20=False)
-                if not Entry.objects.filter(rider=rider_24, event=event, is_24=True, payment_complete=True):
+                if not Entry.objects.filter(
+                    rider=rider_24, event=event, is_24=True, payment_complete=True
+                ):
                     cart.save()
 
         if "btn_add" in request.POST:
             update_cart(request)
-            return redirect('event:events')
+            return redirect("event:events")
 
         # convert to json format (need for sessions)
-        sum_fee_json = json.dumps({'sum_fee': sum_fee})
-        event_json = json.dumps({'event': event.id})
+        sum_fee_json = json.dumps({"sum_fee": sum_fee})
+        event_json = json.dumps({"event": event.id})
 
         # save sessions
         request.session.set_expiry(300)
 
-        request.session['sum_fee'] = sum_fee_json
-        request.session['event'] = event_json
-        request.session['riders_beginner'] = serializers.serialize('json', riders_beginner)
-        request.session['riders_20'] = serializers.serialize('json', riders_20)
-        request.session['riders_24'] = serializers.serialize('json', riders_24)
+        request.session["sum_fee"] = sum_fee_json
+        request.session["event"] = event_json
+        request.session["riders_beginner"] = serializers.serialize(
+            "json", riders_beginner
+        )
+        request.session["riders_20"] = serializers.serialize("json", riders_20)
+        request.session["riders_24"] = serializers.serialize("json", riders_24)
 
         for rider_beginner in riders_beginner:
-            rider_beginner.class_beginner = resolve_event_classes(event, rider_beginner, is_20=True, is_beginner=True)
+            rider_beginner.class_beginner = resolve_event_classes(
+                event, rider_beginner, is_20=True, is_beginner=True
+            )
 
         for rider_20 in riders_20:
             rider_20.class_20 = resolve_event_classes(event, rider_20, is_20=True)
@@ -234,11 +271,18 @@ def add_entries_view(request, pk):
         for rider_24 in riders_24:
             rider_24.class_24 = resolve_event_classes(event, rider_24, is_20=False)
 
-        data = {'event': event, 'riders_20': riders_20, 'riders_24': riders_24, 'riders_beginner': riders_beginner,
-                'sum_fee': sum_fee, 'sum_beginners': sum_beginners, 'sum_20': sum_20,
-                'sum_24': sum_24}
+        data = {
+            "event": event,
+            "riders_20": riders_20,
+            "riders_24": riders_24,
+            "riders_beginner": riders_beginner,
+            "sum_fee": sum_fee,
+            "sum_beginners": sum_beginners,
+            "sum_20": sum_20,
+            "sum_24": sum_24,
+        }
 
-        response = render(request, 'event/checkout.html', data)
+        response = render(request, "event/checkout.html", data)
         # response.set_cookie()
         return response
 
@@ -246,12 +290,16 @@ def add_entries_view(request, pk):
     event.is_beginners_race = event.is_beginners_event()
 
     for rider in riders:
-        was_registered = Entry.objects.filter(event=event, rider=rider, payment_complete=True)
+        was_registered = Entry.objects.filter(
+            event=event, rider=rider, payment_complete=True
+        )
 
         # classes for Beginners
         if event.is_beginners_race and is_beginner(rider):
             rider.is_beginner = True
-            rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+            rider.class_beginner = resolve_event_classes(
+                event, rider, is_20=True, is_beginner=True
+            )
 
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
@@ -260,18 +308,18 @@ def add_entries_view(request, pk):
 
         if was_registered.count() > 0:
             if was_registered[0].is_beginner:
-                rider.class_beginner += 'registered'
+                rider.class_beginner += "registered"
             if was_registered[0].is_20:
-                rider.class_20 += 'registered'
+                rider.class_20 += "registered"
             if was_registered[0].is_24:
                 rider.class_24 += "registered"
 
-    data = {'event': event, 'riders': riders}
-    return render(request, 'event/entry.html', data)
-    
-    
+    data = {"event": event, "riders": riders}
+    return render(request, "event/entry.html", data)
+
+
 def entry_riders_view(request, pk):
-    """ View for registered riders in event"""
+    """View for registered riders in event"""
     event = Event.objects.get(id=pk)
     entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
     checkout = Entry.objects.filter(event=pk, payment_complete=1, checkout=1)
@@ -286,108 +334,150 @@ def entry_riders_view(request, pk):
 
     try:
         categories.sort()
-        categories.remove('')
+        categories.remove("")
     except Exception as e:
         pass
 
-    data = {'event': event, 'entries': entries, 'checkout': checkout, 'categories': categories}
-    return render(request, 'event/entry-list.html', data)
+    data = {
+        "event": event,
+        "entries": entries,
+        "checkout": checkout,
+        "categories": categories,
+    }
+    return render(request, "event/entry-list.html", data)
 
 
 def confirm_view(request):
-    this_event = json.loads(request.session['event'])
-    event = Event.objects.get(id=this_event['event'])
-    riders_beginner_list = json.loads(request.session['riders_beginner'])
-    riders_20_list = json.loads(request.session['riders_20'])
-    riders_24_list = json.loads(request.session['riders_24'])
+    this_event = json.loads(request.session["event"])
+    event = Event.objects.get(id=this_event["event"])
+    riders_beginner_list = json.loads(request.session["riders_beginner"])
+    riders_20_list = json.loads(request.session["riders_20"])
+    riders_24_list = json.loads(request.session["riders_24"])
 
-    if 'btn-add-event' in request.POST:
+    if "btn-add-event" in request.POST:
         pass
 
     if request.method == "POST":
-
         # add entries for 20" bikes
         line_items = []
 
         for rider_beginner in riders_beginner_list:
-            rider = Rider.objects.get(uci_id=rider_beginner['fields']['uci_id'])
-            line_items += generate_stripe_line(event, rider, is_20=True, is_beginner=True)
+            rider = Rider.objects.get(uci_id=rider_beginner["fields"]["uci_id"])
+            line_items += generate_stripe_line(
+                event, rider, is_20=True, is_beginner=True
+            )
 
         for rider_20_list in riders_20_list:
-            rider = Rider.objects.get(uci_id=rider_20_list['fields']['uci_id'])
+            rider = Rider.objects.get(uci_id=rider_20_list["fields"]["uci_id"])
             line_items += generate_stripe_line(event, rider, is_20=True)
 
         # add entries for cruiser
         for rider_24_list in riders_24_list:
-            rider = Rider.objects.get(uci_id=rider_24_list['fields']['uci_id'])
+            rider = Rider.objects.get(uci_id=rider_24_list["fields"]["uci_id"])
             line_items += generate_stripe_line(event, rider, is_20=False)
 
         try:
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
+                payment_method_types=["card"],
                 line_items=line_items,
-                mode='payment',
-                success_url=settings.YOUR_DOMAIN + '/event/success/' + str(event.id),
-                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
+                mode="payment",
+                success_url=settings.YOUR_DOMAIN + "/event/success/" + str(event.id),
+                cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
             )
             # TODO: Need last check for registration in the same time
             # save entries riders to database
             for rider in riders_beginner_list:
-                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_rider = Rider.objects.get(uci_id=rider["fields"]["uci_id"])
                 current_fee = resolve_event_fee(event, current_rider, 1)
-                current_class = resolve_event_classes(event, current_rider, is_20=True, is_beginner=True)
-                entry = Entry(transaction_id=checkout_session.id, event=event,
-                              rider=current_rider, is_beginner=True, is_20=False, is_24=False,
-                              class_beginner=current_class, class_20="", class_24="", fee_beginner=current_fee)
+                current_class = resolve_event_classes(
+                    event, current_rider, is_20=True, is_beginner=True
+                )
+                entry = Entry(
+                    transaction_id=checkout_session.id,
+                    event=event,
+                    rider=current_rider,
+                    is_beginner=True,
+                    is_20=False,
+                    is_24=False,
+                    class_beginner=current_class,
+                    class_20="",
+                    class_24="",
+                    fee_beginner=current_fee,
+                )
                 entry.save()
 
             for rider in riders_20_list:
-                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_rider = Rider.objects.get(uci_id=rider["fields"]["uci_id"])
                 current_fee = resolve_event_fee(event, current_rider, 1)
                 current_class = resolve_event_classes(event, current_rider, is_20=True)
-                entry = Entry(transaction_id=checkout_session.id, event=event,
-                              rider=current_rider, is_20=True, is_24=False, is_beginner=False,
-                              class_beginner="", class_20=current_class, class_24="", fee_20=current_fee)
+                entry = Entry(
+                    transaction_id=checkout_session.id,
+                    event=event,
+                    rider=current_rider,
+                    is_20=True,
+                    is_24=False,
+                    is_beginner=False,
+                    class_beginner="",
+                    class_20=current_class,
+                    class_24="",
+                    fee_20=current_fee,
+                )
                 entry.save()
 
             for rider in riders_24_list:
-                current_rider = Rider.objects.get(uci_id=rider['fields']['uci_id'])
+                current_rider = Rider.objects.get(uci_id=rider["fields"]["uci_id"])
                 current_fee = resolve_event_fee(event, current_rider, 0)
                 current_class = resolve_event_classes(event, current_rider, is_20=False)
-                entry = Entry(transaction_id=checkout_session.id, event=event,
-                              rider=current_rider, is_20=False, is_24=True, is_beginner=False,
-                              class_beginner="", class_24=current_class, class_20="", fee_24=current_fee)
+                entry = Entry(
+                    transaction_id=checkout_session.id,
+                    event=event,
+                    rider=current_rider,
+                    is_20=False,
+                    is_24=True,
+                    is_beginner=False,
+                    class_beginner="",
+                    class_24=current_class,
+                    class_20="",
+                    fee_24=current_fee,
+                )
                 entry.save()
             del entry
 
-            return JsonResponse({'id': checkout_session.id})
+            return JsonResponse({"id": checkout_session.id})
         except Exception as e:
             return JsonResponse(error=str(e)), 403
 
 
 def success_view(request, pk):
-    transactions = Entry.objects.filter(Q(transaction_date__year=date.today().year,
-                                          transaction_date__month=date.today().month,
-                                          transaction_date__day=date.today().day,
-                                          event=pk,
-                                          payment_complete=False, ) |
-                                        (Q(transaction_date__year=date.today().year,
-                                           transaction_date__month=date.today().month,
-                                           transaction_date__day=date.today().day - 1,
-                                           event=pk,
-                                           payment_complete=False, )))
+    transactions = Entry.objects.filter(
+        Q(
+            transaction_date__year=date.today().year,
+            transaction_date__month=date.today().month,
+            transaction_date__day=date.today().day,
+            event=pk,
+            payment_complete=False,
+        )
+        | (
+            Q(
+                transaction_date__year=date.today().year,
+                transaction_date__month=date.today().month,
+                transaction_date__day=date.today().day - 1,
+                event=pk,
+                payment_complete=False,
+            )
+        )
+    )
 
     transactions_to_email = []
     # check, if fees was paid
 
     for transaction in transactions:
         try:
-            confirm = stripe.checkout.Session.retrieve(
-                transaction.transaction_id, )
-            if confirm['payment_status'] == "paid":
+            confirm = stripe.checkout.Session.retrieve(transaction.transaction_id,)
+            if confirm["payment_status"] == "paid":
                 transaction.payment_complete = True
-                transaction.customer_name = confirm['customer_details']['name']
-                transaction.customer_email = confirm['customer_details']['email']
+                transaction.customer_name = confirm["customer_details"]["name"]
+                transaction.customer_email = confirm["customer_details"]["email"]
                 transaction.save()
                 # fill list for confirm transaction via email
                 # if transaction.transaction_id not in transactions_to_email:
@@ -405,41 +495,41 @@ def success_view(request, pk):
 
     # vymaž sessions
     try:
-        if request.session.get('sum_fee'):
-            del request.session['sum_fee']
+        if request.session.get("sum_fee"):
+            del request.session["sum_fee"]
         else:
             print("Session sum_fee neexistuje")
 
-        if request.session.get('event'):
-            del request.session['event']
+        if request.session.get("event"):
+            del request.session["event"]
         else:
             print("Session event neexistuje")
 
-        if request.session.get('riders_20'):
-            del request.session['riders_20']
+        if request.session.get("riders_20"):
+            del request.session["riders_20"]
         else:
             print("Session riders_20 neexistuje")
 
-        if request.session.get('riders_24'):
-            del request.session['riders_24']
+        if request.session.get("riders_24"):
+            del request.session["riders_24"]
         else:
             print("Session riders_24 neexistuje")
 
     except Exception as e:
         print("Chyba " + str(e))
 
-    data = {'event_id': pk}
-    return render(request, 'event/success.html', data)
+    data = {"event_id": pk}
+    return render(request, "event/success.html", data)
 
 
 def cancel_view(request):
-    return render(request, 'event/cancel.html')
+    return render(request, "event/cancel.html")
 
 
 @csrf_exempt
-def stripe_webhook(request):
+def stripe_credit_webhook(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     event = None
 
     try:
@@ -447,22 +537,45 @@ def stripe_webhook(request):
             payload, sig_header, settings.STRIPE_ENDPOINT_SECRET
         )
     except ValueError as e:
-        # Invalid payload
+        logger.error(f"Invalid payload: {e}")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
+        logger.error(f"Invalid signature: {e}")
         return HttpResponse(status=400)
 
-    # Passed signature verification
-    return HttpResponse(status=200)
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        session_id = session["id"]
+        payment_intent = session.get("payment_intent")
 
+        try:
+            with transaction.atomic():
+                credit_transaction = CreditTransaction.objects.select_for_update().get(
+                    transaction_id=session_id
+                )
+                if not credit_transaction.payment_complete:
+                    Account.objects.filter(id=credit_transaction.user.id).update(
+                        credit=F("credit") + credit_transaction.amount
+                    )
+                    credit_transaction.payment_complete = True
+                    credit_transaction.payment_intent = payment_intent
+                    credit_transaction.save()
+                    logger.info(
+                        f"[Webhook] Kredit přičten uživateli {credit_transaction.user.id}: +{credit_transaction.amount} Kč"
+                    )
+        except CreditTransaction.DoesNotExist:
+            logger.warning(f"[Webhook] Kreditní transakce s ID {session_id} nenalezena")
+        except Exception as e:
+            logger.error(f"[Webhook] Chyba při zpracování kreditu: {e}")
+
+    return HttpResponse(status=200)
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def event_admin_view(request, pk):
     event = Event.objects.get(id=pk)
-    __LICENCE_USERNAME = config('LICENCE_USERNAME')
-    __LICENCE_PASSWORD = config('LICENCE_PASSWORD')
+    __LICENCE_USERNAME = config("LICENCE_USERNAME")
+    __LICENCE_PASSWORD = config("LICENCE_PASSWORD")
 
     # Admin page for European Cup or European Championship
     if event.type_for_ranking in ["Evropský pohár", "Mistrovství Evropy"]:
@@ -471,20 +584,20 @@ def event_admin_view(request, pk):
 
         payments = 0
         entries = Entry.objects.filter(
-            event=event.id,
-            payment_complete=True,
-            checkout=False
-        ).select_related('rider')
+            event=event.id, payment_complete=True, checkout=False
+        ).select_related("rider")
 
         entries_20 = entries.filter(is_20=True)
         entries_24 = entries.filter(is_24=True)
         sum_entries = entries_20.count() + entries_24.count()
 
-        file_name = f'media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx'
+        file_name = f"media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx"
         if event.type_for_ranking == "Evropský pohár":
-            wb = load_workbook(filename='media/ec-files/Entries example - UEC.xlsx')
+            wb = load_workbook(filename="media/ec-files/Entries example - UEC.xlsx")
         else:
-            wb = load_workbook(filename='media/ec-files/Entries_upload_UEC_Champ_2024.xlsx')
+            wb = load_workbook(
+                filename="media/ec-files/Entries_upload_UEC_Champ_2024.xlsx"
+            )
         ws = wb.active
 
         x = 3
@@ -496,7 +609,9 @@ def event_admin_view(request, pk):
                 ws.cell(x, 4, rider.first_name)
                 ws.cell(x, 5, rider.last_name)
                 ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
-                ws.cell(x, 7, rider.transponder_20 if entry.is_20 else rider.transponder_24)
+                ws.cell(
+                    x, 7, rider.transponder_20 if entry.is_20 else rider.transponder_24
+                )
                 if entry.is_24:
                     ws.cell(x, 8, "x")
                 if entry.is_20:
@@ -518,30 +633,32 @@ def event_admin_view(request, pk):
         # Pojišťovací soubor
         generate_insurance_file(event)
 
-        data = {'event': event, "sum_entries": sum_entries, "payments": payments}
-        return render(request, 'event/event-admin-ec.html', data)
+        data = {"event": event, "sum_entries": sum_entries, "payments": payments}
+        return render(request, "event/event-admin-ec.html", data)
 
     # ... zbytek funkce zůstává beze změny ...
     if event.type_for_ranking == "Mistrovství světa":
         pass
     # Admin page for Czech events
-    if 'btn-upload-result' in request.POST:
+    if "btn-upload-result" in request.POST:
         print("Stisknuto tlačítko nahrát výsledky v BEM")
 
-        if 'result-file' not in request.FILES:  # if xls file is not selected
+        if "result-file" not in request.FILES:  # if xls file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
-            return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+            return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
         else:
             print("Nahrávám výsledky")
-            result_file = request.FILES.get('result-file')
+            result_file = request.FILES.get("result-file")
             result_file_name = result_file.name
-            fs = FileSystemStorage('media/xls_results')
+            fs = FileSystemStorage("media/xls_results")
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)[6:]
             event = Event.objects.get(id=pk)
             ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-            data = pd.read_excel('media/xls_results' + uploaded_file_url, sheet_name="Results")
+            data = pd.read_excel(
+                "media/xls_results" + uploaded_file_url, sheet_name="Results"
+            )
             for i in range(1, len(data.index)):
                 uci_id = str(data.iloc[i][1])
                 category = data.iloc[i][5]
@@ -549,17 +666,28 @@ def event_admin_view(request, pk):
                 first_name = data.iloc[i][2]
                 last_name = data.iloc[i][3]
                 club = data.iloc[i][6]
-                result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
-                                   first_name,
-                                   last_name, club, event.organizer.team_name, event.type_for_ranking)
+                result = GetResult(
+                    event.date,
+                    event.id,
+                    event.name,
+                    ranking_code,
+                    uci_id,
+                    place,
+                    category,
+                    first_name,
+                    last_name,
+                    club,
+                    event.organizer.team_name,
+                    event.type_for_ranking,
+                )
                 result.write_result()
             event.xls_results = "xls_results" + uploaded_file_url
             event.save()
 
             SetRanking().start()
-            return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+            return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
-    if 'btn-delete-xls' in request.POST:
+    if "btn-delete-xls" in request.POST:
         print("Mažu XLS výsledky")
 
         Result.objects.filter(event=pk).delete()
@@ -577,12 +705,12 @@ def event_admin_view(request, pk):
 
         event.xls_results.delete(save=True)
 
-        return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
     # ON LINE ENTRIES FOR BEM
-    if 'btn-bem-file' in request.POST:
+    if "btn-bem-file" in request.POST:
         print("Vytvoř startovku")
-        file_name = f'media/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx'
+        file_name = f"media/bem-files/BEM_FOR_RACE_ID-{event.id}-{event.name}.xlsx"
         wb = Workbook()
         wb.encoding = "utf-8"
         ws = wb.active
@@ -591,7 +719,9 @@ def event_admin_view(request, pk):
 
         # TODO: entries beginners classes
 
-        entries_20 = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=0)
+        entries_20 = Entry.objects.filter(
+            event=event.id, is_20=True, payment_complete=1, checkout=0
+        )
         x = 2
         for entry_20 in entries_20:
             try:
@@ -603,7 +733,7 @@ def event_admin_view(request, pk):
                 ws.cell(x, 5, rider.uci_id)
                 ws.cell(x, 6, expire_licence())
                 ws.cell(x, 7, "BMX-RACE")
-                ws.cell(x, 9, str(rider.date_of_birth).replace('-', '/'))
+                ws.cell(x, 9, str(rider.date_of_birth).replace("-", "/"))
                 ws.cell(x, 10, rider.first_name)
                 ws.cell(x, 11, rider.last_name.upper())
                 ws.cell(x, 12, rider.email)
@@ -640,7 +770,9 @@ def event_admin_view(request, pk):
 
         del entries_20
 
-        entries_24 = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=0)
+        entries_24 = Entry.objects.filter(
+            event=event.id, is_24=True, payment_complete=1, checkout=0
+        )
         for entry_24 in entries_24:
             rider = Rider.objects.get(uci_id=entry_24.rider.uci_id)
             ws.cell(x, 1, rider.uci_id)
@@ -650,7 +782,7 @@ def event_admin_view(request, pk):
             ws.cell(x, 5, rider.uci_id)
             ws.cell(x, 6, expire_licence())
             ws.cell(x, 7, "BMX RACE")
-            ws.cell(x, 9, str(rider.date_of_birth).replace('-', '/'))
+            ws.cell(x, 9, str(rider.date_of_birth).replace("-", "/"))
             ws.cell(x, 10, rider.first_name)
             ws.cell(x, 11, rider.last_name.upper())
             ws.cell(x, 12, rider.email)
@@ -690,9 +822,9 @@ def event_admin_view(request, pk):
         event.bem_entries_created = timezone.now()
         event.save()
 
-    # ALL RIDERS FOR BEM 
-    if 'btn-riders-list' in request.POST:
-        file_name = f'media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx'
+    # ALL RIDERS FOR BEM
+    if "btn-riders-list" in request.POST:
+        file_name = f"media/riders-list/RIDERS_LIST_FOR_RACE_ID-{event.id}.xlsx"
         wb = Workbook()
         wb.encoding = "utf-8"
         ws = wb.active
@@ -709,7 +841,7 @@ def event_admin_view(request, pk):
             ws.cell(x, 5, rider.uci_id)
             ws.cell(x, 6, expire_licence())
             ws.cell(x, 7, "BMX-RACE")
-            ws.cell(x, 9, str(rider.date_of_birth).replace('-', '/'))
+            ws.cell(x, 9, str(rider.date_of_birth).replace("-", "/"))
             ws.cell(x, 10, rider.first_name)
             ws.cell(x, 11, rider.last_name.upper())
             ws.cell(x, 12, rider.email)
@@ -721,7 +853,7 @@ def event_admin_view(request, pk):
             ws.cell(x, 18, "CZE")
             ws.cell(x, 19, "CZE")
             if rider.is_20:
-                ws.cell(x, 20, resolve_event_classes(event, rider,  is_20=True))
+                ws.cell(x, 20, resolve_event_classes(event, rider, is_20=True))
             if rider.is_24:
                 ws.cell(x, 21, resolve_event_classes(event, rider, is_20=False))
             ws.cell(x, 28, "")
@@ -787,28 +919,27 @@ def event_admin_view(request, pk):
         event.save()
 
     # ON LINE ENTRIES FOR REM
-    if 'btn-rem-file' in request.POST:
+    if "btn-rem-file" in request.POST:
         all_entries = REMRiders()
         all_entries.event = event
         all_entries.create_entries_list()
 
     # ALL RIDERS FOR REM
-    if 'btn-rem-riders-list' in request.POST:
+    if "btn-rem-riders-list" in request.POST:
         all_riders = REMRiders()
         all_riders.event = event
         all_riders.create_all_riders_list()
 
-    if 'btn-upload-txt' in request.POST:
-
-        if 'result-file-txt' not in request.FILES:  # if txt file is not selected
+    if "btn-upload-txt" in request.POST:
+        if "result-file-txt" not in request.FILES:  # if txt file is not selected
             messages.error(request, "Musíš vybrat soubor s výsledky závodu")
-            return HttpResponseRedirect(reverse('event:event-admin', kwargs={'pk': pk}))
+            return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
-        if request.POST['btn-upload-txt'] == 'txt':
+        if request.POST["btn-upload-txt"] == "txt":
             print("Nahrávám výsledky z REM")
-            result_file = request.FILES.get('result-file-txt')
+            result_file = request.FILES.get("result-file-txt")
             result_file_name = result_file.name
-            fs = FileSystemStorage('media/rem_results')
+            fs = FileSystemStorage("media/rem_results")
             filename = fs.save(result_file_name, result_file)
             uploaded_file_url = fs.url(filename)[6:]
             event = Event.objects.get(id=pk)
@@ -833,7 +964,9 @@ def event_admin_view(request, pk):
                 # MOTO jízdy
                 for i in range(1, 10):
                     if not pd.isna(row.get(f"MOTO{i}_PLACE")):
-                        if not RaceRun.objects.filter(result=result, round_type="MOTO", round_number=i).exists():
+                        if not RaceRun.objects.filter(
+                            result=result, round_type="MOTO", round_number=i
+                        ).exists():
                             RaceRun.objects.create(
                                 result=result,
                                 round_type="MOTO",
@@ -854,7 +987,9 @@ def event_admin_view(request, pk):
                 # Finále a eliminace
                 for phase in ["FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"]:
                     if not pd.isna(row.get(f"{phase}_PLACE")):
-                        if not RaceRun.objects.filter(result=result, round_type=phase).exists():
+                        if not RaceRun.objects.filter(
+                            result=result, round_type=phase
+                        ).exists():
                             RaceRun.objects.create(
                                 result=result,
                                 round_type=phase,
@@ -872,7 +1007,7 @@ def event_admin_view(request, pk):
                                 split_4=None,
                             )
 
-    if 'btn-txt-delete' in request.POST:
+    if "btn-txt-delete" in request.POST:
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
         print("Výsledky vymazány")
@@ -908,58 +1043,66 @@ def event_admin_view(request, pk):
 
     results_exist = Result.objects.filter(event=event).exists()
 
-    data = {'event': event, "invalid_licences": invalid_licences, "sum_of_fees": sum_of_fees,
-            "sum_of_riders": sum_of_riders, 'asociation_fee':asociation_fee,  'results_exist': results_exist}
-    return render(request, 'event/event-admin.html', data)
+    data = {
+        "event": event,
+        "invalid_licences": invalid_licences,
+        "sum_of_fees": sum_of_fees,
+        "sum_of_riders": sum_of_riders,
+        "asociation_fee": asociation_fee,
+        "results_exist": results_exist,
+    }
+    return render(request, "event/event-admin.html", data)
 
 
 @staff_member_required
 def find_payment_view(request):
-    """ Views for find e-mail address recorded in payment status """
+    """Views for find e-mail address recorded in payment status"""
 
     events = Event.objects.filter()
 
-    if 'find-payment' in request.POST:
-        rider = request.POST['rider']
-        event = request.POST['event']
+    if "find-payment" in request.POST:
+        rider = request.POST["rider"]
+        event = request.POST["event"]
         try:
-            entry = Entry.objects.get(event=event.id, rider=rider.uci_id, payment_complete=True)
+            entry = Entry.objects.get(
+                event=event.id, rider=rider.uci_id, payment_complete=True
+            )
             rider = Rider.objects.get(uci_id=rider)
             event = Event.objects.get(id=event)
         except Exception as e:
             pass
 
-        data = {'event': event, 'rider': rider, 'entry': entry}
+        data = {"event": event, "rider": rider, "entry": entry}
 
-    data = {'events': events}
-    return render(request, 'event/find-payment.html', data)
+    data = {"events": events}
+    return render(request, "event/find-payment.html", data)
 
 
 def ranking_table_view(request):
-    """ Function for viewing ranking table of points"""
+    """Function for viewing ranking table of points"""
     data = {}
-    return render(request, 'event/ranking-table.html', data)
+    return render(request, "event/ranking-table.html", data)
 
 
 def entry_foreign_view(request, pk):
-    """ View for foreign riders registrations"""
+    """View for foreign riders registrations"""
     event = get_object_or_404(Event, pk=pk)
-    data = {'event': event}
-    views = render(request, 'event/entry-foreign.html', data)
+    data = {"event": event}
+    views = render(request, "event/entry-foreign.html", data)
     return views
 
 
 def ec_by_club_xls(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    clubs = Club.objects.filter(is_active=True).order_by('team_name')
-    entries = Entry.objects.filter(event=pk, payment_complete=True).order_by('rider')
+    clubs = Club.objects.filter(is_active=True).order_by("team_name")
+    entries = Entry.objects.filter(event=pk, payment_complete=True).order_by("rider")
 
-    file_name = f'media/ec-files/EC_RACE_ID_BY_CLUB-{event.id}-{event.name}.xlsx'
+    file_name = f"media/ec-files/EC_RACE_ID_BY_CLUB-{event.id}-{event.name}.xlsx"
 
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    response = HttpResponse(content_type="application/ms-excel")
+    response["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
-    wb = load_workbook(filename='media/ec-files/Club example - UEC.xlsx')
+    wb = load_workbook(filename="media/ec-files/Club example - UEC.xlsx")
     ws = wb.active
 
     ws.cell(3, 2, event.name)
@@ -998,12 +1141,15 @@ def summary_riders_in_event(request, pk):
             sum_20_24.count_beginners()
         else:
             sum_20_24.count_riders_20()
-        if class_20_24 is not None and ("NENÍ VYPSÁNO" or "není vypsáno") not in class_20_24:
+        if (
+            class_20_24 is not None
+            and ("NENÍ VYPSÁNO" or "není vypsáno") not in class_20_24
+        ):
             count_20_24.append(sum_20_24)
 
-    data = {'count_riders': count_20_24}
+    data = {"count_riders": count_20_24}
 
-    return render(request, 'event/riders-sum-event.html', data)
+    return render(request, "event/riders-sum-event.html", data)
 
 
 @login_required(login_url="/login/")
@@ -1011,41 +1157,62 @@ def confirm_user_order(request):
     # aktualizuj košík
     update_cart(request)
     # vymaž propadnuté registrace, registrace již byla ukončena a nebyla zaplacena
-    delete_reg = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
-                                      event__reg_open_to__lt=datetime.datetime.now())
+    delete_reg = Entry.objects.filter(
+        user__id=request.user.id,
+        payment_complete=False,
+        event__reg_open_to__lt=datetime.datetime.now(),
+    )
 
-    #TODO: Vymazat duplicitní položky v košíku
+    # TODO: Vymazat duplicitní položky v košíku
 
     if delete_reg:
         delete_reg.delete()
-        return redirect('event:order')
+        return redirect("event:order")
     # načti platné registrace v nákupním košíku
-    orders = Entry.objects.filter(user__id=request.user.id, payment_complete=False,
-                                  event__date__gte=datetime.datetime.now()).order_by('event__date', 'rider__last_name','rider__first_name')
+    orders = Entry.objects.filter(
+        user__id=request.user.id,
+        payment_complete=False,
+        event__date__gte=datetime.datetime.now(),
+    ).order_by("event__date", "rider__last_name", "rider__first_name")
 
-    #Odstranění duplicit v košíku
+    # Odstranění duplicit v košíku
     duplicities = []
     for order in orders:
         if order.is_beginner:
-            if Entry.objects.filter(event=order.event, rider=order.rider, is_beginner=True).count() > 1:
+            if (
+                Entry.objects.filter(
+                    event=order.event, rider=order.rider, is_beginner=True
+                ).count()
+                > 1
+            ):
                 duplicities.append(order)
                 order.delete()
         elif order.is_20:
-            if Entry.objects.filter(event=order.event, rider=order.rider, is_20=True).count()>1:
+            if (
+                Entry.objects.filter(
+                    event=order.event, rider=order.rider, is_20=True
+                ).count()
+                > 1
+            ):
                 duplicities.append(order)
                 order.delete()
         else:
-            if Entry.objects.filter(event=order.event, rider=order.rider, is_24=True).count() > 1:
+            if (
+                Entry.objects.filter(
+                    event=order.event, rider=order.rider, is_24=True
+                ).count()
+                > 1
+            ):
                 duplicities.append(order)
                 order.delete()
         if duplicities:
-            return redirect ('event:order')
+            return redirect("event:order")
 
-    if 'btn-del' in request.POST:
-        order = Entry.objects.get(id=request.POST['btn-del'])
+    if "btn-del" in request.POST:
+        order = Entry.objects.get(id=request.POST["btn-del"])
         order.delete()
         update_cart(request)
-        return redirect('event:order')
+        return redirect("event:order")
 
     if request.POST:
         price: int = 0
@@ -1053,21 +1220,23 @@ def confirm_user_order(request):
             if order.is_beginner:
                 price += order.fee_beginner
             elif order.is_20:
-                price+=order.fee_20
+                price += order.fee_20
             else:
-                price+=order.fee_24
+                price += order.fee_24
 
         user = Account.objects.get(id=request.user.id)
 
         if price > user.credit:
             data = {}
-            return render (request, 'event/order_error.html', data)
+            return render(request, "event/order_error.html", data)
 
         try:
-            #TODO: Dodělat debetní transakce
+            # TODO: Dodělat debetní transakce
             for order in orders:
                 amount = order.fee_beginner + order.fee_20 + order.fee_24
-                debet_transaction = DebetTransaction(user_id = request.user.id, amount = amount, entry = order)
+                debet_transaction = DebetTransaction(
+                    user_id=request.user.id, amount=amount, entry=order
+                )
                 debet_transaction.save()
 
                 user.credit = user.credit - amount
@@ -1078,7 +1247,7 @@ def confirm_user_order(request):
 
                 update_cart(request)
 
-            return redirect ('event:checkout')
+            return redirect("event:checkout")
         except Exception as e:
             return JsonResponse(error=str(e)), 403
 
@@ -1092,46 +1261,58 @@ def confirm_user_order(request):
             order.event_class = order.class_20
         else:
             order.event_class = order.class_24
-    data = {'orders': orders, 'price': price, 'sum': sum}
-    return render(request, 'event/order.html', data)
+    data = {"orders": orders, "price": price, "sum": sum}
+    return render(request, "event/order.html", data)
 
 
 @login_required(login_url="/login")
 def check_order_payments(request):
-    orders = Entry.objects.filter(Q(updated__year=date.today().year,
-                                    updated__month=date.today().month,
-                                    updated__day=date.today().day,
-                                    payment_complete=False, ) |
-                                  Q(updated__year=date.today().year,
-                                    updated__month=date.today().month,
-                                    updated__day=date.today().day - 1,
-                                    payment_complete=False, ))
+    orders = Entry.objects.filter(
+        Q(
+            updated__year=date.today().year,
+            updated__month=date.today().month,
+            updated__day=date.today().day,
+            payment_complete=False,
+        )
+        | Q(
+            updated__year=date.today().year,
+            updated__month=date.today().month,
+            updated__day=date.today().day - 1,
+            payment_complete=False,
+        )
+    )
     for order in orders:
         try:
-            confirm = stripe.checkout.Session.retrieve(
-                order.stripe_payload, )
-            if confirm['payment_status'] == "paid":
+            confirm = stripe.checkout.Session.retrieve(order.stripe_payload,)
+            if confirm["payment_status"] == "paid":
                 order.confirmed = True
                 order.save()
         except Exception as e:
             print(e)
 
-    transactions = Entry.objects.filter(Q(transaction_date__year=date.today().year,
-                                          transaction_date__month=date.today().month,
-                                          transaction_date__day=date.today().day,
-                                          payment_complete=False, ) |
-                                        (Q(transaction_date__year=date.today().year,
-                                           transaction_date__month=date.today().month,
-                                           transaction_date__day=date.today().day - 1,
-                                           payment_complete=False, )))
+    transactions = Entry.objects.filter(
+        Q(
+            transaction_date__year=date.today().year,
+            transaction_date__month=date.today().month,
+            transaction_date__day=date.today().day,
+            payment_complete=False,
+        )
+        | (
+            Q(
+                transaction_date__year=date.today().year,
+                transaction_date__month=date.today().month,
+                transaction_date__day=date.today().day - 1,
+                payment_complete=False,
+            )
+        )
+    )
     for transaction in transactions:
         try:
-            confirm = stripe.checkout.Session.retrieve(
-                transaction.transaction_id, )
-            if confirm['payment_status'] == "paid":
+            confirm = stripe.checkout.Session.retrieve(transaction.transaction_id,)
+            if confirm["payment_status"] == "paid":
                 transaction.payment_complete = True
-                transaction.customer_name = confirm['customer_details']['name']
-                transaction.customer_email = confirm['customer_details']['email']
+                transaction.customer_name = confirm["customer_details"]["name"]
+                transaction.customer_email = confirm["customer_details"]["email"]
                 transaction.save()
         except:
             pass
@@ -1139,45 +1320,49 @@ def check_order_payments(request):
     update_cart(request)
     messages.success(request, "Vaše přihláška byla úspěšně přijata.")
     data = {}
-    return render(request, 'event/success.html', data)
+    return render(request, "event/success.html", data)
 
 
 @login_required(login_url="/login/")
 def checkout_view(request):
     user_id = request.user.id
     user = Account.objects.get(id=user_id)
-    confirmed_events = Entry.objects.filter(user__id=user_id, payment_complete=True,
-                                            event__date__gte=datetime.datetime.now()).order_by('event__date', 'rider__last_name',
-                                                                                      'rider__first_name')
+    confirmed_events = Entry.objects.filter(
+        user__id=user_id,
+        payment_complete=True,
+        event__date__gte=datetime.datetime.now(),
+    ).order_by("event__date", "rider__last_name", "rider__first_name")
     for confirmed_event in confirmed_events:
         if is_registration_open(confirmed_event.event):
             confirmed_event.is_visible = True
         else:
             confirmed_event.is_visible = False
     # if user want change status
-    if 'btn-change' in request.POST:
-        confirmed_event = Entry.objects.get(id=request.POST['btn-change'])
-        amount = confirmed_event.fee_beginner+confirmed_event.fee_20+confirmed_event.fee_24
-        user.credit = user.credit + amount
-        user.save()
+    if "btn-change" in request.POST:
+        confirmed_event = Entry.objects.get(id=request.POST["btn-change"])
 
-        debet_transaction = DebetTransaction.objects.filter(user = user, entry=confirmed_event)
+        debet_transaction = DebetTransaction.objects.filter(
+            user=user, entry=confirmed_event
+        )
+
         debet_transaction.delete()
-
         confirmed_event.delete()
 
-        return redirect('event:checkout')
+        user.credit = calculate_user_balance(user.id)
+        user.save()
+
+        return redirect("event:checkout")
     else:
-        data = {'confirmed_events': confirmed_events, 'user': user}
-        return render(request, 'event/event-checkout.html', data)
+        data = {"confirmed_events": confirmed_events, "user": user}
+        return render(request, "event/event-checkout.html", data)
 
 
 @login_required(login_url="/login/")
 def fees_on_event(request, pk):
-    """ Function for print fees in event by club"""
+    """Function for print fees in event by club"""
     event = Event.objects.get(pk=pk)
     entries = Entry.objects.filter(event=pk, checkout=False)
-    clubs = Club.objects.filter(is_active=True).order_by('team_name')
+    clubs = Club.objects.filter(is_active=True).order_by("team_name")
     club_in_event = []
     for club in clubs:
         fee = 0
@@ -1188,99 +1373,122 @@ def fees_on_event(request, pk):
             club.fee = fee
             club_in_event.append(club)
     data = {"clubs": club_in_event, "event": event}
-    return render(request, 'event/fees-on-event.html', data)
+    return render(request, "event/fees-on-event.html", data)
 
 
 @login_required(login_url="/login")
-def credit_view (request):
+def credit_view(request):
     user_id = request.user.id
     user = Account.objects.get(id=user_id)
 
     if request.POST:
-        amount = request.POST['price']
+        amount = request.POST["price"]
         amount = int(amount)
 
         if amount < 100:
             messages.error(request, "Minimální částka pro nákup kreditu je 100 Kč.")
-            return redirect('event:credit')
+            return redirect("event:credit")
 
-        line_item = {
-            'price_data': {
-                'currency': 'czk',
-                'unit_amount': amount * 100,
-                'product_data': {
-                    'name': user.first_name + " " + user.last_name,
-                    'images': [],
-                    'description': "nabití kreditu pro registraci na závody BMX Racing" ,
+        line_item = (
+            {
+                "price_data": {
+                    "currency": "czk",
+                    "unit_amount": amount * 100,
+                    "product_data": {
+                        "name": user.first_name + " " + user.last_name,
+                        "images": [],
+                        "description": "nabití kreditu pro registraci na závody BMX Racing",
+                    },
                 },
+                "quantity": 1,
             },
-            'quantity': 1,
-        },
-        #TODO: Dodělat stripe
+        )
+        # TODO: Dodělat stripe
         try:
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
+                payment_method_types=["card"],
                 line_items=line_item,
-                mode='payment',
-                success_url=settings.YOUR_DOMAIN + '/event/success-credit',
-                cancel_url=settings.YOUR_DOMAIN + '/event/cancel',
+                mode="payment",
+                success_url=settings.YOUR_DOMAIN + "/event/success-credit",
+                cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
             )
 
-            credit_transaction = CreditTransaction(transaction_id = checkout_session.id, amount = amount, user_id = user_id)
+            credit_transaction = CreditTransaction(
+                transaction_id=checkout_session.id, amount=amount, user_id=user_id
+            )
             credit_transaction.save()
 
             return redirect(checkout_session.url, code=303)
         except Exception as e:
             return JsonResponse(error=str(e)), 403
 
-    else:     
-        credits = CreditTransaction.objects.filter(user__id=user_id, payment_complete = True, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-transaction_date')
-        debets = DebetTransaction.objects.filter(user__id=user_id, transaction_date__gte=datetime.datetime.now() - datetime.timedelta(days=365)).order_by('-entry__event__date')
-        data = {'credits': credits, 'debets': debets}
-        return render(request, 'event/credit.html', data)
+    else:
+        credits = CreditTransaction.objects.filter(
+            user__id=user_id,
+            payment_complete=True,
+            transaction_date__gte=datetime.datetime.now()
+            - datetime.timedelta(days=365),
+        ).order_by("-transaction_date")
+        debets = DebetTransaction.objects.filter(
+            user__id=user_id,
+            transaction_date__gte=datetime.datetime.now()
+            - datetime.timedelta(days=365),
+        ).order_by("-entry__event__date")
+        data = {"credits": credits, "debets": debets}
+        return render(request, "event/credit.html", data)
 
 
 @login_required(login_url="/login")
 def success_credit_view(request):
     credit_transactions = CreditTransaction.objects.filter(
-        Q(transaction_date__year=date.today().year,
-          transaction_date__month=date.today().month,
-          transaction_date__day=date.today().day,
-          payment_complete=False) |
-        Q(transaction_date__year=date.today().year,
-          transaction_date__month=date.today().month,
-          transaction_date__day=date.today().day - 1,
-          payment_complete=False)
+        Q(
+            transaction_date__year=date.today().year,
+            transaction_date__month=date.today().month,
+            transaction_date__day=date.today().day,
+            payment_complete=False,
+        )
+        | Q(
+            transaction_date__year=date.today().year,
+            transaction_date__month=date.today().month,
+            transaction_date__day=date.today().day - 1,
+            payment_complete=False,
+        )
     )
 
     for credit_transaction in credit_transactions:
         try:
             # Zablokování řádku pro úpravu
             with transaction.atomic():
-                credit_transaction = CreditTransaction.objects.select_for_update().get(id=credit_transaction.id)
+                credit_transaction = CreditTransaction.objects.select_for_update().get(
+                    id=credit_transaction.id
+                )
 
                 # Kontrola, zda transakce již byla zpracována podle UUID
-                if CreditTransaction.objects.filter(uuid=credit_transaction.uuid, payment_complete=True).exists():
+                if CreditTransaction.objects.filter(
+                    uuid=credit_transaction.uuid, payment_complete=True
+                ).exists():
                     continue
 
                 # Ověření, že platba ještě není dokončena
                 if credit_transaction.payment_complete:
                     continue
 
-                confirm = stripe.checkout.Session.retrieve(credit_transaction.transaction_id)
-                
-                if confirm['payment_status'] == "paid":
+                confirm = stripe.checkout.Session.retrieve(
+                    credit_transaction.transaction_id
+                )
+
+                if confirm["payment_status"] == "paid":
                     credit_transaction.payment_complete = True
-                    credit_transaction.payment_intent = confirm['payment_intent']
+                    credit_transaction.payment_intent = confirm["payment_intent"]
                     credit_transaction.save()
 
                     # Bezpečná kontrola, zda platba již nebyla zpracována, a pak přičtení kreditu
                     if not credit_transaction.payment_complete:
                         Account.objects.filter(id=credit_transaction.user.id).update(
-                            credit=F('credit') + credit_transaction.amount
+                            credit=F("credit") + credit_transaction.amount
                         )
                         credit_transaction.payment_complete = True
-                        credit_transaction.payment_intent = confirm['payment_intent']
+                        credit_transaction.payment_intent = confirm["payment_intent"]
                         credit_transaction.save()
         except CreditTransaction.DoesNotExist:
             continue  # Pokud byl mezitím smazán, přeskočíme
@@ -1289,41 +1497,42 @@ def success_credit_view(request):
         except Exception as e:
             print(f"Unexpected error: {e}")
 
-    return redirect('event:success-credit-update')
+    return redirect("event:success-credit-update")
 
 
 @login_required(login_url="/login")
 def success_credit_update_view(request):
     messages.success(request, "Váš kredit byl úspěšně navýšen.")
-    data={}
-    return render(request, 'event/success_credit.html', data)
+    data = {}
+    return render(request, "event/success_credit.html", data)
 
 
 def not_reg_view(request):
     data = {}
-    return render(request, 'event/not-reg.html', data)
+    return render(request, "event/not-reg.html", data)
+
 
 def check_rider(request):
-    uci_id = request.GET.get('uci_id', None)
+    uci_id = request.GET.get("uci_id", None)
     if uci_id:
-        uci_id = ''.join(filter(str.isdigit, uci_id))
+        uci_id = "".join(filter(str.isdigit, uci_id))
         uci_id = int(uci_id)
         try:
             rider = ForeignRider.objects.get(uci_id=uci_id)
             data = {
-                'first_name': rider.first_name,
-                'last_name': rider.last_name,
-                'date_of_birth': rider.date_of_birth,
-                'sex': rider.gender,
-                'plate': rider.plate,
-                'transponder_20': rider.transponder_20,
-                'transponder_24': rider.transponder_24,
-                'nationality': rider.nationality
+                "first_name": rider.first_name,
+                "last_name": rider.last_name,
+                "date_of_birth": rider.date_of_birth,
+                "sex": rider.gender,
+                "plate": rider.plate,
+                "transponder_20": rider.transponder_20,
+                "transponder_24": rider.transponder_24,
+                "nationality": rider.nationality,
             }
             return JsonResponse(data)
         except ForeignRider.DoesNotExist:
-            return JsonResponse({'error': 'Rider not found'}, status=404)
-    return JsonResponse({'error': 'UCI ID is required'}, status=400)
+            return JsonResponse({"error": "Rider not found"}, status=404)
+    return JsonResponse({"error": "UCI ID is required"}, status=400)
 
 
 def generate_pdf(request, pk):
@@ -1331,8 +1540,8 @@ def generate_pdf(request, pk):
         event = Event.objects.get(pk=pk)
     except Event.DoesNotExist:
         return HttpResponse("Event not found", status=404)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'inline; filename="protokol_cipy.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="protokol_cipy.pdf"'
 
     # Vytvoření PDF souboru na šířku (landscape)
     p = canvas.Canvas(response, pagesize=landscape(A4))
@@ -1346,13 +1555,21 @@ def generate_pdf(request, pk):
     # Cesta k fontům
     font_regular = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
     font_bold = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
-    pdfmetrics.registerFont(TTFont('DejaVuSans', font_regular))
-    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', font_bold))
+    pdfmetrics.registerFont(TTFont("DejaVuSans", font_regular))
+    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", font_bold))
 
     # Logo v pravém horním rohu
     logo_path = os.path.join(settings.BASE_DIR, "static/images/logo.png")
     if os.path.exists(logo_path):
-        p.drawImage(logo_path, width - margin - 75, height - margin - 15, width=100, height=50, preserveAspectRatio=True, mask='auto')
+        p.drawImage(
+            logo_path,
+            width - margin - 75,
+            height - margin - 15,
+            width=100,
+            height=50,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
 
     # Název závodu v levém horním rohu
     p.setFont("DejaVuSans", 12)
@@ -1361,7 +1578,9 @@ def generate_pdf(request, pk):
     # Nadpis
     p.setFont("DejaVuSans-Bold", 18)
     p.drawCentredString(width / 2, height - margin - 30, "PROTOKOL – ČIPY K PŮJČENÍ")
-    p.line(margin, height - margin - 35, width - margin, height - margin - 35)  # Podtržení
+    p.line(
+        margin, height - margin - 35, width - margin, height - margin - 35
+    )  # Podtržení
 
     # Načtení dat z databáze
     entries = Entry.objects.filter(
@@ -1369,8 +1588,8 @@ def generate_pdf(request, pk):
         payment_complete=True,
         rider__transponder_20__isnull=True,
         rider__transponder_24__isnull=True,
-        is_beginner=False
-    ).order_by('rider__last_name', 'rider__first_name')
+        is_beginner=False,
+    ).order_by("rider__last_name", "rider__first_name")
 
     # Hlavička tabulky
     header = ["JEZDEC", "ČÍSLO", "KATEGORIE", "KLUB", "ZÁLOHA", "ČIP", "PŘED.", "VRÁC."]
@@ -1379,19 +1598,27 @@ def generate_pdf(request, pk):
     data = [header]  # Hlavička tabulky je první řádek
     for entry in entries:
         # Dynamický výběr kategorie
-        category = entry.rider.class_20 if entry.is_20 else entry.rider.class_24 if entry.is_24 else ""
+        category = (
+            entry.rider.class_20
+            if entry.is_20
+            else entry.rider.class_24
+            if entry.is_24
+            else ""
+        )
 
-        data.append([
-            f"{entry.rider.last_name} {entry.rider.first_name}",  # Jezdec
-            entry.rider.plate or "",  # Startovní číslo
-            category,  # Dynamická kategorie
-            entry.rider.club or "",  # Klub
-            "",  # Záloha
-            "",  # Čip
-            "☐",  # Předáno
-            "☐",  # Vráceno
-        ])
-    
+        data.append(
+            [
+                f"{entry.rider.last_name} {entry.rider.first_name}",  # Jezdec
+                entry.rider.plate or "",  # Startovní číslo
+                category,  # Dynamická kategorie
+                entry.rider.club or "",  # Klub
+                "",  # Záloha
+                "",  # Čip
+                "☐",  # Předáno
+                "☐",  # Vráceno
+            ]
+        )
+
     for i in range(1, 10):
         data.append(["", "", "", "", "", "", "☐", "☐"])
 
@@ -1409,26 +1636,49 @@ def generate_pdf(request, pk):
 
     # Pro stránkování
     rows_per_page = 10
-    total_pages = (len(data) // rows_per_page) + (1 if len(data) % rows_per_page > 0 else 0)
+    total_pages = (len(data) // rows_per_page) + (
+        1 if len(data) % rows_per_page > 0 else 0
+    )
     current_row = 0
 
     def draw_table_page(start_row, current_page):
         # Pokud je to první stránka, vykreslíme hlavičku
         if start_row == 0:
-            page_data = data[start_row:start_row + rows_per_page]
+            page_data = data[start_row : start_row + rows_per_page]
         else:
-            page_data = [header] + data[start_row:start_row + rows_per_page]  # Přidáme hlavičku na každou stránku
+            page_data = [header] + data[
+                start_row : start_row + rows_per_page
+            ]  # Přidáme hlavičku na každou stránku
 
         table = Table(page_data, colWidths=col_widths)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Šedý pozadí pro první řádek (hlavičku)
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'DejaVuSans'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),  # Zvětšení spodního paddingu pro větší výšku řádku
-            ('TOPPADDING', (0, 0), (-1, -1), 12),  # Zvětšení horního paddingu pro větší výšku řádku
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
+        table.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.grey,
+                    ),  # Šedý pozadí pro první řádek (hlavičku)
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        12,
+                    ),  # Zvětšení spodního paddingu pro větší výšku řádku
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        12,
+                    ),  # Zvětšení horního paddingu pro větší výšku řádku
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
 
         # Umístění tabulky
         table_width, table_height = table.wrap(0, 0)
@@ -1451,7 +1701,9 @@ def generate_pdf(request, pk):
         # Pokud máme více řádků, přidáme stránkování
         if start_row + rows_per_page < len(data):
             p.showPage()  # Nová stránka
-            draw_table_page(start_row + rows_per_page, current_page + 1)  # Rekurzivně vykreslíme další stránku
+            draw_table_page(
+                start_row + rows_per_page, current_page + 1
+            )  # Rekurzivně vykreslíme další stránku
 
     # První stránka s hlavičkou tabulky
     draw_table_page(0, 1)  # Začneme od řádku 1, protože řádek 0 je hlavička
@@ -1464,8 +1716,8 @@ def generate_pdf(request, pk):
 
 def generate_invoice_preparation_pdf(request, pk):
     event = Event.objects.get(pk=pk)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'inline; filename="podklad_pro_fakturaci.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="podklad_pro_fakturaci.pdf"'
 
     # Vytvoření PDF souboru na výšku (portrait)
     p = canvas.Canvas(response, pagesize=A4)
@@ -1479,13 +1731,21 @@ def generate_invoice_preparation_pdf(request, pk):
     # Cesta k fontům
     font_regular = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
     font_bold = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
-    pdfmetrics.registerFont(TTFont('DejaVuSans', font_regular))
-    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', font_bold))
+    pdfmetrics.registerFont(TTFont("DejaVuSans", font_regular))
+    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", font_bold))
 
     # Logo v pravém horním rohu
     logo_path = os.path.join(settings.BASE_DIR, "static/images/logo.png")
     if os.path.exists(logo_path):
-        p.drawImage(logo_path, width - margin - 75, height - margin - 15, width=100, height=50, preserveAspectRatio=True, mask='auto')
+        p.drawImage(
+            logo_path,
+            width - margin - 75,
+            height - margin - 15,
+            width=100,
+            height=50,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
 
     # Datum a název závodu v levém horním rohu
     p.setFont("DejaVuSans", 12)
@@ -1495,7 +1755,9 @@ def generate_invoice_preparation_pdf(request, pk):
     # Nadpis
     p.setFont("DejaVuSans-Bold", 18)
     p.drawCentredString(width / 2, height - margin - 30, "PODKLAD PRO FAKTURACI")
-    p.line(margin, height - margin - 35, width - margin, height - margin - 35)  # Podtržení
+    p.line(
+        margin, height - margin - 35, width - margin, height - margin - 35
+    )  # Podtržení
 
     # Hlavička tabulky
     header = ["JEZDEC A ST. ČÍSLO", "ČIP", "KLUB", "FAKTURA", "HOTOVOST"]
@@ -1503,7 +1765,6 @@ def generate_invoice_preparation_pdf(request, pk):
     # Naplnění tabulky daty z databáze
     data = [header]  # Hlavička tabulky je první řádek
 
-    
     for i in range(1, 17):
         data.append(["", "", "", "☐", "☐"])
 
@@ -1518,26 +1779,49 @@ def generate_invoice_preparation_pdf(request, pk):
 
     # Pro stránkování
     rows_per_page = 17
-    total_pages = (len(data) // rows_per_page) + (1 if len(data) % rows_per_page > 0 else 0)
+    total_pages = (len(data) // rows_per_page) + (
+        1 if len(data) % rows_per_page > 0 else 0
+    )
     current_row = 0
 
     def draw_table_page(start_row, current_page):
         # Pokud je to první stránka, vykreslíme hlavičku
         if start_row == 0:
-            page_data = data[start_row:start_row + rows_per_page]
+            page_data = data[start_row : start_row + rows_per_page]
         else:
-            page_data = [header] + data[start_row:start_row + rows_per_page]  # Přidáme hlavičku na každou stránku
+            page_data = [header] + data[
+                start_row : start_row + rows_per_page
+            ]  # Přidáme hlavičku na každou stránku
 
         table = Table(page_data, colWidths=col_widths)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  # Šedý pozadí pro první řádek (hlavičku)
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'DejaVuSans'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),  # Zvětšení spodního paddingu pro větší výšku řádku
-            ('TOPPADDING', (0, 0), (-1, -1), 12),  # Zvětšení horního paddingu pro větší výšku řádku
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
+        table.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.grey,
+                    ),  # Šedý pozadí pro první řádek (hlavičku)
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        12,
+                    ),  # Zvětšení spodního paddingu pro větší výšku řádku
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        12,
+                    ),  # Zvětšení horního paddingu pro větší výšku řádku
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
 
         # Umístění tabulky
         table_width, table_height = table.wrap(0, 0)
@@ -1560,7 +1844,9 @@ def generate_invoice_preparation_pdf(request, pk):
         # Pokud máme více řádků, přidáme stránkování
         if start_row + rows_per_page < len(data):
             p.showPage()  # Nová stránka
-            draw_table_page(start_row + rows_per_page, current_page + 1)  # Rekurzivně vykreslíme další stránku
+            draw_table_page(
+                start_row + rows_per_page, current_page + 1
+            )  # Rekurzivně vykreslíme další stránku
 
     # První stránka s hlavičkou tabulky
     draw_table_page(0, 1)  # Začneme od řádku 1, protože řádek 0 je hlavička
@@ -1572,71 +1858,72 @@ def generate_invoice_preparation_pdf(request, pk):
 
 
 def invoice_view(request, pk):
-    
     # invoice_data = get_invoice_data(invoice_id)  # tvá funkce na získání dat z DB
-    
+
     invoice_data = {
-    "number": "20240001",
-    "issue_date": "02.01.2024",
-    "due_date": "09.01.2024",
-    "payment_method": "Převodem",
-    "vs": "20240001",
-    "iban": "CZ32 0300 0000 0000 5051 1001",
-    "supplier": [
-        "Adventure Land s.r.o.",
-        "Křenova 438/7",
-        "162 00 Praha",
-        "IČ: 25747908",
-        "DIČ: CZ25747908",
-    ],
-    "customer": [
-        "PROMAFIX s.r.o.",
-        "Semčice 96",
-        "294 46 Semčice",
-        "IČ: 08554625",
-        "DIČ: CZ08554625",
-    ],
-    "items": [
-        {
-            "description": "Rallye test - pronájem okruhu, zabezpečení TK, Com",
-            "qty": 5,
-            "unit_price": 3990.00,
-            "vat": 21,
-            "total": 24139.50,
-        },
-        {
-            "description": "Zaokrouhlení",
-            "qty": 1,
-            "unit_price": 0.50,
-            "vat": 0,
-            "total": 0.50,
-        }
-    ],
-    "summary": {
-        "base": 19950.00,
-        "vat": 4189.50,
-        "total": 24140.00
+        "number": "20240001",
+        "issue_date": "02.01.2024",
+        "due_date": "09.01.2024",
+        "payment_method": "Převodem",
+        "vs": "20240001",
+        "iban": "CZ32 0300 0000 0000 5051 1001",
+        "supplier": [
+            "Adventure Land s.r.o.",
+            "Křenova 438/7",
+            "162 00 Praha",
+            "IČ: 25747908",
+            "DIČ: CZ25747908",
+        ],
+        "customer": [
+            "PROMAFIX s.r.o.",
+            "Semčice 96",
+            "294 46 Semčice",
+            "IČ: 08554625",
+            "DIČ: CZ08554625",
+        ],
+        "items": [
+            {
+                "description": "Rallye test - pronájem okruhu, zabezpečení TK, Com",
+                "qty": 5,
+                "unit_price": 3990.00,
+                "vat": 21,
+                "total": 24139.50,
+            },
+            {
+                "description": "Zaokrouhlení",
+                "qty": 1,
+                "unit_price": 0.50,
+                "vat": 0,
+                "total": 0.50,
+            },
+        ],
+        "summary": {"base": 19950.00, "vat": 4189.50, "total": 24140.00},
     }
-}
-    
+
     pdf_buffer = generate_invoice_pdf(invoice_data)
 
     return HttpResponse(
         pdf_buffer,
         content_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="faktura_{invoice_data["number"]}.pdf"'},
+        headers={
+            "Content-Disposition": f'inline; filename="faktura_{invoice_data["number"]}.pdf"'
+        },
     )
+
 
 @login_required(login_url="/login")
 @staff_member_required
 def recalculate_balances_view(request):
-
-    #TODO: Dodělat hlášení na webovou stránku
+    # TODO: Dodělat hlášení na webovou stránku
     try:
         recalculate_all_balances()
-        return JsonResponse({"status": "success", "message": "Zůstatky byly úspěšně přepočítány."})
+        return JsonResponse(
+            {"status": "success", "message": "Zůstatky byly úspěšně přepočítány."}
+        )
     except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500)  
+        return JsonResponse(
+            {"status": "error", "message": f"Chyba při přepočtu: {e}"}, status=500
+        )
 
 
 @login_required(login_url="/login/")
@@ -1648,14 +1935,22 @@ def export_event_results(request, event_id):
         return render(request, "error.html", {"message": "Závod nebyl nalezen."})
 
     if event.ccf_uploaded:
-        return render(request, "error.html", {
-            "message": "Výsledky už byly odeslány.",
-            "detail": f"Závod {event.name} byl již odeslán {event.ccf_created.strftime('%d.%m.%Y %H:%M:%S')}."
-        })
+        return render(
+            request,
+            "error.html",
+            {
+                "message": "Výsledky už byly odeslány.",
+                "detail": f"Závod {event.name} byl již odeslán {event.ccf_created.strftime('%d.%m.%Y %H:%M:%S')}.",
+            },
+        )
 
     token = get_api_token()
     if not token:
-        return render(request, "error.html", {"message": "Nepodařilo se získat token pro přihlášení k API ČSC."})
+        return render(
+            request,
+            "error.html",
+            {"message": "Nepodařilo se získat token pro přihlášení k API ČSC."},
+        )
 
     results = Result.objects.filter(event=event)
     payload = []
@@ -1668,48 +1963,51 @@ def export_event_results(request, event_id):
             rider=rider,
             is_20=rider.is_20,
             is_24=rider.is_24,
-            is_beginner=rider.class_20 in ["Beginners 1", "Beginners 2", "Beginners 3", "Beginners 4"]
+            is_beginner=rider.class_20
+            in ["Beginners 1", "Beginners 2", "Beginners 3", "Beginners 4"],
         )
 
-        payload.append({
-            "category": category_code,
-            "rank": res.place,
-            "bib": rider.plate,
-            "uciid": str(rider.uci_id),
-            "lastName": rider.last_name,
-            "firstName": rider.first_name,
-            "country": res.country,
-            "team": rider.club.team_name if rider.club else "",
-            "gender": "F" if rider.gender == "Žena" else "M",
-            "phase": "",
-            "heat": "",
-            "result": str(res.place),
-            "irm": "",
-            "sortOrder": res.place
-        })
+        payload.append(
+            {
+                "category": category_code,
+                "rank": res.place,
+                "bib": rider.plate,
+                "uciid": str(rider.uci_id),
+                "lastName": rider.last_name,
+                "firstName": rider.first_name,
+                "country": res.country,
+                "team": rider.club.team_name if rider.club else "",
+                "gender": "F" if rider.gender == "Žena" else "M",
+                "phase": "",
+                "heat": "",
+                "result": str(res.place),
+                "irm": "",
+                "sortOrder": res.place,
+            }
+        )
 
     api_url = f"https://test.api.czechcyclingfederation.com/api/services/saveraceresults?raceId={event.id}&subDisciplineCode=BMX_RAC"
     headers = {"Authorization": f"Bearer {token}"}
 
     try:
-        #response = requests.post(api_url, json=payload, headers=headers)
-        #response.raise_for_status()
+        # response = requests.post(api_url, json=payload, headers=headers)
+        # response.raise_for_status()
         print(payload)
     except Exception as e:
-        return render(request, "error.html", {
-            "message": "Nepodařilo se odeslat výsledky na API.",
-            "detail": str(e)
-        })
+        return render(
+            request,
+            "error.html",
+            {"message": "Nepodařilo se odeslat výsledky na API.", "detail": str(e)},
+        )
 
     # ✅ aktualizuj timestamp a flag
     event.ccf_created = now()
     event.ccf_uploaded = True
     event.save()
 
-    return render(request, "event/results_sent.html", {
-        "event": event,
-        "sent_count": len(payload)
-    })
+    return render(
+        request, "event/results_sent.html", {"event": event, "sent_count": len(payload)}
+    )
 
 
 @login_required(login_url="/login")

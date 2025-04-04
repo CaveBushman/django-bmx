@@ -205,7 +205,9 @@ class Event(models.Model):
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100,
                               blank=True, null=True)
-    commission_fee = models.IntegerField(default=0)
+    commission_fee = models.IntegerField(default=5)
+
+    youtube_link = models.CharField(max_length=255, null=True, blank=True)
 
     proposition = models.FileField(upload_to='propositions/', null=True, blank=True)
     proposition_created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
