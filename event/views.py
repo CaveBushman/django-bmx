@@ -957,7 +957,12 @@ def event_admin_view(request, pk):
                 if pd.isna(plate):
                     continue
 
-                result = Result.objects.filter(event=event, rider=int(plate)).first()
+                # Odstraň písmena a ponech pouze čísla
+                plate_digits = ''.join(filter(str.isdigit, str(plate)))
+                if not plate_digits:
+                    continue
+
+                result = Result.objects.filter(event=event, rider=int(plate_digits)).first()
                 if not result:
                     continue
 
