@@ -2008,6 +2008,8 @@ def export_event_results(request, event_id):
         # response = requests.post(api_url, json=payload, headers=headers)
         # response.raise_for_status()
         print(payload)
+        with open(f"media/api-payloads/payload_event_{event.id}.json", "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
     except Exception as e:
         return render(
             request,
