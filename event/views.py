@@ -2001,7 +2001,7 @@ def export_event_results(request, event_id):
             }
         )
 
-    api_url = f"https://test.api.czechcyclingfederation.com/api/services/saveraceresults?raceId={event.id}&subDisciplineCode=BMX_RAC"
+    api_url = f"https://portal.api.czechcyclingfederation.com/api/services/saveraceresults?raceId={event.id}&subDisciplineCode=BMX_RAC"
     headers = {"Authorization": f"Bearer {token}"}
 
     try:
