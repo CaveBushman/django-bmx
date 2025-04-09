@@ -1015,7 +1015,11 @@ def event_admin_view(request, pk):
     if "btn-txt-delete" in request.POST:
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
-        print("Výsledky vymazány")
+        event = Event.objects.get(id=pk)
+        event.ccf_uploaded= False
+        event.ccf_created = None
+        event.save()
+        print("Výsledky závodu vymazány")
 
         SetRanking().start()
 
@@ -1047,6 +1051,7 @@ def event_admin_view(request, pk):
     asociation_fee = int(sum_of_fees * event.commission_fee / 100)
 
     results_exist = Result.objects.filter(event=event).exists()
+    print (f"Výsledky existují: {results_exist}")
 
     data = {
         "event": event,
@@ -1964,12 +1969,17 @@ def export_event_results(request, event_id):
         rider = Rider.objects.filter(uci_id=res.rider).first()
         if not rider:
             continue
+
+        if res.is_20 == False and res.is_beginner == False:
+            cruiser = True
+        else:
+            cruiser = False
+
         category_code = resolve_api_category_code(
             rider=rider,
-            is_20=rider.is_20,
-            is_24=rider.is_24,
-            is_beginner=rider.class_20
-            in ["Beginners 1", "Beginners 2", "Beginners 3", "Beginners 4"],
+            is_20=res.is_20,  
+            is_24=cruiser,
+            is_beginner=res.is_beginner
         )
 
         payload.append(

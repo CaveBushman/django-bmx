@@ -25,11 +25,8 @@ class SetRanking (threading.Thread):
     
     def run(self):
         RankingCount.set_ranking_points()
-        RankPositionCount.count_ranking_position()
-
-
-from django.db.models import Q
-from datetime import datetime, timedelta
+        RankPositionCount().count_ranking_position()
+        print("Ranking přepočítán")
 
 class RankingCount:
     """ Class for rankings count"""
