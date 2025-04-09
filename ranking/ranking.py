@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 from rider.models import Rider
 from event.models import Result, Entry, Event
 from django.db.models import Q
@@ -46,7 +47,7 @@ class RankingCount:
         """ General method for setting points based on event type """
         results = (
             Result.objects.filter(event_type__in=event_types, is_20=is_20,
-                                  date__gte=datetime.now() - timedelta(days=365),
+                                  date__gte=datetime.datetime.now() - timedelta(days=365),
                                   rider=self.uci_id)
             .order_by('-points', '-date')
         )

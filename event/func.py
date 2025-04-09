@@ -10,6 +10,7 @@ from django.utils import timezone
 import threading
 import csv
 from django.db.models import Q
+import os
 
 
 def expire_licence() -> str:
@@ -532,7 +533,7 @@ class SetResults(threading.Thread):
         threading.Thread.__init__(self)
 
     def setFile(self, file):
-        self.file = file
+        self.file = file.lstrip("/")  # odstraní úvodní lomítko, pokud je
 
     def setEvent(self, event):
         self.event = event
@@ -540,21 +541,28 @@ class SetResults(threading.Thread):
     def run(self):
         event = Event.objects.get(id=self.event)
         ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-        with open("media/rem_results" + self.file, newline='') as result:
-            results_reader = csv.reader(result, delimiter='\t')
+        file_path = os.path.join("media", "rem_results", self.file)
+        with open(file_path, newline='') as result:
+            results_reader = list(csv.reader(result, delimiter='\t'))
+            print(f"🧪 REM výsledků celkem: {len(results_reader)}")
             for raw in results_reader:
                 # Kategorie Příchozích neboduje do rankingu
-                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find(
-                        "CLASS_RANKING") == -1:
-                    uci_id = str(raw[12])
-                    category = raw[4]
-                    place = str(raw[25])
-                    first_name = raw[1]
-                    last_name = raw[2]
-                    club = raw[3]
-                    result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
-                                       first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
-                    result.write_result()
+                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
+                    print(f"✔️ Ukládám výsledek: {raw[1]} {raw[2]}, místo: {raw[25]}")
+                    try:
+                        uci_id = str(raw[12])
+                        category = raw[4]
+                        place = str(raw[25])
+                        first_name = raw[1]
+                        last_name = raw[2]
+                        club = raw[3]
+                        result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
+                                           first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
+                        result.write_result()
+                    except Exception as e:
+                        print(f"❌ Chyba při zpracování řádku {raw}: {e}")
+                else:
+                    print(f"⏭️ Přeskočeno: {raw[1]} {raw[2]}, důvod: raw[4]='{raw[4]}', raw[25]='{raw[25]}'")
 
             event.rem_results = "rem_results" + self.file
             event.save()
@@ -744,7 +752,7 @@ def set_beginner_class(rider, event): # NOT IN USE NOW
     if age <= 6:
         return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
     elif age <= 10 and rider.created:
-        diff = datetime.now().date() - rider.created.date()
+        diff = datetime.today().date() - rider.created.date()
         if diff.days > 356:  # if rider have plate more then one year, rider cannot start in Beginners class
             return ""
         else:

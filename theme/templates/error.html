@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Chyba</h2>
+<p>{{ message }}</p>
+{% if detail %}
+<pre>{{ detail }}</pre>
+{% endif %}
+<a href="/">Zpět na hlavní stránku</a>
+{% endblock %}
