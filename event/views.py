@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 import json
 from event.models import RaceRun
@@ -140,7 +141,6 @@ def results_view(request, pk):
 
 
 @login_required(login_url="/event/not-reg")
-@cache_page(60 * 5)  # cache na 5 minut
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
 
@@ -190,8 +190,6 @@ def add_entries_view(request, pk):
 
         for rider in riders_beginner:
             sum_fee += resolve_event_fee(event, rider, is_20=True, is_beginner=True)
-
-            # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
                 cart.user = Account.objects.get(id=request.user.id)
@@ -227,7 +225,6 @@ def add_entries_view(request, pk):
 
         for rider_24 in riders_24:
             sum_fee += resolve_event_fee(event, rider_24, is_20=False)
-            # TODO: Dodělat uložení do košíku
             if "btn_add" in request.POST:
                 cart = Cart()
                 cart.user = Account.objects.get(id=request.user.id)
@@ -569,6 +566,7 @@ def stripe_credit_webhook(request):
             logger.error(f"[Webhook] Chyba při zpracování kreditu: {e}")
 
     return HttpResponse(status=200)
+
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
@@ -958,11 +956,13 @@ def event_admin_view(request, pk):
                     continue
 
                 # Odstraň písmena a ponech pouze čísla
-                plate_digits = ''.join(filter(str.isdigit, str(plate)))
+                plate_digits = "".join(filter(str.isdigit, str(plate)))
                 if not plate_digits:
                     continue
 
-                result = Result.objects.filter(event=event, rider=int(plate_digits)).first()
+                result = Result.objects.filter(
+                    event=event, rider=int(plate_digits)
+                ).first()
                 if not result:
                     continue
 
@@ -1016,7 +1016,7 @@ def event_admin_view(request, pk):
         print("Mažu výsledky závodu")
         Result.objects.filter(event=pk).delete()
         event = Event.objects.get(id=pk)
-        event.ccf_uploaded= False
+        event.ccf_uploaded = False
         event.ccf_created = None
         event.save()
         print("Výsledky závodu vymazány")
@@ -1051,7 +1051,7 @@ def event_admin_view(request, pk):
     asociation_fee = int(sum_of_fees * event.commission_fee / 100)
 
     results_exist = Result.objects.filter(event=event).exists()
-    print (f"Výsledky existují: {results_exist}")
+    print(f"Výsledky existují: {results_exist}")
 
     data = {
         "event": event,
@@ -1341,9 +1341,7 @@ def checkout_view(request):
     user_id = request.user.id
     user = Account.objects.get(id=user_id)
     confirmed_events = Entry.objects.filter(
-        user__id=user_id,
-        payment_complete=True,
-        event__date__gte=timezone.now(),
+        user__id=user_id, payment_complete=True, event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
     for confirmed_event in confirmed_events:
         if is_registration_open(confirmed_event.event):
@@ -1439,13 +1437,11 @@ def credit_view(request):
         credits = CreditTransaction.objects.filter(
             user__id=user_id,
             payment_complete=True,
-        transaction_date__gte=timezone.now()
-            - datetime.timedelta(days=365),
+            transaction_date__gte=timezone.now() - datetime.timedelta(days=365),
         ).order_by("-transaction_date")
         debets = DebetTransaction.objects.filter(
             user__id=user_id,
-        transaction_date__gte=timezone.now()
-            - datetime.timedelta(days=365),
+            transaction_date__gte=timezone.now() - datetime.timedelta(days=365),
         ).order_by("-entry__event__date")
         data = {"credits": credits, "debets": debets}
         return render(request, "event/credit.html", data)
@@ -1979,10 +1975,7 @@ def export_event_results(request, event_id):
             cruiser = False
 
         category_code = resolve_api_category_code(
-            rider=rider,
-            is_20=res.is_20,  
-            is_24=cruiser,
-            is_beginner=res.is_beginner
+            rider=rider, is_20=res.is_20, is_24=cruiser, is_beginner=res.is_beginner
         )
 
         payload.append(
@@ -2010,7 +2003,9 @@ def export_event_results(request, event_id):
     try:
         response = requests.post(api_url, json=payload, headers=headers)
         response.raise_for_status()
-        with open(f"media/api-payloads/payload_event_{event.id}.json", "w", encoding="utf-8") as f:
+        with open(
+            f"media/api-payloads/payload_event_{event.id}.json", "w", encoding="utf-8"
+        ) as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
     except Exception as e:
         return render(
