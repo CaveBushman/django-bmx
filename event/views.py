@@ -1170,7 +1170,7 @@ def confirm_user_order(request):
     delete_reg = Entry.objects.filter(
         user__id=request.user.id,
         payment_complete=False,
-        event__reg_open_to__lt=datetime.datetime.now(),
+        event__reg_open_to__lt=timezone.now(),
     )
 
     # TODO: Vymazat duplicitní položky v košíku
@@ -1182,7 +1182,7 @@ def confirm_user_order(request):
     orders = Entry.objects.filter(
         user__id=request.user.id,
         payment_complete=False,
-        event__date__gte=datetime.datetime.now(),
+        event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
 
     # Odstranění duplicit v košíku
@@ -1216,7 +1216,10 @@ def confirm_user_order(request):
                 duplicities.append(order)
                 order.delete()
         if duplicities:
-            return redirect("event:order")
+            print("Duplicitní položky v košíku:")
+            print(duplicities)
+            data = {"duplicities": duplicities}
+            return render(request, "event/order.html", data)
 
     if "btn-del" in request.POST:
         order = Entry.objects.get(id=request.POST["btn-del"])
@@ -1340,7 +1343,7 @@ def checkout_view(request):
     confirmed_events = Entry.objects.filter(
         user__id=user_id,
         payment_complete=True,
-        event__date__gte=datetime.datetime.now(),
+        event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
     for confirmed_event in confirmed_events:
         if is_registration_open(confirmed_event.event):
@@ -1436,12 +1439,12 @@ def credit_view(request):
         credits = CreditTransaction.objects.filter(
             user__id=user_id,
             payment_complete=True,
-            transaction_date__gte=datetime.datetime.now()
+        transaction_date__gte=timezone.now()
             - datetime.timedelta(days=365),
         ).order_by("-transaction_date")
         debets = DebetTransaction.objects.filter(
             user__id=user_id,
-            transaction_date__gte=datetime.datetime.now()
+        transaction_date__gte=timezone.now()
             - datetime.timedelta(days=365),
         ).order_by("-entry__event__date")
         data = {"credits": credits, "debets": debets}

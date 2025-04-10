@@ -11,6 +11,27 @@
   </div>
 </header>
 
+{% if messages %}
+<div class="max-w-3xl mx-auto mt-6">
+  {% for message in messages %}
+  <div class="rounded-md bg-yellow-50 p-4 mb-4 shadow">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-.01 0a9 9 0 110-18 9 9 0 010 18z" />
+        </svg>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-yellow-800">{{ message }}</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <form method="POST">
   {% csrf_token %}
 <div class="bg-white dark:bg-gray-800 dark:text-gray-200">
@@ -26,25 +47,29 @@
       </svg>
     </div>
     <div class="ml-3">
-      <h3 class="text-sm font-medium text-red-800">Z Vašeho košíku byly vymazáni jezdci, kteří již na závod přihlášeni jsou. Jde o:</h3>
+      <h3 class="text-sm font-medium text-red-800">Z Vašeho košíku byly vymazáni jezdci, kteří již na závod přihlášeni jsou, případně jsou v košíku jiného uživatele. Jde o:</h3>
       <div class="mt-2 text-sm text-red-700">
         <ul role="list" class="list-disc space-y-1 pl-5">
           {% for duplicity in duplicities %}
           {% if duplicity.is_beginner %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_beginner}}</li>
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_beginner}}, v košíku uživatele: {{duplicity.user}}</li>
           {% elif duplicity.is_20 %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_20}}</li>
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_20}}, v košíku uživatele: {{duplicity.user}}</li>
           {% else %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_24}}</li>
+            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_24}}, v košíku uživatele: {{duplicity.user}}</li>
           {% endif %}
           {% endfor %}
         </ul>
       </div>
+      <a href="{% url 'event:order' %}" class="inline-block mt-8 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
+        Beru na vědomí
+      </a>
     </div>
   </div>
 </div>
 {% endif %}
 
+{% if not duplicities %}
     <div class="mt-16">
       <div class="space-y-20">
         <div>
@@ -116,6 +141,7 @@
         </div>
       </div>
     </div>
+{% endif %}
   </div>
 </div>
 
