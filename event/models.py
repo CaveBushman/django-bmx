@@ -279,6 +279,8 @@ class Event(models.Model):
     def is_beginners_event(self):
         if self.type_for_ranking =="Mistrovství ČR jednotlivců" or self.type_for_ranking == "Mistrovství ČR družstev" or self.type_for_ranking=="Český pohár" or self.type_for_ranking=="Evropský pohár" or self.type_for_ranking=="Mistrovství Evropy" or self.type_for_ranking=="Mistrovství světa" or self.type_for_ranking=="Světový pohár":
             return False
+        elif not self.classes_and_fees_like.beginners_1:
+            return False
         else:
             return True
 
