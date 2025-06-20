@@ -123,8 +123,6 @@ def get_rider_data(uci_id):
         return None, f"Chyba při komunikaci s API ČSC: {e}"
 
 
-
-
 def valid_licence(rider):
     """ Ověření platnosti licence pomocí správného endpointu + access tokenu """
     token = get_api_token()
@@ -321,10 +319,11 @@ class RiderQualifyToCNThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-
+       
         riders = Rider.objects.filter(is_active=True, is_approwe=True)
-        year = datetime.datetime.today().year
+        year = datetime.today().year
         settings = SeasonSettings.objects.get(year=year)
+        print ("Přepočítávám kvalifikaci na MČR pro rok " + str(year))
 
         for rider in riders:
 

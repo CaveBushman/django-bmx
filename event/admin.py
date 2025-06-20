@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee
-
+from django.utils.timezone import now
+from datetime import timedelta
 
 # Base Admin Class for common fields
 class BaseAdmin(admin.ModelAdmin):
@@ -80,12 +81,18 @@ class CreditTransactionAdmin(BaseAdmin):
     list_filter = ('transaction_date',)
 
 
+
 class DebetTransactionAdmin(BaseAdmin):
     list_display = ('user', 'entry', 'amount', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user__last_name', 'transaction_date', 'entry__rider__last_name',)
+    search_fields = ('user__last_name', 'transaction_date')
     list_filter = ('transaction_date',)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "entry":
+            two_months_ago = now().date() - timedelta(days=60)
+            kwargs["queryset"] = Entry.objects.filter(created__gte=two_months_ago)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 class StripeFeeAdmin(BaseAdmin):
     list_display = ('date', 'fee',)
