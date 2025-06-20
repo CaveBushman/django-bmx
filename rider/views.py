@@ -70,8 +70,9 @@ def rider_new_view(request):
             Rider.objects.filter(is_active=True).values_list("plate", flat=True)
         )
         free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
+        print(free_plates)
 
-        # FÁZE 1: Načtení dat z UCI API pomocí UCI ID
+        # FÁZE 1: Načtení dat z UCI API pomocí UCI ID'
         if "num11" in request.POST and "first-name" not in request.POST:
             uci_id = "".join([request.POST.get(f"num{i}", "") for i in range(1, 12)])
             data_json, error_msg = get_rider_data(uci_id)
