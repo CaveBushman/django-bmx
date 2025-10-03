@@ -263,6 +263,9 @@ class Event(models.Model):
     ccf_created = models.DateField(auto_now_add=True, null=True)
     ccf_uploaded = models.BooleanField(default=False)
 
+    #Livestream
+    livestream = models.TextField(max_length=255, blank=True, null=True)
+
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
 

@@ -14,7 +14,9 @@ class BaseAdmin(admin.ModelAdmin):
 
 
 class ResultAdmin(BaseAdmin):
-    pass
+    list_display = ('event', 'rider',)    
+    list_display_links = ('event', 'rider',)
+    search_fields = ('event__name', 'rider',)
 
 
 class EventAdmin(BaseAdmin):

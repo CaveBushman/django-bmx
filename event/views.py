@@ -66,11 +66,11 @@ from rider.models import Rider
 
 # Create your views here.
 
-
 def events_list_view(request):
-    events = Event.objects.filter(date__year=date.today().year).order_by("date")
+    upcomming_events = (Event.objects.filter(date__year=date.today().year, date__gt=date.today()).order_by("date"))
+    past_events = (Event.objects.filter(date__year=date.today().year, date__lt=date.today()).order_by("date"))
 
-    for event in events:
+    for event in upcomming_events:
         if event.canceled:
             event.reg_open = False
         else:
@@ -83,7 +83,8 @@ def events_list_view(request):
     next_year = int(year) + 1
     last_year = int(year) - 1
     data = {
-        "events": events,
+        "events": upcomming_events,
+        "past_events": past_events,
         "year": year,
         "next_year": next_year,
         "last_year": last_year,
@@ -522,7 +523,7 @@ def success_view(request, pk):
 def cancel_view(request):
     return render(request, "event/cancel.html")
 
-
+#TODO: Dodělat webhooks
 @csrf_exempt
 def stripe_credit_webhook(request):
     payload = request.body
@@ -1967,6 +1968,7 @@ def export_event_results(request, event_id):
     for res in results:
         rider = Rider.objects.filter(uci_id=res.rider).first()
         if not rider:
+            print(f"Rider with UCI ID {res.rider} not found, skipping.")
             continue
 
         if res.is_20 == False and res.is_beginner == False:
