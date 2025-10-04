@@ -289,7 +289,7 @@ class REMRiders:
             self.ws.cell(row, 1, )
             self.ws.cell(row, 2, rider.first_name)
             self.ws.cell(row, 3, rider.last_name)
-            self.ws.cell(row, 4, rider.email)
+            self.ws.cell(row, 4, )
             self.ws.cell(row, 5, event.func.team_name_resolve(rider.club))
             self.ws.cell(row, 6, )
             self.ws.cell(row, 7, rider.nationality)
@@ -378,7 +378,7 @@ class REMRiders:
             except Exception as E:
                 print("Chyba při ukládání jezdce do REM: ", E)
             row += 1
-        del entries
+        del czech_entries
 
         # TODO: Add foreign riders
 
