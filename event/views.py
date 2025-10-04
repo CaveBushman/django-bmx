@@ -67,7 +67,7 @@ from rider.models import Rider
 # Create your views here.
 
 def events_list_view(request):
-    upcomming_events = (Event.objects.filter(date__year=date.today().year, date__gt=date.today()).order_by("date"))
+    upcomming_events = (Event.objects.filter(date__year=date.today().year, date__gte=date.today()).order_by("date"))
     past_events = (Event.objects.filter(date__year=date.today().year, date__lt=date.today()).order_by("date"))
 
     for event in upcomming_events:
