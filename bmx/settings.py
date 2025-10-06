@@ -48,15 +48,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+
     # 3rd party
     "rest_framework",
     "ckeditor",
     "tailwind",
     "theme",
-    "django_browser_reload",
     "import_export",
-    # 'fontawesomefree',
-    # 'django_crontab',
+
     # My app
     "rider",
     "event",
@@ -69,6 +68,7 @@ INSTALLED_APPS = [
     "admin_stats",
     "chat",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -83,6 +83,11 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
     "admin_stats.middleware.VisitMiddleware",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["django_browser_reload"]
+    MIDDLEWARE.insert(0, "django_browser_reload.middleware.BrowserReloadMiddleware")
+
 
 ROOT_URLCONF = "bmx.urls"
 
@@ -101,6 +106,10 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "django.template.context_processors.debug",  # aby v šabloně existovala proměnná `debug`
 ]
 
 # Tailwind settings
