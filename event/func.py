@@ -197,12 +197,14 @@ def is_registration_open(event):
         return False
 
     # check, id today is between reg_open_from and reg_open_to
-    if (now >= event.reg_open_from) and (
+    try:
+        if (now >= event.reg_open_from) and (
             now <= event.reg_open_to):
-        return True
-    else:
-        return False
-
+            return True
+        else:
+            return False
+    except:
+            return False
 
 def resolve_event_classes(event, rider, is_20, is_beginner=False):
     """ Function for resolve class in event | is_20 = TRUE for 20" bike """

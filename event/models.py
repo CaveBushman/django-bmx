@@ -190,7 +190,7 @@ class Event(models.Model):
     type_for_ranking = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
 
     # classes_code = models.IntegerField(default = 3)
-    classes_and_fees_like = models.ForeignKey(EntryClasses, default=6, on_delete=models.SET_DEFAULT, blank=True, null=True)
+    classes_and_fees_like = models.ForeignKey(EntryClasses, on_delete=models.SET_NULL, blank=True, null=True)
 
     is_uci_race = models.BooleanField(default=False)
 
