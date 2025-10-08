@@ -1,5 +1,4 @@
 import logging
-
 logger = logging.getLogger(__name__)
 import json
 from event.models import RaceRun
@@ -88,12 +87,15 @@ def events_list_view(request):
         "year": year,
         "next_year": next_year,
         "last_year": last_year,
+        "show_title": True,
     }
 
     return render(request, "event/events-list_new.html", data)
 
 
 def events_list_by_year_view(request, pk):
+    if pk == date.today().year:
+        return redirect('event:events')
     events = Event.objects.filter(date__year=pk).order_by("date")
     for event in events:
         if (
@@ -107,12 +109,16 @@ def events_list_by_year_view(request, pk):
     year = pk
     next_year = int(year) + 1
     last_year = int(year) - 1
+
     data = {
         "events": events,
         "year": year,
         "next_year": next_year,
         "last_year": last_year,
+        "show_title": False,
     }
+
+
 
     return render(request, "event/events-list_new.html", data)
 

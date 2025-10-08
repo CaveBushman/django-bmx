@@ -64,7 +64,9 @@
   <!-- Upcoming events -->
   <div class="px-4 sm:px-6 lg:px-8">
     <div class="-mx-4 mt-8 mb-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-      <div class="my-4 text-4xl text-center text-indigo-600">Následující závody</div>
+         {% if show_title %}
+            <div class="my-4 text-4xl text-center text-indigo-600">Následující závody</div>
+        {% endif %}
       {% for event in events %}
       <ul role="list" class="divide-y divide-gray-200">
         <li class="flex items-center justify-between gap-x-6 py-5 px-10">
@@ -184,8 +186,9 @@
       {% endfor %}
 
 <!-- Past events -->
-      <div class="my-4 text-4xl text-center text-indigo-600">Ukončené závody</div>
-       {% for event in past_events %}
+        {% if show_title %}
+            <div class="my-4 text-4xl text-center text-indigo-600">Ukončené závody</div>{% endif %}
+        {% for event in past_events %}
       <ul role="list" class="divide-y divide-gray-200">
         <li class="flex items-center justify-between gap-x-6 py-5 px-10">
           <div class="flex min-w-0">

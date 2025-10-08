@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "accounts",
     "admin_stats",
     "chat",
+    'finance',
 ]
 
 
@@ -80,14 +81,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # "django_browser_reload.middleware.BrowserReloadMiddleware",
     "admin_stats.middleware.VisitMiddleware",
 ]
-
-if DEBUG:
-    INSTALLED_APPS += ["django_browser_reload"]
-    MIDDLEWARE.insert(0, "django_browser_reload.middleware.BrowserReloadMiddleware")
-
 
 ROOT_URLCONF = "bmx.urls"
 
@@ -106,10 +101,6 @@ TEMPLATES = [
             ],
         },
     },
-]
-
-TEMPLATES[0]["OPTIONS"]["context_processors"] += [
-    "django.template.context_processors.debug",  # aby v šabloně existovala proměnná `debug`
 ]
 
 # Tailwind settings
