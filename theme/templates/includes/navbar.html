@@ -4,10 +4,6 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
       <div class="flex items-center">
-        <div class="flex-shrink-0">
-          {% comment %} <img class="h-8 w-8" src="https://tailwindui.com/img/logos/workflow-mark-indigo-500.svg"
-            alt="Workflow" /> {% endcomment %}
-        </div>
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             {% if '/' == request.path %}
@@ -34,7 +30,7 @@
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KALENDÁŘ</a>
             {% endif %}
 
-            {% if 'rider' in request.path %}
+            {% if '/rider' in request.path %}
             <a href="{% url 'rider:list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
               aria-current="page">JEZDCI</a>
             {% else %}
@@ -177,6 +173,8 @@
                 <a href="{% url 'event:credit' %}" class="block px-4 py-2 text-sm text-gray-700" role="menuitem"
                   tabindex="-1" id="user-menu-item-credit">Kredit</a>
                 {% if user.is_admin %}
+                  <a href="{% url 'finance:finance' %}" class="block px-4 py-2 text-sm text-gray-700"
+                  role="menuitem" tabindex="-1" id="user-menu-item-2">Finance</a>
                 <a href="{% url 'admin:index' %}" target="_blank" class="block px-4 py-2 text-sm text-gray-700"
                   role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
                 <a href="{% url 'event:recalculate_balances_view' %}" class="block px-4 py-2 text-sm text-gray-700"
