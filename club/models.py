@@ -36,6 +36,8 @@ class Club(models.Model):
     lon = models.FloatField(default = 0, null=True, blank = True)
     lng = models.FloatField(default = 0, null=True, blank = True)
 
+    riders_on_events = models.FileField(upload_to='media/riders_in_events/', null=True, blank=True)
+
     created = models.DateTimeField(auto_now_add= True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 

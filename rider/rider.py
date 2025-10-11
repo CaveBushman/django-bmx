@@ -1,7 +1,6 @@
 from django.utils import timezone
 import requests
 from decouple import config
-from openpyxl.workbook import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from rider.models import Rider
