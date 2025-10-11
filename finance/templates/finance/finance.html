@@ -4,9 +4,16 @@
 <header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <h1 class="text-4xl font-bold text-white">
-      Finance
+      FINANCE
     </h1>
   </div>
+      <div class="space-y-6">
+    <div class="mx-4 bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-bold text-gray-800">Stav kreditu: {{ credit|default:0|floatformat:2 }} CZK</h2>
+    </div>
+    <div class="mx-4 bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-bold text-gray-800">Stripe poplatky v tomto roce: {{ stripe_fee|default:0|floatformat:2 }} CZK</h2>
+    </div>
 </header>
 
 {% endblock %}

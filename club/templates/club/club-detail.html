@@ -13,8 +13,18 @@
   <div class="flex justify-end mx-6 mt-8">
     <a href="{% url 'club:participation' club.id %}"
       class="rounded-lg bg-indigo-600 py-3 px-6 text-sm font-semibold text-white hover:bg-indigo-500 transition ease-in-out duration-300">
-      Účast na závodech
+      Účast na klubu závodech
     </a>
+      <a href="../../{{ club.riders_on_events }}"
+      class="mx-4 rounded-lg bg-indigo-600 py-3 px-6 text-sm font-semibold text-white hover:bg-indigo-500 transition ease-in-out duration-300" download>
+      Účast na jezdců závodech
+    </a>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto">
+  <div class="flex justify-end mx-6 mt-8">
+
   </div>
 </div>
 {% endif %}
