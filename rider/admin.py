@@ -55,7 +55,7 @@ class RiderResource(resources.ModelResource):
             'valid_licence',
             'fix_valid_licence',
             'is_active',
-            'is_approwe',
+            'is_approved',
             'created',
             'updated',
         )
@@ -70,12 +70,12 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
 
     thumbnail.short_description = 'Foto'
 
-    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approwe')
+    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approved')
     list_display_links = ('last_name',)
     ordering = ('last_name','first_name',)
-    list_editable = ('is_20', 'is_24','is_elite','is_active','is_approwe')
+    list_editable = ('is_20', 'is_24','is_elite','is_active','is_approved')
     search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate',)
-    list_filter = ('is_20', 'is_24','gender',  'is_approwe', 'is_active', 'valid_licence', 'club',)
+    list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club',)
 
 class ForeignRiderAdmin(admin.ModelAdmin):
 

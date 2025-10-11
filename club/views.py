@@ -19,7 +19,7 @@ def clubs_list_view(request):
 
 
 def club_detail_view(request, pk):
-    riders_of_club_count = Rider.objects.filter(is_active=True, is_approwe=True, club=pk).count()
+    riders_of_club_count = Rider.objects.filter(is_active=True, is_approved=True, club=pk).count()
     club = get_object_or_404(Club, pk=pk)
     this_year = date.today().year
     events = Event.objects.filter(organizer=club.id, date__year=str(this_year)).order_by('date')
