@@ -168,7 +168,7 @@ def two_years_inactive():
     # Filtrovat aktivní jezdce (vytvořené alespoň před rokem)
     riders = Rider.objects.filter(
         is_active=True,
-        is_approwe=True,
+        is_approved=True,
         created__lte=timezone.now() - timedelta(days=365)
     )
 
@@ -319,7 +319,7 @@ class RiderQualifyToCNThread(threading.Thread):
 
     def run(self):
        
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+        riders = Rider.objects.filter(is_active=True, is_approved=True)
         year = datetime.today().year
         settings = SeasonSettings.objects.get(year=year)
         print ("Přepočítávám kvalifikaci na MČR pro rok " + str(year))

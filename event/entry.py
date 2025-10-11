@@ -220,7 +220,7 @@ class REMRiders:
         self.wb.encoding = "utf-8"
         self.ws = self.wb.active
         self.ws.title = "Rider-Registration"
-        self.riders = Rider.objects.filter(is_active=True, is_approwe=True)
+        self.riders = Rider.objects.filter(is_active=True, is_approved=True)
         self.foreign_riders = ForeignRider.objects.filter()
 
     def first_line(self):

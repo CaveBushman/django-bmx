@@ -153,7 +153,7 @@ def add_entries_view(request, pk):
 
     # Načíst jezdce jedním dotazem s potřebnými daty
     riders = (
-        Rider.objects.filter(is_active=True, is_approwe=True)
+        Rider.objects.filter(is_active=True, is_approved=True)
         .filter(Q(valid_licence=True) | Q(fix_valid_licence=True))
         .prefetch_related("entry_set")
     )
@@ -836,14 +836,14 @@ def event_admin_view(request, pk):
         ws.title = "BEM5_EXT"
         ws = excel_first_line(ws)
 
-        riders = Rider.objects.filter(is_active=True, is_approwe=True)
+        riders = Rider.objects.filter(is_active=True, is_approved=True)
         x = 2
         for rider in riders:
             ws.cell(x, 1, rider.uci_id)
             ws.cell(x, 2, rider.uci_id)
             ws.cell(x, 3, rider.uci_id)
             ws.cell(x, 4, rider.uci_id)
-            ws.cell(x, 5, rider.uci_id)
+            is_approvedws.cell(x, 5, rider.uci_id)
             ws.cell(x, 6, expire_licence())
             ws.cell(x, 7, "BMX-RACE")
             ws.cell(x, 9, str(rider.date_of_birth).replace("-", "/"))

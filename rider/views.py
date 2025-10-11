@@ -38,7 +38,7 @@ now = date.today().year
 
 
 def riders_list_view(request):
-    riders = Rider.objects.filter(is_active=True, is_approwe=True)
+    riders = Rider.objects.filter(is_active=True, is_approved=True)
     data = {"riders": riders}
 
     return render(request, "rider/riders-list.html", data)
@@ -171,7 +171,7 @@ def rider_new_view(request):
                 plate=request.POST["plate"],
                 club=Club.objects.get(id=request.POST["club"]),
                 is_active=True,
-                is_approwe=False,
+                is_approved=False,
                 emergency_contact=request.POST["emergency-contact"],
                 emergency_phone=request.POST["emergency-phone"],
             )
@@ -262,231 +262,231 @@ def riders_by_class_and_club(request):
             row,
             2,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 6"
+                is_active=True, is_approved=True, club=club, class_20="Boys 6"
             ).count(),
         )
         ws.cell(
             row,
             3,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 7"
+                is_active=True, is_approved=True, club=club, class_20="Boys 7"
             ).count(),
         )
         ws.cell(
             row,
             4,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 7"
+                is_active=True, is_approved=True, club=club, class_20="Girls 7"
             ).count(),
         )
         ws.cell(
             row,
             5,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 8"
+                is_active=True, is_approved=True, club=club, class_20="Boys 8"
             ).count(),
         )
         ws.cell(
             row,
             6,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 8"
+                is_active=True, is_approved=True, club=club, class_20="Girls 8"
             ).count(),
         )
         ws.cell(
             row,
             7,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 9"
+                is_active=True, is_approved=True, club=club, class_20="Boys 9"
             ).count(),
         )
         ws.cell(
             row,
             8,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 9"
+                is_active=True, is_approved=True, club=club, class_20="Girls 9"
             ).count(),
         )
         ws.cell(
             row,
             9,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 10"
+                is_active=True, is_approved=True, club=club, class_20="Boys 10"
             ).count(),
         )
         ws.cell(
             row,
             10,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 10"
+                is_active=True, is_approved=True, club=club, class_20="Girls 10"
             ).count(),
         )
         ws.cell(
             row,
             11,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 11"
+                is_active=True, is_approved=True, club=club, class_20="Boys 11"
             ).count(),
         )
         ws.cell(
             row,
             12,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 11"
+                is_active=True, is_approved=True, club=club, class_20="Girls 11"
             ).count(),
         )
         ws.cell(
             row,
             13,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 12"
+                is_active=True, is_approved=True, club=club, class_20="Boys 12"
             ).count(),
         )
         ws.cell(
             row,
             14,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 12"
+                is_active=True, is_approved=True, club=club, class_20="Girls 12"
             ).count(),
         )
         ws.cell(
             row,
             15,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 13"
+                is_active=True, is_approved=True, club=club, class_20="Boys 13"
             ).count(),
         )
         ws.cell(
             row,
             16,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 13"
+                is_active=True, is_approved=True, club=club, class_20="Girls 13"
             ).count(),
         )
         ws.cell(
             row,
             17,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 14"
+                is_active=True, is_approved=True, club=club, class_20="Boys 14"
             ).count(),
         )
         ws.cell(
             row,
             18,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 14"
+                is_active=True, is_approved=True, club=club, class_20="Girls 14"
             ).count(),
         )
         ws.cell(
             row,
             19,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 15"
+                is_active=True, is_approved=True, club=club, class_20="Boys 15"
             ).count(),
         )
         ws.cell(
             row,
             20,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 15"
+                is_active=True, is_approved=True, club=club, class_20="Girls 15"
             ).count(),
         )
         ws.cell(
             row,
             21,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Boys 16"
+                is_active=True, is_approved=True, club=club, class_20="Boys 16"
             ).count(),
         )
         ws.cell(
             row,
             22,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Girls 16"
+                is_active=True, is_approved=True, club=club, class_20="Girls 16"
             ).count(),
         )
         ws.cell(
             row,
             23,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men 17-24"
+                is_active=True, is_approved=True, club=club, class_20="Men 17-24"
             ).count(),
         )
         ws.cell(
             row,
             24,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Women 17-24"
+                is_active=True, is_approved=True, club=club, class_20="Women 17-24"
             ).count(),
         )
         ws.cell(
             row,
             25,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men 25-29"
+                is_active=True, is_approved=True, club=club, class_20="Men 25-29"
             ).count(),
         )
         ws.cell(
             row,
             26,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Women 25 and over"
+                is_active=True, is_approved=True, club=club, class_20="Women 25 and over"
             ).count(),
         )
         ws.cell(
             row,
             27,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men 30-34"
+                is_active=True, is_approved=True, club=club, class_20="Men 30-34"
             ).count(),
         )
         ws.cell(
             row,
             28,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men 35 and over"
+                is_active=True, is_approved=True, club=club, class_20="Men 35 and over"
             ).count(),
         )
         ws.cell(
             row,
             29,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men Junior"
+                is_active=True, is_approved=True, club=club, class_20="Men Junior"
             ).count(),
         )
         ws.cell(
             row,
             30,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Women Junior"
+                is_active=True, is_approved=True, club=club, class_20="Women Junior"
             ).count(),
         )
         ws.cell(
             row,
             31,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men Under 23"
+                is_active=True, is_approved=True, club=club, class_20="Men Under 23"
             ).count(),
         )
         ws.cell(
             row,
             32,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Women Under 23"
+                is_active=True, is_approved=True, club=club, class_20="Women Under 23"
             ).count(),
         )
         ws.cell(
             row,
             33,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Men Elite"
+                is_active=True, is_approved=True, club=club, class_20="Men Elite"
             ).count(),
         )
         ws.cell(
             row,
             34,
             Rider.objects.filter(
-                is_active=True, is_approwe=True, club=club, class_20="Women Elite"
+                is_active=True, is_approved=True, club=club, class_20="Women Elite"
             ).count(),
         )
 

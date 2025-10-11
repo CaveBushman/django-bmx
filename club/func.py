@@ -44,7 +44,7 @@ def riders_on_events(club_pk):
 
     i=2
 
-    riders = Rider.objects.filter(club__pk=club_pk)
+    riders = Rider.objects.filter(club__pk=club_pk, is_active=True, is_approved=True)
     for rider in riders:
         ws.cell(i, 1, rider.last_name)
         ws.cell(i, 2, rider.first_name)

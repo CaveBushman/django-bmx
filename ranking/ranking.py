@@ -82,7 +82,7 @@ class RankingCount:
     @staticmethod
     def set_ranking_points():
         """ Methods for setting ranking points for all riders """
-        for rider in Rider.objects.filter(is_active=True, is_approwe=True).iterator():
+        for rider in Rider.objects.filter(is_active=True, is_approved=True).iterator():
             ranking = RankingCount(rider.uci_id)
             ranking.count_points()
             Rider.objects.filter(uci_id=rider.uci_id).update(
@@ -101,13 +101,13 @@ class RankPositionCount:
         categories = []
 
         if is_20:
-            riders = Rider.objects.filter(is_active=True, is_approwe=True, is_20=True).exclude(points_20=0)
+            riders = Rider.objects.filter(is_active=True, is_approved=True, is_20=True).exclude(points_20=0)
             for rider in riders:
                 if rider.class_20 not in categories:
                     categories.append(rider.class_20)
             del riders
         else:
-            riders = Rider.objects.filter(is_active=True, is_approwe=True, is_24=True).exclude(points_24=0)
+            riders = Rider.objects.filter(is_active=True, is_approved=True, is_24=True).exclude(points_24=0)
             for rider in riders:
                 if rider.class_24 not in categories:
                     categories.append(rider.class_24)
@@ -127,10 +127,10 @@ class RankPositionCount:
         Arguments:  category, is_20 = True - the 20" bike, is_20 = False - the Cruiser classes
         """
         if is_20:
-            riders = Rider.objects.filter(is_active=True, is_approwe=True, is_20=True, class_20=category).order_by(
+            riders = Rider.objects.filter(is_active=True, is_approved=True, is_20=True, class_20=category).order_by(
                 '-points_20').exclude(points_20=0)
         else:
-            riders = Rider.objects.filter(is_active=True, is_approwe=True, is_24=True, class_24=category).order_by(
+            riders = Rider.objects.filter(is_active=True, is_approved=True, is_24=True, class_24=category).order_by(
                 '-points_24').exclude(points_24=0)
         return riders
 
@@ -154,7 +154,7 @@ class RankPositionCount:
         all_positions = []
         duplicates = []
         for category_20 in categories_20:
-            riders = Rider.objects.filter(class_20=category_20, is_active=True, is_approwe=True, is_20=True).exclude(
+            riders = Rider.objects.filter(class_20=category_20, is_active=True, is_approved=True, is_20=True).exclude(
                 points_20=0)
             for rider in riders:
                 if rider.ranking_20 not in all_positions:
@@ -166,7 +166,7 @@ class RankPositionCount:
             if duplicates:
                 for position in duplicates:
                     riders = Rider.objects.filter(ranking_20=position, is_20=True, is_active=True,
-                                                  class_20=category_20, is_approwe=True)
+                                                  class_20=category_20, is_approved=True)
                     new_end_position = int(position) + riders.count() - 1
                     text_ranking = f"{str(position)}. - {str(new_end_position)}"
                     for rider in riders:
@@ -177,7 +177,7 @@ class RankPositionCount:
             all_positions = []
 
         for category_24 in categories_24:
-            riders = Rider.objects.filter(class_24=category_24, is_active=True, is_approwe=True, is_24=True).exclude(
+            riders = Rider.objects.filter(class_24=category_24, is_active=True, is_approved=True, is_24=True).exclude(
                 points_24=0)
             for rider in riders:
                 if rider.ranking_24 not in all_positions:
@@ -189,7 +189,7 @@ class RankPositionCount:
             if duplicates:
                 for position in duplicates:
                     riders = Rider.objects.filter(ranking_24=position, is_24=True, is_active=True,
-                                                  class_24=category_24, is_approwe=True)
+                                                  class_24=category_24, is_approved=True)
                     new_end_position = int(position) + riders.count() - 1
                     text_ranking = f"{str(position)} - {str(new_end_position)}"
                     for rider in riders:
@@ -249,7 +249,7 @@ class Categories:
         # events 0 is categories for ranking view
         if event == 0:
 
-            riders = Rider.objects.filter(is_active=True, is_approwe=True)
+            riders = Rider.objects.filter(is_active=True, is_approved=True)
 
             # PREPARE CLASSES FROM REAL RIDER CLASSES
             categories20 = []

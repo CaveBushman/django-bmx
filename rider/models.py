@@ -152,7 +152,7 @@ class Rider(models.Model):
     have_valid_insurance = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
-    is_approwe = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False)
     valid_licence = models.BooleanField(default=True)
     fix_valid_licence = models.BooleanField(default=False)
 
