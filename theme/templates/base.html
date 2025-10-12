@@ -4,9 +4,10 @@
 <html lang="en" class="{% if request.session.is_dark_mode %}dark{% endif %}">
 
 <head>
+    {% load google_analytics_gtag %}
+    {% google_analytics_gtag %}
 
   <meta http-equiv="Cache-Control" content="no-store" />
-
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="initial-scale=1.0" />
