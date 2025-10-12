@@ -276,3 +276,6 @@ JAZZMIN_SETTINGS = {
         },
     ],
 }
+
+INSTALLED_APPS += ["analytical"]
+GOOGLE_ANALYTICS_GTAG_PROPERTY_ID = "G-6VFMEQ1EVX"  # GA4 measurement ID
