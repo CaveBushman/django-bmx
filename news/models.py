@@ -2,6 +2,7 @@ from email.policy import default
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
+from django.db.models import F
 from ckeditor.fields import RichTextField
 from accounts.models import Account
 import datetime
@@ -29,6 +30,8 @@ class News (models.Model):
 
     time_to_read = models.IntegerField(default=0)
 
+    view_count = models.PositiveIntegerField(default=0, db_index=True, help_text="Počet zhlédnutí")
+
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
 
@@ -40,13 +43,18 @@ class News (models.Model):
     def __str__(self):
         return self.title
 
-    class Meta:
-        verbose_name = "Článek"
-        verbose_name_plural = 'Články'
+    def increment_views(self):
+        # atomicky, bez race condition:
+        News.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
+        self.refresh_from_db(fields=['view_count'])
     
     def sum_of_news():
         """ fukce vrací hodnotu všech zveřejněných článků """
         return News.objects.filter(published = True).count()
+
+    class Meta:
+        verbose_name = "Článek"
+        verbose_name_plural = 'Články'
 
 # nastavení time_to_read při ukládání článku
 @receiver(pre_save, sender=News)
