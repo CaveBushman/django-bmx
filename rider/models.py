@@ -112,11 +112,11 @@ class Rider(models.Model):
     is_24 = models.BooleanField(default=False)
     is_elite = models.BooleanField(default=False)
 
-    points_20 = models.IntegerField(default=0)
-    points_24 = models.IntegerField(default=0)
+    points_20 = models.IntegerField(default=0, db_index=True)
+    points_24 = models.IntegerField(default=0, db_index=True)
 
-    ranking_20 = models.CharField(max_length=10, null=True, blank=True)
-    ranking_24 = models.CharField(max_length=10, null=True, blank=True)
+    ranking_20 = models.CharField(max_length=10, null=True, blank=True, db_index=True)
+    ranking_24 = models.CharField(max_length=10, null=True, blank=True, db_index=True)
 
     is_in_talent_team = models.BooleanField(default=False)
     is_in_representation = models.BooleanField(default=False)
