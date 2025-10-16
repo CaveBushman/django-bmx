@@ -3,7 +3,6 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from django.conf import settings
-from django.conf import settings
 from decouple import config
 
 

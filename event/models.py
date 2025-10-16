@@ -7,6 +7,7 @@ from accounts.models import Account
 from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
+from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist
 import datetime
 from django.utils import timezone
@@ -168,9 +169,11 @@ class Event(models.Model):
     """ class for event """
 
     EVENT_TYPE = (('Mistrovství ČR jednotlivců', 'Mistrovství ČR jednotlivců'),
-                  ('Mistrovství ČR družstev', 'Mistrovství ČR družstev'), ('Český pohár', 'Český pohár'),
+                  ('Mistrovství ČR družstev', 'Mistrovství ČR družstev'),
+                  ('Český pohár', 'Český pohár'),
                   ('Česká liga', 'Česká liga'),
-                  ('Moravská liga', 'Moravská liga'), ('Volný závod', 'Volný závod'),
+                  ('Moravská liga', 'Moravská liga'),
+                  ('Volný závod', 'Volný závod'),
                   ('Evropský pohár', 'Evropský pohár'),
                   ('Mistrovství Evropy', 'Mistrovství Evropy'),
                   ('Mistrovství světa', 'Mistrovství světa'),
@@ -178,9 +181,10 @@ class Event(models.Model):
                   ('Nebodovaný závod', 'Nebodovaný závod'),)
 
     RACE_SYSTEM = (('3 základní rozjíždky a KO system', '3 základní rozjíždky a KO system'),
-                   ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'))
+                   ('5 základních rozjíždek a KO system', '5 základních rozjíždek a KO system'),
+                   ( "LCQ","LCQ"),)
 
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, blank=False, help_text="Název závodu")
     date = models.DateField(null=True, blank=True, db_index=True)
 
     double_race = models.BooleanField(default=False)
@@ -194,9 +198,9 @@ class Event(models.Model):
 
     is_uci_race = models.BooleanField(default=False)
 
-    pcp = models.ForeignKey(Commissar, related_name="PCP", on_delete=models.SET_NULL, blank=True, null=True)
+    pcp = models.ForeignKey(Commissar, related_name="PCP", on_delete=models.SET_NULL, blank=True, null=True, help_text="Hlavní rozhodčí")
     pcp_assist = models.ForeignKey(Commissar, related_name="PCP_asist", on_delete=models.SET_NULL, blank=True,
-                                   null=True)
+                                   null=True, help_text="Asistent hlavního rozhodčího")
     director = models.CharField(max_length=255, null=True, blank=True)
 
     reg_open_from = models.DateTimeField(null=True, blank=True)
@@ -259,7 +263,7 @@ class Event(models.Model):
     price_of_insurance = models.IntegerField(default = 0)
 
     #ID pro výsledkový servis Českého svazu cyklisitiky
-    ccf_id = models.IntegerField(default = 0)
+    ccf_id = models.IntegerField(default = 0, help_text="ID závodu na portálu ČSC")
     ccf_created = models.DateField(auto_now_add=True, null=True)
     ccf_uploaded = models.BooleanField(default=False)
 
@@ -558,6 +562,16 @@ class Entry(models.Model):
     def __str__(self):
         return f"{self.rider} - {self.event}"
 
+@receiver(post_save, sender=Entry)
+def invalidate_cache_on_entry_save(sender, instance, **kwargs):
+    # když se změní Entry (nová registrace nebo aktualizace), smaž cache pro tento event
+    cache_key = f"active_riders_{instance.event_id}"
+    cache.delete(cache_key)
+
+@receiver(post_delete, sender=Entry)
+def invalidate_cache_on_entry_delete(sender, instance, **kwargs):
+    cache_key = f"active_riders_{instance.event_id}"
+    cache.delete(cache_key)
 
 class EntryForeign(models.Model):
     """ Model for foreign riders entries """

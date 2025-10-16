@@ -26,7 +26,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
-from django.db.models import Q
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rider.rider import get_api_token, generate_insurance_file
@@ -55,6 +56,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import cm
 from django.db import transaction
 from django.db.models import F
+from django.core.cache import cache
 from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -147,180 +149,148 @@ def results_view(request, pk):
     return render(request, "event/results.html", data)
 
 
+# Signály pro invalidaci cache, když se změní Entry
+@receiver(post_save, sender=Entry)
+@receiver(post_delete, sender=Entry)
+def invalidate_event_riders_cache(sender, instance, **kwargs):
+    key = f"active_riders_{instance.event_id}"
+    cache.delete(key)
+
+
 @login_required(login_url="/event/not-reg")
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
 
-    # Načíst jezdce jedním dotazem s potřebnými daty
-    riders = (
-        Rider.objects.filter(is_active=True, is_approved=True)
-        .filter(Q(valid_licence=True) | Q(fix_valid_licence=True))
-        .prefetch_related("entry_set")
-    )
+    # Key pro cache na seznam jezdců relevantních pro registraci
+    cache_key = f"active_riders_{event.id}"
+    riders = cache.get(cache_key)
+    if riders is None:
+        riders = list(
+            Rider.objects.filter(is_active=True, is_approved=True)
+            .filter(Q(valid_licence=True) | Q(fix_valid_licence=True))
+            .prefetch_related("entry_set")
+        )
+        cache.set(cache_key, riders, timeout=600)
+
     sum_fee = 0
 
-    # Přesměrování po datu registrace - CHYBOVÁ HLÁŠKA
+    # Pokud registrace uzavřena nebo závod zrušený, nedovol vstup
     if event.canceled or not event.reg_open or (event.reg_open_to < timezone.now()):
         return render(request, "event/reg-close.html")
 
-    if request.POST:
-        # Získání seznamů ID jezdců z formuláře
-        selected_ids = {
-            "beginner": set(request.POST.getlist("checkbox_beginner")),
-            "20": set(request.POST.getlist("checkbox_20")),
-            "24": set(request.POST.getlist("checkbox_24")),
-        }
+    if request.method == "POST":
+        # Číst vybrané checkboxy
+        selected_beginner = set(request.POST.getlist("checkbox_beginner"))
+        selected_20 = set(request.POST.getlist("checkbox_20"))
+        selected_24 = set(request.POST.getlist("checkbox_24"))
 
-        # Jeden dotaz místo tří
-        riders = Rider.objects.filter(uci_id__in=set.union(*selected_ids.values()))
+        # Načti jen jezdce, kteří byli označeni (úspora)
+        selected_uci_ids = {int(val) for val in selected_beginner.union(selected_20).union(selected_24) if val.isdigit()}
+        selected_riders = Rider.objects.filter(uci_id__in=selected_uci_ids)
 
-        # Roztřídění jezdců do kategorií
-        selected_riders = {"beginner": [], "20": [], "24": []}
+        # Rozdělit jezdců do skupin podle označení
+        riders_beginner = []
+        riders_20 = []
+        riders_24 = []
 
-        for rider in riders:
-            if str(rider.uci_id) in selected_ids["beginner"]:
-                selected_riders["beginner"].append(rider)
-            if str(rider.uci_id) in selected_ids["20"]:
-                selected_riders["20"].append(rider)
-            if str(rider.uci_id) in selected_ids["24"]:
-                selected_riders["24"].append(rider)
+        for rider in selected_riders:
+            uci_str = str(rider.uci_id)
+            if uci_str in selected_beginner:
+                riders_beginner.append(rider)
+            if uci_str in selected_20:
+                riders_20.append(rider)
+            if uci_str in selected_24:
+                riders_24.append(rider)
 
-            # Přiřazení do proměnných
-            riders_beginner = selected_riders["beginner"]
-            riders_20 = selected_riders["20"]
-            riders_24 = selected_riders["24"]
+        # Spočítat částku
+        for r in riders_beginner:
+            sum_fee += resolve_event_fee(event, r, is_20=True, is_beginner=True)
+        for r in riders_20:
+            sum_fee += resolve_event_fee(event, r, is_20=True)
+        for r in riders_24:
+            sum_fee += resolve_event_fee(event, r, is_20=False)
 
-            # Výpočty počtu jezdců
-        sum_beginners = len(riders_beginner)
-        sum_20 = len(riders_20)
-        sum_24 = len(riders_24)
-
-        for rider in riders_beginner:
-            sum_fee += resolve_event_fee(event, rider, is_20=True, is_beginner=True)
-            if "btn_add" in request.POST:
-                cart = Cart()
-                cart.user = Account.objects.get(id=request.user.id)
-                cart.event = event
-                cart.rider = rider
-                cart.is_beginner = True
-                cart.fee_beginner = resolve_event_fee(
-                    event, rider, is_20=True, is_beginner=True
-                )
-                cart.class_beginner = resolve_event_classes(
-                    event, rider, is_20=True, is_beginner=True
-                )
-                if not Entry.objects.filter(
-                    rider=rider, event=event, is_beginner=True, payment_complete=True
-                ):
-                    cart.save()
-
-        for rider_20 in riders_20:
-            sum_fee += resolve_event_fee(event, rider_20, is_20=True)
-            # TODO: Dodělat uložení do košíku
-            if "btn_add" in request.POST:
-                cart = Cart()
-                cart.user = Account.objects.get(id=request.user.id)
-                cart.event = event
-                cart.rider = rider_20
-                cart.is_20 = True
-                cart.fee_20 = resolve_event_fee(event, rider_20, is_20=True)
-                cart.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-                if not Entry.objects.filter(
-                    rider=rider_20, event=event, is_20=True, payment_complete=True
-                ):
-                    cart.save()
-
-        for rider_24 in riders_24:
-            sum_fee += resolve_event_fee(event, rider_24, is_20=False)
-            if "btn_add" in request.POST:
-                cart = Cart()
-                cart.user = Account.objects.get(id=request.user.id)
-                cart.event = event
-                cart.rider = rider_24
-                cart.is_24 = True
-                cart.fee_24 = resolve_event_fee(event, rider_24, is_20=False)
-                cart.class_24 = resolve_event_classes(event, rider_24, is_20=False)
-                if not Entry.objects.filter(
-                    rider=rider_24, event=event, is_24=True, payment_complete=True
-                ):
-                    cart.save()
-
+        # Uložit do košíku (nebo do Entry) s transakcemi
         if "btn_add" in request.POST:
+            user_account = request.user  # nebo Account objekt
+            for rider in riders_beginner:
+                if not Entry.objects.filter(rider=rider, event=event, is_beginner=True, payment_complete=True).exists():
+                    e = Entry(
+                        user_id=request.user.id,
+                        event=event,
+                        rider=rider,
+                        is_beginner=True,
+                        is_20=False,
+                        is_24=False,
+                        class_beginner=resolve_event_classes(event, rider, is_20=True, is_beginner=True),
+                        fee_beginner=resolve_event_fee(event, rider, is_20=True, is_beginner=True),
+                    )
+                    e.save()
+            for rider in riders_20:
+                if not Entry.objects.filter(rider=rider, event=event, is_20=True, payment_complete=True).exists():
+                    e = Entry(
+                        user_id=request.user.id,
+                        event=event,
+                        rider=rider,
+                        is_20=True,
+                        is_beginner=False,
+                        is_24=False,
+                        class_20=resolve_event_classes(event, rider, is_20=True),
+                        fee_20=resolve_event_fee(event, rider, is_20=True),
+                    )
+                    e.save()
+            for rider in riders_24:
+                if not Entry.objects.filter(rider=rider, event=event, is_24=True, payment_complete=True).exists():
+                    e = Entry(
+                        user_id=request.user.id,
+                        event=event,
+                        rider=rider,
+                        is_24=True,
+                        is_20=False,
+                        is_beginner=False,
+                        class_24=resolve_event_classes(event, rider, is_20=False),
+                        fee_24=resolve_event_fee(event, rider, is_20=False),
+                    )
+                    e.save()
+
             update_cart(request)
             return redirect("event:events")
 
-        # convert to json format (need for sessions)
-        sum_fee_json = json.dumps({"sum_fee": sum_fee})
-        event_json = json.dumps({"event": event.id})
-
-        # save sessions
-        request.session.set_expiry(300)
-
-        request.session["sum_fee"] = sum_fee_json
-        request.session["event"] = event_json
-        request.session["riders_beginner"] = serializers.serialize(
-            "json", riders_beginner
-        )
-        request.session["riders_20"] = serializers.serialize("json", riders_20)
-        request.session["riders_24"] = serializers.serialize("json", riders_24)
-
-        for rider_beginner in riders_beginner:
-            rider_beginner.class_beginner = resolve_event_classes(
-                event, rider_beginner, is_20=True, is_beginner=True
-            )
-
-        for rider_20 in riders_20:
-            rider_20.class_20 = resolve_event_classes(event, rider_20, is_20=True)
-
-        for rider_24 in riders_24:
-            rider_24.class_24 = resolve_event_classes(event, rider_24, is_20=False)
-
+        # Pokud neuloženo, zobraz checkout stránku s výpočty atd.
         data = {
             "event": event,
+            "riders_beginner": riders_beginner,
             "riders_20": riders_20,
             "riders_24": riders_24,
-            "riders_beginner": riders_beginner,
             "sum_fee": sum_fee,
-            "sum_beginners": sum_beginners,
-            "sum_20": sum_20,
-            "sum_24": sum_24,
         }
+        return render(request, "event/checkout.html", data)
 
-        response = render(request, "event/checkout.html", data)
-        # response.set_cookie()
-        return response
+    # Nezahrnujeme SQL dotazy v cyklu — použij mapování Entry
+    registered = Entry.objects.filter(event=event, payment_complete=True)
+    reg_map = {e.rider_id: e for e in registered}
 
-    # disable riders, who was registered in event
-    event.is_beginners_race = event.is_beginners_event()
-
+    # Přiřaď kategorie a označ registrované
     for rider in riders:
-        was_registered = Entry.objects.filter(
-            event=event, rider=rider, payment_complete=True
-        )
-
-        # classes for Beginners
-        if event.is_beginners_race and is_beginner(rider):
+        if event.is_beginners_event and is_beginner(rider):
             rider.is_beginner = True
-            rider.class_beginner = resolve_event_classes(
-                event, rider, is_20=True, is_beginner=True
-            )
-
+            rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         if rider.is_elite:
             rider.class_24 = "NELZE PŘIHLÁSIT"
 
-        if was_registered.count() > 0:
-            if was_registered[0].is_beginner:
+        entry = reg_map.get(rider.pk)
+        if entry:
+            if getattr(entry, "is_beginner", False):
                 rider.class_beginner += "registered"
-            if was_registered[0].is_20:
+            if getattr(entry, "is_20", False):
                 rider.class_20 += "registered"
-            if was_registered[0].is_24:
+            if getattr(entry, "is_24", False):
                 rider.class_24 += "registered"
 
-    data = {"event": event, "riders": riders}
+    data = {"event": event, "riders": riders, "sum_fee": sum_fee}
     return render(request, "event/entry.html", data)
-
 
 def entry_riders_view(request, pk):
     """View for registered riders in event"""
