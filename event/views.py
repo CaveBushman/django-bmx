@@ -160,6 +160,7 @@ def invalidate_event_riders_cache(sender, instance, **kwargs):
 @login_required(login_url="/event/not-reg")
 def add_entries_view(request, pk):
     event = get_object_or_404(Event, id=pk)
+    event.is_beginners_event = event.is_beginners_event()
 
     # Key pro cache na seznam jezdců relevantních pro registraci
     cache_key = f"active_riders_{event.id}"
@@ -275,6 +276,7 @@ def add_entries_view(request, pk):
         if event.is_beginners_event and is_beginner(rider):
             rider.is_beginner = True
             rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+            print(f"Jezdec {rider.last_name} splňuje podmínku a je v kategorii {rider.class_beginner}")
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         if rider.is_elite:
@@ -2005,4 +2007,12 @@ def export_event_results(request, event_id):
 @login_required(login_url="/login")
 @staff_member_required
 def price_money_pdf(request, pk):
+    #TODO: Dodělat list s price money
+    pass
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def send_invoices(request, pk):
+    #TODO: Dodělat rozesílání faktur
     pass
