@@ -5,15 +5,13 @@ from event.models import RaceRun
 import pandas as pd
 import requests
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Prefetch
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from .models import (
-    EntryClasses,
     Event,
     Result,
     Entry,
     CreditTransaction,
-    DebetTransaction,
+    DebetTransaction, SeasonSettings,
 )
 from accounts.models import Account
 from rider.models import Rider, ForeignRider
@@ -24,32 +22,26 @@ from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
-from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from rider.rider import get_api_token, generate_insurance_file
 from .func import *
-from .invoices import *
 from .credit import *
-from .entry import EntryClass, SendConfirmEmail, NumberInEvent, REMRiders
-from datetime import datetime, date
+from .entry import NumberInEvent, REMRiders
+from datetime import datetime
 from django.utils.timezone import now
 import datetime
 from ranking.ranking import RankingCount, RankPositionCount, Categories, SetRanking
-from django.core import serializers
 from openpyxl import Workbook
 from openpyxl import load_workbook
 import stripe
 from decouple import config
 from django.utils import timezone
 from event.func import update_cart
-from django.template.loader import render_to_string
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle, Image
+from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
@@ -159,8 +151,9 @@ def invalidate_event_riders_cache(sender, instance, **kwargs):
 
 @login_required(login_url="/event/not-reg")
 def add_entries_view(request, pk):
+    seasson = SeasonSettings.objects.filter(year=date.today().year)
     event = get_object_or_404(Event, id=pk)
-    event.is_beginners_event = event.is_beginners_event()
+    event.is_beginners_event = event.is_beginners_event() and seasson.beginners_allowed
 
     # Key pro cache na seznam jezdců relevantních pro registraci
     cache_key = f"active_riders_{event.id}"
