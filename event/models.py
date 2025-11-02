@@ -19,8 +19,8 @@ class SeasonSettings(models.Model):
     year = models.IntegerField(default=2024)
     qualify_to_cn = models.IntegerField (default=2)
     best_cup = models.IntegerField(default=8)
-    best_cl = models.IntegerField(default=10)
-    best_ml = models.IntegerField(default=10)
+    best_league = models.IntegerField(default=10)
+    beginners_allowed = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.year)
@@ -673,18 +673,3 @@ class StripeFee (models.Model):
         verbose_name_plural = 'Karetní poplatky (STRIPE)'
 
 
-class Invoice(models.Model):
-    number = models.CharField(max_length=255, unique=True)
-    issue_date = models.DateField()
-    due_date = models.DateField()
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    #supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    customer = models.ForeignKey(Club, on_delete=models.CASCADE)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    def __str__(self):
-        return f"Faktura {self.number}"
-    
-    class Meta:
-        verbose_name = "Faktura"
-        verbose_name_plural = 'Faktury'

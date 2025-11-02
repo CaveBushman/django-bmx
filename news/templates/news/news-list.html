@@ -9,18 +9,15 @@
   </div>
 </header>
 
-<div class="mt-6 max-w-lg mx-auto px-3 grid gap-5 lg:grid-cols-3 lg:max-w-7xl mb-6">
+<div class="mx-auto max-w-7xl px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-6 mb-8">
 
   {% for article in news.object_list %}
-
-              <article
-                class="flex flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
+              <article class="h-full flex flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div class="flex flex-col justify-between">
                   <div class="relative w-full overflow-hidden rounded-xl">
                     <meta property="og:image" content="{{article.photo_01.url}}" />
                     <!-- Obrázek pro portrait a landscape režim -->
-                    <img src="{{article.photo_01.url}}" alt="" class="w-full h-auto object-cover transform hover:scale-105 transition-all duration-300
-                                                 max-w-full max-h-[400px]">
+                    <img src="{{article.photo_01.url}}" alt="" class="w-full aspect-[16/9] object-cover transform hover:scale-105 transition-all duration-300">
                   </div>
                   <div class="px-6 py-4">
                     <div class="flex items-center gap-x-4 text-xs text-gray-500 dark:text-gray-300">

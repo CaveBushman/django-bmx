@@ -268,6 +268,7 @@ class Downloads(models.Model):
     path = models.FileField(upload_to="documents", blank=True, null=True)
     published = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
+    downloads_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title

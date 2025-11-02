@@ -1,7 +1,7 @@
 import datetime
 from datetime import timedelta
 from rider.models import Rider
-from event.models import Result, Entry, Event
+from event.models import Result, Entry, Event, SeasonSettings
 from django.db.models import Q
 import threading
 
@@ -31,14 +31,16 @@ class SetRanking (threading.Thread):
 
 class RankingCount:
     """ Class for rankings count"""
-    CZECH_CUP = 10
-    LIGA = 6
 
     def __init__(self, uci_id):
         self.uci_id = uci_id
-        self.points_20 = 0
-        self.points_24 = 0
+        self.points_20:int = 0
+        self.points_24:int = 0
         self.rider = None
+        year = datetime.date.today().year
+        season = SeasonSettings.objects.filter(year=year)
+        self.CZECH_CUP:int = season.best_cup
+        self.LIGA:int = season.best_league
 
     def resolve_category(self):
         self.rider = Rider.objects.select_related().get(uci_id=self.uci_id)

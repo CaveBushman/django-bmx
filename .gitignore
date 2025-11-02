@@ -71,7 +71,7 @@ static/videos/*
 staticfiles/videos/*
 media/*
 node_modules/*
-theme/static_src/*
+theme_2/static_src/*
 theme/static/*
 
 # Flask stuff:

@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -38,7 +38,7 @@ else:
 INSTALLED_APPS = [
     #'material',
     #'material.admin',
-    "django_cleanup",
+    "django_cleanup.apps.CleanupConfig",
     "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -104,7 +104,7 @@ TEMPLATES = [
 
 # Tailwind settings
 TAILWIND_APP_NAME = "theme"
-TAILWIND_CSS_PATH = os.path.join(BASE_DIR, "static/css/styles.css")
+TAILWIND_CSS_PATH = "css/dist/styles.css"
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
@@ -218,8 +218,6 @@ CKEDITOR_CONFIGS = {
         "extraPlugins": "justify,liststyle,indent",
     },
 }
-
-TAILWIND_CSS_PATH = "css/dist/styles.css"
 
 CRONJOBS = [("*/180 * * * *", "bmx.cron.valid_licence_scheduled")]
 

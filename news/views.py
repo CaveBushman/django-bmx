@@ -8,6 +8,9 @@ from rider.models import Rider
 from news.models import News, Downloads
 from club.models import Club
 from datetime import date
+from django.http import FileResponse, Http404
+import mimetypes
+import os
 
 # Create your views here.
 
@@ -74,3 +77,25 @@ def downloads_view(request):
     categories = ['Pro jezdce', 'Pro kluby', 'Pro rozhodčí']
     data = {'documents': documents, 'categories': categories}
     return render(request, 'downloads.html', data )
+
+def download_file_view(request, pk):
+    document = get_object_or_404(Downloads, pk=pk, published=True)
+
+    if not document.path:
+        raise Http404("Soubor nebyl nalezen.")
+
+    # Zvýšení počtu stažení
+    document.downloads_count += 1
+    document.save(update_fields=["downloads_count"])
+
+    # Cesta k souboru
+    file_path = document.path.path
+    file_name = os.path.basename(file_path)
+
+    # Určení MIME typu
+    mime_type, _ = mimetypes.guess_type(file_path)
+
+    # Odpověď se souborem
+    response = FileResponse(open(file_path, "rb"), content_type=mime_type or "application/octet-stream")
+    response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+    return response

@@ -17,7 +17,7 @@ admin.site.register(News, NewsAdmin,)
 admin.site.register(Tag)
 
 class DownloadsAdmin(admin.ModelAdmin):
-    list_display = ('title', 'published',)
+    list_display = ('title', 'published', 'downloads_count')
     list_display_links= ('title',)
     search_fields = ('title',)
     list_editable =('published',)
