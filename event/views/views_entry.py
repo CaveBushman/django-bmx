@@ -60,7 +60,7 @@ def add_entries_view(request, pk):
     GET: Zobrazí seznam aktivních jezdců s jejich kategoriemi a stavem registrace.
     POST: Zpracuje výběr checkboxů, spočítá startovné a uloží přihlášky do košíku.
     """
-    event = get_object_or_404(Event, id=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), id=pk)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -101,7 +101,7 @@ def add_entries_view(request, pk):
 
 def entry_riders_view(request, pk):
     """Přehled přihlášených jezdců na závod (veřejný, bez přihlášení)."""
-    event = Event.objects.get(id=pk)
+    event = Event.objects.select_related("classes_and_fees_like").get(id=pk)
     czech_entries = (
         Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
         .select_related("rider", "rider__club")
@@ -169,7 +169,7 @@ def confirm_view(request):
 
 def entry_foreign_view(request, pk):
     """Přihláška zahraničního jezdce (formulář)."""
-    event = get_object_or_404(Event, pk=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), pk=pk)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -187,7 +187,7 @@ def entry_foreign_view(request, pk):
 
 def entry_foreign_summary_view(request, pk):
     """Rekapitulace zahraniční přihlášky před odesláním."""
-    event = get_object_or_404(Event, pk=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), pk=pk)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -217,7 +217,7 @@ def entry_foreign_pay_view(request, pk):
     if request.method != "POST":
         return redirect("event:entry-foreign", pk=pk)
 
-    event = get_object_or_404(Event, pk=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), pk=pk)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -251,7 +251,7 @@ def entry_foreign_pay_view(request, pk):
 
 def entry_foreign_success_view(request, pk):
     """Stripe success redirect pro zahraniční přihlášky."""
-    event = get_object_or_404(Event, pk=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), pk=pk)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect

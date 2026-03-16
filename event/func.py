@@ -252,6 +252,20 @@ def is_registration_open(event) -> bool:
         return False
 
 
+def _get_event_classes(event):
+    """Vrátí cacheovaný EntryClasses objekt pro daný závod."""
+    cached = getattr(event, "_cached_entry_classes", None)
+    if cached is not None:
+        return cached
+
+    event_classes = getattr(event, "classes_and_fees_like", None)
+    if event_classes is None:
+        event_classes = EntryClasses.objects.get(event__id=event.id)
+
+    event._cached_entry_classes = event_classes
+    return event_classes
+
+
 def resolve_event_classes(event, rider, is_20, is_beginner=False):
     """Vrátí název třídy závodníka pro daný závod (z tabulky EntryClasses).
 
@@ -261,7 +275,7 @@ def resolve_event_classes(event, rider, is_20, is_beginner=False):
     - is_20=True + žena → třída žen 20" bez jakéhokoli posunu
     - is_20=False → třída Cruiser (24")
     """
-    event_classes = EntryClasses.objects.get(event__id=event.id)
+    event_classes = _get_event_classes(event)
 
     if is_beginner:
         mapping = {
@@ -339,7 +353,7 @@ def resolve_event_fee(event, rider, is_20, is_beginner=False):
 
     Ženy jedou svoji vlastní věkovou kategorii bez posunu.
     """
-    event_classes = EntryClasses.objects.get(event=event)
+    event_classes = _get_event_classes(event)
 
     if is_beginner:
         mapping = {
