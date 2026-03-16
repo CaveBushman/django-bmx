@@ -22,6 +22,8 @@ class SeasonSettings(models.Model):
     best_league = models.IntegerField(default=10)
     beginners_allowed = models.BooleanField(default=True)
     rider_stats_monthly_price = models.IntegerField(default=50)
+    transponder_price = models.IntegerField(default=1900)
+    bmx_rules_link = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return str(self.year)
@@ -278,8 +280,6 @@ class Event(models.Model):
     ccf_created = models.DateField(auto_now_add=True, null=True)
     ccf_uploaded = models.BooleanField(default=False)
 
-    #Livestream
-    livestream = models.TextField(max_length=255, blank=True, null=True)
     uec_link = models.URLField(max_length=500, blank=True, null=True, help_text="Externí registrace na UEC")
     flexibee_export = models.FileField(upload_to='invoices/xml/', null=True, blank=True)
 

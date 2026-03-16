@@ -484,7 +484,28 @@ def resolve_event_beginner_support(event):
     return event.is_beginners_event() and (season.beginners_allowed if season is not None else True)
 
 
-def split_selected_riders(request):
+def _is_rider_allowed_for_event_category(event, rider, *, is_20=False, is_24=False, is_beginner=False):
+    if is_beginner:
+        return event.is_beginners_event()
+
+    if is_20:
+        if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20:
+            return False
+        rider_class = resolve_event_classes(event, rider, is_20=True)
+        return rider_class not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+
+    if is_24:
+        if rider.is_elite:
+            return False
+        if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24:
+            return False
+        rider_class = resolve_event_classes(event, rider, is_20=False)
+        return rider_class not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+
+    return False
+
+
+def split_selected_riders(request, event):
     selected_beginner = set(request.POST.getlist("checkbox_beginner"))
     selected_20 = set(request.POST.getlist("checkbox_20"))
     selected_24 = set(request.POST.getlist("checkbox_24"))
@@ -499,11 +520,11 @@ def split_selected_riders(request):
     riders_beginner, riders_20, riders_24 = [], [], []
     for rider in selected_riders:
         uci_str = str(rider.uci_id)
-        if uci_str in selected_beginner:
+        if uci_str in selected_beginner and _is_rider_allowed_for_event_category(event, rider, is_beginner=True):
             riders_beginner.append(rider)
-        if uci_str in selected_20:
+        if uci_str in selected_20 and _is_rider_allowed_for_event_category(event, rider, is_20=True):
             riders_20.append(rider)
-        if uci_str in selected_24:
+        if uci_str in selected_24 and _is_rider_allowed_for_event_category(event, rider, is_24=True):
             riders_24.append(rider)
 
     return riders_beginner, riders_20, riders_24
@@ -662,7 +683,14 @@ def load_foreign_rider_response(request):
 
 def collect_fees_by_club(event):
     """Přehled startovného na závodě rozdělený po klubech."""
-    entries = Entry.objects.filter(event=event.pk, checkout=False)
+    entries = (
+        Entry.objects.filter(
+            event=event.pk,
+            payment_complete=True,
+            checkout=False,
+        )
+        .select_related("rider", "rider__club")
+    )
     clubs = Club.objects.filter(is_active=True).order_by("team_name")
 
     club_in_event = []

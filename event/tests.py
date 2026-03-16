@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from club.models import Club
-from event.models import Entry, EntryClasses, EntryForeign, Event
+from event.models import Entry, EntryClasses, EntryForeign, Event, SeasonSettings
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -88,6 +88,49 @@ class EventEntryWorkflowTests(TestCase):
         response = self.client.get(reverse("event:entry", kwargs={"pk": self.event.pk}))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_mcr_entry_rejects_unqualified_rider_for_20_and_24(self):
+        self.client.force_login(self.user)
+        SeasonSettings.objects.create(year=date.today().year, qualify_to_cn=2)
+        self.event.type_for_ranking = "Mistrovství ČR jednotlivců"
+        self.event.save(update_fields=["type_for_ranking"])
+
+        response = self.client.post(
+            reverse("event:entry", kwargs={"pk": self.event.pk}),
+            {
+                "btn_add": "1",
+                "checkbox_20": str(self.rider.uci_id),
+                "checkbox_24": str(self.rider.uci_id),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("event:events"))
+        self.assertFalse(
+            Entry.objects.filter(event=self.event, rider=self.rider, is_20=True).exists()
+        )
+        self.assertFalse(
+            Entry.objects.filter(event=self.event, rider=self.rider, is_24=True).exists()
+        )
+
+    def test_entry_rejects_elite_rider_for_24_category(self):
+        self.client.force_login(self.user)
+        self.rider.is_elite = True
+        self.rider.save(update_fields=["is_elite"])
+
+        response = self.client.post(
+            reverse("event:entry", kwargs={"pk": self.event.pk}),
+            {
+                "btn_add": "1",
+                "checkbox_24": str(self.rider.uci_id),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("event:events"))
+        self.assertFalse(
+            Entry.objects.filter(event=self.event, rider=self.rider, is_24=True).exists()
+        )
 
 
 class Custom404Tests(TestCase):

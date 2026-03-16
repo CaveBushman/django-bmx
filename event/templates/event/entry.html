@@ -295,7 +295,9 @@
                                         </td>
                                         {% endif %}
 
-                                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 and not rider.is_elite %}
+                                        {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
+                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nelze přihlásit</td>
+                                        {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
                                         <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
                                         {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
                                         <td class="px-4 py-4 text-sm">
@@ -304,8 +306,6 @@
                                                 <span>{{ rider.class_24 }}</span>
                                             </div>
                                         </td>
-                                        {% elif rider.class_24 == "NELZE PŘIHLÁSIT" %}
-                                        <td class="px-4 py-4 text-sm"></td>
                                         {% elif rider.is_registered_24 %}
                                         <td class="px-4 py-4 text-sm">
                                             <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">

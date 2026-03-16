@@ -37,18 +37,14 @@ class EventCashReceiptService:
     def _build_receipt_number(self):
         year = timezone.localdate().year
         prefix = f"{COST_CENTER_CODE}P{year}"
-        latest = (
-            EventCashReceipt.objects.filter(number__startswith=prefix)
-            .aggregate(max_number=Max("number"))
-            .get("max_number")
-        )
+        used_indexes = set()
+        for number in EventCashReceipt.objects.filter(number__startswith=prefix).values_list("number", flat=True):
+            suffix = str(number)[len(prefix):]
+            if suffix.isdigit():
+                used_indexes.add(int(suffix))
         next_index = 1
-        if latest:
-            suffix = str(latest)[len(prefix):]
-            try:
-                next_index = int(suffix) + 1
-            except (TypeError, ValueError):
-                next_index = EventCashReceipt.objects.filter(number__startswith=prefix).count() + 1
+        while next_index in used_indexes:
+            next_index += 1
         return f"{prefix}{next_index:04d}"
 
     def _receipt_filename_base(self, receipt):
@@ -234,6 +230,11 @@ class EventCashReceiptService:
         self._save_receipt_pdf(receipt)
         receipt.save()
         return receipt
+
+    def delete_receipt(self, receipt):
+        if receipt.pdf:
+            receipt.pdf.delete(save=False)
+        receipt.delete()
 
     def create_receipt(
         self,

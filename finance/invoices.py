@@ -100,17 +100,14 @@ class EventInvoiceService:
     def _build_invoice_number(self):
         year = timezone.localdate().year
         prefix = f"{COST_CENTER_CODE}{year}"
-        latest = (
-            EventInvoice.objects.filter(number__startswith=prefix)
-            .aggregate(max_number=Max("number"))
-            .get("max_number")
-        )
+        used_indexes = set()
+        for number in EventInvoice.objects.filter(number__startswith=prefix).values_list("number", flat=True):
+            suffix = str(number)[len(prefix):]
+            if suffix.isdigit():
+                used_indexes.add(int(suffix))
         next_index = 1
-        if latest:
-            try:
-                next_index = int(str(latest)[7:]) + 1
-            except (TypeError, ValueError):
-                next_index = EventInvoice.objects.filter(number__startswith=prefix).count() + 1
+        while next_index in used_indexes:
+            next_index += 1
         return f"{prefix}{next_index:04d}"
 
     def _entry_description(self, entry):
@@ -595,6 +592,15 @@ class EventInvoiceService:
         invoice.email_sent_at = timezone.now()
         invoice.email_sent_to = recipient
         return True, recipient
+
+    def delete_invoice(self, invoice):
+        event = invoice.event
+        if invoice.pdf:
+            invoice.pdf.delete(save=False)
+        if invoice.xml_export:
+            invoice.xml_export.delete(save=False)
+        invoice.delete()
+        self._rebuild_event_export(event)
 
     @transaction.atomic
     def generate_for_event(self, event):

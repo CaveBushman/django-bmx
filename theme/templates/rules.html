@@ -96,8 +96,14 @@
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Part VI: BMX</p>
         </div>
         <div class="rules-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Časové okno</p>
-          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">365 dní</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální dokument</p>
+          {% if bmx_rules_link %}
+          <a href="{{ bmx_rules_link }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center text-lg font-black text-indigo-700 transition hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200">
+            Otevřít PDF pravidel
+          </a>
+          {% else %}
+          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Není vloženo</p>
+          {% endif %}
         </div>
         <div class="rules-stat rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Klíčový prvek</p>
@@ -208,14 +214,9 @@
         čísel mezi jezdci UCI a jezdci z ČR, musí si jezdec ČR vybrat jiné číslo a původní číslo přenechat jezdci s
         permanentním číslem UCI. Vyplnění formuláře je zdarma.</p>
         <p class = "mt-4 dark:text-slate-200">Každý jezdec je povinen při závodech, kde je použit ke zpracování výsledků systém MyLaps a BMX Event Manager či
-        obdobný systém, startovat s čipem. Start bez čipu není možný. Poplatek za přidělení a aktivaci čipu je 1900 Kč, přičemž životnost jeho baterie je garantována po dobu nejméně 3 roky. Zapůjčení čipu pro cizince je za 250,-Kč/závod. Každý
+        obdobný systém, startovat s čipem. Start bez čipu není možný. Poplatek za přidělení a aktivaci čipu je {{ transponder_price }} Kč, přičemž životnost jeho baterie je garantována po dobu nejméně 3 roky. Zapůjčení čipu pro cizince je za 250,-Kč/závod. Každý
         licencovaný jezdec je povinen vlastnit permanentní čip. Částka se hradí Asociaci klubů BMX a ta mu čip vydá před
-        startem závodu. Pro kategorie příchozích na závodech České ligy a Moravské ligy je půjčovné 100,-Kč. Před
-        použitím je nutné čip aktivovat v systému MyLaps, bez aktivace je čip nefunkční. Po aktivaci je čip aktivní 1 nebo 2 
-        roky od data aktivace, podle druhu čipu. Pro další rok je nutné čip před vypršením platnosti znovu aktivovat za poplatek přibližně
-        750,-Kč/rok, 1250,-Kč/2roky. Aktivaci je nutné provést on-line v účtu na webových stránkách www.mylaps.com.
-        Každý jezdec je povinen si aktivaci a prodloužení čipu zajistit na vlastní odpovědnost. Bez platného a aktivního
-        čipu bude jezdci v jízdě uložen trest DNF (článek 6.1.039 pravidel UCI). Čip nesmí být umístěn před osou
+        startem závodu.  Bez platného a aktivního čipu bude jezdci v jízdě uložen trest DNF (článek 6.1.039 pravidel UCI). Čip nesmí být umístěn před osou
         předního kola a musí být umístěn na přední vidlici. Pokud bude zjištěno při závodě jiné umístění čipu, bude
         jezdci uložen trest DNS za jízdu, v níž jiné umístění čipu bylo zjištěno.</p>
 

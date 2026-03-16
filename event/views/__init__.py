@@ -31,10 +31,12 @@ from event.views.views_entry import (
     check_rider,
     fees_on_event,
     invoice_edit_view,
+    invoice_delete_view,
     cash_receipts_on_event,
     cash_receipts_export_view,
     cash_receipt_pdf_view,
     cash_receipt_edit_view,
+    cash_receipt_delete_view,
 )
 
 from event.views.views_payment import (

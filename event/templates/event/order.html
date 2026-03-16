@@ -1,151 +1,169 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %} Potvrzení přihlášky {% endblock title %}
+{% block title %}Potvrzení přihlášky{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+{% endblock %}
+
 {% block content %}
-
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-4xl font-bold text-white">
-         POTVRZENÍ REGISTRACE
-      </h1>
-  </div>
-</header>
-
-{% if messages %}
-<div class="max-w-3xl mx-auto mt-6">
-  {% for message in messages %}
-  <div class="rounded-md bg-yellow-50 p-4 mb-4 shadow">
-    <div class="flex">
-      <div class="flex-shrink-0">
-        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v2m0 4h.01m-.01 0a9 9 0 110-18 9 9 0 010 18z" />
-        </svg>
-      </div>
-      <div class="ml-3">
-        <p class="text-sm text-yellow-800">{{ message }}</p>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<form method="POST">
-  {% csrf_token %}
-<div class="bg-white dark:bg-gray-800 dark:text-gray-200">
-  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:pb-24">
-   
-
-{% if duplicities %}
-    <div class="rounded-md bg-red-50 p-4 mt-4">
-  <div class="flex">
-    <div class="flex-shrink-0">
-      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-      </svg>
-    </div>
-    <div class="ml-3">
-      <h3 class="text-sm font-medium text-red-800">Z Vašeho košíku byly vymazáni jezdci, kteří již na závod přihlášeni jsou, případně jsou v košíku jiného uživatele. Jde o:</h3>
-      <div class="mt-2 text-sm text-red-700">
-        <ul role="list" class="list-disc space-y-1 pl-5">
-          {% for duplicity in duplicities %}
-          {% if duplicity.is_beginner %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_beginner}}, v košíku uživatele: {{duplicity.user}}</li>
-          {% elif duplicity.is_20 %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_20}}, v košíku uživatele: {{duplicity.user}}</li>
-          {% else %}
-            <li>{{duplicity.rider.last_name}} {{duplicity.rider.first_name}} ze závodu {{duplicity.event}} v kategorii {{duplicity.class_24}}, v košíku uživatele: {{duplicity.user}}</li>
-          {% endif %}
-          {% endfor %}
-        </ul>
-      </div>
-      <a href="{% url 'event:order' %}" class="inline-block mt-8 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
-        Beru na vědomí
-      </a>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-{% if not duplicities %}
-    <div class="mt-16">
-      <div class="space-y-20">
-        <div>
-          <div class="rounded-lg bg-gray-50 dark:bg-gray-700 px-4 py-6 sm:flex sm:items-center sm:justify-between sm:space-x-6 sm:px-6 lg:space-x-8">
-            <dl class="flex-auto space-y-6 divide-y divide-gray-200 text-sm text-gray-600 dark:text-gray-200 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:space-y-0 sm:divide-y-0 lg:w-1/2 lg:flex-none lg:gap-x-8">
-              <div class="flex justify-between sm:block">
-                <dt>Celková platba</dt>
-                <dd class="sm:mt-1">{{price}} CZK</dd>
-              </div>
-              <div class="flex justify-between pt-6 sm:block sm:pt-0">
-
-              </div>
-              <div class="flex justify-between pt-6 font-medium text-gray-900 dark:text-gray-200 sm:block sm:pt-0">
-                <dt>Počet položek</dt>
-                <dd class="sm:mt-1">{{sum}}</dd>
-              </div>
-            </dl>
-            <button type="submit" class="mt-6 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto" id="checkin-button" name="checkin-button">
-              Zaplatit
-            </button>
-          </div>
-
-          <table class="mt-4 w-full text-gray-500 sm:mt-6">
-            <thead class="sr-only text-left text-sm text-gray-500 sm:not-sr-only">
-              <tr>
-                <th scope="col" class="py-3 pr-8 font-normal sm:w-2/5 lg:w-1/3">Jezdec</th>
-                <th scope="col" class="hidden w-1/5 py-3 pr-8 font-normal sm:table-cell">Závod</th>
-                <th scope="col" class="hidden py-3 pr-8 font-normal sm:table-cell">Kategorie</th>
-                <th scope="col" class="w-0 py-3 text-right font-normal"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 border-b border-gray-200 text-sm sm:border-t">
-            {% for order in orders %}
-              <tr>
-                <td class="py-4 pr-8">
-                  <div class="flex items-center">
-                    <img src="{{order.rider.photo.url}}" alt="Detail of mechanical pencil tip with machined black steel shaft and chrome lead tip." class="mr-6 h-16 w-16 rounded-3xl object-cover object-center">
-                    <div>
-                      <div class="font-medium text-gray-900 dark:text-gray-200">{{order.rider.first_name}} {{order.rider.last_name}}</div>
-                      <div class="mt-1">{{order.rider.club}}</div>
-                      <div class="mt-1 sm:hidden">{{order.event}}</div>
-                      <div class="mt-1 sm:hidden">{{order.event_class}}</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="hidden py-6 pr-8 sm:table-cell">
-                  <div class="mt-1">{{order.event}}</div>
-                  <div class="mt-1">{{order.event.date}}</div>
-                </td>
-                <td class="hidden py-6 pr-8 sm:table-cell">
-                  <div class="mt-1"> {{order.event_class}} </div>
-                  <div class="mt-1">
-                    {% if order.fee_20 %}
-                      Startovné: {{order.fee_20}} CZK
-                    {% elif order.fee_beginner %}
-                      Startovné: {{order.fee_beginner}} CZK
-                    {% else %}
-                      Startovné: {{order.fee_24}} CZK
-                    {% endif %}
-                  </div>
-                </td>
-                <td class="whitespace-nowrap py-6 text-right font-medium">
-                  <button type="submit" class="text-indigo-600" id="btn-del" name="btn-del" value="{{order.id}}">Smazat</button>
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
+      <div class="order-hero-layout flex flex-col gap-8 lg:block">
+        <div class="max-w-2xl lg:flex-1">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+            Potvrzení registrace
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Košík přihlášek
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+            Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď platbu z kreditu.
+          </p>
+        </div>
+        <div class="order-count-card dashboard-card mt-0 rounded-[1.5rem] border p-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Položky v košíku</p>
+          <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ sum|default:0 }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">čekají na potvrzení</p>
         </div>
       </div>
-    </div>
-{% endif %}
-  </div>
-</div>
+    </header>
 
-</form>
+    {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+      <div class="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-8">
+      {% csrf_token %}
+
+      {% if duplicities %}
+      <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+        <div class="rounded-[1.5rem] border border-rose-200 bg-rose-50 px-6 py-6 dark:border-rose-900/60 dark:bg-rose-950/30">
+          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-rose-600 dark:text-rose-300">Duplicitní položky</p>
+          <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Košík byl automaticky vyčištěn</h2>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Z košíku byli odebráni jezdci, kteří už jsou na závod přihlášeni nebo jsou aktuálně v košíku jiného uživatele.
+          </p>
+
+          <ul class="mt-5 space-y-3 text-sm text-slate-700 dark:text-slate-200">
+            {% for duplicity in duplicities %}
+            <li class="rounded-xl border border-rose-100 bg-white/80 px-4 py-3 dark:border-rose-900/40 dark:bg-slate-950/50">
+              {% if duplicity.is_beginner %}
+                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_beginner }}, v košíku uživatele: {{ duplicity.user }}
+              {% elif duplicity.is_20 %}
+                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_20 }}, v košíku uživatele: {{ duplicity.user }}
+              {% else %}
+                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_24 }}, v košíku uživatele: {{ duplicity.user }}
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+
+          <a href="{% url 'event:order' %}" class="mt-6 inline-flex items-center justify-center rounded-xl border border-rose-700 bg-rose-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-800">
+            Beru na vědomí
+          </a>
+        </div>
+      </section>
+      {% else %}
+      <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+        <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div class="order-summary-card rounded-[1.5rem] border p-5 sm:p-6">
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celková platba</p>
+                <p class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ price }} CZK</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Počet položek</p>
+                <p class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum }}</p>
+              </div>
+              <div class="hidden lg:block">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Platba</p>
+                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Potvrzením se přihlášky zaplatí z uživatelského kreditu.</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="checkin-button"
+            name="checkin-button"
+            class="order-pay-btn inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold shadow-lg shadow-emerald-900/20 transition focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          >
+            Zaplatit
+          </button>
+        </div>
+
+        {% if orders %}
+        <div class="mt-6 space-y-4">
+          {% for order in orders %}
+          <article class="order-entry-card rounded-[1.5rem] border p-5 shadow-sm transition">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
+              <div class="flex min-w-0 flex-1 items-center gap-4">
+                <div class="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200 dark:ring-slate-700">
+                  <img
+                    src="{{ order.rider.photo.url }}"
+                    alt="{{ order.rider.first_name }} {{ order.rider.last_name }}"
+                    class="h-full w-full object-cover"
+                  >
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <p class="text-lg font-bold text-slate-900 dark:text-white">{{ order.rider.first_name }} {{ order.rider.last_name }}</p>
+                    <span class="order-pill">{{ order.event_class }}</span>
+                  </div>
+                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-300">
+                    <span>{{ order.rider.club|default:"Bez klubové příslušnosti" }}</span>
+                    <span class="text-slate-300 dark:text-slate-600">•</span>
+                    <span>{{ order.event }}</span>
+                    <span class="text-slate-300 dark:text-slate-600">•</span>
+                    <time datetime="{{ order.event.date|date:'Y-m-d' }}">{{ order.event.date }}</time>
+                  </div>
+                  <div class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                    {% if order.fee_20 %}
+                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_20 }} CZK</span>
+                    {% elif order.fee_beginner %}
+                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_beginner }} CZK</span>
+                    {% else %}
+                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_24 }} CZK</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex shrink-0 justify-start lg:ml-auto lg:justify-end">
+                <button
+                  type="submit"
+                  class="order-delete-btn rounded-xl px-5 py-2.5 text-sm font-semibold transition"
+                  id="btn-del"
+                  name="btn-del"
+                  value="{{ order.id }}"
+                >
+                  Smazat
+                </button>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="mt-6 rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
+          <p class="text-lg font-semibold text-slate-900 dark:text-white">Košík je prázdný</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">V tuto chvíli nemáš připravené žádné přihlášky k potvrzení.</p>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
+    </form>
+  </div>
+</section>
 
 <script src="https://js.stripe.com/v3/"></script>
 <script src="{% static 'js/checkout.js' %}"></script>
