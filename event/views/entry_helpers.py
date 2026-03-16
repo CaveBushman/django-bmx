@@ -28,6 +28,61 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 
 
+def _get_rider_event_snapshot(rider):
+    snapshot = getattr(rider, "_event_entry_snapshot", None)
+    if snapshot is None:
+        snapshot = {}
+        rider._event_entry_snapshot = snapshot
+    return snapshot
+
+
+def _resolve_rider_event_data(event, rider, *, beginners_enabled=False):
+    """Spočítá a cacheuje category/fee data pro rider+event v rámci requestu."""
+    event_key = event.pk or id(event)
+    snapshot = _get_rider_event_snapshot(rider)
+    cache_key = (event_key, bool(beginners_enabled))
+    cached = snapshot.get(cache_key)
+    if cached is not None:
+        return cached
+
+    data = {
+        "is_beginner": bool(beginners_enabled and is_beginner(rider)),
+        "class_beginner": "",
+        "class_20": resolve_event_classes(event, rider, is_20=True),
+        "class_24": resolve_event_classes(event, rider, is_20=False),
+        "fee_beginner": 0,
+        "fee_20": resolve_event_fee(event, rider, is_20=True),
+        "fee_24": resolve_event_fee(event, rider, is_20=False),
+    }
+
+    if data["is_beginner"]:
+        data["class_beginner"] = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+        data["fee_beginner"] = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
+
+    if rider.is_elite:
+        data["class_24"] = "NELZE PŘIHLÁSIT"
+
+    data["allow_beginner"] = data["is_beginner"] and event.is_beginners_event()
+    data["allow_20"] = (
+        not (
+            event.type_for_ranking == "Mistrovství ČR jednotlivců"
+            and not rider.is_qualify_to_cn_20
+        )
+        and data["class_20"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+    )
+    data["allow_24"] = (
+        not rider.is_elite
+        and not (
+            event.type_for_ranking == "Mistrovství ČR jednotlivců"
+            and not rider.is_qualify_to_cn_24
+        )
+        and data["class_24"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+    )
+
+    snapshot[cache_key] = data
+    return data
+
+
 def build_foreign_entry_summary(request):
     """Sestaví řádky zahraniční přihlášky z GET parametrů formuláře."""
     uci_ids = request.GET.getlist("uci_id[]")
@@ -469,7 +524,6 @@ def get_active_riders():
         riders = list(
             Rider.objects.filter(is_active=True, is_approved=True)
             .filter(Q(valid_licence=True) | Q(fix_valid_licence=True))
-            .prefetch_related("entry_set")
         )
         cache.set("active_riders", riders, timeout=600)
     return riders
@@ -485,22 +539,15 @@ def resolve_event_beginner_support(event):
 
 
 def _is_rider_allowed_for_event_category(event, rider, *, is_20=False, is_24=False, is_beginner=False):
+    data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
     if is_beginner:
-        return event.is_beginners_event()
+        return data["allow_beginner"]
 
     if is_20:
-        if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20:
-            return False
-        rider_class = resolve_event_classes(event, rider, is_20=True)
-        return rider_class not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+        return data["allow_20"]
 
     if is_24:
-        if rider.is_elite:
-            return False
-        if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24:
-            return False
-        rider_class = resolve_event_classes(event, rider, is_20=False)
-        return rider_class not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
+        return data["allow_24"]
 
     return False
 
@@ -533,70 +580,73 @@ def split_selected_riders(request, event):
 def calculate_selected_fee(event, riders_beginner, riders_20, riders_24):
     total_fee = 0
     for rider in riders_beginner:
-        total_fee += resolve_event_fee(event, rider, is_20=True, is_beginner=True)
+        total_fee += _resolve_rider_event_data(event, rider, beginners_enabled=True)["fee_beginner"]
     for rider in riders_20:
-        total_fee += resolve_event_fee(event, rider, is_20=True)
+        total_fee += _resolve_rider_event_data(event, rider, beginners_enabled=True)["fee_20"]
     for rider in riders_24:
-        total_fee += resolve_event_fee(event, rider, is_20=False)
+        total_fee += _resolve_rider_event_data(event, rider, beginners_enabled=True)["fee_24"]
     return total_fee
 
 
 def store_selected_entries(request, event, riders_beginner, riders_20, riders_24):
     for rider in riders_beginner:
+        rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
         replace_pending_entry(
             request=request,
             event=event,
             rider=rider,
             category_flags={"is_beginner": True, "is_20": False, "is_24": False},
             class_fields={
-                "class_beginner": resolve_event_classes(event, rider, is_20=True, is_beginner=True),
+                "class_beginner": rider_data["class_beginner"],
             },
             fee_fields={
-                "fee_beginner": resolve_event_fee(event, rider, is_20=True, is_beginner=True),
+                "fee_beginner": rider_data["fee_beginner"],
             },
         )
 
     for rider in riders_20:
+        rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
         replace_pending_entry(
             request=request,
             event=event,
             rider=rider,
             category_flags={"is_20": True, "is_beginner": False, "is_24": False},
             class_fields={
-                "class_20": resolve_event_classes(event, rider, is_20=True),
+                "class_20": rider_data["class_20"],
             },
             fee_fields={
-                "fee_20": resolve_event_fee(event, rider, is_20=True),
+                "fee_20": rider_data["fee_20"],
             },
         )
 
     for rider in riders_24:
+        rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
         replace_pending_entry(
             request=request,
             event=event,
             rider=rider,
             category_flags={"is_24": True, "is_20": False, "is_beginner": False},
             class_fields={
-                "class_24": resolve_event_classes(event, rider, is_20=False),
+                "class_24": rider_data["class_24"],
             },
             fee_fields={
-                "fee_24": resolve_event_fee(event, rider, is_20=False),
+                "fee_24": rider_data["fee_24"],
             },
         )
 
 
 def annotate_riders_for_event(event, riders, beginners_enabled):
-    registered = Entry.objects.filter(event=event, payment_complete=True)
+    registered = Entry.objects.filter(event=event, payment_complete=True).only(
+        "rider_id", "is_beginner", "is_20", "is_24"
+    )
     registered_map = {entry.rider_id: entry for entry in registered}
 
     for rider in riders:
-        if beginners_enabled and is_beginner(rider):
-            rider.is_beginner = True
-            rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-        rider.class_20 = resolve_event_classes(event, rider, is_20=True)
-        rider.class_24 = resolve_event_classes(event, rider, is_20=False)
-        if rider.is_elite:
-            rider.class_24 = "NELZE PŘIHLÁSIT"
+        rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=beginners_enabled)
+        rider.is_beginner = rider_data["is_beginner"]
+        rider.class_beginner = rider_data["class_beginner"]
+        rider.class_20 = rider_data["class_20"]
+        rider.class_24 = rider_data["class_24"]
 
         entry = registered_map.get(rider.pk)
         rider.is_registered_beginner = bool(entry and entry.is_beginner)
@@ -606,30 +656,44 @@ def annotate_riders_for_event(event, riders, beginners_enabled):
 
 def load_checkout_session_payload(request):
     event_payload = json.loads(request.session["event"])
-    event = Event.objects.get(id=event_payload["event"])
+    event = Event.objects.select_related("classes_and_fees_like").get(id=event_payload["event"])
     riders_beginner = json.loads(request.session["riders_beginner"])
     riders_20 = json.loads(request.session["riders_20"])
     riders_24 = json.loads(request.session["riders_24"])
     return event, riders_beginner, riders_20, riders_24
 
 
+def _map_riders_from_payloads(*payload_groups):
+    uci_ids = []
+    for payload_group in payload_groups:
+        for rider_data in payload_group:
+            uci_id = rider_data["fields"]["uci_id"]
+            if uci_id is not None:
+                uci_ids.append(uci_id)
+
+    return Rider.objects.in_bulk(uci_ids, field_name="uci_id")
+
+
 def build_checkout_line_items(event, riders_beginner, riders_20, riders_24):
     line_items = []
+    rider_map = _map_riders_from_payloads(riders_beginner, riders_20, riders_24)
     for rider_data in riders_beginner:
-        rider = Rider.objects.get(uci_id=rider_data["fields"]["uci_id"])
+        rider = rider_map[rider_data["fields"]["uci_id"]]
         line_items += generate_stripe_line(event, rider, is_20=True, is_beginner=True)
     for rider_data in riders_20:
-        rider = Rider.objects.get(uci_id=rider_data["fields"]["uci_id"])
+        rider = rider_map[rider_data["fields"]["uci_id"]]
         line_items += generate_stripe_line(event, rider, is_20=True)
     for rider_data in riders_24:
-        rider = Rider.objects.get(uci_id=rider_data["fields"]["uci_id"])
+        rider = rider_map[rider_data["fields"]["uci_id"]]
         line_items += generate_stripe_line(event, rider, is_20=False)
     return line_items
 
 
 def create_checkout_entries(event, checkout_session, rider_payloads, *, is_beginner=False, is_20=False, is_24=False):
+    rider_map = _map_riders_from_payloads(rider_payloads)
     for rider_data in rider_payloads:
-        rider = Rider.objects.get(uci_id=rider_data["fields"]["uci_id"])
+        rider = rider_map[rider_data["fields"]["uci_id"]]
+        rider_event_data = _resolve_rider_event_data(event, rider, beginners_enabled=is_beginner)
         Entry.objects.create(
             transaction_id=checkout_session.id,
             event=event,
@@ -637,12 +701,12 @@ def create_checkout_entries(event, checkout_session, rider_payloads, *, is_begin
             is_beginner=is_beginner,
             is_20=is_20,
             is_24=is_24,
-            class_beginner=resolve_event_classes(event, rider, is_20=True, is_beginner=True) if is_beginner else "",
-            class_20=resolve_event_classes(event, rider, is_20=True) if is_20 else "",
-            class_24=resolve_event_classes(event, rider, is_20=False) if is_24 else "",
-            fee_beginner=resolve_event_fee(event, rider, is_20=True, is_beginner=True) if is_beginner else 0,
-            fee_20=resolve_event_fee(event, rider, is_20=True) if is_20 else 0,
-            fee_24=resolve_event_fee(event, rider, is_20=False) if is_24 else 0,
+            class_beginner=rider_event_data["class_beginner"] if is_beginner else "",
+            class_20=rider_event_data["class_20"] if is_20 else "",
+            class_24=rider_event_data["class_24"] if is_24 else "",
+            fee_beginner=rider_event_data["fee_beginner"] if is_beginner else 0,
+            fee_20=rider_event_data["fee_20"] if is_20 else 0,
+            fee_24=rider_event_data["fee_24"] if is_24 else 0,
         )
 
 

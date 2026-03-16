@@ -1,6 +1,7 @@
 import logging
 from django.db import models
 from django.db.models import Q
+from django.core.cache import cache
 from club.models import Club
 from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
@@ -449,6 +450,12 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
 
 
 pre_save.connect(delete_file_on_change_extension, sender=Rider)
+
+
+@receiver(post_save, sender=Rider)
+@receiver(post_delete, sender=Rider)
+def invalidate_active_riders_cache(sender, **kwargs):
+    cache.delete("active_riders")
 
 
 class ForeignRider(models.Model):
