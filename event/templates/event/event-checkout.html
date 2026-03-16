@@ -1,86 +1,199 @@
-{% extends 'base.html' %} {% block title %} Seznam registrací na závody {% endblock title %}
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Seznam registrací na závody{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .checkout-entry-card {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(226, 232, 240, 0.9) !important;
+  }
+
+  .checkout-entry-card:hover {
+    border-color: rgba(203, 213, 225, 0.95) !important;
+    box-shadow: 0 22px 50px -26px rgba(15, 23, 42, 0.28) !important;
+  }
+
+  .checkout-entry-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .checkout-entry-subline {
+    color: #64748b;
+  }
+
+  .checkout-danger-btn {
+    background: #be123c !important;
+    border-color: #be123c !important;
+    color: #ffffff !important;
+  }
+
+  .checkout-danger-btn:hover {
+    background: #9f1239 !important;
+    border-color: #9f1239 !important;
+    color: #ffffff !important;
+  }
+
+  .checkout-success-btn {
+    background: #15803d !important;
+    border-color: #15803d !important;
+    color: #ffffff !important;
+  }
+
+  .checkout-success-btn:hover {
+    background: #166534 !important;
+    border-color: #166534 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark .checkout-entry-card {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 20px 44px -28px rgba(2, 6, 23, 0.9) !important;
+  }
+
+  html.dark .checkout-entry-card:hover {
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    box-shadow: 0 24px 60px -30px rgba(15, 23, 42, 0.95) !important;
+  }
+
+  html.dark .checkout-entry-subline {
+    color: #94a3b8 !important;
+  }
+
+  .checkout-count-card {
+    width: 220px;
+  }
+
+  .checkout-compact-card {
+    padding: 1.25rem !important;
+  }
+
+  @media (min-width: 1024px) {
+    .checkout-hero-layout {
+      position: relative;
+      min-height: 208px;
+      padding-right: 280px;
+    }
+
+    .checkout-count-card {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      margin-right: 0 !important;
+    }
+  }
+
+</style>
+{% endblock %}
+
 {% block content %}
-
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">
-      AKTIVNÍ REGISTRACE
-    </h1>
-  </div>
-</header>
-
-<form method="POST">
-  {% csrf_token %}
-
-<div class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-  <div class="mt-8 flow-root">
-    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-        <table class="min-w-full divide-y divide-gray-300">
-          <thead>
-            <tr>
-              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:bg-gray-800 dark:text-gray-200">Jezdec/jezdkyně</th>
-              <th scope="col" class="hidden sm:block px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Závod</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Kategorie</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">Status</th>
-              <th scope="col" class="px-3 py-3.5 text-sm font-semibold text-gray-900 text-center dark:bg-gray-800 dark:text-gray-200">Změnit stav přihlášení</th>
-
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:text-gray-200">
-          {% for confirmed_event in confirmed_events %}
-          {% if confirmed_event.is_visible %}
-            <tr>
-              <td class="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
-                <div class="flex items-center">
-                  <div class="h-11 w-11 flex-shrink-0">
-                    <img class="h-11 w-11 rounded-full" src="{{confirmed_event.rider.photo.url}}" alt="">
-                  </div>
-                  <div class="ml-4">
-                    <div class="font-medium text-gray-900 dark:text-gray-200">{{confirmed_event.rider}}</div>
-                    <div class="mt-1 text-gray-500 dark:text-gray-300">{{confirmed_event.rider.club}}</div>
-                    <div class="mt-1 sm:hidden text-gray-500 dark:text-gray-300">{{confirmed_event.event}}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="hidden sm:block whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                <div class="grid grid-rows-1 sm:grid-rows-2">
-                  <div class="text-gray-900 dark:text-gray-200 ">{{confirmed_event.event}}</div>
-                  <div class="hidden sm:block mt-1 text-gray-500 dark:text-gray-300">{{confirmed_event.event.date}}</div>
-                </div>
-              </td>
-              {% if confirmed_event.is_beginner %}
-              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_beginner}}</td>
-              {% elif confirmed_event.is_20 %}
-              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_20}}</td>
-              {% else %}
-              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500 dark:text-gray-200">{{confirmed_event.class_24}}</td>
-              {% endif %}
-              <td class="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                {% if confirmed_event.checkout %}
-                <span class="text-red-700 font-medium rounded-lg text-sm py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:focus:ring-red-900">Odhlášen</span>
-                {% else %}
-                <span class="text-green-700 font-medium rounded-lg text-sm py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:focus:ring-green-800">Přihlášen</span>
-                {% endif %}
-              </td>
-              <td class="whitespace-nowrap text-center py-5 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                 {% if confirmed_event.checkout %}
-                <button type="submit" name="btn-change" id="btn-change-in" value = {{confirmed_event.id}} class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Přihlásit</button>
-                  {% else %}
-                <button type="submit" name="btn-change" id="btn-change-out" value = {{confirmed_event.id}} class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Odhlásit</button>
-                  {% endif %}
-              </td>
-            </tr>
-
-            {% endif %}
-            {% endfor %}
-          <tr><td></td><td></td><td></td><td></td><td></td></tr>
-          </tbody>
-        </table>
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
+      <div class="checkout-hero-layout flex flex-col gap-8 lg:block">
+        <div class="max-w-xl lg:flex-1">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+            Active registrations
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Aktivní registrace
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+            Přehled zaplacených registrací na nadcházející závody s možností změny stavu přihlášení.
+          </p>
+        </div>
+        <div class="checkout-count-card dashboard-card mt-0 rounded-[1.5rem] border p-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní položky</p>
+          <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ confirmed_events|length }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">registrací v přehledu</p>
         </div>
       </div>
-    </div>
-  </div>
+    </header>
 
-</form>
+    <form method="POST" class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      {% csrf_token %}
+
+      {% if confirmed_events %}
+      <div class="space-y-4">
+        {% for confirmed_event in confirmed_events %}
+        {% if confirmed_event.is_visible %}
+        <article class="checkout-entry-card checkout-compact-card rounded-[1.5rem] border shadow-sm transition">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <div class="flex min-w-0 flex-1 items-center gap-4">
+              <img class="h-14 w-14 rounded-2xl object-cover ring-1 ring-slate-200 dark:ring-slate-700" src="{{ confirmed_event.rider.photo.url }}" alt="">
+              <div class="min-w-0 flex-1 space-y-2">
+                <div>
+                  <div class="checkout-entry-title-row">
+                    <p class="text-lg font-bold text-slate-900 dark:text-white">{{ confirmed_event.rider }}</p>
+                    <span class="text-sm font-semibold text-slate-300 dark:text-slate-600">/</span>
+                    <p class="text-sm font-semibold text-slate-500 dark:text-slate-300">{{ confirmed_event.event }}</p>
+                  </div>
+                  <p class="checkout-entry-subline text-sm">
+                    {{ confirmed_event.rider.club|default:"Bez klubové příslušnosti" }} <span class="mx-2 text-slate-300 dark:text-slate-600">•</span> {{ confirmed_event.event.date }}
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    UCI ID: {{ confirmed_event.rider.uci_id }}
+                  </span>
+                  {% if confirmed_event.is_beginner %}
+                  <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+                    {{ confirmed_event.class_beginner }}
+                  </span>
+                  {% elif confirmed_event.is_20 %}
+                  <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+                    {{ confirmed_event.class_20 }}
+                  </span>
+                  {% else %}
+                  <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+                    {{ confirmed_event.class_24 }}
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex shrink-0 justify-start lg:ml-auto lg:justify-end">
+              {% if confirmed_event.checkout %}
+                <button
+                  type="submit"
+                  name="btn-change"
+                  id="btn-change-in"
+                  value="{{ confirmed_event.id }}"
+                  class="checkout-success-btn rounded-xl border px-5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                >
+                  Přihlásit
+                </button>
+              {% else %}
+                <button
+                  type="submit"
+                  name="btn-change"
+                  id="btn-change-out"
+                  value="{{ confirmed_event.id }}"
+                  class="checkout-danger-btn rounded-xl border px-5 py-2.5 text-sm font-semibold shadow-lg shadow-rose-900/20 transition focus:outline-none focus:ring-2 focus:ring-rose-300"
+                >
+                  Odhlásit
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
+        <p class="text-lg font-semibold text-slate-900 dark:text-white">Žádné aktivní registrace</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Momentálně nemáš žádnou zaplacenou registraci na budoucí závod.</p>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</section>
 {% endblock %}

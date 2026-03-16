@@ -1,6 +1,9 @@
+import logging
 from .models import Result
 import re
 import unidecode
+
+logger = logging.getLogger(__name__)
 
 
 class GetResult:
@@ -189,7 +192,6 @@ class GetResult:
         return 0
 
     def write_result(self):
-        print("➡️ Spouštím write_result()")
         
         self.point = self.get_ranking_points()
         self.is_20 = self.cruiser_resolve()
@@ -198,13 +200,13 @@ class GetResult:
         if self.is_beginner:
             self.is_20=False
 
-        print(f"➡️ Ukládám výsledek pro {self.first_name} {self.last_name}, místo: {self.place}")
+        logger.debug(f"Ukládám výsledek pro {self.first_name} {self.last_name}, místo: {self.place}")
         result = Result.objects.create()
         
         try:
-            result.rider = int(self.uci_id)
-        except:
-            result.rider = 0
+            result.rider_id = int(self.uci_id)
+        except (ValueError, TypeError):
+            result.rider_id = None
 
         result.first_name = self.first_name
         result.last_name = self.last_name
@@ -227,7 +229,7 @@ class GetResult:
         result.is_beginner = self.is_beginner
 
         result.save()
-        print("✅ Výsledek uložen.")
+        logger.info(f"Výsledek uložen: {self.first_name} {self.last_name}, místo: {self.place}")
 
     @staticmethod
     def ranking_code_resolve(type):

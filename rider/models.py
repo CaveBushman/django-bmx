@@ -1,7 +1,11 @@
+import logging
 from django.db import models
+from django.db.models import Q
 from club.models import Club
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth.models import User
 
 
@@ -38,6 +42,7 @@ class Rider(models.Model):
         ("Men 25-29", "Men 25-29"),
         ("Men 30-34", "Men 30-34"),
         ("Men 35 and over", "Men 35 and over"),
+        ("Girls 6", "Girls 6"),
         ("Girls 7", "Girls 7"),
         ("Girls 8", "Girls 8"),
         ("Girls 9", "Girls 9"),
@@ -63,7 +68,7 @@ class Rider(models.Model):
         ("Boys 13 and 14", "Boys 13 and 14"),
         ("Boys 15 and 16", "Boys 15 and 16"),
         ("Men 17-24", "Men 17-24"),
-        ("Men 25-29", "Men 25-39"),
+        ("Men 25-29", "Men 25-29"),
         ("Men 30-34", "Men 30-34"),
         ("Men 35-39", "Men 35-39"),
         ("Men 40-44", "Men 40-44"),
@@ -72,7 +77,7 @@ class Rider(models.Model):
         ("Girls 12 and under", "Girls 12 and under"),
         ("Girls 13-16", "Girls 13-16"),
         ("Women 17-29", "Women 17-29"),
-        ("Women 30-39", "Women 30-99"),
+        ("Women 30-39", "Women 30-39"),
         ("Women 40 and over", "Women 40 and over"),
     )
 
@@ -88,7 +93,6 @@ class Rider(models.Model):
     date_of_birth = models.DateField(blank=False)
     rc = models.CharField(max_length=1000, blank=True, null=True, default="")
     gender = models.CharField(choices=GENDER, max_length=10)
-    have_girl_bonus = models.BooleanField(default=False)
 
     email = models.EmailField(max_length=100, null=True, blank=True)
     phone = models.CharField(max_length=100, null=True, blank=True)
@@ -171,14 +175,13 @@ class Rider(models.Model):
     def get_age(self, rider):
         return date.today().year - rider.date_of_birth.year
 
+    @staticmethod
     def sum_of_riders():
-        return Rider.objects.filter(is_active=True).count
+        return Rider.objects.filter(is_active=True).count()
 
     @staticmethod
     def set_class_beginner(rider):
         age: int = rider.get_age(rider)
-        if rider.have_girl_bonus:
-            age -= 1
         if age <= 6:
             return "Beginners 1"
         elif age <= 8:
@@ -241,7 +244,9 @@ class Rider(models.Model):
                     return "Men 35 and over"
 
             else:
-                if age <= 7:
+                if age <= 6:
+                    return "Girls 6"
+                elif age == 7:
                     return "Girls 7"
                 elif age == 8:
                     return "Girls 8"
@@ -316,6 +321,99 @@ class Rider(models.Model):
             return "yellow"
 
 
+class RiderStatsSubscription(models.Model):
+    STATUS_ACTIVE = "active"
+    STATUS_EXPIRED = "expired"
+    STATUS_CANCELED = "canceled"
+    STATUS_PAST_DUE = "past_due"
+    STATUS_CHOICES = (
+        (STATUS_ACTIVE, "Aktivní"),
+        (STATUS_EXPIRED, "Expirované"),
+        (STATUS_CANCELED, "Zrušené"),
+        (STATUS_PAST_DUE, "Neprodloužené"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="rider_stats_subscriptions")
+    rider = models.ForeignKey("rider.Rider", on_delete=models.CASCADE, related_name="premium_subscriptions")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="rider_stats_subscriptions")
+    starts_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE, db_index=True)
+    monthly_price = models.IntegerField(default=0)
+    auto_renew = models.BooleanField(default=True)
+    last_renewed_at = models.DateTimeField(null=True, blank=True)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Předplatné prémiových statistik"
+        verbose_name_plural = "Předplatná prémiových statistik"
+        indexes = [
+            models.Index(fields=["user", "status", "expires_at"], name="rider_sub_user_status_exp"),
+            models.Index(fields=["rider", "status", "expires_at"], name="rider_sub_rider_status_exp"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "rider"],
+                condition=Q(status="active"),
+                name="uniq_active_rider_stats_subscription",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} -> {self.rider} ({self.get_status_display()})"
+
+
+class RiderStatsCharge(models.Model):
+    REASON_INITIAL = "initial"
+    REASON_RENEWAL = "renewal"
+    REASON_CHOICES = (
+        (REASON_INITIAL, "První aktivace"),
+        (REASON_RENEWAL, "Obnovení"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="rider_stats_charges")
+    rider = models.ForeignKey("rider.Rider", on_delete=models.CASCADE, related_name="premium_charges")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="rider_stats_charges")
+    subscription = models.ForeignKey(
+        "rider.RiderStatsSubscription",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="charges",
+    )
+    amount = models.IntegerField(default=0)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    reason = models.CharField(max_length=20, choices=REASON_CHOICES, default=REASON_INITIAL)
+    payment_valid = models.BooleanField(default=True)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "Odečet za prémiové statistiky"
+        verbose_name_plural = "Odečty za prémiové statistiky"
+        indexes = [
+            models.Index(fields=["user", "payment_valid", "transaction_date"], name="rider_charge_user_valid_date"),
+            models.Index(fields=["subscription"], name="rider_charge_subscription"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.rider} - {self.amount} Kč"
+
+
+@receiver(post_save, sender=RiderStatsCharge)
+@receiver(post_delete, sender=RiderStatsCharge)
+def update_user_balance_for_stats_charge(sender, instance, **kwargs):
+    if not instance.user_id:
+        return
+    from accounts.models import Account
+    from event.credit import calculate_user_balance
+
+    new_balance = calculate_user_balance(instance.user_id)
+    Account.objects.filter(id=instance.user_id).update(credit=new_balance)
+
+
 # nastavení kategorie jezdce při ukládání
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
@@ -339,19 +437,15 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
             return
         else:
             new_photo = instance.photo
-            if old_photo == "static/images/riders/uni.jpeg":
-                instance.photo = "images/riders/uni.jpeg"
+            default_paths = ("static/images/riders/uni.jpeg", "media/images/riders/uni.jpeg", "images/riders/uni.jpeg")
+            if str(old_photo) in default_paths:
                 return
 
-            if (
-                old_photo
-                and old_photo.url != new_photo.url
-                and (
-                    old_photo != "static/images/riders/uni.jpeg"
-                    or old_photo != "media/images/riders/uni.jpeg"
-                )
-            ):
-                old_photo.delete(save=False)
+            try:
+                if old_photo and str(old_photo) not in default_paths and old_photo.url != new_photo.url:
+                    old_photo.delete(save=False)
+            except Exception:
+                pass
 
 
 pre_save.connect(delete_file_on_change_extension, sender=Rider)
@@ -376,6 +470,7 @@ class ForeignRider(models.Model):
         ("Men 25-29", "Men 25-29"),
         ("Men 30-34", "Men 30-34"),
         ("Men 35 and over", "Men 35 and over"),
+        ("Girls 6", "Girls 6"),
         ("Girls 7", "Girls 7"),
         ("Girls 8", "Girls 8"),
         ("Girls 9", "Girls 9"),
@@ -401,7 +496,7 @@ class ForeignRider(models.Model):
         ("Boys 13 and 14", "Boys 13 and 14"),
         ("Boys 15 and 16", "Boys 15 and 16"),
         ("Men 17-24", "Men 17-24"),
-        ("Men 25-29", "Men 25-39"),
+        ("Men 25-29", "Men 25-29"),
         ("Men 30-34", "Men 30-34"),
         ("Men 35-39", "Men 35-39"),
         ("Men 40-44", "Men 40-44"),
@@ -410,7 +505,7 @@ class ForeignRider(models.Model):
         ("Girls 12 and under", "Girls 12 and under"),
         ("Girls 13-16", "Girls 13-16"),
         ("Women 17-29", "Women 17-29"),
-        ("Women 30-39", "Women 30-99"),
+        ("Women 30-39", "Women 30-39"),
         ("Women 40 and over", "Women 40 and over"),
     )
 
@@ -511,7 +606,9 @@ class ForeignRider(models.Model):
                     return "Men 35 and over"
 
             else:
-                if age <= 7:
+                if age <= 6:
+                    return "Girls 6"
+                elif age == 7:
                     return "Girls 7"
                 elif age == 8:
                     return "Girls 8"
@@ -538,7 +635,7 @@ class ForeignRider(models.Model):
 
     @staticmethod
     def set_class_24(gender, age: int):
-        print(f" Nastavuji kategorii 24 - věk {age}, pohlaví {gender}")
+        logger.debug(f"Nastavuji kategorii 24 - věk {age}, pohlaví {gender}")
         if gender == "Muž" or gender == "Ostatní":
             if age <= 12:
                 return "Boys 12 and under"

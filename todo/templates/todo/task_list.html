@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Ukoly komise{% endblock title %}
+
+{% block extra_head %}
+<style>
+  html.dark .task-board-surface {
+    background: #020617;
+  }
+
+  html.dark .task-board-card {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  html.dark .task-board-card-muted {
+    color: #94a3b8;
+  }
+
+  html.dark .task-board-card-amber {
+    background: rgba(120, 53, 15, 0.28);
+    border-color: rgba(217, 119, 6, 0.35);
+  }
+
+  html.dark .task-board-card-emerald {
+    background: rgba(6, 78, 59, 0.28);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+
+  html.dark .task-board-card-indigo {
+    background: rgba(49, 46, 129, 0.28);
+    border-color: rgba(99, 102, 241, 0.35);
+  }
+
+  html.dark .task-board-form,
+  html.dark .task-board-table {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  html.dark .task-board-table thead,
+  html.dark .task-board-table thead tr {
+    background: #111827;
+  }
+
+  html.dark .task-board-label,
+  html.dark .task-board-table-head {
+    color: #e2e8f0;
+  }
+
+  html.dark .task-board-table-head th {
+    color: #cbd5e1;
+  }
+
+  html.dark .task-board-input {
+    background: #020617;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+
+  html.dark .task-board-input option {
+    background: #020617;
+    color: #f8fafc;
+  }
+
+  html.dark .task-board-reset {
+    border-color: #475569;
+    color: #e2e8f0;
+    background: transparent;
+  }
+
+  html.dark .task-board-reset:hover {
+    background: #1e293b;
+  }
+
+  html.dark .task-board-empty {
+    color: #94a3b8;
+  }
+
+  @media (min-width: 1024px) {
+    .task-board-hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .task-board-hero-copy {
+      flex: 1 1 auto;
+    }
+
+    .task-board-hero-action {
+      margin-left: auto;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="task-board-surface bg-slate-50 py-10 dark:bg-slate-950">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-100 via-white to-indigo-100 px-6 py-8 shadow-2xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 dark:text-white">
+      <p class="text-sm font-semibold uppercase tracking-[0.25em] text-indigo-700 dark:text-indigo-200">BMX komise</p>
+      <div class="task-board-hero mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="task-board-hero-copy lg:flex-1">
+          <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl dark:text-white">Úkoly komise BMX</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-700 sm:text-base dark:text-slate-200">
+            Přehled rozpracovaných úkolů, přidělení na členy komise a hlídání termínů.
+          </p>
+        </div>
+        <a href="{% url 'admin:todo_commissiontask_changelist' %}" class="task-board-hero-action inline-flex items-center justify-center self-start lg:ml-auto lg:self-end rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white ring-1 ring-slate-900/10 transition hover:bg-slate-700 dark:bg-white/10 dark:text-white dark:ring-white/20 dark:hover:bg-white/20">
+          Otevřít správu úkolů
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="task-board-card rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <p class="task-board-card-muted text-sm text-slate-500 dark:text-slate-400">Otevřené úkoly</p>
+        <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ open_count }}</p>
+      </div>
+      <div class="task-board-card task-board-card-amber rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
+        <p class="text-sm text-amber-700 dark:text-amber-200">Po termínu</p>
+        <p class="mt-2 text-3xl font-bold text-amber-900 dark:text-amber-100">{{ overdue_count }}</p>
+      </div>
+      <div class="task-board-card task-board-card-emerald rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/30">
+        <p class="text-sm text-emerald-700 dark:text-emerald-200">Splněné</p>
+        <p class="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{{ done_count }}</p>
+      </div>
+      <div class="task-board-card task-board-card-indigo rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/30">
+        <p class="text-sm text-indigo-700 dark:text-indigo-200">Moje otevřené</p>
+        <p class="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">{{ my_open_count }}</p>
+      </div>
+    </div>
+
+    <div class="task-board-form mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <form method="get" class="grid gap-4 lg:grid-cols-4">
+        <div>
+          <label for="scope" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Pohled</label>
+          <select id="scope" name="scope" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+            <option value="all" {% if selected_scope == "all" %}selected{% endif %}>Všechny</option>
+            <option value="mine" {% if selected_scope == "mine" %}selected{% endif %}>Moje</option>
+            <option value="open" {% if selected_scope == "open" %}selected{% endif %}>Jen otevřené</option>
+            <option value="overdue" {% if selected_scope == "overdue" %}selected{% endif %}>Po termínu</option>
+          </select>
+        </div>
+        <div>
+          <label for="status" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Stav</label>
+          <select id="status" name="status" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+            <option value="">Všechny stavy</option>
+            {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="assignee" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Řešitel</label>
+          <select id="assignee" name="assignee" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+            <option value="">Všichni členové</option>
+            {% for assignee in assignees %}
+              <option value="{{ assignee.id }}" {% if selected_assignee == assignee.id|stringformat:"s" %}selected{% endif %}>{{ assignee.first_name }} {{ assignee.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="flex items-end gap-3">
+          <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+            Použít filtr
+          </button>
+          <a href="{% url 'todo:task-list' %}" class="task-board-reset inline-flex items-center justify-center rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+            Vymazat
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <div class="task-board-table mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+          <thead class="bg-slate-50 dark:bg-slate-950/70">
+            <tr class="task-board-table-head text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <th class="px-6 py-4">Úkol</th>
+              <th class="px-6 py-4">Řešitel</th>
+              <th class="px-6 py-4">Stav</th>
+              <th class="px-6 py-4">Priorita</th>
+              <th class="px-6 py-4">Termín</th>
+              <th class="px-6 py-4">Závod</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+            {% for task in tasks %}
+              <tr class="align-top">
+                <td class="px-6 py-5">
+                  <div class="font-semibold text-slate-900 dark:text-white">{{ task.title }}</div>
+                  {% if task.description %}
+                    <p class="mt-2 max-w-xl text-sm text-slate-600 dark:text-slate-300">{{ task.description|truncatechars:160 }}</p>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-5 text-sm text-slate-700 dark:text-slate-200">
+                  {% if task.assignee %}
+                    {{ task.assignee.first_name }} {{ task.assignee.last_name }}
+                  {% else %}
+                    <span class="text-slate-400">Nepřiděleno</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-5">
+                  {% if task.status == "done" %}
+                    <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">{{ task.get_status_display }}</span>
+                  {% elif task.status == "cancelled" %}
+                    <span class="inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ task.get_status_display }}</span>
+                  {% elif task.status == "waiting" %}
+                    <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">{{ task.get_status_display }}</span>
+                  {% elif task.status == "in_progress" %}
+                    <span class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-950/40 dark:text-sky-200">{{ task.get_status_display }}</span>
+                  {% else %}
+                    <span class="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-200">{{ task.get_status_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-5">
+                  {% if task.priority == "urgent" %}
+                    <span class="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-200">{{ task.get_priority_display }}</span>
+                  {% elif task.priority == "high" %}
+                    <span class="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-950/40 dark:text-orange-200">{{ task.get_priority_display }}</span>
+                  {% elif task.priority == "low" %}
+                    <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ task.get_priority_display }}</span>
+                  {% else %}
+                    <span class="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-200">{{ task.get_priority_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-5 text-sm">
+                  {% if task.due_date %}
+                    {% if task.is_overdue %}
+                      <span class="font-semibold text-rose-700 dark:text-rose-300">{{ task.due_date|date:"j. n. Y" }}</span>
+                      <div class="mt-1 text-xs text-rose-600 dark:text-rose-300">Po termínu</div>
+                    {% elif task.due_date == today %}
+                      <span class="font-semibold text-amber-700 dark:text-amber-300">{{ task.due_date|date:"j. n. Y" }}</span>
+                      <div class="mt-1 text-xs text-amber-600 dark:text-amber-300">Dnes</div>
+                    {% else %}
+                      <span class="text-slate-700 dark:text-slate-200">{{ task.due_date|date:"j. n. Y" }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-slate-400">Bez termínu</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-5 text-sm text-slate-700 dark:text-slate-200">
+                  {% if task.event %}
+                    {{ task.event.name }}
+                  {% else %}
+                    <span class="text-slate-400">Obecný úkol</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="task-board-empty px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                  Pro zadaný filtr nebyly nalezeny žádné úkoly.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

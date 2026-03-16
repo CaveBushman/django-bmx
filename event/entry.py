@@ -1,6 +1,10 @@
+import logging
 from django.conf import settings
+import os
 import event
-from .models import Entry, Event, EntryForeign
+
+logger = logging.getLogger(__name__)
+from .models import Entry, Event, EntryForeign as EntryForeignModel
 from rider.models import Rider, ForeignRider
 from datetime import datetime
 from django.utils import timezone
@@ -70,7 +74,7 @@ class EntryForeign:
         self.transaction_date=None
 
     def save(self):
-        new_foreign_entry = EntryForeign.objects.create(
+        new_foreign_entry = EntryForeignModel.objects.create(
             event = self.event,
             first_name=self.first_name,
             last_name=self.last_name,
@@ -85,11 +89,11 @@ class EntryForeign:
             class_24=self.class_24,
             fee_20=self.fee_20,
             fee_24=self.fee_24,
-            chackout=self.checkout,
+            checkout=self.checkout,
             transaction_id=self.transaction_id,
             customer_name=self.customer_name,
             customer_email=self.customer_email,
-            payment_complate=self.payment_complete,
+            payment_complete=self.payment_complete,
             transaction_date=self.transaction_date,
         )
         new_foreign_entry.save()
@@ -119,23 +123,9 @@ class SendConfirmEmail:
         entries_20 = Entry.objects.filter(transaction_id=self.transaction_id, is_20=True)
         entries_24 = Entry.objects.filter(transaction_id=self.transaction_id, is_24=True)
 
-        # list of UCI ID of riders in the same transaction ID
-        list_beginner = []
-        list_20 = []
-        list_24 = []
-
-        for entry_beginner in entries_beginner:
-            list_beginner.append(entry_beginner)
-
-        for entry_20 in entries_20:
-            list_20.append(entry_20.rider)
-
-        for entry_24 in entries_24:
-            list_24.append(entry_24.rider)
-
-        riders_beginner = Rider.objects.filter(uci_id__in=list_beginner)
-        riders_20 = Rider.objects.filter(uci_id__in=list_20)
-        riders_24 = Rider.objects.filter(uci_id__in=list_24)
+        riders_beginner = Rider.objects.filter(id__in=entries_beginner.values_list('rider_id', flat=True))
+        riders_20 = Rider.objects.filter(id__in=entries_20.values_list('rider_id', flat=True))
+        riders_24 = Rider.objects.filter(id__in=entries_24.values_list('rider_id', flat=True))
 
         message_body = ""
 
@@ -160,7 +150,7 @@ class SendConfirmEmail:
             message_body += " \r\n"
             message_body += "- do kategorie Cruiser byly přihlášeni tito jezdci: "
             for rider_24 in riders_24:
-                message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_20}, "
+                message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_24}, "
         del entries_24
         return message_body
 
@@ -214,7 +204,7 @@ class REMRiders:
     def __init__(self):
         self.event = None
         self.file_name = None
-        self.template_name = f"media/rem_entries/Rider_and_Registration.xlsx"
+        self.template_name = os.path.join(settings.MEDIA_ROOT, "rem_entries", "Rider_and_Registration.xlsx")
         # self.wb = load_workbook(self.template_name)
         self.wb = Workbook()
         self.wb.encoding = "utf-8"
@@ -250,7 +240,7 @@ class REMRiders:
         self.ws.cell(1, 23, "Transponder_hire_flag")
 
     def create_all_riders_list(self):
-        self.file_name = f'media/rem_riders/REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx'
+        self.file_name = os.path.join(settings.MEDIA_ROOT, "rem_riders", f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx")
         self.first_line()
 
         row: int = 2
@@ -323,10 +313,14 @@ class REMRiders:
         # self.remove_temp_file()
 
     def create_entries_list(self):
-        file_name = f'media/rem_entries/REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx'
+        file_name = os.path.join(settings.MEDIA_ROOT, "rem_entries", f"REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx")
         self.first_line()
-        czech_entries = Entry.objects.filter(event=self.event.id, payment_complete=1, checkout=False)
-        foreign_entries = []
+        czech_entries = Entry.objects.filter(event=self.event.id, payment_complete=True, checkout=False).select_related('rider')
+        foreign_entries = EntryForeignModel.objects.filter(
+            event=self.event.id,
+            payment_complete=True,
+            checkout=False,
+        )
         row: int = 2
         for entry in czech_entries:
             try:
@@ -376,61 +370,47 @@ class REMRiders:
                 else:
                     self.ws.cell(row, 20, entry.rider.transponder_20)
             except Exception as E:
-                print("Chyba při ukládání jezdce do REM: ", E)
+                logger.error(f"Chyba při ukládání jezdce do REM: {E}")
             row += 1
         del czech_entries
-
-        # TODO: Add foreign riders
 
         for entry in foreign_entries:
             try:
                 self.ws.cell(row, 1, self.event.name)
-                self.ws.cell(row, 2, entry.rider.first_name)
-                self.ws.cell(row, 3, entry.rider.last_name)
-                self.ws.cell(row, 4, entry.rider.email)
-                self.ws.cell(row, 5, event.func.team_name_resolve(entry.rider.club))
+                self.ws.cell(row, 2, entry.first_name)
+                self.ws.cell(row, 3, entry.last_name)
+                self.ws.cell(row, 4, entry.customer_email)
+                self.ws.cell(row, 5, entry.club or event.func.foreign_club_resolve(entry.nationality or ""))
                 self.ws.cell(row, 6, )
-                self.ws.cell(row, 7, entry.rider.nationality)
-                self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(entry.rider.date_of_birth))
-                self.ws.cell(row, 9, event.func.gender_resolve_small_letter(entry.rider.gender))
-                self.ws.cell(row, 10, entry.rider.uci_id)
-                if entry.rider.is_elite:
+                self.ws.cell(row, 7, entry.nationality)
+                self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(entry.date_of_birth))
+                self.ws.cell(row, 9, event.func.gender_resolve_small_letter(entry.gender))
+                self.ws.cell(row, 10, entry.uci_id)
+                if entry.is_elite:
                     self.ws.cell(row, 11, "E")
                 else:
                     self.ws.cell(row, 11, "C")
                 self.ws.cell(row, 12, "U")
                 self.ws.cell(row, 13, )
                 self.ws.cell(row, 14, "true")
-                if entry.is_beginner:
-                    self.ws.cell(row, 15, entry.fee_beginner)
-                elif entry.is_20:
+                if entry.is_20:
                     self.ws.cell(row, 15, entry.fee_20)
                 else:
                     self.ws.cell(row, 15, entry.fee_24)
                 self.ws.cell(row, 16, )
                 self.ws.cell(row, 17, )
-                if entry.is_beginner:
-                    self.ws.cell(row, 18, entry.class_beginner)
-                elif entry.is_20:
+                if entry.is_20:
                     self.ws.cell(row, 18, entry.class_20)
                 else:
                     self.ws.cell(row, 18, entry.class_24)
-                if entry.is_20 and entry.rider.plate_champ_20:
-                    world_plate = "W" + str(entry.rider.plate_champ_20)
-                    self.ws.cell(row, 19, world_plate)
-                elif entry.is_20 or entry.is_beginner:
-                    self.ws.cell(row, 19, entry.rider.plate)
-                elif entry.is_24 and entry.rider.plate_champ_24:
-                    world_plate = "W" + str(entry.rider.plate_champ_24)
-                    self.ws.cell(row, 21, world_plate)
+                if entry.is_20:
+                    self.ws.cell(row, 19, entry.plate)
+                    self.ws.cell(row, 20, entry.transponder_20)
                 else:
-                    self.ws.cell(row, 21, entry.rider.plate)
-                if entry.is_24:
-                    self.ws.cell(row, 22, entry.rider.transponder_24)
-                else:
-                    self.ws.cell(row, 20, entry.rider.transponder_20)
+                    self.ws.cell(row, 21, entry.plate)
+                    self.ws.cell(row, 22, entry.transponder_24)
             except Exception as E:
-                print("Chyba při ukládání jezdce do REM: ", E)
+                logger.error(f"Chyba při ukládání jezdce do REM: {E}")
             row += 1
         del foreign_entries
 
@@ -438,7 +418,6 @@ class REMRiders:
         self.event.rem_entries = file_name
         self.event.rem_entries_created = timezone.now()
         self.event.save()
-
 
 
 

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Upravit pokladní doklad{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .receipt-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .receipt-input,
+  .receipt-textarea {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #cbd5e1;
+    background: rgba(255, 255, 255, 0.96);
+    padding: 0.9rem 1rem;
+    color: #0f172a;
+  }
+
+  .receipt-textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+
+  .receipt-action-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .invoice-action-primary,
+  .invoice-action-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .invoice-action-primary {
+    background: #0f172a;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+  }
+
+  .invoice-action-secondary {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  html.dark .receipt-input,
+  html.dark .receipt-textarea {
+    border-color: #334155;
+    background: rgba(15, 23, 42, 0.9);
+    color: #e2e8f0;
+  }
+
+  html.dark .invoice-action-primary {
+    background: #818cf8;
+    color: #0f172a;
+    border-color: #818cf8;
+  }
+
+  html.dark .invoice-action-secondary {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  @media (max-width: 640px) {
+    .receipt-action-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Upravit</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Pokladní doklad {{ receipt.number }}</h1>
+      <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+        Po uložení se pokladní doklad okamžitě přegeneruje do PDF podle aktuální šablony.
+      </p>
+
+      <form method="post" class="mt-6 space-y-5">
+        {% csrf_token %}
+        <div class="receipt-form-grid">
+          <input class="receipt-input" type="text" name="customer_name" value="{{ receipt.customer_name }}" placeholder="Odběratel">
+          <input class="receipt-input" type="text" name="customer_street" value="{{ receipt.customer_street }}" placeholder="Ulice">
+          <input class="receipt-input" type="text" name="customer_city" value="{{ receipt.customer_city }}" placeholder="Město">
+          <input class="receipt-input" type="text" name="customer_zip_code" value="{{ receipt.customer_zip_code }}" placeholder="PSČ">
+          <input class="receipt-input" type="text" name="customer_country" value="{{ receipt.customer_country }}" placeholder="Stát">
+          <input class="receipt-input" type="text" name="rider_name" value="{{ receipt.rider_name }}" placeholder="Jméno a příjmení jezdce" required>
+          <input class="receipt-input" type="text" name="uci_id" value="{{ receipt.uci_id }}" placeholder="UCI ID">
+          <input class="receipt-input" type="text" name="category" value="{{ receipt.category }}" placeholder="Kategorie">
+          <input class="receipt-input" type="text" name="amount" value="{{ receipt.amount }}" placeholder="Částka v CZK" required>
+        </div>
+        <textarea class="receipt-textarea" name="note" placeholder="Poznámka k dokladu">{{ receipt.note }}</textarea>
+        <div class="receipt-action-row">
+          <button type="submit" class="invoice-action-primary">Uložit a přegenerovat PDF</button>
+          <a href="{% url 'event:cash-receipts-on-event' event.id %}" class="invoice-action-secondary">Zpět</a>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock content %}

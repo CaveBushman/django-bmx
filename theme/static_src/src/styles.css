@@ -2,3 +2,86 @@
 @source "../../../**/*.html";
 @source "../../../**/*.js";
 @source "../../../**/*.py";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer components {
+  .article-richtext-dark {
+    color: inherit;
+  }
+
+  .dark .article-richtext-dark {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+  }
+
+  .dark .article-richtext-dark,
+  .dark .article-richtext-dark :where(
+      p,
+      div,
+      span,
+      li,
+      ul,
+      ol,
+      blockquote,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      em,
+      strong,
+      small
+    ) {
+    background-color: transparent !important;
+    color: #e2e8f0 !important;
+  }
+
+  .dark .article-richtext-dark [style] {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #e2e8f0 !important;
+  }
+
+  .dark .article-richtext-dark [style*="background"],
+  .dark .article-richtext-dark [style*="background-color"],
+  .dark .article-richtext-dark [style*="color"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #e2e8f0 !important;
+  }
+
+  .dark .article-richtext-dark :where(strong, h1, h2, h3, h4, h5, h6) {
+    color: #fff !important;
+  }
+
+  .dark .article-richtext-dark a {
+    color: #a5b4fc !important;
+  }
+
+  .dark .article-richtext-dark :where(
+      section,
+      article,
+      table,
+      thead,
+      tbody,
+      tfoot,
+      tr,
+      td,
+      th,
+      figure,
+      figcaption
+    ) {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .dark .article-richtext-dark :where(*):not(img, video, iframe, svg, canvas) {
+    box-shadow: none !important;
+  }
+
+  .dark .article-richtext-dark [bgcolor] {
+    background-color: transparent !important;
+  }
+}

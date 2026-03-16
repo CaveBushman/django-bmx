@@ -9,7 +9,7 @@ function searchByLastName() {
 
   // Loop through all table rows, and hide those who don't match the search query
   for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[2];
+    td = tr[i].getElementsByTagName("td")[1];
     if (td) {
       txtValue = td.textContent || td.innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -31,7 +31,7 @@ function searchByClub() {
 
   // Loop through all table rows, and hide those who don't match the search query
   for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[4];
+    td = tr[i].getElementsByTagName("td")[3];
     if (td) {
       txtValue = td.textContent || td.innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -43,4 +43,21 @@ function searchByClub() {
   }
 }
 
+function syncEntryChoiceState() {
+  var labels = document.querySelectorAll(".entry-choice");
 
+  labels.forEach(function (label) {
+    var input = label.querySelector('input[type="checkbox"]');
+    if (!input) return;
+
+    label.classList.toggle("selected", input.checked);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  syncEntryChoiceState();
+
+  document.querySelectorAll('.entry-choice input[type="checkbox"]').forEach(function (input) {
+    input.addEventListener("change", syncEntryChoiceState);
+  });
+});

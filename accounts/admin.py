@@ -9,6 +9,7 @@ class AccountAdmin(UserAdmin):
     list_display_links = ('email',)
     readonly_field = ('last_login', 'date_joined')
     ordering = ('-date_joined',)
+    search_fields = ('email', 'first_name', 'last_name', 'username')
 
     filter_horizontal = ()
     list_filter = ()
@@ -16,4 +17,3 @@ class AccountAdmin(UserAdmin):
 
 
 admin.site.register(Account, AccountAdmin)
-

@@ -1,90 +1,209 @@
 {% extends 'base.html' %}
 {% block title %} Kluby {% endblock title %}
+{% block extra_head %}
+<style>
+  .clubs-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .clubs-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .clubs-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .clubs-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .clubs-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .clubs-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .clubs-table-wrap {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .clubs-table tbody tr {
+    transition: background-color 160ms ease;
+  }
+
+  .clubs-table tbody tr:hover {
+    background: rgba(238, 242, 255, 0.92);
+  }
+
+  html.dark .clubs-page {
+    background: #0f172a;
+  }
+
+  html.dark .clubs-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .clubs-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .clubs-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  html.dark .clubs-table-wrap {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  html.dark .clubs-table tbody tr:hover {
+    background: rgba(30, 41, 59, 0.96);
+  }
+</style>
+{% endblock %}
 {% block content %}
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold text-white">
-            ČESKÉ KLUBY BMX RACING
+<header class="clubs-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          Kontakty a regiony
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          ČESKÉ KLUBY BMX RACING
         </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Aktivní kluby, kontaktní osoby a komunikační údaje pohromadě. Přehled je připravený tak, aby se v něm dalo rychle zorientovat podle regionu i dostupnosti kontaktů.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní kluby</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ clubs_count }}</p>
+        </div>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zastoupené kraje</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ regions_count }}</p>
+        </div>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Dostupný kontakt</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ contact_clubs_count }}</p>
+        </div>
+      </div>
     </div>
+  </div>
 </header>
 
-<div class="">
-    <!-- This example requires Tailwind CSS v2.0+ -->
-    <div class="px-4 sm:px-6 lg:px-8">
-        <div class="-mx-4 my-8 overflow-x-auto shadow ring-1 ring-black/10 sm:-mx-6 md:mx-0 md:rounded-lg">
-            <table class="min-w-full table-auto divide-y divide-gray-300">
-                <thead class="bg-gray-50 dark:bg-gray-200 dark:text-gray-200">
-                <tr>
-                    <th scope="col"
-                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-200 dark:bg-gray-800">
-                        Název klubu
-                    </th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell dark:text-gray-200 dark:bg-gray-800">
-                        Kraj
-                    </th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 dark:bg-gray-800">
-                        <span class="sm:hidden">Kontakt</span>
-                        <span class="hidden sm:inline">Kontaktní osoba</span>
-                    </th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 dark:bg-gray-800">
-                        <span class="sm:hidden">E‑mail</span>
-                        <span class="hidden sm:inline">E‑mail klubu</span>
-                    </th>
-                    <th scope="col"
-                        class=" px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell dark:text-gray-200 dark:bg-gray-800">
-                        telefon
-                    </th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                {% for club in clubs %}
-                {% if club.team_name != "Bez klubové příslušnosti" %}
-                <tr>
-                    <td
-                            class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-200 dark:bg-gray-800 sm:pl-6 whitespace-nowrap">
-                        <a href="{% url 'club:club-detail' club.id %}">
-                            {{club.team_name|upper}}</a>
-                        <dl class="font-normal lg:hidden">
-                            <dt class="sr-only">Title</dt>
-                            <dd class="mt-1 truncate text-gray-700 dark:text-gray-200 dark:bg-gray-800">
-                                {{club.region}}
-                            </dd>
-                        </dl>
-                    </td>
-                    <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 lg:table-cell">
-                        {{ club.region }}
-                    </td>
-                    <td
-                            class="px-3 py-4 text-sm font-medium text-gray-900 dark:text-gray-200 dark:bg-gray-800 whitespace-nowrap">
-                        {{club.contact_person}}
-                        <dl class="font-normal sm:hidden mt-1">
-                            <dt class="sr-only">Title</dt>
-                            <dd class="mt-1 truncate text-gray-700 dark:text-gray-200 dark:bg-gray-800">
-                                {{club.contact_email}}
-                            </dd>
-                            <dt class="sr-only sm:hidden">Email</dt>
-                            <dd class="mt-1 truncate text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:hidden">
-                                {{club.contact_phone}}
-                            </dd>
-                        </dl>
-                    </td>
-                    <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:table-cell">
-                        {{club.contact_email}}
-                    </td>
-                    <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-200 dark:bg-gray-800 sm:table-cell">
-                        {{club.contact_phone}}
-                    </td>
-                </tr>
+<section class="clubs-page pt-8 pb-10">
+  <div class="clubs-shell">
+    <div class="clubs-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div class="max-w-3xl">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Adresář klubů</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Kontakty, regiony a spojení</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Klubový adresář jsme zjednodušili na rychle čitelný přehled. Název klubu má nejvyšší prioritu, region funguje jako orientační badge a chybějící údaje se zobrazují jednotně jako pomlčka.
+        </p>
+      </div>
+
+      <div class="clubs-table-wrap mt-8 rounded-[1.75rem]">
+        <table class="clubs-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+          <thead class="bg-slate-50 dark:bg-slate-900">
+            <tr>
+              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                Klub
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                Region
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                Kontaktní osoba
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                E-mail
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                Telefon
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+            {% for club in clubs %}
+            {% if club.team_name != "Bez klubové příslušnosti" %}
+            <tr class="dark:bg-slate-900">
+              <td class="px-6 py-5 align-top">
+                <a href="{% url 'club:club-detail' club.id %}" class="inline-flex items-start text-base font-black tracking-tight text-slate-900 transition hover:text-indigo-600 dark:text-white dark:hover:text-indigo-300">
+                  {{ club.team_name|upper }}
+                </a>
+              </td>
+              <td class="px-6 py-5 align-top">
+                <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 inset-ring inset-ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:inset-ring-slate-700">
+                  {{ club.region|default:"-" }}
+                </span>
+              </td>
+              <td class="px-6 py-5 align-top text-sm font-medium text-slate-900 dark:text-white">
+                {% if club.contact_person and club.contact_person != "nan" %}
+                  {{ club.contact_person }}
+                {% else %}
+                  <span class="text-slate-400 dark:text-slate-500">-</span>
                 {% endif %}
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+              </td>
+              <td class="px-6 py-5 align-top text-sm text-slate-600 dark:text-slate-300">
+                {% if club.contact_email and club.contact_email != "nan" %}
+                  <a href="mailto:{{ club.contact_email }}" class="transition hover:text-indigo-600 dark:hover:text-indigo-300">
+                    {{ club.contact_email }}
+                  </a>
+                {% else %}
+                  <span class="text-slate-400 dark:text-slate-500">-</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-5 align-top text-sm text-slate-600 dark:text-slate-300">
+                {% if club.contact_phone and club.contact_phone != "nan" %}
+                  <a href="tel:{{ club.contact_phone }}" class="transition hover:text-indigo-600 dark:hover:text-indigo-300">
+                    {{ club.contact_phone }}
+                  </a>
+                {% else %}
+                  <span class="text-slate-400 dark:text-slate-500">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 {% endblock content %}

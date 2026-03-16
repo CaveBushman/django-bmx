@@ -1,14 +1,10 @@
-from dotenv import load_dotenv
-import os
 from django.db import models
 from chat.models import ChatLog
 from django.conf import settings
-from django.shortcuts import render
-from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 import requests
 import re
 from rider.models import Rider, ForeignRider
@@ -22,18 +18,14 @@ from club.serializers import ClubSerializer
 import logging
 
 
-load_dotenv()
-settings.OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-
-# Create your views here.
-
 logger = logging.getLogger(__name__)
+
 
 class RiderList(generics.ListAPIView):
     """API for list of all active BMX riders """
     queryset = Rider.objects.filter(is_active=True)
     serializer_class = RiderSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class RiderDetail(generics.RetrieveAPIView):
@@ -41,6 +33,7 @@ class RiderDetail(generics.RetrieveAPIView):
     queryset = Rider.objects.all()
     serializer_class = RiderSerializer
     lookup_field = "uci_id"
+    permission_classes = [IsAuthenticated]
 
 
 class RiderNewAPIView(generics.CreateAPIView):
@@ -103,14 +96,49 @@ class EntryAdminAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ChatbotAPIView(APIView):
-    """Jednoduchý chatbot endpoint s fallbackem na OpenAI"""
+    """Jednoduchý chatbot endpoint s fallbackem na OpenAI.
+
+    Bezpečnostní opatření:
+    - Vyhledávání jezdců (plate, chip) vyžaduje přihlášení — bez auth vrací stejnou
+      obecnou zprávu bez ohledu na to, zda jezdec existuje (zamezení enumerace).
+    - Rate limit: max 20 dotazů za minutu na IP adresu (cache-based).
+    - Max délka zprávy: 500 znaků.
+    """
     permission_classes = [AllowAny]
 
+    # Maximální počet dotazů za minutu na jednu IP
+    RATE_LIMIT = 20
+    RATE_WINDOW = 60  # sekund
+
+    def _check_rate_limit(self, request) -> bool:
+        """Vrátí True pokud je limit překročen, False pokud je dotaz povolen."""
+        from django.core.cache import cache
+        ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown"))
+        ip = ip.split(",")[0].strip()  # X-Forwarded-For může obsahovat více IP
+        cache_key = f"chatbot_rl_{ip}"
+        count = cache.get(cache_key, 0)
+        if count >= self.RATE_LIMIT:
+            return True
+        cache.set(cache_key, count + 1, timeout=self.RATE_WINDOW)
+        return False
+
     def post(self, request):
+        # Rate limiting
+        if self._check_rate_limit(request):
+            logger.warning(f"Chatbot rate limit překročen pro IP {request.META.get('REMOTE_ADDR')}")
+            return Response({"error": "Příliš mnoho dotazů. Zkus to znovu za chvíli."}, status=429)
+
         try:
             user_message = request.data.get("message", "").strip()
 
-            # Pevně dané odpovědi
+            # Validace délky zprávy
+            if len(user_message) > 500:
+                return Response({"error": "Zpráva je příliš dlouhá (max 500 znaků)."}, status=400)
+
+            if not user_message:
+                return Response({"error": "Zpráva nesmí být prázdná."}, status=400)
+
+            # Pevně dané FAQ odpovědi (dostupné pro všechny)
             faq = {
                 "kdy je další závod": "Podívej se na tomto webu do sekce Kalendář.",
                 "kdy se otevře registrace": "Registrace se otevře 1. dubna.",
@@ -120,23 +148,33 @@ class ChatbotAPIView(APIView):
 
             match = re.search(r"(startovní\s+)?číslo\s+(\d+)", user_message.lower())
             if match:
-                plate = match.group(2)
-                rider = Rider.objects.filter(plate=plate, is_active=True).first()
-                if rider:
-                    answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                # Vyhledávání jezdce podle startovního čísla — pouze pro přihlášené
+                if not request.user.is_authenticated:
+                    answer = "Pro vyhledávání jezdců se prosím přihlas."
                 else:
-                    answer = f"Startovní číslo {plate} nebylo nalezeno v seznamu jezdců."
+                    plate = match.group(2)
+                    rider = Rider.objects.filter(plate=plate, is_active=True).first()
+                    if rider:
+                        answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                    else:
+                        # Stejná zpráva pro "neexistuje" i "nenalezeno" — zamezení enumerace
+                        answer = "Jezdec s tímto startovním číslem nebyl nalezen."
             else:
                 chip_match = re.search(r"(komu patří|kdo má|čí je)?\s*čip\s*([A-Z]{2}-\d{5})", user_message, re.IGNORECASE)
                 if chip_match:
-                    chip_number = chip_match.group(2)
-                    rider = Rider.objects.filter(
-                        models.Q(transponder_20=chip_number) | models.Q(transponder_24=chip_number)
-                    ).first()
-                    if rider:
-                        answer = f"Čip {chip_number} patří jezdci {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                    # Vyhledávání jezdce podle čipu — pouze pro přihlášené
+                    if not request.user.is_authenticated:
+                        answer = "Pro vyhledávání jezdců se prosím přihlas."
                     else:
-                        answer = f"Čip {chip_number} nebyl nalezen v seznamu jezdců."
+                        chip_number = chip_match.group(2)
+                        rider = Rider.objects.filter(
+                            models.Q(transponder_20=chip_number) | models.Q(transponder_24=chip_number)
+                        ).first()
+                        if rider:
+                            answer = f"Čip {chip_number} patří jezdci {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                        else:
+                            # Stejná zpráva bez ohledu na existenci — zamezení enumerace
+                            answer = "Jezdec s tímto čipem nebyl nalezen."
                 elif user_message.lower() in faq:
                     answer = faq[user_message.lower()]
                 else:
@@ -169,8 +207,7 @@ class ChatbotAPIView(APIView):
                     else:
                         answer = "Odpověď od modelu nebyla ve správném formátu."
 
-            logger.info(f"Dotaz: {user_message}")
-            logger.info(f"Odpověď: {answer}")
+            logger.info(f"Chatbot dotaz od {'přihlášeného uživatele' if request.user.is_authenticated else 'anonyma'}: {user_message[:100]}")
 
             # Uložení do logu
             ChatLog.objects.create(

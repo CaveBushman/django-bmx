@@ -183,9 +183,10 @@ class News (models.Model):
         News.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
         self.refresh_from_db(fields=['view_count'])
 
+    @staticmethod
     def sum_of_news():
         """ fukce vrací hodnotu všech zveřejněných článků """
-        return News.objects.filter(published = True).count()
+        return News.objects.filter(published=True).count()
 
     def save(self, *args, **kwargs):
         # Hash z očištěného textu (bez HTML/script/style) – porovnáváme to, co TTS skutečně čte
@@ -233,9 +234,10 @@ pre_save.connect(set_time_to_read, sender=News)
 def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
     if instance.pk:
         try:
-            old_photo_01 = News.objects.get(pk=instance.pk).photo_01
-            old_photo_02 = News.objects.get(pk=instance.pk).photo_02
-            old_photo_03 = News.objects.get(pk=instance.pk).photo_03
+            old = News.objects.get(pk=instance.pk)
+            old_photo_01 = old.photo_01
+            old_photo_02 = old.photo_02
+            old_photo_03 = old.photo_03
         except News.DoesNotExist:
             return
         else:

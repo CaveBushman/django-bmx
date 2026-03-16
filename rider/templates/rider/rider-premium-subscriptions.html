@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %} Moje předplatná {% endblock title %}
+{% block extra_head %}
+<style>
+  html.dark .premium-subscriptions-panel {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    box-shadow: 0 20px 40px rgba(2, 6, 23, 0.3) !important;
+  }
+
+  html.dark .premium-subscriptions-heading {
+    color: #ffffff !important;
+  }
+
+  html.dark .premium-subscriptions-copy {
+    color: #cbd5e1 !important;
+  }
+
+  html.dark .premium-subscriptions-table-wrap {
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+  }
+
+  html.dark .premium-subscriptions-table {
+    background-color: #0f172a !important;
+  }
+
+  html.dark .premium-subscriptions-table thead {
+    background-color: #020617 !important;
+  }
+
+  html.dark .premium-subscriptions-table th {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .premium-subscriptions-table td {
+    color: #e2e8f0 !important;
+  }
+
+  html.dark .premium-subscriptions-empty {
+    background-color: #020617 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+  }
+
+  .premium-subscriptions-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .premium-subscriptions-action-primary,
+  .premium-subscriptions-action-secondary {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  }
+
+  .premium-subscriptions-action-primary {
+    background: #4338ca;
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(67, 56, 202, 0.18);
+  }
+
+  .premium-subscriptions-action-primary:hover {
+    background: #3730a3;
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .premium-subscriptions-action-secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+  }
+
+  .premium-subscriptions-action-secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .premium-subscriptions-action-danger {
+    display: inline-flex;
+    min-height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid #ef4444;
+    background: #dc2626;
+    color: #ffffff;
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  }
+
+  .premium-subscriptions-action-danger:hover {
+    background: #b91c1c;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  html.dark .premium-subscriptions-action-primary {
+    background: #6366f1;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(99, 102, 241, 0.22);
+  }
+
+  html.dark .premium-subscriptions-action-primary:hover {
+    background: #818cf8;
+  }
+
+  html.dark .premium-subscriptions-action-secondary {
+    background: #0f172a;
+    border-color: #475569;
+    color: #e2e8f0 !important;
+  }
+
+  html.dark .premium-subscriptions-action-secondary:hover {
+    background: #1e293b;
+    border-color: #64748b;
+  }
+
+  html.dark .premium-subscriptions-action-danger {
+    background: #dc2626;
+    border-color: #ef4444;
+    color: #ffffff !important;
+  }
+
+  html.dark .premium-subscriptions-action-danger:hover {
+    background: #ef4444;
+  }
+ </style>
+{% endblock %}
+{% block content %}
+<section class="min-h-screen bg-slate-50 pb-16 pt-10 dark:bg-slate-900">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="premium-subscriptions-panel rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Prémiové statistiky</p>
+          <h1 class="premium-subscriptions-heading mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Moje předplatná</h1>
+          <p class="premium-subscriptions-copy mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Přehled aktivních i minulých předplatných prémiových statistik jezdců.
+          </p>
+          <p class="premium-subscriptions-copy mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Nové předplatné vytvoříš z detailu konkrétního jezdce. Tady můžeš hlavně spravovat automatické obnovování.
+          </p>
+        </div>
+      </div>
+
+      {% if subscriptions %}
+      <div class="premium-subscriptions-table-wrap mt-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div class="overflow-x-auto">
+          <table class="premium-subscriptions-table min-w-full bg-white text-sm dark:bg-slate-900">
+            <thead class="bg-slate-100 dark:bg-slate-950">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Jezdec</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Stav</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cena</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Platnost do</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Auto renew</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Akce</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+              {% for subscription in subscriptions %}
+              <tr class="text-slate-700 dark:text-slate-200">
+                <td class="px-4 py-3 font-semibold">
+                  <a href="{% url 'rider:detail' subscription.rider.uci_id %}" class="hover:text-indigo-600 dark:hover:text-indigo-300">
+                    {{ subscription.rider.first_name }} {{ subscription.rider.last_name }}
+                  </a>
+                  <div class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    Startovní číslo:
+                    {% if subscription.rider.plate is not None %}
+                    {{ subscription.rider.plate }}
+                    {% else %}
+                    -
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="px-4 py-3">{{ subscription.get_status_display }}</td>
+                <td class="px-4 py-3">{{ subscription.monthly_price }} kreditů</td>
+                <td class="px-4 py-3">{{ subscription.expires_at|date:"d.m.Y H:i" }}</td>
+                <td class="px-4 py-3">{% if subscription.auto_renew %}Ano{% else %}Ne{% endif %}</td>
+                <td class="px-4 py-3">
+                  <div class="premium-subscriptions-actions">
+                    <a href="{% url 'rider:premium-stats' subscription.rider.uci_id %}" class="premium-subscriptions-action-primary">
+                      Otevřít
+                    </a>
+                    <form method="post" class="inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
+                      {% if subscription.auto_renew %}
+                      <input type="hidden" name="action" value="disable-renew">
+                      <button type="submit" class="premium-subscriptions-action-secondary">
+                        Vypnout obnovu
+                      </button>
+                      {% else %}
+                      <input type="hidden" name="action" value="enable-renew">
+                      <button type="submit" class="premium-subscriptions-action-secondary">
+                        Zapnout obnovu
+                      </button>
+                      {% endif %}
+                    </form>
+                    {% if subscription.can_delete %}
+                    <form method="post" class="inline" onsubmit="return confirm('Opravdu chceš toto předplatné smazat z přehledu?');">
+                      {% csrf_token %}
+                      <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
+                      <input type="hidden" name="action" value="delete">
+                      <button type="submit" class="premium-subscriptions-action-danger" title="Smazat předplatné" aria-label="Smazat předplatné">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
+                          <path d="M135.2 17.7C140.6 7.1 151.5 0 163.3 0H284.7c11.8 0 22.7 7.1 28.1 17.7L328 32H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H416l-21.2 339.8C392.8 464.3 364.1 490.7 329 492.7c-35.8 2-71.9 3.3-108.9 3.3s-73.1-1.3-108.9-3.3c-35.1-2-63.8-28.4-65.8-68.9L32 64H16C7.2 64 0 56.8 0 48s7.2-16 16-16H120l15.2-14.3zM171.8 32L160 43.1V48H288V43.1L276.2 32H171.8zM96 112l18.3 292.5c.9 14.9 13 26.7 27.8 27.6c33.9 1.9 68.3 3.1 101.9 3.1s68-1.2 101.9-3.1c14.8-.8 26.9-12.7 27.8-27.6L352 112H96zm64 48c8.8 0 16 7.2 16 16V384c0 8.8-7.2 16-16 16s-16-7.2-16-16V176c0-8.8 7.2-16 16-16zm128 0c8.8 0 16 7.2 16 16V384c0 8.8-7.2 16-16 16s-16-7.2-16-16V176c0-8.8 7.2-16 16-16z"/>
+                        </svg>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <div class="premium-subscriptions-empty mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        Zatím nemáš žádné předplatné prémiových statistik.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock content %}

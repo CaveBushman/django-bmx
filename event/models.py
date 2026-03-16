@@ -21,6 +21,7 @@ class SeasonSettings(models.Model):
     best_cup = models.IntegerField(default=8)
     best_league = models.IntegerField(default=10)
     beginners_allowed = models.BooleanField(default=True)
+    rider_stats_monthly_price = models.IntegerField(default=50)
 
     def __str__(self):
         return str(self.year)
@@ -53,6 +54,7 @@ class EntryClasses(models.Model):
     men_30_34 = models.CharField(max_length=50, blank=True, null=True)
     men_35_over = models.CharField(max_length=50, blank=True, null=True)
 
+    girls_6 = models.CharField(max_length=50, blank=True, null=True)
     girls_7 = models.CharField(max_length=50, blank=True, null=True)
     girls_8 = models.CharField(max_length=50, blank=True, null=True)
     girls_9 = models.CharField(max_length=50, blank=True, null=True)
@@ -113,6 +115,7 @@ class EntryClasses(models.Model):
     men_30_34_fee = models.IntegerField(default=0)
     men_35_over_fee = models.IntegerField(default=0)
 
+    girls_6_fee = models.IntegerField(default=0)
     girls_7_fee = models.IntegerField(default=0)
     girls_8_fee = models.IntegerField(default=0)
     girls_9_fee = models.IntegerField(default=0)
@@ -201,6 +204,14 @@ class Event(models.Model):
     pcp = models.ForeignKey(Commissar, related_name="PCP", on_delete=models.SET_NULL, blank=True, null=True, help_text="Hlavní rozhodčí")
     pcp_assist = models.ForeignKey(Commissar, related_name="PCP_asist", on_delete=models.SET_NULL, blank=True,
                                    null=True, help_text="Asistent hlavního rozhodčího")
+    start_commissar = models.ForeignKey(
+        Commissar,
+        related_name="start_commissar_events",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text="Start commissar",
+    )
     director = models.CharField(max_length=255, null=True, blank=True)
 
     reg_open_from = models.DateTimeField(null=True, blank=True)
@@ -269,6 +280,8 @@ class Event(models.Model):
 
     #Livestream
     livestream = models.TextField(max_length=255, blank=True, null=True)
+    uec_link = models.URLField(max_length=500, blank=True, null=True, help_text="Externí registrace na UEC")
+    flexibee_export = models.FileField(upload_to='invoices/xml/', null=True, blank=True)
 
     created = models.DateField(auto_now_add=True, null=True)
     updated = models.DateField(auto_now=True, null=True, blank=True)
@@ -286,6 +299,8 @@ class Event(models.Model):
     def is_beginners_event(self):
         if self.type_for_ranking =="Mistrovství ČR jednotlivců" or self.type_for_ranking == "Mistrovství ČR družstev" or self.type_for_ranking=="Český pohár" or self.type_for_ranking=="Evropský pohár" or self.type_for_ranking=="Mistrovství Evropy" or self.type_for_ranking=="Mistrovství světa" or self.type_for_ranking=="Světový pohár":
             return False
+        if not self.classes_and_fees_like:
+            return False
         elif not self.classes_and_fees_like.beginners_1:
             return False
         else:
@@ -297,164 +312,39 @@ class Event(models.Model):
         ordering = ['-date', ]
 
 
-# vymazání xls výsledků při aktualizaci
+# Smazání starých souborů při aktualizaci — jeden signal, jeden DB dotaz místo 7
 @receiver(pre_save, sender=Event)
-def delete_xls_results_file(sender, instance, **kwargs):
-    if instance.pk:
+def delete_old_event_files(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+    try:
+        old = Event.objects.get(pk=instance.pk)
+    except Event.DoesNotExist:
+        return
+
+    def _delete_if_url_changed(old_field, new_field):
         try:
-            old_xls = Event.objects.get(pk=instance.pk).xls_results
-        except Event.DoesNotExist:
-            return
-        else:
-            new_xls = instance.xls_results
+            if old_field and old_field.url != new_field.url:
+                old_field.delete(save=False)
+        except Exception:
+            pass
 
-            try:
-                if old_xls and old_xls.url != new_xls.url:
-                    try:
-                        old_xls.delete(save=False)
-                    except Exception as e:
-                        pass
-            except Exception as e:
-                pass
-
-
-pre_save.connect(delete_xls_results_file, sender=Event)
-
-
-# vymazání BEM file při aktualizaci
-@receiver(pre_save, sender=Event)
-def delete_bem_backup(sender, instance, **kwargs):
-    if instance.pk:
+    def _delete_if_changed(old_field, new_field):
         try:
-            old_bem_backup = Event.objects.get(pk=instance.pk).bem_backup
-        except Event.DoesNotExist:
-            return
-        else:
-            new_bem_backup = instance.bem_backup
+            if old_field and old_field != new_field:
+                old_field.delete(save=False)
+        except Exception:
+            pass
 
-            try:
-                if old_bem_backup and old_bem_backup != new_bem_backup:
-                    try:
-                        old_bem_backup.delete(save=False)
-                    except Exception as e:
-                        pass
-            except Exception as e:
-                pass
+    _delete_if_url_changed(old.xls_results, instance.xls_results)
+    _delete_if_changed(old.bem_backup, instance.bem_backup)
+    _delete_if_changed(old.bem_backup_2, instance.bem_backup_2)
+    _delete_if_url_changed(old.full_results, instance.full_results)
+    _delete_if_url_changed(old.fast_riders, instance.fast_riders)
+    _delete_if_url_changed(old.series, instance.series)
+    _delete_if_url_changed(old.proposition, instance.proposition)
 
 
-pre_save.connect(delete_bem_backup, sender=Event)
-
-
-# vymazání BEM_2 file při aktualizaci
-@receiver(pre_save, sender=Event)
-def delete_bem_2_backup(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            old_bem_backup_2 = Event.objects.get(pk=instance.pk).bem_backup_2
-        except Event.DoesNotExist:
-            return
-        else:
-            new_bem_backup_2 = instance.bem_backup_2
-
-            try:
-                if old_bem_backup_2 and old_bem_backup_2 != new_bem_backup_2:
-                    try:
-                        old_bem_backup_2.delete(save=False)
-                    except Exception as e:
-                        pass
-            except Exception as e:
-                pass
-
-
-pre_save.connect(delete_bem_2_backup, sender=Event)
-
-
-# vymazání celkových výsledků při aktualizaci
-@receiver(pre_save, sender=Event)
-def delete_full_results_file(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            old_full_results = Event.objects.get(pk=instance.pk).full_results
-        except Event.DoesNotExist:
-            return
-        else:
-            new_full_results = instance.full_results
-            if old_full_results and old_full_results.url != new_full_results.url:
-                try:
-                    old_full_results.delete(save=False)
-                except Exception as e:
-                    pass
-
-
-pre_save.connect(delete_full_results_file, sender=Event)
-
-
-# vymazání nejrychlejších jezdců
-@receiver(pre_save, sender=Event)
-def delete_fast_riders_file(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            old_fast_riders = Event.objects.get(pk=instance.pk).fast_riders
-        except Event.DoesNotExist:
-            return
-        else:
-            new_fast_riders = instance.fast_riders
-            if old_fast_riders and old_fast_riders.url != new_fast_riders.url:
-                try:
-                    old_fast_riders.delete(save=False)
-                except Exception as e:
-                    pass
-
-
-pre_save.connect(delete_fast_riders_file, sender=Event)
-
-
-# vymazání výsledků serie při aktualizaci
-@receiver(pre_save, sender=Event)
-def delete_series_file(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            old_series = Event.objects.get(pk=instance.pk).series
-        except Event.DoesNotExist:
-            return
-        else:
-            new_series = instance.series
-
-            try:
-                if old_series and old_series.url != new_series.url:
-                    try:
-                        old_series.delete(save=False)
-                    except Exception as e:
-                        pass
-            except Exception as e:
-                pass
-
-
-pre_save.connect(delete_series_file, sender=Event)
-
-
-# vymazání propozic při aktualizaci
-@receiver(pre_save, sender=Event)
-def delete_prop_file(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            old_prop = Event.objects.get(pk=instance.pk).proposition
-        except Event.DoesNotExist:
-            return
-        else:
-            new_prop = instance.proposition
-
-            try:
-                if old_prop and old_prop.url != new_prop.url:
-                    try:
-                        old_prop.delete(save=False)
-                    except Exception as e:
-                        pass
-            except Exception as e:
-                pass
-
-
-pre_save.connect(delete_prop_file, sender=Event)
 
 
 # nastavení provize Asociace klubů
@@ -467,7 +357,6 @@ def commission_fee(sender, instance, **kwargs):
             instance.commission_fee = 5
 
 
-pre_save.connect(commission_fee, sender=Event)
 
 
 class Result(models.Model):
@@ -476,7 +365,7 @@ class Result(models.Model):
     date = models.DateField(null=True, blank=True)
     event_type = models.CharField(max_length=255, null=True, blank=True)
     organizer = models.CharField(max_length=100, null=True, blank=True)
-    rider = models.IntegerField(default=0)
+    rider = models.ForeignKey(Rider, to_field='uci_id', db_constraint=False, on_delete=models.SET_NULL, null=True, blank=True)
     country = models.CharField(max_length=3, null=True, blank=True, default="CZE")
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
@@ -558,20 +447,20 @@ class Entry(models.Model):
     class Meta:
         verbose_name = "Registrace"
         verbose_name_plural = 'Registrace'
+        indexes = [
+            models.Index(fields=["event", "payment_complete", "checkout"], name="event_entry_evt_pay_chk"),
+            models.Index(fields=["user", "payment_complete"], name="event_entry_user_pay"),
+            models.Index(fields=["transaction_date"], name="event_entry_tx_date"),
+        ]
 
     def __str__(self):
         return f"{self.rider} - {self.event}"
 
 @receiver(post_save, sender=Entry)
-def invalidate_cache_on_entry_save(sender, instance, **kwargs):
-    # když se změní Entry (nová registrace nebo aktualizace), smaž cache pro tento event
-    cache_key = f"active_riders_{instance.event_id}"
-    cache.delete(cache_key)
-
 @receiver(post_delete, sender=Entry)
-def invalidate_cache_on_entry_delete(sender, instance, **kwargs):
-    cache_key = f"active_riders_{instance.event_id}"
-    cache.delete(cache_key)
+def invalidate_cache_on_entry_change(sender, instance, **kwargs):
+    # Invaliduje cache seznamu aktivních jezdců (sdílená data pro všechny eventy)
+    cache.delete("active_riders")
 
 class EntryForeign(models.Model):
     """ Model for foreign riders entries """
@@ -581,12 +470,17 @@ class EntryForeign(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     uci_id = models.CharField(max_length=20)
+    date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=20)
     nationality = models.CharField(max_length=3)
     club = models.CharField(max_length=50)
     transponder = models.CharField(max_length=10)
+    transponder_20 = models.CharField(max_length=10, null=True, blank=True, default="")
+    transponder_24 = models.CharField(max_length=10, null=True, blank=True, default="")
+    plate = models.CharField(max_length=20, null=True, blank=True, default="")
     is_20 = models.BooleanField(default=False)
     is_24 = models.BooleanField(default=False)
+    is_elite = models.BooleanField(default=False)
     class_20 = models.CharField(max_length=255, default="", null=True, blank=True)
     class_24 = models.CharField(max_length=255, default="", null=True, blank=True)
     fee_20 = models.IntegerField(null=True, blank=True, default=0)
@@ -602,6 +496,11 @@ class EntryForeign(models.Model):
     class Meta:
         verbose_name = "Registrace zahraničních jezdců"
         verbose_name_plural = 'Registrace zahraničních jezdců'
+        indexes = [
+            models.Index(fields=["event", "payment_complete", "checkout"], name="event_entryfor_evt_pay_chk"),
+            models.Index(fields=["uci_id"], name="event_entryfor_uci"),
+            models.Index(fields=["transaction_date"], name="event_entryfor_tx_date"),
+        ]
 
 
 class DebetTransaction (models.Model):
@@ -615,6 +514,10 @@ class DebetTransaction (models.Model):
     class Meta:
         verbose_name = "Debetní transakce"
         verbose_name_plural = 'Debetní transakce'
+        indexes = [
+            models.Index(fields=["user", "transaction_date"], name="event_debet_user_date"),
+            models.Index(fields=["entry"], name="event_debet_entry"),
+        ]
 
     def __str__(self):
         user = self.user if self.user else "Neznámý uživatel"
@@ -637,6 +540,10 @@ class CreditTransaction (models.Model):
     class Meta:
         verbose_name = "Kreditní transakce"
         verbose_name_plural = 'Kreditní transakce'
+        indexes = [
+            models.Index(fields=["user", "payment_complete", "transaction_date"], name="event_credit_user_pay_date"),
+            models.Index(fields=["transaction_id"], name="event_credit_tx_id"),
+        ]
     
     def __str__(self):
         user = self.user if self.user else "Neznámý uživatel"
@@ -671,5 +578,6 @@ class StripeFee (models.Model):
     class Meta:
         verbose_name = "Karetní poplatek"
         verbose_name_plural = 'Karetní poplatky (STRIPE)'
-
-
+        indexes = [
+            models.Index(fields=["date"], name="event_stripefee_date"),
+        ]

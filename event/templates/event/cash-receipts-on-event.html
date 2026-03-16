@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Pokladní doklady{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .fees-table tbody tr {
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .fees-table tbody tr:hover {
+    background: rgb(248 250 252);
+  }
+
+  .invoice-action-primary,
+  .invoice-action-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 0.9rem 1.4rem;
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .invoice-action-primary {
+    background: #0f172a;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+  }
+
+  .invoice-action-secondary {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .invoice-action-secondary.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .invoice-link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.58rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: #1e293b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .receipt-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .receipt-input,
+  .receipt-textarea {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #cbd5e1;
+    background: rgba(255, 255, 255, 0.96);
+    padding: 0.9rem 1rem;
+    color: #0f172a;
+  }
+
+  .receipt-textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+
+  .receipt-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+    width: auto;
+    align-items: center;
+  }
+
+  @media (max-width: 900px) {
+    .receipt-action-row {
+      justify-content: stretch;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .receipt-action-row {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .receipt-action-row .invoice-action-primary,
+    .receipt-action-row .invoice-action-secondary {
+      width: 100%;
+    }
+  }
+
+  html.dark .receipt-input,
+  html.dark .receipt-textarea {
+    border-color: #334155;
+    background: rgba(15, 23, 42, 0.9);
+    color: #e2e8f0;
+  }
+
+  html.dark .fees-table tbody tr {
+    background: rgba(2, 6, 23, 0.82);
+  }
+
+  html.dark .fees-table tbody tr:hover {
+    background: rgba(15, 23, 42, 0.92);
+  }
+
+  html.dark .invoice-action-primary {
+    background: #818cf8;
+    color: #0f172a;
+    border-color: #818cf8;
+  }
+
+  html.dark .invoice-action-secondary {
+    background: #111827;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  html.dark .invoice-link-chip {
+    border-color: #334155;
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    color: #e2e8f0;
+  }
+
+  html.dark .dashboard-panel .rounded-2xl.border.border-slate-200.bg-white,
+  html.dark .dashboard-panel .rounded-2xl.border.border-slate-200.bg-white.px-5.py-4.text-sm.font-semibold.text-slate-700 {
+    border-color: #334155;
+    background: #111827;
+    color: #e2e8f0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+      <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
+      <div class="flex w-full flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-3xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+            Cash receipts
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            {{ event.name|upper }}
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Ruční evidence pokladních dokladů pro zahraniční jezdce včetně PDF a společného exportu do ABRA Flexi.
+          </p>
+        </div>
+
+        <div class="receipt-action-row">
+          <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-action-secondary">Zpět na faktury</a>
+          <a href="{% url 'event:cash-receipts-export' event.id %}" class="invoice-action-secondary{% if not receipts %} is-disabled{% endif %}" {% if receipts %}download{% endif %}>
+            Export ABRA Flexi
+          </a>
+          <a href="#receipt-form" class="invoice-action-primary">Přidat pokladní doklad</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Seznam</p>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Pokladní doklady</h2>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          Dokladů: {{ receipts|length }}
+        </div>
+      </div>
+
+      {% if receipts %}
+      <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+        <div class="overflow-x-auto">
+          <table class="fees-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead class="bg-slate-100 dark:bg-slate-900">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Číslo</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Odběratel</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Jezdec</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Kategorie</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Adresa</th>
+                <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Částka</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Soubory a úpravy</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+              {% for receipt in receipts %}
+              <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/70">
+                <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ receipt.number }}</td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                  {{ receipt.customer_name|default:"-" }}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                  {{ receipt.rider_name }}
+                  {% if receipt.uci_id %}<div class="text-xs text-slate-400 dark:text-slate-500">UCI ID {{ receipt.uci_id }}</div>{% endif %}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ receipt.category|default:"-" }}</td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                  {% if receipt.customer_street %}<div>{{ receipt.customer_street }}</div>{% endif %}
+                  {% if receipt.customer_zip_code or receipt.customer_city %}<div>{{ receipt.customer_zip_code }} {{ receipt.customer_city }}</div>{% endif %}
+                  {% if receipt.customer_country %}<div>{{ receipt.customer_country }}</div>{% endif %}
+                  {% if not receipt.customer_street and not receipt.customer_zip_code and not receipt.customer_city and not receipt.customer_country %}-{% endif %}
+                </td>
+                <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-300">{{ receipt.amount }} CZK</td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                  <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'event:cash-receipt-pdf' event.id receipt.id %}" class="invoice-link-chip">PDF</a>
+                    <a href="{% url 'event:cash-receipt-edit' event.id receipt.id %}" class="invoice-link-chip">Upravit</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nebyl vystaven žádný pokladní doklad.</p>
+      {% endif %}
+    </section>
+
+    <section id="receipt-form" class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přidat</p>
+      <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Nový pokladní doklad</h2>
+      <form method="post" class="mt-6 space-y-5">
+        {% csrf_token %}
+        <div class="receipt-form-grid">
+          <input class="receipt-input" type="text" name="customer_name" placeholder="Odběratel">
+          <input class="receipt-input" type="text" name="customer_street" placeholder="Ulice">
+          <input class="receipt-input" type="text" name="customer_city" placeholder="Město">
+          <input class="receipt-input" type="text" name="customer_zip_code" placeholder="PSČ">
+          <input class="receipt-input" type="text" name="customer_country" placeholder="Stát">
+          <input class="receipt-input" type="text" name="rider_name" placeholder="Jméno a příjmení jezdce" required>
+          <input class="receipt-input" type="text" name="uci_id" placeholder="UCI ID">
+          <input class="receipt-input" type="text" name="category" placeholder="Kategorie">
+          <input class="receipt-input" type="text" name="amount" placeholder="Částka v CZK" required>
+        </div>
+        <textarea class="receipt-textarea" name="note" placeholder="Poznámka k dokladu"></textarea>
+        <div class="receipt-action-row">
+          <button type="submit" class="invoice-action-primary">Vystavit pokladní doklad</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock content %}

@@ -8,4 +8,4 @@ def valid_licence_scheduled():
     riders = Rider.objects.filter(is_active = True)
 
     for rider in riders:
-        threading.Thread(target = valid_licence(rider.uci_id), daemon = True).start()
+        threading.Thread(target=valid_licence, args=(rider.uci_id,), daemon=True).start()

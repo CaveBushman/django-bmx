@@ -1,308 +1,445 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %} Kalendář závodů {% endblock title %}
+
+{% block extra_head %}
+<style>
+  .events-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 24rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 52%, #f8fafc 100%);
+  }
+
+  .events-hero,
+  .events-panel,
+  .events-card,
+  .events-stat,
+  .events-year-nav {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .events-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 16rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 255, 0.9));
+  }
+
+  .events-year-current {
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    color: #fff;
+    box-shadow: 0 14px 32px rgba(79, 70, 229, 0.24);
+  }
+
+  .events-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .events-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--event-accent, #6366f1);
+  }
+
+  .events-card.is-featured {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 16rem),
+      rgba(255, 255, 255, 0.98);
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.12);
+  }
+
+  .events-type-badge {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    flex: 0 0 auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 16px 34px rgba(15, 23, 42, 0.14);
+  }
+
+  .events-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.42rem 0.78rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+
+  .events-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  }
+
+  .events-chip-primary {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+  }
+
+  .events-chip-secondary {
+    background: #fff;
+    border-color: #cbd5e1;
+    color: #334155;
+  }
+
+  .events-chip-success {
+    background: #ecfdf5;
+    border-color: #86efac;
+    color: #166534;
+  }
+
+  .events-chip-purple {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+    color: #6d28d9;
+  }
+
+  .events-chip-orange {
+    background: #fff7ed;
+    border-color: #fdba74;
+    color: #c2410c;
+  }
+
+  .events-chip-red {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+  }
+
+  .events-chip-sky {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+
+  .events-meta-dot {
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 9999px;
+    background: #94a3b8;
+    flex: 0 0 auto;
+  }
+
+  html.dark .events-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 24rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%) !important;
+  }
+
+  html.dark .events-hero,
+  html.dark .events-panel,
+  html.dark .events-card,
+  html.dark .events-stat,
+  html.dark .events-year-nav {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.36) !important;
+  }
+
+  html.dark .events-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 16rem),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+  }
+
+  html.dark .events-card.is-featured {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.14), transparent 16rem),
+      rgba(15, 23, 42, 0.95) !important;
+  }
+
+  html.dark .events-chip-secondary {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  html.dark .events-chip-success {
+    background: rgba(20, 83, 45, 0.34);
+    border-color: rgba(74, 222, 128, 0.35);
+    color: #bbf7d0;
+  }
+
+  html.dark .events-chip-purple {
+    background: rgba(91, 33, 182, 0.28);
+    border-color: rgba(196, 181, 253, 0.3);
+    color: #ddd6fe;
+  }
+
+  html.dark .events-chip-orange {
+    background: rgba(154, 52, 18, 0.28);
+    border-color: rgba(253, 186, 116, 0.3);
+    color: #fed7aa;
+  }
+
+  html.dark .events-chip-red {
+    background: rgba(127, 29, 29, 0.28);
+    border-color: rgba(252, 165, 165, 0.26);
+    color: #fecaca;
+  }
+
+  html.dark .events-chip-sky {
+    background: rgba(30, 64, 175, 0.25);
+    border-color: rgba(147, 197, 253, 0.3);
+    color: #bfdbfe;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<section class="events-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    <header class="events-hero rounded-[2rem] px-6 py-8 sm:px-8 lg:px-10">
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+        <div class="max-w-3xl">
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Termíny a pořadatelé
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Kalendář závodů
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+            {{ hero_description }}
+          </p>
+        </div>
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">
-      KALENDÁŘ ZÁVODŮ
-    </h1>
-  </div>
-</header>
-
-<div class="max-w-screen-xl mx-auto">
-
-  <div class="flex justify-center mt-8">
-    <nav class="relative z-0 inline-flex rounded-md shadow-md" aria-label="Pagination">
-      <!-- Previous Button -->
-      <a href="{% url 'event:events-by-year' last_year %}"
-        class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-indigo-500 hover:text-white transition duration-200 ease-in-out transform hover:scale-105">
-        <span class="sr-only">Previous</span>
-        <!-- Heroicon name: solid/chevron-left -->
-        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-          aria-hidden="true">
-          <path fill-rule="evenodd"
-            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-            clip-rule="evenodd" />
-        </svg>
-      </a>
-
-      <!-- Last Year Button -->
-      <a href="{% url 'event:events-by-year' last_year %}"
-        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium text-gray-600 bg-white hover:bg-indigo-500 hover:text-white transition duration-200 ease-in-out transform hover:scale-105">
-        {{last_year}}
-      </a>
-
-      <!-- Current Year Button (Highlighted) -->
-      <a href="#" aria-current="page"
-        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium text-indigo-600 bg-indigo-50 border-indigo-500 transform scale-105">
-        {{year}}
-      </a>
-
-      <!-- Next Year Button -->
-      <a href="{% url 'event:events-by-year' next_year %}"
-        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium text-gray-600 bg-white hover:bg-indigo-500 hover:text-white transition duration-200 ease-in-out transform hover:scale-105">
-        {{next_year}}
-      </a>
-
-      <!-- Next Button -->
-      <a href="{% url 'event:events-by-year' next_year %}"
-        class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-indigo-500 hover:text-white transition duration-200 ease-in-out transform hover:scale-105">
-        <span class="sr-only">Next</span>
-        <!-- Heroicon name: solid/chevron-right -->
-        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-          aria-hidden="true">
-          <path fill-rule="evenodd"
-            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-            clip-rule="evenodd" />
-        </svg>
-      </a>
-    </nav>
-  </div>
-
-  <!-- Upcoming events -->
-  <div class="px-4 sm:px-6 lg:px-8">
-    <div class="-mx-4 mt-8 mb-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-         {% if show_title %}
-            <div class="my-4 text-4xl text-center text-indigo-600">Následující závody</div>
-        {% endif %}
-      {% for event in events %}
-      <ul role="list" class="divide-y divide-gray-200">
-        <li class="flex items-center justify-between gap-x-6 py-5 px-10">
-          <div class="flex min-w-0">
-            {% if event.type_for_ranking == "Český pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-blue-500 rounded-2xl">ČP</div>
-            {% elif event.type_for_ranking == "Česká liga" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-green-500 rounded-2xl">ČL</div>
-            {% elif event.type_for_ranking == "Evropský pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-purple-500 rounded-2xl">EP</div>
-            {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" or event.type_for_ranking == "Mistrovství ČR družstev" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-red-500 rounded-2xl">MR</div>
-            {% elif event.type_for_ranking == "Mistrovství světa" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-cyan-500 rounded-2xl">MS</div>
-            {% elif event.type_for_ranking == "Světový pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-gray-700 rounded-2xl">WC</div>
-            {% elif event.type_for_ranking == "Moravská liga" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-stone-400 rounded-2xl">ML</div>
-            {% elif event.type_for_ranking == "Mistrovství Evropy" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-cyan-500 rounded-2xl">ME</div>
-            {% else %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-orange-500 rounded-2xl">VZ</div>
-            {% endif %}
-            <div>
-              <div class="flex items-start gap-x-3">
-                <p class="px-5 text-sm font-semibold leading-6 text-gray-900 dark:text-gray-200">{{event.name}}</p>
-                <a href="{% url 'event:event-detail' event.id %}"
-                  class="sm:hidden rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ">Detail</a>
-                {% if event.reg_open %}
-                <a href="{% url 'event:entry' event.id %}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Registrace
-                  otevřena</a>
-                {% endif %}
-
-                {% if request.user.is_superuser %}
-                <a href="{% url 'event:entry-foreign' event.id %}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-purple-700 bg-purple-50 ring-purple-600/20">Foreign
-                  riders</a>
-                {% endif %}
-     
-                {% if event.html_results %}
-                <a href="{{event.html_results.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-orange-700 bg-orange-50 ring-orange-600/20">Výsledky
-                  závodu</a>
-                {% endif %}
-
-                {% if event.livestream %}
-                <a href="{{event.livestream.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-red-700 bg-red-50 ring-red-600/20">Livestream</a>
-                {% endif %}
-
-                {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
-                <a href="{{event.series.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky
-                  družstev</a>
-
-                {% elif event.series %}
-                <a href="{{event.series.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky
-                  seriálu</a>
-                {% endif %}
-
-                {% if event.proposition %}
-                <a href="{{event.proposition.url}}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-sky-700 bg-sky-50 ring-sky-600/20">Propozice</a>
-                {% endif %}
-
-              </div>
-              <div class="px-5 mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                <p class="whitespace-nowrap">Datum: <time datetime="2023-03-17T00:00Z">{{event.date}}</time></p>
-                <svg viewBox="0 0 2 2" class="h-0.5 w-0.5 fill-current">
-                  <circle cx="1" cy="1" r="1" />
-                </svg>
-                <p class="truncate">{{event.organizer}}</p>
-              </div>
-            </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <div class="events-stat rounded-[1.5rem] px-5 py-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{{ upcoming_label }}</p>
+            <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ events|length }}</p>
           </div>
-          <div class="flex flex-none items-center gap-x-4">
-            <a href="{% url 'event:event-detail' event.id %}"
-              class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">Detail
-              závodu<span class="sr-only">, GraphQL API</span></a>
-            <div class="dropdown-main relative flex-none">
-              <button type="button" class="dropdown-btn -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900"
-                id="options-menu-0-button" aria-expanded="false" aria-haspopup="true">
-                <span class="sr-only">Open options</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
-                </svg>
-              </button>
-              <div
-                class="dropdown-content hidden absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
-                role="menu" aria-orientation="vertical" aria-labelledby="options-menu-0-button" tabindex="-1">
-                {% if event.proposition %}
-                <a href="{{event.proposition.url}}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-0">Propozice<span class="sr-only">, </span></a>
-                {% endif %}
-                {% if event.reg_open %}
-                <a href="{% url 'event:entry' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-1">Přihlášení<span class="sr-only">,</span></a>
-                {% endif %}
-                {% if event.xls_results or event.rem_results %}
-                <a href="{% url 'event:results' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-2">Výsledky<span class="sr-only">, </span></a>
-                {% endif %}
- 
-                {% if request.user.is_superuser %}
-                <a href="{% url 'event:event-admin' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-3">Administrace<span
-                    class="sr-only">,</span></a>
-                {% endif %}
-              </div>
-            </div>
+          <div class="events-stat rounded-[1.5rem] px-5 py-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{{ archive_label }}</p>
+            <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ past_events|length }}</p>
           </div>
-        </li>
-      </ul>
-      {% endfor %}
+        </div>
+      </div>
+    </header>
 
-<!-- Past events -->
-        {% if show_title %}
-            <div class="my-4 text-4xl text-center text-indigo-600">Ukončené závody</div>{% endif %}
-        {% for event in past_events %}
-      <ul role="list" class="divide-y divide-gray-200">
-        <li class="flex items-center justify-between gap-x-6 py-5 px-10">
-          <div class="flex min-w-0">
-            {% if event.type_for_ranking == "Český pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-blue-500 rounded-2xl">ČP</div>
-            {% elif event.type_for_ranking == "Česká liga" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-green-500 rounded-2xl">ČL</div>
-            {% elif event.type_for_ranking == "Evropský pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-purple-500 rounded-2xl">EP</div>
-            {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" or event.type_for_ranking == "Mistrovství ČR družstev" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-red-500 rounded-2xl">MR</div>
-            {% elif event.type_for_ranking == "Mistrovství světa" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-cyan-500 rounded-2xl">MS</div>
-            {% elif event.type_for_ranking == "Světový pohár" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-gray-700 rounded-2xl">WC</div>
-            {% elif event.type_for_ranking == "Moravská liga" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-stone-400 rounded-2xl">ML</div>
-            {% elif event.type_for_ranking == "Mistrovství Evropy" %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-cyan-500 rounded-2xl">ME</div>
-            {% else %}
-            <div class="mx-auto my-auto p-3 m-5 text-xl text-gray-200 bg-orange-500 rounded-2xl">VZ</div>
-            {% endif %}
-            <div>
-              <div class="flex items-start gap-x-3">
-                <p class="px-5 text-sm font-semibold leading-6 text-gray-900 dark:text-gray-200">{{event.name}}</p>
-                <a href="{% url 'event:event-detail' event.id %}"
-                  class="sm:hidden rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ">Detail</a>
-                {% if event.reg_open %}
-                <a href="{% url 'event:entry' event.id %}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Registrace
-                  otevřena</a>
-                {% if request.user.is_superuser %}
-                <a href="{% url 'event:entry-foreign' event.id %}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-purple-700 bg-purple-50 ring-purple-600/20">Foreign
-                  riders</a>
-                {% endif %}
-                {% endif %}
-                {% if event.html_results %}
-                <a href="{{event.html_results.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-orange-700 bg-orange-50 ring-orange-600/20">Výsledky
-                  závodu</a>
-                {% endif %}
-
-                {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
-                <a href="{{event.series.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky
-                  družstev</a>
-                {% elif event.series %}
-                <a href="{{event.series.url}}" target="_blank"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-green-700 bg-green-50 ring-green-600/20">Výsledky
-                  seriálu</a>
-                {% endif %}
-
-                {% if event.proposition %}
-                <a href="{{event.proposition.url}}"
-                  class="rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset text-sky-700 bg-sky-50 ring-sky-600/20">Propozice</a>
-                {% endif %}
-              </div>
-              <div class="px-5 mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                <p class="whitespace-nowrap">Datum: <time datetime="2023-03-17T00:00Z">{{event.date}}</time></p>
-                <svg viewBox="0 0 2 2" class="h-0.5 w-0.5 fill-current">
-                  <circle cx="1" cy="1" r="1" />
-                </svg>
-                <p class="truncate">{{event.organizer}}</p>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-none items-center gap-x-4">
-            <a href="{% url 'event:event-detail' event.id %}"
-              class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">Detail
-              závodu<span class="sr-only">, GraphQL API</span></a>
-            <div class="dropdown-main relative flex-none">
-              <button type="button" class="dropdown-btn -m-2.5 block p-2.5 text-gray-500 hover:text-gray-900"
-                id="options-menu-0-button" aria-expanded="false" aria-haspopup="true">
-                <span class="sr-only">Open options</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
-                </svg>
-              </button>
-              <div
-                class="dropdown-content hidden absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
-                role="menu" aria-orientation="vertical" aria-labelledby="options-menu-0-button" tabindex="-1">
-                {% if event.proposition %}
-                <a href="{{proposition.url}}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-0">Propozice<span class="sr-only">, </span></a>
-                {% endif %}
-                {% if event.reg_open %}
-                <a href="{% url 'event:entry' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-1">Přihlášení<span class="sr-only">,</span></a>
-                {% endif %}
-                {% if event.xls_results or event.rem_results %}
-                <a href="{% url 'event:results' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-2">Výsledky<span class="sr-only">, </span></a>
-                {% endif %}
-                {% if event.livestream %}
-                <a href="{% url 'event:results' event.id %}" class="block px-3 py-1 bg-red-500 leading-6 text-gray-900" role="menuitem"
-                  tabindex="-1" id="options-menu-0-item-2">Livestream<span class="sr-only">, </span></a>
-                {% endif %}
-                {% if request.user.is_superuser %}
-                <a href="{% url 'event:event-admin' event.id %}" class="block px-3 py-1 text-sm leading-6 text-gray-900"
-                  role="menuitem" tabindex="-1" id="options-menu-0-item-3">Administrace<span
-                    class="sr-only">,</span></a>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </li>
-      </ul>
-      {% endfor %}
+    <div class="flex justify-center">
+      <nav class="events-year-nav inline-flex overflow-hidden rounded-2xl" aria-label="Přepínání sezony">
+        <a href="{% url 'event:events-by-year' last_year %}" class="inline-flex items-center justify-center border-r border-slate-200 px-5 py-4 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+          <span class="sr-only">Předchozí rok</span>
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+        </a>
+        <a href="{% url 'event:events-by-year' last_year %}" class="inline-flex items-center justify-center border-r border-slate-200 px-6 py-4 text-base font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">{{ last_year }}</a>
+        <span class="events-year-current inline-flex items-center justify-center border-r border-indigo-400 px-6 py-4 text-base font-semibold">{{ year }}</span>
+        <a href="{% url 'event:events-by-year' next_year %}" class="inline-flex items-center justify-center border-r border-slate-200 px-6 py-4 text-base font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">{{ next_year }}</a>
+        <a href="{% url 'event:events-by-year' next_year %}" class="inline-flex items-center justify-center px-5 py-4 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+          <span class="sr-only">Další rok</span>
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+        </a>
+      </nav>
     </div>
-  </div>
 
-  
-</div>
-<script src="{% static 'js/dropdown.js' %}"></script>
+    {% if events %}
+    <section class="events-panel rounded-[2rem] p-6 sm:p-8">
+      <div class="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            {% if show_title %}Následující{% else %}{{ season_context }}{% endif %}
+          </p>
+          <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ season_label }}</h2>
+        </div>
+      </div>
+
+      <div class="space-y-5">
+        {% for event in events %}
+        <article class="events-card {% if forloop.first %}is-featured{% endif %} rounded-[1.75rem] p-6" style="
+          {% if event.type_for_ranking == 'Český pohár' %}--event-accent:#3b82f6;
+          {% elif event.type_for_ranking == 'Česká liga' %}--event-accent:#10b981;
+          {% elif event.type_for_ranking == 'Evropský pohár' %}--event-accent:#8b5cf6;
+          {% elif event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type_for_ranking == 'Mistrovství ČR družstev' %}--event-accent:#ef4444;
+          {% elif event.type_for_ranking == 'Mistrovství světa' %}--event-accent:#06b6d4;
+          {% elif event.type_for_ranking == 'Světový pohár' %}--event-accent:#334155;
+          {% elif event.type_for_ranking == 'Moravská liga' %}--event-accent:#a16207;
+          {% elif event.type_for_ranking == 'Mistrovství Evropy' %}--event-accent:#0891b2;
+          {% else %}--event-accent:#f97316;{% endif %}
+        ">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div class="flex min-w-0 gap-5">
+              <div class="events-type-badge" style="
+                {% if event.type_for_ranking == 'Český pohár' %}background:#3b82f6;
+                {% elif event.type_for_ranking == 'Česká liga' %}background:#10b981;
+                {% elif event.type_for_ranking == 'Evropský pohár' %}background:#8b5cf6;
+                {% elif event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type_for_ranking == 'Mistrovství ČR družstev' %}background:#ef4444;
+                {% elif event.type_for_ranking == 'Mistrovství světa' %}background:#06b6d4;
+                {% elif event.type_for_ranking == 'Světový pohár' %}background:#334155;
+                {% elif event.type_for_ranking == 'Moravská liga' %}background:#a16207;
+                {% elif event.type_for_ranking == 'Mistrovství Evropy' %}background:#0891b2;
+                {% else %}background:#f97316;{% endif %}
+              ">
+                {% if event.type_for_ranking == "Český pohár" %}ČP
+                {% elif event.type_for_ranking == "Česká liga" %}ČL
+                {% elif event.type_for_ranking == "Evropský pohár" %}EP
+                {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" or event.type_for_ranking == "Mistrovství ČR družstev" %}MR
+                {% elif event.type_for_ranking == "Mistrovství světa" %}MS
+                {% elif event.type_for_ranking == "Světový pohár" %}WC
+                {% elif event.type_for_ranking == "Moravská liga" %}ML
+                {% elif event.type_for_ranking == "Mistrovství Evropy" %}ME
+                {% else %}VZ{% endif %}
+              </div>
+
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-3">
+                  <h3 class="text-xl font-black tracking-tight text-slate-900 dark:text-white {% if forloop.first %}sm:text-2xl{% endif %}">
+                    {{ event.name }}
+                  </h3>
+                  {% if event.reg_open %}
+                  <span class="events-chip events-chip-success">Registrace otevřena</span>
+                  {% endif %}
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-300">
+                  <span>Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
+                  <span class="events-meta-dot"></span>
+                  <span>{{ event.organizer }}</span>
+                  <span class="events-meta-dot"></span>
+                  <span>{{ event.type_for_ranking }}</span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <a href="{% url 'event:event-detail' event.id %}" class="events-chip events-chip-primary">Detail</a>
+                  {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
+                  <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-secondary">Registrace UEC</a>
+                  {% elif event.reg_open %}
+                  <a href="{% url 'event:entry' event.id %}" class="events-chip events-chip-secondary">Přihlášení</a>
+                  {% endif %}
+                  {% if request.user.is_superuser and event.reg_open and event.type_for_ranking != "Evropský pohár" %}
+                  <a href="{% url 'event:entry-foreign' event.id %}" class="events-chip events-chip-purple">Foreign riders</a>
+                  {% endif %}
+                  {% if event.proposition %}
+                  <a href="{{ event.proposition.url }}" class="events-chip events-chip-sky">Propozice</a>
+                  {% endif %}
+                  {% if event.html_results %}
+                  <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
+                  {% endif %}
+                  {% if event.livestream %}
+                  <a href="{{ event.livestream }}" target="_blank" class="events-chip events-chip-red">YouTube</a>
+                  {% endif %}
+                  {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
+                  <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky družstev</a>
+                  {% elif event.series %}
+                  <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky seriálu</a>
+                  {% endif %}
+                  {% if request.user.is_superuser %}
+                  <a href="{% url 'event:event-admin' event.id %}" class="events-chip events-chip-secondary">Administrace</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="events-panel rounded-[2rem] p-6 sm:p-8">
+      <div class="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            {% if show_title %}Archiv{% else %}{{ season_context }}{% endif %}
+          </p>
+          <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            {% if show_title %}{{ archive_heading }}{% else %}{{ archive_heading }}{% endif %}
+          </h2>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        {% for event in past_events|default:events %}
+        <article class="events-card rounded-[1.5rem] p-5" style="
+          {% if event.type_for_ranking == 'Český pohár' %}--event-accent:#3b82f6;
+          {% elif event.type_for_ranking == 'Česká liga' %}--event-accent:#10b981;
+          {% elif event.type_for_ranking == 'Evropský pohár' %}--event-accent:#8b5cf6;
+          {% elif event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type_for_ranking == 'Mistrovství ČR družstev' %}--event-accent:#ef4444;
+          {% elif event.type_for_ranking == 'Mistrovství světa' %}--event-accent:#06b6d4;
+          {% elif event.type_for_ranking == 'Světový pohár' %}--event-accent:#334155;
+          {% elif event.type_for_ranking == 'Moravská liga' %}--event-accent:#a16207;
+          {% elif event.type_for_ranking == 'Mistrovství Evropy' %}--event-accent:#0891b2;
+          {% else %}--event-accent:#f97316;{% endif %}
+        ">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex min-w-0 gap-4">
+              <div class="events-type-badge h-16 w-16 rounded-[1.25rem] text-xl" style="
+                {% if event.type_for_ranking == 'Český pohár' %}background:#3b82f6;
+                {% elif event.type_for_ranking == 'Česká liga' %}background:#10b981;
+                {% elif event.type_for_ranking == 'Evropský pohár' %}background:#8b5cf6;
+                {% elif event.type_for_ranking == 'Mistrovství ČR jednotlivců' or event.type_for_ranking == 'Mistrovství ČR družstev' %}background:#ef4444;
+                {% elif event.type_for_ranking == 'Mistrovství světa' %}background:#06b6d4;
+                {% elif event.type_for_ranking == 'Světový pohár' %}background:#334155;
+                {% elif event.type_for_ranking == 'Moravská liga' %}background:#a16207;
+                {% elif event.type_for_ranking == 'Mistrovství Evropy' %}background:#0891b2;
+                {% else %}background:#f97316;{% endif %}
+              ">
+                {% if event.type_for_ranking == "Český pohár" %}ČP
+                {% elif event.type_for_ranking == "Česká liga" %}ČL
+                {% elif event.type_for_ranking == "Evropský pohár" %}EP
+                {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" or event.type_for_ranking == "Mistrovství ČR družstev" %}MR
+                {% elif event.type_for_ranking == "Mistrovství světa" %}MS
+                {% elif event.type_for_ranking == "Světový pohár" %}WC
+                {% elif event.type_for_ranking == "Moravská liga" %}ML
+                {% elif event.type_for_ranking == "Mistrovství Evropy" %}ME
+                {% else %}VZ{% endif %}
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{{ event.name }}</h3>
+                <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-300">
+                  <span>Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
+                  <span class="events-meta-dot"></span>
+                  <span>{{ event.organizer }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <a href="{% url 'event:event-detail' event.id %}" class="events-chip events-chip-primary">Detail</a>
+              {% if event.proposition %}
+              <a href="{{ event.proposition.url }}" class="events-chip events-chip-sky">Propozice</a>
+              {% endif %}
+              {% if event.html_results %}
+              <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
+              {% endif %}
+              {% if event.livestream %}
+              <a href="{{ event.livestream }}" target="_blank" class="events-chip events-chip-red">YouTube</a>
+              {% endif %}
+              {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
+              <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky družstev</a>
+              {% elif event.series %}
+              <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky seriálu</a>
+              {% endif %}
+              {% if request.user.is_superuser %}
+              <a href="{% url 'event:event-admin' event.id %}" class="events-chip events-chip-secondary">Administrace</a>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <div class="rounded-[1.75rem] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+          Pro tento rok zatím nejsou evidované žádné závody.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
 {% endblock content %}

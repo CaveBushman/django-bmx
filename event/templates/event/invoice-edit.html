@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Úprava položek faktury{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .invoice-edit-textarea {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 1rem;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .invoice-edit-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .invoice-edit-primary,
+  .invoice-edit-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.2rem;
+    border-radius: 1rem;
+    font-weight: 700;
+  }
+
+  .invoice-edit-primary {
+    background: #0f172a;
+    color: #fff;
+    border: 1px solid #0f172a;
+  }
+
+  .invoice-edit-secondary {
+    background: #fff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  html.dark .invoice-edit-textarea {
+    border-color: #334155;
+    background: #020617;
+    color: #e2e8f0;
+  }
+
+  html.dark .invoice-edit-primary {
+    background: #818cf8;
+    color: #0f172a;
+    border-color: #818cf8;
+  }
+
+  html.dark .invoice-edit-secondary {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+      <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Úprava faktury</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ preview.club.team_name }}</h1>
+      <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+        Závod {{ event.name }}. Jeden řádek odpovídá jedné položce faktury. Po uložení se přegeneruje PDF i XML.
+      </p>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Očekávaný počet řádků: {{ preview.lines|length }}
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mt-6 overflow-hidden rounded-[1.25rem] border border-slate-200 dark:border-slate-700">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead class="bg-slate-100 dark:bg-slate-900">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Položka</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Částka</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+              {% for line in preview.lines %}
+              <tr>
+                <td class="px-4 py-3 align-top">
+                  <input
+                    type="text"
+                    name="description"
+                    value="{{ line.description }}"
+                    class="invoice-edit-textarea"
+                  >
+                </td>
+                <td class="px-4 py-3 align-top w-[12rem]">
+                  <input
+                    type="text"
+                    name="amount"
+                    value="{{ line.unit_price|floatformat:2 }}"
+                    class="invoice-edit-textarea"
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="invoice-edit-actions">
+          <button type="submit" class="invoice-edit-primary">Uložit a přegenerovat</button>
+          <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-edit-secondary">Zpět na přehled</a>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock content %}

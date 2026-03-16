@@ -1,21 +1,68 @@
 {% extends 'base.html' %} 
 {% block title %}Administrace závodu{% endblock title%} 
 {% load static %} 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .event-admin-section,
+  .event-admin-file-card {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-admin-action-link,
+  .event-admin-action-btn {
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
+    color: #fff;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .event-admin-action-link:hover,
+  .event-admin-action-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.38);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+  html.dark .event-admin-action-link,
+  html.dark .event-admin-action-btn {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #fff !important;
+  }
+
+  html.dark .event-admin-section,
+  html.dark .event-admin-file-card {
+    background: rgba(15, 23, 42, 0.88) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+</style>
+{% endblock %}
 {% block content %}
 
-<header
-  class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white"
->
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">{{event.name | upper}}</h1>
-  </div>
-</header>
+<section class="dashboard-surface min-h-screen pb-24">
+<div class="max-w-7xl mx-auto px-4 pt-10 sm:px-6 lg:px-8">
+  <header class="dashboard-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+      Event Admin
+    </p>
+    <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">{{event.name}}</h1>
+        <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+          Operační panel závodu pro kontrolu registrací, souborů, výsledků a exportních kroků.
+        </p>
+      </div>
+    </div>
+  </header>
 
-<div class="max-w-7xl mx-auto px-4 py-6">
+<div class="py-8">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Přihlášeno jezdců -->
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
         <svg
@@ -40,7 +87,7 @@
 
     <!-- Vybrané startovné -->
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
         <svg
@@ -65,7 +112,7 @@
 
     <!-- Odměna Asociace -->
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full">
         <svg
@@ -91,10 +138,10 @@
 </div>
 
 <!-- Pořadatel Section -->
-<div class="max-w-7xl mx-auto px-4 py-6">
+<div class="pb-2">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
         <svg
@@ -116,7 +163,7 @@
     </div>
 
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
         <svg
@@ -138,7 +185,7 @@
     </div>
 
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105"
+      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
       <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full">
         <svg
@@ -238,39 +285,39 @@
 
 <!-- RACE CONTROL -->
 
-  <div class="max-w-7xl mx-auto mt-8 bg-white shadow-xl rounded-2xl p-8">
-    <h2 class="text-3xl font-semibold text-gray-800 mb-8 text-center">
+  <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-8">
+    <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-8 text-center">
       📁 RACE CONTROL
     </h2>
   
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <div class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
         <a
           href="{% url 'event:generate_pdf' pk=event.pk %}"
           target="_blank"
-          class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
           aria-label="Generovat protokol Čipy k půjčení"
         >
           <i class="fas fa-microchip text-xl mr-2"></i> Čipy k půjčení
         </a>
       </div>
   
-      <div class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
         <a
           href="{% url 'event:generate_invoice_preparation_pdf' pk=event.pk %}"
           target="_blank"
-          class="flex items-center bg-green-500 text-white py-3 px-6 rounded-md hover:bg-green-600 transition-all duration-300"
+          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
           aria-label="Generovat protokol Podklad pro fakturaci čipů"
         >
           <i class="fas fa-file-invoice text-xl mr-2"></i> Fakturace čipů
         </a>
       </div>
   
-      <div class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
         <a
           href="#" 
           target="_blank"
-          class="flex items-center bg-rose-500 text-white py-3 px-6 rounded-md hover:bg-rose-600 transition-all duration-300"
+          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
           aria-label="Generovat protokol Price money"
         >
           <i class="fas fa-dollar-sign text-xl mr-2"></i> Price money
@@ -279,9 +326,9 @@
 
       {% if not event.ccf_uploaded and results_exist %}
       <div
-        class="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+        class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
         <a href="{% url 'event:export_event_results' event.id %}" target="_blank"
-          class="flex items-center bg-violet-500 text-white py-3 px-6 rounded-md hover:bg-violet-600 transition-all duration-300"
+          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
           aria-label="Odešli výsledky">
           <i class="fas fa-paper-plane text-xl mr-2"></i> Odešli výsledky
         </a>
@@ -295,15 +342,15 @@
     {% csrf_token %}
 
     <!-- REM SUPPORT -->
-    <div class="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
-      <h2 class="text-3xl font-semibold text-gray-800 mb-6 text-center">
+    <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-6">
+      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-6 text-center">
         📁 SOUBORY PRO REM
       </h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Registrovaní jezdci online -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -316,14 +363,14 @@
           </div>
           <div class="flex justify-between">
             <button
-              class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-file"
             >
               🔄 Aktualizovat
             </button>
             <a
               href="../../{{ event.rem_entries }}"
-              class="flex items-center bg-black text-white py-3 px-6 rounded-md hover:bg-gray-600 transition-all duration-300"
+              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
               download
             >
               ⬇️ Stáhnout
@@ -333,7 +380,7 @@
 
         <!-- Všichni jezdci -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -346,14 +393,14 @@
           </div>
           <div class="flex justify-between">
             <button
-              class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-riders-list"
             >
               🔄 Aktualizovat
             </button>
             <a
               href="../../{{ event.rem_riders_list }}"
-              class="flex items-center bg-black text-white py-3 px-6 rounded-md hover:bg-gray-600 transition-all duration-300"
+              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
               download
             >
               ⬇️ Stáhnout
@@ -363,7 +410,7 @@
 
         <!-- Výsledky závodu -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -382,7 +429,7 @@
           </div>
           <div class="flex justify-between mt-4">
             <button
-              class="flex items-center bg-green-500 text-white py-3 px-6 rounded-md hover:bg-green-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-upload-txt"
               value="txt"
               {%
@@ -395,7 +442,7 @@
               📤 Nahrát
             </button>
             <button
-              class="flex items-center bg-red-500 text-white py-3 px-6 rounded-md hover:bg-red-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-txt-delete"
               value="delete-txt"
               {%
@@ -414,14 +461,14 @@
     </div>
 
     <!-- BEM SUPPORT -->
-    <div class="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
-      <h2 class="text-3xl font-semibold text-gray-800 mb-6 text-center">
+    <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-6">
+      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-6 text-center">
         📁 SOUBORY PRO BEM
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Registrovaní jezdci online -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -434,14 +481,14 @@
           </div>
           <div class="flex justify-between">
             <button
-              class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-bem-file"
             >
               🔄 Aktualizovat
             </button>
             <a
               href="../../{{ event.bem_entries }}"
-              class="flex items-center bg-black text-white py-3 px-6 rounded-md hover:bg-gray-600 transition-all duration-300"
+              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
               download
             >
               ⬇️ Stáhnout
@@ -451,7 +498,7 @@
 
         <!-- Všichni jezdci -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -464,14 +511,14 @@
           </div>
           <div class="flex justify-between">
             <button
-              class="flex items-center bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-riders-list"
             >
               🔄 Aktualizovat
             </button>
             <a
               href="../../{{ event.bem_riders_list }}"
-              class="flex items-center bg-black text-white py-3 px-6 rounded-md hover:bg-gray-600 transition-all duration-300"
+              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
               download
             >
               ⬇️ Stáhnout
@@ -481,7 +528,7 @@
 
         <!-- Výsledky závodu -->
         <div
-          class="bg-gray-50 rounded-lg shadow-md p-5 border border-gray-200 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
             <h3 class="font-semibold text-gray-800 text-lg">
@@ -498,7 +545,7 @@
           </div>
           <div class="flex justify-between mt-4">
             <button
-              class="flex items-center bg-green-500 text-white py-3 px-6 rounded-md hover:bg-green-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-upload-result"
               value="xls"
               {%
@@ -511,7 +558,7 @@
               📤 Nahrát
             </button>
             <button
-              class="flex items-center bg-red-500 text-white py-3 px-6 rounded-md hover:bg-red-600 transition-all duration-300"
+              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-delete-xls"
               value="delete"
               {%
@@ -531,5 +578,6 @@
   </form>
 
   {% endif %} 
+</div>
+</section>
   {% endblock content %}
-

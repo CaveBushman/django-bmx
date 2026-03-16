@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}Foreign registration summary{% endblock title %}
+{% block extra_head %}
+<style>
+  .foreign-summary-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  }
+
+  .foreign-summary-panel {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+  }
+
+  .foreign-summary-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
+  }
+
+  .foreign-summary-stat {
+    background: #f8fafc;
+  }
+
+  html.dark body,
+  html.dark .foreign-summary-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  }
+
+  html.dark .foreign-summary-panel,
+  html.dark .foreign-summary-card {
+    background: rgba(15, 23, 42, 0.82) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  html.dark .foreign-summary-stat {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid rgba(51, 65, 85, 0.9);
+  }
+
+  html.dark .foreign-summary-back {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border-color: rgba(71, 85, 105, 0.95) !important;
+    color: #f8fafc !important;
+  }
+
+  html.dark .foreign-summary-back:hover {
+    background: rgba(30, 41, 59, 0.95) !important;
+  }
+
+  .foreign-summary-pay {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.75rem !important;
+    border: 1px solid #065f46 !important;
+    background: #047857 !important;
+    color: #ffffff !important;
+    box-shadow: 0 18px 40px rgba(4, 120, 87, 0.22) !important;
+  }
+
+  .foreign-summary-pay:hover {
+    background: #065f46 !important;
+    color: #ffffff !important;
+  }
+
+  .foreign-summary-wheel-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 5rem !important;
+    height: 5rem !important;
+    border-radius: 9999px !important;
+    font-size: 1.75rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    flex: 0 0 5rem !important;
+    background: #e0e7ff !important;
+    color: #3730a3 !important;
+  }
+
+  html.dark .foreign-summary-wheel-badge {
+    background: #312e81 !important;
+    color: #e0e7ff !important;
+  }
+
+  html.dark .foreign-summary-pay {
+    border-color: #34d399 !important;
+    background: #10b981 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark .foreign-summary-pay:hover {
+    background: #059669 !important;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<section class="foreign-summary-surface min-h-screen pb-10 pt-8 dark:bg-slate-900">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header class="foreign-summary-panel overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8">
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">Step 2</p>
+      <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+        Registration summary for {{ event.name }}
+      </h1>
+      <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+        Review the riders and selected categories before the final submission step.
+      </p>
+      <div class="mt-6 inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+        Contact e-mail: {{ customer_email|default:"-" }}
+      </div>
+    </header>
+
+    <div class="mt-8 space-y-6">
+      {% for row in summary_rows %}
+        <article class="foreign-summary-card rounded-[1.75rem] p-6">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Rider {{ forloop.counter }}</p>
+              <h2 class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                {{ row.first_name|default:"-" }} {{ row.last_name|default:"-" }}
+              </h2>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">UCI ID: {{ row.uci_id|default:"-" }}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              {% if row.category_20 %}
+                <span class="foreign-summary-wheel-badge">20"</span>
+              {% endif %}
+              {% if row.category_24 %}
+                <span class="foreign-summary-wheel-badge">24"</span>
+              {% endif %}
+              {% if row.elite %}
+                <span class="inline-flex h-20 items-center justify-center rounded-full bg-amber-100 px-6 text-xl font-black text-amber-800 dark:bg-amber-950 dark:text-amber-200">Elite</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div class="foreign-summary-stat rounded-2xl p-4 md:col-span-2 xl:col-span-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Category in event</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.event_category|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Date of birth</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.date_of_birth|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Sex</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.sex_label|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Plate</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.plate|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Nationality</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.nationality|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Transponder 20</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.transponder_20|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Transponder 24</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.transponder_24|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Entry fee</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.entry_fee|default:0 }} CZK</p>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <div class="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+          No riders were added to the summary.
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+      <form method="post" action="{% url 'event:entry-foreign' event.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="summary_payload" value="{{ summary_payload }}">
+        <button type="submit"
+          class="foreign-summary-back inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-800">
+          Back to form
+        </button>
+      </form>
+      <div class="rounded-2xl bg-white/70 px-5 py-4 text-sm dark:bg-slate-950/70">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Total entry fee</p>
+        <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ total_fee|default:0 }} CZK</p>
+      </div>
+      <form method="post" action="{% url 'event:entry-foreign-pay' event.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="summary_payload" value="{{ summary_payload }}">
+        <button type="submit"
+          class="foreign-summary-pay px-6 py-3 font-semibold">
+          Pay now
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

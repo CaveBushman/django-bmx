@@ -28,5 +28,19 @@ def ranking_view(request):
     else:
         results = Rider.objects.filter(class_20="Men Under 23", is_active=1, is_approved=1).order_by(
             '-points_20').exclude(points_20=0)
-        data = {'categories': categories, 'results': results, 'category': "MEN UNDER 23"}
+        cruiser = 0
+        data = {'categories': categories, 'results': results, 'category': "MEN UNDER 23", 'cruiser': cruiser}
+
+    leaderboard_size = results.count()
+    if leaderboard_size:
+        leader = results[0]
+        leader_points = leader.points_24 if cruiser else leader.points_20
+    else:
+        leader_points = 0
+
+    data.update({
+        'leaderboard_size': leaderboard_size,
+        'leader_points': leader_points,
+        'categories_count': len(categories),
+    })
     return render(request, 'ranking/ranking.html', data)

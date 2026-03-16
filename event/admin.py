@@ -1,5 +1,8 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee
+from rider.models import ForeignRider
 from django.utils.timezone import now
 from datetime import timedelta
 
@@ -21,7 +24,7 @@ class ResultAdmin(BaseAdmin):
 
 
 class EventAdmin(BaseAdmin):
-    list_display = ('id', 'name', 'date', 'organizer', 'type_for_ranking', 'classes_and_fees_like', 'xls_results',)
+    list_display = ('id', 'name', 'date', 'organizer', 'type_for_ranking', 'pcp', 'pcp_assist', 'start_commissar', 'classes_and_fees_like', 'xls_results',)
     list_display_links = ('name',)
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking',)
@@ -41,8 +44,8 @@ class EntryClassesAdmin(BaseAdmin):
                         ('men_35_over', 'men_junior'), ('men_u23', 'men_elite')),
         }),
         ('Kategorie ženy', {
-            "fields": (('girls_7', 'girls_8'), ('girls_9', 'girls_10'), ('girls_11', 'girls_12'),
-                        ('girls_13', 'girls_14'), ('girls_15', 'girls_16'), ('women_17_24', 'women_25_over'), ('women_junior', 'women_u23'), ('women_elite',)),
+            "fields": (('girls_6', 'girls_7'), ('girls_8', 'girls_9'), ('girls_10', 'girls_11'),
+                        ('girls_12', 'girls_13'), ('girls_14', 'girls_15'), ('girls_16', 'women_17_24'), ('women_25_over', 'women_junior'), ('women_u23', 'women_elite')),
         }),
         ('Kategorie Cruiser', {
             'fields': (('cr_boys_12_and_under', 'cr_boys_13_14'), ('cr_boys_15_16', 'cr_men_17_24'),
@@ -57,7 +60,7 @@ class EntryClassesAdmin(BaseAdmin):
                         'men_35_over_fee', 'men_junior_fee'), ('men_u23_fee', 'men_elite_fee')),
         }),
         ('Startovné ženy', {
-            'fields': (('girls_7_fee', 'girls_8_fee', 'girls_9_fee', 'girls_10_fee'), ('girls_11_fee', 'girls_12_fee', 'girls_13_fee', 'girls_14_fee'), ('girls_15_fee', 'girls_16_fee', 'women_17_24_fee', 'women_25_over_fee'), ('women_junior_fee', 'women_u23_fee', 'women_elite_fee'),),
+            'fields': (('girls_6_fee', 'girls_7_fee', 'girls_8_fee', 'girls_9_fee'), ('girls_10_fee', 'girls_11_fee', 'girls_12_fee', 'girls_13_fee'), ('girls_14_fee', 'girls_15_fee', 'girls_16_fee', 'women_17_24_fee'), ('women_25_over_fee', 'women_junior_fee', 'women_u23_fee', 'women_elite_fee'),),
         }),
         ('Startovné Cruiser', {
             'fields': (('cr_boys_12_and_under_fee', 'cr_boys_13_14_fee', 'cr_boys_15_16_fee', 'cr_men_17_24_fee'),
@@ -75,6 +78,90 @@ class EntryAdmin(BaseAdmin):
     list_editable = ('checkout',)
     autocomplete_fields = ('rider', 'event', 'user')
     list_select_related = ('rider', 'event', 'user')
+
+
+class EntryForeignAdmin(BaseAdmin):
+    list_display = (
+        'last_name',
+        'first_name',
+        'uci_id',
+        'event',
+        'entry_category',
+        'plate',
+        'nationality',
+        'payment_complete',
+        'checkout',
+        'transaction_date',
+        'foreign_rider_link',
+    )
+    list_display_links = ('last_name', 'first_name')
+    search_fields = (
+        'last_name',
+        'first_name',
+        'uci_id',
+        'event__name',
+        'nationality',
+        'plate',
+        'customer_email',
+        'transponder_20',
+        'transponder_24',
+    )
+    list_filter = ('payment_complete', 'checkout', 'event', 'nationality', 'is_20', 'is_24', 'is_elite')
+    list_editable = ('checkout',)
+    autocomplete_fields = ('event',)
+    list_select_related = ('event',)
+    readonly_fields = ('transaction_id', 'transaction_date', 'date_of_payment', 'foreign_rider_link')
+    ordering = ('-transaction_date', 'last_name', 'first_name')
+
+    fieldsets = (
+        ('Závod a platba', {
+            'fields': (
+                'event',
+                'transaction_id',
+                ('payment_complete', 'checkout'),
+                ('transaction_date', 'date_of_payment'),
+                'customer_email',
+                'customer_name',
+            ),
+        }),
+        ('Jezdec', {
+            'fields': (
+                ('first_name', 'last_name'),
+                ('uci_id', 'date_of_birth'),
+                ('gender', 'nationality'),
+                ('plate', 'club'),
+                'foreign_rider_link',
+            ),
+        }),
+        ('Kategorie a transpondéry', {
+            'fields': (
+                ('is_20', 'is_24', 'is_elite'),
+                ('class_20', 'class_24'),
+                ('fee_20', 'fee_24'),
+                ('transponder', 'transponder_20', 'transponder_24'),
+            ),
+        }),
+    )
+
+    @admin.display(description='Kategorie')
+    def entry_category(self, obj):
+        if obj.is_20:
+            return obj.class_20 or '20"'
+        if obj.is_24:
+            return obj.class_24 or '24"'
+        return '-'
+
+    @admin.display(description='Zahraniční jezdec')
+    def foreign_rider_link(self, obj):
+        if not obj.uci_id:
+            return "Bez UCI ID"
+        try:
+            foreign_rider = ForeignRider.objects.get(uci_id=obj.uci_id)
+        except ForeignRider.DoesNotExist:
+            return "Nenalezen"
+
+        url = reverse('admin:rider_foreignrider_change', args=[foreign_rider.pk])
+        return format_html('<a href="{}">Otevřít jezdce</a>', url)
 
 
 class CreditTransactionAdmin(BaseAdmin):
@@ -107,7 +194,7 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(EntryClasses, EntryClassesAdmin)
 admin.site.register(Entry, EntryAdmin)
-admin.site.register(EntryForeign)
+admin.site.register(EntryForeign, EntryForeignAdmin)
 admin.site.register(SeasonSettings)
 admin.site.register(CreditTransaction, CreditTransactionAdmin)
 admin.site.register(DebetTransaction, DebetTransactionAdmin)

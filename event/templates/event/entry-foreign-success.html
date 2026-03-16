@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Payment successful{% endblock title %}
+{% block extra_head %}
+<style>
+  .foreign-success-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  }
+
+  .foreign-success-panel {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark body,
+  html.dark .foreign-success-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  }
+
+  html.dark .foreign-success-panel {
+    background: rgba(15, 23, 42, 0.84) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<section class="foreign-success-surface min-h-screen px-4 py-16 dark:bg-slate-900">
+  <div class="foreign-success-panel mx-auto max-w-3xl rounded-[2rem] p-10 text-center">
+    <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+    </div>
+    <p class="mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">Payment received</p>
+    <h1 class="mt-3 text-4xl font-black tracking-tight text-slate-900 dark:text-white">Foreign registration completed</h1>
+    <p class="mt-4 text-base text-slate-600 dark:text-slate-300">
+      The payment for {{ event.name }} was successful and the foreign entries have been marked as paid.
+    </p>
+    <div class="mt-8">
+      <a href="{% url 'event:event-detail' event.id %}"
+        class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-500">
+        Back to event
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,204 +1,359 @@
 {% extends 'base.html' %}
-{% block title %} Přihlášení na závody {% endblock title %}
-{% load static %} 
-{% block content %}
+{% load static %}
+{% block title %}Přihlášení na závody{% endblock title %}
+{% block extra_head %}
+<style>
+    .entry-filter-input {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
 
-<form method="POST">
+    .entry-filter-input::placeholder {
+        color: #94a3b8;
+    }
+
+    .entry-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .entry-table col.col-plate {
+        width: 7%;
+    }
+
+    .entry-table col.col-last-name {
+        width: 18%;
+    }
+
+    .entry-table col.col-first-name {
+        width: 13%;
+    }
+
+    .entry-table col.col-club {
+        width: 24%;
+    }
+
+    .entry-table col.col-class {
+        width: 19%;
+    }
+
+    .entry-choice {
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #334155;
+    }
+
+    .entry-choice input {
+        accent-color: #16a34a;
+    }
+
+    .entry-choice.selected {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #ffffff;
+    }
+
+    .entry-choice.selected span {
+        color: #ffffff;
+    }
+
+    .registered-checkbox {
+        accent-color: #16a34a !important;
+        cursor: not-allowed;
+        opacity: 1;
+    }
+
+    html.dark .entry-filter-input {
+        background: #020617;
+        color: #f8fafc;
+        border-color: #334155;
+    }
+
+    html.dark .entry-filter-input::placeholder {
+        color: #64748b;
+    }
+
+    html.dark .entry-table thead {
+        background: #172033;
+    }
+
+    html.dark .entry-table tbody {
+        background: #020617;
+    }
+
+    html.dark .entry-table tbody tr {
+        background: transparent;
+    }
+
+    html.dark .entry-table tbody tr:hover {
+        background: #0f172a;
+    }
+
+    html.dark .entry-choice {
+        border-color: #334155;
+        background: #0f172a;
+        color: #e2e8f0;
+    }
+
+    html.dark .entry-choice.selected {
+        background: #15803d;
+        border-color: #15803d;
+        color: #ffffff;
+    }
+
+    html.dark .registered-checkbox {
+        accent-color: #22c55e !important;
+    }
+
+    html.dark .entry-page {
+        background: #020617;
+        min-height: calc(100vh - 4rem);
+    }
+
+    .entry-table th,
+    .entry-table td {
+        vertical-align: middle;
+    }
+
+    .entry-table td:nth-child(1),
+    .entry-table th:nth-child(1) {
+        text-align: center;
+    }
+
+    .entry-table td:nth-child(3),
+    .entry-table td:nth-child(4),
+    .entry-table td:nth-child(5) {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+</style>
+{% endblock extra_head %}
+{% block content %}
+<form method="POST" class="entry-page pb-20">
     {% csrf_token %}
 
-<header
-    class="fixed w-full shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white z-50">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h1 class="text-4xl font-bold text-white">
-            {{ event.name | upper }}
-        </h1>
-        <div>
-            <button type="submit"
-                class="rounded-md bg-fuchsia-600 py-2.5 px-6 text-sm font-semibold text-white shadow-lg hover:bg-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
-                name="btn_add" aria-label="Add to cart">
-                Přidat do košíku
-            </button>
-        </div>
-    </div>
-</header>
-  
-    <div class="max-w-7xl mx-auto pt-32">
-        <div class="text-2xl ">Datum konání: <b>{{event.date}}</b></div>
-    </div>
-    <br>
-    <div class="max-w-7xl mx-auto">
-        <div class="">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="">
-                    <input
-                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200"
-                        type="text" placeholder="Napiš příjmení jezdce" aria-label="default input example"
-                        onkeyup="searchByLastName()" id="inputLastName" />
-                </div>
-
-                <div class="">
-                    <input
-                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200"
-                        type="text" placeholder="Napiš klub" aria-label="default input example" onkeyup="searchByClub()"
-                        id="inputClub" />
+    <section class="bg-slate-50 pb-16 pt-10 dark:bg-slate-950">
+        <div class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
+            <div class="rounded-[2rem] border border-slate-200 bg-white/95 p-8 shadow-[0_24px_80px_rgba(59,130,246,0.16)] ring-1 ring-white/60 dark:border-slate-800 dark:bg-slate-900/92 dark:shadow-[0_24px_80px_rgba(15,23,42,0.55)] dark:ring-slate-800/60 lg:p-10">
+                <div class="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="max-w-3xl">
+                        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">
+                            Přihlášení jezdců
+                        </p>
+                        <h1 class="text-4xl font-black tracking-tight text-slate-950 dark:text-white sm:text-5xl">
+                            {{ event.name|upper }}
+                        </h1>
+                        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+                            Vyber jezdce a kategorie pro závod. Přihlášení probíhá přímo z aktivní databáze jezdců.
+                        </p>
+                    </div>
+                    <div class="flex w-full flex-col gap-4 sm:w-auto lg:flex-row lg:items-stretch lg:justify-end">
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50/90 px-6 py-5 text-slate-950 dark:border-slate-700 dark:bg-slate-950/70 dark:text-white">
+                            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">
+                                Datum konání
+                            </p>
+                            <p class="mt-3 text-3xl font-black leading-none">
+                                {{ event.date }}
+                            </p>
+                        </div>
+                        <button
+                            type="submit"
+                            name="btn_add"
+                            aria-label="Přidat do košíku"
+                            class="inline-flex min-h-16 items-center justify-center rounded-2xl border border-green-500 bg-green-600 px-6 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        >
+                            Přidat do košíku
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <section class="rounded-[2rem] border border-slate-200 bg-white/95 p-8 shadow-[0_20px_70px_rgba(15,23,42,0.08)] ring-1 ring-white/70 dark:border-slate-800 dark:bg-slate-900/92 dark:shadow-[0_20px_70px_rgba(2,6,23,0.45)] dark:ring-slate-800/50">
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-950 dark:text-white">Startovní listina</h2>
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            Filtrovat můžeš podle příjmení nebo klubu. Vybrané checkboxy se po odeslání přidají do košíku.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+                                Příjmení
+                            </span>
+                            <input
+                                id="inputLastName"
+                                type="text"
+                                placeholder="Napiš příjmení jezdce"
+                                onkeyup="searchByLastName()"
+                                class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                            />
+                        </label>
+
+                        <label class="block">
+                            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+                                Klub
+                            </span>
+                            <input
+                                id="inputClub"
+                                type="text"
+                                placeholder="Napiš klub"
+                                onkeyup="searchByClub()"
+                                class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                            />
+                        </label>
+                    </div>
+
+                    <div class="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/70">
+                        <div class="overflow-x-auto">
+                            <table class="entry-table min-w-full divide-y divide-slate-200 dark:divide-slate-800" id="myTable">
+                                <colgroup>
+                                    <col class="col-plate">
+                                    <col class="col-last-name">
+                                    <col class="col-first-name">
+                                    <col class="col-club">
+                                    <col class="col-class">
+                                    <col class="col-class">
+                                    {% if beginners_enabled %}
+                                    <col class="col-class">
+                                    {% endif %}
+                                </colgroup>
+                                <thead class="bg-slate-100/90 dark:bg-slate-900">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">
+                                            Start.č.
+                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">
+                                            Příjmení
+                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
+                                            Jméno
+                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
+                                            Klub
+                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
+                                            20"
+                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
+                                            24" (Cruiser)
+                                        </th>
+                                        {% if beginners_enabled %}
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
+                                            Příchozí
+                                        </th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+                                    {% for rider in riders %}
+                                    <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/80">
+                                        <td class="px-4 py-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 sm:px-6">
+                                            {{ rider.plate }}
+                                        </td>
+                                        <td class="w-full max-w-0 px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6">
+                                            {{ rider.last_name }}
+                                            <dl class="font-normal lg:hidden">
+                                                <dt class="sr-only">Jméno</dt>
+                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-300">{{ rider.first_name }}</dd>
+                                                <dt class="sr-only sm:hidden">Klub</dt>
+                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">
+                                                    {{ rider.club|upper }}
+                                                </dd>
+                                            </dl>
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                            {{ rider.first_name }}
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                            {{ rider.club|upper }}
+                                        </td>
+                                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
+                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
+                                        {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
+                                        <td class="px-4 py-4 text-sm">
+                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 font-medium text-white">
+                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20" disabled>
+                                                <span>{{ rider.class_20 }}</span>
+                                            </div>
+                                        </td>
+                                        {% elif rider.is_registered_20 %}
+                                        <td class="px-4 py-4 text-sm">
+                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
+                                                <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20" checked disabled>
+                                                <span>{{ rider.class_20 }}</span>
+                                            </label>
+                                        </td>
+                                        {% else %}
+                                        <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20">
+                                                <span>{{ rider.class_20 }}</span>
+                                            </label>
+                                        </td>
+                                        {% endif %}
+
+                                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 and not rider.is_elite %}
+                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
+                                        {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
+                                        <td class="px-4 py-4 text-sm">
+                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 font-medium text-white">
+                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24" disabled>
+                                                <span>{{ rider.class_24 }}</span>
+                                            </div>
+                                        </td>
+                                        {% elif rider.class_24 == "NELZE PŘIHLÁSIT" %}
+                                        <td class="px-4 py-4 text-sm"></td>
+                                        {% elif rider.is_registered_24 %}
+                                        <td class="px-4 py-4 text-sm">
+                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
+                                                <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24" checked disabled>
+                                                <span>{{ rider.class_24 }}</span>
+                                            </label>
+                                        </td>
+                                        {% else %}
+                                        <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24">
+                                                <span>{{ rider.class_24 }}</span>
+                                            </label>
+                                        </td>
+                                        {% endif %}
+
+                                        {% if beginners_enabled %}
+                                            {% if rider.is_registered_beginner %}
+                                            <td class="px-4 py-4 text-sm">
+                                                <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
+                                                    <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_beginner" name="checkbox_beginner" disabled checked>
+                                                    <span>{{ rider.class_beginner }}</span>
+                                                </label>
+                                            </td>
+                                            {% elif rider.is_beginner %}
+                                            <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                                    <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_beginner" name="checkbox_beginner">
+                                                    <span>{{ rider.class_beginner }}</span>
+                                                </label>
+                                            </td>
+                                            {% else %}
+                                            <td class="px-4 py-4 text-sm"></td>
+                                            {% endif %}
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-
-        <div
-            class="mx-4 mt-4 mb-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:mx-6 md:mx-0 md:rounded-lg">
-            <table class=" min-w-full divide-y divide-gray-300" id="myTable">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col"
-                            class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:pl-6 text-center">
-                            Start.č.
-                        </th>
-                        <th scope="col" class="dark:bg-gray-800 dark:text-gray-200 hidden lg:table-cell"></th>
-                        <th scope="col"
-                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:pl-6">
-                            Příjmení
-                        </th>
-                        <th scope="col"
-                            class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 lg:table-cell">
-                            Jméno
-                        </th>
-                        <th scope="col"
-                            class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200 sm:table-cell">
-                            Klub
-                        </th>
-                        <th scope="col"
-                            class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">
-                            UCI ID
-                        </th>
-                        <th scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">
-                            20"
-                        </th>
-                        <th scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">
-                            24" (Cruiser)
-                        </th>
-                        {% if event.is_beginners_race %}
-                        <th scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-200">
-                            Příchozí
-                        </th>
-                        {% endif %}
-                    </tr>
-                </thead>
-
-                <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:text-gray-200">
-                    {% for rider in riders %}
-                    <tr>
-                        <td class="mt-1 truncate text-gray-700 dark:text-gray-200 text-center">{{rider.plate}}</td>
-                        <td class="dark:dark hidden lg:table-cell"><img
-                                class="rounded-full img-fluid rounded-circle dark:text-gray-200"
-                                src="{{rider.photo.url}}" alt="" sizes="6px" srcset=""
-                                style="width: 2rem; height: 2rem;"></td>
-                        <td
-                            class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900  dark:text-gray-200 sm:w-auto sm:max-w-none sm:pl-6">
-                            {{rider.last_name}}
-                            <dl class="font-normal lg:hidden">
-                                <dt class="sr-only">Title</dt>
-                                <dd class="mt-1 truncate text-gray-700 dark:text-gray-200">{{rider.first_name}}</dd>
-                                <dt class="sr-only sm:hidden">Email</dt>
-                                <dd class="mt-1 truncate text-gray-500 dark:text-gray-200 sm:hidden">
-                                    {{rider.club|upper}}
-                                </dd>
-                            </dl>
-                        </td>
-                        <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 lg:table-cell">
-                            {{rider.first_name}}
-                        </td>
-                        <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 sm:table-cell">
-                            {{rider.club|upper}}
-                        </td>
-                        <td class="hidden px-3 py-4 text-sm text-gray-500 dark:text-gray-200 md:table-cell">
-                            {{rider.uci_id}}
-                        </td>
-                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
-
-                        <td class="text-red-500">Nekvalifikoval se</td>
-
-                        {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
-                        <td class="mt-1 text-sm truncate dark:text-gray-200">
-                            <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
-                                <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_20"
-                                    name="checkbox_20" disabled />
-                                {{rider.class_20}}
-                            </div>
-                        </td>
-                        {% elif 'registered' in rider.class_20 %}
-                        <td class="mt-1 text-sm truncate dark:dark">
-                            <div
-                                class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg dark:text-gray-200">
-                                <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_20"
-                                    name="checkbox_20" checked disabled />
-                                {{rider.class_20|slice:":-10" }}
-                            </div>
-                        </td>
-                        {% else %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                            <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_20"
-                                name="checkbox_20" />
-                            {{rider.class_20}}
-                        </td>
-                        {% endif %}
-                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 and not rider.is_elite %}
-                        <td class="text-red-500">Nekvalifikoval se</td>
-                        {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                            <div class="text-white hover:text-gray-200 bg-red-500 mx-auto py-2 px-2 rounded-lg">
-                                <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_24"
-                                    name="checkbox_24" disabled />{{rider.class_24}}
-                            </div>
-                        </td>
-                        {% elif rider.class_24 == "NELZE PŘIHLÁSIT" %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                        </td>
-                        {% elif 'registered' in rider.class_24 %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                            <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
-                                <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_24"
-                                    name="checkbox_24" checked disabled />{{rider.class_24|slice:":-10"}}
-                            </div>
-                        </td>
-                        {% else %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                            <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_24"
-                                name="checkbox_24" />
-                            {{rider.class_24}}
-                        </td>
-                        {% endif %}
-                        {% if event.is_beginners_event %}
-                        {% if 'registered' in rider.class_beginner %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark">
-                            <div class="text-white hover:text-gray-200 bg-green-500 mx-auto py-2 px-2 rounded-lg">
-                                <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_beginner"
-                                    name="checkbox_beginner" disabled checked /> {{rider.class_beginner|slice:":-10"}}
-                            </div>
-                        </td>
-                        {% elif rider.is_beginner %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                            <input class="" type="checkbox" value="{{rider.uci_id}}" id="checkbox_beginner"
-                                name="checkbox_beginner" /> {{rider.class_beginner}}
-                        </td>
-                        {% else %}
-                        <td class="mt-1 text-sm truncate text-gray-700 dark:dark"></td>
-                        {% endif %}
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
+    </section>
 </form>
-</div>
 
+<a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
 <script src="{% static 'js/entry.js' %}"></script>
 <script src="{% static 'js/arrow.js' %}"></script>
-
 {% endblock content %}
