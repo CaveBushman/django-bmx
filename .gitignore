@@ -73,6 +73,9 @@ media/*
 node_modules/*
 theme_2/static_src/*
 theme/static/*
+!theme/static/css/
+!theme/static/css/dist/
+!theme/static/css/dist/styles.css
 
 # Flask stuff:
 instance/
