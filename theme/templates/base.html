@@ -10,9 +10,27 @@
   <!-- Dark mode: aplikuj třídu před vykreslením stránky, aby nedošlo k blikání -->
   <script>
     (function () {
-      const stored = localStorage.getItem('theme');
-      if (stored === 'dark') {
-        document.documentElement.classList.add('dark');
+      function getStoredTheme() {
+        try {
+          return window.localStorage.getItem("theme");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      var stored = getStoredTheme();
+      var prefersDark = false;
+
+      try {
+        prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      } catch (error) {
+        prefersDark = false;
+      }
+
+      if (stored === "dark" || (!stored && prefersDark)) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
       }
     })();
   </script>
@@ -22,7 +40,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.5/dist/flowbite.min.css" />
-  <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}?v=4" />
+  <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}?v=5" />
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"
     integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni" crossorigin="anonymous" />
