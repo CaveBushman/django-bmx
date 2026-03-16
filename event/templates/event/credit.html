@@ -25,6 +25,36 @@
     box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
   }
 
+  .credit-hero-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .credit-balance-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    background:
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 42%),
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(79, 70, 229, 0.9));
+    box-shadow: 0 22px 52px rgba(15, 23, 42, 0.18);
+  }
+
+  .credit-balance-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -15% -35% auto;
+    width: 8rem;
+    height: 8rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    filter: blur(2px);
+  }
+
+  .credit-balance-value {
+    font-variant-numeric: tabular-nums;
+  }
+
   .credit-submit {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
     border: 1px solid rgba(99, 102, 241, 0.22);
@@ -64,6 +94,17 @@
     }
   }
 
+  @media (min-width: 1024px) {
+    .credit-hero-grid {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      align-items: stretch;
+    }
+
+    .credit-balance-card {
+      min-height: 14.5rem;
+    }
+  }
+
   .credit-submit:hover {
     transform: translateY(-2px);
     border-color: rgba(99, 102, 241, 0.38);
@@ -92,6 +133,14 @@
       linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
   }
 
+  html.dark .credit-balance-card {
+    border-color: rgba(129, 140, 248, 0.28) !important;
+    background:
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 42%),
+      linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(67, 56, 202, 0.82)) !important;
+    box-shadow: 0 26px 60px rgba(2, 6, 23, 0.44) !important;
+  }
+
   html.dark .credit-submit {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
     border-color: rgba(99, 102, 241, 0.3) !important;
@@ -116,16 +165,36 @@
 <section class="credit-surface min-h-screen pb-24">
   <div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
     <header class="credit-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
-      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
-        Credit Top-up
-      </p>
-      <div class="mt-4">
-        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-          Kredit
-        </h1>
-        <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
-          Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
-        </p>
+      <div class="credit-hero-grid">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+            Credit Top-up
+          </p>
+          <div class="mt-4">
+            <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+              Kredit
+            </h1>
+            <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+              Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
+            </p>
+          </div>
+        </div>
+        <div class="credit-balance-card flex min-h-[11.5rem] flex-col justify-between rounded-[1.75rem] p-6 text-white sm:p-7">
+          <div class="relative z-10">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
+              Aktuální zůstatek
+            </p>
+            <p class="credit-balance-value mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+              {{ user.credit|default:0|floatformat:0 }}
+            </p>
+            <p class="mt-2 text-sm font-medium text-white/72">
+              CZK
+            </p>
+          </div>
+          <p class="relative z-10 mt-6 max-w-[13rem] text-sm leading-6 text-white/80">
+            Kredit se automaticky použije při platbě přihlášek a dalších navazujících služeb.
+          </p>
+        </div>
       </div>
     </header>
 
