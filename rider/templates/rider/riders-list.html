@@ -191,7 +191,7 @@
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vyhledávání a akce</p>
         <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Rychlá práce s evidencí</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle máš přístup k žádosti o nové číslo i správě evidence.
+          Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle máš přístup k žádosti o nové číslo.
         </p>
       </div>
       <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
@@ -272,24 +272,11 @@
                       <img class="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" src="{{rider.photo.url}}" alt="">
                     </div>
                   <div class="ml-4">
-                    <div class="flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-                      {% if rider.is_qualify_to_cn_20 or rider.is_qualify_to_cn_24 %}
-                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
-                          {% if rider.is_qualify_to_cn_20 and rider.is_qualify_to_cn_24 %}
-                            CN_20,24
-                          {% elif rider.is_qualify_to_cn_20 %}
-                            CN_20
-                          {% else %}
-                            CN_24
-                          {% endif %}
-                        </span>
-                      {% endif %}
-                    </div>
                     <div class="rider-list-name mt-1 tracking-tight text-slate-900 dark:text-white">
                       <span class="font-black">{{ rider.last_name|upper }}</span>
                       <span class="ml-2 font-normal">{{ rider.first_name }}</span>
                     </div>
-                    <div class="mt-2">
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
                       {% if rider.valid_licence %}
                         <span class="inline-flex items-center rounded-md bg-green-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-green-600/30">
                           Platná licence
@@ -297,6 +284,17 @@
                       {% else %}
                         <span class="inline-flex items-center rounded-md bg-red-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-red-600/30">
                           Neplatná licence
+                        </span>
+                      {% endif %}
+                      {% if rider.is_qualify_to_cn_20 or rider.is_qualify_to_cn_24 %}
+                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 inset-ring inset-ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:inset-ring-blue-400/30">
+                          {% if rider.is_qualify_to_cn_20 and rider.is_qualify_to_cn_24 %}
+                            CN_20,24
+                          {% elif rider.is_qualify_to_cn_20 %}
+                            CN_20
+                          {% else %}
+                            CN_24
+                          {% endif %}
                         </span>
                       {% endif %}
                     </div>

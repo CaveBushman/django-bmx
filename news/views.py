@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404 
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage
-from event.models import Event
+from event.models import Event, SeasonSettings
 from event.func import update_cart
 from rider.rider import update_plate_notify
 from rider.models import Rider
@@ -46,7 +46,16 @@ def homepage_view(request):
 
 
 def rules_view(request):
-    return render(request, 'rules.html')
+    current_year = date.today().year
+    season_settings = (
+        SeasonSettings.objects.filter(year=current_year).first()
+        or SeasonSettings.objects.order_by("-year").first()
+    )
+    content = {
+        "transponder_price": season_settings.transponder_price if season_settings else 1900,
+        "bmx_rules_link": season_settings.bmx_rules_link if season_settings else "",
+    }
+    return render(request, 'rules.html', content)
 
 
 

@@ -1,103 +1,89 @@
 {% extends 'base.html' %}
 {% block title %}
 Registrace uživatele
-{% endblock title%}
+{% endblock title %}
 {% load static %}
 
 {% block content %}
-
-
-<div role="alert" id="message" class=" mx-auto max-w-4xl mt-6">
-{% if form.errors %}
-  <div class="flex w-full items-start gap-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-md" role="alert">
-    <svg class="h-12 w-12 flex-shrink-0 text-red-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z" />
-    </svg>
-    <div>
-      <h3 class="font-semibold text-red-900">Chyba při zpracování</h3>
-      <div class="mt-1 text-red-800">
-        <p>Špatné přihlašovací údaje</p>
-      </div>
-    </div>
-  </div>
-{% endif %}
-</div>
-
-<div class="min-h-full flex flex-col justify-center py-6 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    
-    <h2 class="mt-4 text-center text-4xl font-bold tracking-tight text-gray-900">Vytvoření nového účtu</h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Už máte účet?
-      <a href="{% url 'accounts:login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">Přihlaste se</a>
-    </p>
+<section class="relative overflow-hidden bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white">
+  <div class="absolute inset-0">
+    <div class="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-indigo-100 via-sky-50 to-transparent dark:from-slate-900 dark:via-slate-950 dark:to-transparent"></div>
+    <div class="absolute -left-24 top-28 h-72 w-72 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-500/10"></div>
+    <div class="absolute right-0 top-20 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl dark:bg-indigo-500/12"></div>
+    <div class="absolute bottom-10 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-white/70 blur-3xl dark:bg-slate-900/40"></div>
   </div>
 
-  <div class="sm:mx-auto sm:w-full sm:max-w-md mt-6">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="flex w-full items-start gap-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-md" role="alert">
-          <svg class="h-12 w-12 flex-shrink-0 text-red-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z" />
-          </svg>
-          <div>
-            <h3 class="font-semibold text-red-900">Chyba při zpracování</h3>
-            <div class="mt-1 text-red-800">
-              <p>{{ message }}</p>
-            </div>
-          </div>
+  <div class="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center px-4 py-10 sm:px-6 lg:px-8">
+    <div class="w-full rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.10)] dark:border-slate-800 dark:!bg-slate-900 dark:shadow-[0_24px_60px_rgba(2,6,23,0.45)] sm:p-8">
+      <div class="border-b border-slate-200 pb-6 dark:border-slate-800">
+        <div class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:!bg-indigo-500/10 dark:text-indigo-300">
+          Czech BMX
         </div>
-      {% endfor %}
-    {% endif %}
- </div>
+        <h1 class="mt-4 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          Přístup do interní části webu
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Vyplňte své základní údaje pro vytvoření účtu. Pokud už účet máte,
+          <a href="{% url 'accounts:login' %}" class="font-semibold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">přihlaste se zde</a>.
+        </p>
+      </div>
 
-  <div class="mt-2 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <form class="space-y-6" action="#" method="POST">
+      {% if form.errors %}
+        <div class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-200">
+          Zkontrolujte zadané údaje a zkuste to znovu.
+        </div>
+      {% endif %}
+
+      {% if messages %}
+        <div class="mt-6 space-y-3">
+          {% for message in messages %}
+            <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-200">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form class="mt-6 space-y-5" action="#" method="POST">
         {% csrf_token %}
 
         <div>
-          <label for="firstname" class="block text-sm font-medium text-gray-700"> Křestní jméno</label>
-          <div class="mt-1">
-            <input id="firstname" name="firstname" type="text" autocomplete="email" required placeholder="Křestní jméno" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          </div>
+          <label for="firstname" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Křestní jméno</label>
+          <input id="firstname" name="firstname" type="text" required placeholder="Křestní jméno"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
 
         <div>
-          <label for="lastname" class="block text-sm font-medium text-gray-700"> Příjmení</label>
-          <div class="mt-1">
-            <input id="lastname" name="lastname" type="text" autocomplete="email" required placeholder="Příjmení" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          </div>
+          <label for="lastname" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Příjmení</label>
+          <input id="lastname" name="lastname" type="text" required placeholder="Příjmení"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
 
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700"> Email (bude použit jako uživatelské jméno)</label>
-          <div class="mt-1">
-            <input id="username" name="username" type="email" autocomplete="email" required placeholder="Email" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          </div>
+          <label for="username" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">E-mail</label>
+          <input id="username" name="username" type="email" autocomplete="email" required placeholder="vas@email.cz"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700"> Heslo </label>
-          <div class="mt-1">
-            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Heslo" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          </div>
+          <label for="password" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Heslo</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required placeholder="Zadejte heslo"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
 
         <div>
-          <label for="password2" class="block text-sm font-medium text-gray-700"> Heslo pro kontrolu </label>
-          <div class="mt-1">
-            <input id="password2" name="password2" type="password" autocomplete="current-password" required placeholder="Heslo pro kontrolu" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          </div>
+          <label for="password2" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Potvrzení hesla</label>
+          <input id="password2" name="password2" type="password" autocomplete="new-password" required placeholder="Zadejte heslo znovu"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
 
-        <div>
-          <button class="w-full rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Zaregistrovat</button>
-        </div>
+        <button class="flex w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-500/20">
+          Zaregistrovat
+        </button>
       </form>
-      </div>
     </div>
   </div>
-<script src="{% static 'js/alert_timeout.js' %}"></script>
+</section>
 
+<script src="{% static 'js/alert_timeout.js' %}"></script>
 {% endblock %}

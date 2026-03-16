@@ -1,31 +1,48 @@
 {% extends 'base.html' %} {% block title %} Novinky {% endblock title %}
 {% block content %}
 <section class="bg-slate-50 pb-10 dark:bg-slate-900">
-<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
-  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-      Aktuality
-    </p>
-    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-      NOVINKY ZE SVĚTA BMX
-    </h1>
-    <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-      Přehled publikovaných článků, novinek a informací z domácího BMX dění.
-    </p>
+<header class="relative overflow-hidden border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+  <div class="absolute inset-0">
+    <div class="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-indigo-50 via-sky-50/70 to-transparent dark:from-slate-800 dark:via-slate-900 dark:to-transparent"></div>
+    <div class="absolute left-0 top-12 h-48 w-48 rounded-full bg-indigo-200/25 blur-3xl dark:bg-indigo-500/10"></div>
+    <div class="absolute right-0 top-8 h-48 w-48 rounded-full bg-sky-200/25 blur-3xl dark:bg-sky-500/10"></div>
+  </div>
+
+  <div class="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.28em] text-indigo-700 dark:text-indigo-300">
+        Aktuality
+      </p>
+      <h1 class="mt-3 max-w-4xl text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+        Novinky ze světa BMX
+      </h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+        Přehled publikovaných článků, novinek a informací z domácího i mezinárodního BMX dění.
+      </p>
+
+      <div class="mt-8 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/85 px-5 py-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-4">
+          <div class="h-12 w-1 rounded-full bg-gradient-to-b from-indigo-500 to-sky-400"></div>
+          <div class="flex items-end gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Publikováno</p>
+              <p class="mt-1 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum_of_news }}</p>
+            </div>
+            <p class="pb-1 text-sm text-slate-500 dark:text-slate-400">článků a aktualit</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+          <span>Stránka {{ news.number }}</span>
+          <span class="text-slate-400 dark:text-slate-500">/</span>
+          <span>{{ news.paginator.num_pages }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
 <div class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
-  <div class="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-lg dark:shadow-slate-950/30">
-    <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Publikováno</p>
-      <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white">{{ sum_of_news }}</p>
-    </div>
-    <div class="text-right text-sm text-slate-500 dark:text-slate-400">
-      Stránka {{ news.number }} z {{ news.paginator.num_pages }}
-    </div>
-  </div>
-
   <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
   {% for article in news.object_list %}
   <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-xl dark:shadow-black/20">
@@ -53,13 +70,15 @@
         </a>
       </h2>
 
-      <div class="mt-4 line-clamp-4 text-sm leading-6 text-slate-600 [&_a]:text-indigo-700 [&_p]:text-slate-600 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_div]:text-slate-100 dark:[&_span]:text-inherit">
+      <div class="mt-4 flex-1 line-clamp-4 text-sm leading-6 text-slate-600 [&_a]:text-indigo-700 [&_p]:text-slate-600 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_div]:text-slate-100 dark:[&_span]:text-inherit">
         {{ article.prefix|safe|truncatechars_html:400 }}
       </div>
 
       <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:!border-slate-700">
         <div class="flex items-center gap-x-3">
-          <img src="{{article.created.photo.url}}" alt="{{ article.created }}" class="h-11 w-11 rounded-full bg-slate-100 object-cover ring-1 ring-slate-200 dark:!ring-slate-500">
+          <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200 dark:!ring-slate-500">
+            <img src="{{article.created.photo.url}}" alt="{{ article.created }}" class="h-full w-full object-cover">
+          </div>
           <div class="text-sm leading-5">
             <p class="font-semibold text-slate-900 dark:text-white">{{article.created}}</p>
             <p class="text-slate-500 dark:text-slate-300">{{article.time_to_read}} min. cteni</p>
@@ -67,7 +86,7 @@
         </div>
         <a href="{% url 'news:news-detail' article.id %}"
           class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 dark:!bg-indigo-500 dark:hover:!bg-indigo-400">
-          Cist
+          Číst
         </a>
       </div>
     </div>

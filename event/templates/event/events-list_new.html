@@ -3,204 +3,7 @@
 {% block title %} Kalendář závodů {% endblock title %}
 
 {% block extra_head %}
-<style>
-  .events-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 24rem),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 52%, #f8fafc 100%);
-  }
-
-  .events-hero,
-  .events-panel,
-  .events-card,
-  .events-stat,
-  .events-year-nav {
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(226, 232, 240, 0.92);
-    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-  }
-
-  .events-hero {
-    background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 16rem),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 255, 0.9));
-  }
-
-  .events-year-current {
-    background: linear-gradient(135deg, #4338ca, #6366f1);
-    color: #fff;
-    box-shadow: 0 14px 32px rgba(79, 70, 229, 0.24);
-  }
-
-  .events-card {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .events-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 5px;
-    background: var(--event-accent, #6366f1);
-  }
-
-  .events-card.is-featured {
-    background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 16rem),
-      rgba(255, 255, 255, 0.98);
-    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.12);
-  }
-
-  .events-type-badge {
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: 1.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    flex: 0 0 auto;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 16px 34px rgba(15, 23, 42, 0.14);
-  }
-
-  .events-chip {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 9999px;
-    padding: 0.42rem 0.78rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    line-height: 1;
-    border: 1px solid transparent;
-    text-decoration: none;
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-  }
-
-  .events-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-  }
-
-  .events-chip-primary {
-    background: #0f172a;
-    border-color: #0f172a;
-    color: #fff;
-  }
-
-  .events-chip-secondary {
-    background: #fff;
-    border-color: #cbd5e1;
-    color: #334155;
-  }
-
-  .events-chip-success {
-    background: #ecfdf5;
-    border-color: #86efac;
-    color: #166534;
-  }
-
-  .events-chip-purple {
-    background: #f5f3ff;
-    border-color: #c4b5fd;
-    color: #6d28d9;
-  }
-
-  .events-chip-orange {
-    background: #fff7ed;
-    border-color: #fdba74;
-    color: #c2410c;
-  }
-
-  .events-chip-red {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #b91c1c;
-  }
-
-  .events-chip-sky {
-    background: #eff6ff;
-    border-color: #93c5fd;
-    color: #1d4ed8;
-  }
-
-  .events-meta-dot {
-    width: 0.3rem;
-    height: 0.3rem;
-    border-radius: 9999px;
-    background: #94a3b8;
-    flex: 0 0 auto;
-  }
-
-  html.dark .events-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 24rem),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 22rem),
-      linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%) !important;
-  }
-
-  html.dark .events-hero,
-  html.dark .events-panel,
-  html.dark .events-card,
-  html.dark .events-stat,
-  html.dark .events-year-nav {
-    background: rgba(15, 23, 42, 0.9) !important;
-    border-color: rgba(51, 65, 85, 0.95) !important;
-    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.36) !important;
-  }
-
-  html.dark .events-hero {
-    background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 16rem),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
-  }
-
-  html.dark .events-card.is-featured {
-    background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.14), transparent 16rem),
-      rgba(15, 23, 42, 0.95) !important;
-  }
-
-  html.dark .events-chip-secondary {
-    background: #0f172a;
-    border-color: #334155;
-    color: #e2e8f0;
-  }
-
-  html.dark .events-chip-success {
-    background: rgba(20, 83, 45, 0.34);
-    border-color: rgba(74, 222, 128, 0.35);
-    color: #bbf7d0;
-  }
-
-  html.dark .events-chip-purple {
-    background: rgba(91, 33, 182, 0.28);
-    border-color: rgba(196, 181, 253, 0.3);
-    color: #ddd6fe;
-  }
-
-  html.dark .events-chip-orange {
-    background: rgba(154, 52, 18, 0.28);
-    border-color: rgba(253, 186, 116, 0.3);
-    color: #fed7aa;
-  }
-
-  html.dark .events-chip-red {
-    background: rgba(127, 29, 29, 0.28);
-    border-color: rgba(252, 165, 165, 0.26);
-    color: #fecaca;
-  }
-
-  html.dark .events-chip-sky {
-    background: rgba(30, 64, 175, 0.25);
-    border-color: rgba(147, 197, 253, 0.3);
-    color: #bfdbfe;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -307,15 +110,13 @@
                   {% endif %}
                 </div>
 
-                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-300">
-                  <span>Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
-                  <span class="events-meta-dot"></span>
-                  <span>{{ event.organizer }}</span>
-                  <span class="events-meta-dot"></span>
-                  <span>{{ event.type_for_ranking }}</span>
+                <div class="events-meta">
+                  <span class="events-meta-item">Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
+                  <span class="events-meta-item">{{ event.organizer }}</span>
+                  <span class="events-meta-item">{{ event.type_for_ranking }}</span>
                 </div>
 
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div class="events-actions">
                   <a href="{% url 'event:event-detail' event.id %}" class="events-chip events-chip-primary">Detail</a>
                   {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
                   <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-secondary">Registrace UEC</a>
@@ -326,13 +127,13 @@
                   <a href="{% url 'event:entry-foreign' event.id %}" class="events-chip events-chip-purple">Foreign riders</a>
                   {% endif %}
                   {% if event.proposition %}
-                  <a href="{{ event.proposition.url }}" class="events-chip events-chip-sky">Propozice</a>
+                  <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice</a>
                   {% endif %}
                   {% if event.html_results %}
                   <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
                   {% endif %}
-                  {% if event.livestream %}
-                  <a href="{{ event.livestream }}" target="_blank" class="events-chip events-chip-red">YouTube</a>
+                  {% if event.youtube_link %}
+                  <a href="{{ event.youtube_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-red">YouTube</a>
                   {% endif %}
                   {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
                   <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky družstev</a>
@@ -403,24 +204,23 @@
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{{ event.name }}</h3>
-                <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-300">
-                  <span>Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
-                  <span class="events-meta-dot"></span>
-                  <span>{{ event.organizer }}</span>
+                <div class="events-meta">
+                  <span class="events-meta-item">Datum: <time datetime="{{ event.date|date:'Y-m-d' }}">{{ event.date }}</time></span>
+                  <span class="events-meta-item">{{ event.organizer }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="events-actions">
               <a href="{% url 'event:event-detail' event.id %}" class="events-chip events-chip-primary">Detail</a>
               {% if event.proposition %}
-              <a href="{{ event.proposition.url }}" class="events-chip events-chip-sky">Propozice</a>
+              <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice</a>
               {% endif %}
               {% if event.html_results %}
               <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
               {% endif %}
-              {% if event.livestream %}
-              <a href="{{ event.livestream }}" target="_blank" class="events-chip events-chip-red">YouTube</a>
+              {% if event.youtube_link %}
+              <a href="{{ event.youtube_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-red">YouTube</a>
               {% endif %}
               {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
               <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">Výsledky družstev</a>

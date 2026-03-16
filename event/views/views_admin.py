@@ -56,7 +56,12 @@ from event.func import (
 from event.entry import NumberInEvent, REMRiders
 from event.result import GetResult
 from ranking.ranking import SetRanking
-from rider.rider import get_api_token, generate_insurance_file, resolve_api_category_code
+from rider.rider import (
+    get_api_token,
+    generate_insurance_file,
+    resolve_api_category_code,
+    trigger_cn_qualification_recount_if_needed,
+)
 from finance.invoices import generate_event_invoices
 from openpyxl import Workbook, load_workbook
 import stripe
@@ -181,6 +186,7 @@ def _handle_upload_xls(request, event, pk):
     event.xls_results = relative_path
     event.save()
     SetRanking().start()
+    trigger_cn_qualification_recount_if_needed(event)
     logger.info(f"BEM výsledky nahrány pro závod {event.id}")
     return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 

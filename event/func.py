@@ -745,3 +745,6 @@ class SetResults(threading.Thread):
 
         # Po importu výsledků spustit přepočet rankingu na pozadí
         SetRanking().start()
+        from rider.rider import trigger_cn_qualification_recount_if_needed
+
+        trigger_cn_qualification_recount_if_needed(event)

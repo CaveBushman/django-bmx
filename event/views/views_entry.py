@@ -72,7 +72,7 @@ def add_entries_view(request, pk):
         return render(request, "event/reg-close.html")
 
     if request.method == "POST":
-        riders_beginner, riders_20, riders_24 = split_selected_riders(request)
+        riders_beginner, riders_20, riders_24 = split_selected_riders(request, event)
         total_fee = calculate_selected_fee(event, riders_beginner, riders_20, riders_24)
 
         if "btn_add" in request.POST:
@@ -360,6 +360,19 @@ def invoice_edit_view(request, pk, club_id):
 
 @login_required(login_url="/login/")
 @staff_member_required
+def invoice_delete_view(request, pk, invoice_id):
+    if request.method != "POST":
+        return redirect("event:fees-on-event", pk=pk)
+
+    event = get_object_or_404(Event, pk=pk)
+    invoice = get_object_or_404(EventInvoice, pk=invoice_id, event=event)
+    EventInvoiceService().delete_invoice(invoice)
+    messages.success(request, f"Faktura {invoice.number} byla smazána.")
+    return redirect("event:fees-on-event", pk=pk)
+
+
+@login_required(login_url="/login/")
+@staff_member_required
 def cash_receipts_on_event(request, pk):
     event = get_object_or_404(Event, pk=pk)
     receipt_service = EventCashReceiptService()
@@ -489,3 +502,16 @@ def cash_receipt_edit_view(request, pk, receipt_id):
             "receipt": receipt,
         },
     )
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def cash_receipt_delete_view(request, pk, receipt_id):
+    if request.method != "POST":
+        return redirect("event:cash-receipts-on-event", pk=pk)
+
+    event = get_object_or_404(Event, pk=pk)
+    receipt = get_object_or_404(EventCashReceipt, pk=receipt_id, event=event)
+    EventCashReceiptService().delete_receipt(receipt)
+    messages.success(request, f"Pokladní doklad {receipt.number} byl smazán.")
+    return redirect("event:cash-receipts-on-event", pk=pk)

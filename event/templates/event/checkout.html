@@ -28,7 +28,7 @@
           <button
             type="button"
             id="btn-add-event"
-            class="rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            class="checkout-secondary-btn rounded-xl px-6 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
           >
             Přidat další závod
           </button>
@@ -53,14 +53,14 @@
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
               <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Příchozí</h2>
             </div>
-            <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <span class="checkout-count-pill">
               {{ riders_beginner|length }} jezdců
             </span>
           </div>
 
           <div class="space-y-4">
             {% for rider_beginner in riders_beginner %}
-            <article class="rounded-[1.5rem] border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+            <article class="checkout-rider-card rounded-[1.5rem] p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
                   <img src="{{ rider_beginner.photo.url }}" alt="" class="h-16 w-16 rounded-2xl object-cover ring-1 ring-slate-200 dark:ring-slate-700">
@@ -87,14 +87,14 @@
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
               <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Challenge a Elite</h2>
             </div>
-            <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <span class="checkout-count-pill">
               {{ riders_20|length }} jezdců
             </span>
           </div>
 
           <div class="space-y-4">
             {% for rider_20 in riders_20 %}
-            <article class="rounded-[1.5rem] border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+            <article class="checkout-rider-card rounded-[1.5rem] p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
                   <img src="{{ rider_20.photo.url }}" alt="" class="h-16 w-16 rounded-2xl object-cover ring-1 ring-slate-200 dark:ring-slate-700">
@@ -121,14 +121,14 @@
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
               <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Cruiser</h2>
             </div>
-            <span class="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <span class="checkout-count-pill">
               {{ riders_24|length }} jezdců
             </span>
           </div>
 
           <div class="space-y-4">
             {% for rider_24 in riders_24 %}
-            <article class="rounded-[1.5rem] border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+            <article class="checkout-rider-card rounded-[1.5rem] p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
                   <img src="{{ rider_24.photo.url }}" alt="" class="h-16 w-16 rounded-2xl object-cover ring-1 ring-slate-200 dark:ring-slate-700">
