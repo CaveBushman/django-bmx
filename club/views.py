@@ -1,6 +1,7 @@
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls.base import reverse
+from django.db.models import Sum, Count, F
 from .models import Club
 from rider.models import Rider
 from event.models import Event, Entry
@@ -13,7 +14,12 @@ from .func import riders_on_events
 
 def clubs_list_view(request):
     clubs = Club.objects.filter(is_active=True).order_by('team_name')
-    data = {'clubs': clubs}
+    data = {
+        'clubs': clubs,
+        'clubs_count': clubs.exclude(team_name="Bez klubové příslušnosti").count(),
+        'regions_count': clubs.exclude(team_name="Bez klubové příslušnosti").values('region').distinct().count(),
+        'contact_clubs_count': clubs.exclude(team_name="Bez klubové příslušnosti").exclude(contact_email="").count(),
+    }
 
     return render(request, 'club/clubs-list.html', data)
 
@@ -42,34 +48,34 @@ def participation_in_races(request, pk):
     """ Function for calculate how many riders was in the events and how many money was paid by club in current year"""
     this_year = date.today().year
     club = get_object_or_404(Club, pk=pk)
-    events = Event.objects.filter(date__year=str(this_year)).order_by('date')
 
-    part_in_events =[]     
-    sum = 0
-    for event in events:
-        fees = 0
-        count = 0
+    entries_qs = (
+        Entry.objects.filter(
+            event__date__year=this_year,
+            checkout=False,
+            rider__club=club,
+        )
+        .values('event__id', 'event__name', 'event__date')
+        .annotate(
+            count=Count('id'),
+            total_fees=Sum(F('fee_20') + F('fee_24') + F('fee_beginner')),
+        )
+        .filter(total_fees__gt=0)
+        .order_by('event__date')
+    )
 
-        participation_in_race = Entry.objects.filter(event=event, checkout=False)
-        riders_in_club = Rider.objects.filter(club=club)
-
-        for rider_in_club in riders_in_club:
-            for participation in participation_in_race:
-                if participation.rider.id == rider_in_club.id:
-                    # print (f"Jezdec {rider_in_club.first_name} {rider_in_club.last_name} se zúčastnil závodu {event.name} se startovným {participation.fee_20}")
-                    fees += participation.fee_20 + participation.fee_24 + participation.fee_beginner
-                    count +=1
-                    
+    part_in_events = []
+    total_sum = 0
+    for row in entries_qs:
         part = Participation()
-        part.name = event.name
-        part.date = event.date
-        part.count = count
-        part.sum = fees
-        if fees != 0:
-            part_in_events.append(part)
-        sum += fees
-    data = {'club': club, 'participations': part_in_events, 'sum': sum, 'year': this_year}
+        part.name = row['event__name']
+        part.date = row['event__date']
+        part.count = row['count']
+        part.sum = row['total_fees']
+        part_in_events.append(part)
+        total_sum += row['total_fees']
 
+    data = {'club': club, 'participations': part_in_events, 'sum': total_sum, 'year': this_year}
     return render(request, 'club/club-participation.html', data)
 
 

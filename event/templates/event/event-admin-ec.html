@@ -1,109 +1,199 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Administrace závodu{% endblock title %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .event-admin-section,
+  .event-admin-file-card {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-admin-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+  }
+
+  .event-admin-action-link {
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
+    color: #fff;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .event-admin-action-link:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.38);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+
+  html.dark .event-admin-section,
+  html.dark .event-admin-file-card {
+    background: rgba(15, 23, 42, 0.88) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+
+  html.dark .event-admin-action-link {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #fff !important;
+  }
+</style>
+{% endblock %}
 {% block content %}
+<section class="dashboard-surface min-h-screen pb-24">
+  <div class="max-w-7xl mx-auto px-4 pt-10 sm:px-6 lg:px-8">
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+        European Cup Admin
+      </p>
+      <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">{{ event.name }}</h1>
+          <p class="mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+            Přehled evropského poháru s rychlým exportem souborů pro UEC, pojišťovnu a klubové zpracování.
+          </p>
+        </div>
+        <a href="{% url 'event:ec_by_club_xls' event.id %}"
+           class="event-admin-action-link inline-flex items-center justify-center gap-3 rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          XLS dle klubů
+        </a>
+      </div>
+    </header>
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white tracking-wide">{{ event.name|upper }}</h1>
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <section class="event-admin-section rounded-[1.75rem] p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 17v-6a2 2 0 1 1 4 0v6M12 4v4" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </span>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Statistické informace</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Průběžný součet jezdců a vybraného startovného.</p>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          <article class="dashboard-card rounded-[1.5rem] p-5">
+            <div class="flex items-center gap-4">
+              <span class="event-admin-stat-icon bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Počet přihlášených jezdců</p>
+                <p class="mt-1 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum_entries }}</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="dashboard-card rounded-[1.5rem] p-5">
+            <div class="flex items-center gap-4">
+              <span class="event-admin-stat-icon bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1v22" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14.5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Vybrané startovné</p>
+                <p id="payment-amount" class="mt-1 text-3xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{{ payments }}</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="event-admin-section rounded-[1.75rem] p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+          </span>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Soubory pro Evropský pohár</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Připravené exporty pro UEC a pojišťovnu na jednom místě.</p>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-4">
+          <article class="event-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">UEC export</p>
+              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro UEC</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Aktuální ke dni
+                {% if event.ec_file_created %}{{ event.ec_file_created }}{% else %}-{% endif %}
+              </p>
+            </div>
+            {% if event.ec_file %}
+            <a href="../../{{ event.ec_file }}"
+               class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
+               download>
+              Stáhnout
+            </a>
+            {% else %}
+            <span class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-400 dark:border-slate-700 dark:text-slate-500">
+              Soubor chybí
+            </span>
+            {% endif %}
+          </article>
+
+          <article class="event-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Pojištění</p>
+              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro pojišťovnu</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Aktuální ke dni
+                {% if event.ec_insurance_file_created %}{{ event.ec_insurance_file_created }}{% else %}-{% endif %}
+              </p>
+            </div>
+            {% if event.ec_insurance_file %}
+            <a href="../../{{ event.ec_insurance_file }}"
+               class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
+               download>
+              Stáhnout
+            </a>
+            {% else %}
+            <span class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-400 dark:border-slate-700 dark:text-slate-500">
+              Soubor chybí
+            </span>
+            {% endif %}
+          </article>
+        </div>
+      </section>
+    </div>
   </div>
-</header>
+</section>
 
-<div class="max-w-7xl mx-auto px-4 py-10 space-y-10">
-
-<!-- Statistické informace -->
-<div class="bg-indigo-50 shadow-inner border border-indigo-200 rounded-xl p-8 mt-4">
-  <h2 class="text-2xl font-bold text-indigo-800 mb-6 flex items-center gap-2">
-    📊 Statistické informace
-  </h2>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-
-    <div class="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-      <div class="bg-indigo-100 p-3 rounded-full">
-        <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 17v-6a2 2 0 1 1 4 0v6M12 4v4" />
-          <circle cx="12" cy="12" r="10"/>
-        </svg>
-      </div>
-      <div>
-        <p class="text-sm text-gray-500">Počet přihlášených jezdců</p>
-        <p class="text-2xl font-extrabold text-indigo-700">{{ sum_entries }}</p>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-      <div class="bg-green-100 p-3 rounded-full">
-        <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2m0-4v4m0 4h.01M4.93 4.93l1.41 1.41M12 2v2m6.36 1.64l1.41-1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M12 22v-2m6.36-1.64l1.41 1.41" />
-        </svg>
-      </div>
-      <div>
-        <p class="text-sm text-gray-500">Vybrané startovné</p>
-        <p id="payment-amount" class="text-2xl font-extrabold text-green-700">{{ payments }}</p>
-      </div>
-    </div>
-
-    <div class="flex items-center justify-center">
-      <a href="{% url 'event:ec_by_club_xls' event.id %}"
-         class="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-semibold text-sm rounded-xl shadow hover:bg-indigo-700 transition-all">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        XLS dle klubů
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- JavaScript pro oddělení tisíců -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const paymentEl = document.getElementById("payment-amount");
-    if (paymentEl) {
-      const value = parseInt(paymentEl.textContent.replace(/\D/g, ""));
-      if (!isNaN(value)) {
-        paymentEl.textContent = value.toLocaleString("cs-CZ") + " CZK";
-      }
+    if (!paymentEl) {
+      return;
+    }
+    const value = parseInt(paymentEl.textContent.replace(/\D/g, ""), 10);
+    if (!Number.isNaN(value)) {
+      paymentEl.textContent = value.toLocaleString("cs-CZ") + " CZK";
     }
   });
 </script>
-  <!-- Soubory UEC -->
-  <div class="bg-white shadow rounded-xl p-6 mt-4">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">📂 Soubory pro Evropský pohár</h2>
-    <div class="space-y-6">
-
-      <!-- Soubor pro UEC -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div>
-          <p class="font-medium text-gray-900">✅ XLS soubor pro UEC</p>
-          <p class="text-sm text-gray-500">Aktuální ke dni {{ event.ec_file_created }}</p>
-        </div>
-        <a href="../../{{ event.ec_file }}"
-           class="mt-3 md:mt-0 inline-flex items-center px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-md shadow hover:bg-indigo-600"
-           download>
-          Stáhnout
-        </a>
-      </div>
-
-      <!-- Soubor pro pojišťovnu -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div>
-          <p class="font-medium text-gray-900">🛡️ XLS soubor pro pojišťovnu</p>
-          <p class="text-sm text-gray-500">Aktuální ke dni {{ event.ec_insurance_file_created }}</p>
-        </div>
-        <a href="../../{{ event.ec_insurance_file }}"
-           class="mt-3 md:mt-0 inline-flex items-center px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-md shadow hover:bg-indigo-600"
-           download>
-          Stáhnout
-        </a>
-      </div>
-
-    </div>
-  </div>
-
-</div>
 {% endblock %}

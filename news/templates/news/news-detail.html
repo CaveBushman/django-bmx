@@ -13,93 +13,62 @@
 {% endblock %}
 
 {% block content %}
+<section class="bg-slate-50 dark:bg-slate-900">
+  <header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+        Článek
+      </p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-800 dark:text-white sm:text-5xl">
+        {{ news.title|upper }}
+      </h1>
 
-
-<!-- Desktop layout -->
-<div class="hidden md:block">
-
-    <header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-bold text-white text-center tracking-tight">
-                {{ news.title|upper }}
-            </h1>
-        </div>
-    </header>
-    
-<div class="max-w-screen-lg mx-auto pt-6">
-    <div class="flex gap-8">
-
-        <!-- Left side: Image and Author Info -->
-        <div class="w-1/2 flex flex-col justify-between min-h-full">
-            <!-- Image -->
-            <div class="flex justify-center items-center mb-6">
-                <img class="object-contain w-full h-auto rounded-lg shadow-xl" src="{{ news.photo_01.url }}" alt="News photo" />
+      <div class="mt-8 border-t border-slate-200 pt-5 dark:border-slate-700">
+        <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div class="flex min-w-0 items-center gap-4">
+            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/80 shadow-sm ring-1 ring-slate-200 dark:border-slate-600 dark:ring-slate-500">
+              <img class="h-full w-full object-cover" src="{{ news.created.photo.url }}" alt="{{ news.created }}">
             </div>
-
-            <!-- Author Info, Date, and Tags -->
-            <div class="flex items-center justify-start space-x-4 mb-6">
-                <img class="w-12 h-12 rounded-full" src="{{ news.created.photo.url }}" alt="Author avatar">
-                <div class="text-sm">
-                    <p class="text-gray-800 dark:text-gray-300">{{ news.created }}</p>
-                    <p class="text-gray-500">{{ news.publish_date }}</p>
-                </div>
-                         <!-- Tags -->
-            <div class="flex flex-wrap space-x-2 ml-6">
-                {% for tag in news.tags.all %}
-                <span
-                    class="inline-block bg-indigo-600 text-white rounded-full px-3 py-1 text-xs font-semibold ml-6 mr-2 mb-2">{{ tag|upper }}</span>
-                {% endfor %}
+            <div class="min-w-0">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Autor článku</p>
+              <p class="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ news.created }}</p>
+              <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-300">
+                <span>{{ news.publish_date }}</span>
+                <span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-500"></span>
+                <span>{{ news.time_to_read }} min. čtení</span>
+              </div>
             </div>
-            </div>
+          </div>
 
-   
-        </div>
-
-        <!-- Right side: Information (Perex) -->
-        <div class="w-1/2 flex flex-col justify-between min-h-full">
-            <!-- Perex -->
-            <div
-                class="py-4 px-6 bg-gray-100 border-l-4 border-indigo-600 text-lg font-semibold text-gray-900 rounded-lg shadow-md mb-6">
-                <p>{{ news.prefix|safe }}</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main content of the article -->
-    <div class="text-gray-800 dark:text-gray-300 mb-8">
-        <p class="text-base leading-relaxed mb-4">{{ news.content|safe }}</p>
-    </div>
-</div>
-</div>
-<!-- Mobile layout -->
-<div class="block md:hidden">
-    <div class="bg-indigo-700 text-white px-4 py-4 text-center shadow-md">
-        <h1 class="text-2xl font-bold">{{ news.title }}</h1>
-    </div>
-
-    <div class="px-4 py-4">
-        <img class="w-full h-auto rounded-lg mb-4 shadow" src="{{ news.photo_01.url }}" alt="News photo">
-        <div class="flex items-center gap-x-4 mb-3">
-            <img class="w-10 h-10 rounded-full" src="{{ news.created.photo.url }}" alt="Author avatar">
-            <div>
-                <p class="text-sm font-semibold">{{ news.created }}</p>
-                <p class="text-xs text-gray-500">{{ news.publish_date }}</p>
-                {% for tag in news.tags.all %}
-                <span class="inline-block bg-indigo-600 text-white rounded-full px-3 py-1 text-xs font-semibold mr-2 mb-2">{{ tag|upper }}</span>
-            </div>
-        </div>
-        <div class="mb-4 text-sm font-medium text-indigo-700 bg-indigo-100 p-3 rounded">
-            {{ news.prefix|safe }}
-        </div>
-        <div class="text-gray-800 dark:text-gray-300 text-sm">
-            {{ news.content|safe }}
-        </div>
-        <div class="mt-4">
-
+          <div class="flex flex-wrap gap-2 md:max-w-[45%] md:justify-end">
+            {% for tag in news.tags.all %}
+            <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-100">
+              {{ tag }}
+            </span>
             {% endfor %}
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </header>
 
+  <article class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:!border-0 dark:!bg-transparent dark:shadow-none">
+      <div class="border-b border-slate-200 dark:border-transparent">
+        <img class="aspect-[16/9] w-full object-cover" src="{{ news.photo_01.url }}" alt="{{ news.title }}">
+      </div>
+
+      <div class="px-5 py-6 sm:px-8 sm:py-8 dark:!bg-slate-900">
+        <div class="rounded-3xl border border-indigo-100 bg-slate-50 dark:bg-slate-800 px-6 py-5 text-base font-medium leading-7 text-slate-700 shadow-sm ring-1 ring-indigo-100/80 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:ring-0 dark:[&_*]:bg-transparent dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
+          {{ news.prefix|safe }}
+        </div>
+
+        <div class="article-richtext-dark prose prose-slate mt-8 max-w-none rounded-3xl border border-slate-200 bg-white px-6 py-6 shadow-sm prose-headings:font-black prose-headings:tracking-tight prose-a:text-indigo-700 hover:prose-a:text-indigo-600 prose-img:rounded-xl dark:!rounded-3xl dark:!border-transparent dark:!bg-slate-900 dark:!text-slate-100 dark:shadow-none dark:prose-invert dark:prose-p:text-slate-100 dark:prose-strong:text-white dark:prose-li:text-slate-100 dark:prose-headings:text-white dark:prose-blockquote:text-slate-100 dark:prose-blockquote:border-indigo-400/40 dark:prose-a:text-indigo-300 dark:hover:prose-a:text-indigo-200 dark:[&_*]:!bg-transparent dark:[&_div]:!bg-transparent dark:[&_p]:!bg-transparent dark:[&_span]:!bg-transparent">
+          {{ news.content|safe }}
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
 
 {% endblock content %}

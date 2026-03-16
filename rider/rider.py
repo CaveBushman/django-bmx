@@ -1,5 +1,22 @@
+"""
+rider/rider.py — pomocné funkce a třídy pro správu jezdců
+
+Obsah:
+  1. Vlákna (Threading) — operace na pozadí (licence, třídy, kvalifikace)
+  2. ČSC API — získání tokenu a dat jezdce z API České cyklistiky
+  3. Pomocné funkce — neaktivní jezdci, participace, Cruiser median
+  4. Export Excel — záhlaví XLS exportů jezdců po klubech
+  5. Správa transpondérů a tříd (hromadné utility)
+  6. Notifikace — session příznaky pro admin panel
+  7. Rozpoznání kategorie pro externí API
+"""
+
+import logging
+from statistics import median
 from django.utils import timezone
 import requests
+
+logger = logging.getLogger(__name__)
 from decouple import config
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
@@ -10,13 +27,15 @@ from django.db.models import Q, Exists, OuterRef
 from datetime import datetime, date, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from openpyxl import Workbook
-from rider.models import Rider
-from event.models import Entry
 
 
 now = datetime.today().year
-INACTIVE_YEARS = 2  # for inactive riders function
+INACTIVE_YEARS = 2  # Počet let bez výsledku pro označení jezdce jako neaktivního
 
+
+# ===========================================================================
+# 1. VLÁKNA (THREADING) — operace na pozadí
+# ===========================================================================
 
 class CheckValidLicenceThread(threading.Thread):
 
@@ -24,15 +43,9 @@ class CheckValidLicenceThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        riders = Rider.objects.filter(is_active=True)
-        for rider in riders:
-
-            if rider.fix_valid_licence:
-                rider.valid_licence = True
-                rider.save()
-
-            else:
-                valid_licence(rider)
+        Rider.objects.filter(is_active=True, fix_valid_licence=True).update(valid_licence=True)
+        for rider in Rider.objects.filter(is_active=True, fix_valid_licence=False):
+            valid_licence(rider)
 
 
 class RiderSetClassesThread(threading.Thread):
@@ -40,16 +53,20 @@ class RiderSetClassesThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        riders = Rider.objects.filter(is_active=True)
+        riders = list(Rider.objects.filter(is_active=True))
         for rider in riders:
             rider.class_beginner = rider.set_class_beginner(rider)
             rider.class_20 = rider.set_class_20(rider)
             rider.class_24 = rider.set_class_24(rider)
-            rider.save()
+        Rider.objects.bulk_update(riders, ['class_beginner', 'class_20', 'class_24'])
 
+
+# ===========================================================================
+# 2. ČSC API — přihlášení a načtení dat jezdce
+# ===========================================================================
 
 def get_api_token():
-    """ Získá access token z /connect/token pomocí dat v těle """
+    """Získá access token z Czech Cycling Federation API (OAuth2 password flow)."""
     TOKEN_URL = "https://portal.api.czechcyclingfederation.com/connect/token"
 
     data = {
@@ -78,16 +95,16 @@ def get_api_token():
         return token
 
     except Exception as e:
-        print(f"❌ Chyba při získávání tokenu: {e}")
+        logger.error(f"Chyba při získávání tokenu: {e}")
         return None
 
 
 def get_rider_data(uci_id):
-    print(f"\U0001f50d Načítám data pro UCI ID: {uci_id}")
+    logger.debug(f"Načítám data pro UCI ID: {uci_id}")
 
     token = get_api_token()
     if not token:
-        print("❌ Nepodařilo se získat access token.")
+        logger.error("Nepodařilo se získat access token.")
         return None, "Nepodařilo se získat token k API ČSC."
 
     headers = {
@@ -97,28 +114,26 @@ def get_rider_data(uci_id):
 
     url = f"https://portal.api.czechcyclingfederation.com/api/services/licenseinfo?uciId={uci_id}"
 
-    print(f"🌐 Odesílám požadavek na: {url}")
-    print(f"➡️ Hlavičky: {headers}")
+    logger.debug(f"Odesílám požadavek na: {url}")
 
     try:
         response = requests.get(url, headers=headers, verify=True)
-        print(f"📡 Status kód: {response.status_code}")
-        print(f"📥 Tělo odpovědi: {response.text}")
+        logger.debug(f"Status kód: {response.status_code}")
 
         if response.status_code == 404 or "Http_NotFound" in response.text:
-            print("❌ Licence nebyla nalezena v databázi ČSC.")
+            logger.warning(f"Licence UCI ID: {uci_id} nebyla nalezena v databázi ČSC.")
             return None, f"Licence UCI ID: {uci_id} nebyla nalezena."
 
         if not response.ok:
-            print(f"⚠️ Neočekávaná odpověď: {response.status_code}")
+            logger.warning(f"Neočekávaná odpověď: {response.status_code}")
             return None, f"Nastala chyba: {response.status_code}"
 
         data = response.json()
-        print(f"✅ Úspěšně načteno: {data}")
+        logger.debug(f"Úspěšně načteno pro UCI ID: {uci_id}")
         return data, None
 
     except Exception as e:
-        print(f"❌ Výjimka při volání API ČSC: {e}")
+        logger.error(f"Výjimka při volání API ČSC: {e}")
         return None, f"Chyba při komunikaci s API ČSC: {e}"
 
 
@@ -126,7 +141,7 @@ def valid_licence(rider):
     """ Ověření platnosti licence pomocí správného endpointu + access tokenu """
     token = get_api_token()
     if not token:
-        print(f"⚠️ Nelze ověřit licenci – token se nezískal.")
+        logger.warning("Nelze ověřit licenci – token se nezískal.")
         return
 
     headers = {
@@ -153,13 +168,17 @@ def valid_licence(rider):
         rider.save()
 
         if is_valid:
-            print(f"✅ {rider.uci_id} – {rider.first_name} {rider.last_name}: licence je platná.")
+            logger.info(f"{rider.uci_id} – {rider.first_name} {rider.last_name}: licence je platná.")
         else:
-            print(f"❌ {rider.uci_id} – {rider.first_name} {rider.last_name}: licence NENÍ platná.")
+            logger.warning(f"{rider.uci_id} – {rider.first_name} {rider.last_name}: licence NENÍ platná.")
 
     except Exception as e:
-        print(f"⚠️ Chyba při ověřování licence {rider.uci_id}: {e}")
+        logger.error(f"Chyba při ověřování licence {rider.uci_id}: {e}")
 
+
+# ===========================================================================
+# 3. POMOCNÉ FUNKCE — neaktivní jezdci, statistiky
+# ===========================================================================
 
 def two_years_inactive():
     """ Function for inactive riders """
@@ -174,7 +193,7 @@ def two_years_inactive():
 
     # Subdotaz na kontrolu existence výsledků za poslední dva roky
     recent_results = Result.objects.filter(
-        rider=OuterRef('uci_id'),
+        rider_id=OuterRef('uci_id'),
         event__date__gte=two_years_ago
     )
 
@@ -214,7 +233,7 @@ class Participation:
             mcr: int = 0
             cp: int = 0
             others: int = 0
-            participation = Result.objects.filter(rider=rider.uci_id, date__year=now)
+            participation = Result.objects.filter(rider_id=rider.uci_id, date__year=now)
             for part in participation:
                 if part.event_type == "Mistrovství ČR jednotlivců":
                     mcr = 1
@@ -253,27 +272,70 @@ class Cruiser:
         self.__NUMBER_OF_PCS = number
 
     def calculate_median(self):
-        entries = Entry.objects.filter(event__type_for_ranking="Český pohár", is_24=True, event__date__year=self.year,
-                                       payment_complete=True, checkout=False).order_by('-rider__date_of_birth')
+        cup_events = Event.objects.filter(
+            type_for_ranking="Český pohár",
+            date__year=self.year,
+            canceled=False,
+        ).count()
+        minimum_participations = (cup_events // 2) + 1 if cup_events else 0
+
+        entries = (
+            Entry.objects.filter(
+                event__type_for_ranking="Český pohár",
+                event__date__year=self.year,
+                event__canceled=False,
+                is_24=True,
+                payment_complete=True,
+                checkout=False,
+            )
+            .select_related("rider")
+            .order_by("-rider__date_of_birth")
+        )
+
         cruisers_in_events = []
         for entry in entries:
-            if entry.rider not in cruisers_in_events:
+            if entry.rider and entry.rider not in cruisers_in_events:
                 cruisers_in_events.append(entry.rider)
+
         cruiser_results = []
         ages = []
-        position: int = 1
+        position = 1
+
         for cruiser in cruisers_in_events:
-            participations = Entry.objects.filter(rider=cruiser, event__type_for_ranking="Český pohár", is_24=True,
-                                                  event__date__year=self.year, payment_complete=True, checkout=False)
-            if len(participations) >= self.__NUMBER_OF_CUPS:
+            participations = (
+                Entry.objects.filter(
+                    rider=cruiser,
+                    event__type_for_ranking="Český pohár",
+                    event__date__year=self.year,
+                    event__canceled=False,
+                    is_24=True,
+                    payment_complete=True,
+                    checkout=False,
+                )
+                .values("event_id")
+                .distinct()
+                .count()
+            )
+            if participations >= minimum_participations:
                 cruiser_results.append(cruiser)
-                age = cruiser.get_age(cruiser) + 1
+                age = self.year - cruiser.date_of_birth.year
                 cruiser.age = age
                 cruiser.position = position
+                cruiser.participations = participations
                 ages.append(age)
                 position += 1
-        return cruiser_results
 
+        return {
+            "cruisers": cruiser_results,
+            "median_age": median(ages) if ages else None,
+            "cup_events": cup_events,
+            "minimum_participations": minimum_participations,
+        }
+
+
+# ===========================================================================
+# 4. EXPORT EXCEL — záhlaví XLS souborů
+# ===========================================================================
 
 def first_line_riders_by_club_and_class(ws):
     ws.cell(1, 1, "TEAM NAME")
@@ -398,7 +460,7 @@ def generate_insurance_file(event):
             return [rider_class, first_name, last_name, birth, address]
 
         except Exception as e:
-            print(f"❌ Chyba u jezdce {rider.uci_id}: {e}")
+            logger.error(f"Chyba u jezdce {rider.uci_id}: {e}")
             return None
 
     # Použij ThreadPoolExecutor
@@ -432,6 +494,54 @@ def generate_insurance_file(event):
     return file_path
    
 
+# ---------------------------------------------------------------------------
+# SPRÁVA TRANSPONDÉRŮ A TŘÍD (hromadné utility)
+# ---------------------------------------------------------------------------
+
+def set_all_riders_classes():
+    """Nastaví třídy všem aktivním jezdcům (hromadná varianta, nepoužívá threading).
+    Upozornění: pro produkci použij raději RiderSetClassesThread, který provede
+    bulk_update v jednom dotazu místo jednotlivých save().
+    """
+    riders = list(Rider.objects.filter(is_active=True))
+    for rider in riders:
+        rider.class_beginner = rider.set_class_beginner(rider)
+        rider.class_20 = rider.set_class_20(rider)
+        rider.class_24 = rider.set_class_24(rider)
+    Rider.objects.bulk_update(riders, ['class_beginner', 'class_20', 'class_24'])
+
+
+def clear_transponders():
+    """Vyčistí pole transpondérů od hodnoty 'nan' (artefakt po importu z Excelu).
+    Spouštět ručně pouze po importu dat.
+    """
+    riders = Rider.objects.filter(is_active=True)
+    to_update = []
+    for rider in riders:
+        changed = False
+        if rider.transponder_20 == "nan":
+            rider.transponder_20 = ""
+            changed = True
+        if rider.transponder_24 == "nan":
+            rider.transponder_24 = ""
+            changed = True
+        if changed:
+            to_update.append(rider)
+    if to_update:
+        Rider.objects.bulk_update(to_update, ['transponder_20', 'transponder_24'])
+
+
+def update_plate_notify(request):
+    """Uloží do session příznak, zda existují jezdci čekající na schválení.
+    Používá se v homepage_view pro zobrazení notifikace adminu.
+    """
+    request.session['plate'] = Rider.objects.filter(is_approved=False).exists()
+
+
+# ---------------------------------------------------------------------------
+# ROZPOZNÁNÍ KATEGORIE PRO EXTERNÍM API
+# ---------------------------------------------------------------------------
+
 def resolve_api_category_code(rider, is_20=False, is_24=False, is_beginner=False):
     """Vrací API kód kategorie závodníka podle pravidel ČSC a tříd v modelu Rider"""
 
@@ -439,7 +549,7 @@ def resolve_api_category_code(rider, is_20=False, is_24=False, is_beginner=False
         'Boys 6': 'B 6', 'Boys 7': 'B 7', 'Boys 8': 'B 8', 'Boys 9': 'B 9', 'Boys 10': 'B 10',
         'Boys 11': 'B 11', 'Boys 12': 'B 12', 'Boys 13': 'B 13', 'Boys 14': 'B 14',
         'Boys 15': 'B 15', 'Boys 16': 'B 16', 'Men 17-24': 'M 17/24', 'Men 25-29': 'M 25/29',
-        'Men 30-34': 'M 30+', 'Men 35 and over': 'M 30+', 'Girls 7': 'G 7', 'Girls 8': 'G 8',
+        'Men 30-34': 'M 30+', 'Men 35 and over': 'M 30+', 'Girls 6': 'G 6', 'Girls 7': 'G 7', 'Girls 8': 'G 8',
         'Girls 9': 'G 9', 'Girls 10': 'G 10', 'Girls 11': 'G 11', 'Girls 12': 'G 12',
         'Girls 13': 'G 13', 'Girls 14': 'G 14', 'Girls 15': 'G 15', 'Girls 16': 'G 16',
         'Women 17-24': 'WOMEN 17+', 'Women 25 and over': 'WOMEN 17+',

@@ -1,6 +1,9 @@
+import logging
 import datetime
 from datetime import timedelta
 from rider.models import Rider
+
+logger = logging.getLogger(__name__)
 from event.models import Result, Entry, Event, SeasonSettings
 from django.db.models import Q
 import threading
@@ -27,7 +30,7 @@ class SetRanking (threading.Thread):
     def run(self):
         RankingCount.set_ranking_points()
         RankPositionCount().count_ranking_position()
-        print("Ranking přepočítán")
+        logger.info("Ranking přepočítán")
 
 class RankingCount:
     """ Class for rankings count"""
@@ -43,14 +46,14 @@ class RankingCount:
         self.LIGA:int = season.best_league
 
     def resolve_category(self):
-        self.rider = Rider.objects.select_related().get(uci_id=self.uci_id)
+        self.rider = Rider.objects.select_related('club').get(uci_id=self.uci_id)
 
     def set_points(self, event_types, max_races, is_20):
         """ General method for setting points based on event type """
         results = (
             Result.objects.filter(event_type__in=event_types, is_20=is_20,
                                   date__gte=datetime.datetime.now() - timedelta(days=365),
-                                  rider=self.uci_id)
+                                  rider_id=self.uci_id)
             .order_by('-points', '-date')
         )
 
@@ -100,28 +103,24 @@ class RankPositionCount:
         Arguments: is_20 = True - the 20" challenge, junior and elite classes
                    is_20 = False - the Cruiser classes
         """
-        categories = []
-
         if is_20:
-            riders = Rider.objects.filter(is_active=True, is_approved=True, is_20=True).exclude(points_20=0)
-            for rider in riders:
-                if rider.class_20 not in categories:
-                    categories.append(rider.class_20)
-            del riders
+            categories = list(
+                Rider.objects.filter(is_active=True, is_approved=True, is_20=True)
+                .exclude(points_20=0)
+                .order_by('class_20')
+                .values_list('class_20', flat=True)
+                .distinct()
+            )
         else:
-            riders = Rider.objects.filter(is_active=True, is_approved=True, is_24=True).exclude(points_24=0)
-            for rider in riders:
-                if rider.class_24 not in categories:
-                    categories.append(rider.class_24)
-            del riders
-
+            categories = list(
+                Rider.objects.filter(is_active=True, is_approved=True, is_24=True)
+                .exclude(points_24=0)
+                .order_by('class_24')
+                .values_list('class_24', flat=True)
+                .distinct()
+            )
         categories.sort()
-        clean_categories = []
-        for category in categories:
-            if category not in clean_categories:
-                clean_categories.append(category)
-
-        return clean_categories
+        return categories
 
     def get_riders_by_class(self, category: str, is_20: bool):
 
@@ -137,17 +136,10 @@ class RankPositionCount:
         return riders
 
     def write_ranking(self, rider, is_20, ranking):
-
         if is_20:
-            rider = Rider.objects.get(id=rider)
-            rider.ranking_20 = ranking
-            rider.save()
-            del rider
+            Rider.objects.filter(id=rider).update(ranking_20=ranking)
         else:
-            rider = Rider.objects.get(id=rider)
-            rider.ranking_24 = ranking
-            rider.save()
-            del rider
+            Rider.objects.filter(id=rider).update(ranking_24=ranking)
 
     def mark_same_position(self):
         categories_20 = self.get_categories(is_20=True)
@@ -156,48 +148,48 @@ class RankPositionCount:
         all_positions = []
         duplicates = []
         for category_20 in categories_20:
-            riders = Rider.objects.filter(class_20=category_20, is_active=True, is_approved=True, is_20=True).exclude(
-                points_20=0)
-            for rider in riders:
-                if rider.ranking_20 not in all_positions:
-                    all_positions.append(rider.ranking_20)
+            riders = list(Rider.objects.filter(
+                class_20=category_20, is_active=True, is_approved=True, is_20=True
+            ).exclude(points_20=0).values_list('ranking_20', flat=True))
+
+            for ranking_val in riders:
+                if ranking_val not in all_positions:
+                    all_positions.append(ranking_val)
                 else:
-                    duplicates.append(rider.ranking_20)
-            del riders
+                    duplicates.append(ranking_val)
 
             if duplicates:
                 for position in duplicates:
-                    riders = Rider.objects.filter(ranking_20=position, is_20=True, is_active=True,
-                                                  class_20=category_20, is_approved=True)
-                    new_end_position = int(position) + riders.count() - 1
-                    text_ranking = f"{str(position)}. - {str(new_end_position)}"
-                    for rider in riders:
-                        rider.ranking_20 = text_ranking
-                        rider.save()
-                del riders
+                    qs = Rider.objects.filter(
+                        ranking_20=position, is_20=True, is_active=True,
+                        class_20=category_20, is_approved=True
+                    )
+                    count = qs.count()
+                    text_ranking = f"{position}. - {int(position) + count - 1}"
+                    qs.update(ranking_20=text_ranking)
             duplicates = []
             all_positions = []
 
         for category_24 in categories_24:
-            riders = Rider.objects.filter(class_24=category_24, is_active=True, is_approved=True, is_24=True).exclude(
-                points_24=0)
-            for rider in riders:
-                if rider.ranking_24 not in all_positions:
-                    all_positions.append(rider.ranking_24)
+            riders = list(Rider.objects.filter(
+                class_24=category_24, is_active=True, is_approved=True, is_24=True
+            ).exclude(points_24=0).values_list('ranking_24', flat=True))
+
+            for ranking_val in riders:
+                if ranking_val not in all_positions:
+                    all_positions.append(ranking_val)
                 else:
-                    duplicates.append(rider.ranking_24)
-            del riders
+                    duplicates.append(ranking_val)
 
             if duplicates:
                 for position in duplicates:
-                    riders = Rider.objects.filter(ranking_24=position, is_24=True, is_active=True,
-                                                  class_24=category_24, is_approved=True)
-                    new_end_position = int(position) + riders.count() - 1
-                    text_ranking = f"{str(position)} - {str(new_end_position)}"
-                    for rider in riders:
-                        rider.ranking_24 = text_ranking
-                        rider.save()
-                del riders
+                    qs = Rider.objects.filter(
+                        ranking_24=position, is_24=True, is_active=True,
+                        class_24=category_24, is_approved=True
+                    )
+                    count = qs.count()
+                    text_ranking = f"{position} - {int(position) + count - 1}"
+                    qs.update(ranking_24=text_ranking)
             duplicates = []
             all_positions = []
 
@@ -206,41 +198,37 @@ class RankPositionCount:
         # RANKING POSITION FOR 20"
         categories_20 = self.get_categories(is_20=True)
         for category_20 in categories_20:
-            riders_20 = self.get_riders_by_class(category=category_20, is_20=True)
+            riders_20 = list(self.get_riders_by_class(category=category_20, is_20=True))
 
-            for i in range(0, riders_20.count()):
-                #
+            for i, rider in enumerate(riders_20):
                 if i > 0:
-                    if riders_20[i - 1].points_20 == riders_20[i].points_20:
-                        same_point_rider = Rider.objects.filter(id=riders_20[i - 1].id)
-                        ranking = same_point_rider[0].ranking_20
-                        del same_point_rider
+                    if riders_20[i - 1].points_20 == rider.points_20:
+                        ranking = riders_20[i - 1].ranking_20
                     else:
                         ranking = i + 1
                 else:
                     ranking = 1
-                target = self.write_ranking(rider=riders_20[i].id, is_20=True, ranking=ranking)
+                self.write_ranking(rider=rider.id, is_20=True, ranking=ranking)
+                rider.ranking_20 = ranking  # aktualizujeme in-memory pro další iteraci
 
         # RANKING POSITION FOR 24" (CRUISER)
         categories_24 = self.get_categories(is_20=False)
         for category_24 in categories_24:
-            riders_24 = self.get_riders_by_class(category=category_24, is_20=False)
+            riders_24 = list(self.get_riders_by_class(category=category_24, is_20=False))
 
-            for i in range(0, riders_24.count()):
-
+            for i, rider in enumerate(riders_24):
                 if i > 0:
-                    if riders_24[i - 1].points_24 == riders_24[i].points_24:
-                        same_point_rider = Rider.objects.filter(id=riders_24[i - 1].id)
-                        ranking = same_point_rider[0].ranking_24
-                        del same_point_rider
+                    if riders_24[i - 1].points_24 == rider.points_24:
+                        ranking = riders_24[i - 1].ranking_24
                     else:
                         ranking = i + 1
                 else:
                     ranking = 1
-                target = self.write_ranking(rider=riders_24[i].id, is_20=False, ranking=ranking)
+                self.write_ranking(rider=rider.id, is_20=False, ranking=ranking)
+                rider.ranking_24 = ranking  # aktualizujeme in-memory pro další iteraci
 
         self.mark_same_position()
-        print("Ranking všech jezdců přepočítán")
+        logger.info("Ranking všech jezdců přepočítán")
 
 
 class Categories:
@@ -250,50 +238,40 @@ class Categories:
     def get_categories(event=0):
         # events 0 is categories for ranking view
         if event == 0:
-
-            riders = Rider.objects.filter(is_active=True, is_approved=True)
-
-            # PREPARE CLASSES FROM REAL RIDER CLASSES
-            categories20 = []
-            categories24 = []
-            for rider in riders:
-                try:
-                    if rider.is_20:
-                        categories20.append(rider.class_20)
-                    if rider.is_24:
-                        categories24.append(f"Cruiser {rider.class_24}")
-                except:
-                    pass
+            clean_categories20 = sorted(
+                Rider.objects.filter(is_active=True, is_approved=True, is_20=True)
+                .exclude(class_20="")
+                .order_by('class_20')
+                .values_list('class_20', flat=True)
+                .distinct()
+            )
+            clean_categories24 = sorted(
+                f"Cruiser {c}" for c in
+                Rider.objects.filter(is_active=True, is_approved=True, is_24=True)
+                .exclude(class_24="")
+                .order_by('class_24')
+                .values_list('class_24', flat=True)
+                .distinct()
+            )
         # categories for entries
         else:
             current_event = Event.objects.get(pk=event)
             entries = Entry.objects.filter(event=current_event, payment_complete=True)
-            print(entries)
+            logger.debug(f"Přihlášky k závodu: {entries}")
 
-            # PREPARE CLASSES FROM REAL RIDER CLASSES
-            categories20 = []
-            categories24 = []
-            for entry in entries:
-                try:
-                    if entry.is_20:
-                        categories20.append(entry.class_20)
-                    if entry.is_24:
-                        categories24.append(entry.class_24)
-                except:
-                    pass
+            clean_categories20 = sorted(
+                entries.filter(is_20=True)
+                .exclude(class_20="")
+                .order_by('class_20')
+                .values_list('class_20', flat=True)
+                .distinct()
+            )
+            clean_categories24 = sorted(
+                entries.filter(is_24=True)
+                .exclude(class_24="")
+                .order_by('class_24')
+                .values_list('class_24', flat=True)
+                .distinct()
+            )
 
-        # REMOVE DUPLICATES
-        clean_categories20 = []
-        for category in categories20:
-            if category not in clean_categories20:
-                clean_categories20.append(category)
-        # TODO: Předělat řazení kategorií 20
-        clean_categories20.sort()
-
-        clean_categories24 = []
-        for category in categories24:
-            if category not in clean_categories24:
-                clean_categories24.append(category)
-        # TODO: Předělat řazení kategorií 24
-        clean_categories24.sort()
-        return clean_categories20 + clean_categories24
+        return list(clean_categories20) + list(clean_categories24)

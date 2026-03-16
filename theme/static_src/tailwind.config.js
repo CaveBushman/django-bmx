@@ -1,1 +1,1 @@
-module.exports = { theme: { extend: {} }, plugins: [] }
+module.exports = { darkMode: 'class', theme: { extend: {} }, plugins: [] }

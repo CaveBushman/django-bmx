@@ -1,70 +1,268 @@
 {% extends 'base.html' %}
 {% block title %}Administrace jezdců{% endblock title %}
 {% load static %}
+
+{% block extra_head %}
+<style>
+  .rider-admin-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  }
+
+  .rider-admin-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  }
+
+  .rider-admin-panel {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .rider-admin-stat {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 8rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 255, 0.94));
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .rider-admin-stat-accent {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(59, 130, 246, 0.16));
+    color: #4338ca;
+  }
+
+  .rider-admin-stat-accent-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(34, 197, 94, 0.16));
+    color: #047857;
+  }
+
+  .rider-admin-action {
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .rider-admin-action:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.38);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+
+  html.dark body,
+  html.dark .rider-admin-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  }
+
+  html.dark .rider-admin-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  html.dark .rider-admin-panel {
+    background: rgba(15, 23, 42, 0.88) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+
+  html.dark .rider-admin-stat {
+    background:
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.2), transparent 8rem),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.88)) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+
+  html.dark .rider-admin-stat-accent {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.28), rgba(37, 99, 235, 0.28)) !important;
+    color: #c7d2fe !important;
+  }
+
+  html.dark .rider-admin-stat-accent-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(34, 197, 94, 0.24)) !important;
+    color: #bbf7d0 !important;
+  }
+
+  html.dark .rider-admin-action {
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32) !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<section class="rider-admin-surface min-h-screen pb-24">
+  <div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+    <header class="rider-admin-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+        Rider Control
+      </p>
+      <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Administrace jezdců
+          </h1>
+          <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+            Centrální přehled pro správu databáze jezdců, kontrolu licencí a přepočet klíčových statistik.
+          </p>
+        </div>
+      </div>
+    </header>
 
-<header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-md rounded-lg mb-8">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-extrabold">ADMINISTRACE JEZDCŮ</h1>
-  </div>
-</header>
+    <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <article class="rider-admin-stat rounded-[1.75rem] p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+              Databáze
+            </p>
+            <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              Počet všech jezdců
+            </h2>
+            <div class="mt-6 text-5xl font-black leading-none text-indigo-600 dark:text-indigo-300">
+              {{ total_riders }}
+            </div>
+          </div>
+          <div class="rider-admin-stat-accent flex h-16 w-16 items-center justify-center rounded-2xl">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L19 7"/>
+            </svg>
+          </div>
+        </div>
+      </article>
 
-<div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
-  <div class="bg-white shadow-lg rounded-lg p-6 flex items-center">
-    <div class="flex-1">
-      <h3 class="text-xl font-semibold text-gray-700">Počet všech jezdců</h3>
-      <p class="text-3xl font-bold text-indigo-600">{{ total_riders }}</p>
+      <article class="rider-admin-stat rounded-[1.75rem] p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+              Aktivita
+            </p>
+            <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              Počet aktivních jezdců
+            </h2>
+            <div class="mt-6 text-5xl font-black leading-none text-emerald-600 dark:text-emerald-300">
+              {{ active_riders }}
+            </div>
+          </div>
+          <div class="rider-admin-stat-accent-success flex h-16 w-16 items-center justify-center rounded-2xl">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L19 7"/>
+            </svg>
+          </div>
+        </div>
+      </article>
     </div>
-    <div class="bg-indigo-100 p-4 rounded-lg">
-      <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L19 7"/>
-      </svg>
-    </div>
-  </div>
 
-  <div class="bg-white shadow-lg rounded-lg p-6 flex items-center">
-    <div class="flex-1">
-      <h3 class="text-xl font-semibold text-gray-700">Počet aktivních jezdců</h3>
-      <p class="text-3xl font-bold text-green-600">{{ active_riders }}</p>
-    </div>
-    <div class="bg-green-100 p-4 rounded-lg">
-      <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L19 7"/>
-      </svg>
-    </div>
-  </div>
-</div>
+    <section class="rider-admin-panel mt-8 rounded-[2rem] p-6 sm:p-8">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+            Nástroje
+          </p>
+          <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            Správa jezdců
+          </h2>
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+          Přepočty, kontroly a exportní pohledy pro každodenní administraci.
+        </p>
+      </div>
 
-<div class="max-w-7xl mx-auto mt-8 bg-white shadow-lg rounded-lg p-6">
-  <h2 class="text-2xl font-semibold text-gray-800 mb-4">Správa jezdců</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <a href="{% url 'rider:ranking' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      🔢 Přepočítej ranking
-    </a>
-    <a href="{% url 'rider:inactive' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      🛑 Neaktivní jezdci
-    </a>
-    <a href="{% url 'rider:licence' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      ✅ Zkontroluj platnost licencí
-    </a>
-    <a href="{% url 'rider:participation' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      📋 Účast jezdců na závodech
-    </a>
-    <a href="{% url 'rider:recalculate-classes' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      📊 Přepočítej kategorie
-    </a>
-    <a href="{% url 'rider:cruiser' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      🚴 Přepočítej medián cruiserů
-    </a>
-    <a href="{% url 'rider:riders-by-class' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      🏆 Jezdci dle klubů a kategorií
-    </a>
-    <a href="{% url 'rider:qualify' %}" class="flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-500 transition">
-      🎟️ Přepočítej kvalifikaci na MČR
-    </a>
+      <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <a href="{% url 'rider:ranking' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🔢</span>
+          <span>
+            <span class="block text-lg font-semibold">Přepočítej ranking</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace pořadí a bodového přehledu</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:inactive' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🛑</span>
+          <span>
+            <span class="block text-lg font-semibold">Neaktivní jezdci</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Seznam a správa neaktivních profilů</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:licence' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">✅</span>
+          <span>
+            <span class="block text-lg font-semibold">Zkontroluj platnost licencí</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Ověření stavu licence napříč databází</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:participation' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">📋</span>
+          <span>
+            <span class="block text-lg font-semibold">Účast jezdců na závodech</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Přehled startů a zapojení jezdců</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:free-plates' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🔢</span>
+          <span>
+            <span class="block text-lg font-semibold">Volná startovní čísla</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Přehled neobsazených čísel pro nové jezdce</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:recalculate-classes' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">📊</span>
+          <span>
+            <span class="block text-lg font-semibold">Přepočítej kategorie</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Přegenerování tříd podle aktuálních pravidel</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:cruiser' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🚴</span>
+          <span>
+            <span class="block text-lg font-semibold">Přepočítej medián cruiserů</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace metrik pro cruiser kategorii</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:riders-by-class' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🏆</span>
+          <span>
+            <span class="block text-lg font-semibold">Jezdci dle klubů a kategorií</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Strukturovaný přehled jezdců v systému</span>
+          </span>
+        </a>
+
+        <a href="{% url 'rider:qualify' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="text-2xl">🎟️</span>
+          <span>
+            <span class="block text-lg font-semibold">Přepočítej kvalifikaci na MČR</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Kontrola kvalifikačního stavu jezdců</span>
+          </span>
+        </a>
+      </div>
+    </section>
   </div>
-</div>
+</section>
 
 <script src="{% static 'js/alert_timeout.js' %}"></script>
-
 {% endblock content %}

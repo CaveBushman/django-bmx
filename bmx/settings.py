@@ -3,7 +3,24 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from django.conf import settings
-from decouple import config
+
+try:
+    from django.utils.csp import CSP
+except ImportError:
+    class CSP:
+        SELF = "'self'"
+        NONE = "'none'"
+        REPORT_SAMPLE = "'report-sample'"
+        UNSAFE_INLINE = "'unsafe-inline'"
+
+try:
+    from decouple import config
+except ImportError:
+    def config(name, default="", cast=str):
+        value = os.environ.get(name, default)
+        if cast is bool:
+            return str(value).lower() in {"1", "true", "yes", "on"}
+        return cast(value) if cast and value != "" else value
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -13,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -67,18 +84,19 @@ INSTALLED_APPS = [
     "admin_stats",
     "chat",
     'finance',
+    "todo",
 ]
 
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "admin_stats.middleware.VisitMiddleware",
 ]
@@ -149,8 +167,6 @@ TIME_ZONE = "Europe/Prague"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -173,6 +189,68 @@ REST_FRAMEWORK = {
     ]
 }
 
+SECURE_CSP_REPORT_ONLY = {
+    "default-src": [CSP.SELF],
+    "base-uri": [CSP.SELF],
+    "object-src": [CSP.NONE],
+    "frame-ancestors": [CSP.SELF],
+    "form-action": [CSP.SELF],
+    "script-src": [
+        CSP.SELF,
+        CSP.REPORT_SAMPLE,
+        "https://js.stripe.com",
+        "https://code.jquery.com",
+        "https://unpkg.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://www.googletagmanager.com",
+        "https://www.google-analytics.com",
+    ],
+    "style-src": [
+        CSP.SELF,
+        CSP.UNSAFE_INLINE,
+        "https://unpkg.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://netdna.bootstrapcdn.com",
+    ],
+    "img-src": [
+        CSP.SELF,
+        "data:",
+        "blob:",
+        "https:",
+    ],
+    "font-src": [
+        CSP.SELF,
+        "data:",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net",
+        "https://netdna.bootstrapcdn.com",
+    ],
+    "connect-src": [
+        CSP.SELF,
+        "https://www.google-analytics.com",
+        "https://analytics.google.com",
+        "https://api.stripe.com",
+        "https://js.stripe.com",
+    ],
+    "frame-src": [
+        CSP.SELF,
+        "https://js.stripe.com",
+        "https://hooks.stripe.com",
+        "https://www.google.com",
+    ],
+    "media-src": [
+        CSP.SELF,
+        "blob:",
+    ],
+    "worker-src": [
+        CSP.SELF,
+        "blob:",
+    ],
+    "report-uri": ["/csp-report/"],
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 LOGIN_REDIRECT_URL = "accounts:login"
@@ -181,15 +259,25 @@ LOGOUT_REDIRECT_URL = "accounts:logout"
 if DEBUG:
     YOUR_DOMAIN = "http://localhost:8000"
 else:
-    YOUR_DOMAIN = "http://czechbmx.cz"
+    YOUR_DOMAIN = "https://czechbmx.cz"
+    ALLOWED_HOSTS = ["czechbmx.cz", "www.czechbmx.cz"]
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
 
 # email setting
 EMAIL_HOST = "smtp.gmail.com"
-EMAIL_POST = "587"
+EMAIL_PORT = 587
 EMAIL_HOST_USER = ""
 EMAIL_HOST_PASSWORD = ""
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "noreply@czechbmx.cz"
 
 CKEDITOR_CONFIGS = {
     "default": {
@@ -245,6 +333,11 @@ LOGGING = {
     "loggers": {
         "api.views": {
             "handlers": ["console", "chatbot_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "security.csp": {
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },

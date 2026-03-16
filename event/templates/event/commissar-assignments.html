@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Nasazení rozhodčích{% endblock title %}
+{% block extra_head %}
+<style>
+  html.dark .commissar-year-select {
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    color-scheme: dark;
+  }
+
+  html.dark .commissar-year-select option {
+    background-color: #1e293b;
+    color: #f8fafc;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Komisaři a pořadatelé
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+            NASAZENÍ ROZHODČÍCH
+        </h1>
+        <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+            Přehled závodů a nasazených komisařů pro sezonu {{ selected_year }}.
+        </p>
+    </div>
+</header>
+
+<section class="bg-slate-50 pb-10 pt-8 dark:bg-slate-900">
+    <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <a href="{% url 'event:commissar-statistics' %}?year={{ selected_year }}"
+                class="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                Statistiky nasazení rozhodčích
+            </a>
+
+            <form method="get" class="flex flex-wrap items-end gap-3">
+                <div>
+                    <label for="year" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Rok</label>
+                    <select
+                        id="year"
+                        name="year"
+                        style="color: inherit;"
+                        class="commissar-year-select mt-1 block rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                    >
+                        {% for year in year_options %}
+                        <option value="{{ year.year }}" {% if year.year == selected_year %}selected{% endif %}>{{ year.year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
+                    Zobrazit
+                </button>
+            </form>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                    <thead class="bg-slate-50 dark:bg-slate-950">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Datum</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Závod</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">PCP</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">PCP asist.</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Start commissar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+                        {% for event in events %}
+                        <tr class="dark:bg-slate-900">
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.date|date:"d.m.Y" }}</td>
+                            <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ event.name }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.pcp|default:"-" }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.pcp_assist|default:"-" }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.start_commissar|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr class="dark:bg-slate-900">
+                            <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                                Pro vybraný rok nejsou evidované žádné závody.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

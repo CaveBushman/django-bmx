@@ -1,148 +1,750 @@
 {% extends 'base.html' %}
-{% block title %} Entry form for foreign riders{% endblock title %}
+{% block title %}Entry form for foreign riders{% endblock title %}
 {% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/foreign-entry.css' %}">
+<style>
+</style>
+{% endblock %}
 {% block content %}
 
-<header class="shadow bg-gray-100 dark:bg-gray-800">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-      Entry form for the event: {{ event.name }}
-    </h1>
-  </div>
-</header>
+<section class="foreign-entry-surface min-h-screen pb-10 pt-8 dark:bg-slate-900">
+  <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    <header class="foreign-entry-glass overflow-hidden rounded-[2rem] border border-white/60 px-6 py-8 shadow-[0_20px_60px_rgba(99,102,241,0.08)] dark:border-slate-700/80 sm:px-8 lg:px-10">
+      <div class="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-3xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+            International BMX Registration
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Entry form for <span class="text-indigo-600 dark:text-indigo-300">{{ event.name }}</span>
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+            Clean, fast registration for foreign riders. Enter the UCI ID first, and the system will autofill known rider data where available.
+          </p>
+        </div>
 
-<div class="mx-auto mt-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg">
-  <form id="ridersForm" onsubmit="return validateForm()">
-    <div class="overflow-x-auto">
-      <table class="w-full table-auto border-collapse border border-gray-300 dark:border-gray-700 text-sm">
-        <thead class="bg-gray-200 dark:bg-gray-800">
-          <tr class="text-left">
-            <th class="border px-4 py-2 w-[120px]">UCI ID</th>
-            <th class="border px-4 py-2">First name</th>
-            <th class="border px-4 py-2">Last name</th>
-            <th class="border px-4 py-2">DOB</th>
-            <th class="border px-4 py-2">Sex</th>
-            <th class="border px-4 py-2">PLATE</th>
-            <th class="border px-4 py-2">20</th>
-            <th class="border px-4 py-2">ELITE</th>
-            <th class="border px-4 py-2">Transponder 20</th>
-            <th class="border px-4 py-2">24</th>
-            <th class="border px-4 py-2">Transponder 24</th>
-            <th class="border px-4 py-2">Nationality</th>
-            <th class="border px-4 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody id="ridersTable">
-          <tr class="riderRow bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <td class="border px-4 py-2">
-              <input type="text" name="uci_id[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                onblur="fetchRiderData(this)" maxlength="11">
-            </td>
-            <td class="border px-4 py-2">
-              <input type="text" name="first_name[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
-            </td>
-            <td class="border px-4 py-2">
-              <input type="text" name="last_name[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
-            </td>
-            <td class="border px-4 py-2">
-              <input type="date" name="dob[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
-            </td>
-            <td class="border px-4 py-2 min-w-[100px]">
-              <select name="sex[]"
-                class="w-[5ch] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none"
-                id="sex-select">
-                <option value="M">M</option>
-                <option value="F">F</option>
-              </select>
-            </td>
-            <td class="border px-4 py-2">
-              <input type="number" name="plate[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" min="1"
-                step="1" readonly>
-            </td>
-            <td class="border px-4 py-2 text-center">
-              <input type="checkbox" name="category_20[]">
-            </td>
-            <td class="border px-4 py-2 text-center">
-              <input type="checkbox" name="category_elite[]">
-            </td>
-            <td class="border px-4 py-2">
-              <input type="text" name="transponder_20[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-YYYYY">
-            </td>
-            <td class="border px-4 py-2 text-center">
-              <input type="checkbox" name="category_24[]">
-            </td>
-            <td class="border px-4 py-2">
-              <input type="text" name="transponder_24[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-YYYYY">
-            </td>
-            <td class="border px-4 py-2">
-              <input type="text" name="nationality[]"
-                class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300" readonly>
-            </td>
-            <td class="border px-4 py-2 text-center">
-              <button type="button" onclick="removeRow(this)"
-                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                Delete
+        <div class="grid gap-3 text-sm text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:min-w-[420px]">
+          <div class="rounded-2xl border border-white/70 bg-white/70 px-4 py-4 dark:border-slate-700 dark:bg-slate-900/70">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Step 1</p>
+            <p class="mt-2 font-semibold text-slate-900 dark:text-white">Enter UCI ID</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/70 px-4 py-4 dark:border-slate-700 dark:bg-slate-900/70">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Step 2</p>
+            <p class="mt-2 font-semibold text-slate-900 dark:text-white">Choose categories</p>
+          </div>
+          <div class="rounded-2xl border border-white/70 bg-white/70 px-4 py-4 dark:border-slate-700 dark:bg-slate-900/70">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Step 3</p>
+            <p class="mt-2 font-semibold text-slate-900 dark:text-white">Submit the form</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div class="foreign-entry-panel rounded-[2rem] border border-white/70 p-4 sm:p-6 lg:p-8">
+        <div class="mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-700">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Rider list</h2>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                One row = one rider and class. Data from the registry is locked automatically after lookup.
+              </p>
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+              <span id="riderCount">1 rider in form</span>
+            </div>
+          </div>
+          <label class="block max-w-xl">
+            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Contact e-mail</span>
+            <input
+              id="customerEmail"
+              type="email"
+              name="customer_email"
+              value="{{ initial_customer_email }}"
+              class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              placeholder="name@example.com"
+              required>
+          </label>
+        </div>
+
+        <form id="ridersForm" method="post" action="{% url 'event:entry-foreign-summary' event.id %}" onsubmit="return validateForm()">
+          {% csrf_token %}
+          <input type="hidden" name="summary_payload" id="summaryPayload">
+          <div id="ridersTable" class="space-y-5">
+            {% for row in initial_rows %}
+            <article class="riderCard overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/80 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+              <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Rider</p>
+                  <p class="riderCardTitle mt-1 text-lg font-bold text-slate-900 dark:text-white">Rider {{ forloop.counter }}</p>
+                </div>
+                <button type="button" onclick="removeRow(this)"
+                  class="foreign-entry-delete-button focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  title="Delete rider"
+                  aria-label="Delete rider">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4h8v2"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid gap-6 p-5 lg:grid-cols-2">
+                <div class="foreign-entry-subpanel space-y-5 rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Identity</p>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">UCI ID</span>
+                      <input type="text" name="uci_id[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678" value="{{ row.uci_id }}">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Date of birth</span>
+                      <input type="date" name="dob[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        value="{{ row.date_of_birth }}" required>
+                    </label>
+                  </div>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">First name</span>
+                      <input type="text" name="first_name[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        placeholder="Autofill or manual entry" value="{{ row.first_name }}">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Last name</span>
+                      <input type="text" name="last_name[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        placeholder="Autofill or manual entry" value="{{ row.last_name }}">
+                    </label>
+                  </div>
+                  <div class="grid gap-4 md:grid-cols-3">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Sex</span>
+                      <select name="sex[]"
+                        class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                        <option value="Muž" {% if row.sex == "Muž" %}selected{% endif %}>Male</option>
+                        <option value="Žena" {% if row.sex == "Žena" %}selected{% endif %}>Female</option>
+                      </select>
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
+                      <input type="number" name="plate[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        min="1" step="1" placeholder="Plate no." value="{{ row.plate }}">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
+                      <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        placeholder="Country code" value="{{ row.nationality }}">
+                    </label>
+                  </div>
+                </div>
+
+                <div class="foreign-entry-subpanel space-y-5 rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Categories and transponders</p>
+                  <div class="grid gap-4 md:grid-cols-3">
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Category 20</span>
+                      <input type="checkbox" name="category_20[]" class="foreign-entry-checkbox h-4 w-4" onchange="toggleCategoryExclusive(this)" {% if row.category_20 %}checked{% endif %}>
+                    </label>
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Elite</span>
+                      <input type="checkbox" name="category_elite[]" class="foreign-entry-checkbox h-4 w-4" {% if row.elite %}checked{% endif %}>
+                    </label>
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Category 24</span>
+                      <input type="checkbox" name="category_24[]" class="foreign-entry-checkbox h-4 w-4" onchange="toggleCategoryExclusive(this)" {% if row.category_24 %}checked{% endif %}>
+                    </label>
+                  </div>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Rider can be entered in either `20` or `24`. `Elite` is available only with `20`.
+                  </p>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 20</span>
+                      <input type="text" name="transponder_20[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        oninput="this.value=this.value.toUpperCase()"
+                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_20 }}">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 24</span>
+                      <input type="text" name="transponder_24[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        oninput="this.value=this.value.toUpperCase()"
+                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_24 }}">
+                    </label>
+                  </div>
+                  <div class="foreign-entry-note rounded-2xl bg-indigo-50 px-4 py-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200">
+                    If a rider does not have a transponder, one can be rented at the event for 10 EUR. A 40 EUR deposit must be paid when collecting the transponder, and the deposit will be refunded after it is returned.
+                  </div>
+                </div>
+              </div>
+            </article>
+            {% empty %}
+            <article class="riderCard overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/80 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+              <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-slate-700 dark:bg-slate-900/60">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Rider</p>
+                  <p class="riderCardTitle mt-1 text-lg font-bold text-slate-900 dark:text-white">Rider 1</p>
+                </div>
+                <button type="button" onclick="removeRow(this)"
+                  class="foreign-entry-delete-button focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  title="Delete rider"
+                  aria-label="Delete rider">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4h8v2"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid gap-6 p-5 lg:grid-cols-2">
+                <div class="foreign-entry-subpanel space-y-5 rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Identity</p>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">UCI ID</span>
+                      <input type="text" name="uci_id[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Date of birth</span>
+                      <input type="date" name="dob[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        readonly required>
+                    </label>
+                  </div>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">First name</span>
+                      <input type="text" name="first_name[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        readonly placeholder="Autofill or manual entry">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Last name</span>
+                      <input type="text" name="last_name[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        readonly placeholder="Autofill or manual entry">
+                    </label>
+                  </div>
+                  <div class="grid gap-4 md:grid-cols-3">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Sex</span>
+                      <select name="sex[]"
+                        class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                        <option value="Muž">Male</option>
+                        <option value="Žena">Female</option>
+                      </select>
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
+                      <input type="number" name="plate[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        min="1" step="1" readonly placeholder="Plate no.">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
+                      <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        readonly placeholder="Country code">
+                    </label>
+                  </div>
+                </div>
+
+                <div class="foreign-entry-subpanel space-y-5 rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                  <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Categories and transponders</p>
+                  <div class="grid gap-4 md:grid-cols-3">
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Category 20</span>
+                      <input type="checkbox" name="category_20[]" class="foreign-entry-checkbox h-4 w-4" onchange="toggleCategoryExclusive(this)">
+                    </label>
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Elite</span>
+                      <input type="checkbox" name="category_elite[]" class="foreign-entry-checkbox h-4 w-4">
+                    </label>
+                    <label class="foreign-entry-category-option flex items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+                      <span>Category 24</span>
+                      <input type="checkbox" name="category_24[]" class="foreign-entry-checkbox h-4 w-4" onchange="toggleCategoryExclusive(this)">
+                    </label>
+                  </div>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Rider can be entered in either `20` or `24`. `Elite` is available only with `20`.
+                  </p>
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 20</span>
+                      <input type="text" name="transponder_20[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        oninput="this.value=this.value.toUpperCase()"
+                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 24</span>
+                      <input type="text" name="transponder_24[]"
+                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        oninput="this.value=this.value.toUpperCase()"
+                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                    </label>
+                  </div>
+                  <div class="foreign-entry-note rounded-2xl bg-indigo-50 px-4 py-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200">
+                    If a rider does not have a transponder, one can be rented at the event for 10 EUR. A 40 EUR deposit must be paid when collecting the transponder, and the deposit will be refunded after it is returned.
+                  </div>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+
+          <div class="mt-6 flex flex-col gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-950/40 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">Manage riders quickly</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Add more rows or submit the registration when the list is complete.</p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button type="button" onclick="addRow()"
+                class="rounded-xl border border-indigo-700 bg-indigo-700 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-900/20 transition-colors hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-indigo-400 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400">
+                Add another rider
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              <button type="submit"
+                class="rounded-xl border border-emerald-800 bg-emerald-700 px-6 py-3 font-semibold shadow-lg shadow-emerald-900/20 transition-colors hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                style="color:#ffffff !important; background-color:#047857 !important; border-color:#065f46 !important;">
+                Next step
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
 
-    <div class="mt-6 flex justify-between">
-      <button type="button" onclick="addRow()"
-        class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-        Add rider
-      </button>
-      <button type="submit"
-        class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
-        Send form
-      </button>
+      <aside class="flex flex-col gap-4">
+        <div class="foreign-entry-glass rounded-[2rem] border border-white/70 p-6 shadow-sm dark:border-slate-700/80">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">Why this works</p>
+          <h3 class="mt-3 text-xl font-bold text-slate-900 dark:text-white">Built for fast race-day admin</h3>
+          <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <li>Known riders are filled from the system automatically after entering the UCI ID.</li>
+            <li>You can still complete missing data manually if a rider is not found.</li>
+            <li>Category checkboxes stay visible without forcing a second screen or popup.</li>
+          </ul>
+        </div>
+
+        <div class="foreign-entry-glass rounded-[2rem] border border-white/70 p-6 shadow-sm dark:border-slate-700/80">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">Quick notes</p>
+          <div class="mt-4 space-y-4 text-sm text-slate-600 dark:text-slate-300">
+            <div class="rounded-2xl bg-white/70 p-4 dark:bg-slate-900/70">
+              <p class="font-semibold text-slate-900 dark:text-white">Transponder format</p>
+              <p class="mt-1">Use format <span class="font-mono text-xs">XX-12345</span>.</p>
+            </div>
+            <div class="rounded-2xl bg-white/70 p-4 dark:bg-slate-900/70">
+              <p class="font-semibold text-slate-900 dark:text-white">Locked fields</p>
+              <p class="mt-1">Readonly values mean the rider was found in the registry.</p>
+            </div>
+            <div class="rounded-2xl bg-white/70 p-4 dark:bg-slate-900/70">
+              <p class="font-semibold text-slate-900 dark:text-white">Best on desktop</p>
+              <p class="mt-1">On mobile, the table remains scrollable horizontally.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
-  </form>
-</div>
+  </div>
+</section>
+
+<datalist id="sport-country-codes">
+  <option value="AFG">
+  <option value="ALB">
+  <option value="ALG">
+  <option value="AND">
+  <option value="ANG">
+  <option value="ANT">
+  <option value="ARG">
+  <option value="ARM">
+  <option value="ARU">
+  <option value="ASA">
+  <option value="AUS">
+  <option value="AUT">
+  <option value="AZE">
+  <option value="BAH">
+  <option value="BAN">
+  <option value="BAR">
+  <option value="BDI">
+  <option value="BEL">
+  <option value="BEN">
+  <option value="BER">
+  <option value="BHU">
+  <option value="BIH">
+  <option value="BIZ">
+  <option value="BLR">
+  <option value="BOL">
+  <option value="BOT">
+  <option value="BRA">
+  <option value="BRN">
+  <option value="BRU">
+  <option value="BUL">
+  <option value="BUR">
+  <option value="CAF">
+  <option value="CAM">
+  <option value="CAN">
+  <option value="CAY">
+  <option value="CGO">
+  <option value="CHA">
+  <option value="CHI">
+  <option value="CHN">
+  <option value="CIV">
+  <option value="CMR">
+  <option value="COD">
+  <option value="COK">
+  <option value="COL">
+  <option value="COM">
+  <option value="CPV">
+  <option value="CRC">
+  <option value="CRO">
+  <option value="CUB">
+  <option value="CYP">
+  <option value="CZE">
+  <option value="DEN">
+  <option value="DJI">
+  <option value="DMA">
+  <option value="DOM">
+  <option value="ECU">
+  <option value="EGY">
+  <option value="ERI">
+  <option value="ESA">
+  <option value="ESP">
+  <option value="EST">
+  <option value="ETH">
+  <option value="FIJ">
+  <option value="FIN">
+  <option value="FRA">
+  <option value="FSM">
+  <option value="GAB">
+  <option value="GAM">
+  <option value="GBR">
+  <option value="GBS">
+  <option value="GEO">
+  <option value="GEQ">
+  <option value="GER">
+  <option value="GHA">
+  <option value="GRE">
+  <option value="GRN">
+  <option value="GUA">
+  <option value="GUI">
+  <option value="GUM">
+  <option value="GUY">
+  <option value="HAI">
+  <option value="HKG">
+  <option value="HON">
+  <option value="HUN">
+  <option value="INA">
+  <option value="IND">
+  <option value="IRI">
+  <option value="IRL">
+  <option value="IRQ">
+  <option value="ISL">
+  <option value="ISR">
+  <option value="ISV">
+  <option value="ITA">
+  <option value="IVB">
+  <option value="JAM">
+  <option value="JOR">
+  <option value="JPN">
+  <option value="KAZ">
+  <option value="KEN">
+  <option value="KGZ">
+  <option value="KIR">
+  <option value="KOR">
+  <option value="KOS">
+  <option value="KSA">
+  <option value="KUW">
+  <option value="LAO">
+  <option value="LAT">
+  <option value="LBA">
+  <option value="LBR">
+  <option value="LCA">
+  <option value="LES">
+  <option value="LIB">
+  <option value="LIE">
+  <option value="LTU">
+  <option value="LUX">
+  <option value="MAD">
+  <option value="MAR">
+  <option value="MAS">
+  <option value="MAW">
+  <option value="MDA">
+  <option value="MDV">
+  <option value="MEX">
+  <option value="MGL">
+  <option value="MHL">
+  <option value="MKD">
+  <option value="MLI">
+  <option value="MLT">
+  <option value="MNE">
+  <option value="MON">
+  <option value="MOZ">
+  <option value="MRI">
+  <option value="MTN">
+  <option value="MYA">
+  <option value="NAM">
+  <option value="NCA">
+  <option value="NED">
+  <option value="NEP">
+  <option value="NGR">
+  <option value="NIG">
+  <option value="NOR">
+  <option value="NRU">
+  <option value="NZL">
+  <option value="OMA">
+  <option value="PAK">
+  <option value="PAN">
+  <option value="PAR">
+  <option value="PER">
+  <option value="PHI">
+  <option value="PLE">
+  <option value="PLW">
+  <option value="PNG">
+  <option value="POL">
+  <option value="POR">
+  <option value="PRK">
+  <option value="PUR">
+  <option value="QAT">
+  <option value="ROU">
+  <option value="RSA">
+  <option value="RWA">
+  <option value="SAM">
+  <option value="SEN">
+  <option value="SEY">
+  <option value="SGP">
+  <option value="SKN">
+  <option value="SLE">
+  <option value="SLO">
+  <option value="SMR">
+  <option value="SOL">
+  <option value="SOM">
+  <option value="SRB">
+  <option value="SRI">
+  <option value="SSD">
+  <option value="STP">
+  <option value="SUD">
+  <option value="SUI">
+  <option value="SUR">
+  <option value="SVK">
+  <option value="SWE">
+  <option value="SWZ">
+  <option value="SYR">
+  <option value="TAN">
+  <option value="TGA">
+  <option value="THA">
+  <option value="TJK">
+  <option value="TKM">
+  <option value="TLS">
+  <option value="TOG">
+  <option value="TPE">
+  <option value="TTO">
+  <option value="TUN">
+  <option value="TUR">
+  <option value="TUV">
+  <option value="UAE">
+  <option value="UGA">
+  <option value="UKR">
+  <option value="URU">
+  <option value="USA">
+  <option value="UZB">
+  <option value="VAN">
+  <option value="VEN">
+  <option value="VIE">
+  <option value="VIN">
+  <option value="YEM">
+  <option value="ZAM">
+  <option value="ZIM">
+</datalist>
 
 <script>
+  function validateForm() {
+    const cards = document.querySelectorAll(".riderCard");
+    const customerEmail = document.getElementById("customerEmail").value.trim();
+    const errors = [];
+    const transponderPattern = /^[A-Z]{2}-\d{5}$/;
+    const rows = Array.from(cards).map(card => ({
+      uci_id: card.querySelector('[name="uci_id[]"]').value,
+      first_name: card.querySelector('[name="first_name[]"]').value,
+      last_name: card.querySelector('[name="last_name[]"]').value,
+      date_of_birth: card.querySelector('[name="dob[]"]').value,
+      sex: card.querySelector('[name="sex[]"]').value,
+      plate: card.querySelector('[name="plate[]"]').value,
+      nationality: card.querySelector('[name="nationality[]"]').value,
+      transponder_20: card.querySelector('[name="transponder_20[]"]').value,
+      transponder_24: card.querySelector('[name="transponder_24[]"]').value,
+      category_20: card.querySelector('[name="category_20[]"]').checked,
+      category_24: card.querySelector('[name="category_24[]"]').checked,
+      elite: card.querySelector('[name="category_elite[]"]').checked,
+    })).filter(row =>
+      row.uci_id || row.first_name || row.last_name || row.date_of_birth || row.plate ||
+      row.nationality || row.transponder_20 || row.transponder_24 ||
+      row.category_20 || row.category_24 || row.elite
+    );
+
+    if (!customerEmail) {
+      errors.push("Contact e-mail is required.");
+    }
+
+    if (!rows.length) {
+      errors.push("Add at least one rider.");
+    }
+
+    rows.forEach((row, index) => {
+      const label = `Rider ${index + 1}`;
+      if (!row.first_name.trim()) {
+        errors.push(`${label}: first name is required.`);
+      }
+      if (!row.last_name.trim()) {
+        errors.push(`${label}: last name is required.`);
+      }
+      if (!row.uci_id.trim()) {
+        errors.push(`${label}: UCI ID is required.`);
+      }
+      if (!row.date_of_birth.trim()) {
+        errors.push(`${label}: date of birth is required.`);
+      }
+      if (!String(row.plate).trim()) {
+        errors.push(`${label}: plate is required.`);
+      }
+      if (!row.category_20 && !row.category_24) {
+        errors.push(`${label}: choose category 20 or 24.`);
+      }
+      if (row.transponder_20 && !transponderPattern.test(row.transponder_20.trim().toUpperCase())) {
+        errors.push(`${label}: transponder 20 must be in format XX-11111.`);
+      }
+      if (row.transponder_24 && !transponderPattern.test(row.transponder_24.trim().toUpperCase())) {
+        errors.push(`${label}: transponder 24 must be in format XX-11111.`);
+      }
+    });
+
+    if (errors.length) {
+      alert(errors.join("\n"));
+      return false;
+    }
+
+    document.getElementById("summaryPayload").value = JSON.stringify({
+      customer_email: customerEmail,
+      rows: rows,
+    });
+    return true;
+  }
+
+  function toggleCategoryExclusive(input) {
+    const card = input.closest(".riderCard");
+    if (!card || !input.checked) {
+      updateEliteAvailability(card);
+      return;
+    }
+
+    const category20 = card.querySelector('[name="category_20[]"]');
+    const category24 = card.querySelector('[name="category_24[]"]');
+
+    if (input.name === "category_20[]") {
+      category24.checked = false;
+    }
+
+    if (input.name === "category_24[]") {
+      category20.checked = false;
+    }
+
+    updateEliteAvailability(card);
+  }
+
+  function updateEliteAvailability(card) {
+    if (!card) {
+      return;
+    }
+
+    const category20 = card.querySelector('[name="category_20[]"]');
+    const category24 = card.querySelector('[name="category_24[]"]');
+    const elite = card.querySelector('[name="category_elite[]"]');
+
+    if (!elite) {
+      return;
+    }
+
+    if (category24 && category24.checked) {
+      elite.checked = false;
+      elite.disabled = true;
+      return;
+    }
+
+    elite.disabled = false;
+  }
+
+  function updateCardTitles() {
+    document.querySelectorAll(".riderCard").forEach((card, index) => {
+      const title = card.querySelector(".riderCardTitle");
+      if (title) {
+        title.textContent = `Rider ${index + 1}`;
+      }
+    });
+  }
+
+  function updateRiderCount() {
+    const count = document.getElementsByClassName("riderCard").length;
+    const counter = document.getElementById("riderCount");
+
+    if (!counter) {
+      return;
+    }
+
+    counter.textContent = `${count} ${count === 1 ? 'rider' : 'riders'} in form`;
+    updateCardTitles();
+  }
+
   function addRow() {
     const table = document.getElementById("ridersTable");
-    const rows = document.getElementsByClassName("riderRow");
-    const lastRow = rows[rows.length - 1]; // Poslední řádek
-    const newRow = lastRow.cloneNode(true); // Klonování řádku
+    const cards = document.getElementsByClassName("riderCard");
+    const lastCard = cards[cards.length - 1];
+    const newCard = lastCard.cloneNode(true);
 
-    // Vymazání hodnot v novém řádku
-    newRow.querySelectorAll("input").forEach(input => {
-      input.value = "";
-      input.readOnly = false; // Povolení úprav
+    newCard.querySelectorAll("input").forEach(input => {
+      if (input.type === "checkbox") {
+        input.checked = false;
+      } else {
+        input.value = "";
+      }
+      input.readOnly = false;
     });
 
-    newRow.querySelectorAll("select").forEach(select => {
-      select.value = "";
-      select.disabled = false; // Povolení výběru
+    newCard.querySelectorAll("select").forEach(select => {
+      select.value = "Muž";
+      select.disabled = false;
     });
 
-    newRow.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
+    newCard.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
       checkbox.checked = false;
-      checkbox.disabled = false; // Povolení zaškrtnutí
+      checkbox.disabled = false;
     });
 
-    table.appendChild(newRow); // Přidání nového řádku
+    table.appendChild(newCard);
+    updateEliteAvailability(newCard);
+    updateRiderCount();
   }
 
   function removeRow(button) {
-    const row = button.closest("tr");
-    const rows = document.getElementsByClassName("riderRow");
+    const card = button.closest(".riderCard");
+    const cards = document.getElementsByClassName("riderCard");
 
-    if (rows.length > 1) {
-      row.remove();
+    if (cards.length > 1) {
+      card.remove();
+      updateRiderCount();
     } else {
       alert("It must remain at least one line.");
     }
@@ -153,9 +755,49 @@
     return csrfToken ? csrfToken[1] : '';
   }
 
+  function enableManualEntry(card, resetFields = false) {
+    if (!card) {
+      return;
+    }
+
+    const fieldsToUnlock = [
+      '[name="first_name[]"]',
+      '[name="last_name[]"]',
+      '[name="dob[]"]',
+      '[name="plate[]"]',
+      '[name="nationality[]"]'
+    ];
+
+    fieldsToUnlock.forEach(selector => {
+      const field = card.querySelector(selector);
+      if (!field) {
+        return;
+      }
+      field.readOnly = false;
+      if (resetFields && selector !== '[name="nationality[]"]') {
+        field.value = "";
+      }
+    });
+
+    const sexField = card.querySelector('[name="sex[]"]');
+    if (sexField) {
+      sexField.disabled = false;
+      if (resetFields) {
+        sexField.value = "Muž";
+      }
+    }
+
+    if (resetFields) {
+      const nationalityField = card.querySelector('[name="nationality[]"]');
+      if (nationalityField) {
+        nationalityField.value = "";
+      }
+    }
+  }
+
   function fetchRiderData(input) {
     const uciId = input.value;
-    const csrfToken = getCSRFToken(); // Získání CSRF tokenu z cookies
+    const csrfToken = getCSRFToken();
 
     if (uciId) {
       fetch(`/event/check-rider/?uci_id=${uciId}`, {
@@ -166,57 +808,46 @@
       })
         .then(response => {
           if (!response.ok) {
-            // Pokud odpověď není OK (např. 404, 500), vrátíme chybovou zprávu
             return Promise.reject('Server returned an error: ' + response.status);
           }
           return response.json();
         })
         .then(data => {
-          const row = input.closest("tr");
+          const card = input.closest(".riderCard");
 
           if (!data.error) {
-            row.querySelector('[name="first_name[]"]').value = data.first_name;
-            row.querySelector('[name="last_name[]"]').value = data.last_name;
-            row.querySelector('[name="dob[]"]').value = data.date_of_birth;
-            row.querySelector('[name="sex[]"]').value = data.sex;
-            row.querySelector('[name="plate[]"]').value = data.plate;
-            row.querySelector('[name="transponder_20[]"]').value = data.transponder_20;
-            row.querySelector('[name="transponder_24[]"]').value = data.transponder_24;
-            row.querySelector('[name="nationality[]"]').value = data.nationality;
+            card.querySelector('[name="first_name[]"]').value = data.first_name;
+            card.querySelector('[name="last_name[]"]').value = data.last_name;
+            card.querySelector('[name="dob[]"]').value = data.date_of_birth;
+            card.querySelector('[name="sex[]"]').value = data.sex;
+            card.querySelector('[name="plate[]"]').value = data.plate;
+            card.querySelector('[name="transponder_20[]"]').value = data.transponder_20;
+            card.querySelector('[name="transponder_24[]"]').value = data.transponder_24;
+            card.querySelector('[name="nationality[]"]').value = data.nationality;
 
-            row.querySelector('[name="uci_id[]"]').readOnly = true;
-            row.querySelector('[name="first_name[]"]').readOnly = true;
-            row.querySelector('[name="last_name[]"]').readOnly = true;
-            row.querySelector('[name="dob[]"]').readOnly = true;
-            row.querySelector('[name="sex[]"]').disabled = true;
-            row.querySelector('[name="plate[]"]').readOnly = false;
-            row.querySelector('[name="nationality[]"]').readOnly = true;
-
-            row.querySelector('[name="transponder_20[]"]').readOnly = false;
-            row.querySelector('[name="transponder_24[]"]').readOnly = false;
-            row.querySelector('[name="category_20[]"]').disabled = false;
-            row.querySelector('[name="category_24[]"]').disabled = false;
-            row.querySelector('[name="category_elite[]"]').disabled = false;
+            card.querySelector('[name="first_name[]"]').readOnly = false;
+            card.querySelector('[name="last_name[]"]').readOnly = false;
+            card.querySelector('[name="dob[]"]').readOnly = false;
+            card.querySelector('[name="sex[]"]').disabled = false;
+            card.querySelector('[name="plate[]"]').readOnly = false;
+            card.querySelector('[name="nationality[]"]').readOnly = false;
           } else {
-            row.querySelector('[name="first_name[]"]').readOnly = false;
-            row.querySelector('[name="last_name[]"]').readOnly = false;
-            row.querySelector('[name="dob[]"]').readOnly = false;
-            row.querySelector('[name="sex[]"]').disabled = false;
-            row.querySelector('[name="plate[]"]').readOnly = false;
-            row.querySelector('[name="nationality[]"]').readOnly = false;
-            row.querySelector('[name="transponder_20[]"]').readOnly = true;
-            row.querySelector('[name="transponder_24[]"]').readOnly = true;
-            row.querySelector('[name="category_20[]"]').disabled = false;
-            row.querySelector('[name="category_24[]"]').disabled = false;
-            row.querySelector('[name="category_elite[]"]').disabled = false;
+            enableManualEntry(card, true);
           }
+
+          updateEliteAvailability(card);
         })
         .catch(error => {
-          console.error('Error:', error); // Zobrazení chyby v konzoli
-          alert('Error: ' + error); // Ukázání chyby uživateli
+          console.error('Error:', error);
+          const card = input.closest(".riderCard");
+          enableManualEntry(card, false);
+          alert('Error: ' + error);
         });
     }
   }
+
+  updateRiderCount();
+  document.querySelectorAll(".riderCard").forEach(updateEliteAvailability);
 </script>
 
 {% endblock %}

@@ -1,220 +1,330 @@
-{% extends 'base.html' %} {% block title %} Přihlášení na závody
-{% endblock title %} {% load static %} {% block content %}
+{% extends 'base.html' %}
+{% block title %} Přihlášení na závody{% endblock title %}
+{% load static %}
+{% block extra_head %}
+<style>
+  .entry-list-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  }
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-extrabold text-white tracking-tight">
-      {{event.name |upper}}
-    </h1>
-  </div>
-</header>
+  .entry-list-panel {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.07);
+  }
 
-<div class="max-w-7xl mx-auto">
-<div class="search" style="margin-top: 2rem">
+  .entry-list-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  }
 
-  <div class="text-lg dark:dark">
-    Počet přihlášených jezdců: 
-  </div>
-  <div class="grid grid-cols-3 gap-4 mb-6">
+  .entry-list-hero-badge {
+    position: relative;
+    min-width: 18rem;
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 7rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 255, 0.95));
+    color: #0f172a !important;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  }
 
-    <div class="">
-      <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
-        type="text"
-        placeholder="Napiš příjmení"
-        aria-label="default input example"
-        onkeyup="searchByName()"
-        id="inputName"/>
-    </div>
+  .entry-list-input {
+    background: #ffffff;
+    color: #0f172a;
+  }
 
-    <div class="">
-      <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
-        type="text"
-        placeholder="Napiš klub"
-        aria-label="default input example"
-        onkeyup="searchByClub()"
-        id="inputClub"/>
-    </div>
+  .entry-list-input::placeholder {
+    color: #64748b;
+  }
 
-    <div class="">
-      <input
-        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md dark:dark"
-        type="text"
-        placeholder="Napiš kategorii"
-        aria-label="default input example"
-        onkeyup="searchByClass()"
-        id="inputClass"/>
-    </div>
-  </div>
+  html.dark body,
+  html.dark .entry-list-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  }
 
-  <div class="flex flex-col">
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-          <table class="min-w-full divide-y divide-gray-200" id="myTable">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
-                  Jméno
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
-                  Klub, UCI ID
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
-                  Kategorie
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
-                  Startovní číslo
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for entry in entries %}
-              <tr onclick="window.location='{% url 'rider:detail' entry.rider.uci_id %}';" class="" style='cursor: pointer;'>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
-                  <div class="flex items-center">
-                      <div class="relative">
-                        <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
-                        {% if entry.rider.valid_licence %}
-                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
-                        {% else %}
-                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
-                        {% endif%}
-                      </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:dark">
-                        {{entry.rider.last_name|upper}}
-                      </div>
-                      <div class="text-sm text-gray-500 dark:dark">
-                        {{entry.rider.first_name}}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
-                  <div class="text-sm text-gray-900 dark:dark">{{entry.rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500 dark:dark">{{entry.rider.uci_id}}</div>
-                </td>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
-                  <div class="flex items-center">
-                    <div class="">
-                      <div class="text-sm font-medium text-gray-500 dark:dark"> 
-                        {% if entry.is_beginner %}
-                          {{entry.class_beginner}}
-                        {% elif entry.is_20%}
-                          {{entry.class_20}}
-                        {% else %}
-                          {{entry.class_24}}
-                        {% endif %}
-                      </div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="dark:dark">
-                <div class="flex flex-row px-6 py-2 space-x-4">
-                {{entry.rider.plate}}</div>
-                </div>
-                </td>
-              </tr>
-              {% endfor%}
-            </tbody>
-          </table>
+  html.dark .entry-list-panel {
+    background: rgba(15, 23, 42, 0.84) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  html.dark .entry-list-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  html.dark .entry-list-hero-badge {
+    border-color: rgba(99, 102, 241, 0.34) !important;
+    background:
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.24), transparent 8rem),
+      linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(49, 46, 129, 0.74)) !important;
+    color: #f8fafc !important;
+    box-shadow: 0 22px 44px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  html.dark .entry-list-input {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+  }
+
+  html.dark .entry-list-input::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .entry-list-table-body {
+    background: rgba(15, 23, 42, 0.88) !important;
+  }
+
+  html.dark .entry-list-table-row {
+    background: rgba(15, 23, 42, 0.88) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+  }
+
+  html.dark .entry-list-table-row:hover {
+    background: rgba(30, 41, 59, 0.95) !important;
+  }
+
+  html.dark .entry-list-cell-primary {
+    color: #f8fafc !important;
+  }
+
+  html.dark .entry-list-cell-secondary {
+    color: #cbd5e1 !important;
+  }
+
+  .entry-list-avatar-fallback {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+
+  html.dark .entry-list-avatar-fallback {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  }
+</style>
+{% endblock %}
+{% block content %}
+
+<section class="entry-list-surface min-h-screen pb-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+    <header class="entry-list-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+        Přihlášení jezdci
+      </p>
+      <div class="mt-4 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex-1">
+          <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            {{ event.name }}
+          </h1>
+          <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+            Veřejný přehled uhrazených registrací včetně zahraničních jezdců a jejich kategorií.
+          </p>
+        </div>
+        <div class="entry-list-hero-badge rounded-[1.75rem] px-6 py-5 backdrop-blur lg:ml-auto lg:self-center">
+          <div class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-300">
+            Aktuální stav
+          </div>
+          <div class="mt-2 text-4xl font-black leading-none text-slate-900 dark:text-white">
+            {{ entries|length }}
+          </div>
+          <div class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-200">
+            přihlášených jezdců
+          </div>
         </div>
       </div>
-    </div>
-    <script src="{% static 'js/entries.js' %}"></script>
-  </div>
-</div>
+    </header>
 
-{% if checkout %}
-  <div class="max-w-7xl mx-auto mt-6">
-    <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg dark:dark">
-      <div class="text-3xl font-bold">Seznam odhlášených jezdců</div>
+    <div class="pt-8">
+    <div class="entry-list-panel rounded-[2rem] p-6 sm:p-8">
+      <div class="text-lg font-medium text-slate-900 dark:text-slate-100">
+        Počet přihlášených jezdců:
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 mb-6 mt-4 lg:grid-cols-3">
+        <input
+          class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
+          type="text"
+          placeholder="Napiš příjmení"
+          aria-label="default input example"
+          onkeyup="searchByName()"
+          id="inputName"/>
+
+        <input
+          class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
+          type="text"
+          placeholder="Napiš klub"
+          aria-label="default input example"
+          onkeyup="searchByClub()"
+          id="inputClub"/>
+
+        <input
+          class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
+          type="text"
+          placeholder="Napiš kategorii"
+          aria-label="default input example"
+          onkeyup="searchByClass()"
+          id="inputClass"/>
+      </div>
+
+      <div class="overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
+          <thead class="bg-slate-50 dark:bg-slate-900">
+            <tr>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                Jméno
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                Klub, UCI ID
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                Kategorie
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                Startovní číslo
+              </th>
+            </tr>
+          </thead>
+          <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
+            {% for entry in entries %}
+            <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
+              <td class="px-6 py-3 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="relative">
+                    {% if entry.photo_url %}
+                    <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="">
+                    {% else %}
+                    <div class="entry-list-avatar-fallback flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white">
+                      {{ entry.first_name|slice:":1" }}{{ entry.last_name|slice:":1" }}
+                    </div>
+                    {% endif %}
+                    {% if entry.valid_licence %}
+                      <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                    {% else %}
+                      <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                    {% endif %}
+                  </div>
+                  <div class="ml-4">
+                    <div class="entry-list-cell-primary text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {{ entry.last_name|upper }}
+                    </div>
+                    <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">
+                      {{ entry.first_name }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-3 whitespace-nowrap">
+                <div class="entry-list-cell-primary text-sm text-slate-900 dark:text-slate-100">{{ entry.club|upper }}</div>
+                <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">{{ entry.uci_id }}</div>
+              </td>
+              <td class="px-6 py-3 whitespace-nowrap">
+                <div class="entry-list-cell-secondary text-sm font-medium text-slate-600 dark:text-slate-300">
+                  {{ entry.category }}
+                </div>
+              </td>
+              <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200">
+                {{ entry.plate }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  <div class="flex flex-col max-w-7xl mx-auto">
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8  mt-6">
-      <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-          <table class="min-w-full divide-y divide-gray-200" id="myTable">
-            <thead class="bg-gray-50">
+
+    {% if checkout %}
+      <div class="entry-list-panel mt-8 rounded-[2rem] p-6 sm:p-8">
+        <div class="text-3xl font-bold text-slate-900 dark:text-slate-100">Seznam odhlášených jezdců</div>
+
+        <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead class="bg-slate-50 dark:bg-slate-900">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                   Jméno
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                   Klub, UCI ID
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                   Kategorie
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:dark uppercase tracking-wider">
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                   Startovní číslo
                 </th>
                 {% if user.is_superuser %}
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info o platbě</th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                  Info o platbě
+                </th>
                 {% endif %}
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
               {% for entry in checkout %}
-              <tr onclick="window.location='{% url 'rider:detail' entry.rider_id %}';" class="" style='cursor: pointer;'>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
+              <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
+                <td class="px-6 py-3 whitespace-nowrap">
                   <div class="flex items-center">
-                      <div class="relative">
-                        <img class="h-10 w-10 rounded-full" src="{{entry.rider.photo.url}}" alt="">
-                        {% if entry.rider.valid_licence %}
-                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
-                        {% else %}
-                          <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
-                        {% endif%}
+                    <div class="relative">
+                      {% if entry.photo_url %}
+                      <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="">
+                      {% else %}
+                      <div class="entry-list-avatar-fallback flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white">
+                        {{ entry.first_name|slice:":1" }}{{ entry.last_name|slice:":1" }}
                       </div>
+                      {% endif %}
+                      {% if entry.valid_licence %}
+                        <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                      {% else %}
+                        <span class="bottom-0 left-7 absolute w-3.5 h-3.5 bg-red-400 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                      {% endif %}
+                    </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:dark">
-                        {{entry.rider.last_name|upper}}
+                      <div class="entry-list-cell-primary text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {{ entry.last_name|upper }}
                       </div>
-                      <div class="text-sm text-gray-500">
-                        {{entry.rider.first_name}}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
-                  <div class="text-sm text-gray-900 dark:dark">{{entry.rider.club|upper}}</div>
-                  <div class="text-sm text-gray-500 dark:dark">{{entry.rider.uci_id}}</div>
-                </td>
-                <td class="px-6 py-2 whitespace-nowrap dark:dark">
-                  <div class="flex items-center">
-                    <div class="">
-                      <div class="text-sm font-medium text-gray-500 dark:dark"> 
-                        {% if entry.class_20 %}
-                          {{entry.class_20}}
-                        {% else %}
-                          {{entry.class_24}}
-                        {% endif %}
-                      </div>
+                      <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">
+                        {{ entry.first_name }}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="dark:dark">
-                <div class="flex flex-row px-6 py-2 space-x-4">
-                {{entry.rider.plate}}</div>
-                </div>
+                <td class="px-6 py-3 whitespace-nowrap">
+                  <div class="entry-list-cell-primary text-sm text-slate-900 dark:text-slate-100">{{ entry.club|upper }}</div>
+                  <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">{{ entry.uci_id }}</div>
+                </td>
+                <td class="px-6 py-3 whitespace-nowrap">
+                  <div class="entry-list-cell-secondary text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {{ entry.category }}
+                  </div>
+                </td>
+                <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200">
+                  {{ entry.plate }}
                 </td>
                 {% if user.is_superuser %}
-                <td class="dark:dark"></td>
+                <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200"></td>
                 {% endif %}
               </tr>
-              {% endfor%}
+              {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
+    {% endif %}
     </div>
   </div>
-{% endif %}
-</div>
+
+  <script src="{% static 'js/entries.js' %}"></script>
+</section>
 {% endblock content %}

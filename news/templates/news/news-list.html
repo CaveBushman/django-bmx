@@ -1,82 +1,104 @@
 {% extends 'base.html' %} {% block title %} Novinky {% endblock title %}
 {% block content %}
-
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">
+<section class="bg-slate-50 pb-10 dark:bg-slate-900">
+<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+      Aktuality
+    </p>
+    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white">
       NOVINKY ZE SVĚTA BMX
     </h1>
+    <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+      Přehled publikovaných článků, novinek a informací z domácího BMX dění.
+    </p>
   </div>
 </header>
 
-<div class="mx-auto max-w-7xl px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-6 mb-8">
+<div class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+  <div class="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-lg dark:shadow-slate-950/30">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Publikováno</p>
+      <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white">{{ sum_of_news }}</p>
+    </div>
+    <div class="text-right text-sm text-slate-500 dark:text-slate-400">
+      Stránka {{ news.number }} z {{ news.paginator.num_pages }}
+    </div>
+  </div>
 
+  <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
   {% for article in news.object_list %}
-              <article class="h-full flex flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
-                <div class="flex flex-col justify-between">
-                  <div class="relative w-full overflow-hidden rounded-xl">
-                    <meta property="og:image" content="{{article.photo_01.url}}" />
-                    <!-- Obrázek pro portrait a landscape režim -->
-                    <img src="{{article.photo_01.url}}" alt="" class="w-full aspect-[16/9] object-cover transform hover:scale-105 transition-all duration-300">
-                  </div>
-                  <div class="px-6 py-4">
-                    <div class="flex items-center gap-x-4 text-xs text-gray-500 dark:text-gray-300">
-                      <time datetime="2020-03-16">{{article.publish_date}}</time>
-                      <a href="#"
-                        class="inline-block rounded-full bg-blue-100 text-blue-600 py-1.5 px-3 text-xs font-medium hover:bg-blue-200 transition-all duration-200">
-                        {% for tag in article.tags.all %}
-                        {{ tag }}
-                        {% endfor %}
-                      </a>
-                    </div>
-                    <div class="mt-3">
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-200">
-                        <a href="{% url 'news:news-detail' article.id %}">
-                          {{article.title | upper}}
-                        </a>
-                      </h3>
-                      <p class="mt-5 text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                        {{ article.prefix|safe|truncatechars_html:400 }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="relative mt-8 flex items-center gap-x-4 px-6 py-4">
-                  <img src="{{article.created.photo.url}}" alt="" class="h-12 w-12 rounded-full bg-gray-100">
-                  <div class="text-sm leading-6">
-                    <p class="font-semibold text-gray-900 dark:text-gray-200">
-                      <a href="#">
-                        {{article.created}}
-                      </a>
-                    </p>
-                    <p class="text-gray-600 dark:text-gray-300">{{article.time_to_read}} min. čtení</p>
-                  </div>
-                </div>
-              </article>
+  <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-xl dark:shadow-black/20">
+    <a href="{% url 'news:news-detail' article.id %}" class="block">
+      <div class="relative overflow-hidden border-b border-slate-200 dark:!border-slate-700">
+        <meta property="og:image" content="{{article.photo_01.url}}" />
+        <img src="{{article.photo_01.url}}" alt="{{ article.title }}"
+          class="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+      </div>
+    </a>
+
+    <div class="flex flex-1 flex-col px-6 py-5">
+      <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-300">
+        <time datetime="{{ article.publish_date|date:'Y-m-d' }}">{{article.publish_date}}</time>
+        {% for tag in article.tags.all %}
+        <span class="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 dark:!border dark:!border-indigo-400/30 dark:!bg-indigo-500/15 dark:!text-indigo-100">
+          {{ tag }}
+        </span>
+        {% endfor %}
+      </div>
+
+      <h2 class="mt-4 text-xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+        <a href="{% url 'news:news-detail' article.id %}" class="transition-colors hover:text-indigo-700 dark:hover:text-indigo-300">
+          {{article.title | upper}}
+        </a>
+      </h2>
+
+      <div class="mt-4 line-clamp-4 text-sm leading-6 text-slate-600 [&_a]:text-indigo-700 [&_p]:text-slate-600 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_div]:text-slate-100 dark:[&_span]:text-inherit">
+        {{ article.prefix|safe|truncatechars_html:400 }}
+      </div>
+
+      <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:!border-slate-700">
+        <div class="flex items-center gap-x-3">
+          <img src="{{article.created.photo.url}}" alt="{{ article.created }}" class="h-11 w-11 rounded-full bg-slate-100 object-cover ring-1 ring-slate-200 dark:!ring-slate-500">
+          <div class="text-sm leading-5">
+            <p class="font-semibold text-slate-900 dark:text-white">{{article.created}}</p>
+            <p class="text-slate-500 dark:text-slate-300">{{article.time_to_read}} min. cteni</p>
+          </div>
+        </div>
+        <a href="{% url 'news:news-detail' article.id %}"
+          class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 dark:!bg-indigo-500 dark:hover:!bg-indigo-400">
+          Cist
+        </a>
+      </div>
+    </div>
+  </article>
   {% endfor %}
+  </div>
 </div>
 <!-- ====PAGINATION ==== -->
 
-<div class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 dark:dark">
+<div class="mx-auto mt-8 mb-8 max-w-6xl px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm dark:!border-slate-700 dark:!bg-slate-900">
   <div class="flex-1 flex justify-between sm:hidden">
     {% if news.has_previous %}
     <a href="{% url 'news:news-list' %}?page={{ news.previous_page_number }}"
-      class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-      Previous
+      class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
+      Predchozi
     </a>
     {% else %}
     <div></div>
     {% endif %}
     {% if news.has_next %}
     <a href="{% url 'news:news-list' %}?page={{ news.next_page_number }}"
-      class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-      Next
+      class="ml-3 relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
+      Dalsi
     </a>
     {% endif %}
   </div>
 
   <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm text-gray-700 dark:dark">
+      <p class="text-sm text-slate-600 dark:text-slate-300">
         Zobrazuji stránku
         <span class="font-medium">{{ news.number }}</span>
         z
@@ -85,12 +107,12 @@
     </div>
 
     <div>
-      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px dark:dark" aria-label="Pagination">
+      <nav class="relative z-0 inline-flex flex-wrap gap-2" aria-label="Pagination">
         <!-- First page link -->
         <a href="{% url 'news:news-list' %}?page=1" {% if is_first_page %}
-          class="relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-indigo-50 border-indigo-500 text-indigo-600"
+          class="relative inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 dark:!border-indigo-400 dark:!bg-indigo-500/20 dark:!text-white"
           {% else %}
-          class="relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+          class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700"
           {% endif %}>
           První
         </a>
@@ -98,8 +120,8 @@
         <!-- Previous page link -->
         {% if news.has_previous %}
         <a href="{% url 'news:news-list' %}?page={{ news.previous_page_number }}"
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span class="sr-only">Previous</span>
+          class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
+          <span class="sr-only">Predchozi</span>
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
             aria-hidden="true">
             <path fill-rule="evenodd"
@@ -109,17 +131,18 @@
         </a>
         {% endif %}
 
-        <!-- Current page -->
-        <a href="#"
-          class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-          {{ news.number }}
+        {% for page_number in page_numbers %}
+        <a href="{% url 'news:news-list' %}?page={{ page_number }}"
+          class="relative inline-flex items-center rounded-lg border px-4 py-2 text-sm font-medium {% if page_number == news.number %}border-indigo-500 bg-indigo-50 text-indigo-600 dark:!border-indigo-400 dark:!bg-indigo-500/20 dark:!text-white{% else %}border-slate-300 bg-white text-slate-600 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700{% endif %}">
+          {{ page_number }}
         </a>
+        {% endfor %}
 
         <!-- Next page link -->
         {% if news.has_next %}
         <a href="{% url 'news:news-list' %}?page={{ news.next_page_number }}"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50">
-          <span class="sr-only">Next</span>
+          class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
+          <span class="sr-only">Dalsi</span>
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
             aria-hidden="true">
             <path fill-rule="evenodd"
@@ -131,9 +154,9 @@
 
         <!-- Last page link -->
         <a href="{% url 'news:news-list' %}?page={{ news.paginator.num_pages }}" {% if is_last_page %}
-          class="relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-indigo-50 border-indigo-500 text-indigo-600"
+          class="relative inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 dark:!border-indigo-400 dark:!bg-indigo-500/20 dark:!text-white"
           {% else %}
-          class="relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+          class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700"
           {% endif %}>
           Poslední
         </a>
@@ -141,6 +164,8 @@
     </div>
   </div>
 </div>
+</div>
+</section>
 
 
 {% endblock content %}

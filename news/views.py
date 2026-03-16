@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage
 from event.models import Event
 from event.func import update_cart
-from func.notification import update_plate_notify
+from rider.rider import update_plate_notify
 from rider.models import Rider
 from news.models import News, Downloads
 from club.models import Club
@@ -18,24 +18,30 @@ def get_image_dimensions(image_field):
     image = Image.open(BytesIO(image_field.read()))
     return image.width, image.height
 
-def change_theme(request):
-    if 'is_dark_mode' in request.session:
-        request.session['is_dark_mode'] = not request.session['is_dark_mode']
-    else:
-        request.session['is_dark_mode'] = True
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 def homepage_view(request):
     this_year = date.today().year
-    events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count
+    events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count()
     riders_sum = Rider.sum_of_riders()
     clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
-    homepage_news = News.objects.order_by('-publish_date').filter(published=True, on_homepage=True)
+    homepage_news = News.objects.filter(published=True, on_homepage=True).select_related('created').prefetch_related('tags').order_by('-publish_date')
+    championship_men_leader = Rider.objects.filter(
+        is_active=True,
+        is_approved=True,
+        class_20__in=["Men Junior", "Men Under 23", "Men Elite"],
+    ).order_by("-points_20", "last_name", "first_name").first()
+    championship_women_leader = Rider.objects.filter(
+        is_active=True,
+        is_approved=True,
+        class_20__in=["Women Junior", "Women Under 23", "Women Elite"],
+    ).order_by("-points_20", "last_name", "first_name").first()
     update_cart(request)
     update_plate_notify(request)
     content = {'clubs_count': clubs_sum, 'riders_count': riders_sum,
                'races_count': events_sum,
-               'homepage_news': homepage_news}
+               'homepage_news': homepage_news,
+               'championship_men_leader': championship_men_leader,
+               'championship_women_leader': championship_women_leader}
     return render(request, "homepage.html", content)
 
 
@@ -45,7 +51,8 @@ def rules_view(request):
 
 
 def news_list_view(request):
-    ARTICLES_PER_PAGE = 9
+    ARTICLES_PER_PAGE = 10
+    PAGINATION_WINDOW = 10
 
     news = News.objects.filter(published=True).order_by('-publish_date')
     sum_of_news = News.sum_of_news()
@@ -55,11 +62,20 @@ def news_list_view(request):
     page_number = request.GET.get('page')  # Get the current page number from query params
     news_page = paginator.get_page(page_number)
 
-    # Define the range of pages to show (here we show 10 pages max)
-    start_page = max(1, news_page.number - 5)
-    end_page = min(news_page.paginator.num_pages, news_page.number + 4)
+    total_pages = news_page.paginator.num_pages
+    start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
+    end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
 
-    data = {'news': news_page, 'sum_of_news': sum_of_news, 'start_page': start_page, 'end_page': end_page}
+    if (end_page - start_page + 1) < PAGINATION_WINDOW:
+        start_page = max(1, end_page - PAGINATION_WINDOW + 1)
+
+    page_numbers = range(start_page, end_page + 1)
+
+    data = {
+        'news': news_page,
+        'sum_of_news': sum_of_news,
+        'page_numbers': page_numbers,
+    }
 
     return render(request, 'news/news-list.html', data)
 

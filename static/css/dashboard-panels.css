@@ -1,0 +1,43 @@
+.dashboard-surface {
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+}
+
+.dashboard-hero,
+.dashboard-card,
+.dashboard-panel {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-hero {
+  background:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 18rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+}
+
+html.dark body,
+html.dark .dashboard-surface {
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+    linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+}
+
+html.dark .dashboard-hero,
+html.dark .dashboard-card,
+html.dark .dashboard-panel {
+  background: rgba(15, 23, 42, 0.88) !important;
+  border-color: rgba(51, 65, 85, 0.95) !important;
+  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+}
+
+html.dark .dashboard-hero {
+  background:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+}

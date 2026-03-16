@@ -1,6 +1,117 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Homepage{% endblock title %}
+{% block extra_head %}
+<style>
+  html.dark body,
+  html.dark .homepage-dark-surface,
+  html.dark .homepage-dark-section {
+    background-color: #0f172a !important;
+  }
+
+  .homepage-hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(2, 6, 23, 0.18), rgba(2, 6, 23, 0.56)),
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 45%);
+  }
+
+  .homepage-hero-stat {
+    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.22);
+  }
+
+  .homepage-champions {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 22rem),
+      radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.12), transparent 22rem),
+      linear-gradient(180deg, #eef2ff 0%, #f8fafc 55%, #ffffff 100%);
+  }
+
+  .homepage-champion-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.92));
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
+  }
+
+  .homepage-champion-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--champion-accent, #6366f1);
+  }
+
+  .homepage-champion-avatar {
+    width: 7.5rem;
+    height: 7.5rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex: 0 0 auto;
+  }
+
+  @media (min-width: 1024px) {
+    .homepage-champions {
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+  }
+
+  html.dark .homepage-champions {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 24rem),
+      radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.14), transparent 24rem),
+      linear-gradient(135deg, #020617 0%, #111827 40%, #0f172a 100%);
+  }
+
+  html.dark .homepage-champion-card {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 28px 60px rgba(2, 6, 23, 0.36);
+  }
+
+  .homepage-points-badge-men {
+    background: #e0f2fe;
+    color: #0369a1;
+    box-shadow: inset 0 0 0 1px #bae6fd;
+  }
+
+  .homepage-points-badge-women {
+    background: #fce7f3;
+    color: #be185d;
+    box-shadow: inset 0 0 0 1px #f9a8d4;
+  }
+
+  html.dark .homepage-points-badge-men {
+    background: rgba(14, 165, 233, 0.18);
+    color: #7dd3fc;
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.3);
+  }
+
+  html.dark .homepage-points-badge-women {
+    background: #ec4899;
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(249, 168, 212, 0.35);
+  }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!document.documentElement.classList.contains("dark")) return;
+
+    document.body.style.backgroundColor = "#0f172a";
+
+    document.querySelectorAll(".homepage-dark-surface, .homepage-dark-section").forEach(function (element) {
+      element.style.backgroundColor = "#0f172a";
+    });
+  });
+</script>
+{% endblock %}
 
 {% block content %}
 
@@ -12,7 +123,7 @@
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
         Váš prohlížeč nepodporuje video tag.
     </video>
-    <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center">
+    <div class="homepage-hero-overlay absolute inset-0 flex flex-col items-center justify-center text-white text-center">
         <!-- Statický nápis s vlajkovým gradientem a výraznějším efektem -->
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center mb-6 sm:mb-8 md:mb-12 
             bg-gradient-to-r from-blue-500 via-white to-red-500 text-transparent bg-clip-text 
@@ -22,15 +133,15 @@
         <!-- Grid pro počítadla s responsivitou -->
         <div
             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-16 text-xl sm:text-2xl md:text-3xl">
-            <div class="bg-white bg-opacity-70 p-6 sm:p-8 md:p-10 rounded-lg flex flex-col items-center">
+            <div class="homepage-hero-stat p-6 sm:p-8 md:p-10 rounded-[1.75rem] flex flex-col items-center">
                 <span class="font-bold text-4xl sm:text-5xl md:text-6xl text-gray-900">{{ riders_count }}</span>
                 <p class="text-gray-800">aktivních jezdců</p>
             </div>
-            <div class="bg-white bg-opacity-70 p-6 sm:p-8 md:p-10 rounded-lg flex flex-col items-center">
+            <div class="homepage-hero-stat p-6 sm:p-8 md:p-10 rounded-[1.75rem] flex flex-col items-center">
                 <span class="font-bold text-4xl sm:text-5xl md:text-6xl text-gray-900">{{ clubs_count }}</span>
                 <p class="text-gray-800">klubů</p>
             </div>
-            <div class="bg-white bg-opacity-70 p-6 sm:p-8 md:p-10 rounded-lg flex flex-col items-center">
+            <div class="homepage-hero-stat p-6 sm:p-8 md:p-10 rounded-[1.75rem] flex flex-col items-center">
                 <span class="font-bold text-4xl sm:text-5xl md:text-6xl text-gray-900">{{ races_count }}</span>
                 <p class="text-gray-800">závodů v tomto roce</p>
             </div>
@@ -38,21 +149,88 @@
     </div>
 </div>
 
+<div class="homepage-dark-surface bg-white dark:!bg-slate-900">
+<section class="homepage-champions px-6 py-6 sm:px-8 lg:px-10 xl:px-12">
+    <div class="mx-auto max-w-screen-2xl">
+        <div class="mb-4 text-center">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-300">Championship ranking</p>
+            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">Nejlepší jezdci Championship kategorií</h2>
+        </div>
+
+        <div class="grid gap-5 lg:grid-cols-2">
+            <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#3b82f6;">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">Muži</p>
+                        {% if championship_men_leader %}
+                        <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ championship_men_leader.class_20 }}</p>
+                        <h3 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name|upper }}</h3>
+                        <div class="homepage-points-badge-men mt-3 inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold">
+                            {{ championship_men_leader.points_20 }} bodů
+                        </div>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_men_leader.club|default:"Bez klubové příslušnosti" }}</p>
+                        {% else %}
+                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Zatím bez lídra</h3>
+                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pro mužské Championship kategorie zatím nejsou k dispozici žádné body.</p>
+                        {% endif %}
+                    </div>
+                    <div class="ml-auto flex justify-center">
+                        {% if championship_men_leader %}
+                        <img src="{{ championship_men_leader.photo.url }}" alt="{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
+                        {% else %}
+                        <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
+                            N/A
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+
+            <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
+                <div class="flex items-center gap-4">
+                    <div class="order-2 flex justify-center md:justify-start">
+                        {% if championship_women_leader %}
+                        <img src="{{ championship_women_leader.photo.url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
+                        {% else %}
+                        <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
+                            N/A
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="order-1 ml-auto text-right">
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">Ženy</p>
+                        {% if championship_women_leader %}
+                        <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ championship_women_leader.class_20 }}</p>
+                        <h3 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name|upper }}</h3>
+                        <div class="homepage-points-badge-women mt-3 inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold">
+                            {{ championship_women_leader.points_20 }} bodů
+                        </div>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_women_leader.club|default:"Bez klubové příslušnosti" }}</p>
+                        {% else %}
+                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Zatím bez lídryně</h3>
+                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pro ženské Championship kategorie zatím nejsou k dispozici žádné body.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
 <!-- LATEST NEWS -->
 
-<div class="bg-white dark:bg-gray-800 py-6 sm:py-10">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+<div class="homepage-dark-section bg-white dark:bg-slate-900 py-6 sm:py-10">
+    <div class="mx-auto max-w-screen-2xl px-6 lg:px-10 xl:px-12">
 
-        <div class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3 xl:gap-10">
             {% for article in homepage_news %}
             <article
-                class="flex flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
+                class="flex h-full flex-col items-start justify-between bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div class="flex flex-col justify-between">
-                    <div class="relative w-full overflow-hidden rounded-xl">
+                    <div class="relative aspect-[16/10] w-full overflow-hidden rounded-t-xl">
                         <meta property="og:image" content="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}" />
                         <img src="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}"
                              alt="{{ article.title }}"
-                             class="w-full h-auto object-cover transform hover:scale-105 transition-all duration-300 max-w-full max-h-[400px]">
+                             class="h-full w-full object-cover transform hover:scale-105 transition-all duration-300">
                     </div>
                     <div class="px-6 py-4">
                         <div class="flex items-center gap-x-4 text-xs text-gray-500 dark:text-gray-300">
@@ -93,7 +271,7 @@
 
 <!-- ==== GET IN TOUCH  ====-->
 
-<section class="bg-white dark:bg-gray-800">
+<section class="homepage-dark-section bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
             <h2
@@ -168,30 +346,34 @@
 
 <!-- ==== SPONSORS ====-->
 
-<div class="bg-white dark:bg-gray-800 py-10 sm:py-14">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+<div class="homepage-dark-section bg-white dark:bg-slate-900 py-10 sm:py-14">
+    <div class="mx-auto max-w-screen-2xl px-6 lg:px-10 xl:px-12">
         <div class="mx-auto max-w-2xl text-center">
             <h2 class="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-200 sm:text-3xl transform transition-all duration-500 hover:scale-110 hover:text-indigo-600">
                 JE NÁM CTÍ SPOLUPRACOVAT S
             </h2>
         </div>
 
-        <div class="mx-auto mt-10 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5">
-            {% if request.session.is_dark_mode %}
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/skoda.png' %}" alt="Transistor" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/CSC_Logo_Horizontal_CZ_WHITE.png' %}" alt="Reform" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/sazka_dark.png' %}" alt="Sazka" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static 'images/partners/uci-logo_dark.png' %}" alt="UCI" width="158" height="48">
-            <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1"
-                 src="{% static 'images/partners/koop.svg' %}" alt="Kooperativa" width="158" height="48">
-            {% else %}
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/skoda.png' %}" alt="Transistor" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/csc.png' %}" alt="Reform" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain lg:col-span-1" src="{% static 'images/partners/sazka.png' %}" alt="Sazka" width="158" height="48">
-            <img class="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1" src="{% static 'images/partners/uci-logo.svg' %}" alt="UCI" width="158" height="48">
-            <img class="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1"
-                 src="{% static 'images/partners/koop.svg' %}" alt="Kooperativa" width="158" height="48">
-            {% endif %}
+        <div class="mx-auto mt-10 grid w-full grid-cols-2 items-center gap-x-10 gap-y-10 sm:grid-cols-3 lg:hidden">
+            <img class="max-h-12 w-full object-contain" src="{% static 'images/partners/skoda.png' %}" alt="Škoda" width="158" height="48">
+            <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/csc.png' %}" alt="ČSC" width="158" height="48">
+            <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/CSC_Logo_Horizontal_CZ_WHITE.png' %}" alt="ČSC" width="158" height="48">
+            <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/sazka.png' %}" alt="Sazka" width="158" height="48">
+            <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/sazka_dark.png' %}" alt="Sazka" width="158" height="48">
+            <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/uci-logo.svg' %}" alt="UCI" width="158" height="48">
+            <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/uci-logo_dark.png' %}" alt="UCI" width="158" height="48">
+            <img class="max-h-12 w-full object-contain" src="{% static 'images/partners/koop.svg' %}" alt="Kooperativa" width="158" height="48">
+        </div>
+
+        <div class="mx-auto mt-10 hidden w-full items-center justify-between gap-8 lg:flex xl:gap-12">
+            <img class="h-12 w-[18%] object-contain" src="{% static 'images/partners/skoda.png' %}" alt="Škoda" width="158" height="48">
+            <img class="h-12 w-[18%] object-contain dark:hidden" src="{% static 'images/partners/csc.png' %}" alt="ČSC" width="158" height="48">
+            <img class="hidden h-12 w-[18%] object-contain dark:block" src="{% static 'images/partners/CSC_Logo_Horizontal_CZ_WHITE.png' %}" alt="ČSC" width="158" height="48">
+            <img class="h-12 w-[18%] object-contain dark:hidden" src="{% static 'images/partners/sazka.png' %}" alt="Sazka" width="158" height="48">
+            <img class="hidden h-12 w-[18%] object-contain dark:block" src="{% static 'images/partners/sazka_dark.png' %}" alt="Sazka" width="158" height="48">
+            <img class="h-12 w-[18%] object-contain dark:hidden" src="{% static 'images/partners/uci-logo.svg' %}" alt="UCI" width="158" height="48">
+            <img class="hidden h-12 w-[18%] object-contain dark:block" src="{% static 'images/partners/uci-logo_dark.png' %}" alt="UCI" width="158" height="48">
+            <img class="h-12 w-[18%] object-contain" src="{% static 'images/partners/koop.svg' %}" alt="Kooperativa" width="158" height="48">
         </div>
     </div>
 </div>
@@ -200,7 +382,7 @@
 <!-- ==== FOOTER ====-->
 
 <div class="">
-    <footer class="bg-gray-100 dark:bg-gray-800  dark:text-gray-200">
+    <footer class="homepage-dark-section bg-gray-100 dark:bg-slate-900 dark:text-gray-200">
         <div
                 class="max-w-7xl mx-auto py-6 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
         >
@@ -250,6 +432,8 @@
             </div>
         </div>
     </footer>
+</div>
+
 </div>
 
 {% endblock content %}

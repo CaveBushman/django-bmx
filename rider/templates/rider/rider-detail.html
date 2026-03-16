@@ -1,199 +1,327 @@
 {% extends 'base.html' %}
 {% block title %} Detail jezdce {% endblock title %}
-{% block content %}
-{% load static %}
+{% block extra_head %}
+<style>
+  html.dark .rider-detail-surface {
+    background-color: #0f172a !important;
+  }
 
-<header class="shadow dark:dark">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <h1 class="text-3xl font-bold text-header dark:text-gray-200">Detail jezdce</h1>
+  html.dark .rider-detail-card {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px rgba(2, 6, 23, 0.3) !important;
+  }
+
+  html.dark .rider-detail-card h2,
+  html.dark .rider-detail-card h3,
+  html.dark .rider-detail-card dt,
+  html.dark .rider-detail-card dd,
+  html.dark .rider-detail-card p,
+  html.dark .rider-detail-card span,
+  html.dark .rider-detail-card div,
+  html.dark .rider-detail-card td,
+  html.dark .rider-detail-card th,
+  html.dark .rider-detail-card a {
+    color: inherit !important;
+  }
+
+  html.dark .rider-detail-muted {
+    color: #cbd5e1 !important;
+  }
+
+  html.dark .rider-detail-heading {
+    color: #ffffff !important;
+  }
+
+  html.dark .rider-detail-link {
+    color: #a5b4fc !important;
+  }
+
+  html.dark .rider-detail-table,
+  html.dark .rider-detail-tbody,
+  html.dark .rider-detail-table tr:not(.rider-result-20):not(.rider-result-24) {
+    background-color: #0f172a !important;
+  }
+
+  html.dark .rider-detail-table thead {
+    background-color: #020617 !important;
+  }
+
+  html.dark .rider-detail-table th {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .rider-detail-table td {
+    border-color: #1e293b !important;
+    color: #e2e8f0 !important;
+  }
+
+  html.dark .rider-result-20 {
+    background-color: rgba(126, 34, 206, 0.6) !important;
+    color: #ffffff !important;
+  }
+
+  html.dark .rider-result-24 {
+    background-color: rgba(30, 64, 175, 0.6) !important;
+    color: #ffffff !important;
+  }
+
+  html.dark .rider-empty-state {
+    background-color: #020617 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+  }
+
+  .rider-premium-panel {
+    min-width: 320px;
+    max-width: 360px;
+  }
+
+  .rider-premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .rider-premium-badge.is-active {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+  }
+
+  .rider-premium-badge.is-inactive {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
+  }
+
+  html.dark .rider-premium-badge.is-active {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+  }
+
+  html.dark .rider-premium-badge.is-inactive {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+  }
+</style>
+{% endblock %}
+{% block content %}
+
+<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+      Profil jezdce
+    </p>
+    <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+        {{ rider.first_name|upper }} {{ rider.last_name|upper }}
+      </h1>
+      <div class="flex flex-wrap gap-3 sm:justify-end">
+        {% if rider.is_20 %}
+        <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-lg font-black
+          {% if rider.plate_color_20 == 'blue' %}bg-blue-800 text-white
+          {% elif rider.plate_color_20 == 'gray' %}bg-slate-500 text-white
+          {% elif rider.plate_color_20 == 'yellow' %}bg-yellow-300 text-black
+          {% elif rider.plate_color_20 == 'white' %}border-2 border-slate-400 bg-white text-black
+          {% elif rider.plate_color_20 == 'black' %}bg-black text-white
+          {% else %}bg-yellow-300 text-black{% endif %}">
+          {{ rider.plate }}
+        </div>
+        {% endif %}
+        {% if rider.is_24 %}
+        <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-black text-white">
+          {{ rider.plate }}
+        </div>
+        {% endif %}
+      </div>
     </div>
+    <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+      Přehled registračních údajů, kategorií a výsledků za posledních 365 dní.
+    </p>
+  </div>
 </header>
 
-<div class="max-w-screen-2xl mx-auto">
-    
-<!-- <img class = "rider-detail-background-image" src="{% static 'images/homepage/bg2.jpg' %}" alt=""> -->
-<div class="mt-6">
-    <div class="grid grid-cols-3 bd-highlight justify-center">
-        <div class="p-2 flex justify-end items-end bd-highlight rounded-full font-bold text-xl">
-            {% if rider.is_20 %} 
-                {% if rider.plate_color_20 == 'blue' %}
-                    <div class="bg-blue-700 text-white p-8 rounded-full">
-                    {{rider.plate}}
-                </div>
-                {% elif rider.plate_color_20 == 'gray'%}
-                <div class="bg-gray-500 text-black p-8 rounded-full">
-                    {{rider.plate}}
-                </div>
-                {% elif rider.plate_color_20 == 'yellow'%}
-                <div class="bg-yellow-300 text-black p-8 rounded-full">
-                    {{rider.plate}}
-                </div>
-                {% elif rider.plate_color_20 == 'black'%}
-                <div class="bg-black text-white p-8 rounded-full">
-                    {{rider.plate}}
-                </div>
-                {% elif rider.plate_color_20 == 'white'%}
-                <div class="bg-white text-black border-2 p-8 rounded-full">
-                    {{rider.plate}}
-                </div>
-                {% endif %}
-            {% else %}
-            <div class=""></div>
-            {% endif %} 
-        </div>
-        <div class="p-2 bd-highlight">
-            <div class="flex">
-                <img src="{{rider.photo.url}}" class="w-44 h-44 sm:w-60 sm:h-60 md:w-80 md:h-80 rounded-full mx-auto"/>
-            </div>
-
-        </div>
-        <div class="space-x-4 p-2 bd-highlight flex justify-start items-end">
-            {% if rider.is_24%}
-                <div class="bg-red-600 rounded-full text-white p-8 font-bold text-xl">{{rider.plate}}</div>
-            {% else %}
-                <div class=""></div>
+<section class="rider-detail-surface min-h-screen bg-slate-50 pb-10 dark:bg-slate-900">
+  <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-stretch">
+      <div class="rider-detail-card flex h-full min-h-[20rem] flex-col justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+        <div class="flex flex-col items-center text-center">
+          <div class="h-44 w-44 overflow-hidden rounded-full border-4 border-white shadow-lg dark:border-slate-800">
+            <img class="h-full w-full object-cover" src="{{ rider.photo.url }}" alt="{{ rider.first_name }} {{ rider.last_name }}">
+          </div>
+          <div class="mt-4 flex flex-wrap justify-center gap-2">
+            {% if rider.is_in_representation %}
+            <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+              Člen národní reprezentace
+            </span>
             {% endif %}
+            {% if rider.is_in_talent_team %}
+            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
+              Člen národního talent teamu
+            </span>
+            {% endif %}
+          </div>
         </div>
-    </div>
-    <h1 class="text-4xl text-center dark:text-purple-300 mt-4" style="margin-bottom: 3rem">
-        {{ rider.first_name|upper}} {{ rider.last_name|upper}}
-    </h1>
-
-    {% if rider.is_in_representation %}
-        <div class="flex flex-row bd-highlight mb-3 ">
-            <div class="p-0 bd-highlight dark:text-gray-200" style="margin-bottom: 1rem;"><h5><span
-                    class="repre">Člen národní reprezentace</span></h5></div>
-        </div>
-    {% endif %}
-    {% if rider.is_in_talent_team %}
-        <div class="flex flex-row bd-highlight mb-3 ">
-            <div class="p-0 bd-highlight" style="margin-bottom: 1rem;"><h5><span
-                    class="repre">Člen národního talent teamu</span></h5></div>
-        </div>
-    {% endif %}
-
-    <div class="container dark:text-gray-200">
-        <div class="container">
-            <div class="grid grid-cols-2 text-center">
-                <div class="">
-                    <h5>UCI ID: <b>{{rider.uci_id}}</b></h5>
-                </div>
-                <div class="">
-                    <h5>Klub: <b>{{ rider.club }}</b></h5>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="grid grid-cols-2 text-center mt-2">
-                <div class="">
-                    <h5>Transpondér pro 20": <b>
-                        {% if rider.transponder_20 == "nan" %}
-                            nemá přidělen
-                        {% else %}
-                            {{rider.transponder_20}}
-                        {% endif%}
-                    </b></h5>
-                </div>
-                <div class="">
-                    <h5>Transpondér pro 24": <b>
-                        {% if rider.transponder_24 == "nan" %}
-                            nemá přidělen
-                        {% else %}
-                            {{rider.transponder_24}}
-                        {% endif%}
-                    </b></h5>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="grid grid-cols-2 text-center mt-4">
-                <div class="">
-                    <h5>Pořadí v rankingu v <b>{{rider.class_20}}</b> (20"): <b>
-                        {% if rider.ranking_20 == None or rider.ranking_20 == "0" %}
-                        nejezdí/neboduje
-                        {% else %}
-                        {{rider.ranking_20}}. místo
-                        {% endif %}
-                    </b></h5>
-                </div>
-                <div class="">
-                    <h5>Pořadí v rankingu v <b>{{rider.class_24}}</b> (24"): <b>
-                        {% if rider.ranking_24 == None or rider.ranking_24 == "0" %}
-                        nejezdí/neboduje
-                        {% else %}
-                        {{rider.ranking_24}}. místo
-                        {% endif %}
-                    </b></h5>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<h3 class="text-3xl text-center rider-detail-header dark:text-purple-300 mt-4" style="margin-bottom: 2rem">
-    Umístění za poslední rok
-</h3>
-
-
-{% if results %}
-
-<!-- This example requires Tailwind CSS v2.0+ -->
-<div class="px-4 sm:px-6 lg:px-8">
-    <div class="sm:flex sm:items-center">
-      <div class="sm:flex-auto">
-        <p class="mt-2 ml-8 text-sm text-gray-700 dark:text-gray-300">Fialová barva v tabulce označuje bodované závody na 20-ti palových kolech, modrá na cruiserech, bílá označuje závody, které se do rankingu nezapočítají. Tabulku pro přidělování bodů najdete <a href = "{% url 'event:ranking-table' %}">ZDE</a></p>
       </div>
 
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+          <h2 class="rider-detail-heading text-xl font-bold text-slate-900 dark:text-white">Identifikace</h2>
+          <dl class="mt-5 space-y-4 text-sm">
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">UCI ID</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.uci_id }}</dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Klub</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.club|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kategorie 20"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">
+                {% if rider.is_20 %}{{ rider.class_20 }}{% else %}Nejezdí{% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kategorie 24"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">
+                {% if rider.is_24 %}{{ rider.class_24 }}{% else %}Nejezdí{% endif %}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+          <h2 class="rider-detail-heading text-xl font-bold text-slate-900 dark:text-white">Transpondéry a ranking</h2>
+          <dl class="mt-5 space-y-4 text-sm">
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Transpondér 20"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.transponder_20|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Transpondér 24"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.transponder_24|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Ranking 20"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.ranking_20|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="rider-detail-muted font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Ranking 24"</dt>
+              <dd class="rider-detail-heading mt-1 text-base text-slate-900 dark:text-slate-100">{{ rider.ranking_24|default:"-" }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
     </div>
-    <div class="mx-4 mt-8 mb-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-      <table class="min-w-full divide-y divide-gray-300">
-        <thead class="bg-gray-50">
-           <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Datum</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Závod</th>
-            <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Pořadatel</th>
-            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Typ závodu</th>
-            <th scope="col" class="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategorie</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Umístění</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Počet bodů</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white dark:text-gray-600">
-            {% for result in results %}
-            {% if result.marked_20 %}
-            <tr class="bg-purple-100 text-gray-600 dark:bg-purple-600 dark:text-white" >
-            {% elif result.marked_24 %}
-            <tr class="bg-blue-100 text-gray-600 dark:text-white dark:bg-blue-800" >
+
+    <div class="mt-6">
+      <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 class="rider-detail-heading text-2xl font-bold text-slate-900 dark:text-white">Umístění za poslední rok</h2>
+            <p class="rider-detail-muted mt-2 max-w-4xl text-sm text-slate-600 dark:text-slate-300">
+              Fialově jsou zvýrazněny bodované výsledky pro 20", modře bodované výsledky pro cruiser. Ostatní řádky se do rankingu nepočítají.
+              Tabulku pro výpočet bodů najdete <a href="{% url 'event:ranking-table' %}" class="rider-detail-link font-semibold text-indigo-700 hover:text-indigo-600 dark:text-indigo-300 dark:hover:text-indigo-200">zde</a>.
+            </p>
+          </div>
+        </div>
+
+        {% if results %}
+        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div class="overflow-x-auto">
+            <table class="rider-detail-table min-w-full bg-white dark:bg-slate-900">
+              <thead class="bg-slate-100 dark:bg-slate-950">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Závod</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Pořadatel</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Typ závodu</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kategorie</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Umístění</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Počet bodů</th>
+                </tr>
+              </thead>
+              <tbody class="rider-detail-tbody bg-white dark:bg-slate-900">
+                {% for result in results %}
+                <tr class="border-t border-slate-200 text-sm text-slate-700 dark:border-slate-800 dark:text-slate-200 {% if result.marked_20 %}rider-result-20 bg-purple-100 text-slate-900 dark:bg-purple-700/60 dark:text-white{% elif result.marked_24 %}rider-result-24 bg-blue-100 text-slate-900 dark:bg-blue-800/60 dark:text-white{% else %}bg-white dark:bg-slate-900{% endif %}">
+                  <td class="whitespace-nowrap px-4 py-3 align-top">{{ result.date }}</td>
+                  <td class="px-4 py-3 align-top">
+                    <div class="font-medium">{{ result.event.name }}</div>
+                  </td>
+                  <td class="px-4 py-3 align-top">{{ result.organizer|upper }}</td>
+                  <td class="px-4 py-3 align-top">{{ result.event_type }}</td>
+                  <td class="px-4 py-3 align-top">{{ result.category }}</td>
+                  <td class="px-4 py-3 align-top">{{ result.place }}</td>
+                  <td class="px-4 py-3 align-top font-semibold">{{ result.points }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% else %}
+        <div class="rider-empty-state mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+          Za posledních 365 dní nejsou k dispozici žádné výsledky.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 class="rider-detail-heading text-2xl font-bold text-slate-900 dark:text-white">Prémiové časy z tratí</h2>
+            <p class="rider-detail-muted mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+              Rozšířená statistika obsahuje cílové časy, start hill time a mezičasy z jednotlivých jízd.
+              V databázi je aktuálně {{ premium_runs_count }} jízd s dostupnými daty.
+            </p>
+          </div>
+          <div class="rider-premium-panel flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950/60">
+            {% if can_manage_premium_stats and premium_access %}
+            <div class="flex items-start justify-between gap-3">
+              <span class="rider-premium-badge is-active">Aktivní předplatné</span>
+              {% if active_subscription %}
+              <span class="text-right text-xs font-medium text-slate-500 dark:text-slate-400">
+                do {{ active_subscription.expires_at|date:"d.m.Y H:i" }}
+              </span>
+              {% endif %}
+            </div>
+            <a href="{% url 'rider:premium-stats' rider.uci_id %}" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600">
+              Otevřít prémiové statistiky
+            </a>
+            <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
+              Přístup ke kompletním časům z tratí je právě aktivní.
+            </p>
+            {% elif can_manage_premium_stats %}
+            <span class="rider-premium-badge is-inactive">Bez aktivního předplatného</span>
+            <form method="post" action="{% url 'rider:premium-stats-subscribe' rider.uci_id %}">
+              {% csrf_token %}
+              <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-300/40 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400 sm:w-auto">
+                Aktivovat za {{ premium_price|default:"?" }} kreditů / 30 dní
+              </button>
+            </form>
+            <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
+              Předplatné se po 30 dnech automaticky obnoví, pokud bude dostatek kreditu.
+            </p>
             {% else %}
-            <tr>
+            <span class="rider-premium-badge is-inactive">Pouze administrátor</span>
+            <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
+              Přístup k prémiovým statistikám a předplatným je zatím dostupný pouze pro administrátora.
+            </p>
             {% endif %}
-            <td class="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-6">
-                {{ result.date }}
-              <dl class="font-normal lg:hidden">
-                <dt class="sr-only">Title</dt>
-                <dd class="mt-1 truncate ">{{ result.event.name }}</dd>
-                <dt class="sr-only sm:hidden">Organizátor</dt>
-                <dd class="mt-1 truncate  sm:hidden">{{ result.organizer|upper }}</dd>
-              </dl>
-            </td>
-            <td class="hidden px-3 py-4 text-sm lg:table-cell">{{ result.event.name }}</td>
-            <td class="hidden px-3 py-4 text-sm sm:table-cell">{{ result.organizer|upper }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.event_type }}</td>
-            <td class="hidden md:table-cell px-3 py-4 text-sm">{{ result.category }}</td>
-            <td class="px-3 py-4 text-sm">{{ result.place }}. místo</td>
-            <td class="px-3 py-4 text-sm">{{ result.points }}</td>
-          </tr>
-          {% endfor %}
-          <!-- More people... -->
-        </tbody>
-      </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
- 
-{% else %}
-    <div class="text-center text-xl mb-6 dark:text-gray-200">Jezdec/jezdkyně nejel/a za poslední rok žádný závod.</div>
-{% endif %}
-</div>
-</div>
+</section>
 
 {% endblock content %}

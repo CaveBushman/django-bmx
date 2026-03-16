@@ -88,11 +88,14 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, add_label):
         return self.is_superuser
 
+import logging
+logger = logging.getLogger(__name__)
+
 @receiver(pre_save, sender=Account)
 def update_credit_before_save(sender, instance, **kwargs):
     if instance.pk:  # Only if the user already exists (not a new record)
         try:
             instance.credit = calculate_user_balance(instance.pk)
         except Exception as e:
-            # Log error or handle the exception as needed
-            instance.credit = 0  # Default to 0 in case of error
+            logger.error("Nepodařilo se přepočítat kredit pro uživatele pk=%s: %s", instance.pk, e)
+            # Zachováme původní hodnotu kreditu z DB — nenulujeme

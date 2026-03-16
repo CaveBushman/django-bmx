@@ -1,0 +1,133 @@
+"""
+event/views/views_public.py — veřejné pohledy (bez přihlášení)
+
+Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg stránka.
+"""
+
+import logging
+from datetime import date
+from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
+from event.models import Event, Result, SeasonSettings, Entry, EntryForeign
+from event.func import is_registration_open
+
+logger = logging.getLogger(__name__)
+
+
+def events_list_view(request):
+    """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
+    upcomming_events = Event.objects.filter(
+        date__year=date.today().year, date__gte=date.today()
+    ).order_by("date")
+    past_events = Event.objects.filter(
+        date__year=date.today().year, date__lt=date.today()
+    ).order_by("date")
+
+    # Aktualizuj stav registrace u nadcházejících závodů
+    for event in upcomming_events:
+        if event.canceled:
+            event.reg_open = False
+        else:
+            event.reg_open = is_registration_open(event)
+
+        if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
+            event.reg_open = False
+        event.save()
+
+    year = date.today().year
+    data = {
+        "events": upcomming_events,
+        "past_events": past_events,
+        "year": year,
+        "next_year": int(year) + 1,
+        "last_year": int(year) - 1,
+        "show_title": True,
+        "hero_description": f"Přehled plánovaných závodů, otevřených registrací a archivních termínů pro sezonu {year}.",
+        "upcoming_label": "Následující závody",
+        "archive_label": "Ukončené závody",
+        "season_label": "Nejbližší závody",
+        "archive_heading": "Ukončené závody",
+        "season_context": "Archiv",
+    }
+    return render(request, "event/events-list_new.html", data)
+
+
+def events_list_by_year_view(request, pk):
+    """Seznam závodů zvoleného roku (archiv)."""
+    if pk == date.today().year:
+        return redirect('event:events')
+
+    all_events = Event.objects.filter(date__year=pk).order_by("date")
+    for event in all_events:
+        if event.canceled or event.classes_and_fees_like.event_name == "Dosud nenastaveno":
+            event.reg_open = False
+        else:
+            event.reg_open = is_registration_open(event)
+        event.save()
+
+    today = date.today()
+    upcoming_events = all_events.filter(date__gte=today)
+    past_events = all_events.filter(date__lt=today)
+
+    if pk < today.year:
+        hero_description = f"Přehled archivních závodů a uzavřených termínů pro sezonu {pk}."
+        upcoming_label = "Budoucí závody"
+        archive_label = "Odjeté závody"
+        archive_heading = f"Archiv {pk}"
+        season_context = "Archiv"
+    else:
+        hero_description = f"Přehled plánovaných závodů a budoucích termínů pro sezonu {pk}."
+        upcoming_label = "Plánované závody"
+        archive_label = "Odjeté závody"
+        archive_heading = f"Sezona {pk}"
+        season_context = "Sezona"
+
+    data = {
+        "events": upcoming_events,
+        "past_events": past_events,
+        "year": pk,
+        "next_year": int(pk) + 1,
+        "last_year": int(pk) - 1,
+        "show_title": False,
+        "hero_description": hero_description,
+        "upcoming_label": upcoming_label,
+        "archive_label": archive_label,
+        "season_label": archive_heading,
+        "archive_heading": archive_heading,
+        "season_context": season_context,
+    }
+    return render(request, "event/events-list_new.html", data)
+
+
+def event_detail_views(request, pk):
+    """Detail závodu — info, datum, místo, stav registrace."""
+    event = get_object_or_404(Event, pk=pk)
+    reg_open = is_registration_open(event)
+    riders_sum = Entry.objects.filter(event=pk, payment_complete=True, checkout=False).count()
+    riders_sum += EntryForeign.objects.filter(event=pk, payment_complete=True, checkout=False).count()
+    data = {
+        "event": event,
+        "alert": False,
+        "select_category": "",
+        "riders_sum": riders_sum,
+        "reg_open": reg_open,
+    }
+    return render(request, "event/event-detail.html", data)
+
+
+def results_view(request, pk):
+    """Výsledky závodu — tabulka s pořadím jezdců."""
+    event = get_object_or_404(Event, pk=pk)
+    results = Result.objects.filter(event=pk).order_by("category", "place")
+    data = {"results": results, "event": event}
+    return render(request, "event/results.html", data)
+
+
+def ranking_table_view(request):
+    """Tabulka rankingových bodů — zatím prázdná stránka."""
+    return render(request, "event/ranking-table.html", {})
+
+
+def not_reg_view(request):
+    """Stránka pro nepřihlášené uživatele (redirect z @login_required)."""
+    return render(request, "event/not-reg.html", {})

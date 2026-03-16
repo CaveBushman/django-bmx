@@ -1,36 +1,400 @@
 {% extends 'base.html' %}
-{% block title %} Přehled vybraného startovného {% endblock title %}
-{% block content %}
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white !mt-0 !p-0">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">
-      {{ event | upper }} - PŘEHLED VYBRANÉHO STARTOVNÉHO
-    </h1>
-  </div>
-</header>
+{% load static %}
+{% block title %}Přehled vybraného startovného{% endblock title %}
 
-<div class="bg-white dark:bg-gray-800 dark:text-gray-200">
-  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:pb-12">
-    <div class="overflow-x-auto rounded-lg shadow-xl">
-      <table
-        class="min-w-full bg-white divide-y divide-gray-300 table-auto rounded-lg dark:bg-gray-700 dark:divide-gray-600">
-        <!-- Tady upravím hlavičku tabulky pro lepší kontrast -->
-        <thead class="bg-indigo-800 text-white dark:bg-indigo-900 dark:text-white">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold uppercase">Klub</th>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold uppercase">Zaplacené startovné</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
-          {% for club in clubs %}
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-600">
-            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{{ club.team_name }}</td>
-            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ club.fee }} CZK</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .invoice-flash {
+    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.96);
+    color: #334155;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .fees-table tbody tr {
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .invoice-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    width: 100%;
+  }
+
+  .invoice-action-primary,
+  .invoice-action-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  @media (max-width: 900px) {
+    .invoice-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .invoice-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .invoice-action-primary:disabled,
+  .invoice-action-secondary.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+  }
+
+  .invoice-action-primary {
+    background: #0f172a;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+  }
+
+  .invoice-action-primary:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+  }
+
+  .invoice-action-secondary {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .invoice-action-secondary:hover {
+    background: #f8fafc;
+  }
+
+  .invoice-link-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .invoice-link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.58rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: #1e293b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+
+  .invoice-link-chip:hover {
+    transform: translateY(-1px);
+    border-color: #818cf8;
+    box-shadow: 0 14px 28px rgba(99, 102, 241, 0.16);
+  }
+
+  .invoice-link-chip svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex: 0 0 auto;
+  }
+
+  .fees-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .fees-hero-stat {
+    width: 11rem;
+    min-width: 11rem;
+    height: 11rem;
+    margin-left: auto;
+    margin-right: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  @media (min-width: 1024px) {
+    .fees-hero-inner {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .fees-hero-copy {
+      max-width: 40rem;
+    }
+  }
+
+  .fees-table tbody tr:hover {
+    background: rgb(248 250 252);
+  }
+
+  html.dark .fees-table tbody tr {
+    background: rgba(2, 6, 23, 0.82);
+  }
+
+  html.dark .fees-table tbody tr:hover {
+    background: rgba(15, 23, 42, 0.92);
+  }
+
+  html.dark .invoice-flash,
+  .dark .invoice-flash {
+    border-color: #334155;
+    background: rgba(15, 23, 42, 0.94);
+    color: #e2e8f0;
+    box-shadow: 0 12px 32px rgba(2, 6, 23, 0.28);
+  }
+
+  html.dark .invoice-action-primary {
+    background: #818cf8;
+    color: #0f172a;
+    border-color: #818cf8;
+  }
+
+  html.dark .invoice-action-primary:hover {
+    background: #a5b4fc;
+    border-color: #a5b4fc;
+  }
+
+  html.dark .invoice-action-secondary {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  html.dark .invoice-action-secondary:hover {
+    background: #1e293b;
+  }
+
+  html.dark .invoice-link-chip {
+    border-color: #334155;
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    color: #e2e8f0;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+  }
+
+  html.dark .invoice-link-chip:hover {
+    border-color: #818cf8;
+    box-shadow: 0 14px 30px rgba(99, 102, 241, 0.22);
+  }
+
+</style>
 {% endblock %}
+
+{% block content %}
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+    {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+      <div class="invoice-flash rounded-2xl px-5 py-4 text-sm font-medium">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
+      <div class="fees-hero-inner mx-auto max-w-5xl">
+        <div class="fees-hero-copy max-w-3xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+            Event fees
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            {{ event.name|upper }}
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+            Přehled vybraného startovného rozdělený podle klubů pro závod <span class="font-semibold">{{ event.name }}</span>.
+          </p>
+        </div>
+
+        <div class="dashboard-card fees-hero-stat rounded-[1.75rem] border px-6 py-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            Klubů celkem
+          </p>
+          <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">
+            {{ clubs|length }}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <div class="max-w-3xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Fakturace</p>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Rozesílání faktur klubům</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Odtud se vygenerují PDF faktury za uhrazené registrace, uloží se do <code>media/invoices</code>,
+          odešlou se na fakturační e-mail klubu a zároveň vznikne XML export pro ABRA Flexi.
+        </p>
+
+        <form method="post" class="invoice-actions">
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="btn-generate-invoices"
+            value="generate"
+            class="invoice-action-primary"
+          >
+            Vygenerovat
+          </button>
+          <button
+            type="submit"
+            name="btn-send-invoices"
+            value="send"
+            class="invoice-action-secondary"
+            {% if not invoices %}disabled{% endif %}
+          >
+            Odeslat
+          </button>
+          <a
+            {% if event.flexibee_export %}href="../../{{ event.flexibee_export }}"{% endif %}
+            class="invoice-action-secondary{% if not event.flexibee_export %} is-disabled{% endif %}"
+            {% if event.flexibee_export %}download{% endif %}
+          >
+            Export ABRA Flexi
+          </a>
+          <a
+            href="{% url 'event:cash-receipts-on-event' event.id %}"
+            class="invoice-action-secondary"
+          >
+            Pokladní doklady
+          </a>
+        </form>
+      </div>
+
+      <div class="mt-8">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Vygenerované faktury</h3>
+        {% if invoices %}
+        <div class="mt-4 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+          <div class="overflow-x-auto">
+            <table class="fees-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead class="bg-slate-100 dark:bg-slate-900">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Klub</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Číslo</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Částka</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">E-mail</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Odesláno</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Soubory a úpravy</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+                {% for invoice in invoices %}
+                <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/70">
+                  <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ invoice.club.team_name }}</td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ invoice.number }}</td>
+                  <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-300">{{ invoice.total_price }} CZK</td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ invoice.email_sent_to|default:invoice.club.billing_email|default:"-" }}</td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{% if invoice.email_sent_at %}{{ invoice.email_sent_at|date:"d.m.Y H:i" }}{% else %}-{% endif %}</td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                    <div class="invoice-link-group">
+                      {% if invoice.pdf %}
+                      <a href="../../{{ invoice.pdf }}" class="invoice-link-chip" download>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M12 3v11" />
+                          <path d="M8 10l4 4 4-4" />
+                          <path d="M5 21h14" />
+                        </svg>
+                        PDF
+                      </a>
+                      {% endif %}
+                      {% if invoice.xml_export %}
+                      <a href="../../{{ invoice.xml_export }}" class="invoice-link-chip" download>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 9l-3 3 3 3" />
+                          <path d="M16 9l3 3-3 3" />
+                          <path d="M14 5l-4 14" />
+                        </svg>
+                        XML
+                      </a>
+                      {% endif %}
+                      <a href="{% url 'event:invoice-edit' event.id invoice.club.id %}" class="invoice-link-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.1 2.1 0 113 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        </svg>
+                        Upravit
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% else %}
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nebyly vygenerovány žádné faktury.</p>
+        {% endif %}
+      </div>
+
+    </section>
+
+    <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přehled</p>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Vybrané startovné po klubech</h2>
+        </div>
+      </div>
+
+      {% if clubs %}
+      <div class="overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+        <div class="overflow-x-auto">
+          <table class="fees-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead class="bg-slate-100 dark:bg-slate-900">
+              <tr>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">
+                  Klub
+                </th>
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">
+                  Zaplacené startovné
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+              {% for club in clubs %}
+              <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/70">
+                <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {{ club.team_name }}
+                </td>
+                <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  {{ club.fee }} CZK
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <div class="rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
+        <p class="text-lg font-semibold text-slate-900 dark:text-white">Žádná zaplacená registrace</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nejsou evidované uhrazené položky.</p>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock content %}

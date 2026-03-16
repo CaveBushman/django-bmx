@@ -4,7 +4,7 @@ from .models import Club
 
 class ClubAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'team_name',)
+    list_display = ('id', 'team_name', 'contact_email', 'billing_email')
     list_display_links = ('id', 'team_name')
 
 admin.site.register(Club, ClubAdmin)

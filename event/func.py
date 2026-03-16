@@ -1,5 +1,20 @@
+"""
+event/func.py — pomocné funkce pro modul event
+
+Obsah:
+  1. Pomocné funkce pro formátování dat (datum, pohlaví, klub)
+  2. Záhlaví Excel exportů (BEM, REM, REM online, pojištění)
+  3. Registrační logika (je registrace otevřena, rozlišení třídy a poplatku)
+  4. Stripe platební integrace (generování řádků košíku)
+  5. Správa košíku a přihlášek (Cart, save_entries, check_entry_duplicity)
+  6. Validace a admin operace (neplatné licence, kvalifikace, výsledky z REM)
+"""
+
+import logging
 from datetime import date, datetime
 from club.models import Club
+
+logger = logging.getLogger(__name__)
 from event.models import EntryClasses, Event, Entry, SeasonSettings
 from accounts.models import Account
 from ranking.ranking import SetRanking
@@ -13,36 +28,46 @@ from django.db.models import Q
 import os
 
 
+# ===========================================================================
+# 1. FORMÁTOVACÍ POMOCNÉ FUNKCE
+# Používají se při generování exportů (BEM, REM, EC) a přepisu dat do formátů
+# požadovaných externími systémy.
+# ===========================================================================
+
 def expire_licence() -> str:
+    """Vrátí datum expirace licence ve formátu YYYY/MM/DD (používá BEM export)."""
     year = date.today().year
     return f"{year}/12/31"
 
 
 def rem_expire_licence() -> str:
+    """Vrátí datum expirace licence ve formátu DD-MM-YYYY (používá REM export)."""
     year = date.today().year
     return f"31-12-{year}"
 
 
 def team_name_resolve(club) -> str:
+    """Vrátí název týmu z objektu Club (nebo z názvu klubu jako řetězec)."""
     club = Club.objects.get(team_name=club)
     return club.team_name
 
 
 def date_of_birth_resolve(rider) -> str:
+    """Přeformátuje datum narození z YYYY-MM-DD na DD-MM-YYYY (pro BEM export)."""
     date: str = str(rider.date_of_birth).replace('.', '-')
     date = date[8:] + "-" + date[5:7] + "-" + date[:4]
     return date
 
 
 def date_of_birth_resolve_rem_online(date):
-    """Set date of birth to REM format"""
+    """Přeformátuje datum narození z YYYY-MM-DD na DD.MM.YYYY (pro REM online export)."""
     date: str = str(date)
     date = date[8:] + "." + date[5:7] + "." + date[:4]
     return date
 
 
 def gender_resolve(rider):
-    """ Set gender to BEM format """
+    """Vrátí pohlaví ve formátu F/M (pro BEM export)."""
     if rider.gender == "Žena":
         return "F"
     else:
@@ -50,15 +75,34 @@ def gender_resolve(rider):
 
 
 def gender_resolve_small_letter(rider):
-    """ Set gender to EC form and REM format """
+    """Vrátí pohlaví malým písmenem f/m (pro EC formulář a REM online export)."""
     if rider == "Žena":
         return "f"
     else:
         return "m"
 
 
+def foreign_club_resolve(state):
+    """Vrátí název zahraničního klubu podle kódu státu (pro BEM export)."""
+    clubs = {
+        "SVK": "Slovakia - All Clubs",
+        "GER": "Germany - All Clubs",
+        "POL": "Poland - All Clubs",
+        "HUN": "Hungary - All Clubs",
+        "AUT": "Austria - All Clubs",
+        "FRA": "France - All Clubs",
+        "BEL": "Belgium - All Clubs",
+    }
+    return clubs.get(state, "")
+
+
+# ===========================================================================
+# 2. ZÁHLAVÍ EXCEL EXPORTŮ
+# Každá funkce nastaví záhlaví prvního řádku v konkrétním XLS exportu.
+# ===========================================================================
+
 def excel_first_line(ws):
-    """ set first line in BEM and Riders list excel file """
+    """Záhlaví pro BEM (Bike Event Manager) export jezdců."""
     ws.cell(1, 1, "Licence_num")
     ws.cell(1, 2, "UCI_ID")
     ws.cell(1, 3, "UCIcode")
@@ -111,12 +155,11 @@ def excel_first_line(ws):
     ws.cell(1, 50, "POA Suspension")
     ws.cell(1, 51, "Suspension End Date")
     ws.cell(1, 52, "AdvancedRider")
-
     return ws
 
 
 def excel_rem_first_line(ws):
-    """ set first line in REM and Riders list excel file """
+    """Záhlaví pro REM (Race Entry Manager) export jezdců."""
     ws.cell(1, 1, "CLUB_DESCRIPTION")
     ws.cell(1, 2, "TEAM_DESCRIPTION")
     ws.cell(1, 3, "RIDER_FIRST")
@@ -140,22 +183,21 @@ def excel_rem_first_line(ws):
     ws.cell(1, 21, "RIDER_IDENT")
     ws.cell(1, 22, "RIDER_ACTIVE")
     ws.cell(1, 23, "RIDER_LOCKED")
-
     return ws
 
 
 def insurance_first_line(ws):
+    """Záhlaví pro export pojistného seznamu."""
     ws.cell(1, 1, "Kategorie")
     ws.cell(1, 2, "Křestní jméno")
     ws.cell(1, 3, "Příjmení")
     ws.cell(1, 4, "Datum narození")
     ws.cell(1, 5, "Adresa")
-
     return ws
 
 
 def excel_rem_first_line_online(ws):
-    """ set first line in REM online entires excel file """
+    """Záhlaví pro REM online přihlášky (export z online přihlašovacího systému)."""
     ws.cell(1, 1, "uci_id")
     ws.cell(1, 2, "uci_code")
     ws.cell(1, 3, "first_name")
@@ -180,400 +222,322 @@ def excel_rem_first_line_online(ws):
     ws.cell(1, 22, "transponder_1")
     ws.cell(1, 23, "transponderhire_1")
     ws.cell(1, 24, "plate_1")
-
     return ws
 
 
-def is_registration_open(event):
-    """ Function for check, if registration is open"""
-    now = timezone.now()  # .strftime("%m/%d/%Y, %H:%M:%S")
+# ===========================================================================
+# 3. REGISTRAČNÍ LOGIKA — OTEVŘENÍ REGISTRACE, TŘÍDA A POPLATEK
+# Tyto funkce se používají při přihlašování jezdce na závod.
+# ===========================================================================
 
-    # if results is uploaded, registration is close
+def is_registration_open(event) -> bool:
+    """Vrátí True pokud je nyní otevřena online registrace na daný závod.
+
+    Registrace je ZAVŘENA pokud:
+    - Jsou nahrány výsledky závodu (xls_results)
+    - reg_open je ručně vypnuto adminem
+    - Aktuální čas je mimo interval reg_open_from–reg_open_to
+    """
+    now = timezone.now()
+
     if event.xls_results:
-        return False
+        return False  # Po nahrání výsledků zavřít registraci
 
-    # event registration is manually close
     if not event.reg_open:
+        return False  # Admin ručně zavřel registraci
+
+    try:
+        return event.reg_open_from <= now <= event.reg_open_to
+    except (TypeError, AttributeError):
         return False
 
-    # check, id today is between reg_open_from and reg_open_to
-    try:
-        if (now >= event.reg_open_from) and (
-            now <= event.reg_open_to):
-            return True
-        else:
-            return False
-    except:
-            return False
 
 def resolve_event_classes(event, rider, is_20, is_beginner=False):
-    """ Function for resolve class in event | is_20 = TRUE for 20" bike """
+    """Vrátí název třídy závodníka pro daný závod (z tabulky EntryClasses).
+
+    Mapování:
+    - is_beginner=True → třída začátečníků (Beginners 1–4)
+    - is_20=True + muž/ostatní → standardní třída 20"
+    - is_20=True + žena → třída žen 20" bez jakéhokoli posunu
+    - is_20=False → třída Cruiser (24")
+    """
     event_classes = EntryClasses.objects.get(event__id=event.id)
 
     if is_beginner:
-        if rider.class_beginner == "Beginners 1":
-            return event_classes.beginners_1
-        elif rider.class_beginner == "Beginners 2":
-            return event_classes.beginners_2
-        elif rider.class_beginner == "Beginners 3":
-            return event_classes.beginners_3
-        else:
-            return event_classes.beginners_4
+        mapping = {
+            "Beginners 1": event_classes.beginners_1,
+            "Beginners 2": event_classes.beginners_2,
+            "Beginners 3": event_classes.beginners_3,
+        }
+        return mapping.get(rider.class_beginner, event_classes.beginners_4)
 
     if is_20 and (rider.gender == "Muž" or rider.gender == "Ostatní"):
-        if rider.class_20 == "Boys 6":
-            return event_classes.boys_6
-        elif rider.class_20 == "Boys 7":
-            return event_classes.boys_7
-        elif rider.class_20 == "Boys 8":
-            return event_classes.boys_8
-        elif rider.class_20 == "Boys 9":
-            return event_classes.boys_9
-        elif rider.class_20 == "Boys 10":
-            return event_classes.boys_10
-        elif rider.class_20 == "Boys 11":
-            return event_classes.boys_11
-        elif rider.class_20 == "Boys 12":
-            return event_classes.boys_12
-        elif rider.class_20 == "Boys 13":
-            return event_classes.boys_13
-        elif rider.class_20 == "Boys 14":
-            return event_classes.boys_14
-        elif rider.class_20 == "Boys 15":
-            return event_classes.boys_15
-        elif rider.class_20 == "Boys 16":
-            return event_classes.boys_16
-        elif rider.class_20 == "Men 17-24":
-            return event_classes.men_17_24
-        elif rider.class_20 == "Men 25-29":
-            return event_classes.men_25_29
-        elif rider.class_20 == "Men 30-34":
-            return event_classes.men_30_34
-        elif rider.class_20 == "Men 35 and over":
-            return event_classes.men_35_over
-        elif rider.class_20 == "Men Junior":
-            return event_classes.men_junior
-        elif rider.class_20 == "Men Under 23":
-            return event_classes.men_u23
-        else:
-            return event_classes.men_elite
+        mapping = {
+            "Boys 6": event_classes.boys_6,
+            "Boys 7": event_classes.boys_7,
+            "Boys 8": event_classes.boys_8,
+            "Boys 9": event_classes.boys_9,
+            "Boys 10": event_classes.boys_10,
+            "Boys 11": event_classes.boys_11,
+            "Boys 12": event_classes.boys_12,
+            "Boys 13": event_classes.boys_13,
+            "Boys 14": event_classes.boys_14,
+            "Boys 15": event_classes.boys_15,
+            "Boys 16": event_classes.boys_16,
+            "Men 17-24": event_classes.men_17_24,
+            "Men 25-29": event_classes.men_25_29,
+            "Men 30-34": event_classes.men_30_34,
+            "Men 35 and over": event_classes.men_35_over,
+            "Men Junior": event_classes.men_junior,
+            "Men Under 23": event_classes.men_u23,
+        }
+        return mapping.get(rider.class_20, event_classes.men_elite)
 
-            # Ženy s bonusem
-    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
-            return event_classes.girls_7
-        elif rider.class_20 == "Girls 8":
-            return event_classes.girls_8
-        elif rider.class_20 == "Girls 9":
-            return event_classes.girls_9
-        elif rider.class_20 == "Girls 10":
-            return event_classes.girls_10
-        elif rider.class_20 == "Girls 11":
-            return event_classes.girls_11
-        elif rider.class_20 == "Girls 12":
-            return event_classes.girls_12
-        elif rider.class_20 == "Girls 13":
-            return event_classes.girls_13
-        elif rider.class_20 == "Girls 14":
-            return event_classes.girls_14
-        elif rider.class_20 == "Girls 15":
-            return event_classes.girls_15
-        elif rider.class_20 == "Girls 16":
-            return event_classes.girls_16
-        elif rider.class_20 == "Women 17-24":
-            return event_classes.women_17_24
-        elif rider.class_20 == "Women 25 and over":
-            return event_classes.women_25_over
-        elif rider.class_20 == "Women Junior":
-            return event_classes.women_junior
-        elif rider.class_20 == "Women Under 23":
-            return event_classes.women_u23
-        else:
-            return event_classes.women_elite
+    if is_20 and rider.gender == "Žena":
+        mapping = {
+            "Girls 6": event_classes.girls_6,
+            "Girls 7": event_classes.girls_7,
+            "Girls 8": event_classes.girls_8,
+            "Girls 9": event_classes.girls_9,
+            "Girls 10": event_classes.girls_10,
+            "Girls 11": event_classes.girls_11,
+            "Girls 12": event_classes.girls_12,
+            "Girls 13": event_classes.girls_13,
+            "Girls 14": event_classes.girls_14,
+            "Girls 15": event_classes.girls_15,
+            "Girls 16": event_classes.girls_16,
+            "Women 17-24": event_classes.women_17_24,
+            "Women 25 and over": event_classes.women_25_over,
+            "Women Junior": event_classes.women_junior,
+            "Women Under 23": event_classes.women_u23,
+        }
+        return mapping.get(rider.class_20, event_classes.women_elite)
 
-    # Ženy bez bonusu
-    if is_20 and rider.gender == "Žena" and not rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
-            return event_classes.girls_8
-        elif rider.class_20 == "Girls 8":
-            return event_classes.girls_9
-        elif rider.class_20 == "Girls 9":
-            return event_classes.girls_10
-        elif rider.class_20 == "Girls 10":
-            return event_classes.girls_11
-        elif rider.class_20 == "Girls 11":
-            return event_classes.girls_12
-        elif rider.class_20 == "Girls 12":
-            return event_classes.girls_13
-        elif rider.class_20 == "Girls 13":
-            return event_classes.girls_14
-        elif rider.class_20 == "Girls 14":
-            return event_classes.girls_15
-        elif rider.class_20 == "Girls 15":
-            return event_classes.girls_16
-        elif rider.class_20 == "Girls 16":
-            return event_classes.girls_17_24
-        elif rider.class_20 == "Women 17-24":
-            return event_classes.women_17_24
-        elif rider.class_20 == "Women 25 and over":
-            return event_classes.girls_24_over
-        elif rider.class_20 == "Women Junior":
-            return event_classes.women_junior
-        elif rider.class_20 == "Women Under 23":
-            return event_classes.women_u23
-        else:
-            return event_classes.women_elite
-
+    # Cruiser (24" kolo)
     if not is_20:
-        if rider.class_24 == "Boys 12 and under":
-            return event_classes.cr_boys_12_and_under
-        elif rider.class_24 == "Boys 13 and 14":
-            return event_classes.cr_boys_13_14
-        elif rider.class_24 == "Boys 15 and 16":
-            return event_classes.cr_boys_15_16
-        elif rider.class_24 == "Men 17-24":
-            return event_classes.cr_men_17_24
-        elif rider.class_24 == "Men 25-29":
-            return event_classes.cr_men_25_29
-        elif rider.class_24 == "Men 30-34":
-            return event_classes.cr_men_30_34
-        elif rider.class_24 == "Men 35-39":
-            return event_classes.cr_men_35_39
-        elif rider.class_24 == "Men 40-44":
-            return event_classes.cr_men_40_44
-        elif rider.class_24 == "Men 45-49":
-            return event_classes.cr_men_45_49
-        elif rider.class_24 == "Men 50 and over":
-            return event_classes.cr_men_50_and_over
-        elif rider.class_24 == "Girls 12 and under":
-            return event_classes.cr_girls_12_and_under
-        elif rider.class_24 == "Girls 13-16":
-            return event_classes.cr_girls_13_16
-        elif rider.class_24 == "Women 17-29":
-            return event_classes.cr_women_17_29
-        elif rider.class_24 == "Women 30-39":
-            return event_classes.cr_women_30_39
-        else:
-            return event_classes.cr_women_40_and_over
-
-
-def foreign_club_resolve(state):
-    """ Function for setting Club based on state code """
-    if state == "SVK":
-        return "Slovakia - All Clubs"
-    elif state == "GER":
-        return "Germany - All Clubs"
-    elif state == "POL":
-        return "Poland - All Clubs"
-    elif state == "HUN":
-        return "Hungary - All Clubs"
-    elif state == "AUT":
-        return "Austria - All Clubs"
-    elif state == "FRA":
-        return "France - All Clubs"
-    elif state == "BEL":
-        return "Belgium - All Clubs"
+        mapping = {
+            "Boys 12 and under": event_classes.cr_boys_12_and_under,
+            "Boys 13 and 14": event_classes.cr_boys_13_14,
+            "Boys 15 and 16": event_classes.cr_boys_15_16,
+            "Men 17-24": event_classes.cr_men_17_24,
+            "Men 25-29": event_classes.cr_men_25_29,
+            "Men 30-34": event_classes.cr_men_30_34,
+            "Men 35-39": event_classes.cr_men_35_39,
+            "Men 40-44": event_classes.cr_men_40_44,
+            "Men 45-49": event_classes.cr_men_45_49,
+            "Men 50 and over": event_classes.cr_men_50_and_over,
+            "Girls 12 and under": event_classes.cr_girls_12_and_under,
+            "Girls 13-16": event_classes.cr_girls_13_16,
+            "Women 17-29": event_classes.cr_women_17_29,
+            "Women 30-39": event_classes.cr_women_30_39,
+        }
+        return mapping.get(rider.class_24, event_classes.cr_women_40_and_over)
 
 
 def resolve_event_fee(event, rider, is_20, is_beginner=False):
-    """ Function for resolve fees in event | is_20 = TRUE for 20" bike """
+    """Vrátí výši startovného pro závodníka na daném závodu.
 
+    Ženy jedou svoji vlastní věkovou kategorii bez posunu.
+    """
     event_classes = EntryClasses.objects.get(event=event)
 
     if is_beginner:
-        if rider.class_beginner == "Beginners 1":
-            return event_classes.beginners_1_fee
-        elif rider.class_beginner == "Beginners 2":
-            return event_classes.beginners_2_fee
-        elif rider.class_beginner == "Beginners 3":
-            return event_classes.beginners_3_fee
-        else:
-            return event_classes.beginners_4_fee
+        mapping = {
+            "Beginners 1": event_classes.beginners_1_fee,
+            "Beginners 2": event_classes.beginners_2_fee,
+            "Beginners 3": event_classes.beginners_3_fee,
+        }
+        return mapping.get(rider.class_beginner, event_classes.beginners_4_fee)
 
     if is_20 and (rider.gender == "Muž" or rider.gender == "Ostatní"):
-        if rider.class_20 == "Boys 6":
-            return event_classes.boys_6_fee
-        elif rider.class_20 == "Boys 7":
-            return event_classes.boys_7_fee
-        elif rider.class_20 == "Boys 8":
-            return event_classes.boys_8_fee
-        elif rider.class_20 == "Boys 9":
-            return event_classes.boys_9_fee
-        elif rider.class_20 == "Boys 10":
-            return event_classes.boys_10_fee
-        elif rider.class_20 == "Boys 11":
-            return event_classes.boys_11_fee
-        elif rider.class_20 == "Boys 12":
-            return event_classes.boys_12_fee
-        elif rider.class_20 == "Boys 13":
-            return event_classes.boys_13_fee
-        elif rider.class_20 == "Boys 14":
-            return event_classes.boys_14_fee
-        elif rider.class_20 == "Boys 15":
-            return event_classes.boys_15_fee
-        elif rider.class_20 == "Boys 16":
-            return event_classes.boys_16_fee
-        elif rider.class_20 == "Men 17-24":
-            return event_classes.men_17_24_fee
-        elif rider.class_20 == "Men 25-29":
-            return event_classes.men_25_29_fee
-        elif rider.class_20 == "Men 30-34":
-            return event_classes.men_30_34_fee
-        elif rider.class_20 == "Men 35 and over":
-            return event_classes.men_35_over_fee
-        elif rider.class_20 == "Men Junior":
-            return event_classes.men_junior_fee
-        elif rider.class_20 == "Men Under 23":
-            return event_classes.men_u23_fee
-        else:
-            return event_classes.men_elite_fee
+        mapping = {
+            "Boys 6": event_classes.boys_6_fee,
+            "Boys 7": event_classes.boys_7_fee,
+            "Boys 8": event_classes.boys_8_fee,
+            "Boys 9": event_classes.boys_9_fee,
+            "Boys 10": event_classes.boys_10_fee,
+            "Boys 11": event_classes.boys_11_fee,
+            "Boys 12": event_classes.boys_12_fee,
+            "Boys 13": event_classes.boys_13_fee,
+            "Boys 14": event_classes.boys_14_fee,
+            "Boys 15": event_classes.boys_15_fee,
+            "Boys 16": event_classes.boys_16_fee,
+            "Men 17-24": event_classes.men_17_24_fee,
+            "Men 25-29": event_classes.men_25_29_fee,
+            "Men 30-34": event_classes.men_30_34_fee,
+            "Men 35 and over": event_classes.men_35_over_fee,
+            "Men Junior": event_classes.men_junior_fee,
+            "Men Under 23": event_classes.men_u23_fee,
+        }
+        return mapping.get(rider.class_20, event_classes.men_elite_fee)
 
-            # Ženy s bonusem
-    if is_20 and rider.gender == "Žena" and rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
-            return event_classes.girls_7_fee
-        elif rider.class_20 == "Girls 8":
-            return event_classes.girls_8_fee
-        elif rider.class_20 == "Girls 9":
-            return event_classes.girls_9_fee
-        elif rider.class_20 == "Girls 10":
-            return event_classes.girls_10_fee
-        elif rider.class_20 == "Girls 11":
-            return event_classes.girls_11_fee
-        elif rider.class_20 == "Girls 12":
-            return event_classes.girls_12_fee
-        elif rider.class_20 == "Girls 13":
-            return event_classes.girls_13_fee
-        elif rider.class_20 == "Girls 14":
-            return event_classes.girls_14_fee
-        elif rider.class_20 == "Girls 15":
-            return event_classes.girls_15_fee
-        elif rider.class_20 == "Girls 16":
-            return event_classes.girls_16_fee
-        elif rider.class_20 == "Women 17-24":
-            return event_classes.women_17_24_fee
-        elif rider.class_20 == "Women 25 and over":
-            return event_classes.women_25_over_fee
-        elif rider.class_20 == "Women Junior":
-            return event_classes.women_junior_fee
-        elif rider.class_20 == "Women Under 23":
-            return event_classes.women_u23_fee
-        else:
-            return event_classes.women_elite_fee
+    if is_20 and rider.gender == "Žena":
+        mapping = {
+            "Girls 6": event_classes.girls_6_fee,
+            "Girls 7": event_classes.girls_7_fee,
+            "Girls 8": event_classes.girls_8_fee,
+            "Girls 9": event_classes.girls_9_fee,
+            "Girls 10": event_classes.girls_10_fee,
+            "Girls 11": event_classes.girls_11_fee,
+            "Girls 12": event_classes.girls_12_fee,
+            "Girls 13": event_classes.girls_13_fee,
+            "Girls 14": event_classes.girls_14_fee,
+            "Girls 15": event_classes.girls_15_fee,
+            "Girls 16": event_classes.girls_16_fee,
+            "Women 17-24": event_classes.women_17_24_fee,
+            "Women 25 and over": event_classes.women_25_over_fee,
+            "Women Junior": event_classes.women_junior_fee,
+            "Women Under 23": event_classes.women_u23_fee,
+        }
+        return mapping.get(rider.class_20, event_classes.women_elite_fee)
 
-    # Ženy bez bonusu
-    if is_20 and rider.gender == "Žena" and not rider.have_girl_bonus:
-        if rider.class_20 == "Girls 7":
-            return event_classes.girls_8_fee
-        elif rider.class_20 == "Girls 8":
-            return event_classes.girls_9_fee
-        elif rider.class_20 == "Girls 9":
-            return event_classes.girls_10_fee
-        elif rider.class_20 == "Girls 10":
-            return event_classes.girls_11_fee
-        elif rider.class_20 == "Girls 11":
-            return event_classes.girls_12_fee
-        elif rider.class_20 == "Girls 12":
-            return event_classes.girls_13_fee
-        elif rider.class_20 == "Girls 13":
-            return event_classes.girls_14_fee
-        elif rider.class_20 == "Girls 14":
-            return event_classes.girls_15_fee
-        elif rider.class_20 == "Girls 15":
-            return event_classes.girls_16_fee
-        elif rider.class_20 == "Girls 16":
-            return event_classes.women_17_24_fee
-        elif rider.class_20 == "Women 17-24":
-            return event_classes.women_17_24_fee
-        elif rider.class_20 == "Women 25 and over":
-            return event_classes.women_25_over_fee
-        elif rider.class_20 == "Women Junior":
-            return event_classes.women_junior_fee
-        elif rider.class_20 == "Women Under 23":
-            return event_classes.women_u23_fee
-        else:
-            return event_classes.women_elite_fee
-
-    # Cruiser
+    # Cruiser (24" kolo)
     if not is_20:
-        if rider.class_24 == "Boys 12 and under":
-            return event_classes.cr_boys_12_and_under_fee
-        elif rider.class_24 == "Boys 13 and 14":
-            return event_classes.cr_boys_13_14_fee
-        elif rider.class_24 == "Boys 15 and 16":
-            return event_classes.cr_boys_15_16_fee
-        elif rider.class_24 == "Men 17-24":
-            return event_classes.cr_men_17_24_fee
-        elif rider.class_24 == "Men 25-29":
-            return event_classes.cr_men_25_29_fee
-        elif rider.class_24 == "Men 30-34":
-            return event_classes.cr_men_30_34_fee
-        elif rider.class_24 == "Men 35-39":
-            return event_classes.cr_men_35_39_fee
-        elif rider.class_24 == "Men 40-44":
-            return event_classes.cr_men_40_44_fee
-        elif rider.class_24 == "Men 45-49":
-            return event_classes.cr_men_45_49_fee
-        elif rider.class_24 == "Men 50 and over":
-            return event_classes.cr_men_50_and_over_fee
-        elif rider.class_24 == "Girls 12 and under":
-            return event_classes.cr_girls_12_and_under_fee
-        elif rider.class_24 == "Girls 13-16":
-            return event_classes.cr_girls_13_16_fee
-        elif rider.class_24 == "Women 17-29":
-            return event_classes.cr_women_17_29_fee
-        elif rider.class_24 == "Women 30-39":
-            return event_classes.cr_women_30_39_fee
-        else:
-            return event_classes.cr_women_40_and_over_fee
+        mapping = {
+            "Boys 12 and under": event_classes.cr_boys_12_and_under_fee,
+            "Boys 13 and 14": event_classes.cr_boys_13_14_fee,
+            "Boys 15 and 16": event_classes.cr_boys_15_16_fee,
+            "Men 17-24": event_classes.cr_men_17_24_fee,
+            "Men 25-29": event_classes.cr_men_25_29_fee,
+            "Men 30-34": event_classes.cr_men_30_34_fee,
+            "Men 35-39": event_classes.cr_men_35_39_fee,
+            "Men 40-44": event_classes.cr_men_40_44_fee,
+            "Men 45-49": event_classes.cr_men_45_49_fee,
+            "Men 50 and over": event_classes.cr_men_50_and_over_fee,
+            "Girls 12 and under": event_classes.cr_girls_12_and_under_fee,
+            "Girls 13-16": event_classes.cr_girls_13_16_fee,
+            "Women 17-29": event_classes.cr_women_17_29_fee,
+            "Women 30-39": event_classes.cr_women_30_39_fee,
+        }
+        return mapping.get(rider.class_24, event_classes.cr_women_40_and_over_fee)
 
 
-class SetResults(threading.Thread):
-    """ Class for saving results """
+def clean_classes_on_event(event):
+    """Vrátí seznam unikátních tříd, které jsou skutečně použity na závodě.
 
-    def __init__(self):
-        threading.Thread.__init__(self)
+    Načítá třídy z EntryClasses propojeného se závodem a odstraňuje duplicity.
+    Používá se v šabloně pro zobrazení startovní listiny.
+    """
+    classes = []
+    if event.is_beginners_event():
+        classes += [
+            event.classes_and_fees_like.beginners_1,
+            event.classes_and_fees_like.beginners_2,
+            event.classes_and_fees_like.beginners_3,
+            event.classes_and_fees_like.beginners_4,
+        ]
+    classes += [
+        event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
+        event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
+        event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
+        event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
+        event.classes_and_fees_like.girls_10, event.classes_and_fees_like.cr_boys_12_and_under,
+        event.classes_and_fees_like.cr_girls_12_and_under, event.classes_and_fees_like.cr_boys_13_14,
+        event.classes_and_fees_like.cr_girls_13_16, event.classes_and_fees_like.cr_boys_15_16,
+        event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
+        event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
+        event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
+        event.classes_and_fees_like.cr_men_40_44, event.classes_and_fees_like.cr_men_45_49,
+        event.classes_and_fees_like.cr_women_40_and_over, event.classes_and_fees_like.cr_men_50_and_over,
+        event.classes_and_fees_like.boys_11, event.classes_and_fees_like.girls_11,
+        event.classes_and_fees_like.boys_12, event.classes_and_fees_like.girls_12,
+        event.classes_and_fees_like.boys_13, event.classes_and_fees_like.girls_13,
+        event.classes_and_fees_like.boys_14, event.classes_and_fees_like.girls_14,
+        event.classes_and_fees_like.boys_15, event.classes_and_fees_like.girls_15,
+        event.classes_and_fees_like.boys_16, event.classes_and_fees_like.girls_16,
+        event.classes_and_fees_like.men_17_24, event.classes_and_fees_like.women_17_24,
+        event.classes_and_fees_like.men_25_29, event.classes_and_fees_like.women_25_over,
+        event.classes_and_fees_like.men_30_34, event.classes_and_fees_like.men_35_over,
+        event.classes_and_fees_like.men_junior, event.classes_and_fees_like.women_junior,
+        event.classes_and_fees_like.men_u23, event.classes_and_fees_like.women_u23,
+        event.classes_and_fees_like.men_elite, event.classes_and_fees_like.women_elite,
+    ]
+    # dict.fromkeys zachová pořadí a odstraní duplicity
+    classes = list(dict.fromkeys(classes))
+    return classes
 
-    def setFile(self, file):
-        self.file = file.lstrip("/")  # odstraní úvodní lomítko, pokud je
 
-    def setEvent(self, event):
-        self.event = event
+# ===========================================================================
+# 4. STRIPE PLATEBNÍ INTEGRACE
+# generate_stripe_line vytvoří jeden řádek pro Stripe Checkout session.
+# Každý jezdec / každá přihláška = jeden line_item.
+# ===========================================================================
 
-    def run(self):
-        event = Event.objects.get(id=self.event)
-        ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
-        file_path = os.path.join("media", "rem_results", self.file)
-        with open(file_path, newline='') as result:
-            results_reader = list(csv.reader(result, delimiter='\t'))
-            print(f"🧪 REM výsledků celkem: {len(results_reader)}")
-            for raw in results_reader:
-                # Kategorie Příchozích neboduje do rankingu
-                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
-                    print(f"✔️ Ukládám výsledek: {raw[1]} {raw[2]}, místo: {raw[25]}")
-                    try:
-                        uci_id = str(raw[12])
-                        category = raw[4]
-                        place = str(raw[25])
-                        first_name = raw[1]
-                        last_name = raw[2]
-                        club = raw[3]
-                        result = GetResult(event.date, event.id, event.name, ranking_code, uci_id, place, category,
-                                           first_name, last_name, club, event.organizer.team_name, event.type_for_ranking)
-                        result.write_result()
-                    except Exception as e:
-                        print(f"❌ Chyba při zpracování řádku {raw}: {e}")
-                else:
-                    print(f"⏭️ Přeskočeno: {raw[1]} {raw[2]}, důvod: raw[4]='{raw[4]}', raw[25]='{raw[25]}'")
+def generate_stripe_line(event, rider, is_20, is_beginner=False):
+    """Vygeneruje Stripe line_item slovník pro jednoho závodníka.
 
-            event.rem_results = "rem_results" + self.file
-            event.save()
+    Pro Evropský pohár se odečítá cena pojištění od startovného,
+    pokud jezdec již má platné pojištění (have_valid_insurance=True).
 
-            SetRanking().start()
+    Vrací dict kompatibilní se Stripe Checkout API.
+    """
+    if is_beginner:
+        fee: int = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
+        rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
+        line_item = {
+            'price_data': {
+                'currency': 'czk',
+                'unit_amount': fee * 100,  # Stripe pracuje v haléřích
+                'product_data': {
+                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_beginner,
+                    'images': [],
+                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
+                },
+            },
+            'quantity': 1,
+        }
+        return line_item
 
+    elif is_20:
+        fee: int = resolve_event_fee(event, rider, is_20=True)
+        # Odečtení pojištění u Evropského poháru pro pojištěné jezdce
+        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+            fee = fee - event.price_of_insurance
+        rider.class_20 = resolve_event_classes(event, rider, is_20=True)
+        line_item = {
+            'price_data': {
+                'currency': 'czk',
+                'unit_amount': fee * 100,
+                'product_data': {
+                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_20,
+                    'images': [],
+                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
+                },
+            },
+            'quantity': 1,
+        }
+        return line_item
+
+    else:  # Cruiser (24")
+        fee: int = resolve_event_fee(event, rider, is_20=False)
+        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+            fee = fee - event.price_of_insurance
+        rider.class_24 = resolve_event_classes(event, rider, is_20=False)
+        line_item = {
+            'price_data': {
+                'currency': 'czk',
+                'unit_amount': fee * 100,
+                'product_data': {
+                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_24,
+                    'images': [],
+                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
+                },
+            },
+            'quantity': 1,
+        }
+        return line_item
+
+
+# ===========================================================================
+# 5. SPRÁVA KOŠÍKU A PŘIHLÁŠEK
+# Cart = dočasná přihláška (před zaplacením), Entry = zaplacená přihláška.
+# ===========================================================================
 
 class Cart():
-    """ Cart for registering to multiple events """
+    """Dočasná přihláška v košíku — vytvoří Entry záznam s payment_complete=False.
+
+    Po úspěšné platbě se payment_complete nastaví na True (viz webhook).
+    """
     user: Account
     event: Event
     rider: Rider
@@ -589,6 +553,7 @@ class Cart():
     payment_complete: bool = False
 
     def save(self):
+        """Uloží přihlášku do databáze jako nezaplacenou."""
         Entry.objects.create(
             user=self.user,
             event=self.event,
@@ -606,107 +571,17 @@ class Cart():
         )
 
 
-def generate_stripe_line(event, rider, is_20, is_beginner=False):
-    """ Function for generation stripe line """
-
-    if is_beginner:
-        fee: int = resolve_event_fee(event, rider, is_20=True, is_beginner=True)
-        rider.class_beginner = resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-        line_item = {
-            'price_data': {
-                'currency': 'czk',
-                'unit_amount': fee * 100,
-                'product_data': {
-                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_beginner,
-                    'images': [],
-                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
-                },
-            },
-            'quantity': 1,
-        },
-        return line_item
-
-    elif is_20:
-        fee: int = resolve_event_fee(event, rider, is_20=True)
-        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
-            fee = fee - event.price_of_insurance
-        rider.class_20 = resolve_event_classes(event, rider, is_20=True)
-        line_item = {
-            'price_data': {
-                'currency': 'czk',
-                'unit_amount': fee * 100,
-                'product_data': {
-                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_20,
-                    'images': [],
-                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
-                },
-            },
-            'quantity': 1,
-        },
-        return line_item
-
-    else:
-        fee: int = resolve_event_fee(event, rider, is_20=False)
-        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
-            fee = fee - event.price_of_insurance
-        rider.class_24 = resolve_event_classes(event, rider, is_20=False)
-        line_item = {
-            'price_data': {
-                'currency': 'czk',
-                'unit_amount': fee * 100,
-                'product_data': {
-                    'name': rider.last_name + " " + rider.first_name + ", " + rider.class_24,
-                    'images': [],
-                    'description': "UCI ID: " + str(rider.uci_id) + ", " + event.name
-                },
-            },
-            'quantity': 1,
-        },
-        return line_item
-
-
-def clean_classes_on_event(event):
-    """ Function for return classes used in event """
-    classes = []
-    if event.is_beginners_event():
-        classes += [event.classes_and_fees_like.beginners_1, event.classes_and_fees_like.beginners_2,
-                    event.classes_and_fees_like.beginners_3, event.classes_and_fees_like.beginners_4]
-    classes += [event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
-                event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
-                event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
-                event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
-                event.classes_and_fees_like.girls_10, event.classes_and_fees_like.cr_boys_12_and_under,
-                event.classes_and_fees_like.cr_girls_12_and_under, event.classes_and_fees_like.cr_boys_13_14,
-                event.classes_and_fees_like.cr_girls_13_16, event.classes_and_fees_like.cr_boys_15_16,
-                event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
-                event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
-                event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
-                event.classes_and_fees_like.cr_men_40_44, event.classes_and_fees_like.cr_men_45_49,
-                event.classes_and_fees_like.cr_women_40_and_over,
-                event.classes_and_fees_like.cr_men_50_and_over, event.classes_and_fees_like.boys_11,
-                event.classes_and_fees_like.girls_11, event.classes_and_fees_like.boys_12,
-                event.classes_and_fees_like.girls_12, event.classes_and_fees_like.boys_13,
-                event.classes_and_fees_like.girls_13, event.classes_and_fees_like.boys_14,
-                event.classes_and_fees_like.girls_14, event.classes_and_fees_like.boys_15,
-                event.classes_and_fees_like.girls_15, event.classes_and_fees_like.boys_16,
-                event.classes_and_fees_like.girls_16, event.classes_and_fees_like.men_17_24,
-                event.classes_and_fees_like.women_17_24, event.classes_and_fees_like.men_25_29,
-                event.classes_and_fees_like.women_25_over, event.classes_and_fees_like.men_30_34,
-                event.classes_and_fees_like.men_35_over, event.classes_and_fees_like.men_junior,
-                event.classes_and_fees_like.women_junior, event.classes_and_fees_like.men_u23,
-                event.classes_and_fees_like.women_u23, event.classes_and_fees_like.men_elite,
-                event.classes_and_fees_like.women_elite]
-    classes = list(dict.fromkeys(classes))
-    return classes
-
-
 def update_cart(request):
-    sum = Entry.objects.filter(user__id=request.user.id, payment_complete=False).count()
-    request.session['orders'] = sum
+    """Aktualizuje čítač nezaplacených přihlášek v session (zobrazení v navigaci)."""
+    count = Entry.objects.filter(user__id=request.user.id, payment_complete=False).count()
+    request.session['orders'] = count
 
 
 def save_entries(order, transaction_id):
-    """Function for saving entries"""
+    """Uloží přihlášku jako zaplacenou po dokončení platby.
+
+    Používá se v Stripe webhookovém handleru po přijetí platby.
+    """
     entry = EntryClass()
     entry.transaction_id = transaction_id
     entry.event = order.event
@@ -721,122 +596,152 @@ def save_entries(order, transaction_id):
     entry.fee_20 = order.fee_20
     entry.fee_24 = order.fee_24
     entry.save()
-    return
 
 
-def check_entry_duplicity(event, rider, is_beginner=False, is_20=False, is_24=False):
-    """ Function for checking, if rider is confirmed as entries on the event"""
+def check_entry_duplicity(event, rider, is_beginner=False, is_20=False, is_24=False) -> bool:
+    """Zkontroluje, zda jezdec již má zaplacenou přihlášku na daný závod v dané kategorii.
+
+    Slouží k zamezení duplicitních přihlášek (jezdec se přihlásí dvakrát).
+    """
     if is_beginner:
-        entries = Entry.objects.filter(event=event, rider=rider, is_beginner=True, payment_complete=True)
-        if entries:
-            return True
-        else:
-            return False
-
+        return Entry.objects.filter(event=event, rider=rider, is_beginner=True, payment_complete=True).exists()
     if is_20:
-        entries = Entry.objects.filter(event=event, rider=rider, is_20=True, payment_complete=True)
-        if entries:
-            return True
-        else:
-            return False
-
+        return Entry.objects.filter(event=event, rider=rider, is_20=True, payment_complete=True).exists()
     if is_24:
-        entries = Entry.objects.filter(event=event, rider=rider, is_24=True, payment_complete=True)
-        if entries:
-            return True
-        else:
-            return False
+        return Entry.objects.filter(event=event, rider=rider, is_24=True, payment_complete=True).exists()
+    return False
 
 
-def set_beginner_class(rider, event): # NOT IN USE NOW
-    """ Function for set beginner class """
-    age = rider.get_age(rider)
-    if age <= 6:
-        return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-    elif age <= 10 and rider.created:
-        diff = datetime.today().date() - rider.created.date()
-        if diff.days > 356:  # if rider have plate more then one year, rider cannot start in Beginners class
-            return ""
-        else:
-            return resolve_event_classes(event, rider, is_20=True, is_beginner=True)
-    else:
-        return ""
+def is_beginner(rider) -> bool:
+    """Vrátí True pokud jezdec splňuje podmínky pro start v kategorii začátečníků.
 
-
-def is_beginner(rider):
-    """ Function for resolve, if rider can registration to beginners class """
-    #entries = Entry.objects.filter(checkout=False, payment_complete=True, is_20=True, rider=rider, event__date__year=datetime.today().year)
-    entries = Entry.objects.filter(
+    Začátečník = méně než 3 zaplacené přihlášky (20" nebo 24" kolo) a není elite.
+    Rok závodu se nezohledňuje — pokud jezdec závodil kdykoli v minulosti, není začátečník.
+    """
+    entry_count = Entry.objects.filter(
         Q(checkout=False, payment_complete=True, is_20=True, rider=rider) |
         Q(checkout=False, payment_complete=True, is_24=True, rider=rider)
-    )
-    if entries.count() >= 3 or rider.is_elite:
-        return False
-    else:
-        return True
+    ).count()
+    return entry_count < 3 and not rider.is_elite
 
+
+# ===========================================================================
+# 6. VALIDACE A ADMIN OPERACE
+# Funkce pro adminy a komisaře — kontroly licencí, kvalifikace, import výsledků.
+# ===========================================================================
 
 def invalid_licence_in_event(event):
-    """ Check invalid licence in event """
-    check_20_entries = Entry.objects.filter(event=event.id, is_20=True, payment_complete=1, checkout=False)
-    check_24_entries = Entry.objects.filter(event=event.id, is_24=True, payment_complete=1, checkout=False)
+    """Vrátí množinu jezdců s neplatnou licencí přihlášených na daný závod.
+
+    Používá se v komisařském přehledu před závodem.
+    """
+    check_20_entries = Entry.objects.filter(
+        event=event.id, is_20=True, payment_complete=True, checkout=False
+    ).select_related('rider')
+    check_24_entries = Entry.objects.filter(
+        event=event.id, is_24=True, payment_complete=True, checkout=False
+    ).select_related('rider')
 
     invalid_licences = []
 
-    for check20 in check_20_entries:
-        try:
-            rider = Rider.objects.get(uci_id=check20.rider)
-            if not rider.valid_licence:
-                invalid_licences.append(rider)
-        except Exception as e:
-            pass  # TODO: Dodělat zprávu o chybě
+    for entry in check_20_entries:
+        if entry.rider and not entry.rider.valid_licence:
+            invalid_licences.append(entry.rider)
 
-    for check24 in check_24_entries:
-        try:
-            rider = Rider.objects.get(uci_id=check24.rider)
-            if not rider.valid_licence:
-                invalid_licences.append(rider)
-        except Exception as e:
-            pass  # TODO: Dodělat zprávu o chybě
+    for entry in check_24_entries:
+        if entry.rider and not entry.rider.valid_licence:
+            invalid_licences.append(entry.rider)
 
-    invalid_licences = set(invalid_licences)  # odstranění duplicit, pokud jezdec jede 20" i 24"
-
-    return invalid_licences
+    # set() odstraní duplicitu jezdce, který startuje na 20" i 24"
+    return set(invalid_licences)
 
 
 def qualify_riders_to_cn(year, rider):
-    """ Function for resolve qualify to CN"""
-    qualify_20 = 0
-    qualify_24 = 0
+    """Vypočítá, zda jezdec splnil podmínky kvalifikace na Mistrovství ČR.
+
+    Podmínka: min. počet startů na Českém poháru (dle SeasonSettings.qualify_to_cn).
+    Vrátí jezdce s nastavenými atributy is_qualify_20 / is_qualify_24.
+    """
     settings = SeasonSettings.objects.get(year=datetime.today().year)
-    entries_20 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                       is_20=True, is_beginner=False, payment_complete=True, rider__nationality="CZE")
 
-    for entry in entries_20:
-        if entry.rider == rider:
-            qualify_20 += 1
+    qualify_20 = Entry.objects.filter(
+        event__type_for_ranking="Český pohár",
+        event__date__year=year,
+        checkout=False,
+        is_20=True,
+        is_beginner=False,
+        payment_complete=True,
+        rider__nationality="CZE",
+        rider=rider,
+    ).count()
 
-    if qualify_20 >= settings.qualify_to_cn:
-        rider.is_qualify_20 = True
-    else:
-        rider.is_qualify_20 = False
+    qualify_24 = Entry.objects.filter(
+        event__type_for_ranking="Český pohár",
+        event__date__year=year,
+        checkout=False,
+        is_24=True,
+        payment_complete=True,
+        rider__nationality="CZE",
+        rider=rider,
+    ).count()
 
-    entries_24 = Entry.objects.filter(event__type_for_ranking="Český pohár", event__date__year=year, checkout=False,
-                                   is_24=True, payment_complete=True, rider__nationality="CZE")
-
-    for entry in entries_24:
-        if entry.rider == rider:
-            qualify_24 += 1
-
-    if qualify_24 >= settings.qualify_to_cn:
-        rider.is_qualify_24 = True
-    else:
-        rider.is_qualify_24 = False
+    rider.is_qualify_20 = qualify_20 >= settings.qualify_to_cn
+    rider.is_qualify_24 = qualify_24 >= settings.qualify_to_cn
 
     return rider
 
 
-def changeCredit (userID, amount):
-    #TODO: Dodělat odečet / přičtení kreditu
-    return True
+class SetResults(threading.Thread):
+    """Thread pro import výsledků z REM TSV souboru do databáze.
 
+    Po importu automaticky spustí přepočet rankingu (SetRanking thread).
+    Kategorie 'Příchozí' a hlavičkový řádek 'CLASS_RANKING' se přeskakují.
+    """
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def setFile(self, file):
+        """Nastaví cestu k souboru s výsledky (odstraní úvodní lomítko)."""
+        self.file = file.lstrip("/")
+
+    def setEvent(self, event):
+        """Nastaví ID závodu, pro který se výsledky importují."""
+        self.event = event
+
+    def run(self):
+        event = Event.objects.get(id=self.event)
+        ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
+        file_path = os.path.join("media", "rem_results", self.file)
+
+        with open(file_path, newline='') as result:
+            results_reader = list(csv.reader(result, delimiter='\t'))
+            logger.info(f"REM výsledků celkem: {len(results_reader)}")
+
+            for raw in results_reader:
+                # Přeskočit kategorie Příchozí (nebodují do rankingu)
+                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
+                    logger.debug(f"Ukládám výsledek: {raw[1]} {raw[2]}, místo: {raw[25]}")
+                    try:
+                        uci_id = str(raw[12])
+                        category = raw[4]
+                        place = str(raw[25])
+                        first_name = raw[1]
+                        last_name = raw[2]
+                        club = raw[3]
+                        result = GetResult(
+                            event.date, event.id, event.name, ranking_code,
+                            uci_id, place, category, first_name, last_name,
+                            club, event.organizer.team_name, event.type_for_ranking
+                        )
+                        result.write_result()
+                    except Exception as e:
+                        logger.error(f"Chyba při zpracování řádku {raw}: {e}")
+                else:
+                    logger.debug(f"Přeskočeno: {raw[1]} {raw[2]}, raw[4]='{raw[4]}', raw[25]='{raw[25]}'")
+
+        event.rem_results = "rem_results" + self.file
+        event.save()
+
+        # Po importu výsledků spustit přepočet rankingu na pozadí
+        SetRanking().start()

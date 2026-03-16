@@ -1,153 +1,287 @@
-{% extends 'base.html' %} {% block title %} Dobití kreditu {% endblock title %}
+{% extends 'base.html' %}
+{% block title %} Dobití kreditu {% endblock title %}
+
+{% block extra_head %}
+<style>
+  .credit-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  }
+
+  .credit-hero,
+  .credit-panel,
+  .credit-table-panel {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .credit-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  }
+
+  .credit-submit {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    color: #fff;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    box-sizing: border-box;
+  }
+
+  .credit-amount-input {
+    background: #ffffff;
+    color: #0f172a;
+    box-sizing: border-box;
+  }
+
+  .credit-amount-input::placeholder {
+    color: #94a3b8;
+  }
+
+  .credit-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .credit-form-control {
+    height: 56px;
+  }
+
+  .credit-submit-wrap {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  @media (min-width: 768px) {
+    .credit-form {
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+    }
+  }
+
+  .credit-submit:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.38);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+
+  html.dark body,
+  html.dark .credit-surface {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
+      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  }
+
+  html.dark .credit-hero,
+  html.dark .credit-panel,
+  html.dark .credit-table-panel {
+    background: rgba(15, 23, 42, 0.88) !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+
+  html.dark .credit-hero {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+  }
+
+  html.dark .credit-submit {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #fff !important;
+  }
+
+  html.dark .credit-amount-input {
+    background: rgba(15, 23, 42, 0.92) !important;
+    border-color: rgba(71, 85, 105, 0.95) !important;
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    caret-color: #f8fafc !important;
+  }
+
+  html.dark .credit-amount-input::placeholder {
+    color: #94a3b8 !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold text-white">
-            KREDIT
+<section class="credit-surface min-h-screen pb-24">
+  <div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+    <header class="credit-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+        Credit Top-up
+      </p>
+      <div class="mt-4">
+        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+          Kredit
         </h1>
+        <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+          Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
+        </p>
+      </div>
+    </header>
+
+    <div class="mt-8 space-y-6">
+      {% for message in messages %}
+      <div class="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+        <div class="flex gap-3">
+          <div class="shrink-0 pt-0.5">
+            <svg class="size-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="text-sm font-medium">{{ message }}</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <section class="credit-panel rounded-[2rem] p-6 sm:p-8">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(520px,720px)] lg:items-center lg:gap-10">
+          <div class="max-w-md">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+              Platba
+            </p>
+            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              Dobití kreditu
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Zadej částku a pokračuj na platební bránu.
+            </p>
+          </div>
+
+          <form action="#" method="POST" class="credit-form w-full">
+            {% csrf_token %}
+            <label class="block flex-1">
+              <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Částka pro dobití</span>
+              <div class="relative">
+                <input
+                  type="text"
+                  name="price"
+                  id="price"
+                  value="0"
+                  class="credit-amount-input credit-form-control block w-full rounded-xl border border-slate-300 px-4 py-3 pr-16 text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  placeholder="0.00"
+                  aria-describedby="price-currency">
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-sm font-semibold text-slate-500 dark:text-slate-300" id="price-currency">CZK</span>
+              </div>
+            </label>
+            <div class="credit-submit-wrap">
+              <button type="submit" class="credit-submit credit-form-control inline-flex w-full items-center justify-center rounded-xl px-6 text-base font-semibold shadow-sm">
+                Dobít kredit
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="credit-table-panel rounded-[2rem] p-6 sm:p-8">
+        <div class="sm:flex sm:items-end sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">
+              Credit
+            </p>
+            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              Kreditní transakce
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Přehled nabíjení účtu za poslední rok.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead>
+              <tr>
+                <th class="py-3.5 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Datum</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Částka</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">ID transakce</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+              {% for credit in credits %}
+              <tr>
+                <td class="py-4 pr-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {{ credit.transaction_date }}
+                </td>
+                <td class="px-3 py-4 whitespace-nowrap text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                  {{ credit.amount }} CZK
+                </td>
+                <td class="px-3 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-300">
+                  {{ credit.payment_intent }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="py-6 text-sm text-slate-500 dark:text-slate-400">
+                  Zatím nebyly zaznamenány žádné kreditní transakce.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="credit-table-panel rounded-[2rem] p-6 sm:p-8">
+        <div class="sm:flex sm:items-end sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">
+              Debit
+            </p>
+            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              Debetní transakce
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Debetní transakce za závodní přihlášky i předplatná prémiových statistik za poslední rok.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead>
+              <tr>
+                <th class="py-3.5 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Datum</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Částka</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Jezdec a závod</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+              {% for debet in debets %}
+              {% if debet.payment_valid %}
+              <tr>
+                <td class="py-4 pr-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {{ debet.transaction_date }}
+                </td>
+                <td class="px-3 py-4 whitespace-nowrap text-sm font-semibold text-rose-600 dark:text-rose-300">
+                  {{ debet.amount }} CZK
+                </td>
+                <td class="px-3 py-4 text-sm text-slate-500 dark:text-slate-300">
+                  {{ debet.description }}
+                </td>
+              </tr>
+              {% endif %}
+              {% empty %}
+              <tr>
+                <td colspan="3" class="py-6 text-sm text-slate-500 dark:text-slate-400">
+                  Zatím nebyly zaznamenány žádné debetní transakce.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
-</header>
-
-<div class="justify-between max-w-7xl text-3xl mx-auto font-bold my-4">
-
-        {% for message in messages %}
-
-        <div class="rounded-md bg-yellow-50 p-4 mt-20">
-            <div class="flex">
-                <div class="shrink-0">
-                    <svg class="size-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                        data-slot="icon">
-                        <path fill-rule="evenodd"
-                            d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">{{messages.tag}}</h3>
-                    <div class="mt-2 text-sm text-yellow-700">
-                        <p>{{message}}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-
- <form action="#" method="POST">
-    {% csrf_token %}
-    <div class="flex">
-        <div class="flex items-center px-4 sm:px-6 lg:px-8 mt-6">
-            <div>
-                <label for="price" class="block text-sm font-medium leading-6 text-gray-900">Částka pro dobití:</label>
-                <div class="relative mt-2 rounded-md shadow-sm">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <span class="text-gray-500 sm:text-sm"></span>
-                    </div>
-                    <input type="text" name="price" id="price" value="0"
-                        class="block w-full rounded-md border-0 py-1.5 pl-7 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
-                        placeholder="0.00" aria-describedby="price-currency">
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <span class="text-gray-500 sm:text-sm" id="price-currency">CZK</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="flex items-end ml-6">
-            <button type="submit"
-                class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Dobít
-                kredit</button>
-        </div>
-    </div>
-    </form>
-    <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700 mt-6">
-    <div class="mt-4">
-
-        <!-- CREDIT  -->
-
-        <div class="px-4 sm:px-6 lg:px-8 mt-6">
-            <div class="sm:flex sm:items-center">
-                <div class="sm:flex-auto">
-                    <h1 class="text-base font-semibold leading-6 text-blue-700">Kreditní transakce</h1>
-                    <p class="mt-2 text-sm text-gray-500">Zde najdete přehled nabíjení účtu za poslední rok.</p>
-                </div>
-            </div>
-            <div class="mt-8 flow-root">
-                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-                        <table class="min-w-full divide-y divide-gray-300">
-                            <thead>
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Datum
-                                    </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Částka
-                                    </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">ID
-                                        transakce
-                                    </th>
-
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-300">
-                                {% for credit in credits %}
-                                <tr>
-                                    <td class="pl-4 pr-3 py-3.5 whitespace-nowrap text-sm font-medium text-gray-900 sm:pl-0">
-                                        {{credit.transaction_date}}</td>
-                                    <td class="px-3 py-3.5 whitespace-nowrap text-sm text-green-500">{{credit.amount}} CZK</td>
-                                    <td class="px-3 py-3.5 whitespace-nowrap text-sm text-gray-500">{{credit.payment_intent}}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <app-credit-transactions></app-credit-transactions>
-
-        <!-- DEBET  -->
-
-        <div class="px-4 sm:px-6 lg:px-8 mt-6">
-            <div class="sm:flex sm:items-center">
-                <div class="sm:flex-auto">
-                    <h1 class="text-base font-semibold leading-6 text-blue-700">Debetní transakce</h1>
-                    <p class="mt-2 text-sm text-gray-500">Zde jsou zobrazeny debetní transakce tvořené jednotlivými
-                        přihláškami na závody za poslední rok.</p>
-                </div>
-            </div>
-            <div class="mt-8 flow-root">
-                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-                        <table class="min-w-full divide-y divide-gray-300">
-                            <thead>
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Datum
-                                    </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Částka
-                                    </th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Jezdec a závod
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-300">
-                                {% for debet in debets %}
-                                {% if debet.payment_valid %}
-                                <tr>
-                                    <td class="pl-4 pr-3 py-3.5 whitespace-nowrap text-sm font-medium text-gray-900 sm:pl-0">
-                                        {{debet.transaction_date}}</td>
-                                    <td class="px-3 py-3.5 whitespace-nowrap text-sm text-red-500">{{debet.amount}} CZK</td>
-                                    <td class="px-3 py-3.5 whitespace-nowrap text-sm text-gray-500">{{debet.entry}}</td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
-                                
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+  </div>
+</section>
 {% endblock content %}

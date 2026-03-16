@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %} Prémiové statistiky jezdce {% endblock title %}
+{% block content %}
+<section class="min-h-screen bg-slate-50 pb-16 pt-10 dark:bg-slate-900">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Prémiové statistiky</p>
+          <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            {{ rider.first_name|upper }} {{ rider.last_name|upper }}
+          </h1>
+          {% if subscription %}
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Aktivní do {{ subscription.expires_at|date:"d.m.Y H:i" }}
+          </p>
+          {% endif %}
+        </div>
+        <a href="{% url 'rider:detail' rider.uci_id %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">
+          Zpět na profil jezdce
+        </a>
+      </div>
+
+      {% if runs %}
+      <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white text-sm dark:bg-slate-900">
+            <thead class="bg-slate-100 dark:bg-slate-950">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Závod</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Fáze</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kolo</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dráha</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cíl</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Hill</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 1</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 2</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 3</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 4</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+              {% for run in runs %}
+              <tr class="text-slate-700 dark:text-slate-200">
+                <td class="whitespace-nowrap px-4 py-3">{{ run.event.date|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.event.name|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.round_type }}</td>
+                <td class="px-4 py-3">{{ run.round_number|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.lane|default:"-" }}</td>
+                <td class="px-4 py-3 font-semibold">{{ run.finish_time|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.hill_time|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.split_1|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.split_2|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.split_3|default:"-" }}</td>
+                <td class="px-4 py-3">{{ run.split_4|default:"-" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <div class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z tratí.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock content %}

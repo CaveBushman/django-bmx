@@ -25,6 +25,7 @@ class Club(models.Model):
 
     contact_person = models.CharField(max_length=255, blank=True)
     contact_email = models.CharField(max_length=255, blank=True)
+    billing_email = models.EmailField(max_length=255, blank=True)
     contact_phone = models.CharField(max_length=255, blank=True)
 
     bank_account = models.CharField(max_length=100, blank=True)
@@ -45,6 +46,7 @@ class Club(models.Model):
         return self.team_name
 
 
+    @staticmethod
     def active_club():
         return Club.objects.filter(is_active=True).count()
 

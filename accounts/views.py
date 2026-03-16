@@ -1,7 +1,10 @@
+import logging
 from django.contrib.auth import login, logout, authenticate
 from django.shortcuts import render, redirect
 from .models import Account
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 
 
 def sign_up(request):
@@ -9,7 +12,7 @@ def sign_up(request):
         first_name = request.POST['firstname']
         last_name = request.POST['lastname']
         username = request.POST['username']
-        email = request.POST['username']
+        email = request.POST['email']
         password = request.POST['password']
         password2 = request.POST['password2']
         if password == password2:
@@ -36,7 +39,6 @@ def sign_in(request):
         password = request.POST['password']
         
         user = authenticate(request, username=username, password=password)
-        print(user)
         if user is not None:
             login(request, user)
             
