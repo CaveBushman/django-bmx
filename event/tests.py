@@ -545,10 +545,10 @@ class RemResultsImportTests(TestCase):
                 "BIRTHDATE", "MAIL", "TYPE", "LICENCE_TYPE", "UCIID", "UCIID_EXP_DATE", "INTERNAL_IDENT", "STATUS",
                 "PLATE", "TRANSPONDER", "ENTRY_PAYED", "PAYMENT_AMOUNT", "ADMIN_FEE", "TRANSPONDER_HIRE_PRICE",
                 "TRANSPONDER_HIRE_FLAG", "PAYMENT_CURR", "PAYMENT_TYPE", "CLASS_RANKING", "MOTO1_GATE", "MOTO1_LANE",
-                "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_HILL_TIME", "MOTO1_TIME", "MOTO2_GATE", "MOTO2_LANE",
+                "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_HILL_TIME", "MOTO1_INTER2_TIME", "MOTO1_TIME", "MOTO2_GATE", "MOTO2_LANE",
                 "MOTO2_PLACE", "MOTO2_RACE_POINTS", "MOTO2_MOTO_POINTS", "MOTO2_TIME", "FINAL_SUBTYPE", "FINAL_GATE",
-                "FINAL_LANE", "FINAL_PLACE", "FINAL_RACE_POINTS", "FINAL_MOTO_POINTS", "FINAL_TIME", "F2_GATE",
-                "F2_LANE", "F2_PLACE", "F2_RACE_POINTS", "F2_MOTO_POINTS", "F2_HILL_TIME", "F2_TIME",
+                "FINAL_LANE", "FINAL_PLACE", "FINAL_RACE_POINTS", "FINAL_MOTO_POINTS", "FINAL_INTER2_TIME", "FINAL_TIME", "F2_GATE",
+                "F2_LANE", "F2_PLACE", "F2_RACE_POINTS", "F2_MOTO_POINTS", "F2_HILL_TIME", "F2_INTER2_TIME", "F2_TIME",
             ]
         )
         rem_row = "\t".join(
@@ -556,8 +556,8 @@ class RemResultsImportTests(TestCase):
                 "2. zavod SAZKA Ceskeho poharu", "Simon", "Aksamit", "Import Club", "Boys 15-16", "Boys 15-16", "",
                 "M", "02-08-2009", "simon@example.com", "C", "U", "10125224253", "31-12-2025", "", "S", "868",
                 "HW-43726", "X", "500.00", "0.00", "0.00", "false", "CZK", "P", "7", "40", "1", "1st", "8", "1", "1.921",
-                "29.224", "83", "7", "2nd", "7", "2", "29.753", "A", "11", "3", "7th", "10", "7", "30.798", "18",
-                "4", "2nd", "0", "2", "1.877", "29.446",
+                "12.441", "29.224", "83", "7", "2nd", "7", "2", "29.753", "A", "11", "3", "7th", "10", "7", "12.883",
+                "30.798", "18", "4", "2nd", "0", "2", "1.877", "12.517", "29.446",
             ]
         )
 
@@ -578,7 +578,7 @@ class RemResultsImportTests(TestCase):
 
         runs = RaceRun.objects.filter(result=result).order_by("round_type", "round_number")
         self.assertEqual(runs.count(), 4)
-        self.assertTrue(runs.filter(round_type="MOTO", round_number=1, place="1st", hill_time=1.921, finish_time=29.224).exists())
+        self.assertTrue(runs.filter(round_type="MOTO", round_number=1, place="1st", hill_time=1.921, split_1=12.441, finish_time=29.224).exists())
         self.assertTrue(runs.filter(round_type="MOTO", round_number=2, place="2nd", finish_time=29.753).exists())
-        self.assertTrue(runs.filter(round_type="FINAL", place="7th", finish_time=30.798).exists())
-        self.assertTrue(runs.filter(round_type="F2", place="2nd", hill_time=1.877, finish_time=29.446).exists())
+        self.assertTrue(runs.filter(round_type="FINAL", place="7th", split_1=12.883, finish_time=30.798).exists())
+        self.assertTrue(runs.filter(round_type="F2", place="2nd", hill_time=1.877, split_1=12.517, finish_time=29.446).exists())

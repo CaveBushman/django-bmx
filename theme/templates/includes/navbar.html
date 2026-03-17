@@ -172,6 +172,10 @@
                   tabindex="-1" id="user-menu-item-1">Aktivní registrace</a>
                 <a href="{% url 'event:credit' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
                   tabindex="-1" id="user-menu-item-credit">Kredit</a>
+                {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
+                <a href="{% url 'rider:trainer-dashboard' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
+                  tabindex="-1" id="user-menu-item-trainer-dashboard">Trenérský dashboard</a>
+                {% endif %}
                 {% if user.is_admin or user.is_superuser or user.is_staff %}
                 <a href="{% url 'rider:premium-subscriptions' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
                   tabindex="-1" id="user-menu-item-premium-subscriptions">Moje předplatná</a>
@@ -325,6 +329,10 @@
             role="menuitem" tabindex="-1" id="user-menu-item-1">Aktivní registrace</a>
           <a href="{% url 'event:credit' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-credit">Kredit</a>
+          {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
+          <a href="{% url 'rider:trainer-dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-trainer-dashboard-mobile">Trenérský dashboard</a>
+          {% endif %}
           {% if user.is_admin or user.is_superuser or user.is_staff %}
           <a href="{% url 'rider:premium-subscriptions' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-premium-subscriptions-mobile">Moje předplatná</a>

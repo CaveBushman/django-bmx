@@ -42,12 +42,13 @@ from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
+    get_active_trainer_extended_subscription,
     get_current_season_settings,
     has_active_rider_stats_access,
     purchase_rider_stats_subscription,
     resume_rider_stats_subscription,
 )
-from rider.models import RiderStatsSubscription
+from rider.models import RiderStatsSubscription, TrainerClubSubscription
 
 # Global variables
 now = date.today().year
@@ -60,6 +61,15 @@ def can_manage_premium_stats(user):
 
 
 admin_required = user_passes_test(can_manage_premium_stats, login_url="/login/")
+
+
+def can_access_trainer_dashboard(user):
+    return user.is_authenticated and (
+        getattr(user, "is_trainer", False) or user.is_admin or user.is_superuser or user.is_staff
+    )
+
+
+trainer_dashboard_required = user_passes_test(can_access_trainer_dashboard, login_url="/login/")
 FINAL_ROUND_TYPES = {"FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"}
 TRACK_TABLE_COLUMNS = [
     ("M1", "M1"),
@@ -93,6 +103,88 @@ START_TABLE_COLUMNS = [
     ("FINAL", "F"),
     ("DAY_MEDIAN", "Medián startu"),
 ]
+SPLIT_TABLE_COLUMNS = [
+    ("M1", "M1"),
+    ("M2", "M2"),
+    ("M3", "M3"),
+    ("M4", "M4"),
+    ("M5", "M5"),
+    ("M6", "M6"),
+    ("M7", "M7"),
+    ("M8", "M8"),
+    ("F16", "1/16"),
+    ("F8", "1/8"),
+    ("F4", "1/4"),
+    ("F2", "1/2"),
+    ("FINAL", "F"),
+    ("DAY_MEDIAN", "Medián Inter2"),
+]
+
+
+@trainer_dashboard_required
+def trainer_dashboard_view(request):
+    account = request.user
+    now = timezone.now()
+    season_settings = get_current_season_settings()
+    trainer_clubs = list(account.trainer_clubs.filter(is_active=True).order_by("team_name"))
+
+    subscriptions = (
+        TrainerClubSubscription.objects.filter(user=account, club__in=trainer_clubs)
+        .select_related("club")
+        .order_by("club__team_name", "product", "-expires_at")
+    )
+
+    latest_by_club_product = {}
+    for subscription in subscriptions:
+        key = (subscription.club_id, subscription.product)
+        if key not in latest_by_club_product:
+            latest_by_club_product[key] = subscription
+
+    def serialize_subscription(subscription):
+        if not subscription:
+            return {
+                "label": "Bez předplatného",
+                "is_active": False,
+                "expires_at": None,
+                "status": None,
+                "auto_renew": False,
+            }
+        is_active = (
+            subscription.status == TrainerClubSubscription.STATUS_ACTIVE
+            and subscription.expires_at >= now
+        )
+        return {
+            "label": subscription.get_status_display(),
+            "is_active": is_active,
+            "expires_at": subscription.expires_at,
+            "status": subscription.status,
+            "auto_renew": subscription.auto_renew,
+        }
+
+    club_rows = []
+    global_extended_subscription = get_active_trainer_extended_subscription(account, at_time=now)
+    global_extended_info = serialize_subscription(global_extended_subscription)
+    active_stats_count = 0
+    for club in trainer_clubs:
+        stats_subscription = latest_by_club_product.get((club.id, TrainerClubSubscription.PRODUCT_CLUB_STATS))
+        stats_info = serialize_subscription(stats_subscription)
+        if stats_info["is_active"]:
+            active_stats_count += 1
+        club_rows.append(
+            {
+                "club": club,
+                "stats": stats_info,
+            }
+        )
+
+    context = {
+        "season_settings": season_settings,
+        "trainer_clubs": club_rows,
+        "trainer_clubs_count": len(club_rows),
+        "active_stats_count": active_stats_count,
+        "global_extended_info": global_extended_info,
+    }
+    return render(request, "rider/trainer-dashboard.html", context)
 
 
 def riders_list_view(request):
@@ -567,8 +659,10 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
 
     event_rows_map = {}
     start_event_rows_map = {}
+    split_event_rows_map = {}
     event_finish_times = defaultdict(list)
     event_hill_times = defaultdict(list)
+    event_split_times = defaultdict(list)
     for run in sorted(
         track_runs,
         key=lambda item: (
@@ -581,6 +675,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             event_finish_times[run.event_id].append(float(run.finish_time))
         if run.hill_time is not None and run.event_id:
             event_hill_times[run.event_id].append(float(run.hill_time))
+        if run.split_1 is not None and run.event_id:
+            event_split_times[run.event_id].append(float(run.split_1))
 
         column_key = _get_table_column_key(run)
         if not column_key:
@@ -611,6 +707,19 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             )
             start_row["cells"][column_key] = {
                 "time": run.hill_time,
+            }
+        if run.split_1 is not None:
+            split_row = split_event_rows_map.setdefault(
+                run.event_id,
+                {
+                    "event_id": run.event_id,
+                    "date": run.event.date if run.event else None,
+                    "event_name": run.event.name if run.event else "-",
+                    "cells": {key: None for key, _ in SPLIT_TABLE_COLUMNS},
+                },
+            )
+            split_row["cells"][column_key] = {
+                "time": run.split_1,
             }
 
     raw_event_rows = sorted(
@@ -677,6 +786,38 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         )
 
     start_chart = _build_chart_series(raw_start_event_rows, event_hill_times, "median_hill_time")
+
+    raw_split_event_rows = sorted(
+        split_event_rows_map.values(),
+        key=lambda item: (item["date"] or date.min, item["event_name"]),
+    )
+    split_event_rows = []
+    for item in raw_split_event_rows:
+        event_id = item["event_id"]
+        split_times = event_split_times.get(event_id, [])
+        if split_times:
+            item["cells"]["DAY_MEDIAN"] = {
+                "time": round(median(split_times), 3),
+            }
+        row_cells = []
+        for key, label in SPLIT_TABLE_COLUMNS:
+            row_cells.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "value": item["cells"].get(key),
+                }
+            )
+        split_event_rows.append(
+            {
+                "event_id": item["event_id"],
+                "date": item["date"],
+                "event_name": item["event_name"],
+                "cells": row_cells,
+            }
+        )
+
+    split_chart = _build_chart_series(raw_split_event_rows, event_split_times, "median_split_time")
 
     compare_is_20 = any(result.is_20 and not result.is_beginner for result in recent_track_results)
     compare_is_24 = any((not result.is_20) and not result.is_beginner for result in recent_track_results)
@@ -814,6 +955,13 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         "start_chart_min_time": start_chart["min"],
         "start_chart_max_time": start_chart["max"],
         "start_chart_y_ticks": start_chart["ticks"],
+        "split_event_rows": split_event_rows,
+        "split_table_columns": SPLIT_TABLE_COLUMNS,
+        "split_chart_points": split_chart["points"],
+        "split_chart_polyline": split_chart["polyline"],
+        "split_chart_min_time": split_chart["min"],
+        "split_chart_max_time": split_chart["max"],
+        "split_chart_y_ticks": split_chart["ticks"],
         "peer_label": peer_label,
         "peer_group_size": peer_group_size,
         "peer_place_percentile": peer_place_percentile,

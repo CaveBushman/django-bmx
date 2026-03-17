@@ -15,6 +15,7 @@ from rider.models import (
     TrainerClubSubscription,
 )
 from rider.subscriptions import (
+    get_active_trainer_extended_subscription,
     has_active_trainer_club_extended_access,
     has_active_trainer_club_stats_access,
     purchase_trainer_club_subscription,
@@ -244,7 +245,17 @@ class TrainerClubSubscriptionTests(TestCase):
         self.assertTrue(has_active_trainer_club_stats_access(self.user, self.club))
         self.assertFalse(has_active_trainer_club_extended_access(self.user, self.club))
 
-    def test_purchase_extended_trainer_subscription_grants_extended_access(self):
+    def test_purchase_extended_trainer_subscription_is_global_for_all_stats_clubs(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.other_club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
         subscription, created = purchase_trainer_club_subscription(
             self.user,
             self.club,
@@ -255,10 +266,34 @@ class TrainerClubSubscriptionTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(subscription.product, TrainerClubSubscription.PRODUCT_EXTENDED)
         self.assertEqual(subscription.monthly_price, 600)
+        self.assertEqual(
+            TrainerClubSubscription.objects.filter(
+                user=self.user,
+                product=TrainerClubSubscription.PRODUCT_EXTENDED,
+            ).count(),
+            1,
+        )
+        self.assertIsNotNone(get_active_trainer_extended_subscription(self.user))
         self.assertTrue(has_active_trainer_club_stats_access(self.user, self.club))
         self.assertTrue(has_active_trainer_club_extended_access(self.user, self.club))
+        self.assertTrue(has_active_trainer_club_extended_access(self.user, self.other_club))
 
-    def test_trainer_subscriptions_are_separate_for_each_club(self):
+    def test_extended_requires_active_stats_on_club(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        self.assertTrue(has_active_trainer_club_extended_access(self.user, self.club))
+        self.assertFalse(has_active_trainer_club_extended_access(self.user, self.other_club))
+
+    def test_trainer_stats_subscriptions_remain_separate_for_each_club(self):
         purchase_trainer_club_subscription(
             self.user,
             self.club,
@@ -277,3 +312,11 @@ class TrainerClubSubscriptionTests(TestCase):
             ).count(),
             2,
         )
+
+    def test_extended_cannot_be_purchased_without_any_stats_subscription(self):
+        with self.assertRaisesMessage(ValueError, "alespoň jednoho klubu"):
+            purchase_trainer_club_subscription(
+                self.user,
+                self.club,
+                TrainerClubSubscription.PRODUCT_EXTENDED,
+            )

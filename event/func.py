@@ -782,6 +782,36 @@ class SetResults(threading.Thread):
         )
 
     @classmethod
+    def _phase_inter2_time(cls, raw, phase, index=None):
+        if phase == "MOTO" and index is not None:
+            return cls._parse_phase_float(
+                raw,
+                [
+                    f"MOTO{index}_INTER2_TIME",
+                    f"MOTO{index}_INTER2",
+                    f"MOTO{index}_FIRST_TURN_TIME",
+                    f"MOTO{index}_FIRST_TURN",
+                    f"MOTO{index}_SPLIT1_TIME",
+                    f"MOTO{index}_SPLIT1",
+                    f"MOTO{index}_SPLIT_1_TIME",
+                    f"MOTO{index}_SPLIT_1",
+                ],
+            )
+        return cls._parse_phase_float(
+            raw,
+            [
+                f"{phase}_INTER2_TIME",
+                f"{phase}_INTER2",
+                f"{phase}_FIRST_TURN_TIME",
+                f"{phase}_FIRST_TURN",
+                f"{phase}_SPLIT1_TIME",
+                f"{phase}_SPLIT1",
+                f"{phase}_SPLIT_1_TIME",
+                f"{phase}_SPLIT_1",
+            ],
+        )
+
+    @classmethod
     def _create_race_runs(cls, raw, event, result):
         """Zapíše detailní průběh jízd z REM TSV do RaceRun."""
         rider = result.rider
@@ -803,6 +833,7 @@ class SetResults(threading.Thread):
                 race_points=cls._parse_int(raw.get(f"MOTO{index}_RACE_POINTS")),
                 moto_points=cls._parse_int(raw.get(f"MOTO{index}_MOTO_POINTS")),
                 hill_time=cls._phase_hill_time(raw, "MOTO", index=index),
+                split_1=cls._phase_inter2_time(raw, "MOTO", index=index),
                 finish_time=cls._parse_float(raw.get(f"MOTO{index}_TIME")),
             )
 
@@ -823,6 +854,7 @@ class SetResults(threading.Thread):
                 race_points=cls._parse_int(raw.get(f"{phase}_RACE_POINTS")),
                 moto_points=cls._parse_int(raw.get(f"{phase}_MOTO_POINTS")),
                 hill_time=cls._phase_hill_time(raw, phase),
+                split_1=cls._phase_inter2_time(raw, phase),
                 finish_time=cls._parse_float(raw.get(f"{phase}_TIME")),
             )
 
