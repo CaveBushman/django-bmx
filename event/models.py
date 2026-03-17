@@ -387,6 +387,18 @@ class Result(models.Model):
         return f"{event_name} – {self.last_name} {self.first_name} ({self.category})"
 
 
+@receiver(post_save, sender=Result)
+def sync_rider_categories_from_result(sender, instance, **kwargs):
+    """Zapne rider.is_20 / rider.is_24 podle prvního uloženého výsledku."""
+    if not instance.rider_id or instance.is_beginner:
+        return
+
+    if instance.is_20:
+        Rider.objects.filter(uci_id=instance.rider_id, is_20=False).update(is_20=True)
+    else:
+        Rider.objects.filter(uci_id=instance.rider_id, is_24=False).update(is_24=True)
+
+
 class RaceRun(models.Model):
     result = models.ForeignKey(Result, on_delete=models.CASCADE, related_name="runs")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
