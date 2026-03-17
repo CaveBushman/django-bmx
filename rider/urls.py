@@ -7,6 +7,7 @@ urlpatterns = [
 
     path('', views.riders_list_view, name='list'),
     path('trainer-dashboard', views.trainer_dashboard_view, name='trainer-dashboard'),
+    path('account', views.account_settings_invoices_view, name='account'),
     path('premium-subscriptions', views.rider_premium_subscriptions_view, name='premium-subscriptions'),
     path('<int:pk>/premium-stats', views.rider_premium_stats_view, name='premium-stats'),
     path('<int:pk>/premium-stats/subscribe', views.rider_premium_stats_subscribe_view, name='premium-stats-subscribe'),

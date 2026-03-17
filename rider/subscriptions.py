@@ -78,7 +78,7 @@ def _get_trainer_price_for_current_season(product, *, at_time=None):
 
 
 def _charge_subscription(user, rider, season, subscription, amount, period_start, period_end, reason):
-    RiderStatsCharge.objects.create(
+    charge = RiderStatsCharge.objects.create(
         user=user,
         rider=rider,
         season=season,
@@ -88,10 +88,13 @@ def _charge_subscription(user, rider, season, subscription, amount, period_start
         period_end=period_end,
         reason=reason,
     )
+    from finance.subscription_invoices import SubscriptionInvoiceService
+
+    SubscriptionInvoiceService().generate_for_rider_charge(charge)
 
 
 def _charge_trainer_subscription(user, club, season, subscription, product, amount, period_start, period_end, reason):
-    TrainerClubCharge.objects.create(
+    charge = TrainerClubCharge.objects.create(
         user=user,
         club=club,
         season=season,
@@ -102,6 +105,9 @@ def _charge_trainer_subscription(user, club, season, subscription, product, amou
         period_end=period_end,
         reason=reason,
     )
+    from finance.subscription_invoices import SubscriptionInvoiceService
+
+    SubscriptionInvoiceService().generate_for_trainer_charge(charge)
 
 
 def purchase_rider_stats_subscription(user, rider, *, at_time=None):
@@ -289,7 +295,7 @@ def get_active_trainer_club_subscription(user, club, product, at_time=None):
     )
 
 
-def get_active_trainer_extended_subscription(user, at_time=None):
+def _get_raw_active_trainer_extended_subscription(user, at_time=None):
     if not getattr(user, "is_authenticated", False):
         return None
 
@@ -305,6 +311,56 @@ def get_active_trainer_extended_subscription(user, at_time=None):
         .order_by("-expires_at", "-id")
         .first()
     )
+
+
+def get_active_trainer_extended_subscription(user, at_time=None):
+    current_time = at_time or timezone.now()
+    _deactivate_extended_if_no_stats_access(user, at_time=current_time)
+    return _get_raw_active_trainer_extended_subscription(user, at_time=current_time)
+
+
+def _deactivate_extended_if_no_stats_access(user, *, at_time=None):
+    current_time = at_time or timezone.now()
+    extended_subscription = _get_raw_active_trainer_extended_subscription(user, at_time=current_time)
+    if extended_subscription is None:
+        return None
+
+    has_any_active_stats = TrainerClubSubscription.objects.filter(
+        user=user,
+        product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        status=TrainerClubSubscription.STATUS_ACTIVE,
+        expires_at__gt=current_time,
+    ).exists()
+    if has_any_active_stats:
+        return extended_subscription
+
+    extended_subscription.status = TrainerClubSubscription.STATUS_EXPIRED
+    extended_subscription.auto_renew = False
+    extended_subscription.canceled_at = current_time
+    extended_subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    return extended_subscription
+
+
+def _disable_extended_auto_renew_if_no_stats_auto_renew(user, *, at_time=None):
+    current_time = at_time or timezone.now()
+    extended_subscription = _get_raw_active_trainer_extended_subscription(user, at_time=current_time)
+    if extended_subscription is None:
+        return None
+
+    has_any_renewable_stats = TrainerClubSubscription.objects.filter(
+        user=user,
+        product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        status=TrainerClubSubscription.STATUS_ACTIVE,
+        expires_at__gt=current_time,
+        auto_renew=True,
+    ).exists()
+    if has_any_renewable_stats or not extended_subscription.auto_renew:
+        return extended_subscription
+
+    extended_subscription.auto_renew = False
+    extended_subscription.canceled_at = current_time
+    extended_subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    return extended_subscription
 
 
 def has_active_trainer_club_stats_access(user, club, at_time=None):
@@ -451,6 +507,9 @@ def cancel_trainer_club_subscription(subscription, *, at_time=None):
         subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
     else:
         subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+        _disable_extended_auto_renew_if_no_stats_auto_renew(subscription.user, at_time=current_time)
+        _deactivate_extended_if_no_stats_access(subscription.user, at_time=current_time)
     return subscription
 
 
@@ -503,6 +562,7 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
                     subscription.status = TrainerClubSubscription.STATUS_EXPIRED
                     subscription.auto_renew = False
                     subscription.save(update_fields=["status", "auto_renew", "updated"])
+                    _deactivate_extended_if_no_stats_access(account, at_time=current_time)
                     expired += 1
                     continue
             else:
@@ -549,6 +609,9 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
 
             account.credit = calculate_user_balance(account.pk)
             account.save(update_fields=["credit"])
+            if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+                _deactivate_extended_if_no_stats_access(account, at_time=current_time)
+                _disable_extended_auto_renew_if_no_stats_auto_renew(account, at_time=current_time)
             renewed += 1
 
     return {

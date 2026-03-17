@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EventInvoice, EventInvoiceOverride
+from .models import EventInvoice, EventInvoiceOverride, SubscriptionInvoice
 
 
 @admin.register(EventInvoice)
@@ -13,3 +13,10 @@ class EventInvoiceAdmin(admin.ModelAdmin):
 class EventInvoiceOverrideAdmin(admin.ModelAdmin):
     list_display = ("event", "club", "updated")
     search_fields = ("event__name", "club__team_name")
+
+
+@admin.register(SubscriptionInvoice)
+class SubscriptionInvoiceAdmin(admin.ModelAdmin):
+    list_display = ("number", "invoice_type", "customer_name", "issue_date", "total_price")
+    search_fields = ("number", "customer_name", "customer_email", "description")
+    list_filter = ("invoice_type", "issue_date")

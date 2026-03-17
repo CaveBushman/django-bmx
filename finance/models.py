@@ -75,3 +75,54 @@ class EventCashReceipt(models.Model):
         verbose_name = "Pokladní doklad"
         verbose_name_plural = "Pokladní doklady"
         ordering = ["-issue_date", "-created"]
+
+
+class SubscriptionInvoice(models.Model):
+    TYPE_RIDER_STATS = "rider_stats"
+    TYPE_TRAINER_CLUB = "trainer_club_stats"
+    TYPE_TRAINER_EXTENDED = "trainer_extended"
+    TYPE_CHOICES = (
+        (TYPE_RIDER_STATS, "Individuální předplatné"),
+        (TYPE_TRAINER_CLUB, "Klubové předplatné trenéra"),
+        (TYPE_TRAINER_EXTENDED, "Rozšířené předplatné trenéra"),
+    )
+
+    number = models.CharField(max_length=255, unique=True)
+    issue_date = models.DateField()
+    due_date = models.DateField()
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="subscription_invoices")
+    invoice_type = models.CharField(max_length=40, choices=TYPE_CHOICES, db_index=True)
+    description = models.CharField(max_length=255)
+    customer_name = models.CharField(max_length=255)
+    customer_email = models.EmailField(max_length=255, blank=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    rider_charge = models.OneToOneField(
+        "rider.RiderStatsCharge",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invoice",
+    )
+    trainer_charge = models.OneToOneField(
+        "rider.TrainerClubCharge",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invoice",
+    )
+    pdf = models.FileField(upload_to="subscription-invoices/pdf/", blank=True, null=True)
+    xml_export = models.FileField(upload_to="subscription-invoices/xml/", blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Faktura za předplatné"
+        verbose_name_plural = "Faktury za předplatná"
+        ordering = ["-issue_date", "-created"]
+        indexes = [
+            models.Index(fields=["user", "issue_date"], name="subinv_user_issue_idx"),
+            models.Index(fields=["invoice_type", "issue_date"], name="subinv_type_issue_idx"),
+        ]
+
+    def __str__(self):
+        return f"Faktura {self.number}"
