@@ -41,14 +41,20 @@ from openpyxl import Workbook
 from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
+    cancel_trainer_club_subscription,
     get_active_rider_stats_subscription,
+    get_active_trainer_club_subscription,
     get_active_trainer_extended_subscription,
     get_current_season_settings,
-    has_active_rider_stats_access,
+    has_active_trainer_club_stats_access,
+    purchase_trainer_club_subscription,
     purchase_rider_stats_subscription,
+    resume_trainer_club_subscription,
     resume_rider_stats_subscription,
 )
 from rider.models import RiderStatsSubscription, TrainerClubSubscription
+from finance.models import SubscriptionInvoice
+from finance.subscription_invoices import SubscriptionInvoiceService
 
 # Global variables
 now = date.today().year
@@ -119,12 +125,145 @@ SPLIT_TABLE_COLUMNS = [
     ("FINAL", "F"),
     ("DAY_MEDIAN", "Medián Inter2"),
 ]
+KPI_PERIOD_OPTIONS = [
+    {"value": "1", "label": "1 rok"},
+    {"value": "2", "label": "2 roky"},
+    {"value": "3", "label": "3 roky"},
+    {"value": "5", "label": "5 let"},
+    {"value": "all", "label": "Celá historie"},
+]
+
+
+def _get_trainer_club_stats_subscription_for_rider(user, rider, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return None
+    if rider.club_id is None:
+        return None
+    if not has_active_trainer_club_stats_access(user, rider.club, at_time=at_time):
+        return None
+    return get_active_trainer_club_subscription(
+        user,
+        rider.club,
+        TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        at_time=at_time,
+    )
+
+
+def _get_premium_access_context(user, rider, at_time=None):
+    individual_subscription = get_active_rider_stats_subscription(user, rider, at_time=at_time)
+    trainer_club_subscription = _get_trainer_club_stats_subscription_for_rider(user, rider, at_time=at_time)
+    premium_access_via_admin = can_manage_premium_stats(user)
+    premium_access_via_individual = individual_subscription is not None
+    premium_access_via_trainer_club = trainer_club_subscription is not None
+    return {
+        "premium_access": premium_access_via_admin or premium_access_via_individual or premium_access_via_trainer_club,
+        "premium_access_via_admin": premium_access_via_admin,
+        "premium_access_via_individual": premium_access_via_individual,
+        "premium_access_via_trainer_club": premium_access_via_trainer_club,
+        "active_subscription": individual_subscription,
+        "trainer_club_subscription": trainer_club_subscription,
+    }
+
+
+def _resolve_kpi_period(period_value):
+    if period_value == "all":
+        return {
+            "value": "all",
+            "label": "Celá historie",
+            "cutoff": None,
+        }
+
+    if period_value not in {"1", "2", "3", "5"}:
+        period_value = "2"
+
+    years = int(period_value)
+    return {
+        "value": period_value,
+        "label": f"{years} rok" if years == 1 else (f"{years} roky" if years in {2, 3, 4} else f"{years} let"),
+        "cutoff": timezone.localdate() - datetime.timedelta(days=years * 365),
+    }
 
 
 @trainer_dashboard_required
 def trainer_dashboard_view(request):
     account = request.user
     now = timezone.now()
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "purchase-extended":
+            anchor_club = account.trainer_clubs.filter(is_active=True).order_by("team_name").first()
+            if anchor_club is None:
+                messages.error(request, "Pro rozšířené trenérské předplatné musí být k účtu přiřazený alespoň jeden aktivní klub.")
+            else:
+                try:
+                    subscription, created = purchase_trainer_club_subscription(
+                        account,
+                        club=anchor_club,
+                        product=TrainerClubSubscription.PRODUCT_EXTENDED,
+                    )
+                except ValueError as error:
+                    messages.error(request, str(error))
+                else:
+                    if created:
+                        messages.success(
+                            request,
+                            f"Rozšířené trenérské předplatné je aktivní do {timezone.localtime(subscription.expires_at):%d.%m.%Y %H:%M}.",
+                        )
+                    else:
+                        messages.info(request, "Rozšířené trenérské předplatné už máš aktivní.")
+            return redirect("rider:trainer-dashboard")
+
+        if action in {"disable-extended-renew", "enable-extended-renew"}:
+            subscription = get_object_or_404(
+                TrainerClubSubscription,
+                pk=request.POST.get("subscription_id"),
+                user=account,
+                product=TrainerClubSubscription.PRODUCT_EXTENDED,
+            )
+            if action == "disable-extended-renew":
+                cancel_trainer_club_subscription(subscription)
+                messages.success(request, "Automatické obnovování rozšířeného trenérského předplatného bylo vypnuto.")
+            else:
+                resume_trainer_club_subscription(subscription)
+                messages.success(request, "Automatické obnovování rozšířeného trenérského předplatného bylo zapnuto.")
+            return redirect("rider:trainer-dashboard")
+
+        if action == "purchase-stats":
+            club = get_object_or_404(Club, pk=request.POST.get("club_id"), is_active=True)
+            try:
+                subscription, created = purchase_trainer_club_subscription(
+                    account,
+                    club=club,
+                    product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+                )
+            except ValueError as error:
+                messages.error(request, str(error))
+            else:
+                if created:
+                    messages.success(
+                        request,
+                        f"Klubové stats pro {club.team_name} jsou aktivní do {timezone.localtime(subscription.expires_at):%d.%m.%Y %H:%M}.",
+                    )
+                else:
+                    messages.info(request, f"Klubové stats pro {club.team_name} už máš aktivní.")
+            return redirect("rider:trainer-dashboard")
+
+        if action in {"disable-stats-renew", "enable-stats-renew"}:
+            subscription = get_object_or_404(
+                TrainerClubSubscription.objects.select_related("club"),
+                pk=request.POST.get("subscription_id"),
+                user=account,
+                product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+            )
+            if action == "disable-stats-renew":
+                cancel_trainer_club_subscription(subscription)
+                messages.success(request, f"Automatické obnovování stats pro {subscription.club.team_name} bylo vypnuto.")
+            else:
+                resume_trainer_club_subscription(subscription)
+                messages.success(request, f"Automatické obnovování stats pro {subscription.club.team_name} bylo zapnuto.")
+            return redirect("rider:trainer-dashboard")
+
     season_settings = get_current_season_settings()
     trainer_clubs = list(account.trainer_clubs.filter(is_active=True).order_by("team_name"))
 
@@ -148,6 +287,8 @@ def trainer_dashboard_view(request):
                 "expires_at": None,
                 "status": None,
                 "auto_renew": False,
+                "is_simulated": False,
+                "subscription_id": None,
             }
         is_active = (
             subscription.status == TrainerClubSubscription.STATUS_ACTIVE
@@ -159,17 +300,28 @@ def trainer_dashboard_view(request):
             "expires_at": subscription.expires_at,
             "status": subscription.status,
             "auto_renew": subscription.auto_renew,
+            "is_simulated": False,
+            "subscription_id": subscription.id,
         }
 
     club_rows = []
     global_extended_subscription = get_active_trainer_extended_subscription(account, at_time=now)
     global_extended_info = serialize_subscription(global_extended_subscription)
+    global_extended_info["requires_active_stats"] = True
+    global_extended_info["has_required_stats"] = False
+    global_extended_info["purchase_block_reason"] = None
+    global_extended_info["can_purchase"] = getattr(account, "is_trainer", False) and not global_extended_info["is_active"]
+    global_extended_info["can_disable_renew"] = global_extended_info["is_active"] and global_extended_info["auto_renew"]
+    global_extended_info["can_enable_renew"] = global_extended_info["is_active"] and not global_extended_info["auto_renew"]
     active_stats_count = 0
     for club in trainer_clubs:
         stats_subscription = latest_by_club_product.get((club.id, TrainerClubSubscription.PRODUCT_CLUB_STATS))
         stats_info = serialize_subscription(stats_subscription)
         if stats_info["is_active"]:
             active_stats_count += 1
+        stats_info["can_purchase"] = getattr(account, "is_trainer", False) and not stats_info["is_active"] and not stats_info["is_simulated"]
+        stats_info["can_disable_renew"] = stats_info["is_active"] and stats_info["auto_renew"] and not stats_info["is_simulated"]
+        stats_info["can_enable_renew"] = stats_info["is_active"] and not stats_info["auto_renew"] and not stats_info["is_simulated"]
         club_rows.append(
             {
                 "club": club,
@@ -177,12 +329,18 @@ def trainer_dashboard_view(request):
             }
         )
 
+    global_extended_info["has_required_stats"] = active_stats_count > 0
+    if global_extended_info["can_purchase"] and not global_extended_info["has_required_stats"]:
+        global_extended_info["can_purchase"] = False
+        global_extended_info["purchase_block_reason"] = "Extended lze aktivovat až po předplacení stats alespoň u jednoho klubu."
+
     context = {
         "season_settings": season_settings,
         "trainer_clubs": club_rows,
         "trainer_clubs_count": len(club_rows),
         "active_stats_count": active_stats_count,
         "global_extended_info": global_extended_info,
+        "can_manage_trainer_subscriptions": getattr(account, "is_trainer", False),
     }
     return render(request, "rider/trainer-dashboard.html", context)
 
@@ -250,20 +408,16 @@ def rider_detail_view(request, pk):
         date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
     ).order_by("date")
     season_settings = get_current_season_settings()
-    premium_access_via_admin = can_manage_premium_stats(request.user)
-    premium_access = premium_access_via_admin or has_active_rider_stats_access(request.user, rider)
-    active_subscription = get_active_rider_stats_subscription(request.user, rider)
+    premium_access_context = _get_premium_access_context(request.user, rider)
     premium_runs_count = RaceRun.objects.filter(rider=rider).count()
     data = {
         "rider": rider,
         "results": results,
-        "premium_access": premium_access,
-        "premium_access_via_admin": premium_access_via_admin,
-        "active_subscription": active_subscription,
+        **premium_access_context,
         "premium_runs_count": premium_runs_count,
         "premium_price": season_settings.rider_stats_monthly_price if season_settings else None,
         "can_manage_premium_stats": can_manage_premium_stats(request.user),
-        "can_buy_premium_stats": request.user.is_authenticated and not premium_access_via_admin,
+        "can_buy_premium_stats": request.user.is_authenticated and not premium_access_context["premium_access_via_admin"],
     }
     return render(request, "rider/rider-detail.html", data)
 
@@ -344,6 +498,18 @@ def _get_table_column_key(run):
     return None
 
 
+def _matches_wheel_filter(result_or_run, wheel):
+    if wheel not in {"20", "24"}:
+        return True
+
+    if hasattr(result_or_run, "result"):
+        is_20 = bool(result_or_run.result and result_or_run.result.is_20)
+    else:
+        is_20 = bool(result_or_run.is_20)
+
+    return is_20 if wheel == "20" else not is_20
+
+
 def _build_chart_series(raw_event_rows, event_times, value_key):
     chart_events = []
     for item in raw_event_rows:
@@ -411,9 +577,8 @@ def _build_chart_series(raw_event_rows, event_times, value_key):
     }
 
 
-def _build_track_options(results, runs):
+def _build_track_options(results, runs, kpi_cutoff=None):
     track_map = {}
-    kpi_cutoff = timezone.localdate() - datetime.timedelta(days=730)
 
     def ensure_track(track_id, track_name):
         return track_map.setdefault(
@@ -438,7 +603,7 @@ def _build_track_options(results, runs):
         if result.event_id:
             item["event_ids"].add(result.event_id)
         item["results_count"] += 1
-        if item["best_result"] is None or result.place < item["best_result"]:
+        if result.place is not None and (item["best_result"] is None or result.place < item["best_result"]):
             item["best_result"] = result.place
 
     for run in runs:
@@ -449,7 +614,7 @@ def _build_track_options(results, runs):
         if run.event_id:
             item["event_ids"].add(run.event_id)
         item["runs_count"] += 1
-        if run.finish_time is not None and run.event and run.event.date and run.event.date >= kpi_cutoff:
+        if run.finish_time is not None and run.event and run.event.date and (kpi_cutoff is None or run.event.date >= kpi_cutoff):
             item["recent_timed_runs_count"] += 1
 
     track_options = []
@@ -461,18 +626,25 @@ def _build_track_options(results, runs):
     return sorted(track_options, key=lambda item: (-item["runs_count"], item["name"]))
 
 
-def _build_track_stats(rider, selected_track, all_results, all_runs):
+def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None, kpi_cutoff=None, kpi_label="2 roky"):
     if selected_track is None:
         return None
 
     track_results = [result for result in all_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
     track_runs = [run for run in all_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
-    kpi_cutoff = timezone.localdate() - datetime.timedelta(days=730)
-    recent_track_results = [result for result in track_results if result.date and result.date >= kpi_cutoff]
+    track_has_20 = any(result.is_20 for result in track_results) or any(run.result and run.result.is_20 for run in track_runs)
+    track_has_24 = any(not result.is_20 for result in track_results) or any(run.result and not run.result.is_20 for run in track_runs)
+
+    if wheel in {"20", "24"}:
+        track_results = [result for result in track_results if _matches_wheel_filter(result, wheel)]
+        track_runs = [run for run in track_runs if _matches_wheel_filter(run, wheel)]
+
+    overall_results = [result for result in all_results if _matches_wheel_filter(result, wheel)]
+    recent_track_results = [result for result in track_results if result.date and (kpi_cutoff is None or result.date >= kpi_cutoff)]
     recent_track_runs = [
         run
         for run in track_runs
-        if run.event and run.event.date and run.event.date >= kpi_cutoff
+        if run.event and run.event.date and (kpi_cutoff is None or run.event.date >= kpi_cutoff)
     ]
     event_metrics = defaultdict(
         lambda: {
@@ -527,8 +699,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             if finish_time is not None:
                 final_finish_times.append(float(finish_time))
 
-    track_place_values = [result.place for result in recent_track_results if result.place]
-    overall_place_values = [result.place for result in all_results if result.place]
+    track_place_values = [result.place for result in recent_track_results if result.place is not None]
+    overall_place_values = [result.place for result in overall_results if result.place is not None]
     events_count = len({result.event_id for result in recent_track_results if result.event_id})
     events_with_motos = sum(1 for item in event_metrics.values() if item["moto_places"])
     events_with_final_stage = sum(1 for item in event_metrics.values() if item["final_places"])
@@ -819,8 +991,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
 
     split_chart = _build_chart_series(raw_split_event_rows, event_split_times, "median_split_time")
 
-    compare_is_20 = any(result.is_20 and not result.is_beginner for result in recent_track_results)
-    compare_is_24 = any((not result.is_20) and not result.is_beginner for result in recent_track_results)
+    compare_is_20 = wheel == "20" or any(result.is_20 and not result.is_beginner for result in recent_track_results)
+    compare_is_24 = wheel == "24" or any((not result.is_20) and not result.is_beginner for result in recent_track_results)
     uci_category = None
     peer_label = None
     peer_place_percentile = None
@@ -833,7 +1005,6 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         peer_results = (
             Result.objects.filter(
                 event__organizer_id=selected_track["id"],
-                date__gte=kpi_cutoff,
                 rider__class_20=uci_category,
                 is_20=True,
                 is_beginner=False,
@@ -842,10 +1013,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             .exclude(rider_id=rider.uci_id)
             .select_related("rider")
         )
+        if kpi_cutoff is not None:
+            peer_results = peer_results.filter(date__gte=kpi_cutoff)
         peer_runs = (
             RaceRun.objects.filter(
                 event__organizer_id=selected_track["id"],
-                event__date__gte=kpi_cutoff,
                 result__is_20=True,
                 result__is_beginner=False,
                 rider__class_20=uci_category,
@@ -854,13 +1026,14 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             .exclude(rider_id=rider.id)
             .select_related("rider", "result")
         )
+        if kpi_cutoff is not None:
+            peer_runs = peer_runs.filter(event__date__gte=kpi_cutoff)
     elif compare_is_24:
         uci_category = rider.class_24
         peer_label = f"{uci_category} (24\")"
         peer_results = (
             Result.objects.filter(
                 event__organizer_id=selected_track["id"],
-                date__gte=kpi_cutoff,
                 rider__class_24=uci_category,
                 is_20=False,
                 is_beginner=False,
@@ -869,10 +1042,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             .exclude(rider_id=rider.uci_id)
             .select_related("rider")
         )
+        if kpi_cutoff is not None:
+            peer_results = peer_results.filter(date__gte=kpi_cutoff)
         peer_runs = (
             RaceRun.objects.filter(
                 event__organizer_id=selected_track["id"],
-                event__date__gte=kpi_cutoff,
                 result__is_20=False,
                 result__is_beginner=False,
                 rider__class_24=uci_category,
@@ -881,6 +1055,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             .exclude(rider_id=rider.id)
             .select_related("rider", "result")
         )
+        if kpi_cutoff is not None:
+            peer_runs = peer_runs.filter(event__date__gte=kpi_cutoff)
     else:
         peer_results = Result.objects.none()
         peer_runs = RaceRun.objects.none()
@@ -888,7 +1064,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
     if uci_category:
         peer_places_by_rider = defaultdict(list)
         for result in peer_results:
-            if result.rider_id:
+            if result.rider_id and result.place is not None:
                 peer_places_by_rider[result.rider_id].append(result.place)
 
         peer_finish_by_rider = defaultdict(list)
@@ -906,7 +1082,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
     return {
         "track_results": track_results,
         "track_runs": track_runs,
+        "wheel": wheel,
+        "track_has_20": track_has_20,
+        "track_has_24": track_has_24,
         "kpi_cutoff": kpi_cutoff,
+        "kpi_label": kpi_label,
         "total_starts_count": len({result.event_id for result in track_results if result.event_id}),
         "recent_track_results_count": len(recent_track_results),
         "recent_track_runs_count": len(recent_track_runs),
@@ -972,9 +1152,13 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
 @login_required
 def rider_premium_stats_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
-    has_admin_access = can_manage_premium_stats(request.user)
-    if not has_admin_access and not has_active_rider_stats_access(request.user, rider):
-        messages.error(request, "Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce.")
+    premium_access_context = _get_premium_access_context(request.user, rider)
+    has_admin_access = premium_access_context["premium_access_via_admin"]
+    if not premium_access_context["premium_access"]:
+        messages.error(
+            request,
+            "Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub.",
+        )
         return redirect("rider:detail", pk=pk)
 
     runs = list(
@@ -987,20 +1171,53 @@ def rider_premium_stats_view(request, pk):
         .select_related("event", "event__organizer")
         .order_by("-date", "-id")
     )
-    track_options = _build_track_options(results, runs)
+    kpi_period = _resolve_kpi_period(request.GET.get("years"))
+    track_options = _build_track_options(results, runs, kpi_cutoff=kpi_period["cutoff"])
     selected_track_id = request.GET.get("track")
+    selected_wheel = request.GET.get("wheel")
+    if selected_wheel not in {"20", "24"}:
+        selected_wheel = None
     selected_track = None
+    require_wheel_selection = False
     if selected_track_id and selected_track_id.isdigit():
         selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
-    track_stats = _build_track_stats(rider, selected_track, results, runs)
-    subscription = None if has_admin_access else get_active_rider_stats_subscription(request.user, rider)
+    if selected_track is not None:
+        track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
+        track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+        available_wheels = []
+        if any(result.is_20 for result in track_results) or any(run.result and run.result.is_20 for run in track_runs):
+            available_wheels.append({"value": "20", "label": '20"'})
+        if any(not result.is_20 for result in track_results) or any(run.result and not run.result.is_20 for run in track_runs):
+            available_wheels.append({"value": "24", "label": '24"'})
+        if selected_wheel is None and len(available_wheels) == 1:
+            selected_wheel = available_wheels[0]["value"]
+        elif selected_wheel is None and len(available_wheels) > 1:
+            require_wheel_selection = True
+    else:
+        available_wheels = []
+    track_stats = None if require_wheel_selection else _build_track_stats(
+        rider,
+        selected_track,
+        results,
+        runs,
+        wheel=selected_wheel,
+        kpi_cutoff=kpi_period["cutoff"],
+        kpi_label=kpi_period["label"],
+    )
     data = {
         "rider": rider,
         "runs": runs,
-        "subscription": subscription,
+        "subscription": premium_access_context["active_subscription"],
+        "trainer_club_subscription": premium_access_context["trainer_club_subscription"],
         "has_admin_access": has_admin_access,
+        "has_trainer_club_access": premium_access_context["premium_access_via_trainer_club"],
+        "kpi_period": kpi_period,
+        "kpi_period_options": KPI_PERIOD_OPTIONS,
         "track_options": track_options,
         "selected_track": selected_track,
+        "available_wheels": available_wheels,
+        "selected_wheel": selected_wheel,
+        "require_wheel_selection": require_wheel_selection,
         "track_stats": track_stats,
     }
     return render(request, "rider/rider-premium-stats.html", data)
@@ -1050,6 +1267,34 @@ def rider_premium_subscriptions_view(request):
         request,
         "rider/rider-premium-subscriptions.html",
         {"subscriptions": subscriptions},
+    )
+
+
+@login_required
+def account_settings_invoices_view(request):
+    SubscriptionInvoiceService().ensure_for_user(request.user)
+    invoices = list(
+        SubscriptionInvoice.objects.filter(user=request.user)
+        .order_by("-issue_date", "-created")
+    )
+    individual_subscriptions = (
+        RiderStatsSubscription.objects.filter(user=request.user)
+        .select_related("rider")
+        .order_by("-expires_at", "rider__last_name", "rider__first_name")[:5]
+    )
+    trainer_subscriptions = (
+        TrainerClubSubscription.objects.filter(user=request.user)
+        .select_related("club")
+        .order_by("-expires_at", "club__team_name")[:8]
+    )
+    return render(
+        request,
+        "rider/account-settings-invoices.html",
+        {
+            "invoices": invoices,
+            "individual_subscriptions": individual_subscriptions,
+            "trainer_subscriptions": trainer_subscriptions,
+        },
     )
 
 

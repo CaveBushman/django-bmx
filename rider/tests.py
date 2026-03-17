@@ -15,6 +15,7 @@ from rider.models import (
     TrainerClubSubscription,
 )
 from rider.subscriptions import (
+    cancel_trainer_club_subscription,
     get_active_trainer_extended_subscription,
     has_active_trainer_club_extended_access,
     has_active_trainer_club_stats_access,
@@ -320,3 +321,43 @@ class TrainerClubSubscriptionTests(TestCase):
                 self.club,
                 TrainerClubSubscription.PRODUCT_EXTENDED,
             )
+
+    def test_disabling_last_stats_auto_renew_disables_extended_auto_renew(self):
+        stats_subscription, _ = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        extended_subscription, _ = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        self.assertTrue(extended_subscription.auto_renew)
+        cancel_trainer_club_subscription(stats_subscription)
+        extended_subscription.refresh_from_db()
+
+        self.assertFalse(extended_subscription.auto_renew)
+
+    def test_extended_expires_when_no_active_stats_remain(self):
+        stats_subscription, _ = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        extended_subscription, _ = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        stats_subscription.expires_at = timezone.now() - timedelta(minutes=1)
+        stats_subscription.save(update_fields=["expires_at", "updated"])
+
+        active_extended = get_active_trainer_extended_subscription(self.user)
+        extended_subscription.refresh_from_db()
+
+        self.assertIsNone(active_extended)
+        self.assertEqual(extended_subscription.status, TrainerClubSubscription.STATUS_EXPIRED)
+        self.assertFalse(extended_subscription.auto_renew)

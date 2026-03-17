@@ -65,6 +65,39 @@
 
   <!--==== BLOCK CONTENT ====-->
   <div class="mt-16">
+    {% if messages %}
+    <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+      <div class="space-y-3" id="flash-messages">
+        {% for message in messages %}
+        <div class="rounded-md bg-yellow-50 p-4 transition-opacity duration-500 dark:bg-yellow-500/10 dark:outline dark:outline-yellow-500/15" data-flash-message>
+          <div class="flex">
+            <div class="shrink-0">
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 text-yellow-400 dark:text-yellow-300">
+                <path d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" fill-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-100">
+                {% if message.tags == 'success' %}
+                Hotovo
+                {% elif message.tags == 'error' %}
+                Chyba
+                {% elif message.tags == 'warning' %}
+                Pozor
+                {% else %}
+                Informace
+                {% endif %}
+              </h3>
+              <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-100/80">
+                <p>{{ message }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
     {% block content %}
     {% endblock content %}
   </div>
@@ -78,6 +111,21 @@
   <script src="{% static 'js/theme.js' %}?v=4"></script>
   <script src="{% static 'js/navbar.js' %}"></script>
   <script src="https://unpkg.com/flowbite@1.4.5/dist/flowbite.js"></script>
+  <script>
+    (function () {
+      var flashMessages = document.querySelectorAll("[data-flash-message]");
+      if (!flashMessages.length) return;
+
+      window.setTimeout(function () {
+        flashMessages.forEach(function (message) {
+          message.classList.add("opacity-0");
+          window.setTimeout(function () {
+            message.remove();
+          }, 500);
+        });
+      }, 3000);
+    })();
+  </script>
 
 </body>
 

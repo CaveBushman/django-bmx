@@ -287,10 +287,22 @@
           <div class="rider-premium-panel flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950/60">
             {% if premium_access %}
             <div class="flex items-start justify-between gap-3">
-              <span class="rider-premium-badge is-active">{% if premium_access_via_admin %}Admin přístup{% else %}Aktivní předplatné{% endif %}</span>
+              <span class="rider-premium-badge is-active">
+                {% if premium_access_via_trainer_club %}
+                Trenérský přístup klubu
+                {% elif premium_access_via_admin %}
+                Admin přístup
+                {% else %}
+                Aktivní předplatné
+                {% endif %}
+              </span>
               {% if active_subscription %}
               <span class="text-right text-xs font-medium text-slate-500 dark:text-slate-400">
                 do {{ active_subscription.expires_at|date:"d.m.Y H:i" }}
+              </span>
+              {% elif trainer_club_subscription %}
+              <span class="text-right text-xs font-medium text-slate-500 dark:text-slate-400">
+                klub do {{ trainer_club_subscription.expires_at|date:"d.m.Y H:i" }}
               </span>
               {% endif %}
             </div>
@@ -298,7 +310,9 @@
               Otevřít prémiové statistiky
             </a>
             <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
-              {% if premium_access_via_admin %}
+              {% if premium_access_via_trainer_club %}
+              Přístup ke kompletním časům z tratí je aktivní přes trenérské klubové předplatné jezdce.
+              {% elif premium_access_via_admin %}
               Administrátor má ke kompletním prémiovým statistikám přístup bez předplatného.
               {% else %}
               Přístup ke kompletním časům z tratí je právě aktivní.
