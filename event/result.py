@@ -230,6 +230,7 @@ class GetResult:
 
         result.save()
         logger.info(f"Výsledek uložen: {self.first_name} {self.last_name}, místo: {self.place}")
+        return result
 
     @staticmethod
     def ranking_code_resolve(type):

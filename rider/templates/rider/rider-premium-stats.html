@@ -3,7 +3,7 @@
 {% block content %}
 <section class="min-h-screen bg-slate-50 pb-16 pt-10 dark:bg-slate-900">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 pb-10 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Prémiové statistiky</p>
@@ -14,6 +14,10 @@
           <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
             Aktivní do {{ subscription.expires_at|date:"d.m.Y H:i" }}
           </p>
+          {% elif has_admin_access %}
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Administrátorský přístup bez omezení předplatným.
+          </p>
           {% endif %}
         </div>
         <a href="{% url 'rider:detail' rider.uci_id %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">
@@ -21,7 +25,225 @@
         </a>
       </div>
 
-      {% if runs %}
+      {% if track_options %}
+      <div class="mt-8">
+        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Výběr tratě / klubu</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">
+              Vyber trať a zobrazí se agregované KPI a poslední výsledky jezdce na dané dráze.
+            </p>
+          </div>
+          <form method="get" class="w-full md:max-w-md">
+            <label for="track-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+              Trať / klub
+            </label>
+            <select
+              id="track-select"
+              name="track"
+              onchange="this.form.submit()"
+              class="block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
+            >
+              <option value="">Vyber trať</option>
+              {% for track in track_options %}
+              <option value="{{ track.id }}"{% if selected_track and selected_track.id == track.id %} selected{% endif %}>
+                {{ track.name }} | {{ track.starts_count }} závodů | KPI {{ track.recent_timed_runs_count }} měřených jízd{% if track.best_result %} | Best #{{ track.best_result }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+      </div>
+
+      {% if selected_track and track_stats %}
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 pb-16 dark:border-slate-700 dark:bg-slate-950">
+        <div class="flex flex-col gap-6">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Traťový profil</p>
+            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ selected_track.name }}</h2>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
+              Prémiové KPI a trend výkonu jezdce na této konkrétní trati.
+            </p>
+            <p class="mt-3 inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+              KPI a srovnání počítáme jen z posledních 2 let, od {{ track_stats.kpi_cutoff|date:"d.m.Y" }}. Graf a tabulka zůstávají za celou historii.
+            </p>
+          </div>
+          <div class="grid w-full grid-cols-4 gap-4">
+            <div class="min-w-0 rounded-2xl bg-white px-5 py-4 shadow-sm dark:bg-slate-900">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Starty</p>
+                <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Starty" data-help-body="Hlavní číslo ukazuje počet startů na této trati za poslední 2 roky. Druhý řádek ukazuje celkový počet startů v celé historii.">i</button>
+              </div>
+              <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.starts_count }}</p>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">Celkem {{ track_stats.total_starts_count }}</p>
+            </div>
+            <div class="min-w-0 rounded-2xl bg-white px-5 py-4 shadow-sm dark:bg-slate-900">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Final rate</p>
+                <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Final rate" data-help-body="Podíl závodů z posledních 2 let, ve kterých jezdec jel finále. Počítá se jako počet závodů s jízdou FINAL dělený počtem startů za 2 roky na této trati.">i</button>
+              </div>
+              <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.final_rate|default:"-" }}{% if track_stats.final_rate %}%{% endif %}</p>
+            </div>
+            <div class="min-w-0 rounded-2xl bg-white px-5 py-4 shadow-sm dark:bg-slate-900">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Podium rate</p>
+                <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Podium rate" data-help-body="Podíl výsledků z posledních 2 let na této trati, kde jezdec skončil na 1. až 3. místě.">i</button>
+              </div>
+              <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.podium_rate|default:"-" }}{% if track_stats.podium_rate %}%{% endif %}</p>
+            </div>
+            <div class="min-w-0 rounded-2xl bg-white px-5 py-4 shadow-sm dark:bg-slate-900">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Best result</p>
+                <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Best result" data-help-body="Nejlepší celkové umístění v závodě na této trati za poslední 2 roky. Nižší číslo je lepší.">i</button>
+              </div>
+              <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.best_result|default:"-" }}</p>
+            </div>
+          </div>
+        </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Průměrné umístění v motos</p>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Průměrné umístění v motos" data-help-body="Průměr umístění ve všech moto jízdách za poslední 2 roky na této trati. Na druhém řádku je průměr finálových jízd.">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.average_moto_place|default:"-" }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">Finálové jízdy: {{ track_stats.average_final_place|default:"-" }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Finish time</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Finish time" data-help-body="Průměr všech dostupných cílových časů za poslední 2 roky na této trati. Dole je nejlepší a medián cílového času.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.average_finish_time|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">Best {{ track_stats.best_finish_time|default:"-" }} | Median {{ track_stats.median_finish_time|default:"-" }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Conversion / Recovery</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Conversion / Recovery" data-help-body="Conversion ukazuje, jak často jezdec promění silné motos v celkový výsledek do 3. místa. Recovery ukazuje, jak často po slabším startu skončí lépe než naznačují motos. Obojí za poslední 2 roky.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.conversion_score|default:"-" }}{% if track_stats.conversion_score %}%{% endif %}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">Recovery {{ track_stats.recovery_score|default:"-" }}{% if track_stats.recovery_score %}%{% endif %}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Pressure / Affinity</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Pressure / Affinity" data-help-body="Pressure score porovnává průměr v motos a ve finálových jízdách. Affinity říká, jestli jsou výsledky na této trati lepší nebo horší než jezdcův celkový průměr.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.pressure_score|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">{{ track_stats.track_affinity_label|default:"-" }}{% if track_stats.track_affinity_delta %} ({{ track_stats.track_affinity_delta }}){% endif %}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Stability score</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Stability score" data-help-body="Stability score kombinuje rozptyl umístění, rozptyl časů a počet problémových jízd. Čím vyšší číslo, tím stabilnější výkon. Risk pod tím ukazuje opačný pohled.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.stability_score|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">Risk {{ track_stats.risk_score|default:"-" }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Postup z motos</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Postup z motos" data-help-body="Podíl závodů za poslední 2 roky, kde se jezdec z motos dostal do vyřazovacích nebo finálových jízd. Dole je počet všech takových jízd.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.progression_rate|default:"-" }}{% if track_stats.progression_rate %}%{% endif %}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">{{ track_stats.final_runs_count }} finálových jízd</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Čisté jízdy</p>
+              <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Čisté jízdy" data-help-body="Podíl jízd za poslední 2 roky bez DNF, DNS, DSQ nebo REL. Dole je počet problémových jízd.">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.clean_run_rate|default:"-" }}{% if track_stats.clean_run_rate %}%{% endif %}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">{{ track_stats.bad_status_count }}x DNF/DNS/DSQ/REL</p>
+          </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Trend</p>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="Trend" data-help-body="Trend porovnává poslední a předchozí závod na této trati jen podle změny mediánu cílových časů. Pokud nejsou aspoň dva závody s časem, ukáže se málo dat.">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ track_stats.trend_label }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">{{ track_stats.trend_detail }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">UCI srovnání pořadí</p>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="UCI srovnání pořadí" data-help-body="Porovnání s ostatními stejně starými jezdci na stejné trati za poslední 2 roky. Vychází z průměrného celkového umístění v závodech.">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+            {% if track_stats.peer_place_percentile is not None %}o {{ track_stats.peer_place_percentile }}%{% else %}-{% endif %}
+          </p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Lepší než tolik stejně starých jezdců
+          </p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">UCI srovnání času</p>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-indigo-300" data-help-title="UCI srovnání času" data-help-body="Porovnání s ostatními stejně starými jezdci na stejné trati za poslední 2 roky. Vychází z mediánu všech dostupných cílových časů.">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+            {% if track_stats.peer_finish_percentile is not None %}o {{ track_stats.peer_finish_percentile }}%{% else %}-{% endif %}
+          </p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-300">
+            Lepší medián času než tolik stejně starých jezdců
+          </p>
+        </div>
+      </div>
+      </div>
+
+      <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Trend závodů</p>
+            <h3 class="mt-2 text-xl font-black text-slate-900 dark:text-white">Medián cílových časů podle závodu</h3>
+          </div>
+          {% if track_stats.chart_points %}
+          <p class="text-sm text-slate-500 dark:text-slate-300">
+            Rozsah {{ track_stats.chart_min_time }} s až {{ track_stats.chart_max_time }} s
+          </p>
+          {% endif %}
+        </div>
+
+        {% if track_stats.chart_points %}
+        <div class="mt-5 overflow-x-auto">
+          <svg viewBox="0 0 1000 240" class="min-w-[960px]">
+            <line x1="56" y1="216" x2="976" y2="216" stroke="rgba(148,163,184,0.45)" stroke-width="1" />
+            <line x1="56" y1="24" x2="56" y2="216" stroke="rgba(148,163,184,0.45)" stroke-width="1" />
+            {% for tick in track_stats.chart_y_ticks %}
+            <line x1="56" y1="{{ tick.y }}" x2="976" y2="{{ tick.y }}" stroke="rgba(226,232,240,0.7)" stroke-width="1" />
+            <text x="48" y="{{ tick.y|add:'4' }}" text-anchor="end" font-size="11" fill="#64748b">{{ tick.label }}</text>
+            {% endfor %}
+            <polyline
+              fill="none"
+              stroke="#4f46e5"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              points="{{ track_stats.chart_polyline }}"
+            />
+            {% for point in track_stats.chart_points %}
+            <circle cx="{{ point.x }}" cy="{{ point.y }}" r="5" fill="#4f46e5" />
+            <title>{{ point.label }}: medián {{ point.median_time }} s</title>
+            {% endfor %}
+          </svg>
+          <div class="mt-3 grid text-xs text-slate-500 dark:text-slate-400" style="grid-template-columns: repeat({{ track_stats.chart_points|length }}, minmax(0, 1fr)); min-width: 960px;">
+            {% for point in track_stats.chart_points %}
+            <div class="text-center">{{ point.short_label }}</div>
+            {% endfor %}
+          </div>
+          <div class="mt-2 text-right text-xs text-slate-500 dark:text-slate-400 min-w-[960px]">
+            Datum závodu
+          </div>
+        </div>
+        {% else %}
+        <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+          Pro vykreslení trendu zatím nejsou na této trati dostupné časy závodů.
+        </div>
+        {% endif %}
+      </div>
+
       <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white text-sm dark:bg-slate-900">
@@ -29,37 +251,41 @@
               <tr>
                 <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
                 <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Závod</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Fáze</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kolo</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dráha</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cíl</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Hill</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 1</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 2</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 3</th>
-                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Split 4</th>
+                {% for column_key, column_label in track_stats.table_columns %}
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ column_label }}</th>
+                {% endfor %}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
-              {% for run in runs %}
+              {% for event_row in track_stats.event_rows %}
               <tr class="text-slate-700 dark:text-slate-200">
-                <td class="whitespace-nowrap px-4 py-3">{{ run.event.date|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.event.name|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.round_type }}</td>
-                <td class="px-4 py-3">{{ run.round_number|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.lane|default:"-" }}</td>
-                <td class="px-4 py-3 font-semibold">{{ run.finish_time|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.hill_time|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.split_1|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.split_2|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.split_3|default:"-" }}</td>
-                <td class="px-4 py-3">{{ run.split_4|default:"-" }}</td>
+                <td class="whitespace-nowrap px-4 py-3 align-top">{{ event_row.date|default:"-" }}</td>
+                <td class="px-4 py-3 align-top font-medium">{{ event_row.event_name }}</td>
+                {% for cell in event_row.cells %}
+                <td class="whitespace-nowrap px-4 py-3 align-top">
+                  {% if cell.value %}
+                  <div class="font-semibold text-slate-900 dark:text-white">{{ cell.value.place }}</div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">{{ cell.value.time|default:"-" }}</div>
+                  {% else %}
+                  <span class="text-slate-300 dark:text-slate-600">-</span>
+                  {% endif %}
+                </td>
+                {% endfor %}
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
+      {% elif selected_track %}
+      <div class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        Pro vybranou trať zatím nejsou uložené žádné detailní jízdy.
+      </div>
+      {% else %}
+      <div class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        Vyber trať nebo klub nahoře a zobrazí se prémiové statistiky této dráhy.
+      </div>
+      {% endif %}
       {% else %}
       <div class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
         Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z tratí.
@@ -68,4 +294,68 @@
     </div>
   </div>
 </section>
+<div id="help-modal" class="fixed inset-0 z-[120] hidden">
+  <div class="absolute inset-0 bg-slate-950/70"></div>
+  <div class="relative flex min-h-full items-center justify-center p-4 sm:p-6">
+    <div class="w-full max-w-2xl rounded-[28px] border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 dark:border-slate-800">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">Kontextová nápověda</p>
+          <h3 id="help-modal-title" class="mt-2 text-3xl font-black leading-tight text-slate-900 dark:text-white"></h3>
+        </div>
+        <button type="button" id="help-modal-close" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white">
+          ✕
+        </button>
+      </div>
+      <div class="px-6 py-6">
+        <div class="rounded-2xl bg-sky-50 p-5 ring-1 ring-sky-100 dark:bg-sky-500/10 dark:ring-sky-400/20">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Jak Se Počítá</p>
+          <p id="help-modal-body" class="mt-3 text-base leading-8 text-slate-700 dark:text-slate-200"></p>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button type="button" id="help-modal-action" class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500">
+            Rozumím
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (() => {
+    const modal = document.getElementById("help-modal");
+    const title = document.getElementById("help-modal-title");
+    const body = document.getElementById("help-modal-body");
+    const closeButton = document.getElementById("help-modal-close");
+    const actionButton = document.getElementById("help-modal-action");
+    if (!modal || !title || !body || !closeButton || !actionButton) return;
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    };
+
+    document.querySelectorAll(".help-trigger").forEach((button) => {
+      button.addEventListener("click", () => {
+        title.textContent = button.dataset.helpTitle || "Nápověda";
+        body.textContent = button.dataset.helpBody || "";
+        modal.classList.remove("hidden");
+        document.body.classList.add("overflow-hidden");
+      });
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    actionButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target === modal.firstElementChild) {
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+  })();
+</script>
 {% endblock content %}

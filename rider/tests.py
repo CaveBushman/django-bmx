@@ -121,3 +121,61 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertContains(response, "34.12")
         self.assertContains(response, "2.56")
         self.assertContains(response, "8.91")
+
+    def test_staff_can_access_premium_stats_without_subscription(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Administrátorský přístup")
+
+    def test_premium_stats_supports_track_selection(self):
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=100,
+            transaction_id="credit-3",
+            payment_complete=True,
+        )
+        other_club = Club.objects.create(team_name="Secondary Track")
+        other_event = Event.objects.create(
+            name="Secondary Race",
+            date=date.today() - timedelta(days=3),
+            organizer=other_club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        other_result = Result.objects.create(
+            event=other_event,
+            rider=self.rider,
+            date=other_event.date,
+            event_type=other_event.type_for_ranking,
+            organizer=other_club.team_name,
+            category=self.rider.class_20,
+            place=4,
+            points=50,
+        )
+        RaceRun.objects.create(
+            result=other_result,
+            event=other_event,
+            rider=self.rider,
+            round_type="FINAL",
+            lane=5,
+            place="4th",
+            finish_time=35.44,
+        )
+
+        self.client.force_login(self.user)
+        self.client.post(reverse("rider:premium-stats-subscribe", kwargs={"pk": self.rider.uci_id}))
+
+        response = self.client.get(
+            reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}),
+            {"track": other_club.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Secondary Track")
+        self.assertContains(response, "Traťový profil")
+        self.assertContains(response, "35.44")

@@ -297,10 +297,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 LOGIN_REDIRECT_URL = "accounts:login"
 LOGOUT_REDIRECT_URL = "accounts:logout"
 
-YOUR_DOMAIN = config(
-    "YOUR_DOMAIN",
-    default="https://czechbmx.cz" if STRIPE_LIVE_MODE else "http://localhost:8000",
-)
+if DEBUG:
+    # V lokálním vývoji vždy generuj HTTP URL, i když v env zůstalo produkční nastavení.
+    YOUR_DOMAIN = config("YOUR_DOMAIN", default="http://localhost:8000")
+else:
+    YOUR_DOMAIN = config(
+        "YOUR_DOMAIN",
+        default="https://czechbmx.cz" if STRIPE_LIVE_MODE else "http://localhost:8000",
+    )
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
