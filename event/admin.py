@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition
 from rider.models import ForeignRider
 from django.utils.timezone import now
 from datetime import timedelta
@@ -189,6 +189,15 @@ class StripeFeeAdmin(BaseAdmin):
     list_display_links = ('date',)
 
 
+class EventPropositionAdmin(BaseAdmin):
+    list_display = ('event', 'is_published', 'updated', 'updated_by')
+    list_display_links = ('event',)
+    search_fields = ('event__name', 'event__organizer__team_name', 'contact_name', 'contact_email')
+    list_filter = ('is_published', 'event__organizer')
+    autocomplete_fields = ('event', 'created_by', 'updated_by')
+    list_select_related = ('event', 'event__organizer', 'updated_by')
+
+
 # Registering models
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
@@ -199,3 +208,4 @@ admin.site.register(SeasonSettings)
 admin.site.register(CreditTransaction, CreditTransactionAdmin)
 admin.site.register(DebetTransaction, DebetTransactionAdmin)
 admin.site.register(StripeFee, StripeFeeAdmin)
+admin.site.register(EventProposition, EventPropositionAdmin)

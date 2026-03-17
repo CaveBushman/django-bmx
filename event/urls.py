@@ -6,6 +6,8 @@ app_name = 'event'
 urlpatterns = [
     path('', views.events_list_view, name='events'),
     path('<int:pk>', views.event_detail_views, name='event-detail'),
+    path('proposition/<int:pk>', views.proposition_detail_view, name='proposition-detail'),
+    path('proposition/<int:pk>/edit', views.proposition_edit_view, name='proposition-edit'),
     path('results/<int:pk>', views.results_view, name='results'),
     path('events-by-year/<int:pk>', views.events_list_by_year_view, name='events-by-year'),
     path('entry-riders/<int:pk>', views.entry_riders_view, name='entry-riders'),
@@ -44,6 +46,8 @@ urlpatterns = [
     path('generate_pdf/<int:pk>', views.generate_pdf, name='generate_pdf'),
     path('generate_invoice_preparation_pdf/<int:pk>', views.generate_invoice_preparation_pdf, name='generate_invoice_preparation_pdf'),
     path('generate_invoices_pdf/<int:pk>', views.invoice_view, name='generate_invoices_pdf'),
+    path('invalid-licences-pdf/<int:pk>', views.invalid_licences_pdf, name='invalid-licences-pdf'),
+    path('price-money/<int:pk>', views.price_money_pdf, name='price-money-pdf'),
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
     path("export-results/<int:event_id>/", views.export_event_results, name="export_event_results"),
 ]

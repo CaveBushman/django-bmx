@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from event.credit import calculate_user_balance
+from club.models import Club
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
@@ -65,6 +66,15 @@ class Account(AbstractBaseUser, PermissionsMixin):
     is_rider = models.BooleanField(default=False)
     is_commission = models.BooleanField(default=False)
     is_commissar = models.BooleanField(default=False)
+    is_club_manager = models.BooleanField(default=False)
+
+    club = models.ForeignKey(
+        Club,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="managed_users",
+    )
 
     # not required
     photo = models.ImageField(

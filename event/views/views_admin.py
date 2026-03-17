@@ -32,7 +32,7 @@ import requests
 from datetime import date
 from types import SimpleNamespace
 from django.shortcuts import get_object_or_404, render, reverse, HttpResponseRedirect
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -63,6 +63,7 @@ from rider.rider import (
     trigger_cn_qualification_recount_if_needed,
 )
 from finance.invoices import generate_event_invoices
+from event.prize_money import PrizeMoneyPdfService
 from openpyxl import Workbook, load_workbook
 import stripe
 
@@ -97,6 +98,11 @@ def _save_uploaded_file(uploaded_file, *storage_parts):
     storage, relative_dir = _build_media_storage(*storage_parts)
     filename = storage.save(uploaded_file.name, uploaded_file)
     return storage, filename, os.path.join(relative_dir, filename)
+
+
+def _download_generated_file(file_path):
+    file_handle = open(file_path, "rb")
+    return FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
 
 
 # ===========================================================================
@@ -337,6 +343,7 @@ def _handle_bem_entries(request, event):
     event.bem_entries_created = timezone.now()
     event.save()
     logger.info(f"BEM startovka vygenerována: {file_name}")
+    return os.path.join(settings.BASE_DIR, file_name)
 
 
 def _handle_bem_riders(request, event):
@@ -365,6 +372,7 @@ def _handle_bem_riders(request, event):
     event.bem_riders_created = timezone.now()
     event.save()
     logger.info(f"BEM seznam jezdců vygenerován: {file_name}")
+    return os.path.join(settings.BASE_DIR, file_name)
 
 
 def _handle_rem_entries(request, event):
@@ -373,6 +381,8 @@ def _handle_rem_entries(request, event):
     all_entries.event = event
     all_entries.create_entries_list()
     logger.info(f"REM přihlášky vygenerovány pro závod {event.id}")
+    event.refresh_from_db(fields=["rem_entries"])
+    return event.rem_entries.path if event.rem_entries else None
 
 
 def _handle_rem_riders(request, event):
@@ -381,6 +391,8 @@ def _handle_rem_riders(request, event):
     all_riders.event = event
     all_riders.create_all_riders_list()
     logger.info(f"REM seznam jezdců vygenerován pro závod {event.id}")
+    event.refresh_from_db(fields=["rem_riders_list"])
+    return event.rem_riders_list.path if event.rem_riders_list else None
 
 
 def _handle_upload_txt(request, event, pk):
@@ -500,16 +512,16 @@ def event_admin_view(request, pk):
         return _handle_delete_xls(request, event, pk)
 
     elif "btn-bem-file" in request.POST:
-        _handle_bem_entries(request, event)
+        return _download_generated_file(_handle_bem_entries(request, event))
 
     elif "btn-riders-list" in request.POST:
-        _handle_bem_riders(request, event)
+        return _download_generated_file(_handle_bem_riders(request, event))
 
     elif "btn-rem-file" in request.POST:
-        _handle_rem_entries(request, event)
+        return _download_generated_file(_handle_rem_entries(request, event))
 
     elif "btn-rem-riders-list" in request.POST:
-        _handle_rem_riders(request, event)
+        return _download_generated_file(_handle_rem_riders(request, event))
 
     elif "btn-upload-txt" in request.POST:
         response = _handle_upload_txt(request, event, pk)
@@ -530,6 +542,7 @@ def event_admin_view(request, pk):
         "sum_of_riders": entries.count(),
         "asociation_fee": int(sum_of_fees * event.commission_fee / 100),
         "results_exist": Result.objects.filter(event=event).exists(),
+        "prize_money_amount_toggle": PrizeMoneyPdfService().allows_amount_toggle(event),
     }
     return render(request, "event/event-admin.html", data)
 
@@ -764,5 +777,23 @@ def send_invoices(request, pk):
 @login_required(login_url="/login/")
 @staff_member_required
 def price_money_pdf(request, pk):
-    """PDF seznam prize money — TODO."""
-    pass
+    """PDF potvrzení převzetí prize money."""
+    event = get_object_or_404(Event.objects.select_related("organizer"), pk=pk)
+    service = PrizeMoneyPdfService()
+    include_amounts = request.GET.get("amounts", "1") != "0"
+    if not service.allows_amount_toggle(event):
+        include_amounts = True
+
+    try:
+        pdf_bytes = service.build_pdf(event, include_amounts=include_amounts)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+
+    suffix = "with-amounts" if include_amounts else "without-amounts"
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="prize-money-{event.id}-{suffix}-{timezone.now().strftime("%Y%m%d%H%M%S")}.pdf"'
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response

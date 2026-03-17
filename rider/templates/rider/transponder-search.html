@@ -66,7 +66,7 @@
             Vyhledej čip
           </h1>
           <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
-            Systém prověří českou i zahraniční databázi a zobrazí pouze bezpečné identifikační údaje jezdce. Hledání funguje i pro částečně zadaný čip.
+            Systém prověří českou i zahraniční databázi a nově i historii výměn. U starších nepřiřazených čipů zobrazí, že jde o historický záznam.
           </p>
         </div>
         <div class="dashboard-card min-w-[240px] rounded-[1.5rem] border p-5">
@@ -132,6 +132,19 @@
               <span class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Klub</span>
               <span class="text-sm font-semibold text-slate-900 dark:text-white md:mt-2 md:block">{{ result.club }}</span>
             </div>
+          </div>
+          <div class="mt-4 flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {% if result.status_tone == 'historical' %}bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-200{% else %}bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200{% endif %}">
+              {{ result.status }}
+            </span>
+            <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              {{ result.matched_in }}
+            </span>
+            {% if result.changed_at %}
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+              Poslední evidovaná změna: {{ result.changed_at|date:"d.m.Y H:i" }}
+            </span>
+            {% endif %}
           </div>
         </div>
         {% endfor %}

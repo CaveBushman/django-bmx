@@ -14,7 +14,7 @@ from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from bmx import settings
-from .models import Rider, ForeignRider
+from .models import Rider, ForeignRider, RiderTransponderChange
 from .rider import (
     two_years_inactive,
     CheckValidLicenceThread,
@@ -558,6 +558,10 @@ def transponder_search_view(request):
                     "last_name": rider.last_name,
                     "club": rider.club.team_name if rider.club else "-",
                     "plate": rider.plate or "-",
+                    "matched_in": ", ".join(matched_in) or "-",
+                    "status": "Aktuální čip",
+                    "status_tone": "current",
+                    "changed_at": None,
                 }
             )
 
@@ -574,6 +578,55 @@ def transponder_search_view(request):
                     "last_name": rider.last_name,
                     "club": rider.club or rider.state or "-",
                     "plate": rider.plate or "-",
+                    "matched_in": ", ".join(matched_in) or "-",
+                    "status": "Aktuální čip",
+                    "status_tone": "current",
+                    "changed_at": None,
+                }
+            )
+
+        current_chip_keys = {
+            ("czech", result["first_name"], result["last_name"], result["matched_in"])
+            for result in results
+            if result["status_tone"] == "current"
+        }
+
+        historical_changes = (
+            RiderTransponderChange.objects.filter(
+                Q(old_transponder__iexact=transponder_query)
+                | Q(new_transponder__iexact=transponder_query)
+            )
+            .select_related("rider__club", "changed_by")
+            .order_by("-changed_at")
+        )
+
+        for change in historical_changes:
+            rider = change.rider
+            if not rider:
+                continue
+
+            slot_label = change.get_slot_display()
+            is_current_now = (
+                (slot_label == '20"' and (rider.transponder_20 or "").upper() == transponder_query)
+                or (slot_label == '24"' and (rider.transponder_24 or "").upper() == transponder_query)
+            )
+            if is_current_now:
+                continue
+
+            dedupe_key = ("czech", rider.first_name, rider.last_name, slot_label)
+            if dedupe_key in current_chip_keys:
+                continue
+
+            results.append(
+                {
+                    "first_name": rider.first_name,
+                    "last_name": rider.last_name,
+                    "club": rider.club.team_name if rider.club else "-",
+                    "plate": rider.plate or "-",
+                    "matched_in": slot_label,
+                    "status": "Historický čip",
+                    "status_tone": "historical",
+                    "changed_at": change.changed_at,
                 }
             )
 

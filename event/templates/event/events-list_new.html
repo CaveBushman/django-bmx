@@ -126,8 +126,10 @@
                   {% if request.user.is_superuser and event.reg_open and event.type_for_ranking != "Evropský pohár" %}
                   <a href="{% url 'event:entry-foreign' event.id %}" class="events-chip events-chip-purple">Foreign riders</a>
                   {% endif %}
-                  {% if event.proposition %}
-                  <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice</a>
+                  {% if event.has_public_proposition %}
+                  <a href="{% url 'event:proposition-detail' event.id %}" class="events-chip events-chip-sky">Propozice</a>
+                  {% elif event.proposition %}
+                  <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice PDF</a>
                   {% endif %}
                   {% if event.html_results %}
                   <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
@@ -213,8 +215,10 @@
 
             <div class="events-actions">
               <a href="{% url 'event:event-detail' event.id %}" class="events-chip events-chip-primary">Detail</a>
-              {% if event.proposition %}
-              <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice</a>
+              {% if event.has_public_proposition %}
+              <a href="{% url 'event:proposition-detail' event.id %}" class="events-chip events-chip-sky">Propozice</a>
+              {% elif event.proposition %}
+              <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">Propozice PDF</a>
               {% endif %}
               {% if event.html_results %}
               <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>

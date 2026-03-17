@@ -20,6 +20,11 @@ from event.views.views_public import (
     not_reg_view,
 )
 
+from event.views.views_proposition import (
+    proposition_detail_view,
+    proposition_edit_view,
+)
+
 from event.views.views_entry import (
     add_entries_view,
     entry_riders_view,
@@ -68,4 +73,5 @@ from event.views.views_pdf import (
     generate_pdf,
     generate_invoice_preparation_pdf,
     invoice_view,
+    invalid_licences_pdf,
 )
