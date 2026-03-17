@@ -41,6 +41,7 @@ from event.views.entry_helpers import (
     sync_paid_foreign_riders,
     validate_foreign_summary_payload,
 )
+from event.views.payment_helpers import finalize_entry_checkout_session
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -152,7 +153,10 @@ def confirm_view(request):
                 payment_method_types=["card"],
                 line_items=line_items,
                 mode="payment",
-                success_url=settings.YOUR_DOMAIN + "/event/success/" + str(event.id),
+                success_url=(
+                    settings.YOUR_DOMAIN
+                    + f"/event/success/{event.id}?session_id={{CHECKOUT_SESSION_ID}}"
+                ),
                 cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
             )
 
@@ -258,12 +262,11 @@ def entry_foreign_success_view(request, pk):
     session_id = request.GET.get("session_id", "")
     if session_id:
         try:
-            confirm = stripe.checkout.Session.retrieve(session_id)
-            if confirm["payment_status"] == "paid":
-                EntryForeign.objects.filter(
-                    event=event,
-                    transaction_id=session_id,
-                ).update(payment_complete=True)
+            if finalize_entry_checkout_session(
+                session_id,
+                event_id=event.id,
+                is_foreign=True,
+            ):
                 sync_paid_foreign_riders(event, session_id)
         except Exception as e:
             logger.error(f"Chyba při potvrzení foreign Stripe platby: {e}")

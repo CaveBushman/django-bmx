@@ -1,4 +1,5 @@
 from datetime import timedelta
+from types import SimpleNamespace
 
 from django.utils import timezone
 
@@ -77,7 +78,20 @@ def remove_conflicting_cart_entries(orders):
         )
 
         if order_key in seen_keys or has_external_conflict:
-            duplicates.append(order)
+            duplicates.append(
+                SimpleNamespace(
+                    pk=order.pk,
+                    user=order.user,
+                    rider=order.rider,
+                    event=order.event,
+                    is_beginner=order.is_beginner,
+                    is_20=order.is_20,
+                    is_24=order.is_24,
+                    class_beginner=order.class_beginner,
+                    class_20=order.class_20,
+                    class_24=order.class_24,
+                )
+            )
             order.delete()
             continue
 
