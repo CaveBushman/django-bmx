@@ -43,9 +43,7 @@ class CheckValidLicenceThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        Rider.objects.filter(is_active=True, fix_valid_licence=True).update(valid_licence=True)
-        for rider in Rider.objects.filter(is_active=True, fix_valid_licence=False):
-            valid_licence(rider)
+        refresh_valid_licences()
 
 
 class RiderSetClassesThread(threading.Thread):
@@ -137,12 +135,12 @@ def get_rider_data(uci_id):
         return None, f"Chyba při komunikaci s API ČSC: {e}"
 
 
-def valid_licence(rider):
-    """ Ověření platnosti licence pomocí správného endpointu + access tokenu """
-    token = get_api_token()
+def valid_licence(rider, token=None):
+    """Ověření platnosti licence pomocí správného endpointu + access tokenu."""
+    token = token or get_api_token()
     if not token:
         logger.warning("Nelze ověřit licenci – token se nezískal.")
-        return
+        return None
 
     headers = {
         "Authorization": f"Bearer {token}"
@@ -165,15 +163,67 @@ def valid_licence(rider):
         is_valid = data.get("valid", False)
 
         rider.valid_licence = is_valid
-        rider.save()
+        rider.save(update_fields=["valid_licence", "updated"])
 
         if is_valid:
             logger.info(f"{rider.uci_id} – {rider.first_name} {rider.last_name}: licence je platná.")
         else:
             logger.warning(f"{rider.uci_id} – {rider.first_name} {rider.last_name}: licence NENÍ platná.")
 
+        return is_valid
+
     except Exception as e:
         logger.error(f"Chyba při ověřování licence {rider.uci_id}: {e}")
+        return None
+
+
+def refresh_valid_licences(riders=None):
+    """Hromadně zkontroluje platnost licencí aktivních jezdců."""
+    fixed_count = Rider.objects.filter(
+        is_active=True,
+        fix_valid_licence=True,
+    ).update(valid_licence=True)
+
+    queryset = riders or Rider.objects.filter(
+        is_active=True,
+        fix_valid_licence=False,
+    ).only("id", "uci_id", "first_name", "last_name", "valid_licence", "updated")
+
+    token = get_api_token()
+    if not token:
+        logger.warning("Hromadná kontrola licencí nebyla spuštěna, token se nezískal.")
+        return {
+            "checked": 0,
+            "valid": 0,
+            "invalid": 0,
+            "failed": queryset.count(),
+            "fixed": fixed_count,
+        }
+
+    checked = 0
+    valid = 0
+    invalid = 0
+    failed = 0
+
+    for rider in queryset.iterator(chunk_size=200):
+        result = valid_licence(rider, token=token)
+        if result is None:
+            failed += 1
+            continue
+
+        checked += 1
+        if result:
+            valid += 1
+        else:
+            invalid += 1
+
+    return {
+        "checked": checked,
+        "valid": valid,
+        "invalid": invalid,
+        "failed": failed,
+        "fixed": fixed_count,
+    }
 
 
 # ===========================================================================

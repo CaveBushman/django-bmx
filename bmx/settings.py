@@ -307,7 +307,7 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-CRONJOBS = [("*/180 * * * *", "bmx.cron.valid_licence_scheduled")]
+CRONJOBS = [("0 */6 * * *", "bmx.cron.valid_licence_scheduled")]
 
 LOGGING = {
     "version": 1,

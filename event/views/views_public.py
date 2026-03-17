@@ -14,27 +14,60 @@ from event.func import is_registration_open
 logger = logging.getLogger(__name__)
 
 
+EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like")
+
+
+def _events_for_year(year):
+    return (
+        Event.objects.filter(date__year=year)
+        .select_related(*EVENT_LIST_RELATED)
+        .only(
+            "id",
+            "name",
+            "date",
+            "type_for_ranking",
+            "reg_open",
+            "reg_open_from",
+            "reg_open_to",
+            "canceled",
+            "uec_link",
+            "youtube_link",
+            "proposition",
+            "html_results",
+            "series",
+            "organizer__team_name",
+            "classes_and_fees_like__event_name",
+        )
+        .order_by("date")
+    )
+
+
+def _decorate_events(events):
+    decorated = []
+    for event in events:
+        classes_config = getattr(event, "classes_and_fees_like", None)
+        has_configured_classes = bool(
+            classes_config and classes_config.event_name != "Dosud nenastaveno"
+        )
+        event.reg_open = (
+            not event.canceled
+            and has_configured_classes
+            and is_registration_open(event)
+        )
+        decorated.append(event)
+    return decorated
+
+
 def events_list_view(request):
     """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
-    upcomming_events = Event.objects.filter(
-        date__year=date.today().year, date__gte=date.today()
-    ).order_by("date")
-    past_events = Event.objects.filter(
-        date__year=date.today().year, date__lt=date.today()
-    ).order_by("date")
-
-    # Aktualizuj stav registrace u nadcházejících závodů
-    for event in upcomming_events:
-        if event.canceled:
-            event.reg_open = False
-        else:
-            event.reg_open = is_registration_open(event)
-
-        if event.classes_and_fees_like.event_name == "Dosud nenastaveno":
-            event.reg_open = False
-        event.save()
-
     year = date.today().year
+    today = date.today()
+    all_events = list(_events_for_year(year))
+    upcomming_events = _decorate_events(
+        [event for event in all_events if event.date and event.date >= today]
+    )
+    past_events = [event for event in all_events if event.date and event.date < today]
+
     data = {
         "events": upcomming_events,
         "past_events": past_events,
@@ -57,17 +90,12 @@ def events_list_by_year_view(request, pk):
     if pk == date.today().year:
         return redirect('event:events')
 
-    all_events = Event.objects.filter(date__year=pk).order_by("date")
-    for event in all_events:
-        if event.canceled or event.classes_and_fees_like.event_name == "Dosud nenastaveno":
-            event.reg_open = False
-        else:
-            event.reg_open = is_registration_open(event)
-        event.save()
-
+    all_events = list(_events_for_year(pk))
     today = date.today()
-    upcoming_events = all_events.filter(date__gte=today)
-    past_events = all_events.filter(date__lt=today)
+    upcoming_events = _decorate_events(
+        [event for event in all_events if event.date and event.date >= today]
+    )
+    past_events = [event for event in all_events if event.date and event.date < today]
 
     if pk < today.year:
         hero_description = f"Přehled archivních závodů a uzavřených termínů pro sezonu {pk}."

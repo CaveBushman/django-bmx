@@ -1,12 +1,18 @@
 import logging
 import datetime
 from datetime import timedelta
+from django.core.cache import cache
+from django.db import transaction
 from rider.models import Rider
 
 logger = logging.getLogger(__name__)
 from event.models import Result, Entry, Event, SeasonSettings
 from django.db.models import Q
 import threading
+
+RANKING_RECOUNT_PENDING_KEY = "ranking_recount_pending"
+RANKING_RECOUNT_RUNNING_KEY = "ranking_recount_running"
+RANKING_RECOUNT_LOCK_TIMEOUT = 60 * 60
 
 def sort_20(self, classes):
     CLASS_ORDER20 = {
@@ -26,11 +32,42 @@ class SetRanking (threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self.daemon = True
     
     def run(self):
-        RankingCount.set_ranking_points()
-        RankPositionCount().count_ranking_position()
-        logger.info("Ranking přepočítán")
+        while True:
+            cache.delete(RANKING_RECOUNT_PENDING_KEY)
+            try:
+                RankingCount.set_ranking_points()
+                RankPositionCount().count_ranking_position()
+                logger.info("Ranking přepočítán")
+            except Exception:
+                logger.exception("Přepočet rankingu selhal")
+            finally:
+                if cache.get(RANKING_RECOUNT_PENDING_KEY):
+                    logger.info("Během přepočtu přišla další změna, ranking se přepočítá znovu.")
+                    continue
+
+                cache.delete(RANKING_RECOUNT_RUNNING_KEY)
+                if cache.get(RANKING_RECOUNT_PENDING_KEY):
+                    if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
+                        logger.info("Po uvolnění locku je naplánovaný další přepočet rankingu.")
+                        continue
+                break
+
+
+def schedule_ranking_recount():
+    """Naplánuje přepočet rankingu po dokončení aktuální DB transakce."""
+    cache.set(RANKING_RECOUNT_PENDING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT)
+
+    def _start():
+        if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
+            SetRanking().start()
+            logger.info("Přepočet rankingu byl spuštěn na pozadí.")
+        else:
+            logger.info("Přepočet rankingu už běží, další průchod je zařazen do fronty.")
+
+    transaction.on_commit(_start)
 
 class RankingCount:
     """ Class for rankings count"""

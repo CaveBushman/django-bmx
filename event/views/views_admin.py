@@ -55,7 +55,7 @@ from event.func import (
 )
 from event.entry import NumberInEvent, REMRiders
 from event.result import GetResult
-from ranking.ranking import SetRanking
+from ranking.ranking import schedule_ranking_recount
 from rider.rider import (
     get_api_token,
     generate_insurance_file,
@@ -185,7 +185,7 @@ def _handle_upload_xls(request, event, pk):
 
     event.xls_results = relative_path
     event.save()
-    SetRanking().start()
+    schedule_ranking_recount()
     trigger_cn_qualification_recount_if_needed(event)
     logger.info(f"BEM výsledky nahrány pro závod {event.id}")
     return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
@@ -194,7 +194,7 @@ def _handle_upload_xls(request, event, pk):
 def _handle_delete_xls(request, event, pk):
     """Smaže XLS výsledky a přepočítá ranking."""
     Result.objects.filter(event=pk).delete()
-    SetRanking().start()
+    schedule_ranking_recount()
     try:
         xls_path = event.xls_results.path
     except (ValueError, NotImplementedError):
@@ -457,7 +457,7 @@ def _handle_delete_txt(request, event, pk):
     event.ccf_uploaded = False
     event.ccf_created = None
     event.save()
-    SetRanking().start()
+    schedule_ranking_recount()
     try:
         rem_path = event.rem_results.path
     except (ValueError, NotImplementedError):
