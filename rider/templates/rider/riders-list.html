@@ -212,15 +212,16 @@
       </div>
     </div>
 
-    <div class="mt-6 grid gap-4 lg:grid-cols-3">
+    <form method="get" id="riderFiltersForm" class="mt-6 grid gap-4 lg:grid-cols-4">
       <div>
         <input
           class="rider-list-search block w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
           type="text"
           placeholder="Napiš příjmení jezdce"
           aria-label="default input example"
-          onkeyup="searchByLastName()"
-          id="inputLastName"/>
+          value="{{ last_name_query }}"
+          id="inputLastName"
+          name="last_name"/>
       </div>
       <div>
         <input
@@ -228,8 +229,9 @@
           type="text"
           placeholder="Napiš jméno klubu"
           aria-label="default input example"
-          onkeyup="searchByClub()"
-          id="inputClub"/>
+          value="{{ club_query }}"
+          id="inputClub"
+          name="club"/>
       </div>
       <div>
         <input
@@ -237,10 +239,25 @@
           type="text"
           placeholder="Napiš startovní číslo"
           aria-label="search plate"
-          onkeyup="searchByPlate()"
-          id="inputPlate"/>
+          value="{{ plate_query }}"
+          id="inputPlate"
+          name="plate"/>
       </div>
-    </div>
+      <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+        <button
+          type="submit"
+          class="inline-flex min-h-[3.75rem] items-center justify-center rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
+        >
+          Hledat
+        </button>
+        <a
+          href="{% url 'rider:list' %}"
+          class="inline-flex min-h-[3.75rem] items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:text-white"
+        >
+          Vyčistit
+        </a>
+      </div>
+    </form>
   </div>
 
   <div class="mt-8 flex flex-col">
@@ -349,55 +366,50 @@
               </div>
               </td>
             </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
+                Pro zadaný filtr nebyl nalezen žádný jezdec.
+              </td>
+            </tr>
             {% endfor%}
           </tbody>
         </table>
       </div>
     </div>
   </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+    <p class="text-sm text-slate-500 dark:text-slate-300">
+      Stránka {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
+    </p>
+    <nav class="flex items-center gap-2" aria-label="Stránkování jezdců">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+        Předchozí
+      </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+        Další
+      </a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
     <a href="#" class="arrow" id="to-top">
         <i class="bi bi-arrow-up-square-fill"></i>
     </a>
   <script>
-    function normalizePlateValue(value) {
-      const normalized = String(value || "").trim().replace(/^0+/, "");
-      return normalized === "" ? "0" : normalized;
-    }
-
-    function applyRiderFilters() {
-      const lastNameFilter = (document.getElementById("inputLastName")?.value || "").toUpperCase();
-      const clubFilter = (document.getElementById("inputClub")?.value || "").toUpperCase();
-      const rawPlateFilter = document.getElementById("inputPlate")?.value || "";
-      const plateFilter = normalizePlateValue(rawPlateFilter).toUpperCase();
-      const table = document.getElementById("myTable");
-      const rows = table ? table.getElementsByTagName("tr") : [];
-
-      for (const row of rows) {
-        const cells = row.getElementsByTagName("td");
-        if (!cells.length) {
-          continue;
+    const riderFiltersForm = document.getElementById("riderFiltersForm");
+    if (riderFiltersForm) {
+      riderFiltersForm.addEventListener("submit", () => {
+        const pageInput = riderFiltersForm.querySelector('input[name="page"]');
+        if (pageInput) {
+          pageInput.remove();
         }
-
-        const lastNameValue = (cells[0].textContent || cells[0].innerText || "").toUpperCase();
-        const clubValue = (cells[1].textContent || cells[1].innerText || "").toUpperCase();
-        const plateValue = normalizePlateValue(row.dataset.plate || "").toUpperCase();
-
-        const matchesLastName = !lastNameFilter || lastNameValue.includes(lastNameFilter);
-        const matchesClub = !clubFilter || clubValue.includes(clubFilter);
-        const matchesPlate = !rawPlateFilter || plateValue.includes(plateFilter);
-
-        row.style.display = matchesLastName && matchesClub && matchesPlate ? "" : "none";
-      }
+      });
     }
-
-    function searchByLastName() { applyRiderFilters(); }
-    function searchByClub() { applyRiderFilters(); }
-    function searchByPlate() { applyRiderFilters(); }
-
-    window.applyRiderFilters = applyRiderFilters;
-    window.searchByLastName = searchByLastName;
-    window.searchByClub = searchByClub;
-    window.searchByPlate = searchByPlate;
   </script>
   <script src="{% static 'js/arrow.js' %}"></script>
 </div>

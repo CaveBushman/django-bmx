@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
@@ -59,12 +60,56 @@ admin_required = user_passes_test(can_manage_premium_stats, login_url="/login/")
 
 
 def riders_list_view(request):
-    riders = Rider.objects.filter(is_active=True, is_approved=True).select_related('club')
+    riders = (
+        Rider.objects.filter(is_active=True, is_approved=True)
+        .select_related("club")
+        .only(
+            "uci_id",
+            "first_name",
+            "last_name",
+            "photo",
+            "valid_licence",
+            "is_qualify_to_cn_20",
+            "is_qualify_to_cn_24",
+            "club__team_name",
+            "club__id",
+            "is_20",
+            "is_24",
+            "class_20",
+            "class_24",
+            "plate",
+            "plate_color_20",
+        )
+        .order_by("last_name", "first_name")
+    )
+
+    last_name_query = (request.GET.get("last_name") or "").strip()
+    club_query = (request.GET.get("club") or "").strip()
+    plate_query = (request.GET.get("plate") or "").strip()
+
+    if last_name_query:
+        riders = riders.filter(last_name__icontains=last_name_query)
+    if club_query:
+        riders = riders.filter(club__team_name__icontains=club_query)
+    if plate_query:
+        try:
+            riders = riders.filter(plate=int(plate_query))
+        except ValueError:
+            riders = riders.none()
+
+    paginator = Paginator(riders, 100)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    metrics_queryset = Rider.objects.filter(is_active=True, is_approved=True)
     data = {
-        "riders": riders,
-        "total_riders": riders.count(),
-        "valid_licence_riders": riders.filter(valid_licence=True).count(),
-        "clubs_count": riders.exclude(club__isnull=True).values("club").distinct().count(),
+        "riders": page_obj.object_list,
+        "page_obj": page_obj,
+        "total_riders": metrics_queryset.count(),
+        "valid_licence_riders": metrics_queryset.filter(valid_licence=True).count(),
+        "clubs_count": metrics_queryset.exclude(club__isnull=True).values("club").distinct().count(),
+        "last_name_query": last_name_query,
+        "club_query": club_query,
+        "plate_query": plate_query,
     }
 
     return render(request, "rider/riders-list.html", data)
