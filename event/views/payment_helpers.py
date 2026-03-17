@@ -40,7 +40,10 @@ def handle_credit_webhook(payload, sig_header):
     session = stripe_event["data"]["object"]
     session_id = session["id"]
     payment_intent = session.get("payment_intent")
+    payment_status = session.get("payment_status")
+    customer_details = session.get("customer_details") or {}
 
+    # Try to handle credit transaction
     try:
         with transaction.atomic():
             credit_transaction = CreditTransaction.objects.select_for_update().get(
@@ -58,10 +61,29 @@ def handle_credit_webhook(payload, sig_header):
                     credit_transaction.user.id,
                     credit_transaction.amount,
                 )
+        return HttpResponse(status=200)
     except CreditTransaction.DoesNotExist:
-        logger.warning("[Webhook] Kreditní transakce s ID %s nenalezena", session_id)
+        pass  # Not a credit transaction, check for entries
+
+    # Handle entry transactions
+    try:
+        with transaction.atomic():
+            entries = Entry.objects.select_for_update().filter(
+                transaction_id=session_id, payment_complete=False
+            )
+            if entries.exists() and payment_status == "paid":
+                for entry in entries:
+                    entry.payment_complete = True
+                    entry.customer_name = customer_details.get("name", "")
+                    entry.customer_email = customer_details.get("email", "")
+                    entry.save(update_fields=["payment_complete", "customer_name", "customer_email"])
+                logger.info(
+                    "[Webhook] Přihlášky označeny jako zaplacené: %s",
+                    [str(e) for e in entries]
+                )
+        return HttpResponse(status=200)
     except Exception as error:
-        logger.error(f"[Webhook] Chyba při zpracování kreditu: {error}")
+        logger.error(f"[Webhook] Chyba při zpracování přihlášek: {error}")
 
     return HttpResponse(status=200)
 
