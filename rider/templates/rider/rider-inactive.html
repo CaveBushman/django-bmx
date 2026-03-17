@@ -84,13 +84,13 @@
       </div>
     </header>
 
-    <section class="inactive-riders-table-wrap dashboard-panel overflow-hidden rounded-[2rem] border px-4 py-4 sm:px-5 lg:px-8">
+    <section class="inactive-riders-table-wrap dashboard-panel overflow-hidden rounded-[2rem] border px-5 py-4 sm:px-6 lg:px-8">
       <div class="rounded-[1.5rem] border border-slate-200/80 dark:border-slate-800/80">
         <div class="overflow-x-auto rounded-[1.5rem]">
         <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
           <thead class="inactive-riders-head">
             <tr>
-              <th scope="col" class="w-[18%] py-4 pl-6 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Příjmení</th>
+              <th scope="col" class="w-[18%] py-4 pl-8 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100 sm:pl-10">Příjmení</th>
               <th scope="col" class="w-[16%] px-3 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Jméno</th>
               <th scope="col" class="w-[12%] px-3 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Startovní číslo</th>
               <th scope="col" class="w-[18%] px-3 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">UCI ID</th>
@@ -101,7 +101,7 @@
           <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
             {% for rider in riders %}
             <tr class="inactive-riders-row transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/70">
-              <td class="py-4 pl-6 pr-3 text-sm font-semibold text-slate-100">
+              <td class="py-4 pl-8 pr-3 text-sm font-semibold text-slate-100 sm:pl-10">
                 {{ rider.last_name|upper }}
               </td>
               <td class="px-3 py-4 text-sm text-slate-300">{{ rider.first_name }}</td>
