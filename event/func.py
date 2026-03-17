@@ -17,7 +17,7 @@ from club.models import Club
 logger = logging.getLogger(__name__)
 from event.models import EntryClasses, Event, Entry, SeasonSettings
 from accounts.models import Account
-from ranking.ranking import SetRanking
+from ranking.ranking import schedule_ranking_recount
 from .entry import EntryClass
 from .result import GetResult
 from rider.models import Rider
@@ -708,7 +708,7 @@ def qualify_riders_to_cn(year, rider):
 class SetResults(threading.Thread):
     """Thread pro import výsledků z REM TSV souboru do databáze.
 
-    Po importu automaticky spustí přepočet rankingu (SetRanking thread).
+    Po importu automaticky naplánuje přepočet rankingu na pozadí.
     Kategorie 'Příchozí' a hlavičkový řádek 'CLASS_RANKING' se přeskakují.
     """
 
@@ -758,7 +758,7 @@ class SetResults(threading.Thread):
         event.save()
 
         # Po importu výsledků spustit přepočet rankingu na pozadí
-        SetRanking().start()
+        schedule_ranking_recount()
         from rider.rider import trigger_cn_qualification_recount_if_needed
 
         trigger_cn_qualification_recount_if_needed(event)

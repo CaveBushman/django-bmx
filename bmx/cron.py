@@ -1,11 +1,5 @@
-from rider.models import Rider
-from rider.rider import valid_licence
-import threading
+from rider.rider import refresh_valid_licences
 
 def valid_licence_scheduled():
-    
-    """ Function for controling validations licence """
-    riders = Rider.objects.filter(is_active = True)
-
-    for rider in riders:
-        threading.Thread(target=valid_licence, args=(rider.uci_id,), daemon=True).start()
+    """Spustí pravidelnou kontrolu platnosti licencí."""
+    return refresh_valid_licences()
