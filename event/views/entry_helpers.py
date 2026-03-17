@@ -346,7 +346,6 @@ def sync_paid_foreign_riders(event, session_id):
             foreign_rider = _create_foreign_rider_from_entry(paid_entry)
             if foreign_rider is None:
                 continue
-            continue
 
         _update_foreign_rider_from_entry(foreign_rider, paid_entry)
 
@@ -363,7 +362,7 @@ def _create_foreign_rider_from_entry(paid_entry):
         plate_value = 0
 
     nationality_code = (paid_entry.nationality or "").strip()[:3]
-    return ForeignRider.objects.create(
+    foreign_rider = ForeignRider.objects.create(
         uci_id=uci_id_value,
         first_name=paid_entry.first_name or "",
         last_name=paid_entry.last_name or "",
@@ -380,37 +379,51 @@ def _create_foreign_rider_from_entry(paid_entry):
         class_20=paid_entry.class_20 or ForeignRider.CLASS_20[0][0],
         class_24=paid_entry.class_24 or ForeignRider.CLASS_24[0][0],
     )
+    explicit_updates = {}
+    if paid_entry.class_20:
+        explicit_updates["class_20"] = paid_entry.class_20
+    if paid_entry.class_24:
+        explicit_updates["class_24"] = paid_entry.class_24
+    if explicit_updates:
+        ForeignRider.objects.filter(pk=foreign_rider.pk).update(**explicit_updates)
+        for field_name, field_value in explicit_updates.items():
+            setattr(foreign_rider, field_name, field_value)
+    return foreign_rider
 
 
 def _update_foreign_rider_from_entry(foreign_rider, paid_entry):
-    foreign_rider.first_name = paid_entry.first_name or foreign_rider.first_name
-    foreign_rider.last_name = paid_entry.last_name or foreign_rider.last_name
+    update_data = {
+        "first_name": paid_entry.first_name or foreign_rider.first_name,
+        "last_name": paid_entry.last_name or foreign_rider.last_name,
+        "transponder_20": paid_entry.transponder_20 or foreign_rider.transponder_20,
+        "transponder_24": paid_entry.transponder_24 or foreign_rider.transponder_24,
+        "is_20": paid_entry.is_20,
+        "is_24": paid_entry.is_24,
+        "is_elite": paid_entry.is_elite,
+        "class_20": paid_entry.class_20 or foreign_rider.class_20,
+        "class_24": paid_entry.class_24 or foreign_rider.class_24,
+    }
 
     if paid_entry.date_of_birth:
-        foreign_rider.date_of_birth = paid_entry.date_of_birth
+        update_data["date_of_birth"] = paid_entry.date_of_birth
 
     if paid_entry.gender:
-        foreign_rider.gender = paid_entry.gender
+        update_data["gender"] = paid_entry.gender
 
     nationality_code = (paid_entry.nationality or "").strip()[:3]
     if nationality_code:
-        foreign_rider.nationality = nationality_code
-        foreign_rider.state = nationality_code
+        update_data["nationality"] = nationality_code
+        update_data["state"] = nationality_code
 
     try:
         if str(paid_entry.plate).strip():
-            foreign_rider.plate = int(paid_entry.plate)
+            update_data["plate"] = int(paid_entry.plate)
     except (TypeError, ValueError):
         pass
 
-    foreign_rider.transponder_20 = paid_entry.transponder_20 or foreign_rider.transponder_20
-    foreign_rider.transponder_24 = paid_entry.transponder_24 or foreign_rider.transponder_24
-    foreign_rider.is_20 = paid_entry.is_20
-    foreign_rider.is_24 = paid_entry.is_24
-    foreign_rider.is_elite = paid_entry.is_elite
-    foreign_rider.class_20 = paid_entry.class_20 or foreign_rider.class_20
-    foreign_rider.class_24 = paid_entry.class_24 or foreign_rider.class_24
-    foreign_rider.save()
+    ForeignRider.objects.filter(pk=foreign_rider.pk).update(**update_data)
+    for field_name, field_value in update_data.items():
+        setattr(foreign_rider, field_name, field_value)
 
 
 def resolve_public_entry_category(entry):

@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from accounts.models import Account
 from event.credit import calculate_user_balance
-from event.models import CreditTransaction, DebetTransaction, Entry
+from event.models import CreditTransaction, DebetTransaction, Entry, EntryForeign
 from rider.models import RiderStatsCharge
 from event.services.payments import get_entry_amount
 
@@ -22,11 +22,106 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 
 
+def _construct_stripe_event(payload, sig_header):
+    webhook_secrets = [
+        secret for secret in getattr(settings, "STRIPE_ENDPOINT_SECRETS", []) if secret
+    ]
+    if not webhook_secrets and getattr(settings, "STRIPE_ENDPOINT_SECRET", ""):
+        webhook_secrets = [settings.STRIPE_ENDPOINT_SECRET]
+
+    if not webhook_secrets:
+        raise ValueError("Stripe webhook secret is not configured.")
+
+    last_error = None
+    for secret in webhook_secrets:
+        try:
+            return stripe.Webhook.construct_event(payload, sig_header, secret)
+        except stripe.error.SignatureVerificationError as error:
+            last_error = error
+
+    if last_error:
+        raise last_error
+    raise ValueError("Stripe webhook signature verification failed.")
+
+
+def _mark_credit_transaction_paid(credit_transaction, *, payment_intent=""):
+    if credit_transaction.payment_complete:
+        return False
+
+    Account.objects.filter(id=credit_transaction.user.id).update(
+        credit=F("credit") + credit_transaction.amount
+    )
+    credit_transaction.payment_complete = True
+    if payment_intent:
+        credit_transaction.payment_intent = payment_intent
+        credit_transaction.save(update_fields=["payment_complete", "payment_intent"])
+    else:
+        credit_transaction.save(update_fields=["payment_complete"])
+    return True
+
+
+def _mark_entry_records_paid(entries, *, customer_details=None):
+    customer_details = customer_details or {}
+    updated = False
+    for entry in entries:
+        if entry.payment_complete:
+            continue
+        entry.payment_complete = True
+        entry.customer_name = customer_details.get("name", "")
+        entry.customer_email = customer_details.get("email", "")
+        entry.save(update_fields=["payment_complete", "customer_name", "customer_email"])
+        updated = True
+    return updated
+
+
+def finalize_entry_checkout_session(session_id, *, event_id=None, is_foreign=False):
+    if not session_id:
+        return False
+
+    confirm = stripe.checkout.Session.retrieve(session_id)
+    if confirm.get("payment_status") != "paid":
+        return False
+
+    model = EntryForeign if is_foreign else Entry
+    customer_details = confirm.get("customer_details") or {}
+
+    with transaction.atomic():
+        entries = model.objects.select_for_update().filter(
+            transaction_id=session_id,
+            payment_complete=False,
+        )
+        if event_id is not None:
+            entries = entries.filter(event_id=event_id)
+        entries = list(entries)
+        return _mark_entry_records_paid(entries, customer_details=customer_details)
+
+
+def finalize_credit_transaction_by_session_id(session_id, *, user=None):
+    if not session_id:
+        return False
+
+    confirm = stripe.checkout.Session.retrieve(session_id)
+    if confirm.get("payment_status") != "paid":
+        return False
+
+    with transaction.atomic():
+        credit_transactions = CreditTransaction.objects.select_for_update().filter(
+            transaction_id=session_id
+        )
+        if user is not None:
+            credit_transactions = credit_transactions.filter(user=user)
+        credit_transaction = credit_transactions.first()
+        if credit_transaction is None:
+            return False
+        return _mark_credit_transaction_paid(
+            credit_transaction,
+            payment_intent=confirm.get("payment_intent", ""),
+        )
+
+
 def handle_credit_webhook(payload, sig_header):
     try:
-        stripe_event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_ENDPOINT_SECRET
-        )
+        stripe_event = _construct_stripe_event(payload, sig_header)
     except ValueError as error:
         logger.error(f"Invalid payload: {error}")
         return HttpResponse(status=400)
@@ -49,13 +144,10 @@ def handle_credit_webhook(payload, sig_header):
             credit_transaction = CreditTransaction.objects.select_for_update().get(
                 transaction_id=session_id
             )
-            if not credit_transaction.payment_complete:
-                Account.objects.filter(id=credit_transaction.user.id).update(
-                    credit=F("credit") + credit_transaction.amount
-                )
-                credit_transaction.payment_complete = True
-                credit_transaction.payment_intent = payment_intent
-                credit_transaction.save()
+            if payment_status == "paid" and _mark_credit_transaction_paid(
+                credit_transaction,
+                payment_intent=payment_intent,
+            ):
                 logger.info(
                     "[Webhook] Kredit přičten uživateli %s: +%s Kč",
                     credit_transaction.user.id,
@@ -71,19 +163,33 @@ def handle_credit_webhook(payload, sig_header):
             entries = Entry.objects.select_for_update().filter(
                 transaction_id=session_id, payment_complete=False
             )
-            if entries.exists() and payment_status == "paid":
-                for entry in entries:
-                    entry.payment_complete = True
-                    entry.customer_name = customer_details.get("name", "")
-                    entry.customer_email = customer_details.get("email", "")
-                    entry.save(update_fields=["payment_complete", "customer_name", "customer_email"])
+            entries = list(entries)
+            if entries and payment_status == "paid":
+                _mark_entry_records_paid(entries, customer_details=customer_details)
                 logger.info(
                     "[Webhook] Přihlášky označeny jako zaplacené: %s",
                     [str(e) for e in entries]
                 )
-        return HttpResponse(status=200)
+                return HttpResponse(status=200)
     except Exception as error:
         logger.error(f"[Webhook] Chyba při zpracování přihlášek: {error}")
+
+    # Handle foreign entry transactions
+    try:
+        with transaction.atomic():
+            entries = EntryForeign.objects.select_for_update().filter(
+                transaction_id=session_id, payment_complete=False
+            )
+            entries = list(entries)
+            if entries and payment_status == "paid":
+                _mark_entry_records_paid(entries, customer_details=customer_details)
+                logger.info(
+                    "[Webhook] Zahraniční přihlášky označeny jako zaplacené: %s",
+                    [str(e) for e in entries]
+                )
+                return HttpResponse(status=200)
+    except Exception as error:
+        logger.error(f"[Webhook] Chyba při zpracování zahraničních přihlášek: {error}")
 
     return HttpResponse(status=200)
 
@@ -197,7 +303,19 @@ def get_credit_history(user_id):
     return credits, debets
 
 
-def finalize_pending_credit_transactions(user):
+def finalize_pending_credit_transactions(user, *, session_id=""):
+    if session_id:
+        try:
+            return finalize_credit_transaction_by_session_id(session_id, user=user)
+        except CreditTransaction.DoesNotExist:
+            return False
+        except stripe.error.StripeError as error:
+            logger.error(f"Stripe error v success_credit_view: {error}")
+            return False
+        except Exception as error:
+            logger.error(f"Chyba v success_credit_view: {error}")
+            return False
+
     today = date.today()
     credit_transactions = CreditTransaction.objects.filter(
         user=user,
@@ -213,9 +331,10 @@ def finalize_pending_credit_transactions(user):
                     continue
                 confirm = stripe.checkout.Session.retrieve(ct.transaction_id)
                 if confirm["payment_status"] == "paid":
-                    ct.payment_complete = True
-                    ct.payment_intent = confirm["payment_intent"]
-                    ct.save()
+                    _mark_credit_transaction_paid(
+                        ct,
+                        payment_intent=confirm.get("payment_intent", ""),
+                    )
         except CreditTransaction.DoesNotExist:
             continue
         except stripe.error.StripeError as error:

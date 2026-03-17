@@ -34,6 +34,8 @@ from event.views.payment_helpers import (
     build_recalculate_balances_context,
     delete_expired_entries,
     delete_order_from_cart,
+    finalize_credit_transaction_by_session_id,
+    finalize_entry_checkout_session,
     finalize_pending_credit_transactions,
     get_credit_history,
     handle_credit_webhook,
@@ -50,14 +52,21 @@ def success_view(request, pk):
 
     Kontroluje transakce z dnešního a včerejšího dne (pro případ přechodu půlnoci).
     """
-    transactions = get_recent_pending_entries(event_id=pk)
-
-    for t in transactions:
+    session_id = request.GET.get("session_id", "")
+    if session_id:
         try:
-            confirm = stripe.checkout.Session.retrieve(t.transaction_id)
-            mark_entry_paid(t, confirm)
+            finalize_entry_checkout_session(session_id, event_id=pk)
         except Exception as e:
-            logger.error(f"Chyba při zpracování transakce: {e}")
+            logger.error(f"Chyba při zpracování transakce {session_id}: {e}")
+    else:
+        transactions = get_recent_pending_entries(event_id=pk)
+
+        for t in transactions:
+            try:
+                confirm = stripe.checkout.Session.retrieve(t.transaction_id)
+                mark_entry_paid(t, confirm)
+            except Exception as e:
+                logger.error(f"Chyba při zpracování transakce: {e}")
 
     try:
         clear_checkout_session(request)
@@ -126,14 +135,21 @@ def confirm_user_order(request):
 @login_required(login_url="/login")
 def check_order_payments(request):
     """Ověří stav platby nezaplacených přihlášek přes Stripe API."""
-    transactions = get_recent_pending_entries()
-
-    for t in transactions:
+    session_id = request.GET.get("session_id", "")
+    if session_id:
         try:
-            confirm = stripe.checkout.Session.retrieve(t.transaction_id)
-            mark_entry_paid(t, confirm)
+            finalize_entry_checkout_session(session_id)
         except (stripe.error.StripeError, Exception) as e:
             logger.error(f"Chyba při ověřování transakce: {e}")
+    else:
+        transactions = get_recent_pending_entries()
+
+        for t in transactions:
+            try:
+                confirm = stripe.checkout.Session.retrieve(t.transaction_id)
+                mark_entry_paid(t, confirm)
+            except (stripe.error.StripeError, Exception) as e:
+                logger.error(f"Chyba při ověřování transakce: {e}")
 
     update_cart(request)
     messages.success(request, "Vaše přihláška byla úspěšně přijata.")
@@ -198,7 +214,10 @@ def credit_view(request):
                 payment_method_types=["card"],
                 line_items=line_item,
                 mode="payment",
-                success_url=settings.YOUR_DOMAIN + "/event/success-credit",
+                success_url=(
+                    settings.YOUR_DOMAIN
+                    + "/event/success-credit?session_id={CHECKOUT_SESSION_ID}"
+                ),
                 cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
             )
             CreditTransaction(
@@ -220,7 +239,14 @@ def success_credit_view(request):
     Používá select_for_update() + atomic() pro prevenci dvojího přičtení kreditu.
     Webhook (stripe_credit_webhook) je primární cesta — tato view je záloha.
     """
-    finalize_pending_credit_transactions(request.user)
+    session_id = request.GET.get("session_id", "")
+    if session_id:
+        try:
+            finalize_credit_transaction_by_session_id(session_id, user=request.user)
+        except Exception as error:
+            logger.error(f"Chyba při potvrzení kreditní platby {session_id}: {error}")
+    else:
+        finalize_pending_credit_transactions(request.user)
     return redirect("event:success-credit-update")
 
 

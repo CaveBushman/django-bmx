@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from club.models import Club
-from event.models import Entry, EntryClasses, EntryForeign, Event, SeasonSettings
+from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -296,6 +296,63 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(orders[0].event_class, "Beginners 1")
         self.assertEqual(orders[1].event_class, "Boys 12 and under")
 
+    @patch("event.views.payment_helpers.stripe.checkout.Session.retrieve")
+    def test_success_view_confirms_exact_session_even_when_entry_is_older_than_24_hours(self, retrieve_mock):
+        self.client.force_login(self.user)
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            transaction_id="sess_exact_entry",
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+        Entry.objects.filter(pk=entry.pk).update(
+            transaction_date=timezone.now() - timedelta(days=3)
+        )
+        retrieve_mock.return_value = {
+            "payment_status": "paid",
+            "customer_details": {
+                "name": "Exact Buyer",
+                "email": "exact@example.com",
+            },
+        }
+
+        response = self.client.get(
+            reverse("event:success", kwargs={"pk": self.event.pk})
+            + "?session_id=sess_exact_entry"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        entry.refresh_from_db()
+        self.assertTrue(entry.payment_complete)
+        self.assertEqual(entry.customer_email, "exact@example.com")
+
+    @patch("event.views.payment_helpers.stripe.checkout.Session.retrieve")
+    def test_success_credit_view_confirms_exact_session(self, retrieve_mock):
+        self.client.force_login(self.user)
+        credit_transaction = CreditTransaction.objects.create(
+            user=self.user,
+            amount=700,
+            transaction_id="sess_credit_exact",
+        )
+        retrieve_mock.return_value = {
+            "payment_status": "paid",
+            "payment_intent": "pi_credit_exact",
+        }
+
+        response = self.client.get(
+            reverse("event:success-credit") + "?session_id=sess_credit_exact"
+        )
+
+        self.assertRedirects(response, reverse("event:success-credit-update"))
+        credit_transaction.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertTrue(credit_transaction.payment_complete)
+        self.assertEqual(credit_transaction.payment_intent, "pi_credit_exact")
+        self.assertEqual(self.user.credit, 700)
+
 
 class ForeignEntryHelperTests(TestCase):
     def setUp(self):
@@ -382,6 +439,50 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(foreign_rider.first_name, "Péter")
         self.assertEqual(foreign_rider.state, "HUN")
         self.assertEqual(foreign_rider.class_24, "Cruiser")
+
+    @patch("event.views.payment_helpers._construct_stripe_event")
+    def test_webhook_marks_foreign_entries_paid(self, construct_event_mock):
+        foreign_entry = EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_foreign_webhook",
+            first_name="Péter",
+            last_name="Balogh",
+            uci_id="10115844151",
+            gender="Muž",
+            nationality="HUN",
+            club="",
+            transponder="TR-20",
+            is_20=True,
+            class_20="Elite 17+",
+            fee_20=400,
+            payment_complete=False,
+        )
+        construct_event_mock.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "sess_foreign_webhook",
+                    "payment_status": "paid",
+                    "payment_intent": "pi_foreign",
+                    "customer_details": {
+                        "name": "Foreign Buyer",
+                        "email": "foreign@example.com",
+                    },
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("event:stripe-credit-webhook"),
+            data="{}",
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="sig_test",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        foreign_entry.refresh_from_db()
+        self.assertTrue(foreign_entry.payment_complete)
+        self.assertEqual(foreign_entry.customer_email, "foreign@example.com")
 
 
 class BalanceRecalculationViewTests(TestCase):

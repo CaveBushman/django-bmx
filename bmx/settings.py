@@ -29,26 +29,67 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+def config_bool(name, default=False):
+    raw_value = config(name, default=default)
+    if isinstance(raw_value, bool):
+        return raw_value
+
+    normalized = str(raw_value).strip().lower()
+    if normalized in {"1", "true", "yes", "on", "debug", "development", "dev"}:
+        return True
+    if normalized in {"0", "false", "no", "off", "release", "prod", "production"}:
+        return False
+    return bool(raw_value)
+
+
+def config_list(name, default=""):
+    raw_value = config(name, default=default)
+    if isinstance(raw_value, (list, tuple)):
+        return [str(item).strip() for item in raw_value if str(item).strip()]
+    return [item.strip() for item in str(raw_value).split(",") if item.strip()]
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config_bool("DEBUG", default=True)
+
+DEFAULT_ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "[::1]",
+    "testserver",
+    "czechbmx.cz",
+    "www.czechbmx.cz",
+]
+ALLOWED_HOSTS = config_list("ALLOWED_HOSTS", default=",".join(DEFAULT_ALLOWED_HOSTS))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 OPENAI_API_KEY = config("OPENAI_API_KEY")
 OPENROUTER_API_KEY = config("OPENROUTER_API_KEY")
 
-STRIPE_ENDPOINT_SECRET = config("STRIPE_ENDPOINT_SECRET")
+STRIPE_LIVE_MODE = config_bool("STRIPE_LIVE_MODE", default=not DEBUG)
 
 # STRIPE KEYS
-if DEBUG:
-    STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY_TEST")
-    STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY_TEST")
-else:
+if STRIPE_LIVE_MODE:
     STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
     STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
-    STRIPE_ENDPOINT_SECRET = config("STRIPE_ENDPOINT_SECRET")
+else:
+    STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY_TEST")
+    STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY_TEST")
+
+STRIPE_ENDPOINT_SECRET = config(
+    "STRIPE_ENDPOINT_SECRET",
+    default=config(
+        "STRIPE_ENDPOINT_SECRET_LIVE" if STRIPE_LIVE_MODE else "STRIPE_ENDPOINT_SECRET_TEST",
+        default="",
+    ),
+)
+STRIPE_ENDPOINT_SECRETS = config_list(
+    "STRIPE_ENDPOINT_SECRETS",
+    default=STRIPE_ENDPOINT_SECRET,
+)
 
 # Application definition
 
@@ -256,19 +297,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 LOGIN_REDIRECT_URL = "accounts:login"
 LOGOUT_REDIRECT_URL = "accounts:logout"
 
-if DEBUG:
-    YOUR_DOMAIN = "http://localhost:8000"
-else:
-    YOUR_DOMAIN = "https://czechbmx.cz"
-    ALLOWED_HOSTS = ["czechbmx.cz", "www.czechbmx.cz"]
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_HTTPONLY = True
+YOUR_DOMAIN = config(
+    "YOUR_DOMAIN",
+    default="https://czechbmx.cz" if STRIPE_LIVE_MODE else "http://localhost:8000",
+)
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=STRIPE_LIVE_MODE)
+    if SECURE_SSL_REDIRECT:
+        SECURE_HSTS_SECONDS = 31536000
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
+        SESSION_COOKIE_SECURE = True
+        SESSION_COOKIE_HTTPONLY = True
+        CSRF_COOKIE_SECURE = True
+        CSRF_COOKIE_HTTPONLY = True
 
 # email setting
 EMAIL_HOST = "smtp.gmail.com"
