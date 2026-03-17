@@ -6,7 +6,12 @@ from django.utils import timezone
 from accounts.models import Account
 from event.credit import calculate_user_balance
 from event.models import SeasonSettings
-from rider.models import RiderStatsCharge, RiderStatsSubscription
+from rider.models import (
+    RiderStatsCharge,
+    RiderStatsSubscription,
+    TrainerClubCharge,
+    TrainerClubSubscription,
+)
 
 
 SUBSCRIPTION_PERIOD = timedelta(days=30)
@@ -55,12 +60,43 @@ def _get_price_for_current_season(at_time=None):
     return season, season.rider_stats_monthly_price
 
 
+def _get_trainer_price_for_current_season(product, *, at_time=None):
+    season = get_current_season_settings(at_time=at_time)
+    if season is None:
+        raise ValueError("Pro aktuální rok není nastavená sezona.")
+
+    if product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+        price = season.trainer_club_stats_monthly_price
+    elif product == TrainerClubSubscription.PRODUCT_EXTENDED:
+        price = season.trainer_extended_monthly_price
+    else:
+        raise ValueError("Neplatný typ trenérského předplatného.")
+
+    if price < 0:
+        raise ValueError("Cena trenérského předplatného v sezoně není platná.")
+    return season, price
+
+
 def _charge_subscription(user, rider, season, subscription, amount, period_start, period_end, reason):
     RiderStatsCharge.objects.create(
         user=user,
         rider=rider,
         season=season,
         subscription=subscription,
+        amount=amount,
+        period_start=period_start,
+        period_end=period_end,
+        reason=reason,
+    )
+
+
+def _charge_trainer_subscription(user, club, season, subscription, product, amount, period_start, period_end, reason):
+    TrainerClubCharge.objects.create(
+        user=user,
+        club=club,
+        season=season,
+        subscription=subscription,
+        product=product,
         amount=amount,
         period_start=period_start,
         period_end=period_end,
@@ -221,6 +257,238 @@ def renew_due_rider_stats_subscriptions(*, at_time=None):
                     period_start,
                     period_end,
                     RiderStatsCharge.REASON_RENEWAL,
+                )
+
+            account.credit = calculate_user_balance(account.pk)
+            account.save(update_fields=["credit"])
+            renewed += 1
+
+    return {
+        "renewed": renewed,
+        "expired": expired,
+        "failed": failed,
+        "processed": len(due_ids),
+    }
+
+
+def get_active_trainer_club_subscription(user, club, product, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return None
+
+    current_time = at_time or timezone.now()
+    return (
+        TrainerClubSubscription.objects.filter(
+            user=user,
+            club=club,
+            product=product,
+            status=TrainerClubSubscription.STATUS_ACTIVE,
+            expires_at__gt=current_time,
+        )
+        .select_related("season", "club", "user")
+        .first()
+    )
+
+
+def has_active_trainer_club_stats_access(user, club, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    return (
+        get_active_trainer_club_subscription(
+            user,
+            club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+            at_time=at_time,
+        )
+        is not None
+        or get_active_trainer_club_subscription(
+            user,
+            club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+            at_time=at_time,
+        )
+        is not None
+    )
+
+
+def has_active_trainer_club_extended_access(user, club, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    return (
+        get_active_trainer_club_subscription(
+            user,
+            club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+            at_time=at_time,
+        )
+        is not None
+    )
+
+
+def _ensure_trainer_can_subscribe(account, club):
+    if not getattr(account, "is_trainer", False):
+        raise ValueError("Trenérské předplatné může aktivovat jen uživatel s rolí trenéra.")
+    if not account.trainer_clubs.filter(pk=club.pk).exists():
+        raise ValueError("Trenérské předplatné lze aktivovat jen pro přiřazený klub.")
+    if not club.is_active:
+        raise ValueError("Trenérské předplatné lze aktivovat jen pro aktivní klub.")
+
+
+def purchase_trainer_club_subscription(user, club, product, *, at_time=None):
+    current_time = at_time or timezone.now()
+
+    with transaction.atomic():
+        account = Account.objects.select_for_update().prefetch_related("trainer_clubs").get(pk=user.pk)
+        _ensure_trainer_can_subscribe(account, club)
+        season, price = _get_trainer_price_for_current_season(product, at_time=current_time)
+
+        active_subscription = get_active_trainer_club_subscription(account, club, product, at_time=current_time)
+        if active_subscription is not None:
+            return active_subscription, False
+
+        current_balance = calculate_user_balance(account.pk)
+        if price > current_balance:
+            raise ValueError("Nedostatek kreditu pro aktivaci trenérského předplatného.")
+
+        subscription = (
+            TrainerClubSubscription.objects.select_for_update()
+            .filter(user=account, club=club, product=product)
+            .order_by("-expires_at", "-id")
+            .first()
+        )
+
+        period_start = current_time
+        period_end = current_time + SUBSCRIPTION_PERIOD
+
+        if subscription is None:
+            subscription = TrainerClubSubscription.objects.create(
+                user=account,
+                club=club,
+                season=season,
+                product=product,
+                starts_at=period_start,
+                expires_at=period_end,
+                status=TrainerClubSubscription.STATUS_ACTIVE,
+                monthly_price=price,
+                auto_renew=True,
+                last_renewed_at=period_start,
+            )
+        else:
+            subscription.season = season
+            subscription.starts_at = period_start
+            subscription.expires_at = period_end
+            subscription.status = TrainerClubSubscription.STATUS_ACTIVE
+            subscription.monthly_price = price
+            subscription.auto_renew = True
+            subscription.last_renewed_at = period_start
+            subscription.canceled_at = None
+            subscription.save()
+
+        if price > 0:
+            _charge_trainer_subscription(
+                account,
+                club,
+                season,
+                subscription,
+                product,
+                price,
+                period_start,
+                period_end,
+                TrainerClubCharge.REASON_INITIAL,
+            )
+
+        account.credit = calculate_user_balance(account.pk)
+        account.save(update_fields=["credit"])
+        return subscription, True
+
+
+def cancel_trainer_club_subscription(subscription, *, at_time=None):
+    current_time = at_time or timezone.now()
+    subscription.auto_renew = False
+    subscription.canceled_at = current_time
+    if subscription.expires_at <= current_time:
+        subscription.status = TrainerClubSubscription.STATUS_CANCELED
+        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    else:
+        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    return subscription
+
+
+def resume_trainer_club_subscription(subscription, *, at_time=None):
+    current_time = at_time or timezone.now()
+    subscription.auto_renew = True
+    subscription.canceled_at = None
+    if subscription.expires_at > current_time:
+        subscription.status = TrainerClubSubscription.STATUS_ACTIVE
+        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    else:
+        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    return subscription
+
+
+def renew_due_trainer_club_subscriptions(*, at_time=None):
+    current_time = at_time or timezone.now()
+    renewed = 0
+    expired = 0
+    failed = 0
+
+    due_ids = list(
+        TrainerClubSubscription.objects.filter(
+            status__in=[TrainerClubSubscription.STATUS_ACTIVE, TrainerClubSubscription.STATUS_PAST_DUE],
+            auto_renew=True,
+            expires_at__lte=current_time,
+        ).values_list("id", flat=True)
+    )
+
+    for subscription_id in due_ids:
+        with transaction.atomic():
+            subscription = (
+                TrainerClubSubscription.objects.select_for_update()
+                .select_related("user", "club", "season")
+                .filter(id=subscription_id)
+                .first()
+            )
+            if subscription is None or subscription.status == TrainerClubSubscription.STATUS_CANCELED:
+                continue
+
+            account = Account.objects.select_for_update().prefetch_related("trainer_clubs").get(pk=subscription.user_id)
+            if not account.is_trainer or not account.trainer_clubs.filter(pk=subscription.club_id).exists():
+                subscription.status = TrainerClubSubscription.STATUS_EXPIRED
+                subscription.auto_renew = False
+                subscription.save(update_fields=["status", "auto_renew", "updated"])
+                expired += 1
+                continue
+
+            season, price = _get_trainer_price_for_current_season(subscription.product, at_time=current_time)
+            current_balance = calculate_user_balance(account.pk)
+            if price > current_balance:
+                subscription.status = TrainerClubSubscription.STATUS_PAST_DUE
+                subscription.save(update_fields=["status", "updated"])
+                failed += 1
+                continue
+
+            period_start = max(subscription.expires_at, current_time)
+            period_end = period_start + SUBSCRIPTION_PERIOD
+            subscription.season = season
+            subscription.starts_at = period_start
+            subscription.expires_at = period_end
+            subscription.status = TrainerClubSubscription.STATUS_ACTIVE
+            subscription.monthly_price = price
+            subscription.last_renewed_at = current_time
+            subscription.save()
+
+            if price > 0:
+                _charge_trainer_subscription(
+                    account,
+                    subscription.club,
+                    season,
+                    subscription,
+                    subscription.product,
+                    price,
+                    period_start,
+                    period_end,
+                    TrainerClubCharge.REASON_RENEWAL,
                 )
 
             account.credit = calculate_user_balance(account.pk)

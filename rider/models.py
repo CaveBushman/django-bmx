@@ -445,9 +445,115 @@ class RiderStatsCharge(models.Model):
         return f"{self.user} - {self.rider} - {self.amount} Kč"
 
 
+class TrainerClubSubscription(models.Model):
+    STATUS_ACTIVE = "active"
+    STATUS_EXPIRED = "expired"
+    STATUS_CANCELED = "canceled"
+    STATUS_PAST_DUE = "past_due"
+    STATUS_CHOICES = (
+        (STATUS_ACTIVE, "Aktivní"),
+        (STATUS_EXPIRED, "Expirované"),
+        (STATUS_CANCELED, "Zrušené"),
+        (STATUS_PAST_DUE, "Neprodloužené"),
+    )
+
+    PRODUCT_CLUB_STATS = "club_stats"
+    PRODUCT_EXTENDED = "club_extended"
+    PRODUCT_CHOICES = (
+        (PRODUCT_CLUB_STATS, "Prémiové statistiky klubu"),
+        (PRODUCT_EXTENDED, "Rozšířené funkce trenéra"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="trainer_club_subscriptions")
+    club = models.ForeignKey("club.Club", on_delete=models.CASCADE, related_name="trainer_subscriptions")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="trainer_club_subscriptions")
+    product = models.CharField(max_length=30, choices=PRODUCT_CHOICES, default=PRODUCT_CLUB_STATS, db_index=True)
+    starts_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE, db_index=True)
+    monthly_price = models.IntegerField(default=0)
+    auto_renew = models.BooleanField(default=True)
+    last_renewed_at = models.DateTimeField(null=True, blank=True)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Předplatné trenéra pro klub"
+        verbose_name_plural = "Předplatná trenérů pro kluby"
+        indexes = [
+            models.Index(fields=["user", "product", "status", "expires_at"], name="trainer_sub_user_prod_exp"),
+            models.Index(fields=["club", "product", "status", "expires_at"], name="trainer_sub_club_prod_exp"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "club", "product"],
+                condition=Q(status="active"),
+                name="uniq_active_trainer_club_subscription",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} -> {self.club} [{self.get_product_display()}]"
+
+
+class TrainerClubCharge(models.Model):
+    REASON_INITIAL = "initial"
+    REASON_RENEWAL = "renewal"
+    REASON_CHOICES = (
+        (REASON_INITIAL, "První aktivace"),
+        (REASON_RENEWAL, "Obnovení"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="trainer_club_charges")
+    club = models.ForeignKey("club.Club", on_delete=models.CASCADE, related_name="trainer_charges")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="trainer_club_charges")
+    subscription = models.ForeignKey(
+        "rider.TrainerClubSubscription",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="charges",
+    )
+    product = models.CharField(
+        max_length=30,
+        choices=TrainerClubSubscription.PRODUCT_CHOICES,
+        default=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+    )
+    amount = models.IntegerField(default=0)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    reason = models.CharField(max_length=20, choices=REASON_CHOICES, default=REASON_INITIAL)
+    payment_valid = models.BooleanField(default=True)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "Odečet za trenérské předplatné"
+        verbose_name_plural = "Odečty za trenérská předplatná"
+        indexes = [
+            models.Index(fields=["user", "payment_valid", "transaction_date"], name="trainer_charge_user_valid_date"),
+            models.Index(fields=["subscription"], name="trainer_charge_subscription"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.club} - {self.amount} Kč"
+
+
 @receiver(post_save, sender=RiderStatsCharge)
 @receiver(post_delete, sender=RiderStatsCharge)
 def update_user_balance_for_stats_charge(sender, instance, **kwargs):
+    if not instance.user_id:
+        return
+    from accounts.models import Account
+    from event.credit import calculate_user_balance
+
+    new_balance = calculate_user_balance(instance.user_id)
+    Account.objects.filter(id=instance.user_id).update(credit=new_balance)
+
+
+@receiver(post_save, sender=TrainerClubCharge)
+@receiver(post_delete, sender=TrainerClubCharge)
+def update_user_balance_for_trainer_charge(sender, instance, **kwargs):
     if not instance.user_id:
         return
     from accounts.models import Account

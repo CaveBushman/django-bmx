@@ -67,6 +67,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     is_commission = models.BooleanField(default=False)
     is_commissar = models.BooleanField(default=False)
     is_club_manager = models.BooleanField(default=False)
+    is_trainer = models.BooleanField(default=False)
 
     club = models.ForeignKey(
         Club,
@@ -74,6 +75,11 @@ class Account(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         related_name="managed_users",
+    )
+    trainer_clubs = models.ManyToManyField(
+        Club,
+        blank=True,
+        related_name="trainers",
     )
 
     # not required

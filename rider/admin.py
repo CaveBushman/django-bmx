@@ -8,6 +8,8 @@ from event.models import EntryForeign
 from .models import (
     ForeignRider,
     Rider,
+    TrainerClubCharge,
+    TrainerClubSubscription,
     RiderStatsCharge,
     RiderStatsSubscription,
     RiderTransponderChange,
@@ -319,6 +321,20 @@ class RiderStatsChargeAdmin(admin.ModelAdmin):
     list_select_related = ("user", "rider", "season", "subscription")
 
 
+class TrainerClubSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "club", "product", "season", "status", "expires_at", "monthly_price", "auto_renew")
+    list_filter = ("product", "status", "auto_renew", "season")
+    search_fields = ("user__email", "user__last_name", "club__team_name")
+    list_select_related = ("user", "club", "season")
+
+
+class TrainerClubChargeAdmin(admin.ModelAdmin):
+    list_display = ("user", "club", "product", "amount", "reason", "period_start", "period_end", "payment_valid")
+    list_filter = ("product", "reason", "payment_valid", "season")
+    search_fields = ("user__email", "user__last_name", "club__team_name")
+    list_select_related = ("user", "club", "season", "subscription")
+
+
 class RiderTransponderChangeAdmin(admin.ModelAdmin):
     list_display = ('rider', 'slot', 'old_transponder', 'new_transponder', 'changed_at', 'battery_expected_until', 'changed_by')
     list_filter = ('slot', 'changed_at')
@@ -335,4 +351,6 @@ admin.site.register(Rider, RiderAdmin)
 admin.site.register(ForeignRider, ForeignRiderAdmin)
 admin.site.register(RiderStatsSubscription, RiderStatsSubscriptionAdmin)
 admin.site.register(RiderStatsCharge, RiderStatsChargeAdmin)
+admin.site.register(TrainerClubSubscription, TrainerClubSubscriptionAdmin)
+admin.site.register(TrainerClubCharge, TrainerClubChargeAdmin)
 admin.site.register(RiderTransponderChange, RiderTransponderChangeAdmin)

@@ -77,6 +77,22 @@ TRACK_TABLE_COLUMNS = [
     ("FINAL", "F"),
     ("DAY_MEDIAN", "Medián dne"),
 ]
+START_TABLE_COLUMNS = [
+    ("M1", "M1"),
+    ("M2", "M2"),
+    ("M3", "M3"),
+    ("M4", "M4"),
+    ("M5", "M5"),
+    ("M6", "M6"),
+    ("M7", "M7"),
+    ("M8", "M8"),
+    ("F16", "1/16"),
+    ("F8", "1/8"),
+    ("F4", "1/4"),
+    ("F2", "1/2"),
+    ("FINAL", "F"),
+    ("DAY_MEDIAN", "Medián startu"),
+]
 
 
 def riders_list_view(request):
@@ -234,6 +250,73 @@ def _get_table_column_key(run):
     if run.round_type in {"F16", "F8", "F4", "F2", "FINAL"}:
         return run.round_type
     return None
+
+
+def _build_chart_series(raw_event_rows, event_times, value_key):
+    chart_events = []
+    for item in raw_event_rows:
+        event_id = item["event_id"]
+        times = event_times.get(event_id, [])
+        if times:
+            chart_events.append(
+                {
+                    "date": item["date"],
+                    "event_name": item["event_name"],
+                    value_key: round(median(times), 3),
+                }
+            )
+
+    chart_points = []
+    chart_y_ticks = []
+    if chart_events:
+        min_time = min(item[value_key] for item in chart_events)
+        max_time = max(item[value_key] for item in chart_events)
+        time_span = max(max_time - min_time, 0.001)
+        width = 1000
+        height = 260
+        left_pad = 56
+        right_pad = 24
+        top_pad = 24
+        bottom_pad = 44
+        usable_width = width - left_pad - right_pad
+        usable_height = height - top_pad - bottom_pad
+
+        for index, item in enumerate(chart_events):
+            x = left_pad if len(chart_events) == 1 else left_pad + (usable_width * index / (len(chart_events) - 1))
+            y = top_pad + ((max_time - item[value_key]) / time_span) * usable_height
+            chart_points.append(
+                {
+                    "x": round(x, 2),
+                    "y": round(y, 2),
+                    "label": item["event_name"],
+                    "short_label": item["date"].strftime("%d.%m.%Y") if item["date"] else f"Závod {index + 1}",
+                    value_key: item[value_key],
+                }
+            )
+
+        chart_polyline = " ".join(f"{point['x']},{point['y']}" for point in chart_points)
+        for index in range(5):
+            ratio = index / 4
+            value = max_time - (time_span * ratio)
+            y = top_pad + (usable_height * ratio)
+            chart_y_ticks.append(
+                {
+                    "y": round(y, 2),
+                    "label": round(value, 3),
+                }
+            )
+    else:
+        min_time = None
+        max_time = None
+        chart_polyline = ""
+
+    return {
+        "points": chart_points,
+        "polyline": chart_polyline,
+        "min": min_time,
+        "max": max_time,
+        "ticks": chart_y_ticks,
+    }
 
 
 def _build_track_options(results, runs):
@@ -483,7 +566,9 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         trend_label = "Málo dat"
 
     event_rows_map = {}
+    start_event_rows_map = {}
     event_finish_times = defaultdict(list)
+    event_hill_times = defaultdict(list)
     for run in sorted(
         track_runs,
         key=lambda item: (
@@ -494,15 +579,12 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         ):
         if run.finish_time is not None and run.event_id:
             event_finish_times[run.event_id].append(float(run.finish_time))
+        if run.hill_time is not None and run.event_id:
+            event_hill_times[run.event_id].append(float(run.hill_time))
 
-        if run.round_type == "MOTO":
-            if not run.round_number or run.round_number > 8:
-                continue
-            column_key = f"M{run.round_number}"
-        else:
-            column_key = run.round_type
-            if column_key not in {"F16", "F8", "F4", "F2", "FINAL"}:
-                continue
+        column_key = _get_table_column_key(run)
+        if not column_key:
+            continue
 
         row = event_rows_map.setdefault(
             run.event_id,
@@ -517,6 +599,19 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             "place": run.place or "-",
             "time": run.finish_time,
         }
+        if run.hill_time is not None:
+            start_row = start_event_rows_map.setdefault(
+                run.event_id,
+                {
+                    "event_id": run.event_id,
+                    "date": run.event.date if run.event else None,
+                    "event_name": run.event.name if run.event else "-",
+                    "cells": {key: None for key, _ in START_TABLE_COLUMNS},
+                },
+            )
+            start_row["cells"][column_key] = {
+                "time": run.hill_time,
+            }
 
     raw_event_rows = sorted(
         event_rows_map.values(),
@@ -549,63 +644,39 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
             }
         )
 
-    chart_events = []
-    for item in raw_event_rows:
+    finish_chart = _build_chart_series(raw_event_rows, event_finish_times, "median_time")
+
+    raw_start_event_rows = sorted(
+        start_event_rows_map.values(),
+        key=lambda item: (item["date"] or date.min, item["event_name"]),
+    )
+    start_event_rows = []
+    for item in raw_start_event_rows:
         event_id = item["event_id"]
-        times = event_finish_times.get(event_id, [])
-        if times:
-            chart_events.append(
+        hill_times = event_hill_times.get(event_id, [])
+        if hill_times:
+            item["cells"]["DAY_MEDIAN"] = {
+                "time": round(median(hill_times), 3),
+            }
+        row_cells = []
+        for key, label in START_TABLE_COLUMNS:
+            row_cells.append(
                 {
-                    "date": item["date"],
-                    "event_name": item["event_name"],
-                    "median_time": round(median(times), 3),
+                    "key": key,
+                    "label": label,
+                    "value": item["cells"].get(key),
                 }
             )
+        start_event_rows.append(
+            {
+                "event_id": item["event_id"],
+                "date": item["date"],
+                "event_name": item["event_name"],
+                "cells": row_cells,
+            }
+        )
 
-    chart_points = []
-    chart_y_ticks = []
-    if chart_events:
-        min_time = min(item["median_time"] for item in chart_events)
-        max_time = max(item["median_time"] for item in chart_events)
-        time_span = max(max_time - min_time, 0.001)
-        width = 1000
-        height = 260
-        left_pad = 56
-        right_pad = 24
-        top_pad = 24
-        bottom_pad = 44
-        usable_width = width - left_pad - right_pad
-        usable_height = height - top_pad - bottom_pad
-
-        for index, item in enumerate(chart_events):
-            x = left_pad if len(chart_events) == 1 else left_pad + (usable_width * index / (len(chart_events) - 1))
-            y = top_pad + ((max_time - item["median_time"]) / time_span) * usable_height
-            chart_points.append(
-                {
-                    "x": round(x, 2),
-                    "y": round(y, 2),
-                    "label": item["event_name"],
-                    "short_label": item["date"].strftime("%d.%m.%Y") if item["date"] else f"Závod {index + 1}",
-                    "median_time": item["median_time"],
-                }
-            )
-
-        chart_polyline = " ".join(f"{point['x']},{point['y']}" for point in chart_points)
-        for index in range(5):
-            ratio = index / 4
-            value = max_time - (time_span * ratio)
-            y = top_pad + (usable_height * ratio)
-            chart_y_ticks.append(
-                {
-                    "y": round(y, 2),
-                    "label": round(value, 3),
-                }
-            )
-    else:
-        min_time = None
-        max_time = None
-        chart_polyline = ""
-        chart_y_ticks = []
+    start_chart = _build_chart_series(raw_start_event_rows, event_hill_times, "median_hill_time")
 
     compare_is_20 = any(result.is_20 and not result.is_beginner for result in recent_track_results)
     compare_is_24 = any((not result.is_20) and not result.is_beginner for result in recent_track_results)
@@ -731,11 +802,18 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         "recent_results": list(reversed(ordered_results[-8:])),
         "event_rows": event_rows,
         "table_columns": TRACK_TABLE_COLUMNS,
-        "chart_points": chart_points,
-        "chart_polyline": chart_polyline,
-        "chart_min_time": min_time,
-        "chart_max_time": max_time,
-        "chart_y_ticks": chart_y_ticks,
+        "chart_points": finish_chart["points"],
+        "chart_polyline": finish_chart["polyline"],
+        "chart_min_time": finish_chart["min"],
+        "chart_max_time": finish_chart["max"],
+        "chart_y_ticks": finish_chart["ticks"],
+        "start_event_rows": start_event_rows,
+        "start_table_columns": START_TABLE_COLUMNS,
+        "start_chart_points": start_chart["points"],
+        "start_chart_polyline": start_chart["polyline"],
+        "start_chart_min_time": start_chart["min"],
+        "start_chart_max_time": start_chart["max"],
+        "start_chart_y_ticks": start_chart["ticks"],
         "peer_label": peer_label,
         "peer_group_size": peer_group_size,
         "peer_place_percentile": peer_place_percentile,
