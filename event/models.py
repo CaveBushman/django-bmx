@@ -461,10 +461,10 @@ class RaceRun(models.Model):
     race_points = models.IntegerField(null=True, blank=True)
     moto_points = models.IntegerField(null=True, blank=True)
 
-    hill_time = models.FloatField(null=True, blank=True)     # ⛰️ čas na kopci (start hill)
+    hill_time = models.FloatField(null=True, blank=True)     # ⛰️ Inter1 / čas na kopci (start hill)
     finish_time = models.FloatField(null=True, blank=True)   # 🏁 čas v cíli
 
-    split_1 = models.FloatField(null=True, blank=True)
+    split_1 = models.FloatField(null=True, blank=True)       # 🌀 Inter2 / mezičas z první zatáčky
     split_2 = models.FloatField(null=True, blank=True)
     split_3 = models.FloatField(null=True, blank=True)
     split_4 = models.FloatField(null=True, blank=True)

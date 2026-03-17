@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trenérský dashboard{% endblock title %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+
+<section class="dashboard-surface min-h-screen pb-16 pt-8">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Trenérská sekce</p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Trenérský dashboard</h1>
+          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+            Přehled klubů, které máš přiřazené jako trenér, a stav měsíčních předplatných pro klubové prémiové statistiky a rozšířené funkce.
+          </p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-3 lg:w-[40rem] lg:flex-none">
+          <div class="dashboard-card flex min-h-[9.5rem] flex-col justify-between rounded-[1.5rem] border p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Kluby</p>
+            <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ trainer_clubs_count }}</p>
+          </div>
+          <div class="dashboard-card flex min-h-[9.5rem] flex-col justify-between rounded-[1.5rem] border p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Aktivní stats</p>
+            <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ active_stats_count }}</p>
+          </div>
+          <div class="dashboard-card flex min-h-[9.5rem] flex-col justify-between rounded-[1.5rem] border p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Extended</p>
+            <p class="mt-3 whitespace-nowrap text-3xl font-black {% if global_extended_info.is_active %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-900 dark:text-white{% endif %}">
+              {% if global_extended_info.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="dashboard-panel mt-8 rounded-[2rem] border p-6 sm:p-8">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Ceník sezóny</p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Měsíční tarify pro trenéra</h2>
+        </div>
+        {% if season_settings %}
+        <p class="text-sm text-slate-500 dark:text-slate-300">Ceny se berou z aktuálního nastavení sezóny.</p>
+        {% endif %}
+      </div>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-2">
+        <div class="dashboard-card rounded-[1.5rem] border p-6">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Klubové stats</p>
+          <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">
+            {% if season_settings %}{{ season_settings.trainer_club_stats_monthly_price }} Kč{% else %}-{% endif %}
+          </p>
+          <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+            Měsíční předplatné pro přístup k prémiovým statistikám jezdců jednoho konkrétního klubu.
+          </p>
+        </div>
+        <div class="dashboard-card rounded-[1.5rem] border p-6">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Extended</p>
+          <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">
+            {% if season_settings %}{{ season_settings.trainer_extended_monthly_price }} Kč{% else %}-{% endif %}
+          </p>
+          <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+            Rozšířené měsíční předplatné pro další trenérské funkce, exporty a návazné rozšířené nástroje. Platí globálně pro trenéra a vztahuje se na všechny kluby s aktivním stats předplatným.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-panel mt-8 rounded-[2rem] border p-6 sm:p-8">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Přiřazené kluby</p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Předplatná po klubech</h2>
+        </div>
+        <p class="text-sm text-slate-500 dark:text-slate-300">Stats se účtuje po klubech. Extended je jedno měsíční trenérské předplatné pro všechny kluby s aktivními stats.</p>
+      </div>
+
+      {% if trainer_clubs %}
+      <div class="mt-6 grid gap-5 xl:grid-cols-2">
+        {% for item in trainer_clubs %}
+        <article class="dashboard-card rounded-[1.75rem] border p-6">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Klub</p>
+              <h3 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ item.club.team_name }}</h3>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <a href="{% url 'club:club-detail' item.club.id %}" class="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Detail klubu
+                </a>
+              </div>
+            </div>
+            <div class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              Trenérský přístup
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-700 dark:bg-slate-900/80">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Stats</p>
+              <p class="mt-3 text-lg font-black {% if item.stats.is_active %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-900 dark:text-white{% endif %}">
+                {{ item.stats.label }}
+              </p>
+              <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                {% if item.stats.expires_at %}
+                  Platné do {{ item.stats.expires_at|date:"d.m.Y H:i" }}
+                {% else %}
+                  Klub zatím nemá aktivní stats předplatné.
+                {% endif %}
+              </p>
+              <p class="mt-2 text-xs uppercase tracking-[0.18em] {% if item.stats.auto_renew %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-500 dark:text-slate-400{% endif %}">
+                {% if item.stats.auto_renew %}Automatické obnovení zapnuto{% else %}Automatické obnovení vypnuto{% endif %}
+              </p>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="mt-6 rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+        K tomuto účtu zatím nejsou přiřazené žádné aktivní kluby trenéra.
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock content %}

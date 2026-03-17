@@ -289,25 +289,64 @@ def get_active_trainer_club_subscription(user, club, product, at_time=None):
     )
 
 
+def get_active_trainer_extended_subscription(user, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return None
+
+    current_time = at_time or timezone.now()
+    return (
+        TrainerClubSubscription.objects.filter(
+            user=user,
+            product=TrainerClubSubscription.PRODUCT_EXTENDED,
+            status=TrainerClubSubscription.STATUS_ACTIVE,
+            expires_at__gt=current_time,
+        )
+        .select_related("season", "club", "user")
+        .order_by("-expires_at", "-id")
+        .first()
+    )
+
+
 def has_active_trainer_club_stats_access(user, club, at_time=None):
     if not getattr(user, "is_authenticated", False):
         return False
 
+    return get_active_trainer_club_subscription(
+        user,
+        club,
+        TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        at_time=at_time,
+    ) is not None
+
+
+def has_any_active_trainer_club_stats_access(user, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    current_time = at_time or timezone.now()
+    return TrainerClubSubscription.objects.filter(
+        user=user,
+        product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        status=TrainerClubSubscription.STATUS_ACTIVE,
+        expires_at__gt=current_time,
+    ).exists()
+
+
+def _get_any_active_trainer_stats_subscription(user, at_time=None):
+    if not getattr(user, "is_authenticated", False):
+        return None
+
+    current_time = at_time or timezone.now()
     return (
-        get_active_trainer_club_subscription(
-            user,
-            club,
-            TrainerClubSubscription.PRODUCT_CLUB_STATS,
-            at_time=at_time,
+        TrainerClubSubscription.objects.filter(
+            user=user,
+            product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+            status=TrainerClubSubscription.STATUS_ACTIVE,
+            expires_at__gt=current_time,
         )
-        is not None
-        or get_active_trainer_club_subscription(
-            user,
-            club,
-            TrainerClubSubscription.PRODUCT_EXTENDED,
-            at_time=at_time,
-        )
-        is not None
+        .select_related("season", "club", "user")
+        .order_by("-expires_at", "-id")
+        .first()
     )
 
 
@@ -316,13 +355,8 @@ def has_active_trainer_club_extended_access(user, club, at_time=None):
         return False
 
     return (
-        get_active_trainer_club_subscription(
-            user,
-            club,
-            TrainerClubSubscription.PRODUCT_EXTENDED,
-            at_time=at_time,
-        )
-        is not None
+        has_active_trainer_club_stats_access(user, club, at_time=at_time)
+        and get_active_trainer_extended_subscription(user, at_time=at_time) is not None
     )
 
 
@@ -343,20 +377,24 @@ def purchase_trainer_club_subscription(user, club, product, *, at_time=None):
         _ensure_trainer_can_subscribe(account, club)
         season, price = _get_trainer_price_for_current_season(product, at_time=current_time)
 
-        active_subscription = get_active_trainer_club_subscription(account, club, product, at_time=current_time)
+        if product == TrainerClubSubscription.PRODUCT_EXTENDED:
+            active_subscription = get_active_trainer_extended_subscription(account, at_time=current_time)
+        else:
+            active_subscription = get_active_trainer_club_subscription(account, club, product, at_time=current_time)
         if active_subscription is not None:
             return active_subscription, False
+
+        if product == TrainerClubSubscription.PRODUCT_EXTENDED and not has_any_active_trainer_club_stats_access(account, at_time=current_time):
+            raise ValueError("Rozšířené trenérské předplatné lze aktivovat až po předplacení statistik alespoň jednoho klubu.")
 
         current_balance = calculate_user_balance(account.pk)
         if price > current_balance:
             raise ValueError("Nedostatek kreditu pro aktivaci trenérského předplatného.")
 
-        subscription = (
-            TrainerClubSubscription.objects.select_for_update()
-            .filter(user=account, club=club, product=product)
-            .order_by("-expires_at", "-id")
-            .first()
-        )
+        subscription_query = TrainerClubSubscription.objects.select_for_update().filter(user=account, product=product)
+        if product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+            subscription_query = subscription_query.filter(club=club)
+        subscription = subscription_query.order_by("-expires_at", "-id").first()
 
         period_start = current_time
         period_end = current_time + SUBSCRIPTION_PERIOD
@@ -376,6 +414,7 @@ def purchase_trainer_club_subscription(user, club, product, *, at_time=None):
             )
         else:
             subscription.season = season
+            subscription.club = club
             subscription.starts_at = period_start
             subscription.expires_at = period_end
             subscription.status = TrainerClubSubscription.STATUS_ACTIVE
@@ -453,12 +492,29 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
                 continue
 
             account = Account.objects.select_for_update().prefetch_related("trainer_clubs").get(pk=subscription.user_id)
-            if not account.is_trainer or not account.trainer_clubs.filter(pk=subscription.club_id).exists():
+            if not account.is_trainer:
                 subscription.status = TrainerClubSubscription.STATUS_EXPIRED
                 subscription.auto_renew = False
                 subscription.save(update_fields=["status", "auto_renew", "updated"])
                 expired += 1
                 continue
+            if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+                if not account.trainer_clubs.filter(pk=subscription.club_id).exists():
+                    subscription.status = TrainerClubSubscription.STATUS_EXPIRED
+                    subscription.auto_renew = False
+                    subscription.save(update_fields=["status", "auto_renew", "updated"])
+                    expired += 1
+                    continue
+            else:
+                anchor_subscription = _get_any_active_trainer_stats_subscription(account, at_time=current_time)
+                if anchor_subscription is None:
+                    subscription.status = TrainerClubSubscription.STATUS_EXPIRED
+                    subscription.auto_renew = False
+                    subscription.save(update_fields=["status", "auto_renew", "updated"])
+                    expired += 1
+                    continue
+                if subscription.club_id != anchor_subscription.club_id:
+                    subscription.club = anchor_subscription.club
 
             season, price = _get_trainer_price_for_current_season(subscription.product, at_time=current_time)
             current_balance = calculate_user_balance(account.pk)
