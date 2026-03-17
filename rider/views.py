@@ -701,6 +701,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs):
         "starts_count": events_count,
         "runs_count": len(recent_track_runs),
         "final_runs_count": len([run for run in recent_track_runs if run.round_type in FINAL_ROUND_TYPES]),
+        "progressed_events_count": events_with_final_stage,
         "progression_rate": _safe_rate(events_with_final_stage, events_with_motos),
         "final_rate": _safe_rate(events_with_final, events_count),
         "average_moto_place": avg_moto_place,

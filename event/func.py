@@ -752,6 +752,36 @@ class SetResults(threading.Thread):
             return None
 
     @classmethod
+    def _parse_phase_float(cls, raw, keys):
+        for key in keys:
+            parsed = cls._parse_float(raw.get(key))
+            if parsed is not None:
+                return parsed
+        return None
+
+    @classmethod
+    def _phase_hill_time(cls, raw, phase, index=None):
+        if phase == "MOTO" and index is not None:
+            return cls._parse_phase_float(
+                raw,
+                [
+                    f"MOTO{index}_HILL_TIME",
+                    f"MOTO{index}_HILLTIME",
+                    f"MOTO{index}_START_HILL_TIME",
+                    f"MOTO{index}_START_TIME",
+                ],
+            )
+        return cls._parse_phase_float(
+            raw,
+            [
+                f"{phase}_HILL_TIME",
+                f"{phase}_HILLTIME",
+                f"{phase}_START_HILL_TIME",
+                f"{phase}_START_TIME",
+            ],
+        )
+
+    @classmethod
     def _create_race_runs(cls, raw, event, result):
         """Zapíše detailní průběh jízd z REM TSV do RaceRun."""
         rider = result.rider
@@ -772,6 +802,7 @@ class SetResults(threading.Thread):
                 place=place,
                 race_points=cls._parse_int(raw.get(f"MOTO{index}_RACE_POINTS")),
                 moto_points=cls._parse_int(raw.get(f"MOTO{index}_MOTO_POINTS")),
+                hill_time=cls._phase_hill_time(raw, "MOTO", index=index),
                 finish_time=cls._parse_float(raw.get(f"MOTO{index}_TIME")),
             )
 
@@ -791,6 +822,7 @@ class SetResults(threading.Thread):
                 place=place,
                 race_points=cls._parse_int(raw.get(f"{phase}_RACE_POINTS")),
                 moto_points=cls._parse_int(raw.get(f"{phase}_MOTO_POINTS")),
+                hill_time=cls._phase_hill_time(raw, phase),
                 finish_time=cls._parse_float(raw.get(f"{phase}_TIME")),
             )
 
