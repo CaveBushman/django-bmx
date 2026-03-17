@@ -7,7 +7,18 @@ from django.utils import timezone
 
 from club.models import Club
 from event.models import CreditTransaction, Event, RaceRun, Result, SeasonSettings
-from rider.models import Rider, RiderStatsCharge, RiderStatsSubscription
+from rider.models import (
+    Rider,
+    RiderStatsCharge,
+    RiderStatsSubscription,
+    TrainerClubCharge,
+    TrainerClubSubscription,
+)
+from rider.subscriptions import (
+    has_active_trainer_club_extended_access,
+    has_active_trainer_club_stats_access,
+    purchase_trainer_club_subscription,
+)
 
 
 User = get_user_model()
@@ -179,3 +190,90 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertContains(response, "Secondary Track")
         self.assertContains(response, "Traťový profil")
         self.assertContains(response, "35.44")
+
+
+class TrainerClubSubscriptionTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="Coach",
+            last_name="User",
+            username="coach_user",
+            email="coach@example.com",
+            password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.is_trainer = True
+        self.club = Club.objects.create(team_name="Coach Club")
+        self.other_club = Club.objects.create(team_name="Second Club")
+        self.user.save()
+        self.user.trainer_clubs.add(self.club, self.other_club)
+
+        self.season = SeasonSettings.objects.create(
+            year=timezone.now().year,
+            rider_stats_monthly_price=50,
+            trainer_club_stats_monthly_price=300,
+            trainer_extended_monthly_price=600,
+        )
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=2000,
+            transaction_id="coach-credit",
+            payment_complete=True,
+        )
+
+    def test_purchase_trainer_club_stats_subscription_is_billed_per_club(self):
+        subscription, created = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+
+        self.assertTrue(created)
+        self.user.refresh_from_db()
+        self.assertEqual(subscription.club, self.club)
+        self.assertEqual(subscription.product, TrainerClubSubscription.PRODUCT_CLUB_STATS)
+        self.assertEqual(subscription.monthly_price, 300)
+        self.assertTrue(
+            TrainerClubCharge.objects.filter(
+                user=self.user,
+                club=self.club,
+                product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+                amount=300,
+            ).exists()
+        )
+        self.assertTrue(has_active_trainer_club_stats_access(self.user, self.club))
+        self.assertFalse(has_active_trainer_club_extended_access(self.user, self.club))
+
+    def test_purchase_extended_trainer_subscription_grants_extended_access(self):
+        subscription, created = purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        self.assertTrue(created)
+        self.user.refresh_from_db()
+        self.assertEqual(subscription.product, TrainerClubSubscription.PRODUCT_EXTENDED)
+        self.assertEqual(subscription.monthly_price, 600)
+        self.assertTrue(has_active_trainer_club_stats_access(self.user, self.club))
+        self.assertTrue(has_active_trainer_club_extended_access(self.user, self.club))
+
+    def test_trainer_subscriptions_are_separate_for_each_club(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.other_club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+
+        self.assertEqual(
+            TrainerClubSubscription.objects.filter(
+                user=self.user,
+                product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+            ).count(),
+            2,
+        )

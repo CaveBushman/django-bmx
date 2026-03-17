@@ -14,7 +14,7 @@ from django.utils import timezone
 from accounts.models import Account
 from event.credit import calculate_user_balance
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryForeign
-from rider.models import RiderStatsCharge
+from rider.models import RiderStatsCharge, TrainerClubCharge
 from event.services.payments import get_entry_amount
 
 
@@ -269,6 +269,10 @@ def get_credit_history(user_id):
         user__id=user_id,
         transaction_date__gte=timezone.now() - datetime.timedelta(days=365),
     ).select_related("rider", "season", "subscription")
+    trainer_subscription_debets = TrainerClubCharge.objects.filter(
+        user__id=user_id,
+        transaction_date__gte=timezone.now() - datetime.timedelta(days=365),
+    ).select_related("club", "season", "subscription")
 
     debets = []
 
@@ -296,6 +300,22 @@ def get_credit_history(user_id):
                     else "Prémiové statistiky jezdce"
                 ),
                 debit_type="rider_stats_subscription",
+            )
+        )
+
+    for debet in trainer_subscription_debets:
+        debets.append(
+            SimpleNamespace(
+                transaction_date=debet.transaction_date,
+                amount=debet.amount,
+                payment_valid=debet.payment_valid,
+                description=(
+                    f"Trenérské předplatné: {debet.club.team_name} "
+                    f"({debet.subscription.get_product_display().lower()}, {debet.get_reason_display().lower()})"
+                    if debet.club and debet.subscription
+                    else "Trenérské předplatné klubu"
+                ),
+                debit_type="trainer_club_subscription",
             )
         )
 
