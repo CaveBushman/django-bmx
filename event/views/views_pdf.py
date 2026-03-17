@@ -1,7 +1,7 @@
 """
 event/views/views_pdf.py — generování PDF dokumentů
 
-Obsah: protokol čipů (půjčovné), podklad pro fakturaci, faktura, prize money (TODO).
+Obsah: protokol čipů (půjčovné), podklad pro fakturaci, faktura, přehled neplatných licencí.
 """
 
 import logging
@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from event.models import Event, Entry
+from event.func import invalid_licence_in_event
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
@@ -226,6 +227,74 @@ def invoice_view(request, pk):
 
 @login_required(login_url="/login")
 @staff_member_required
-def price_money_pdf(request, pk):
-    """PDF seznam prize money — TODO."""
-    pass
+def invalid_licences_pdf(request, pk):
+    """PDF seznam přihlášených jezdců s neplatnou licencí."""
+    event = Event.objects.get(pk=pk)
+    riders = sorted(
+        invalid_licence_in_event(event),
+        key=lambda rider: ((rider.last_name or "").lower(), (rider.first_name or "").lower()),
+    )
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="neplatne-licence-{event.id}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    margin = 2 * cm
+    content_width = width - 2 * margin
+
+    _register_fonts()
+    event_date = event.date.strftime("%d.%m.%Y") if event.date else "-"
+    _draw_logo_and_title(
+        p,
+        width,
+        height,
+        margin,
+        f"{event_date} - {event.name.upper()}",
+        "JEZDCI S NEPLATNOU LICENCÍ",
+    )
+
+    p.setFont("DejaVuSans", 10)
+    p.drawString(margin, height - margin - 52, f"Pořadatel: {event.organizer.team_name if event.organizer else '-'}")
+    p.drawString(margin, height - margin - 68, f"Počet jezdců: {len(riders)}")
+
+    header = ["Příjmení a jméno", "UCI ID", "Licence", "Klub"]
+    data = [header]
+    for rider in riders:
+        data.append([
+            f"{rider.last_name} {rider.first_name}",
+            rider.uci_id or "",
+            rider.licence or "",
+            rider.club.team_name if rider.club else "",
+        ])
+
+    if len(data) == 1:
+        data.append(["Žádný jezdec s neplatnou licencí", "", "", ""])
+
+    col_widths = [
+        content_width * 0.34,
+        content_width * 0.20,
+        content_width * 0.20,
+        content_width * 0.26,
+    ]
+    rows_per_page = 18
+    total_pages = max(1, (len(data) - 1 + rows_per_page - 1) // rows_per_page)
+
+    _draw_table_page(
+        p,
+        data,
+        header,
+        col_widths,
+        margin,
+        width,
+        height,
+        total_pages,
+        0,
+        1,
+        rows_per_page,
+        top_offset=92,
+    )
+
+    p.showPage()
+    p.save()
+    return response

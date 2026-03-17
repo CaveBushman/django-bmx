@@ -57,6 +57,11 @@ class EventCashReceiptService:
             return f"Entry fee for race {event.name} held on {event.date:%d.%m.%Y}"
         return f"Entry fee for race {event.name}"
 
+    def _subject_text_cs(self, event):
+        if event.date:
+            return f"Startovné na závod {event.name} konaný dne {event.date:%d.%m.%Y}"
+        return f"Startovné na závod {event.name}"
+
     def _item_detail_text(self, receipt):
         details = [f"Rider: {receipt.rider_name}"]
         if receipt.uci_id:
@@ -65,10 +70,31 @@ class EventCashReceiptService:
             details.append(f"Class: {receipt.category}")
         return " | ".join(details)
 
-    def _generate_pdf(self, receipt):
+    def _generate_pdf(self, receipt, language="en"):
         buffer = BytesIO()
         pdf = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
+
+        is_czech = language == "cs"
+        country = "Česká republika" if is_czech else SUPPLIER_COUNTRY_EN
+        title = "Pokladní doklad" if is_czech else "Cash receipt"
+        title_with_number = f"{title} č. {receipt.number}" if is_czech else f"Cash receipt No. {receipt.number}"
+        issue_date_label = "Datum vystavení" if is_czech else "Issue date"
+        recipient_label = "Příjemce" if is_czech else "Recipient"
+        customer_label = "Odběratel" if is_czech else "Customer"
+        company_id_label = "IČO" if is_czech else "Company ID"
+        vat_label = "Nejsme plátci DPH" if is_czech else "We are not VAT payers"
+        purpose_label = "Účel platby:" if is_czech else "Payment purpose:"
+        item_label = "Položka" if is_czech else "Item"
+        amount_label = "Částka" if is_czech else "Amount"
+        received_label = "Přijato" if is_czech else "Received"
+        note_label = "Poznámka" if is_czech else "Note"
+        footer_label = "Tento doklad byl vystaven ručně pro zahraničního jezdce." if is_czech else "This document was issued manually for a foreign rider."
+        page_label = "Strana 1 z 1" if is_czech else "Page 1 of 1"
+        subject_text = self._subject_text_cs(receipt.event) if is_czech else self._subject_text(receipt.event)
+        rider_label = "Jezdec" if is_czech else "Rider"
+        uci_label = "UCI ID"
+        class_label = "Kategorie" if is_czech else "Class"
 
         if os.path.exists(LOGO_PATH):
             pdf.drawImage(
@@ -81,16 +107,16 @@ class EventCashReceiptService:
                 mask="auto",
             )
 
-        pdf.setTitle(f"Cash receipt {receipt.number}")
+        pdf.setTitle(f"{title} {receipt.number}")
         pdf.setFont("DejaVuSans-Bold", 18)
-        pdf.drawString(20 * mm, height - 20 * mm, f"Cash receipt No. {receipt.number}")
+        pdf.drawString(20 * mm, height - 20 * mm, title_with_number)
 
         pdf.setFont("DejaVuSans", 10)
-        pdf.drawString(20 * mm, height - 32 * mm, f"Issue date: {receipt.issue_date:%d.%m.%Y}")
+        pdf.drawString(20 * mm, height - 32 * mm, f"{issue_date_label}: {receipt.issue_date:%d.%m.%Y}")
 
         pdf.setFont("DejaVuSans-Bold", 11)
-        pdf.drawString(20 * mm, height - 50 * mm, "Recipient")
-        pdf.drawString(110 * mm, height - 50 * mm, "Customer")
+        pdf.drawString(20 * mm, height - 50 * mm, recipient_label)
+        pdf.drawString(110 * mm, height - 50 * mm, customer_label)
 
         pdf.setFont("DejaVuSans", 10)
         left_y = height - 58 * mm
@@ -98,9 +124,9 @@ class EventCashReceiptService:
             SUPPLIER_NAME,
             SUPPLIER_STREET,
             SUPPLIER_CITY,
-            SUPPLIER_COUNTRY_EN,
-            f"Company ID: {SUPPLIER_ICO}",
-            "We are not VAT payers",
+            country,
+            f"{company_id_label}: {SUPPLIER_ICO}",
+            vat_label,
         ):
             pdf.drawString(20 * mm, left_y, line)
             left_y -= 5 * mm
@@ -122,16 +148,16 @@ class EventCashReceiptService:
 
         subject_y = min(left_y, right_y) - 8 * mm
         pdf.setFont("DejaVuSans-Bold", 10)
-        pdf.drawString(20 * mm, subject_y, "Payment purpose:")
+        pdf.drawString(20 * mm, subject_y, purpose_label)
         pdf.setFont("DejaVuSans", 10)
-        subject_lines = simpleSplit(self._subject_text(receipt.event), "DejaVuSans", 10, 140 * mm)
+        subject_lines = simpleSplit(subject_text, "DejaVuSans", 10, 140 * mm)
         for index, line in enumerate(subject_lines):
             pdf.drawString(20 * mm, subject_y - 6 * mm - (index * 5 * mm), line)
         subject_bottom_y = subject_y - 6 * mm - ((len(subject_lines) - 1) * 5 * mm)
 
         if receipt.note:
             note_y = subject_bottom_y - 8 * mm
-            pdf.drawString(20 * mm, note_y, f"Note: {receipt.note[:100]}")
+            pdf.drawString(20 * mm, note_y, f"{note_label}: {receipt.note[:100]}")
             subject_bottom_y = note_y
 
         table_top = subject_bottom_y - 16 * mm
@@ -139,16 +165,21 @@ class EventCashReceiptService:
         pdf.rect(20 * mm, table_top, 170 * mm, 8 * mm, fill=1, stroke=0)
         pdf.setFillColor(colors.white)
         pdf.setFont("DejaVuSans-Bold", 9)
-        pdf.drawString(24 * mm, table_top + 2.5 * mm, "Item")
-        pdf.drawString(168 * mm, table_top + 2.5 * mm, "Amount")
+        pdf.drawString(24 * mm, table_top + 2.5 * mm, item_label)
+        pdf.drawString(168 * mm, table_top + 2.5 * mm, amount_label)
 
         row_y = table_top - 7 * mm
         pdf.setFillColor(colors.black)
         pdf.setFont("DejaVuSans", 9)
-        pdf.drawString(24 * mm, row_y, self._subject_text(receipt.event)[:74])
+        pdf.drawString(24 * mm, row_y, subject_text[:74])
         pdf.setFont("DejaVuSans", 8)
         pdf.setFillColor(colors.HexColor("#475569"))
-        pdf.drawString(24 * mm, row_y - 4.8 * mm, self._item_detail_text(receipt)[:88])
+        detail_lines = [f"{rider_label}: {receipt.rider_name}"]
+        if receipt.uci_id:
+            detail_lines.append(f"{uci_label}: {receipt.uci_id}")
+        if receipt.category:
+            detail_lines.append(f"{class_label}: {receipt.category}")
+        pdf.drawString(24 * mm, row_y - 4.8 * mm, " | ".join(detail_lines)[:88])
         pdf.setFillColor(colors.black)
         pdf.drawRightString(187 * mm, row_y, f"{receipt.amount:.2f} Kč")
 
@@ -156,13 +187,13 @@ class EventCashReceiptService:
         pdf.line(120 * mm, total_y, 190 * mm, total_y)
         total_y -= 7 * mm
         pdf.setFont("DejaVuSans-Bold", 11)
-        pdf.drawString(136 * mm, total_y, "Received")
+        pdf.drawString(136 * mm, total_y, received_label)
         pdf.drawRightString(187 * mm, total_y, f"{receipt.amount:.2f} Kč")
 
         footer_y = total_y - 18 * mm
         pdf.setFont("DejaVuSans", 9)
-        pdf.drawString(20 * mm, footer_y, "This document was issued manually for a foreign rider.")
-        pdf.drawRightString(width - 20 * mm, 12 * mm, "Page 1 of 1")
+        pdf.drawString(20 * mm, footer_y, footer_label)
+        pdf.drawRightString(width - 20 * mm, 12 * mm, page_label)
 
         pdf.showPage()
         pdf.save()
@@ -199,8 +230,8 @@ class EventCashReceiptService:
             ET.SubElement(doc, "popis").text = description
         return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
-    def _save_receipt_pdf(self, receipt):
-        pdf_bytes = self._generate_pdf(receipt)
+    def _save_receipt_pdf(self, receipt, language="en"):
+        pdf_bytes = self._generate_pdf(receipt, language=language)
         receipt.pdf.save(f"{self._receipt_filename_base(receipt)}.pdf", ContentFile(pdf_bytes), save=False)
 
     def update_receipt(

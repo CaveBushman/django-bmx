@@ -275,7 +275,8 @@
                 <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-300">{{ receipt.amount }} CZK</td>
                 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                   <div class="flex flex-nowrap items-center gap-2">
-                    <a href="{% url 'event:cash-receipt-pdf' event.id receipt.id %}" class="invoice-link-chip">PDF</a>
+                    <a href="{% url 'event:cash-receipt-pdf' event.id receipt.id %}?lang=cs" class="invoice-link-chip">PDF_CZ</a>
+                    <a href="{% url 'event:cash-receipt-pdf' event.id receipt.id %}?lang=en" class="invoice-link-chip">PDF_EN</a>
                     <a href="{% url 'event:cash-receipt-edit' event.id receipt.id %}" class="invoice-link-chip">Upravit</a>
                     <form method="post" action="{% url 'event:cash-receipt-delete' event.id receipt.id %}" class="inline-flex">
                       {% csrf_token %}

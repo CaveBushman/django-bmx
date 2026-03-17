@@ -4,6 +4,7 @@ from club.models import Club
 from commissar.models import Commissar
 from rider.models import Rider
 from accounts.models import Account
+from ckeditor.fields import RichTextField
 from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
@@ -310,6 +311,52 @@ class Event(models.Model):
         verbose_name = "Závod"
         verbose_name_plural = 'Závody'
         ordering = ['-date', ]
+
+
+class EventProposition(models.Model):
+    event = models.OneToOneField(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="structured_proposition",
+    )
+    venue_name = models.CharField(max_length=255, blank=True, default="")
+    venue_address = models.CharField(max_length=255, blank=True, default="")
+    office_hours = models.CharField(max_length=255, blank=True, default="")
+    contact_name = models.CharField(max_length=255, blank=True, default="")
+    contact_email = models.EmailField(blank=True, default="")
+    contact_phone = models.CharField(max_length=100, blank=True, default="")
+    summary = RichTextField(max_length=4000, blank=True, null=True, default="")
+    schedule = RichTextField(max_length=8000, blank=True, null=True, default="")
+    categories = RichTextField(max_length=6000, blank=True, null=True, default="")
+    registration_info = RichTextField(max_length=6000, blank=True, null=True, default="")
+    awards = RichTextField(max_length=4000, blank=True, null=True, default="")
+    accommodation = RichTextField(max_length=4000, blank=True, null=True, default="")
+    additional_info = RichTextField(max_length=6000, blank=True, null=True, default="")
+    is_published = models.BooleanField(default=False)
+    created_by = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_event_propositions",
+    )
+    updated_by = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_event_propositions",
+    )
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Formulářová propozice"
+        verbose_name_plural = "Formulářové propozice"
+        ordering = ["-updated", "-created"]
+
+    def __str__(self):
+        return f"Propozice: {self.event.name}"
 
 
 # Smazání starých souborů při aktualizaci — jeden signal, jeden DB dotaz místo 7

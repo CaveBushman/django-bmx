@@ -4,6 +4,26 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
+  .event-admin-hero {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-admin-kpi {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-admin-kpi::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #38bdf8, #8b5cf6);
+  }
+
   .event-admin-section,
   .event-admin-file-card {
     background: rgba(255, 255, 255, 0.94);
@@ -11,10 +31,22 @@
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   }
 
+  .event-admin-command {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-admin-command-card {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  }
+
   .event-admin-action-link,
   .event-admin-action-btn {
     border: 1px solid rgba(99, 102, 241, 0.22);
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.96), rgba(99, 102, 241, 0.88));
     color: #fff;
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
@@ -32,11 +64,34 @@
     color: #fff !important;
   }
 
+  html.dark .event-admin-hero {
+    border-color: rgba(51, 65, 85, 0.95);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.92));
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.3);
+  }
+
   html.dark .event-admin-section,
   html.dark .event-admin-file-card {
     background: rgba(15, 23, 42, 0.88) !important;
     border-color: rgba(51, 65, 85, 0.95) !important;
     box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  }
+
+  html.dark .event-admin-kpi {
+    border-color: rgba(71, 85, 105, 0.55);
+    background: rgba(2, 6, 23, 0.92);
+  }
+
+  html.dark .event-admin-command {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
+    border-color: rgba(51, 65, 85, 0.95);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.24);
+  }
+
+  html.dark .event-admin-command-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 </style>
 {% endblock %}
@@ -44,7 +99,8 @@
 
 <section class="dashboard-surface min-h-screen pb-24">
 <div class="max-w-7xl mx-auto px-4 pt-10 sm:px-6 lg:px-8">
-  <header class="dashboard-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+  <header class="event-admin-hero rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+    <div class="relative z-10">
     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
       Event Admin
     </p>
@@ -52,9 +108,24 @@
       <div>
         <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">{{event.name}}</h1>
         <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
-          Operační panel závodu pro kontrolu registrací, souborů, výsledků a exportních kroků.
+          Operační centrum závodu pro kontrolu registrací, exportů, výsledků a klíčových tiskových výstupů.
         </p>
       </div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+          <p class="text-[11px] uppercase tracking-[0.24em] text-slate-400">Typ</p>
+          <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{{ event.type_for_ranking }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+          <p class="text-[11px] uppercase tracking-[0.24em] text-slate-400">Datum</p>
+          <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{{ event.date }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1 col-span-2">
+          <p class="text-[11px] uppercase tracking-[0.24em] text-slate-400">Pořadatel</p>
+          <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{{ event.organizer }}</p>
+        </div>
+      </div>
+    </div>
     </div>
   </header>
 
@@ -62,11 +133,11 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Přihlášeno jezdců -->
     <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
+      class="event-admin-kpi p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
-      <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+      <div class="p-3 bg-sky-500/10 rounded-full">
         <svg
-          class="w-8 h-8 text-blue-600 dark:text-blue-300"
+          class="w-8 h-8 text-sky-300"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
@@ -76,10 +147,10 @@
         </svg>
       </div>
       <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">
+        <dt class="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-[0.24em]">
           Přihlášeno jezdců
         </dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
+        <dd class="mt-2 text-4xl font-black text-slate-900 dark:text-white">
           {{sum_of_riders}}
         </dd>
       </div>
@@ -87,11 +158,11 @@
 
     <!-- Vybrané startovné -->
     <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
+      class="event-admin-kpi p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
-      <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+      <div class="p-3 bg-emerald-500/10 rounded-full">
         <svg
-          class="w-8 h-8 text-green-600 dark:text-green-300"
+          class="w-8 h-8 text-emerald-300"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
@@ -101,10 +172,10 @@
         </svg>
       </div>
       <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">
+        <dt class="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-[0.24em]">
           Vybrané startovné
         </dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
+        <dd class="mt-2 text-4xl font-black text-slate-900 dark:text-white">
           {{sum_of_fees}} CZK
         </dd>
       </div>
@@ -112,11 +183,11 @@
 
     <!-- Odměna Asociace -->
     <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
+      class="event-admin-kpi p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
     >
-      <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full">
+      <div class="p-3 bg-rose-500/10 rounded-full">
         <svg
-          class="w-8 h-8 text-red-600 dark:text-red-300"
+          class="w-8 h-8 text-rose-300"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
@@ -126,109 +197,15 @@
         </svg>
       </div>
       <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">
+        <dt class="text-slate-500 dark:text-slate-400 text-sm uppercase tracking-[0.24em]">
           Odměna Asociace
         </dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
+        <dd class="mt-2 text-4xl font-black text-slate-900 dark:text-white">
           {{asociation_fee}} CZK
         </dd>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Pořadatel Section -->
-<div class="pb-2">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
-    >
-      <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-        <svg
-          class="w-8 h-8 text-blue-600 dark:text-blue-300"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M3 4h18v2H3V4zm0 4h18v2H3V8zm0 4h18v2H3v-2zm0 4h18v2H3v-2zm0 4h18v2H3v-2z"
-          />
-        </svg>
-      </div>
-      <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">Datum závodu</dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
-          {{ event.date }}
-        </dd>
-      </div>
-    </div>
-
-    <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
-    >
-      <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-        <svg
-          class="w-8 h-8 text-green-600 dark:text-green-300"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5zm0 2a3 3 0 1 0 3 3 3 3 0 0 0-3-3zm0 4a8 8 0 0 0-8 8v2h16v-2a8 8 0 0 0-8-8z"
-          />
-        </svg>
-      </div>
-      <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">Pořadatel</dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
-          {{ event.organizer }}
-        </dd>
-      </div>
-    </div>
-
-    <div
-      class="dashboard-card p-6 rounded-[1.75rem] flex items-center space-x-4 transition-transform transform hover:-translate-y-1"
-    >
-      <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full">
-        <svg
-          class="w-8 h-8 text-red-600 dark:text-red-300"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 2C7.03 2 3 5.92 3 10.5V14h1v6h16v-6h1v-3.5C21 5.92 16.97 2 12 2zm0 1c4.42 0 8 3.58 8 7.5V12h-4V9h-8v3H4v-3.5C4 6.58 7.58 3 12 3zm-5 9h10v3h-10v-3z"
-          />
-        </svg>
-      </div>
-      <div>
-        <dt class="text-gray-500 dark:text-gray-300 text-lg">Typ závodu</dt>
-        <dd class="text-3xl font-semibold text-gray-900 dark:text-white">
-          {{ event.type_for_ranking }}
-        </dd>
-      </div>
-    </div>
-  </div>
-
-  {% if invalid_licences %}
-  <div class="relative my-6">
-    <div class="absolute inset-0 flex items-center" aria-hidden="true">
-      <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
-    </div>
-    <div class="relative flex justify-center">
-      <span
-        class="bg-white dark:bg-gray-800 px-4 text-lg font-semibold text-red-600"
-      >
-        Jezdci s neplatnou licencí
-      </span>
-    </div>
-  </div>
-
-  <ul class="mt-4 space-y-2">
-    {% for rider in invalid_licences %}
-    <li class="bg-red-100 dark:bg-red-900 px-4 py-2 rounded-lg shadow-lg">
-      🚴 {{ rider.name }} (Licence: {{ rider.licence }})
-    </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
 </div>
 
 <div class="">
@@ -267,70 +244,155 @@
   </div>
 </div>
 <div class="container mt-4 mx-auto px-4">
-  <div class="relative">
-    {% if invalid_licences%}
-    <div class="relative">
-      <div class="absolute inset-0 flex items-center" aria-hidden="true">
-        <div class="w-full border-t border-gray-300"></div>
-      </div>
-      <div class="relative flex justify-center">
-        <span
-          class="bg-white px-3 text-base font-semibold leading-6 text-violet-600"
-          >Jezdci s neplatnou licencí</span
-        >
-      </div>
-    </div>
-  </div>
-  {% endif %}
 
 <!-- RACE CONTROL -->
 
-  <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-8">
-    <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-8 text-center">
-      📁 RACE CONTROL
-    </h2>
+  <div class="event-admin-command max-w-7xl mx-auto mt-8 rounded-[2rem] p-6 sm:p-8">
+    <div class="mb-6 border-b border-slate-200 pb-6 text-center sm:text-left dark:border-white/10">
+      <p class="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-600 dark:text-indigo-300">
+        Race Control
+      </p>
+      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+        Řídicí panel závodu
+      </h2>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Kritické dokumenty, kontrolní výstupy a operace pro řízení závodního dne.
+      </p>
+    </div>
   
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
+              <i class="fas fa-microchip text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Čipy k půjčení</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Přehled jezdců bez vlastního čipu pro ruční evidenci předání a vrácení.
+          </p>
+        </div>
         <a
           href="{% url 'event:generate_pdf' pk=event.pk %}"
           target="_blank"
-          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
           aria-label="Generovat protokol Čipy k půjčení"
         >
-          <i class="fas fa-microchip text-xl mr-2"></i> Čipy k půjčení
+          Otevřít PDF
         </a>
       </div>
   
-      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-200">
+              <i class="fas fa-file-invoice text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Fakturace čipů</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Podklad pro ruční zápis plateb za půjčené čipy během závodu.
+          </p>
+        </div>
         <a
           href="{% url 'event:generate_invoice_preparation_pdf' pk=event.pk %}"
           target="_blank"
-          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
           aria-label="Generovat protokol Podklad pro fakturaci čipů"
         >
-          <i class="fas fa-file-invoice text-xl mr-2"></i> Fakturace čipů
-        </a>
-      </div>
-  
-      <div class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
-        <a
-          href="#" 
-          target="_blank"
-          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
-          aria-label="Generovat protokol Price money"
-        >
-          <i class="fas fa-dollar-sign text-xl mr-2"></i> Price money
+          Otevřít PDF
         </a>
       </div>
 
+      {% if invalid_licences %}
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-200">
+              <i class="fas fa-file-pdf text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Neplatné licence</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Přehled přihlášených jezdců s neplatnou licencí pro kontrolu před závodem.
+          </p>
+        </div>
+        <a
+          href="{% url 'event:invalid-licences-pdf' pk=event.pk %}"
+          target="_blank"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
+          aria-label="Stáhnout PDF jezdců s neplatnou licencí"
+        >
+          Otevřít PDF
+        </a>
+        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+          Celkem jezdců: <span class="font-semibold text-slate-900 dark:text-white">{{ invalid_licences|length }}</span>
+        </p>
+      </div>
+      {% endif %}
+  
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-200">
+              <i class="fas fa-dollar-sign text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Prize money</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Potvrzení převzetí finančních odměn podle typu závodu.
+          </p>
+        </div>
+        <details class="mt-4 w-full">
+          <summary
+            class="event-admin-action-link flex cursor-pointer list-none items-center justify-center py-3 px-5 rounded-[1rem]"
+            aria-label="Generovat potvrzení prize money"
+          >
+            Vybrat variantu tisku
+          </summary>
+          <div class="mt-3 grid gap-2">
+            <a
+              href="{% url 'event:price-money-pdf' pk=event.pk %}?amounts=1"
+              target="_blank"
+              class="rounded-[0.9rem] border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:text-white"
+            >
+              Tisk s částkami
+            </a>
+            {% if prize_money_amount_toggle %}
+            <a
+              href="{% url 'event:price-money-pdf' pk=event.pk %}?amounts=0"
+              target="_blank"
+              class="rounded-[0.9rem] border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:text-white"
+            >
+              Tisk bez částek
+            </a>
+            {% else %}
+            <p class="rounded-[0.9rem] border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-medium text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+              U tohoto typu závodu jsou částky pevně dané.
+            </p>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+
       {% if not event.ccf_uploaded and results_exist %}
-      <div
-        class="event-admin-file-card rounded-[1.5rem] p-6 flex flex-col items-center transition-all duration-300 transform hover:-translate-y-1">
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-200">
+              <i class="fas fa-paper-plane text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Odeslání výsledků</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Export finálních výsledků do API Českého svazu cyklistiky.
+          </p>
+        </div>
         <a href="{% url 'event:export_event_results' event.id %}" target="_blank"
-          class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
           aria-label="Odešli výsledky">
-          <i class="fas fa-paper-plane text-xl mr-2"></i> Odešli výsledky
+          Odeslat výsledky
         </a>
       </div>
     {% endif %}
@@ -361,20 +423,13 @@
               <span class="font-medium">{{ event.rem_entries_created }}</span>
             </p>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-file"
             >
-              🔄 Aktualizovat
+              ⬇️ Vygenerovat a stáhnout
             </button>
-            <a
-              href="../../{{ event.rem_entries }}"
-              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
-              download
-            >
-              ⬇️ Stáhnout
-            </a>
           </div>
         </div>
 
@@ -391,20 +446,13 @@
               <span class="font-medium">{{ event.rem_riders_created }}</span>
             </p>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-riders-list"
             >
-              🔄 Aktualizovat
+              ⬇️ Vygenerovat a stáhnout
             </button>
-            <a
-              href="../../{{ event.rem_riders_list }}"
-              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
-              download
-            >
-              ⬇️ Stáhnout
-            </a>
           </div>
         </div>
 
@@ -479,20 +527,13 @@
               <span class="font-medium">{{ event.bem_entries_created }}</span>
             </p>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-bem-file"
             >
-              🔄 Aktualizovat
+              ⬇️ Vygenerovat a stáhnout
             </button>
-            <a
-              href="../../{{ event.bem_entries }}"
-              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
-              download
-            >
-              ⬇️ Stáhnout
-            </a>
           </div>
         </div>
 
@@ -509,20 +550,13 @@
               <span class="font-medium">{{ event.bem_riders_created }}</span>
             </p>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-riders-list"
             >
-              🔄 Aktualizovat
+              ⬇️ Vygenerovat a stáhnout
             </button>
-            <a
-              href="../../{{ event.bem_riders_list }}"
-              class="event-admin-action-link flex items-center py-3 px-6 rounded-[1rem]"
-              download
-            >
-              ⬇️ Stáhnout
-            </a>
           </div>
         </div>
 

@@ -322,6 +322,48 @@ class Rider(models.Model):
             return "yellow"
 
 
+class RiderTransponderChange(models.Model):
+    SLOT_20 = "20"
+    SLOT_24 = "24"
+    SLOT_CHOICES = (
+        (SLOT_20, '20"'),
+        (SLOT_24, '24"'),
+    )
+
+    rider = models.ForeignKey(
+        "rider.Rider",
+        on_delete=models.CASCADE,
+        related_name="transponder_changes",
+    )
+    slot = models.CharField(max_length=2, choices=SLOT_CHOICES)
+    old_transponder = models.CharField(max_length=8, blank=True, null=True)
+    new_transponder = models.CharField(max_length=8, blank=True, null=True)
+    changed_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transponder_changes_made",
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Historie změny čipu"
+        verbose_name_plural = "Historie změn čipů"
+        ordering = ["-changed_at"]
+        indexes = [
+            models.Index(fields=["rider", "slot", "changed_at"], name="rider_chip_hist_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.rider} {self.get_slot_display()}: {self.old_transponder or '-'} -> {self.new_transponder or '-'}"
+
+    @property
+    def battery_expected_until(self):
+        changed_date = self.changed_at.date() if self.changed_at else date.today()
+        return changed_date + timezone.timedelta(days=365 * 3)
+
+
 class RiderStatsSubscription(models.Model):
     STATUS_ACTIVE = "active"
     STATUS_EXPIRED = "expired"

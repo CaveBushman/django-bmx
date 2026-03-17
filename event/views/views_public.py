@@ -8,13 +8,21 @@ import logging
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from event.models import Event, Result, SeasonSettings, Entry, EntryForeign
+from event.models import Event, EventProposition, Result, SeasonSettings, Entry, EntryForeign
+from event.views.views_proposition import can_manage_event_proposition
 from event.func import is_registration_open
 
 logger = logging.getLogger(__name__)
 
 
-EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like")
+EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like", "structured_proposition")
+
+
+def _get_structured_proposition(event):
+    try:
+        return event.structured_proposition
+    except EventProposition.DoesNotExist:
+        return None
 
 
 def _events_for_year(year):
@@ -35,6 +43,7 @@ def _events_for_year(year):
             "proposition",
             "html_results",
             "series",
+            "structured_proposition__is_published",
             "organizer__team_name",
             "classes_and_fees_like__event_name",
         )
@@ -54,6 +63,8 @@ def _decorate_events(events):
             and has_configured_classes
             and is_registration_open(event)
         )
+        proposition = _get_structured_proposition(event)
+        event.has_public_proposition = bool(proposition and proposition.is_published)
         decorated.append(event)
     return decorated
 
@@ -129,8 +140,12 @@ def events_list_by_year_view(request, pk):
 
 def event_detail_views(request, pk):
     """Detail závodu — info, datum, místo, stav registrace."""
-    event = get_object_or_404(Event, pk=pk)
+    event = get_object_or_404(
+        Event.objects.select_related("organizer", "structured_proposition"),
+        pk=pk,
+    )
     reg_open = is_registration_open(event)
+    proposition = _get_structured_proposition(event)
     riders_sum = Entry.objects.filter(event=pk, payment_complete=True, checkout=False).count()
     riders_sum += EntryForeign.objects.filter(event=pk, payment_complete=True, checkout=False).count()
     data = {
@@ -139,6 +154,9 @@ def event_detail_views(request, pk):
         "select_category": "",
         "riders_sum": riders_sum,
         "reg_open": reg_open,
+        "has_public_proposition": bool(proposition and proposition.is_published),
+        "public_proposition": proposition if proposition and proposition.is_published else None,
+        "can_edit_proposition": can_manage_event_proposition(request.user, event),
     }
     return render(request, "event/event-detail.html", data)
 

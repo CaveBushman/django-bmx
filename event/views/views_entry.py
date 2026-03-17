@@ -440,17 +440,28 @@ def cash_receipts_export_view(request, pk):
 def cash_receipt_pdf_view(request, pk, receipt_id):
     event = get_object_or_404(Event, pk=pk)
     receipt = get_object_or_404(EventCashReceipt, pk=receipt_id, event=event)
+    language = request.GET.get("lang", "en").lower()
+    if language not in {"cs", "en"}:
+        language = "en"
 
     receipt_service = EventCashReceiptService()
-    receipt_service._save_receipt_pdf(receipt)
-    receipt.save(update_fields=["pdf", "updated"])
+    if language == "en":
+        receipt_service._save_receipt_pdf(receipt, language="en")
+        receipt.save(update_fields=["pdf", "updated"])
+        if not receipt.pdf:
+            messages.error(request, "PDF pokladního dokladu se nepodařilo vygenerovat.")
+            return redirect("event:cash-receipts-on-event", pk=pk)
+        receipt.pdf.open("rb")
+        response = FileResponse(receipt.pdf, as_attachment=True, filename=f"{receipt.number}-EN.pdf")
+        return response
 
-    if not receipt.pdf:
+    pdf_bytes = receipt_service._generate_pdf(receipt, language="cs")
+    if not pdf_bytes:
         messages.error(request, "PDF pokladního dokladu se nepodařilo vygenerovat.")
         return redirect("event:cash-receipts-on-event", pk=pk)
 
-    receipt.pdf.open("rb")
-    response = FileResponse(receipt.pdf, as_attachment=True, filename=f"{receipt.number}.pdf")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{receipt.number}-CZ.pdf"'
     return response
 
 
