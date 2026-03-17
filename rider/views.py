@@ -1,5 +1,8 @@
 import logging
 import os
+import re
+from collections import defaultdict
+from statistics import mean, median, pstdev
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
@@ -57,6 +60,23 @@ def can_manage_premium_stats(user):
 
 
 admin_required = user_passes_test(can_manage_premium_stats, login_url="/login/")
+FINAL_ROUND_TYPES = {"FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"}
+TRACK_TABLE_COLUMNS = [
+    ("M1", "M1"),
+    ("M2", "M2"),
+    ("M3", "M3"),
+    ("M4", "M4"),
+    ("M5", "M5"),
+    ("M6", "M6"),
+    ("M7", "M7"),
+    ("M8", "M8"),
+    ("F16", "1/16"),
+    ("F8", "1/8"),
+    ("F4", "1/4"),
+    ("F2", "1/2"),
+    ("FINAL", "F"),
+    ("DAY_MEDIAN", "Medián dne"),
+]
 
 
 def riders_list_view(request):
@@ -122,22 +142,25 @@ def rider_detail_view(request, pk):
         date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
     ).order_by("date")
     season_settings = get_current_season_settings()
-    premium_access = has_active_rider_stats_access(request.user, rider)
+    premium_access_via_admin = can_manage_premium_stats(request.user)
+    premium_access = premium_access_via_admin or has_active_rider_stats_access(request.user, rider)
     active_subscription = get_active_rider_stats_subscription(request.user, rider)
     premium_runs_count = RaceRun.objects.filter(rider=rider).count()
     data = {
         "rider": rider,
         "results": results,
         "premium_access": premium_access,
+        "premium_access_via_admin": premium_access_via_admin,
         "active_subscription": active_subscription,
         "premium_runs_count": premium_runs_count,
         "premium_price": season_settings.rider_stats_monthly_price if season_settings else None,
         "can_manage_premium_stats": can_manage_premium_stats(request.user),
+        "can_buy_premium_stats": request.user.is_authenticated and not premium_access_via_admin,
     }
     return render(request, "rider/rider-detail.html", data)
 
 
-@admin_required
+@login_required
 def rider_premium_stats_subscribe_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
     if request.method != "POST":
@@ -160,28 +183,603 @@ def rider_premium_stats_subscribe_view(request, pk):
     return redirect("rider:premium-stats", pk=pk)
 
 
-@admin_required
+def _parse_numeric_place(value):
+    if value is None:
+        return None
+    match = re.search(r"\d+", str(value))
+    return int(match.group()) if match else None
+
+
+def _safe_mean(values):
+    return round(mean(values), 2) if values else None
+
+
+def _safe_median(values):
+    return round(median(values), 2) if values else None
+
+
+def _safe_stddev(values):
+    if not values:
+        return None
+    if len(values) == 1:
+        return 0.0
+    return round(pstdev(values), 2)
+
+
+def _safe_rate(numerator, denominator):
+    if not denominator:
+        return None
+    return round((numerator / denominator) * 100, 1)
+
+
+def _clamp_score(value):
+    return max(0, min(int(round(value)), 100))
+
+
+def _percentile_better_than(subject_value, peer_values):
+    comparable = [value for value in peer_values if value is not None]
+    if subject_value is None or not comparable:
+        return None
+
+    worse_count = sum(1 for value in comparable if value > subject_value)
+    equal_count = sum(1 for value in comparable if value == subject_value)
+    return round(((worse_count + (0.5 * equal_count)) / len(comparable)) * 100, 1)
+
+
+def _get_table_column_key(run):
+    if run.round_type == "MOTO":
+        if not run.round_number or run.round_number > 8:
+            return None
+        return f"M{run.round_number}"
+    if run.round_type in {"F16", "F8", "F4", "F2", "FINAL"}:
+        return run.round_type
+    return None
+
+
+def _build_track_options(results, runs):
+    track_map = {}
+    kpi_cutoff = timezone.localdate() - datetime.timedelta(days=730)
+
+    def ensure_track(track_id, track_name):
+        return track_map.setdefault(
+            track_id,
+            {
+                "id": track_id,
+                "name": track_name,
+                "event_ids": set(),
+                "results_count": 0,
+                "runs_count": 0,
+                "display_runs": set(),
+                "recent_timed_runs_count": 0,
+                "best_result": None,
+            },
+        )
+
+    for result in results:
+        organizer = result.event.organizer if result.event else None
+        track_id = organizer.id if organizer else 0
+        track_name = organizer.team_name if organizer else (result.organizer or "Neznámá trať")
+        item = ensure_track(track_id, track_name)
+        if result.event_id:
+            item["event_ids"].add(result.event_id)
+        item["results_count"] += 1
+        if item["best_result"] is None or result.place < item["best_result"]:
+            item["best_result"] = result.place
+
+    for run in runs:
+        organizer = run.event.organizer if run.event else None
+        track_id = organizer.id if organizer else 0
+        track_name = organizer.team_name if organizer else "Neznámá trať"
+        item = ensure_track(track_id, track_name)
+        if run.event_id:
+            item["event_ids"].add(run.event_id)
+        item["runs_count"] += 1
+        if run.finish_time is not None and run.event and run.event.date and run.event.date >= kpi_cutoff:
+            item["recent_timed_runs_count"] += 1
+
+    track_options = []
+    for item in track_map.values():
+        item["starts_count"] = len(item["event_ids"])
+        item.pop("display_runs", None)
+        track_options.append(item)
+
+    return sorted(track_options, key=lambda item: (-item["runs_count"], item["name"]))
+
+
+def _build_track_stats(rider, selected_track, all_results, all_runs):
+    if selected_track is None:
+        return None
+
+    track_results = [result for result in all_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
+    track_runs = [run for run in all_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+    kpi_cutoff = timezone.localdate() - datetime.timedelta(days=730)
+    recent_track_results = [result for result in track_results if result.date and result.date >= kpi_cutoff]
+    recent_track_runs = [
+        run
+        for run in track_runs
+        if run.event and run.event.date and run.event.date >= kpi_cutoff
+    ]
+    event_metrics = defaultdict(
+        lambda: {
+            "moto_places": [],
+            "final_places": [],
+            "bad_runs": 0,
+            "result_place": None,
+        }
+    )
+
+    for result in recent_track_results:
+        if result.event_id:
+            event_metrics[result.event_id]["result_place"] = result.place
+
+    finish_times = []
+    moto_finish_times = []
+    final_finish_times = []
+    moto_places = []
+    final_places = []
+    bad_status_count = 0
+    clean_runs = 0
+    eligible_clean_runs = 0
+
+    for run in recent_track_runs:
+        parsed_place = _parse_numeric_place(run.place)
+        finish_time = run.finish_time
+        run_metrics = event_metrics[run.event_id]
+
+        if finish_time is not None:
+            finish_times.append(float(finish_time))
+            clean_runs += 1
+
+        place_text = (run.place or "").upper()
+        is_bad_status = any(flag in place_text for flag in ("DNF", "DNS", "DSQ", "REL"))
+        if is_bad_status:
+            bad_status_count += 1
+            run_metrics["bad_runs"] += 1
+            eligible_clean_runs += 1
+        elif finish_time is not None:
+            eligible_clean_runs += 1
+
+        if run.round_type == "MOTO":
+            if parsed_place is not None:
+                moto_places.append(parsed_place)
+                run_metrics["moto_places"].append(parsed_place)
+            if finish_time is not None:
+                moto_finish_times.append(float(finish_time))
+        elif run.round_type in FINAL_ROUND_TYPES:
+            if parsed_place is not None:
+                final_places.append(parsed_place)
+                run_metrics["final_places"].append(parsed_place)
+            if finish_time is not None:
+                final_finish_times.append(float(finish_time))
+
+    track_place_values = [result.place for result in recent_track_results if result.place]
+    overall_place_values = [result.place for result in all_results if result.place]
+    events_count = len({result.event_id for result in recent_track_results if result.event_id})
+    events_with_motos = sum(1 for item in event_metrics.values() if item["moto_places"])
+    events_with_final_stage = sum(1 for item in event_metrics.values() if item["final_places"])
+    events_with_final = len({run.event_id for run in recent_track_runs if run.round_type == "FINAL"})
+
+    strong_start_events = [item for item in event_metrics.values() if item["moto_places"] and mean(item["moto_places"]) <= 3]
+    weak_start_events = [item for item in event_metrics.values() if item["moto_places"] and mean(item["moto_places"]) > 3]
+
+    converted_events = sum(
+        1
+        for item in strong_start_events
+        if item["result_place"] is not None and item["result_place"] <= 3
+    )
+    recovered_events = sum(
+        1
+        for item in weak_start_events
+        if item["result_place"] is not None and item["result_place"] < mean(item["moto_places"])
+    )
+
+    avg_moto_place = _safe_mean(moto_places)
+    avg_final_place = _safe_mean(final_places)
+    avg_track_place = _safe_mean(track_place_values)
+    overall_avg_place = _safe_mean(overall_place_values)
+    affinity_delta = round(overall_avg_place - avg_track_place, 2) if avg_track_place is not None and overall_avg_place is not None else None
+    affinity_score = _clamp_score(50 + (affinity_delta or 0) * 20) if affinity_delta is not None else None
+    if affinity_delta is None:
+        affinity_label = None
+    elif affinity_delta >= 1:
+        affinity_label = "Oblíbená trať"
+    elif affinity_delta <= -1:
+        affinity_label = "Problémová trať"
+    else:
+        affinity_label = "Neutrální trať"
+
+    pressure_delta = round((avg_moto_place or 0) - (avg_final_place or 0), 2) if avg_moto_place is not None and avg_final_place is not None else None
+    pressure_score = _clamp_score(50 + (pressure_delta or 0) * 15) if pressure_delta is not None else None
+    stability_score = _clamp_score(
+        100
+        - ((_safe_stddev(track_place_values) or 0) * 12)
+        - ((_safe_stddev(finish_times) or 0) * 8)
+        - (_safe_rate(bad_status_count, len(track_runs)) or 0)
+    ) if recent_track_runs else None
+    risk_score = _clamp_score(
+        ((_safe_rate(bad_status_count, len(recent_track_runs)) or 0) * 0.7)
+        + ((_safe_stddev(track_place_values) or 0) * 10)
+        + ((_safe_stddev(finish_times) or 0) * 6)
+    ) if recent_track_runs else None
+
+    ordered_results = sorted(
+        [result for result in recent_track_results if result.date],
+        key=lambda item: (item.date, item.id),
+    )
+    recent_event_trends = {}
+    for result in recent_track_results:
+        if not result.event_id or not result.date:
+            continue
+        item = recent_event_trends.setdefault(
+            result.event_id,
+            {
+                "date": result.date,
+                "place": result.place,
+                "times": [],
+            },
+        )
+        item["place"] = result.place
+
+    for run in recent_track_runs:
+        if run.event_id and run.event and run.event.date and run.finish_time is not None:
+            item = recent_event_trends.setdefault(
+                run.event_id,
+                {
+                    "date": run.event.date,
+                    "place": None,
+                    "times": [],
+                },
+            )
+            item["times"].append(float(run.finish_time))
+
+    recent_event_trend_rows = []
+    for event_id, item in recent_event_trends.items():
+        recent_event_trend_rows.append(
+            {
+                "event_id": event_id,
+                "date": item["date"],
+                "place": item["place"],
+                "median_time": round(median(item["times"]), 3) if item["times"] else None,
+            }
+        )
+    recent_event_trend_rows.sort(key=lambda item: (item["date"], item["event_id"]))
+
+    trend_delta = None
+    trend_detail = "Potřebujeme víc startů"
+    timed_trend_rows = [item for item in recent_event_trend_rows if item["median_time"] is not None]
+
+    if len(timed_trend_rows) >= 2:
+        previous_event = timed_trend_rows[-2]
+        latest_event = timed_trend_rows[-1]
+        time_delta = None
+        time_signal = 0
+
+        if previous_event["median_time"] is not None and latest_event["median_time"] is not None:
+            time_delta = round(previous_event["median_time"] - latest_event["median_time"], 3)
+            if time_delta > 0.05:
+                time_signal = 1
+            elif time_delta < -0.05:
+                time_signal = -1
+
+        if time_signal > 0:
+            trend_label = "Zlepšuje se"
+        elif time_signal < 0:
+            trend_label = "Zhoršuje se"
+        else:
+            trend_label = "Stagnuje"
+
+        detail_parts = []
+        if time_delta is not None:
+            if time_delta > 0:
+                detail_parts.append(f"čas o {abs(time_delta)} s rychlejší")
+            elif time_delta < 0:
+                detail_parts.append(f"čas o {abs(time_delta)} s pomalejší")
+            else:
+                detail_parts.append("čas beze změny")
+
+        trend_delta = time_delta
+        trend_detail = "Poslední vs předchozí: " + " | ".join(detail_parts) if detail_parts else trend_detail
+    else:
+        trend_label = "Málo dat"
+
+    event_rows_map = {}
+    event_finish_times = defaultdict(list)
+    for run in sorted(
+        track_runs,
+        key=lambda item: (
+            item.event.date if item.event and item.event.date else date.min,
+            item.event_id or 0,
+            item.id,
+        ),
+        ):
+        if run.finish_time is not None and run.event_id:
+            event_finish_times[run.event_id].append(float(run.finish_time))
+
+        if run.round_type == "MOTO":
+            if not run.round_number or run.round_number > 8:
+                continue
+            column_key = f"M{run.round_number}"
+        else:
+            column_key = run.round_type
+            if column_key not in {"F16", "F8", "F4", "F2", "FINAL"}:
+                continue
+
+        row = event_rows_map.setdefault(
+            run.event_id,
+            {
+                "event_id": run.event_id,
+                "date": run.event.date if run.event else None,
+                "event_name": run.event.name if run.event else "-",
+                "cells": {key: None for key, _ in TRACK_TABLE_COLUMNS},
+            },
+        )
+        row["cells"][column_key] = {
+            "place": run.place or "-",
+            "time": run.finish_time,
+        }
+
+    raw_event_rows = sorted(
+        event_rows_map.values(),
+        key=lambda item: (item["date"] or date.min, item["event_name"]),
+    )
+    event_rows = []
+    for item in raw_event_rows:
+        event_id = item["event_id"]
+        day_times = event_finish_times.get(event_id, [])
+        if day_times:
+            item["cells"]["DAY_MEDIAN"] = {
+                "place": "",
+                "time": round(median(day_times), 3),
+            }
+        row_cells = []
+        for key, label in TRACK_TABLE_COLUMNS:
+            row_cells.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "value": item["cells"].get(key),
+                }
+            )
+        event_rows.append(
+            {
+                "event_id": item["event_id"],
+                "date": item["date"],
+                "event_name": item["event_name"],
+                "cells": row_cells,
+            }
+        )
+
+    chart_events = []
+    for item in raw_event_rows:
+        event_id = item["event_id"]
+        times = event_finish_times.get(event_id, [])
+        if times:
+            chart_events.append(
+                {
+                    "date": item["date"],
+                    "event_name": item["event_name"],
+                    "median_time": round(median(times), 3),
+                }
+            )
+
+    chart_points = []
+    chart_y_ticks = []
+    if chart_events:
+        min_time = min(item["median_time"] for item in chart_events)
+        max_time = max(item["median_time"] for item in chart_events)
+        time_span = max(max_time - min_time, 0.001)
+        width = 1000
+        height = 260
+        left_pad = 56
+        right_pad = 24
+        top_pad = 24
+        bottom_pad = 44
+        usable_width = width - left_pad - right_pad
+        usable_height = height - top_pad - bottom_pad
+
+        for index, item in enumerate(chart_events):
+            x = left_pad if len(chart_events) == 1 else left_pad + (usable_width * index / (len(chart_events) - 1))
+            y = top_pad + ((max_time - item["median_time"]) / time_span) * usable_height
+            chart_points.append(
+                {
+                    "x": round(x, 2),
+                    "y": round(y, 2),
+                    "label": item["event_name"],
+                    "short_label": item["date"].strftime("%d.%m.%Y") if item["date"] else f"Závod {index + 1}",
+                    "median_time": item["median_time"],
+                }
+            )
+
+        chart_polyline = " ".join(f"{point['x']},{point['y']}" for point in chart_points)
+        for index in range(5):
+            ratio = index / 4
+            value = max_time - (time_span * ratio)
+            y = top_pad + (usable_height * ratio)
+            chart_y_ticks.append(
+                {
+                    "y": round(y, 2),
+                    "label": round(value, 3),
+                }
+            )
+    else:
+        min_time = None
+        max_time = None
+        chart_polyline = ""
+        chart_y_ticks = []
+
+    compare_is_20 = any(result.is_20 and not result.is_beginner for result in recent_track_results)
+    compare_is_24 = any((not result.is_20) and not result.is_beginner for result in recent_track_results)
+    uci_category = None
+    peer_label = None
+    peer_place_percentile = None
+    peer_finish_percentile = None
+    peer_group_size = 0
+
+    if compare_is_20:
+        uci_category = rider.class_20
+        peer_label = f"{uci_category} (20\")"
+        peer_results = (
+            Result.objects.filter(
+                event__organizer_id=selected_track["id"],
+                date__gte=kpi_cutoff,
+                rider__class_20=uci_category,
+                is_20=True,
+                is_beginner=False,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.uci_id)
+            .select_related("rider")
+        )
+        peer_runs = (
+            RaceRun.objects.filter(
+                event__organizer_id=selected_track["id"],
+                event__date__gte=kpi_cutoff,
+                result__is_20=True,
+                result__is_beginner=False,
+                rider__class_20=uci_category,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.id)
+            .select_related("rider", "result")
+        )
+    elif compare_is_24:
+        uci_category = rider.class_24
+        peer_label = f"{uci_category} (24\")"
+        peer_results = (
+            Result.objects.filter(
+                event__organizer_id=selected_track["id"],
+                date__gte=kpi_cutoff,
+                rider__class_24=uci_category,
+                is_20=False,
+                is_beginner=False,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.uci_id)
+            .select_related("rider")
+        )
+        peer_runs = (
+            RaceRun.objects.filter(
+                event__organizer_id=selected_track["id"],
+                event__date__gte=kpi_cutoff,
+                result__is_20=False,
+                result__is_beginner=False,
+                rider__class_24=uci_category,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.id)
+            .select_related("rider", "result")
+        )
+    else:
+        peer_results = Result.objects.none()
+        peer_runs = RaceRun.objects.none()
+
+    if uci_category:
+        peer_places_by_rider = defaultdict(list)
+        for result in peer_results:
+            if result.rider_id:
+                peer_places_by_rider[result.rider_id].append(result.place)
+
+        peer_finish_by_rider = defaultdict(list)
+        for run in peer_runs:
+            if run.rider_id and run.finish_time is not None:
+                peer_finish_by_rider[run.rider_id].append(float(run.finish_time))
+
+        peer_place_averages = [round(mean(values), 2) for values in peer_places_by_rider.values() if values]
+        peer_finish_medians = [round(median(values), 3) for values in peer_finish_by_rider.values() if values]
+
+        peer_place_percentile = _percentile_better_than(avg_track_place, peer_place_averages)
+        peer_finish_percentile = _percentile_better_than(_safe_median(finish_times), peer_finish_medians)
+        peer_group_size = max(len(peer_place_averages), len(peer_finish_medians))
+
+    return {
+        "track_results": track_results,
+        "track_runs": track_runs,
+        "kpi_cutoff": kpi_cutoff,
+        "total_starts_count": len({result.event_id for result in track_results if result.event_id}),
+        "recent_track_results_count": len(recent_track_results),
+        "recent_track_runs_count": len(recent_track_runs),
+        "starts_count": events_count,
+        "runs_count": len(recent_track_runs),
+        "final_runs_count": len([run for run in recent_track_runs if run.round_type in FINAL_ROUND_TYPES]),
+        "progression_rate": _safe_rate(events_with_final_stage, events_with_motos),
+        "final_rate": _safe_rate(events_with_final, events_count),
+        "average_moto_place": avg_moto_place,
+        "average_final_place": avg_final_place,
+        "best_result": min(track_place_values) if track_place_values else None,
+        "median_result": _safe_median(track_place_values),
+        "win_rate": _safe_rate(sum(1 for place in track_place_values if place == 1), len(track_place_values)),
+        "podium_rate": _safe_rate(sum(1 for place in track_place_values if place <= 3), len(track_place_values)),
+        "average_finish_time": _safe_mean(finish_times),
+        "best_finish_time": round(min(finish_times), 3) if finish_times else None,
+        "median_finish_time": _safe_median(finish_times),
+        "finish_time_stddev": _safe_stddev(finish_times),
+        "conversion_score": _safe_rate(converted_events, len(strong_start_events)),
+        "recovery_score": _safe_rate(recovered_events, len(weak_start_events)),
+        "pressure_score": pressure_score,
+        "pressure_delta": pressure_delta,
+        "track_affinity_score": affinity_score,
+        "track_affinity_delta": affinity_delta,
+        "track_affinity_label": affinity_label,
+        "stability_score": stability_score,
+        "risk_score": risk_score,
+        "bad_status_count": bad_status_count,
+        "clean_run_rate": _safe_rate(clean_runs, eligible_clean_runs),
+        "trend_label": trend_label,
+        "trend_delta": trend_delta,
+        "trend_detail": trend_detail,
+        "recent_results": list(reversed(ordered_results[-8:])),
+        "event_rows": event_rows,
+        "table_columns": TRACK_TABLE_COLUMNS,
+        "chart_points": chart_points,
+        "chart_polyline": chart_polyline,
+        "chart_min_time": min_time,
+        "chart_max_time": max_time,
+        "chart_y_ticks": chart_y_ticks,
+        "peer_label": peer_label,
+        "peer_group_size": peer_group_size,
+        "peer_place_percentile": peer_place_percentile,
+        "peer_finish_percentile": peer_finish_percentile,
+    }
+
+
+@login_required
 def rider_premium_stats_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
-    if not has_active_rider_stats_access(request.user, rider):
+    has_admin_access = can_manage_premium_stats(request.user)
+    if not has_admin_access and not has_active_rider_stats_access(request.user, rider):
         messages.error(request, "Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce.")
         return redirect("rider:detail", pk=pk)
 
-    runs = (
-        RaceRun.objects.filter(rider=rider)
-        .select_related("event", "result")
+    runs = list(
+        RaceRun.objects.filter(rider=rider, result__is_beginner=False)
+        .select_related("event", "event__organizer", "result")
         .order_by("-event__date", "round_type", "round_number", "id")
     )
-    subscription = get_active_rider_stats_subscription(request.user, rider)
+    results = list(
+        Result.objects.filter(rider_id=rider.uci_id, is_beginner=False)
+        .select_related("event", "event__organizer")
+        .order_by("-date", "-id")
+    )
+    track_options = _build_track_options(results, runs)
+    selected_track_id = request.GET.get("track")
+    selected_track = None
+    if selected_track_id and selected_track_id.isdigit():
+        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
+    track_stats = _build_track_stats(rider, selected_track, results, runs)
+    subscription = None if has_admin_access else get_active_rider_stats_subscription(request.user, rider)
     data = {
         "rider": rider,
         "runs": runs,
         "subscription": subscription,
+        "has_admin_access": has_admin_access,
+        "track_options": track_options,
+        "selected_track": selected_track,
+        "track_stats": track_stats,
     }
     return render(request, "rider/rider-premium-stats.html", data)
 
 
-@admin_required
+@login_required
 def rider_premium_subscriptions_view(request):
     if request.method == "POST":
         subscription = get_object_or_404(

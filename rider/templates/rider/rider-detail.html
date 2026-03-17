@@ -285,9 +285,9 @@
             </p>
           </div>
           <div class="rider-premium-panel flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950/60">
-            {% if can_manage_premium_stats and premium_access %}
+            {% if premium_access %}
             <div class="flex items-start justify-between gap-3">
-              <span class="rider-premium-badge is-active">Aktivní předplatné</span>
+              <span class="rider-premium-badge is-active">{% if premium_access_via_admin %}Admin přístup{% else %}Aktivní předplatné{% endif %}</span>
               {% if active_subscription %}
               <span class="text-right text-xs font-medium text-slate-500 dark:text-slate-400">
                 do {{ active_subscription.expires_at|date:"d.m.Y H:i" }}
@@ -298,10 +298,14 @@
               Otevřít prémiové statistiky
             </a>
             <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
+              {% if premium_access_via_admin %}
+              Administrátor má ke kompletním prémiovým statistikám přístup bez předplatného.
+              {% else %}
               Přístup ke kompletním časům z tratí je právě aktivní.
+              {% endif %}
             </p>
-            {% elif can_manage_premium_stats %}
-            <span class="rider-premium-badge is-inactive">Bez aktivního předplatného</span>
+            {% elif can_buy_premium_stats %}
+            <span class="rider-premium-badge is-inactive">Prémiové statistiky</span>
             <form method="post" action="{% url 'rider:premium-stats-subscribe' rider.uci_id %}">
               {% csrf_token %}
               <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-300/40 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400 sm:w-auto">
@@ -312,9 +316,9 @@
               Předplatné se po 30 dnech automaticky obnoví, pokud bude dostatek kreditu.
             </p>
             {% else %}
-            <span class="rider-premium-badge is-inactive">Pouze administrátor</span>
+            <span class="rider-premium-badge is-inactive">Vyžaduje přihlášení</span>
             <p class="text-sm leading-6 text-slate-500 dark:text-slate-300">
-              Přístup k prémiovým statistikám a předplatným je zatím dostupný pouze pro administrátora.
+              Po přihlášení lze prémiové statistiky aktivovat formou předplatného.
             </p>
             {% endif %}
           </div>

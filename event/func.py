@@ -25,7 +25,9 @@ from django.utils import timezone
 import threading
 import csv
 from django.db.models import Q
+from django.db import transaction
 import os
+from event.models import RaceRun
 
 
 # ===========================================================================
@@ -723,42 +725,134 @@ class SetResults(threading.Thread):
         """Nastaví ID závodu, pro který se výsledky importují."""
         self.event = event
 
-    def run(self):
-        event = Event.objects.get(id=self.event)
+    @staticmethod
+    def _normalize_value(value):
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    @classmethod
+    def _parse_int(cls, value):
+        value = cls._normalize_value(value)
+        if not value:
+            return None
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _parse_float(cls, value):
+        value = cls._normalize_value(value)
+        if not value:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _create_race_runs(cls, raw, event, result):
+        """Zapíše detailní průběh jízd z REM TSV do RaceRun."""
+        rider = result.rider
+
+        for index in range(1, 10):
+            place = cls._normalize_value(raw.get(f"MOTO{index}_PLACE"))
+            if not place:
+                continue
+
+            RaceRun.objects.create(
+                result=result,
+                event=event,
+                rider=rider,
+                round_type="MOTO",
+                round_number=index,
+                gate=cls._parse_int(raw.get(f"MOTO{index}_GATE")),
+                lane=cls._parse_int(raw.get(f"MOTO{index}_LANE")),
+                place=place,
+                race_points=cls._parse_int(raw.get(f"MOTO{index}_RACE_POINTS")),
+                moto_points=cls._parse_int(raw.get(f"MOTO{index}_MOTO_POINTS")),
+                finish_time=cls._parse_float(raw.get(f"MOTO{index}_TIME")),
+            )
+
+        for phase in ["FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"]:
+            place = cls._normalize_value(raw.get(f"{phase}_PLACE"))
+            if not place:
+                continue
+
+            RaceRun.objects.create(
+                result=result,
+                event=event,
+                rider=rider,
+                round_type=phase,
+                round_number=None,
+                gate=cls._parse_int(raw.get(f"{phase}_GATE")),
+                lane=cls._parse_int(raw.get(f"{phase}_LANE")),
+                place=place,
+                race_points=cls._parse_int(raw.get(f"{phase}_RACE_POINTS")),
+                moto_points=cls._parse_int(raw.get(f"{phase}_MOTO_POINTS")),
+                finish_time=cls._parse_float(raw.get(f"{phase}_TIME")),
+            )
+
+    @classmethod
+    def import_file(cls, event_id, file_path):
+        """Importuje REM TSV soubor a jedním průchodem vytvoří Result i RaceRun."""
+        event = Event.objects.get(id=event_id)
         ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
+
+        with open(file_path, newline="", encoding="utf-8") as result_file:
+            rows = list(csv.DictReader(result_file, delimiter="\t"))
+
+        logger.info(f"REM výsledků celkem: {len(rows)}")
+
+        with transaction.atomic():
+            for raw in rows:
+                category = cls._normalize_value(raw.get("CLASS"))
+                place = cls._normalize_value(raw.get("CLASS_RANKING"))
+
+                # Přeskočit kategorie Příchozí (nebodují do rankingu) a neplatné řádky
+                if not category or not place:
+                    logger.debug("Přeskočen REM řádek bez CLASS nebo CLASS_RANKING")
+                    continue
+                if "prichozi" in category.lower() or "příchozí" in category.lower():
+                    logger.debug(
+                        "Přeskočena příchozí kategorie: %s %s",
+                        raw.get("FIRST_NAME"),
+                        raw.get("LAST_NAME"),
+                    )
+                    continue
+
+                try:
+                    logger.debug(
+                        "Ukládám výsledek: %s %s, pořadí ve třídě: %s",
+                        raw.get("FIRST_NAME"),
+                        raw.get("LAST_NAME"),
+                        place,
+                    )
+                    result = GetResult(
+                        event.date,
+                        event.id,
+                        event.name,
+                        ranking_code,
+                        cls._normalize_value(raw.get("UCIID")),
+                        place,
+                        category,
+                        cls._normalize_value(raw.get("FIRST_NAME")),
+                        cls._normalize_value(raw.get("LAST_NAME")),
+                        cls._normalize_value(raw.get("CLUB")),
+                        event.organizer.team_name,
+                        event.type_for_ranking,
+                    ).write_result()
+                    cls._create_race_runs(raw, event, result)
+                except Exception as e:
+                    logger.error(f"Chyba při zpracování řádku {raw}: {e}")
+
+    def run(self):
         file_path = os.path.join("media", "rem_results", self.file)
-
-        with open(file_path, newline='') as result:
-            results_reader = list(csv.reader(result, delimiter='\t'))
-            logger.info(f"REM výsledků celkem: {len(results_reader)}")
-
-            for raw in results_reader:
-                # Přeskočit kategorie Příchozí (nebodují do rankingu)
-                if raw[4].find("Příchozí") == -1 and raw[4].find("Prichozi") == -1 and raw[25].find("CLASS_RANKING") == -1:
-                    logger.debug(f"Ukládám výsledek: {raw[1]} {raw[2]}, místo: {raw[25]}")
-                    try:
-                        uci_id = str(raw[12])
-                        category = raw[4]
-                        place = str(raw[25])
-                        first_name = raw[1]
-                        last_name = raw[2]
-                        club = raw[3]
-                        result = GetResult(
-                            event.date, event.id, event.name, ranking_code,
-                            uci_id, place, category, first_name, last_name,
-                            club, event.organizer.team_name, event.type_for_ranking
-                        )
-                        result.write_result()
-                    except Exception as e:
-                        logger.error(f"Chyba při zpracování řádku {raw}: {e}")
-                else:
-                    logger.debug(f"Přeskočeno: {raw[1]} {raw[2]}, raw[4]='{raw[4]}', raw[25]='{raw[25]}'")
-
-        event.rem_results = "rem_results" + self.file
-        event.save()
+        self.import_file(self.event, file_path)
 
         # Po importu výsledků spustit přepočet rankingu na pozadí
         schedule_ranking_recount()
         from rider.rider import trigger_cn_qualification_recount_if_needed
 
-        trigger_cn_qualification_recount_if_needed(event)
+        trigger_cn_qualification_recount_if_needed(Event.objects.get(id=self.event))

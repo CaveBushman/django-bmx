@@ -27,7 +27,6 @@ import logging
 import json
 import os
 from collections import Counter
-import pandas as pd
 import requests
 from datetime import date
 from types import SimpleNamespace
@@ -42,7 +41,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
-from event.models import Event, Entry, EntryForeign, Result, RaceRun
+from event.models import Event, Entry, EntryForeign, Result
 from rider.models import Rider
 from club.models import Club
 from commissar.models import Commissar
@@ -396,7 +395,7 @@ def _handle_rem_riders(request, event):
 
 
 def _handle_upload_txt(request, event, pk):
-    """Nahraje TSV výsledky z REM a zapíše detailní RaceRun záznamy (MOTO, finále)."""
+    """Nahraje TSV výsledky z REM a v jednom kroku zapíše Result i RaceRun."""
     if "result-file-txt" not in request.FILES:
         messages.error(request, "Musíš vybrat soubor s výsledky závodu")
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
@@ -404,63 +403,17 @@ def _handle_upload_txt(request, event, pk):
     result_file = request.FILES["result-file-txt"]
     storage, filename, relative_path = _save_uploaded_file(result_file, "rem_results")
 
-    # Import výsledků do DB a přepočet rankingu na pozadí
+    # Import výsledků i detailních jízd probíhá synchronně v jednom průchodu nad TSV.
     results = SetResults()
     results.setEvent(pk)
     results.setFile(filename)
-    results.start()
-
-    # Zápis detailních jízdních dat do RaceRun
-    df = pd.read_csv(storage.path(filename), sep="\t")
-    _save_race_runs(df, event)
+    results.run()
 
     event.rem_results = relative_path
     event.save(update_fields=["rem_results"])
 
     logger.info(f"REM výsledky nahrány pro závod {event.id}")
     return None  # Pokračuj na shrnutí
-
-
-def _save_race_runs(df, event):
-    """Projde TSV DataFrame a zapíše MOTO + finálové záznamy do RaceRun modelu."""
-    for _, row in df.iterrows():
-        plate = row.get("PLATE")
-        if pd.isna(plate):
-            continue
-        plate_digits = "".join(filter(str.isdigit, str(plate)))
-        if not plate_digits:
-            continue
-
-        result = Result.objects.filter(event=event, rider=int(plate_digits)).first()
-        if not result:
-            continue
-
-        # MOTO jízdy (až 9 kol)
-        for i in range(1, 10):
-            if not pd.isna(row.get(f"MOTO{i}_PLACE")):
-                RaceRun.objects.get_or_create(
-                    result=result, round_type="MOTO", round_number=i,
-                    defaults=dict(
-                        gate=row.get(f"MOTO{i}_GATE"), lane=row.get(f"MOTO{i}_LANE"),
-                        place=row.get(f"MOTO{i}_PLACE"), race_points=row.get(f"MOTO{i}_RACE_POINTS"),
-                        moto_points=row.get(f"MOTO{i}_MOTO_POINTS"), finish_time=row.get(f"MOTO{i}_TIME"),
-                        hill_time=None, split_1=None, split_2=None, split_3=None, split_4=None,
-                    )
-                )
-
-        # Finálové a eliminační kola
-        for phase in ["FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"]:
-            if not pd.isna(row.get(f"{phase}_PLACE")):
-                RaceRun.objects.get_or_create(
-                    result=result, round_type=phase,
-                    defaults=dict(
-                        round_number=None,
-                        gate=row.get(f"{phase}_GATE"), lane=row.get(f"{phase}_LANE"),
-                        place=row.get(f"{phase}_PLACE"), race_points=row.get(f"{phase}_RACE_POINTS"),
-                        moto_points=row.get(f"{phase}_MOTO_POINTS"), finish_time=row.get(f"{phase}_TIME"),
-                        hill_time=None, split_1=None, split_2=None, split_3=None, split_4=None,
-                    )
-                )
 
 
 def _handle_delete_txt(request, event, pk):

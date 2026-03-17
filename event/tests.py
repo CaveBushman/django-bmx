@@ -1,4 +1,6 @@
 from datetime import date, timedelta
+import os
+import tempfile
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -7,7 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from club.models import Club
-from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings
+from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
+from event.func import SetResults
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -271,6 +274,7 @@ class PaymentServiceTests(TestCase):
         self.assertTrue(Entry.objects.filter(pk=foreign_cart_entry.pk).exists())
         self.assertFalse(Entry.objects.filter(pk=user_entry.pk).exists())
 
+
     def test_enrich_cart_entries_sets_display_class_and_total(self):
         beginner_entry = Entry.objects.create(
             user=self.user,
@@ -508,3 +512,73 @@ class BalanceRecalculationViewTests(TestCase):
         self.assertContains(response, "Kontrola kreditu")
         self.assertContains(response, "Stavy kreditů byly úspěšně překontrolovány.")
         recalculate_mock.assert_called_once()
+
+
+class RemResultsImportTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Import Club")
+        self.event = Event.objects.create(
+            name="REM Import Race",
+            date=date(2025, 4, 13),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10125224253,
+            first_name="Simon",
+            last_name="Aksamit",
+            gender="Muž",
+            date_of_birth=date(2009, 8, 2),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+            class_24="Boys 15 and 16",
+        )
+
+    def test_import_file_creates_results_and_race_runs_in_single_pass(self):
+        rem_tsv = "\t".join(
+            [
+                "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "REGISTRATION_CLASS", "TEAM", "SEX",
+                "BIRTHDATE", "MAIL", "TYPE", "LICENCE_TYPE", "UCIID", "UCIID_EXP_DATE", "INTERNAL_IDENT", "STATUS",
+                "PLATE", "TRANSPONDER", "ENTRY_PAYED", "PAYMENT_AMOUNT", "ADMIN_FEE", "TRANSPONDER_HIRE_PRICE",
+                "TRANSPONDER_HIRE_FLAG", "PAYMENT_CURR", "PAYMENT_TYPE", "CLASS_RANKING", "MOTO1_GATE", "MOTO1_LANE",
+                "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_TIME", "MOTO2_GATE", "MOTO2_LANE",
+                "MOTO2_PLACE", "MOTO2_RACE_POINTS", "MOTO2_MOTO_POINTS", "MOTO2_TIME", "FINAL_SUBTYPE", "FINAL_GATE",
+                "FINAL_LANE", "FINAL_PLACE", "FINAL_RACE_POINTS", "FINAL_MOTO_POINTS", "FINAL_TIME", "F2_GATE",
+                "F2_LANE", "F2_PLACE", "F2_RACE_POINTS", "F2_MOTO_POINTS", "F2_TIME",
+            ]
+        )
+        rem_row = "\t".join(
+            [
+                "2. zavod SAZKA Ceskeho poharu", "Simon", "Aksamit", "Import Club", "Boys 15-16", "Boys 15-16", "",
+                "M", "02-08-2009", "simon@example.com", "C", "U", "10125224253", "31-12-2025", "", "S", "868",
+                "HW-43726", "X", "500.00", "0.00", "0.00", "false", "CZK", "P", "7", "40", "1", "1st", "8", "1",
+                "29.224", "83", "7", "2nd", "7", "2", "29.753", "A", "11", "3", "7th", "10", "7", "30.798", "18",
+                "4", "2nd", "0", "2", "29.446",
+            ]
+        )
+
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as handle:
+            handle.write(rem_tsv)
+            handle.write("\n")
+            handle.write(rem_row)
+            file_path = handle.name
+
+        try:
+            SetResults.import_file(self.event.id, file_path)
+        finally:
+            os.unlink(file_path)
+
+        result = Result.objects.get(event=self.event, rider=self.rider)
+        self.assertEqual(result.place, 7)
+        self.assertEqual(result.points, 75)
+
+        runs = RaceRun.objects.filter(result=result).order_by("round_type", "round_number")
+        self.assertEqual(runs.count(), 4)
+        self.assertTrue(runs.filter(round_type="MOTO", round_number=1, place="1st", finish_time=29.224).exists())
+        self.assertTrue(runs.filter(round_type="MOTO", round_number=2, place="2nd", finish_time=29.753).exists())
+        self.assertTrue(runs.filter(round_type="FINAL", place="7th", finish_time=30.798).exists())
+        self.assertTrue(runs.filter(round_type="F2", place="2nd", finish_time=29.446).exists())
