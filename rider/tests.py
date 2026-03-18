@@ -131,9 +131,9 @@ class RiderPremiumSubscriptionTests(TestCase):
         response = self.client.get(reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "34.12")
-        self.assertContains(response, "2.56")
-        self.assertContains(response, "8.91")
+        self.assertContains(response, "34,12")
+        self.assertContains(response, "2,56")
+        self.assertContains(response, "8,91")
 
     def test_staff_can_access_premium_stats_without_subscription(self):
         self.user.is_staff = True
@@ -191,7 +191,7 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Secondary Track")
         self.assertContains(response, "Traťový profil")
-        self.assertContains(response, "35.44")
+        self.assertContains(response, "35,44")
 
 
 class TrainerClubSubscriptionTests(TestCase):
@@ -279,6 +279,7 @@ class TrainerClubSubscriptionTests(TestCase):
         self.assertTrue(has_active_trainer_club_extended_access(self.user, self.club))
         self.assertTrue(has_active_trainer_club_extended_access(self.user, self.other_club))
 
+
     def test_extended_requires_active_stats_on_club(self):
         purchase_trainer_club_subscription(
             self.user,
@@ -361,3 +362,123 @@ class TrainerClubSubscriptionTests(TestCase):
         self.assertIsNone(active_extended)
         self.assertEqual(extended_subscription.status, TrainerClubSubscription.STATUS_EXPIRED)
         self.assertFalse(extended_subscription.auto_renew)
+
+
+class InactiveRiderActionsTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="User",
+            username="admin_user",
+            email="admin@example.com",
+            password="StrongPass123!",
+        )
+        self.admin_user.is_active = True
+        self.admin_user.is_admin = True
+        self.admin_user.save()
+
+        self.staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="User",
+            username="staff_user",
+            email="staff@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+
+        self.club = Club.objects.create(team_name="Inactive Club")
+        self.other_club = Club.objects.create(team_name="Other Club")
+        self.club_manager = User.objects.create_user(
+            first_name="Club",
+            last_name="Manager",
+            username="club_manager",
+            email="club_manager@example.com",
+            password="StrongPass123!",
+        )
+        self.club_manager.is_active = True
+        self.club_manager.is_club_manager = True
+        self.club_manager.club = self.club
+        self.club_manager.save()
+
+        self.rider = Rider.objects.create(
+            uci_id=12345678901,
+            first_name="Inactive",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            plate_text="145",
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        Rider.objects.filter(pk=self.rider.pk).update(
+            created=timezone.now() - timedelta(days=365 * 3)
+        )
+        self.other_club_rider = Rider.objects.create(
+            uci_id=12345678902,
+            first_name="Other",
+            last_name="Club",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.other_club,
+            plate_text="146",
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        Rider.objects.filter(pk=self.other_club_rider.pk).update(
+            created=timezone.now() - timedelta(days=365 * 3)
+        )
+
+    def test_admin_can_deactivate_inactive_rider_from_list(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("rider:inactive-deactivate", kwargs={"rider_id": self.rider.pk}),
+            follow=True,
+        )
+
+        self.rider.refresh_from_db()
+        self.assertRedirects(response, reverse("rider:inactive"))
+        self.assertFalse(self.rider.is_active)
+        self.assertContains(response, "byl označen jako neaktivní")
+
+    def test_staff_cannot_access_inactive_riders_page(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("rider:inactive"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)
+
+    def test_club_manager_sees_only_riders_from_own_club(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.get(reverse("rider:inactive"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.rider.last_name)
+        self.assertNotContains(response, self.other_club_rider.last_name)
+
+    def test_club_manager_can_deactivate_only_own_club_rider(self):
+        self.client.force_login(self.club_manager)
+
+        own_response = self.client.post(
+            reverse("rider:inactive-deactivate", kwargs={"rider_id": self.rider.pk}),
+            follow=True,
+        )
+        self.rider.refresh_from_db()
+
+        blocked_response = self.client.post(
+            reverse("rider:inactive-deactivate", kwargs={"rider_id": self.other_club_rider.pk}),
+            follow=True,
+        )
+        self.other_club_rider.refresh_from_db()
+
+        self.assertRedirects(own_response, reverse("rider:inactive"))
+        self.assertFalse(self.rider.is_active)
+        self.assertTrue(self.other_club_rider.is_active)
+        self.assertContains(blocked_response, "nelze deaktivovat")

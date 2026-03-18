@@ -9,8 +9,10 @@ from news.models import News, Downloads
 from club.models import Club
 from datetime import date
 from django.http import FileResponse, Http404
+from django.db.models import Q
 import mimetypes
 import os
+from theme.models import Sponsor
 
 # Create your views here.
 
@@ -21,10 +23,15 @@ def get_image_dimensions(image_field):
 
 def homepage_view(request):
     this_year = date.today().year
+    today = date.today()
     events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count()
     riders_sum = Rider.sum_of_riders()
     clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
     homepage_news = News.objects.filter(published=True, on_homepage=True).select_related('created').prefetch_related('tags').order_by('-publish_date')
+    sponsors = Sponsor.objects.filter(
+        is_published=True,
+        valid_from__lte=today,
+    ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=today))
     championship_men_leader = Rider.objects.filter(
         is_active=True,
         is_approved=True,
@@ -40,6 +47,7 @@ def homepage_view(request):
     content = {'clubs_count': clubs_sum, 'riders_count': riders_sum,
                'races_count': events_sum,
                'homepage_news': homepage_news,
+               'sponsors': sponsors,
                'championship_men_leader': championship_men_leader,
                'championship_women_leader': championship_women_leader}
     return render(request, "homepage.html", content)

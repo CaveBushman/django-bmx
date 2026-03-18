@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-{% load static %}
+{% load static i18n %}
 
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'cs' }}">
 
 <head>
     {% load google_analytics_gtag %}
@@ -46,7 +46,7 @@
     integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni" crossorigin="anonymous" />
   <!-- Přidání Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <title>Czech BMX - {% block title %}{% endblock %}</title>
+  <title>{% blocktrans %}Czech BMX{% endblocktrans %} - {% block title %}{% endblock %}</title>
   <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
 
   <!-- Open Graph meta tagy -->
@@ -79,13 +79,13 @@
             <div class="ml-3">
               <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-100">
                 {% if message.tags == 'success' %}
-                Hotovo
+                {% trans "Done" %}
                 {% elif message.tags == 'error' %}
-                Chyba
+                {% trans "Error" %}
                 {% elif message.tags == 'warning' %}
-                Pozor
+                {% trans "Warning" %}
                 {% else %}
-                Informace
+                {% trans "Information" %}
                 {% endif %}
               </h3>
               <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-100/80">

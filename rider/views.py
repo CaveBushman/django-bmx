@@ -55,6 +55,7 @@ from rider.subscriptions import (
 from rider.models import RiderStatsSubscription, TrainerClubSubscription
 from finance.models import EventInvoice, SubscriptionInvoice
 from finance.subscription_invoices import SubscriptionInvoiceService
+from rider.plates import display_plate, generate_available_plate_values, legacy_plate_int, normalize_plate_value
 from rider.trainer_dashboard import (
     build_club_kpi_export_rows,
     build_club_riders_export_rows,
@@ -77,6 +78,33 @@ def can_manage_premium_stats(user):
 
 
 admin_required = user_passes_test(can_manage_premium_stats, login_url="/login/")
+
+
+def can_access_rider_admin_only(user):
+    return user.is_authenticated and user.is_admin
+
+
+rider_admin_only_required = user_passes_test(can_access_rider_admin_only, login_url="/login/")
+
+
+def can_manage_inactive_riders(user):
+    return user.is_authenticated and (
+        getattr(user, "is_admin", False)
+        or getattr(user, "is_superuser", False)
+        or getattr(user, "is_club_manager", False)
+    )
+
+
+inactive_riders_required = user_passes_test(can_manage_inactive_riders, login_url="/login/")
+
+
+def _get_manageable_inactive_riders(user):
+    inactive_riders = two_years_inactive()
+    if getattr(user, "is_admin", False) or getattr(user, "is_superuser", False):
+        return inactive_riders
+    if getattr(user, "is_club_manager", False) and getattr(user, "club_id", None):
+        return [rider for rider in inactive_riders if rider.club_id == user.club_id]
+    return []
 
 
 def can_access_trainer_dashboard(user):
@@ -272,6 +300,7 @@ def riders_list_view(request):
             "class_20",
             "class_24",
             "plate",
+            "plate_text",
             "plate_color_20",
         )
         .order_by("last_name", "first_name")
@@ -286,10 +315,11 @@ def riders_list_view(request):
     if club_query:
         riders = riders.filter(club__team_name__icontains=club_query)
     if plate_query:
-        try:
-            riders = riders.filter(plate=int(plate_query))
-        except ValueError:
-            riders = riders.none()
+        normalized_plate_query = normalize_plate_value(plate_query)
+        plate_filter = Q(plate_text__iexact=normalized_plate_query)
+        if normalized_plate_query.isdigit():
+            plate_filter |= Q(plate=legacy_plate_int(normalized_plate_query))
+        riders = riders.filter(plate_filter)
 
     paginator = Paginator(riders, 100)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -1089,6 +1119,8 @@ def rider_premium_stats_view(request, pk):
     require_wheel_selection = False
     if selected_track_id and selected_track_id.isdigit():
         selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
+    elif len(track_options) == 1:
+        selected_track = track_options[0]
     if selected_track is not None:
         track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
         track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
@@ -1230,6 +1262,7 @@ def account_settings_invoices_view(request):
             "invoices_page_obj": invoices_page_obj,
             "individual_subscriptions": individual_subscriptions,
             "trainer_subscriptions": trainer_subscriptions,
+            "can_manage_inactive_riders": can_manage_inactive_riders(request.user),
             "managed_club": managed_club,
             "club_event_invoices": club_event_invoices,
             "club_event_invoices_count": club_event_invoices_count,
@@ -1250,12 +1283,11 @@ def rider_admin(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def free_plates_view(request):
-    used_plates = set(
-        Rider.objects.filter(is_active=True)
-        .exclude(plate__isnull=True)
-        .values_list("plate", flat=True)
-    )
-    free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
+    used_plates = [
+        display_plate(plate_text, plate, fallback="")
+        for plate_text, plate in Rider.objects.filter(is_active=True).values_list("plate_text", "plate")
+    ]
+    free_plates = generate_available_plate_values(used_plates)
 
     data = {
         "free_plates": free_plates,
@@ -1266,10 +1298,11 @@ def free_plates_view(request):
 
 def _rider_request_context(**extra):
     clubs = Club.objects.filter(is_active=True)
-    used_plates = list(
-        Rider.objects.filter(is_active=True).values_list("plate", flat=True)
-    )
-    free_plates = [plate for plate in range(10, 1000) if plate not in used_plates]
+    used_plates = [
+        display_plate(plate_text, plate, fallback="")
+        for plate_text, plate in Rider.objects.filter(is_active=True).values_list("plate_text", "plate")
+    ]
+    free_plates = generate_available_plate_values(used_plates)
 
     context = {
         "clubs": clubs,
@@ -1395,7 +1428,8 @@ def rider_new_view(request):
             is_20="is20" in request.POST,
             is_24="is24" in request.POST,
             is_elite="elite" in request.POST,
-            plate=request.POST["plate"],
+            plate_text=normalize_plate_value(request.POST["plate"]),
+            plate=legacy_plate_int(request.POST["plate"]),
             club=Club.objects.get(id=request.POST["club"]),
             is_active=True,
             is_approved=False,
@@ -1407,12 +1441,49 @@ def rider_new_view(request):
     return render(request, "rider/rider-request.html", _rider_request_context())
 
 
-@staff_member_required
+@login_required(login_url="/login/")
+@inactive_riders_required
 def inactive_riders_views(request):
     """ Function for views inactive riders, only request params"""
-    inactive_riders = two_years_inactive()
-    data = {"riders": inactive_riders, "sum": len(inactive_riders)}
+    inactive_riders = _get_manageable_inactive_riders(request.user)
+    data = {
+        "riders": inactive_riders,
+        "sum": len(inactive_riders),
+        "managed_club": request.user.club if getattr(request.user, "is_club_manager", False) and request.user.club_id else None,
+    }
     return render(request, "rider/rider-inactive.html", data)
+
+
+@login_required(login_url="/login/")
+@inactive_riders_required
+def deactivate_inactive_rider_view(request, rider_id):
+    if request.method != "POST":
+        return redirect("rider:inactive")
+
+    inactive_rider_ids = {rider.pk for rider in _get_manageable_inactive_riders(request.user)}
+    rider = get_object_or_404(Rider, pk=rider_id)
+
+    if rider.pk not in inactive_rider_ids:
+        messages.error(request, "Jezdce nelze deaktivovat mimo seznam neaktivních jezdců.")
+        return redirect("rider:inactive")
+
+    rider.is_active = False
+    rider.save(update_fields=["is_active"])
+    logger.info(
+        "Rider deactivated from inactive list by user_id=%s email=%s role_admin=%s role_club_manager=%s rider_id=%s rider_uci_id=%s club_id=%s",
+        request.user.pk,
+        request.user.email,
+        getattr(request.user, "is_admin", False),
+        getattr(request.user, "is_club_manager", False),
+        rider.pk,
+        rider.uci_id,
+        rider.club_id,
+    )
+    messages.success(
+        request,
+        f"Jezdec {rider.first_name} {rider.last_name} byl označen jako neaktivní.",
+    )
+    return redirect("rider:inactive")
 
 
 @staff_member_required
@@ -1567,7 +1638,7 @@ def transponder_search_view(request):
                     "first_name": rider.first_name,
                     "last_name": rider.last_name,
                     "club": rider.club.team_name if rider.club else "-",
-                    "plate": rider.plate or "-",
+                    "plate": rider.plate_display,
                     "matched_in": ", ".join(matched_in) or "-",
                     "status": "Aktuální čip",
                     "status_tone": "current",
@@ -1587,7 +1658,7 @@ def transponder_search_view(request):
                     "first_name": rider.first_name,
                     "last_name": rider.last_name,
                     "club": rider.club or rider.state or "-",
-                    "plate": rider.plate or "-",
+                    "plate": rider.plate_display,
                     "matched_in": ", ".join(matched_in) or "-",
                     "status": "Aktuální čip",
                     "status_tone": "current",
@@ -1632,7 +1703,7 @@ def transponder_search_view(request):
                     "first_name": rider.first_name,
                     "last_name": rider.last_name,
                     "club": rider.club.team_name if rider.club else "-",
-                    "plate": rider.plate or "-",
+                    "plate": rider.plate_display,
                     "matched_in": slot_label,
                     "status": "Historický čip",
                     "status_tone": "historical",
@@ -1652,16 +1723,18 @@ def plate_search_view(request):
     plate_query = (request.GET.get("plate") or "").strip()
     results = []
 
-    if plate_query and plate_query.isdigit():
-        czech_riders = Rider.objects.filter(
-            plate=int(plate_query), is_active=True
-        ).select_related("club")
-        foreign_riders = ForeignRider.objects.filter(plate=int(plate_query))
+    if plate_query:
+        normalized_plate_query = normalize_plate_value(plate_query)
+        plate_filter = Q(plate_text__iexact=normalized_plate_query)
+        if normalized_plate_query.isdigit():
+            plate_filter |= Q(plate=legacy_plate_int(normalized_plate_query))
+        czech_riders = Rider.objects.filter(plate_filter, is_active=True).select_related("club")
+        foreign_riders = ForeignRider.objects.filter(plate_filter)
 
         for rider in czech_riders:
             results.append(
                 {
-                    "plate": rider.plate or "-",
+                    "plate": rider.plate_display,
                     "first_name": rider.first_name,
                     "last_name": rider.last_name,
                     "club": rider.club.team_name if rider.club else "-",
@@ -1671,7 +1744,7 @@ def plate_search_view(request):
         for rider in foreign_riders:
             results.append(
                 {
-                    "plate": rider.plate or "-",
+                    "plate": rider.plate_display,
                     "first_name": rider.first_name,
                     "last_name": rider.last_name,
                     "club": rider.club or rider.state or "-",

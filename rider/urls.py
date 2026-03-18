@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin', views.rider_admin, name = "admin"),
     path('free-plates', views.free_plates_view, name='free-plates'),
     path('inactive', views.inactive_riders_views, name="inactive"),
+    path('inactive/<int:rider_id>/deactivate', views.deactivate_inactive_rider_view, name='inactive-deactivate'),
     path('licence', views.licence_check_views, name='licence'),
     path('rank', views.ranking_count_views, name='ranking'),
     path('participation', views.participation_riders_on_event, name='participation'),

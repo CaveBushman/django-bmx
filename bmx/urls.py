@@ -9,6 +9,7 @@ app_name = "bmx"
 handler404 = "bmx.views.error_404_view"
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     path('api/', include('api.urls')),
     path('', include('news.urls')),
     path('accounts/', include('accounts.urls')),

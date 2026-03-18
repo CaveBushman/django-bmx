@@ -49,7 +49,7 @@ def riders_on_events(club_pk):
         ws.cell(i, 1, rider.last_name)
         ws.cell(i, 2, rider.first_name)
         ws.cell(i, 3, rider.date_of_birth.year)
-        ws.cell(i, 4, rider.plate)
+        ws.cell(i, 4, rider.plate_display)
         ws.cell(i, 5, rider.uci_id)
         ws.cell(i,6,rider.class_20)
         ws.cell(i,7,rider.class_24)

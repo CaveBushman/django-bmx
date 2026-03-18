@@ -16,6 +16,7 @@ from event.serializers import EventSerializer, EntrySerializer
 from news.serializer import NewsSerializer
 from club.serializers import ClubSerializer
 import logging
+from rider.plates import legacy_plate_int, normalize_plate_value
 
 
 logger = logging.getLogger(__name__)
@@ -146,14 +147,17 @@ class ChatbotAPIView(APIView):
                 "kdo má startovní číslo": "Startovní číslo je přiděleno každému jezdci po registraci. Přehled startovních čísel najdeš v seznamu přihlášených jezdců na stránce závodu."
             }
 
-            match = re.search(r"(startovní\s+)?číslo\s+(\d+)", user_message.lower())
+            match = re.search(r"(startovní\s+)?číslo\s+([a-z]?\d{2,3})", user_message.lower())
             if match:
                 # Vyhledávání jezdce podle startovního čísla — pouze pro přihlášené
                 if not request.user.is_authenticated:
                     answer = "Pro vyhledávání jezdců se prosím přihlas."
                 else:
-                    plate = match.group(2)
-                    rider = Rider.objects.filter(plate=plate, is_active=True).first()
+                    plate = normalize_plate_value(match.group(2))
+                    rider_filter = models.Q(plate_text__iexact=plate)
+                    if plate.isdigit():
+                        rider_filter |= models.Q(plate=legacy_plate_int(plate))
+                    rider = Rider.objects.filter(rider_filter, is_active=True).first()
                     if rider:
                         answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
                     else:

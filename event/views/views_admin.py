@@ -43,6 +43,7 @@ from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from event.models import Event, Entry, EntryForeign, Result
 from rider.models import Rider
+from rider.plates import display_plate
 from club.models import Club
 from commissar.models import Commissar
 from event.func import (
@@ -240,13 +241,13 @@ def _write_bem_rider_row(ws, row, rider, event, is_20):
 
     if is_20:
         ws.cell(row, 20, resolve_event_classes(event, rider, is_20=True))
-        world_plate = ("W" + str(rider.plate_champ_20)) if rider.plate_champ_20 else rider.plate
+        world_plate = ("W" + str(rider.plate_champ_20)) if rider.plate_champ_20 else rider.plate_display
         ws.cell(row, 24, world_plate)
-        ws.cell(row, 25, rider.plate)
+        ws.cell(row, 25, rider.plate_display)
     else:
         ws.cell(row, 21, resolve_event_classes(event, rider, is_20=False))
-        world_plate = ("W" + str(rider.plate_champ_24)) if rider.plate_champ_24 else str(rider.plate)
-        ws.cell(row, 24, rider.plate)
+        world_plate = ("W" + str(rider.plate_champ_24)) if rider.plate_champ_24 else rider.plate_display
+        ws.cell(row, 24, rider.plate_display)
         ws.cell(row, 25, world_plate)
 
     ws.cell(row, 32, rider.transponder_20)
@@ -362,8 +363,8 @@ def _handle_bem_riders(request, event):
         if rider.is_24:
             # Cruiser třída jde do sloupce 21 (přepíše se i když is_20 bylo True)
             ws.cell(x, 21, resolve_event_classes(event, rider, is_20=False))
-            ws.cell(x, 24, rider.plate_champ_20 or rider.plate)
-            ws.cell(x, 25, rider.plate_champ_24 or rider.plate)
+            ws.cell(x, 24, rider.plate_champ_20 or rider.plate_display)
+            ws.cell(x, 25, rider.plate_champ_24 or rider.plate_display)
         x += 1
 
     wb.save(file_name)
@@ -680,7 +681,7 @@ def export_event_results(request, event_id):
         payload.append({
             "category": category_code,
             "rank": res.place,
-            "bib": rider.plate,
+            "bib": rider.plate_display,
             "uciid": str(rider.uci_id),
             "lastName": rider.last_name,
             "firstName": rider.first_name,

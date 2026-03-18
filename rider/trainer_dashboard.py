@@ -13,6 +13,7 @@ from openpyxl import Workbook
 from club.models import Club
 from event.models import RaceRun, Result
 from rider.models import Rider, TrainerClubSubscription
+from rider.plates import display_plate
 from rider.subscriptions import (
     cancel_trainer_club_subscription,
     get_active_trainer_extended_subscription,
@@ -60,7 +61,7 @@ def build_club_riders_export_rows(club):
                 "last_name": rider.last_name,
                 "class_20": rider.class_20,
                 "class_24": rider.class_24,
-                "plate": rider.plate,
+                "plate": display_plate(rider.plate_text, rider.plate, fallback=""),
                 "transponder_20": rider.transponder_20,
                 "transponder_24": rider.transponder_24,
                 "valid_licence": "Ano" if rider.valid_licence else "Ne",

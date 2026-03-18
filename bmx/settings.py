@@ -3,6 +3,7 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 try:
     from django.utils.csp import CSP
@@ -133,6 +134,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -198,8 +200,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
 LANGUAGES = [
-    ("cs", "Czech"),
-    # další jazyky...
+    ("cs", _("Czech")),
+    ("en", _("English")),
+    ("de", _("German")),
 ]
 
 LANGUAGE_CODE = "cs"  # Nastav na češtinu
@@ -207,6 +210,10 @@ LANGUAGE_CODE = "cs"  # Nastav na češtinu
 TIME_ZONE = "Europe/Prague"
 
 USE_I18N = True
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 
 USE_TZ = True
 

@@ -234,12 +234,17 @@ def two_years_inactive():
     previous_year = timezone.localdate().year - 1
     two_years_ago = timezone.now() - timedelta(days=365 * 2)
 
-    # Filtrovat aktivní jezdce s přiděleným číslem a profilem starším než 2 roky
+    # Filtrovat aktivní jezdce s přiděleným číslem a profilem starším než 2 roky.
+    # Do doby, než se všechna ostrá data překlopí do plate_text, držíme fallback i na legacy plate.
     riders = Rider.objects.filter(
         is_active=True,
         is_approved=True,
-        plate__isnull=False,
-        plate__gt=0,
+    ).filter(
+        (
+            Q(plate_text__isnull=False)
+            & ~Q(plate_text__exact="")
+        )
+        | Q(plate__gt=0)
     ).filter(
         Q(created__lte=two_years_ago) | Q(created__isnull=True)
     )
