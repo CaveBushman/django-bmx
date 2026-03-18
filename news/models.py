@@ -152,7 +152,7 @@ class News (models.Model):
 
     title = models.CharField(max_length=255, default="")
     prefix = RichTextField(max_length=4000, default="", blank=True, null=True)
-    content = RichTextField(max_length=10000, blank=True, null=True)
+    content = RichTextField(max_length=30000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
 
     photo_01 = models.ImageField (upload_to = 'images/news', null=True, blank=True, default="images/news/AKBMX.jpg")

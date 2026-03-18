@@ -21,13 +21,53 @@
   html.dark #profile-dropdown .border-t {
     border-color: #334155 !important;
   }
+
+  .lang-flag {
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1rem;
+    overflow: hidden;
+    border-radius: 0.25rem;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
+    flex-shrink: 0;
+  }
+
+  .lang-flag svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .navbar-pill {
+    height: 2.875rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  }
+
+  .navbar-pill:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  html.dark .navbar-pill {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  html.dark .navbar-pill:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
 </style>
 <nav class="bg-indigo-800 fixed top-0 left-0 right-0 z-20" id="navbar">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
-      <div class="flex items-center">
-        <div class="hidden md:block">
-          <div class="ml-10 flex items-baseline space-x-4">
+  <div class="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8">
+    <div class="relative flex h-16 items-center justify-between">
+      <div class="hidden md:block"></div>
+      <div class="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
+        <div class="pointer-events-auto flex items-baseline space-x-4">
             {% if '/' == request.path %}
             <a href="{% url 'news:homepage' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
               aria-current="page">{% trans "HOME" %}</a>
@@ -91,11 +131,10 @@
             <a href="{% url 'news:downloads' %}"
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
             {% endif %}
-
-          </div>
         </div>
-        <div class="hidden md:block">
-          <div class="ml-4 flex items-center md:ml-6">
+      </div>
+      <div class="hidden md:flex items-center ml-auto">
+        <div class="flex items-center">
 
             {% if request.user.is_superuser and request.session.plate %}
             <span
@@ -138,7 +177,7 @@
             {% if user.is_authenticated %}
 
             <div id="credit"
-              class="ml-3 inline-flex items-center rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.04em] text-white shadow-sm backdrop-blur transition hover:bg-white/14 dark:border-white/10 dark:bg-white/8 dark:hover:bg-white/12">
+              class="navbar-pill ml-3 inline-flex min-w-[7rem] items-center justify-center px-4 text-sm font-semibold tracking-[0.02em] text-white">
               {% localize on %}
               {{ user.credit|floatformat:0 }} CZK
               {% endlocalize %}
@@ -150,8 +189,36 @@
             {% get_available_languages as AVAILABLE_LANGUAGES %}
             <div class="relative ml-3 hidden md:block">
               <button type="button"
-                class="inline-flex items-center gap-x-2 rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.04em] text-white shadow-sm backdrop-blur transition hover:bg-white/14 dark:border-white/10 dark:bg-white/8 dark:hover:bg-white/12"
+                class="navbar-pill inline-flex min-w-[7.75rem] items-center gap-x-2 px-4 text-sm font-semibold tracking-[0.02em] text-white"
                 id="language-menu-button" aria-expanded="false" aria-haspopup="true">
+                <span aria-hidden="true" class="lang-flag">
+                  {% if CURRENT_LANGUAGE == 'cs' %}
+                  <svg viewBox="0 0 27 18" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="27" height="9" fill="#ffffff"/>
+                    <rect y="9" width="27" height="9" fill="#d7141a"/>
+                    <path d="M0 0v18l13.5-9L0 0z" fill="#11457e"/>
+                  </svg>
+                  {% elif CURRENT_LANGUAGE == 'en' %}
+                  <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="60" height="30" fill="#012169"/>
+                    <path d="M0 0 60 30M60 0 0 30" stroke="#ffffff" stroke-width="6"/>
+                    <path d="M0 0 60 30M60 0 0 30" stroke="#C8102E" stroke-width="3"/>
+                    <path d="M30 0v30M0 15h60" stroke="#ffffff" stroke-width="10"/>
+                    <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/>
+                  </svg>
+                  {% elif CURRENT_LANGUAGE == 'de' %}
+                  <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="5" height="1" y="0" fill="#000000"/>
+                    <rect width="5" height="1" y="1" fill="#dd0000"/>
+                    <rect width="5" height="1" y="2" fill="#ffce00"/>
+                  </svg>
+                  {% else %}
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="12" fill="#e2e8f0"/>
+                    <path d="M4 12h16M12 4a14 14 0 0 0 0 16M12 4a14 14 0 0 1 0 16" stroke="#475569" stroke-width="1.5" fill="none"/>
+                  </svg>
+                  {% endif %}
+                </span>
                 <span>
                   {% if CURRENT_LANGUAGE == 'cs' %}Čeština{% elif CURRENT_LANGUAGE == 'en' %}English{% elif CURRENT_LANGUAGE == 'de' %}Deutsch{% else %}{{ CURRENT_LANGUAGE|upper }}{% endif %}
                 </span>
@@ -168,7 +235,37 @@
                   <input type="hidden" name="language" value="{{ code }}">
                   <button type="submit"
                     class="flex w-full items-center justify-between rounded-xl px-4 py-2 text-left text-sm font-medium transition {% if code == CURRENT_LANGUAGE %}bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">
-                    <span>{{ name }}</span>
+                    <span class="flex items-center gap-2">
+                      <span aria-hidden="true" class="lang-flag">
+                        {% if code == 'cs' %}
+                        <svg viewBox="0 0 27 18" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="27" height="9" fill="#ffffff"/>
+                          <rect y="9" width="27" height="9" fill="#d7141a"/>
+                          <path d="M0 0v18l13.5-9L0 0z" fill="#11457e"/>
+                        </svg>
+                        {% elif code == 'en' %}
+                        <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="60" height="30" fill="#012169"/>
+                          <path d="M0 0 60 30M60 0 0 30" stroke="#ffffff" stroke-width="6"/>
+                          <path d="M0 0 60 30M60 0 0 30" stroke="#C8102E" stroke-width="3"/>
+                          <path d="M30 0v30M0 15h60" stroke="#ffffff" stroke-width="10"/>
+                          <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/>
+                        </svg>
+                        {% elif code == 'de' %}
+                        <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="5" height="1" y="0" fill="#000000"/>
+                          <rect width="5" height="1" y="1" fill="#dd0000"/>
+                          <rect width="5" height="1" y="2" fill="#ffce00"/>
+                        </svg>
+                        {% else %}
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="12" fill="#e2e8f0"/>
+                          <path d="M4 12h16M12 4a14 14 0 0 0 0 16M12 4a14 14 0 0 1 0 16" stroke="#475569" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        {% endif %}
+                      </span>
+                      <span>{{ name }}</span>
+                    </span>
                     {% if code == CURRENT_LANGUAGE %}
                     <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
                       <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" />
@@ -184,13 +281,13 @@
             <div class="relative ml-3">
               <div>
                 <button type="button"
-                  class="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-800"
+                  class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/18 bg-white/10 p-0 text-sm shadow-sm backdrop-blur transition hover:bg-white/14 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-800 dark:border-white/10 dark:bg-white/8 dark:hover:bg-white/12"
                   id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                   <span class="sr-only">{% trans "Open user menu" %}</span>
                   {% if user.is_authenticated %}
-                  <div><img class="h-10 w-10 rounded-full object-cover" src="{{user.photo.url}}" alt="" /></div>
+                  <div><img class="h-10 w-10 rounded-full object-cover ring-1 ring-white/20" src="{{user.photo.url}}" alt="" /></div>
                   {% else %}
-                  <img class="h-10 w-10 rounded-full object-cover" src="{% static 'images/users/blank-avatar-200x200.jpg' %}" alt="" />
+                  <img class="h-10 w-10 rounded-full object-cover ring-1 ring-white/20" src="{% static 'images/users/blank-avatar-200x200.jpg' %}" alt="" />
                   {% endif %}
                 </button>
               </div>
@@ -248,8 +345,8 @@
                 {% endif %}
               </div>
             </div>
-          </div>
         </div>
+      </div>
         <div class="-mr-2 flex md:hidden">
           <button id="show-mobile-nav-btn" type="button"
             class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
@@ -359,7 +456,37 @@
                 <input type="hidden" name="language" value="{{ code }}">
                 <button type="submit"
                   class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-base font-semibold transition {% if code == CURRENT_LANGUAGE %}bg-white text-slate-900 shadow-sm{% else %}bg-gray-800 text-white hover:bg-gray-700{% endif %}">
-                  <span>{{ name }}</span>
+                  <span class="flex items-center gap-2">
+                    <span aria-hidden="true" class="lang-flag">
+                      {% if code == 'cs' %}
+                      <svg viewBox="0 0 27 18" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="27" height="9" fill="#ffffff"/>
+                        <rect y="9" width="27" height="9" fill="#d7141a"/>
+                        <path d="M0 0v18l13.5-9L0 0z" fill="#11457e"/>
+                      </svg>
+                      {% elif code == 'en' %}
+                      <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="60" height="30" fill="#012169"/>
+                        <path d="M0 0 60 30M60 0 0 30" stroke="#ffffff" stroke-width="6"/>
+                        <path d="M0 0 60 30M60 0 0 30" stroke="#C8102E" stroke-width="3"/>
+                        <path d="M30 0v30M0 15h60" stroke="#ffffff" stroke-width="10"/>
+                        <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/>
+                      </svg>
+                      {% elif code == 'de' %}
+                      <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="5" height="1" y="0" fill="#000000"/>
+                        <rect width="5" height="1" y="1" fill="#dd0000"/>
+                        <rect width="5" height="1" y="2" fill="#ffce00"/>
+                      </svg>
+                      {% else %}
+                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="12" fill="#e2e8f0"/>
+                        <path d="M4 12h16M12 4a14 14 0 0 0 0 16M12 4a14 14 0 0 1 0 16" stroke="#475569" stroke-width="1.5" fill="none"/>
+                      </svg>
+                      {% endif %}
+                    </span>
+                    <span>{{ name }}</span>
+                  </span>
                   {% if code == CURRENT_LANGUAGE %}
                   <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
                     <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" />
