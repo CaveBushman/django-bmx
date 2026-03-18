@@ -391,6 +391,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "rider.views": {
+            "handlers": ["console", "chatbot_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "security.csp": {
             "handlers": ["console"],
             "level": "INFO",

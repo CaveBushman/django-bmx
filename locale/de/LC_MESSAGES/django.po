@@ -1,36 +1,40 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: django-bmx\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 16:46+0100\n"
-"PO-Revision-Date: 2026-03-18 00:00+0000\n"
-"Last-Translator: Codex\n"
-"Language-Team: English\n"
-"Language: en\n"
+"POT-Creation-Date: 2026-03-18 16:45+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
 #: bmx/settings.py:203
 msgid "Czech"
-msgstr "Czech"
+msgstr "Tschechisch"
 
 #: bmx/settings.py:204
 msgid "English"
-msgstr "English"
+msgstr "Englisch"
 
 #: bmx/settings.py:205
 msgid "German"
-msgstr "German"
+msgstr "Deutsch"
 
 #: theme/templates/admin/pagination.html:15
 msgid "Show all"
-msgstr "Show all"
+msgstr "Alle anzeigen"
 
 #: theme/templates/admin/pagination.html:18
 msgid "Save"
-msgstr "Save"
+msgstr "Speichern"
 
 #: theme/templates/base.html:49
 msgid "Czech BMX"
@@ -38,15 +42,15 @@ msgstr "Czech BMX"
 
 #: theme/templates/base.html:82
 msgid "Done"
-msgstr "Done"
+msgstr "Fertig"
 
 #: theme/templates/base.html:84
 msgid "Error"
-msgstr "Error"
+msgstr "Fehler"
 
 #: theme/templates/base.html:86
 msgid "Warning"
-msgstr "Warning"
+msgstr "Warnung"
 
 #: theme/templates/base.html:88
 msgid "Information"
@@ -56,31 +60,31 @@ msgstr "Information"
 #: theme/templates/includes/navbar.html:52
 #: theme/templates/includes/navbar.html:349
 msgid "HOME"
-msgstr "HOME"
+msgstr "START"
 
 #: theme/templates/includes/navbar.html:57
 #: theme/templates/includes/navbar.html:60
 #: theme/templates/includes/navbar.html:352
 msgid "ČLÁNKY"
-msgstr "ARTICLES"
+msgstr "ARTIKEL"
 
 #: theme/templates/includes/navbar.html:65
 #: theme/templates/includes/navbar.html:68
 #: theme/templates/includes/navbar.html:355
 msgid "KALENDÁŘ"
-msgstr "CALENDAR"
+msgstr "KALENDER"
 
 #: theme/templates/includes/navbar.html:73
 #: theme/templates/includes/navbar.html:76
 #: theme/templates/includes/navbar.html:358
 msgid "JEZDCI"
-msgstr "RIDERS"
+msgstr "FAHRER"
 
 #: theme/templates/includes/navbar.html:81
 #: theme/templates/includes/navbar.html:84
 #: theme/templates/includes/navbar.html:361
 msgid "KLUBY"
-msgstr "CLUBS"
+msgstr "KLUBS"
 
 #: theme/templates/includes/navbar.html:89
 #: theme/templates/includes/navbar.html:92
@@ -92,7 +96,7 @@ msgstr "RANKING"
 #: theme/templates/includes/navbar.html:100
 #: theme/templates/includes/navbar.html:367
 msgid "PRAVIDLA"
-msgstr "RULES"
+msgstr "REGELN"
 
 #: theme/templates/includes/navbar.html:105
 #: theme/templates/includes/navbar.html:108
@@ -102,45 +106,45 @@ msgstr "DOWNLOADS"
 
 #: theme/templates/includes/navbar.html:142
 msgid "Přepnout světlý/tmavý režim"
-msgstr "Toggle light and dark mode"
+msgstr "Hell/Dunkel umschalten"
 
 #: theme/templates/includes/navbar.html:262
 msgid "Open user menu"
-msgstr "Open user menu"
+msgstr "Benutzermenü öffnen"
 
 #: theme/templates/includes/navbar.html:275
 #: theme/templates/includes/navbar.html:425
 msgid "Zobraz/skryj CHIPKU"
-msgstr "Show/hide CHIPKA"
+msgstr "CHIPKA anzeigen/verbergen"
 
 #: theme/templates/includes/navbar.html:278
 #: theme/templates/includes/navbar.html:485
 msgid "Aktivní registrace"
-msgstr "Active registrations"
+msgstr "Aktive Registrierungen"
 
 #: theme/templates/includes/navbar.html:280
 #: theme/templates/includes/navbar.html:487
 msgid "Kredit"
-msgstr "Credit"
+msgstr "Guthaben"
 
 #: theme/templates/includes/navbar.html:282
 #: theme/templates/includes/navbar.html:489
 msgid "Moje nastavení a faktury"
-msgstr "My settings and invoices"
+msgstr "Meine Einstellungen und Rechnungen"
 
 #: theme/templates/includes/navbar.html:285
 #: theme/templates/includes/navbar.html:492
 msgid "Trenérský dashboard"
-msgstr "Coach dashboard"
+msgstr "Trainer-Dashboard"
 
 #: theme/templates/includes/navbar.html:288
 #: theme/templates/includes/navbar.html:316
 msgid "Vyhledej čip"
-msgstr "Find transponder"
+msgstr "Chip suchen"
 
 #: theme/templates/includes/navbar.html:291
 msgid "Finance"
-msgstr "Finance"
+msgstr "Finanzen"
 
 #: theme/templates/includes/navbar.html:293
 #: theme/templates/includes/navbar.html:496
@@ -150,41 +154,41 @@ msgstr "Administration"
 #: theme/templates/includes/navbar.html:295
 #: theme/templates/includes/navbar.html:498
 msgid "Nasazení rozhodčích"
-msgstr "Commissar assignments"
+msgstr "Kommissar-Einsätze"
 
 #: theme/templates/includes/navbar.html:297
 #: theme/templates/includes/navbar.html:501
 msgid "Statistika webu"
-msgstr "Website analytics"
+msgstr "Webstatistik"
 
 #: theme/templates/includes/navbar.html:303
 #: theme/templates/includes/navbar.html:506
 msgid "Úkoly komise"
-msgstr "Commission tasks"
+msgstr "Kommissionsaufgaben"
 
 #: theme/templates/includes/navbar.html:313
 #: theme/templates/includes/navbar.html:515
 msgid "Odhlášení"
-msgstr "Sign out"
+msgstr "Abmelden"
 
 #: theme/templates/includes/navbar.html:318
 #: theme/templates/includes/navbar.html:518
 msgid "Přihlášení"
-msgstr "Sign in"
+msgstr "Anmelden"
 
 #: theme/templates/includes/navbar.html:320
 #: theme/templates/includes/navbar.html:520
 msgid "Registrace"
-msgstr "Sign up"
+msgstr "Registrieren"
 
 #: theme/templates/includes/navbar.html:330
 msgid "Open main menu"
-msgstr "Open main menu"
+msgstr "Hauptmenü öffnen"
 
 #: theme/templates/includes/navbar.html:410
 msgid "View notifications"
-msgstr "View notifications"
+msgstr "Benachrichtigungen anzeigen"
 
 #: theme/templates/includes/navbar.html:427
 msgid "Jazyk"
-msgstr "Language"
+msgstr "Sprache"
