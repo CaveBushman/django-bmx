@@ -30,7 +30,6 @@ from openpyxl import Workbook
 
 
 now = datetime.today().year
-INACTIVE_YEARS = 2  # Počet let bez výsledku pro označení jezdce jako neaktivního
 
 
 # ===========================================================================
@@ -231,25 +230,29 @@ def refresh_valid_licences(riders=None):
 # ===========================================================================
 
 def two_years_inactive():
-    """ Function for inactive riders """
-    two_years_ago = timezone.now() - timedelta(days=INACTIVE_YEARS * 365)
+    """Vrátí jezdce bez výsledku v předchozím kalendářním roce se startovním číslem starším než 2 roky."""
+    previous_year = timezone.localdate().year - 1
+    two_years_ago = timezone.now() - timedelta(days=365 * 2)
 
-    # Filtrovat aktivní jezdce (vytvořené alespoň před rokem)
+    # Filtrovat aktivní jezdce s přiděleným číslem a profilem starším než 2 roky
     riders = Rider.objects.filter(
         is_active=True,
         is_approved=True,
-        created__lte=timezone.now() - timedelta(days=365)
+        plate__isnull=False,
+        plate__gt=0,
+    ).filter(
+        Q(created__lte=two_years_ago) | Q(created__isnull=True)
     )
 
-    # Subdotaz na kontrolu existence výsledků za poslední dva roky
-    recent_results = Result.objects.filter(
+    # Subdotaz na kontrolu existence výsledků v předchozím kalendářním roce
+    previous_year_results = Result.objects.filter(
         rider_id=OuterRef('uci_id'),
-        event__date__gte=two_years_ago
+        event__date__year=previous_year
     )
 
-    # Vrátí pouze jezdce, kteří nemají žádný recentní výsledek
+    # Vrátí pouze jezdce, kteří nemají žádný výsledek v předchozím roce
     inactive_riders = riders.annotate(
-        has_results=Exists(recent_results)
+        has_results=Exists(previous_year_results)
     ).filter(has_results=False).order_by('club')
 
     return list(inactive_riders)
@@ -432,7 +435,17 @@ class RiderQualifyToCNThread(threading.Thread):
         self.year = year
 
     def run(self):
-        year = self.year or datetime.today().year
+        current_year = datetime.today().year
+        year = self.year or current_year
+        if year != current_year:
+            logger.info(
+                "Přepočet kvalifikace na MČR pro rok %s přeskočen. "
+                "Pole is_qualify_to_cn_* reprezentují pouze aktuální rok %s.",
+                year,
+                current_year,
+            )
+            return
+
         settings = SeasonSettings.objects.filter(year=year).first()
         if not settings:
             logger.warning(f"Chybí SeasonSettings pro rok {year}, kvalifikace na MČR nebyla přepočítána.")
@@ -471,6 +484,10 @@ def should_recount_cn_qualification_for_event(event):
         return False
 
     year = event.date.year
+    current_year = datetime.today().year
+    if year != current_year:
+        return False
+
     settings = SeasonSettings.objects.filter(year=year).first()
     if not settings:
         return False
