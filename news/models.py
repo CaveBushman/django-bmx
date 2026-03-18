@@ -18,6 +18,7 @@ import hashlib
 import re
 import html as html_stdlib
 from django.utils.html import strip_tags
+from django.utils.translation import gettext_lazy as _
 
 # TTS labels (bez přesné pauzy varianta)
 TTS_SECTION_TITLE = "NADPIS."
@@ -166,14 +167,14 @@ class News (models.Model):
 
     time_to_read = models.IntegerField(default=0)
 
-    view_count = models.PositiveIntegerField(default=0, db_index=True, help_text="Počet zhlédnutí")
+    view_count = models.PositiveIntegerField(default=0, db_index=True, help_text=_("Počet zhlédnutí"))
 
     audio_file = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_hash = models.CharField(max_length=64, blank=True, default="")
-    published_audio = models.BooleanField(default=False, help_text="Audio zveřejněno")
+    published_audio = models.BooleanField(default=False, help_text=_("Audio zveřejněno"))
 
     on_homepage = models.BooleanField(default=False)
-    published = models.BooleanField(default=False, help_text="Článek zveřejněn")
+    published = models.BooleanField(default=False, help_text=_("Článek zveřejněn"))
 
     created_date = models.DateTimeField(editable=True, auto_now_add=True, null=True, blank=True)
     created = models.ForeignKey(Account, on_delete = models.SET_NULL, null=True, blank = True)
@@ -220,8 +221,8 @@ class News (models.Model):
         transaction.on_commit(_enqueue)
 
     class Meta:
-        verbose_name = "Článek"
-        verbose_name_plural = 'Články'
+        verbose_name = _("Článek")
+        verbose_name_plural = _('Články')
 
 # nastavení time_to_read při ukládání článku
 @receiver(pre_save, sender=News)
@@ -266,8 +267,8 @@ class DocumentTag(models.Model):
         return self.caption
     
     class Meta:
-        verbose_name = "Typ dokumentu"
-        verbose_name_plural = 'Typ dokumentů'
+        verbose_name = _("Typ dokumentu")
+        verbose_name_plural = _('Typ dokumentů')
 
 class Downloads(models.Model):
     """ Model for downloads section """
@@ -283,5 +284,5 @@ class Downloads(models.Model):
         return self.title
 
     class Meta:
-        verbose_name = "Ke stažení"
-        verbose_name_plural = 'Ke stažení'
+        verbose_name = _("Ke stažení")
+        verbose_name_plural = _('Ke stažení')

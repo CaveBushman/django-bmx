@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 {% block title %}Homepage{% endblock title %}
 {% block extra_head %}
 <style>
@@ -390,7 +390,7 @@
 <div class="relative w-full h-[50vh] overflow-hidden">
     <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
-        Váš prohlížeč nepodporuje video tag.
+        {% trans "Váš prohlížeč nepodporuje video tag." %}
     </video>
     <div class="homepage-hero-overlay absolute inset-0 flex flex-col items-center justify-center text-white text-center">
         <!-- Statický nápis s vlajkovým gradientem a výraznějším efektem -->
@@ -405,17 +405,17 @@
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
                 <p class="homepage-hero-stat-meta">Databáze</p>
                 <span class="homepage-hero-stat-number mt-3">{{ riders_count }}</span>
-                <p class="homepage-hero-stat-label">aktivních jezdců</p>
+                <p class="homepage-hero-stat-label">{% trans "aktivních jezdců" %}</p>
             </div>
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
                 <p class="homepage-hero-stat-meta">Zázemí</p>
                 <span class="homepage-hero-stat-number mt-3">{{ clubs_count }}</span>
-                <p class="homepage-hero-stat-label">klubů</p>
+                <p class="homepage-hero-stat-label">{% trans "klubů" %}</p>
             </div>
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
                 <p class="homepage-hero-stat-meta">Sezona</p>
                 <span class="homepage-hero-stat-number mt-3">{{ races_count }}</span>
-                <p class="homepage-hero-stat-label">závodů letos</p>
+                <p class="homepage-hero-stat-label">{% trans "závodů letos" %}</p>
             </div>
         </div>
     </div>
@@ -425,15 +425,15 @@
 <section class="homepage-champions px-6 py-6 sm:px-8 lg:px-10 xl:px-12">
     <div class="mx-auto max-w-screen-2xl">
         <div class="mb-4 text-center">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-300">Championship ranking</p>
-            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">Nejlepší jezdci Championship kategorií</h2>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-300">{% trans "Championship ranking" %}</p>
+            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">{% trans "Nejlepší jezdci Championship kategorií" %}</h2>
         </div>
 
         <div class="grid gap-5 lg:grid-cols-2">
             <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#3b82f6;">
                 <div class="flex items-center gap-4">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">Muži</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">{% trans "Muži" %}</p>
                         {% if championship_men_leader %}
                         <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ championship_men_leader.class_20 }}</p>
                         <h3 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -442,12 +442,12 @@
                             </a>
                         </h3>
                         <div class="homepage-points-badge-men mt-3 inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold">
-                            {{ championship_men_leader.points_20 }} bodů
+                            {{ championship_men_leader.points_20 }} {% trans "bodů" %}
                         </div>
-                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_men_leader.club|default:"Bez klubové příslušnosti" }}</p>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_men_leader.club|default:_("Bez klubové příslušnosti") }}</p>
                         {% else %}
-                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Zatím bez lídra</h3>
-                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pro mužské Championship kategorie zatím nejsou k dispozici žádné body.</p>
+                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Zatím bez lídra" %}</h3>
+                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{% trans "Pro mužské Championship kategorie zatím nejsou k dispozici žádné body." %}</p>
                         {% endif %}
                     </div>
                     <div class="ml-auto flex justify-center">
@@ -474,7 +474,7 @@
                         {% endif %}
                     </div>
                     <div class="order-1 ml-auto text-right">
-                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">Ženy</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">{% trans "Ženy" %}</p>
                         {% if championship_women_leader %}
                         <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ championship_women_leader.class_20 }}</p>
                         <h3 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -483,12 +483,12 @@
                             </a>
                         </h3>
                         <div class="homepage-points-badge-women mt-3 inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold">
-                            {{ championship_women_leader.points_20 }} bodů
+                            {{ championship_women_leader.points_20 }} {% trans "bodů" %}
                         </div>
-                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_women_leader.club|default:"Bez klubové příslušnosti" }}</p>
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ championship_women_leader.club|default:_("Bez klubové příslušnosti") }}</p>
                         {% else %}
-                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Zatím bez lídryně</h3>
-                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pro ženské Championship kategorie zatím nejsou k dispozici žádné body.</p>
+                        <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Zatím bez lídryně" %}</h3>
+                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{% trans "Pro ženské Championship kategorie zatím nejsou k dispozici žádné body." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -540,7 +540,7 @@
                                 {{article.created}}
                             </a>
                         </p>
-                        <p class="text-slate-500 dark:text-slate-400">{{article.time_to_read}} min. čtení</p>
+                        <p class="text-slate-500 dark:text-slate-400">{{article.time_to_read}} {% trans "min. čtení" %}</p>
                     </div>
                 </div>
             </article>
@@ -556,12 +556,12 @@
         <div class="homepage-contact-panel rounded-[2rem] p-8 sm:p-10 lg:p-12">
             <div class="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_1.9fr] lg:items-start">
                 <div>
-                    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-sky-700 dark:text-sky-300">Kontakt</p>
+                    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-sky-700 dark:text-sky-300">{% trans "Kontakt" %}</p>
                     <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">
-                        KONTAKTUJTE NÁS
+                        {% trans "KONTAKTUJTE NÁS" %}
                     </h2>
                     <p class="mt-4 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                        Potřebujete poradit s registrací, licencí nebo organizací závodů? Ozvěte se BMX komisi napřímo.
+                        {% trans "Potřebujete poradit s registrací, licencí nebo organizací závodů? Ozvěte se BMX komisi napřímo." %}
                     </p>
                 </div>
 
@@ -576,8 +576,8 @@
                                 </svg>
                             </span>
                             <div class="mt-4 flex min-w-0 flex-col items-center text-center">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Email</h3>
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Nejrychlejší cesta pro dotazy i podklady.</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Email" %}</h3>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "Nejrychlejší cesta pro dotazy i podklady." %}</p>
                                 <p class="mt-4 text-sm font-semibold text-sky-700 dark:text-sky-300">
                                     <a href="mailto:bmx@ceskysvazcyklistiky.cz" class="break-all transition hover:text-sky-500">bmx@ceskysvazcyklistiky.cz</a>
                                 </p>
@@ -597,9 +597,9 @@
                                 </svg>
                             </span>
                             <div class="mt-4 flex min-w-0 flex-col items-center text-center">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Kancelář</h3>
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Administrativní zázemí českého BMX.</p>
-                                <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">Nad Hliníkem 4, 150 00 Praha 5 - Motol</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Kancelář" %}</h3>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "Administrativní zázemí českého BMX." %}</p>
+                                <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{% trans "Nad Hliníkem 4, 150 00 Praha 5 - Motol" %}</p>
                             </div>
                         </div>
                     </div>
@@ -614,8 +614,8 @@
                                 </svg>
                             </span>
                             <div class="mt-4 flex min-w-0 flex-col items-center text-center">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Telefon</h3>
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Když je potřeba řešit věci hned.</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Telefon" %}</h3>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "Když je potřeba řešit věci hned." %}</p>
                                 <p class="mt-4 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                                     <a href="tel:+420777113886" class="transition hover:text-emerald-500">+420 777 113 886</a>
                                 </p>
@@ -635,12 +635,12 @@
         <div class="homepage-partners-stage rounded-[2rem] p-8 sm:p-10 lg:p-12">
             <div class="relative z-10 text-center">
                 <div class="mx-auto max-w-3xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-amber-700 dark:text-amber-300">Partneři</p>
+                    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-amber-700 dark:text-amber-300">{% trans "Partneři" %}</p>
                     <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">
-                        JE NÁM CTÍ SPOLUPRACOVAT S
+                        {% trans "JE NÁM CTÍ SPOLUPRACOVAT S" %}
                     </h2>
                     <p class="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">
-                        Značky a instituce, které pomáhají rozvíjet české BMX od domácích závodů po mezinárodní scénu.
+                        {% trans "Značky a instituce, které pomáhají rozvíjet české BMX od domácích závodů po mezinárodní scénu." %}
                     </p>
                 </div>
             </div>
@@ -659,7 +659,7 @@
                 </div>
                 {% empty %}
                 <p class="col-span-full text-center text-sm text-slate-500 dark:text-slate-400">
-                    Sponzoři budou doplněni.
+                    {% trans "Sponzoři budou doplněni." %}
                 </p>
                 {% endfor %}
             </div>
@@ -716,7 +716,7 @@
             </div>
             <div class="mt-4 md:mt-0 md:order-1">
                 <p class="text-center text-base">
-                    &copy; {% now "Y" %} David Průša. Všechna práva vyhrazena.
+                    &copy; {% now "Y" %} David Průša. {% trans "Všechna práva vyhrazena." %}
                 </p>
             </div>
         </div>

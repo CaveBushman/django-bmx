@@ -1,21 +1,22 @@
 {% extends 'base.html' %}
-{% block title %} Moje nastavení a faktury {% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Moje nastavení a faktury" %}{% endblock title %}
 
 {% block content %}
 <section class="min-h-screen bg-slate-50 pb-20 pt-10 dark:bg-slate-900">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-8">
-      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">Účet uživatele</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">{% trans "Účet uživatele" %}</p>
       <div class="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div class="min-w-0">
-          <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Moje nastavení a faktury</h1>
+          <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Moje nastavení a faktury" %}</h1>
           <p class="mt-3 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Přehled předplatných, faktur ke stažení a základ nastavení účtu. Sem časem přidáme i správu avatara.
+            {% trans "Přehled předplatných, faktur ke stažení a základ nastavení účtu. Sem časem přidáme i správu avatara." %}
           </p>
         </div>
         <div class="flex justify-start lg:justify-end">
           <a href="{% url 'rider:premium-subscriptions' %}" class="inline-flex w-auto items-center gap-x-2 whitespace-nowrap rounded-md bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500">
-            Správa individuálních předplatných
+            {% trans "Správa individuálních předplatných" %}
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-mr-0.5 size-5">
               <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" fill-rule="evenodd" />
             </svg>
@@ -26,7 +27,7 @@
 
     <div class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.95fr]">
       <section class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Profil</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Profil" %}</p>
         <div class="mt-4 flex items-center gap-4">
           <img src="{{ request.user.photo.url }}" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200 dark:ring-indigo-500/30">
           <div>
@@ -38,25 +39,25 @@
           </div>
         </div>
         <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
-          Avatar a další osobní nastavení sem doplníme v další fázi. Teď je to hlavně místo pro faktury a přehled předplatných.
+          {% trans "Avatar a další osobní nastavení sem doplníme v další fázi. Teď je to hlavně místo pro faktury a přehled předplatných." %}
         </div>
 
         {% if can_manage_inactive_riders %}
         <div class="mt-6 rounded-2xl border border-rose-200 bg-rose-50/70 p-4 dark:border-rose-500/20 dark:bg-rose-500/10">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">Správa jezdců</p>
-              <h3 class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">Neaktivní jezdci</h3>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">{% trans "Správa jezdců" %}</p>
+              <h3 class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Neaktivní jezdci" %}</h3>
               <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {% if managed_club %}
-                Přístup k deaktivaci neaktivních profilů v klubu {{ managed_club.team_name }}.
+                {% blocktrans with team_name=managed_club.team_name %}Přístup k deaktivaci neaktivních profilů v klubu {{ team_name }}.{% endblocktrans %}
                 {% else %}
-                Přístup k administrativnímu seznamu neaktivních jezdců.
+                {% trans "Přístup k administrativnímu seznamu neaktivních jezdců." %}
                 {% endif %}
               </p>
             </div>
             <a href="{% url 'rider:inactive' %}" class="inline-flex w-fit items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400">
-              Otevřít seznam
+              {% trans "Otevřít seznam" %}
             </a>
           </div>
         </div>
@@ -64,14 +65,14 @@
 
         {% if individual_subscriptions %}
         <div class="mt-6">
-          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Individuální předplatná</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Individuální předplatná" %}</p>
           <div class="mt-3 space-y-3">
             {% for subscription in individual_subscriptions %}
             <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <p class="font-semibold text-slate-900 dark:text-white">{{ subscription.rider.first_name }} {{ subscription.rider.last_name }}</p>
-                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Platné do {{ subscription.expires_at|date:"d.m.Y H:i" }}</p>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% blocktrans with date=subscription.expires_at|date:"d.m.Y H:i" %}Platné do {{ date }}{% endblocktrans %}</p>
                 </div>
                 <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ subscription.get_status_display }}</span>
               </div>
@@ -83,7 +84,7 @@
 
         {% if trainer_subscriptions %}
         <div class="mt-6">
-          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Trenérská předplatná</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Trenérská předplatná" %}</p>
           <div class="mt-3 space-y-3">
             {% for subscription in trainer_subscriptions %}
             <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
@@ -104,10 +105,10 @@
       <section class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Faktury</p>
-            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Faktury za předplatné</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Faktury" %}</p>
+            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Faktury za předplatné" %}</h2>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              Tady najdeš PDF faktury za individuální, klubové i extended předplatné.
+              {% trans "Tady najdeš PDF faktury za individuální, klubové i extended předplatné." %}
             </p>
           </div>
         </div>
@@ -118,12 +119,12 @@
             <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
               <thead class="bg-slate-100 dark:bg-slate-950">
                 <tr>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Číslo</th>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Typ</th>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Popis</th>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Částka</th>
-                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Stažení</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Číslo" %}</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Typ" %}</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Popis" %}</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Datum" %}</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Částka" %}</th>
+                  <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Stažení" %}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
@@ -152,20 +153,20 @@
         {% if invoices_page_obj %}
         <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-sm text-slate-500 dark:text-slate-400">
-            Zobrazeno {{ invoices|length }} z {{ invoices_count }} faktur.
+            {% blocktrans with current=invoices|length total=invoices_count %}Zobrazeno {{ current }} z {{ total }} faktur.{% endblocktrans %}
           </p>
           <div class="flex flex-wrap items-center gap-2">
             {% if invoices_page_obj.has_previous %}
             <a href="?invoice_page={{ invoices_page_obj.previous_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
-              Předchozí
+              {% trans "Předchozí" %}
             </a>
             {% endif %}
             <span class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-              Strana {{ invoices_page_obj.number }} / {{ invoices_page_obj.paginator.num_pages }}
+              {% blocktrans with num=invoices_page_obj.number total=invoices_page_obj.paginator.num_pages %}Strana {{ num }} / {{ total }}{% endblocktrans %}
             </span>
             {% if invoices_page_obj.has_next %}
             <a href="?invoice_page={{ invoices_page_obj.next_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
-              Další
+              {% trans "Další" %}
             </a>
             {% endif %}
           </div>
@@ -173,7 +174,7 @@
         {% endif %}
         {% else %}
         <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
-          Zatím tu nemáš žádné faktury za předplatné.
+          {% trans "Zatím tu nemáš žádné faktury za předplatné." %}
         </div>
         {% endif %}
 
@@ -181,10 +182,10 @@
         <div class="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Klubový manager</p>
-              <h3 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Faktury za startovné klubu</h3>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Klubový manager" %}</p>
+              <h3 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Faktury za startovné klubu" %}</h3>
               <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Zobrazené jsou pouze faktury za startovné vztahující se ke klubu {{ managed_club.team_name }}.
+                {% blocktrans with team_name=managed_club.team_name %}Zobrazené jsou pouze faktury za startovné vztahující se ke klubu {{ team_name }}.{% endblocktrans %}
               </p>
             </div>
           </div>
@@ -195,11 +196,11 @@
               <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
                 <thead class="bg-slate-100 dark:bg-slate-950">
                   <tr>
-                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Číslo</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Závod</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Částka</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Stažení</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Číslo" %}</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Závod" %}</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Datum" %}</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Částka" %}</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Stažení" %}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
@@ -241,20 +242,20 @@
           {% if club_event_invoices_page_obj %}
           <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-slate-500 dark:text-slate-400">
-              Zobrazeno {{ club_event_invoices|length }} z {{ club_event_invoices_count }} klubových faktur.
+              {% blocktrans with current=club_event_invoices|length total=club_event_invoices_count %}Zobrazeno {{ current }} z {{ total }} klubových faktur.{% endblocktrans %}
             </p>
             <div class="flex flex-wrap items-center gap-2">
               {% if club_event_invoices_page_obj.has_previous %}
               <a href="?club_invoice_page={{ club_event_invoices_page_obj.previous_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
-                Předchozí
+                {% trans "Předchozí" %}
               </a>
               {% endif %}
               <span class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                Strana {{ club_event_invoices_page_obj.number }} / {{ club_event_invoices_page_obj.paginator.num_pages }}
+                {% blocktrans with num=club_event_invoices_page_obj.number total=club_event_invoices_page_obj.paginator.num_pages %}Strana {{ num }} / {{ total }}{% endblocktrans %}
               </span>
               {% if club_event_invoices_page_obj.has_next %}
               <a href="?club_invoice_page={{ club_event_invoices_page_obj.next_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
-                Další
+                {% trans "Další" %}
               </a>
               {% endif %}
             </div>
@@ -262,7 +263,7 @@
           {% endif %}
           {% else %}
           <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
-            K tomuto klubu zatím nejsou vystavené žádné faktury za startovné.
+            {% trans "K tomuto klubu zatím nejsou vystavené žádné faktury za startovné." %}
           </div>
           {% endif %}
         </div>
