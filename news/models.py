@@ -36,6 +36,10 @@ class Tag(models.Model):
 
 logger = logging.getLogger(__name__)
 
+# POZNÁMKA PRO PRODUKCI:
+# Používáme ThreadPoolExecutor pro jednoduché asynchronní zpracování TTS.
+# Pro high-traffic aplikaci ("World Class") zvážit migraci na Celery/Redis,
+# aby se úlohy neztratily při restartu serveru a lépe se škálovaly.
 _EXECUTOR = ThreadPoolExecutor(max_workers=2)
 atexit.register(_EXECUTOR.shutdown, wait=False)
 
@@ -92,8 +96,9 @@ def _article_text_plain(article) -> str:
 
 def _generate_audio(article_id: int):
     """
-    Běží ve vlákně. ŽÁDNÝ přímý import News z models.py!
+    Běží v samostatném vlákně. ŽÁDNÝ přímý import News z models.py!
     Načte model dynamicky přes apps.get_model -> žádné kruhy importů.
+    Generuje MP3 pomocí Google TTS API.
     """
     try:
         NewsModel = apps.get_model("news", "News")
@@ -107,7 +112,7 @@ def _generate_audio(article_id: int):
             logger.info("[TTS] Article %s: prázdný text, nic negeneruji.", article_id)
             return
 
-        # Smazat staré audio, pokud existuje
+        # Smazat staré audio, pokud existuje (clean-up)
         if article.audio_file:
             try:
                 article.audio_file.delete(save=False)
@@ -200,6 +205,8 @@ class News (models.Model):
 
         super().save(*args, **kwargs)
 
+        # transaction.on_commit zajistí, že se thread spustí až ve chvíli,
+        # kdy jsou data bezpečně v databázi (prevence Race Condition).
         def _enqueue():
             # Generuj jen pro publikované články a pokud je to nový článek,
             # změnil se obsah (hash) NEBO zatím neexistuje audio soubor (první publikace)

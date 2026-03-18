@@ -144,7 +144,7 @@
               {% endif %}
             </p>
           </div>
-          <div class="grid w-full grid-cols-4 gap-4">
+          <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="min-w-0 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <div class="flex items-center justify-between gap-2">
                 <p class="text-xs uppercase tracking-wide text-slate-600">Starty</p>
@@ -237,7 +237,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-5">
           <div class="flex items-center justify-between gap-2">
             <p class="text-xs uppercase tracking-wide text-slate-600">Trend</p>
-            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="Trend" data-help-body="Trend porovnává poslední a předchozí závod na této trati jen podle změny mediánu cílových časů. Pokud nejsou aspoň dva závody s časem, ukáže se málo dat.">i</button>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="Trend" data-help-body="Trend porovnává první a poslední závod v daném období (místo posledních dvou). Ukazuje celkový posun výkonnosti na této trati za zvolený časový úsek.">i</button>
           </div>
           <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.trend_label }}</p>
           <p class="mt-2 text-sm text-slate-500">{{ track_stats.trend_detail }}</p>
@@ -264,6 +264,16 @@
           </p>
           <p class="mt-2 text-sm text-slate-500">
             Lepší medián času než tolik stejně starých jezdců
+          </p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-600">Pace Index</p>
+            <button type="button" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="Pace Index" data-help-body="Pace Index (100 * medián pole / tvůj průměr). Hodnota 100 = medián. Hodnota nad 100 znamená, že jsi rychlejší než pole (např. 105 = o 5 % rychlejší). Pod 100 = ztráta.">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.pace_index|default:"-" }}</p>
+          <p class="mt-2 text-sm text-slate-500">
+            nad 100 = rychlejší než medián
           </p>
         </div>
       </div>

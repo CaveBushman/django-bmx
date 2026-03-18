@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta
 import stripe
 import logging
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from .func import calculate_user_balance, calculate_stripe_fee
 from event.models import CreditTransaction
@@ -96,7 +97,9 @@ def finance_admin(request):
             except Exception as e:
                 logger.error(f"Chyba při manuálním ověření kreditu {ct.id}: {e}")
 
-        messages.success(request, f"Ověřeno {verified_count} plateb za kredity za poslední 2 dny.")
+        messages.success(request, _("Ověřeno %(count)d plateb za kredity za poslední 2 dny.") % {
+            'count': verified_count
+        })
         # Aktualizovat data po ověření
         credit = calculate_user_balance()
         data["credit"] = credit
