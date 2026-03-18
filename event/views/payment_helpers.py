@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 
 def _construct_stripe_event(payload, sig_header):
+    """
+    Ověří podpis Stripe webhooku proti seznamu tajemství.
+    Podporuje rotaci klíčů (STRIPE_ENDPOINT_SECRETS).
+    """
     webhook_secrets = [
         secret for secret in getattr(settings, "STRIPE_ENDPOINT_SECRETS", []) if secret
     ]
@@ -45,6 +49,10 @@ def _construct_stripe_event(payload, sig_header):
 
 
 def _mark_credit_transaction_paid(credit_transaction, *, payment_intent=""):
+    """
+    Označí transakci kreditu jako zaplacenou a přičte kredit uživateli.
+    Používá F() výraz pro atomické navýšení kreditu (bezpečné při souběhu).
+    """
     if credit_transaction.payment_complete:
         return False
 
@@ -61,6 +69,9 @@ def _mark_credit_transaction_paid(credit_transaction, *, payment_intent=""):
 
 
 def _mark_entry_records_paid(entries, *, customer_details=None):
+    """
+    Hromadně označí seznam přihlášek (Entries) jako zaplacené.
+    """
     customer_details = customer_details or {}
     updated = False
     for entry in entries:
@@ -75,6 +86,10 @@ def _mark_entry_records_paid(entries, *, customer_details=None):
 
 
 def finalize_entry_checkout_session(session_id, *, event_id=None, is_foreign=False):
+    """
+    Zpracuje úspěšnou checkout session pro přihlášky na závod.
+    Používá databázový zámek (select_for_update) pro prevenci dvojího zpracování.
+    """
     if not session_id:
         return False
 
@@ -85,7 +100,10 @@ def finalize_entry_checkout_session(session_id, *, event_id=None, is_foreign=Fal
     model = EntryForeign if is_foreign else Entry
     customer_details = confirm.get("customer_details") or {}
 
+    # Transakce je nutná pro select_for_update
     with transaction.atomic():
+        # Zamykáme řádky přihlášek, aby je jiný proces nemohl modifikovat
+        # dokud tato transakce neskončí.
         entries = model.objects.select_for_update().filter(
             transaction_id=session_id,
             payment_complete=False,
@@ -97,6 +115,10 @@ def finalize_entry_checkout_session(session_id, *, event_id=None, is_foreign=Fal
 
 
 def finalize_credit_transaction_by_session_id(session_id, *, user=None):
+    """
+    Zpracuje úspěšnou checkout session pro nákup kreditu.
+    Využívá zamykání řádků pro konzistenci financí.
+    """
     if not session_id:
         return False
 
@@ -105,6 +127,7 @@ def finalize_credit_transaction_by_session_id(session_id, *, user=None):
         return False
 
     with transaction.atomic():
+        # Zámek řádku transakce
         credit_transactions = CreditTransaction.objects.select_for_update().filter(
             transaction_id=session_id
         )
@@ -120,6 +143,10 @@ def finalize_credit_transaction_by_session_id(session_id, *, user=None):
 
 
 def handle_credit_webhook(payload, sig_header):
+    """
+    Hlavní vstupní bod pro Stripe Webhook.
+    Rozděluje logiku podle toho, zda jde o nákup kreditu nebo přímou platbu registrace.
+    """
     try:
         stripe_event = _construct_stripe_event(payload, sig_header)
     except ValueError as error:
@@ -138,7 +165,7 @@ def handle_credit_webhook(payload, sig_header):
     payment_status = session.get("payment_status")
     customer_details = session.get("customer_details") or {}
 
-    # Try to handle credit transaction
+    # 1. Pokus o zpracování jako Kreditní transakce
     try:
         with transaction.atomic():
             credit_transaction = CreditTransaction.objects.select_for_update().get(
@@ -157,7 +184,7 @@ def handle_credit_webhook(payload, sig_header):
     except CreditTransaction.DoesNotExist:
         pass  # Not a credit transaction, check for entries
 
-    # Handle entry transactions
+    # 2. Pokus o zpracování jako Přihláška (Entry)
     try:
         with transaction.atomic():
             entries = Entry.objects.select_for_update().filter(
@@ -174,7 +201,7 @@ def handle_credit_webhook(payload, sig_header):
     except Exception as error:
         logger.error(f"[Webhook] Chyba při zpracování přihlášek: {error}")
 
-    # Handle foreign entry transactions
+    # 3. Pokus o zpracování jako Zahraniční přihláška (EntryForeign)
     try:
         with transaction.atomic():
             entries = EntryForeign.objects.select_for_update().filter(
@@ -222,6 +249,10 @@ def delete_order_from_cart(order_id, user):
 
 
 def pay_orders_from_credit(*, user, orders):
+    """
+    Provede úhradu objednávek (entries) z uživatelského kreditu.
+    Celá operace je atomická - buď se zaplatí vše, nebo nic.
+    """
     price = sum(get_entry_amount(order) for order in orders)
     if price > user.credit:
         return False
