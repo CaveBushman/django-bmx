@@ -504,9 +504,9 @@
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-3 xl:gap-10">
             {% for article in homepage_news %}
             <article
-                class="homepage-news-card {% if forloop.first %}homepage-news-featured lg:col-span-2 lg:row-span-2{% endif %} flex h-full flex-col rounded-[1.75rem]">
+                class="homepage-news-card flex h-full flex-col rounded-[1.75rem]">
                 <div class="flex h-full flex-col justify-between">
-                    <div class="homepage-news-media relative {% if forloop.first %}aspect-[16/9] lg:aspect-[21/10]{% else %}aspect-[16/10]{% endif %} w-full">
+                    <div class="homepage-news-media relative aspect-[16/9] lg:aspect-[16/10]w-full">
                         <meta property="og:image" content="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}" />
                         <img src="{% if article.photo_01 %}{{ article.photo_01.url }}{% else %}https://via.placeholder.com/800x400?text=No+Image{% endif %}"
                              alt="{{ article.title }}"
@@ -522,12 +522,12 @@
                             {% endfor %}
                         </div>
                         <div class="mt-4">
-                            <h3 class="{% if forloop.first %}text-3xl sm:text-[2.15rem]{% else %}text-xl{% endif %} font-black leading-tight tracking-tight text-slate-950 dark:text-slate-100">
+                            <h3 class="text-3xl sm:text-xl font-black leading-tight tracking-tight text-slate-950 dark:text-slate-100">
                                 <a href="{% url 'news:news-detail' article.id %}" class="transition hover:text-sky-700 dark:hover:text-sky-300">
                                     {{article.title | upper}}
                                 </a>
                             </h3>
-                            <p class="mt-4 {% if forloop.first %}max-w-3xl text-base leading-7{% else %}text-sm leading-6 line-clamp-4{% endif %} text-slate-600 dark:text-slate-300">
+                            <p class="mt-4 text-sm leading-6 line-clamp-4 text-slate-600 dark:text-slate-300">
                                 {{ article.prefix|safe|truncatechars_html:400 }}</p>
                         </div>
                     </div>

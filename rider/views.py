@@ -10,6 +10,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.translation import gettext as _, gettext_lazy as _gl, ngettext
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -116,20 +117,20 @@ def can_access_trainer_dashboard(user):
 trainer_dashboard_required = user_passes_test(can_access_trainer_dashboard, login_url="/login/")
 FINAL_ROUND_TYPES = {"FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"}
 TRACK_TABLE_COLUMNS = [
-    ("M1", "M1"),
-    ("M2", "M2"),
-    ("M3", "M3"),
-    ("M4", "M4"),
-    ("M5", "M5"),
-    ("M6", "M6"),
-    ("M7", "M7"),
-    ("M8", "M8"),
-    ("F16", "1/16"),
-    ("F8", "1/8"),
-    ("F4", "1/4"),
-    ("F2", "1/2"),
-    ("FINAL", "F"),
-    ("DAY_MEDIAN", "Medián dne"),
+    ("M1", _gl("M1")),
+    ("M2", _gl("M2")),
+    ("M3", _gl("M3")),
+    ("M4", _gl("M4")),
+    ("M5", _gl("M5")),
+    ("M6", _gl("M6")),
+    ("M7", _gl("M7")),
+    ("M8", _gl("M8")),
+    ("F16", _gl("1/16")),
+    ("F8", _gl("1/8")),
+    ("F4", _gl("1/4")),
+    ("F2", _gl("1/2")),
+    ("FINAL", _gl("F")),
+    ("DAY_MEDIAN", _gl("Medián dne")),
 ]
 START_TABLE_COLUMNS = [
     ("M1", "M1"),
@@ -145,7 +146,7 @@ START_TABLE_COLUMNS = [
     ("F4", "1/4"),
     ("F2", "1/2"),
     ("FINAL", "F"),
-    ("DAY_MEDIAN", "Medián startu"),
+    ("DAY_MEDIAN", _gl("Medián startu")),
 ]
 SPLIT_TABLE_COLUMNS = [
     ("M1", "M1"),
@@ -161,14 +162,14 @@ SPLIT_TABLE_COLUMNS = [
     ("F4", "1/4"),
     ("F2", "1/2"),
     ("FINAL", "F"),
-    ("DAY_MEDIAN", "Medián Inter2"),
+    ("DAY_MEDIAN", _gl("Medián Inter2")),
 ]
 KPI_PERIOD_OPTIONS = [
-    {"value": "1", "label": "1 rok"},
-    {"value": "2", "label": "2 roky"},
-    {"value": "3", "label": "3 roky"},
-    {"value": "5", "label": "5 let"},
-    {"value": "all", "label": "Celá historie"},
+    {"value": "1", "label": _gl("1 rok")},
+    {"value": "2", "label": _gl("2 roky")},
+    {"value": "3", "label": _gl("3 roky")},
+    {"value": "5", "label": _gl("5 let")},
+    {"value": "all", "label": _gl("Celá historie")},
 ]
 
 
@@ -207,7 +208,7 @@ def _resolve_kpi_period(period_value):
     if period_value == "all":
         return {
             "value": "all",
-            "label": "Celá historie",
+            "label": _("Celá historie"),
             "cutoff": None,
         }
 
@@ -215,9 +216,14 @@ def _resolve_kpi_period(period_value):
         period_value = "2"
 
     years = int(period_value)
+    label = ngettext(
+        "%(count)d rok",
+        "%(count)d let",
+        years
+    ) % {'count': years}
     return {
         "value": period_value,
-        "label": f"{years} rok" if years == 1 else (f"{years} roky" if years in {2, 3, 4} else f"{years} let"),
+        "label": label,
         "cutoff": timezone.localdate() - datetime.timedelta(days=years * 365),
     }
 
@@ -598,6 +604,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
             event_metrics[result.event_id]["result_place"] = result.place
 
     finish_times = []
+    hill_times = []
     moto_finish_times = []
     final_finish_times = []
     moto_places = []
@@ -614,6 +621,9 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         if finish_time is not None:
             finish_times.append(float(finish_time))
             clean_runs += 1
+
+        if run.hill_time is not None:
+            hill_times.append(float(run.hill_time))
 
         place_text = (run.place or "").upper()
         is_bad_status = any(flag in place_text for flag in ("DNF", "DNS", "DSQ", "REL"))
@@ -667,11 +677,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     if affinity_delta is None:
         affinity_label = None
     elif affinity_delta >= 1:
-        affinity_label = "Oblíbená trať"
+        affinity_label = _("Oblíbená trať")
     elif affinity_delta <= -1:
-        affinity_label = "Problémová trať"
+        affinity_label = _("Problémová trať")
     else:
-        affinity_label = "Neutrální trať"
+        affinity_label = _("Neutrální trať")
 
     pressure_delta = round((avg_moto_place or 0) - (avg_final_place or 0), 2) if avg_moto_place is not None and avg_final_place is not None else None
     pressure_score = _clamp_score(50 + (pressure_delta or 0) * 15) if pressure_delta is not None else None
@@ -686,6 +696,36 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         + ((_safe_stddev(track_place_values) or 0) * 10)
         + ((_safe_stddev(finish_times) or 0) * 6)
     ) if recent_track_runs else None
+
+    gate_avg = _safe_mean(hill_times)
+    gate_std = _safe_stddev(hill_times)
+    
+    has_gate_data = gate_avg and gate_avg > 0 and len(hill_times) > 1
+    gate_cv = (gate_std / gate_avg * 100) if has_gate_data else 0
+
+    finish_avg = _safe_mean(finish_times)
+    finish_std = _safe_stddev(finish_times)
+    has_finish_data = finish_avg and finish_avg > 0 and len(finish_times) > 1
+    finish_cv = (finish_std / finish_avg * 100) if has_finish_data else 0
+
+    pos_std = _safe_stddev(track_place_values) or 0
+
+    consistency_metric = None
+    if has_gate_data and has_finish_data:
+        consistency_metric = 0.4 * gate_cv + 0.4 * finish_cv + 0.2 * pos_std
+
+    consistency_score = _clamp_score(100 - consistency_metric * 3) if (consistency_metric is not None and recent_track_runs) else None
+
+    consistency_label = None
+    if consistency_score is not None:
+        if consistency_score >= 90:
+            consistency_label = _("Velmi stabilní")
+        elif consistency_score >= 75:
+            consistency_label = _("Stabilní")
+        elif consistency_score >= 60:
+            consistency_label = _("Kolísavý")
+        else:
+            consistency_label = _("Nevyrovnaný")
 
     ordered_results = sorted(
         [result for result in recent_track_results if result.date],
@@ -730,7 +770,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     recent_event_trend_rows.sort(key=lambda item: (item["date"], item["event_id"]))
 
     trend_delta = None
-    trend_detail = "Potřebujeme víc startů"
+    trend_detail = _("Potřebujeme víc startů")
     timed_trend_rows = [item for item in recent_event_trend_rows if item["median_time"] is not None]
 
     if len(timed_trend_rows) >= 2:
@@ -747,25 +787,25 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
                 time_signal = -1
 
         if time_signal > 0:
-            trend_label = "Zlepšuje se"
+            trend_label = _("Zlepšuje se")
         elif time_signal < 0:
-            trend_label = "Zhoršuje se"
+            trend_label = _("Zhoršuje se")
         else:
-            trend_label = "Stagnuje"
+            trend_label = _("Stagnuje")
 
         detail_parts = []
         if time_delta is not None:
             if time_delta > 0:
-                detail_parts.append(f"čas o {abs(time_delta)} s rychlejší")
+                detail_parts.append(_("čas o %(delta)s s rychlejší") % {'delta': abs(time_delta)})
             elif time_delta < 0:
-                detail_parts.append(f"čas o {abs(time_delta)} s pomalejší")
+                detail_parts.append(_("čas o %(delta)s s pomalejší") % {'delta': abs(time_delta)})
             else:
-                detail_parts.append("čas beze změny")
+                detail_parts.append(_("čas beze změny"))
 
         trend_delta = time_delta
-        trend_detail = "Poslední vs předchozí: " + " | ".join(detail_parts) if detail_parts else trend_detail
+        trend_detail = _("Poslední vs předchozí: ") + " | ".join(detail_parts) if detail_parts else trend_detail
     else:
-        trend_label = "Málo dat"
+        trend_label = _("Málo dat")
 
     event_rows_map = {}
     start_event_rows_map = {}
@@ -936,6 +976,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     peer_place_percentile = None
     peer_finish_percentile = None
     peer_group_size = 0
+    pace_index = None
 
     if compare_is_20:
         uci_category = rider.class_20
@@ -1013,6 +1054,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         peer_place_averages = [round(mean(values), 2) for values in peer_places_by_rider.values() if values]
         peer_finish_medians = [round(median(values), 3) for values in peer_finish_by_rider.values() if values]
 
+        field_median_finish_time = median(peer_finish_medians) if peer_finish_medians else None
+        rider_avg_finish_time = _safe_mean(finish_times)
+        if field_median_finish_time and rider_avg_finish_time and rider_avg_finish_time > 0:
+            pace_index = round(100 * (field_median_finish_time / rider_avg_finish_time), 1)
+
         peer_place_percentile = _percentile_better_than(avg_track_place, peer_place_averages)
         peer_finish_percentile = _percentile_better_than(_safe_median(finish_times), peer_finish_medians)
         peer_group_size = max(len(peer_place_averages), len(peer_finish_medians))
@@ -1053,6 +1099,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "track_affinity_label": affinity_label,
         "stability_score": stability_score,
         "risk_score": risk_score,
+        "consistency_score": consistency_score,
+        "consistency_label": consistency_label,
         "bad_status_count": bad_status_count,
         "clean_run_rate": _safe_rate(clean_runs, eligible_clean_runs),
         "trend_label": trend_label,
@@ -1084,6 +1132,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "peer_group_size": peer_group_size,
         "peer_place_percentile": peer_place_percentile,
         "peer_finish_percentile": peer_finish_percentile,
+        "pace_index": pace_index,
     }
 
 
