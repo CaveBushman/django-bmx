@@ -212,6 +212,33 @@
                     <rect width="5" height="1" y="1" fill="#dd0000"/>
                     <rect width="5" height="1" y="2" fill="#ffce00"/>
                   </svg>
+                  {% elif CURRENT_LANGUAGE == 'sk' %}
+                  <svg viewBox="0 0 27 18" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="27" height="6" y="0" fill="#ffffff"/>
+                    <rect width="27" height="6" y="6" fill="#0b4ea2"/>
+                    <rect width="27" height="6" y="12" fill="#ee1c25"/>
+                    <path d="M4,6 L12,6 L12,14 L8,17 L4,14 Z" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+                    <path d="M5,7 L11,7 L11,13 L8,15 L5,13 Z" fill="#ee1c25"/>
+                    <path d="M6,13 Q8,11 10,13 L10,14 L6,14 Z" fill="#0b4ea2"/>
+                    <path d="M7.5,8 L8.5,8 L8.5,12 L7.5,12 Z M6.5,9.5 L9.5,9.5 L9.5,10.5 L6.5,10.5 Z" fill="#ffffff"/>
+                  </svg>
+                  {% elif CURRENT_LANGUAGE == 'es' %}
+                  <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="3" height="2" fill="#aa151b"/>
+                    <rect width="3" height="1" y="0.5" fill="#f1bf00"/>
+                  </svg>
+                  {% elif CURRENT_LANGUAGE == 'it' %}
+                  <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="1" height="2" x="0" fill="#009246"/>
+                    <rect width="1" height="2" x="1" fill="#ffffff"/>
+                    <rect width="1" height="2" x="2" fill="#ce2b37"/>
+                  </svg>
+                  {% elif CURRENT_LANGUAGE == 'fr' %}
+                  <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="1" height="2" x="0" fill="#002395"/>
+                    <rect width="1" height="2" x="1" fill="#ffffff"/>
+                    <rect width="1" height="2" x="2" fill="#ed2939"/>
+                  </svg>
                   {% else %}
                   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="12" fill="#e2e8f0"/>
@@ -220,7 +247,7 @@
                   {% endif %}
                 </span>
                 <span>
-                  {% if CURRENT_LANGUAGE == 'cs' %}Čeština{% elif CURRENT_LANGUAGE == 'en' %}English{% elif CURRENT_LANGUAGE == 'de' %}Deutsch{% else %}{{ CURRENT_LANGUAGE|upper }}{% endif %}
+                  {% if CURRENT_LANGUAGE == 'cs' %}Čeština{% elif CURRENT_LANGUAGE == 'en' %}English{% elif CURRENT_LANGUAGE == 'de' %}Deutsch{% elif CURRENT_LANGUAGE == 'sk' %}Slovenčina{% elif CURRENT_LANGUAGE == 'es' %}Español{% elif CURRENT_LANGUAGE == 'it' %}Italiano{% elif CURRENT_LANGUAGE == 'fr' %}Français{% else %}{{ CURRENT_LANGUAGE|upper }}{% endif %}
                 </span>
                 <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 text-white/80">
                   <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" />
@@ -256,6 +283,33 @@
                           <rect width="5" height="1" y="0" fill="#000000"/>
                           <rect width="5" height="1" y="1" fill="#dd0000"/>
                           <rect width="5" height="1" y="2" fill="#ffce00"/>
+                        </svg>
+                        {% elif code == 'sk' %}
+                        <svg viewBox="0 0 27 18" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="27" height="6" y="0" fill="#ffffff"/>
+                          <rect width="27" height="6" y="6" fill="#0b4ea2"/>
+                          <rect width="27" height="6" y="12" fill="#ee1c25"/>
+                          <path d="M4,6 L12,6 L12,14 L8,17 L4,14 Z" fill="#ffffff" stroke="#ffffff" stroke-width="1"/>
+                          <path d="M5,7 L11,7 L11,13 L8,15 L5,13 Z" fill="#ee1c25"/>
+                          <path d="M6,13 Q8,11 10,13 L10,14 L6,14 Z" fill="#0b4ea2"/>
+                          <path d="M7.5,8 L8.5,8 L8.5,12 L7.5,12 Z M6.5,9.5 L9.5,9.5 L9.5,10.5 L6.5,10.5 Z" fill="#ffffff"/>
+                        </svg>
+                        {% elif code == 'es' %}
+                        <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="3" height="2" fill="#aa151b"/>
+                          <rect width="3" height="1" y="0.5" fill="#f1bf00"/>
+                        </svg>
+                        {% elif code == 'it' %}
+                        <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="1" height="2" x="0" fill="#009246"/>
+                          <rect width="1" height="2" x="1" fill="#ffffff"/>
+                          <rect width="1" height="2" x="2" fill="#ce2b37"/>
+                        </svg>
+                        {% elif code == 'fr' %}
+                        <svg viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="1" height="2" x="0" fill="#002395"/>
+                          <rect width="1" height="2" x="1" fill="#ffffff"/>
+                          <rect width="1" height="2" x="2" fill="#ed2939"/>
                         </svg>
                         {% else %}
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

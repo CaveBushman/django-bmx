@@ -203,6 +203,10 @@ LANGUAGES = [
     ("cs", _("Czech")),
     ("en", _("English")),
     ("de", _("German")),
+    ("sk", _("Slovak")),
+    ("es", _("Spanish")),
+    ("it", _("Italian")),
+    ("fr", _("French")),
 ]
 
 LANGUAGE_CODE = "cs"  # Nastav na češtinu

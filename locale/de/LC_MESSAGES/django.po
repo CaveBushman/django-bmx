@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 16:45+0100\n"
+"POT-Creation-Date: 2026-03-18 21:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: bmx/settings.py:203
 msgid "Czech"
 msgstr "Tschechisch"
@@ -27,6 +28,887 @@ msgstr "Englisch"
 #: bmx/settings.py:205
 msgid "German"
 msgstr "Deutsch"
+
+#: bmx/settings.py:206
+msgid "Slovak"
+msgstr ""
+
+#: bmx/settings.py:207
+msgid "Spanish"
+msgstr ""
+
+#: bmx/settings.py:208
+msgid "Italian"
+msgstr ""
+
+#: bmx/settings.py:209
+msgid "French"
+msgstr ""
+
+#: finance/views.py:115
+#, python-format
+msgid "Ověřeno %(count)d plateb za kredity za poslední 2 dny."
+msgstr ""
+
+#: rider/templates/rider/rider-checkout.html:3
+#: rider/templates/rider/rider-success.html:3
+msgid "Potvrzení"
+msgstr ""
+
+#: rider/templates/rider/rider-checkout.html:8
+msgid "Seznam registrací na závody"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:4
+#: rider/templates/rider/rider-inactive.html:40
+msgid "Neaktivní jezdci"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:37
+msgid "Rider Admin"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:43
+msgid ""
+"Profily bez výsledku za předchozí kalendářní rok. Tohle je administrativní "
+"čistka databáze, ne archiv. Jedním klikem se jezdec pouze skryje z aktivní "
+"databáze."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:54
+msgid "Akce je nevratná z této obrazovky"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:56
+msgid ""
+"Tlačítko <span class=\"font-semibold text-rose-600 dark:text-"
+"rose-300\">Uvolnit</span> změní pouze stav jezdce na neaktivní. Startovní "
+"číslo ani ostatní data se nemažou, ale startovní číslo bude moci použít jiný "
+"jezdec."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:64
+msgid "K evidenci"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:66
+msgid "profilů připravených k deaktivaci"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:69
+msgid "Typ zásahu"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:70
+msgid "deaktivace profilu"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:80
+msgid "Admin workflow"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:81
+msgid "Kandidáti na deaktivaci"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:84
+msgid ""
+"Přehled je záměrně čistý a rychlý. Důležitá jsou jen identita jezdce, číslo, "
+"klub a jednoznačná akce."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:94
+msgid "Příjmení"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:95
+msgid "Jméno"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:96
+msgid "Startovní číslo"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:98
+#: rider/templates/rider/trainer-dashboard.html:137
+msgid "Klub"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:123
+msgid "Uvolnit"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:139
+msgid "Databáze je čistá"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:141
+msgid ""
+"Momentálně tu není žádný jezdec, který by splnil podmínky pro přesun do "
+"neaktivních profilů."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:163
+msgid "Potvrzení akce"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:164
+msgid "Opravdu deaktivovat jezdce?"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:168
+msgid "Zavřít"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:177
+msgid "Jezdec"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:177
+msgid "bude označen jako neaktivní."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:180
+msgid "Tato akce změní `is_active` na `False`. Samotný profil se nesmaže."
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:186
+msgid "Zrušit"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:192
+msgid "Potvrdit deaktivaci"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:222
+msgid "vybraný jezdec"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:3
+msgid "Prémiové statistiky jezdce"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:10
+msgid "Prémiové statistiky"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:16
+#, python-format
+msgid "Aktivní do %(date)s"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:20
+#, python-format
+msgid "Trenérský přístup přes klub aktivní do %(date)s."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:24
+msgid "Administrátorský přístup bez omezení předplatným."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:29
+msgid "Zpět na profil jezdce"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:37
+msgid "Výběr tratě / klubu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:39
+msgid ""
+"Vyber trať a zobrazí se agregované KPI a poslední výsledky jezdce na dané "
+"dráze."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:48
+msgid "Trať / klub"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:56
+msgid "Vyber trať"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:75
+msgid "KPI období"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:97
+msgid "Disciplína"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:117
+msgid ""
+"Na této trati jsou výsledky jak pro 20\", tak pro 24\". Nejdřív vyber "
+"disciplínu, pro kterou chceš zobrazit statistiky."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:123
+msgid "Traťový profil"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:128
+#, python-format
+msgid "Jezdec je porovnáván s jezdci kategorie %(label)s"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:134
+#, fuzzy, python-format
+#| msgid "Statistika webu"
+msgid "Statistiky pro %(wheel)s\""
+msgstr "Webstatistik"
+
+#: rider/templates/rider/rider-premium-stats.html:138
+msgid "Prémiové KPI a trend výkonu jezdce na této konkrétní trati."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:142
+#, python-format
+msgid ""
+"KPI a srovnání počítáme pro vybrané období %(label)s, od %(date)s. Graf a "
+"tabulka zůstávají za celou historii."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:144
+msgid ""
+"KPI a srovnání počítáme z celé historie. Graf i tabulka zůstávají za celou "
+"historii."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:151
+#: rider/templates/rider/rider-premium-stats.html:152
+msgid "Starty"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:152
+msgid "Nápověda k položce Starty"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:152
+msgid ""
+"Hlavní číslo ukazuje počet startů na této trati ve vybraném období. Druhý "
+"řádek ukazuje celkový počet startů v celé historii."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:155
+msgid "Celkem"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:159
+#: rider/templates/rider/rider-premium-stats.html:160
+msgid "Final rate (F1)"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:160
+msgid "Nápověda k Final rate"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:160
+msgid ""
+"Podíl závodů ve vybraném období, ve kterých jezdec jel velké finále F1. "
+"Počítá se jen z jízd s round_type FINAL, tedy nezahrnuje F2, F4, F8, F16 a "
+"další knockout kola."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:166
+#: rider/templates/rider/rider-premium-stats.html:167
+msgid "Podium rate"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:167
+msgid "Nápověda k Podium rate"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:167
+msgid ""
+"Podíl výsledků ve vybraném období na této trati, kde jezdec skončil na 1. až "
+"3. místě."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:173
+#: rider/templates/rider/rider-premium-stats.html:174
+msgid "Best result"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:174
+msgid "Nápověda k Best result"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:174
+msgid ""
+"Nejlepší celkové umístění v závodě na této trati ve vybraném období. Nižší "
+"číslo je lepší."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:184
+#: rider/templates/rider/rider-premium-stats.html:185
+msgid "Průměrné umístění v motos"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:185
+msgid "Nápověda k umístění v motos"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:185
+msgid ""
+"Průměr umístění ve všech moto jízdách ve vybraném období na této trati. Na "
+"druhém řádku je průměr finálových jízd."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:188
+msgid "u finálových jízd:"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:192
+msgid "Median time's"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:193
+msgid "Nápověda k časům"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:193
+msgid "Finish time"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:193
+msgid ""
+"Hlavní číslo je medián všech dostupných cílových časů ve vybraném období na "
+"této trati. Dole zůstává nejlepší naměřený čas."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:196
+msgid "Best"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:200
+#: rider/templates/rider/rider-premium-stats.html:201
+msgid "Conversion / Recovery"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:201
+msgid "Nápověda ke Conversion/Recovery"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:201
+msgid ""
+"Conversion ukazuje, jak často jezdec promění silné motos v celkový výsledek "
+"do 3. místa. Recovery ukazuje, jak často po slabším startu skončí lépe než "
+"naznačují motos. Obojí ve vybraném období."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:204
+msgid "Recovery"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:208
+#: rider/templates/rider/rider-premium-stats.html:209
+msgid "Pressure / Affinity"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:209
+msgid "Nápověda k Pressure/Affinity"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:209
+msgid ""
+"Pressure score je škála 1 až 100, která porovnává průměrné umístění v motos "
+"a ve finálových jízdách. Hodnota 100 znamená, že jezdec ve finálových "
+"jízdách výrazně zlepšuje výkon oproti motos a zvládá tlak rozhodujících jízd "
+"nadprůměrně dobře. Hodnota 50 znamená přibližně stejný výkon v motos i ve "
+"finále. Nízké hodnoty znamenají, že ve finálových jízdách proti výkonu z "
+"motos spíš ztrácí. Affinity ukazuje, zda se jezdci na této trati daří lépe, "
+"nebo hůře než obvykle na ostatních tratích. Je to malé číslo v závorce a "
+"představuje rozdíl proti jeho běžnému průměrnému umístění na všech tratích: "
+"kladná hodnota znamená, že je tato trať pro jezdce lepší než obvykle, "
+"záporná, že horší, a hodnota blízko nule znamená neutrální trať."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:216
+#: rider/templates/rider/rider-premium-stats.html:217
+msgid "Stability score"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:217
+msgid "Nápověda ke Stability score"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:217
+msgid ""
+"Stability score je škála 1 až 100, která kombinuje rozptyl umístění, rozptyl "
+"časů a počet problémových jízd. Hodnota 100 znamená velmi stabilní výkony "
+"bez velkých výkyvů mezi závody a jízdami. Hodnota kolem 50 znamená střední "
+"kolísání výkonu. Nízké hodnoty znamenají, že výkon jezdce je výrazně "
+"proměnlivý a výsledky i časy mezi jízdami více skáčou. Risk pod tím ukazuje "
+"opačný pohled, tedy míru nestability a rizika."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:220
+msgid "Risk"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:224
+#: rider/templates/rider/rider-premium-stats.html:225
+msgid "Consistency score"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:225
+msgid "Nápověda ke Consistency score"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:225
+msgid ""
+"Consistency score měří vyrovnanost výkonů na základě variability časů "
+"startu, časů v cíli a umístění. Čím vyšší skóre, tím stabilnější je "
+"výkonnost jezdce (90+ velmi stabilní, pod 60 nevyrovnaný)."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:232
+#: rider/templates/rider/rider-premium-stats.html:233
+msgid "Postup z motos"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:233
+msgid "Nápověda k postupu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:233
+msgid ""
+"Podíl závodů ve vybraném období, kde se jezdec z motos dostal do "
+"vyřazovacích nebo finálových jízd. Dole je počet závodů, ve kterých k "
+"postupu došlo."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:236
+#, python-format
+msgid "%(count)s postupů z motos"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:240
+#: rider/templates/rider/rider-premium-stats.html:241
+msgid "Čisté jízdy"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:241
+msgid "Nápověda k čistým jízdám"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:241
+msgid ""
+"Podíl jízd ve vybraném období bez DNF, DNS, DSQ nebo REL. Dole je počet "
+"problémových jízd."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:244
+#, python-format
+msgid "%(count)sx DNF/DNS/DSQ/REL"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:248
+#: rider/templates/rider/rider-premium-stats.html:249
+msgid "Trend"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:249
+msgid "Nápověda k Trendu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:249
+msgid ""
+"Trend porovnává první a poslední závod v daném období (místo posledních "
+"dvou). Ukazuje celkový posun výkonnosti na této trati za zvolený časový úsek."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:256
+#: rider/templates/rider/rider-premium-stats.html:257
+msgid "Srovnání pořadí"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:257
+msgid "Nápověda ke srovnání pořadí"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:257
+msgid ""
+"Porovnání s ostatními stejně starými jezdci na stejné trati ve vybraném "
+"období. Vychází z průměrného celkového umístění v závodech."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:263
+msgid "Lepší než tolik stejně starých jezdců"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:268
+#: rider/templates/rider/rider-premium-stats.html:269
+msgid "Srovnání času"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:269
+msgid "Nápověda ke srovnání času"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:269
+msgid ""
+"Porovnání s ostatními stejně starými jezdci na stejné trati ve vybraném "
+"období. Vychází z mediánu všech dostupných cílových časů."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:275
+msgid "Lepší medián času než tolik stejně starých jezdců"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:280
+#: rider/templates/rider/rider-premium-stats.html:281
+msgid "Pace Index"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:281
+msgid "Nápověda k Pace Indexu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:281
+#, python-format
+msgid ""
+"Pace Index (100 * medián pole / tvůj průměr). Hodnota 100 = medián. Hodnota "
+"nad 100 znamená, že jsi rychlejší než pole (např. 105 = o 5 %% rychlejší). "
+"Pod 100 = ztráta."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:285
+msgid "nad 100 = rychlejší než medián"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:293
+msgid "Pohled dat"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:296
+msgid "FINISH"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:300
+msgid "HILL"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:304
+msgid "SPLIT 1"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:311
+msgid "Trend závodů"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:312
+msgid "Medián cílových časů podle závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:316
+#: rider/templates/rider/rider-premium-stats.html:401
+#: rider/templates/rider/rider-premium-stats.html:490
+#, python-format
+msgid "Rozsah %(min)s s až %(max)s s"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:349
+#: rider/templates/rider/rider-premium-stats.html:434
+#: rider/templates/rider/rider-premium-stats.html:523
+msgid "Datum závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:354
+msgid "Pro vykreslení trendu zatím nejsou na této trati dostupné časy závodů."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:364
+#: rider/templates/rider/rider-premium-stats.html:450
+#: rider/templates/rider/rider-premium-stats.html:539
+msgid "Datum"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:365
+#: rider/templates/rider/rider-premium-stats.html:451
+#: rider/templates/rider/rider-premium-stats.html:540
+msgid "Závod"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:396
+msgid "Start závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:397
+msgid "Medián startových časů podle závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:439
+msgid ""
+"Pro vykreslení trendu startových časů zatím nejsou na této trati dostupná "
+"data."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:478
+#: rider/templates/rider/rider-premium-stats.html:567
+msgid "Pro tuto statistiku není v současné době dostatek dat."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:485
+msgid "První zatáčka"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:486
+msgid "Medián mezičasů Inter2 podle závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:528
+msgid "Pro vykreslení trendu Inter2 zatím nejsou na této trati dostupná data."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:573
+msgid "Pro vybranou trať zatím nejsou uložené žádné detailní jízdy."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:577
+msgid ""
+"Vyber trať nebo klub nahoře a zobrazí se prémiové statistiky této dráhy."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:582
+msgid "Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z tratí."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:594
+msgid "Kontextová nápověda"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:603
+msgid "Jak Se Počítá"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:608
+msgid "Rozumím"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:653
+msgid "Nápověda"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:4
+#: rider/templates/rider/trainer-dashboard.html:15
+#: theme/templates/includes/navbar.html:363
+#: theme/templates/includes/navbar.html:570
+msgid "Trenérský dashboard"
+msgstr "Trainer-Dashboard"
+
+#: rider/templates/rider/trainer-dashboard.html:14
+#, fuzzy
+#| msgid "Trenérský dashboard"
+msgid "Trenérská sekce"
+msgstr "Trainer-Dashboard"
+
+#: rider/templates/rider/trainer-dashboard.html:17
+msgid ""
+"Přehled klubů, které máš přiřazené jako trenér, a stav měsíčních "
+"předplatných pro klubové prémiové statistiky a rozšířené funkce."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:21
+msgid "Kluby"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:23
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Aktivní stats"
+msgstr "Aktive Registrierungen"
+
+#: rider/templates/rider/trainer-dashboard.html:35
+msgid "Ceník sezóny"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:36
+msgid "Měsíční tarify pro trenéra"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:39
+msgid "Ceny se berou z aktuálního nastavení sezóny."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:45
+msgid "Klubové stats"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:50
+msgid ""
+"Měsíční předplatné pro přístup k prémiovým statistikám jezdců jednoho "
+"konkrétního klubu."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:59
+msgid ""
+"Rozšířené měsíční předplatné pro exporty a návazné trenérské nástroje. Platí "
+"globálně pro trenéra a vztahuje se na všechny kluby s aktivním stats "
+"předplatným."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:69
+#: rider/templates/rider/trainer-dashboard.html:157
+#, python-format
+msgid "Platné do %(date)s"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:71
+#: rider/templates/rider/trainer-dashboard.html:163
+msgid "Automatické obnovení zapnuto"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:71
+#: rider/templates/rider/trainer-dashboard.html:163
+msgid "Automatické obnovení vypnuto"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:74
+msgid "Rozšířené předplatné zatím není aktivní."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:86
+#: rider/templates/rider/trainer-dashboard.html:91
+msgid "Aktivovat extended"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:99
+#: rider/templates/rider/trainer-dashboard.html:181
+msgid "Vypnout obnovu"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:108
+#: rider/templates/rider/trainer-dashboard.html:190
+msgid "Zapnout obnovu"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:122
+msgid "Přiřazené kluby"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:123
+msgid "Předplatná po klubech"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:125
+msgid ""
+"Stats se účtuje po klubech. Extended je jedno měsíční trenérské předplatné "
+"pro všechny kluby s aktivními stats."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:141
+msgid "Detail klubu"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:159
+msgid "Klub zatím nemá aktivní stats předplatné."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:172
+msgid "Aktivovat stats"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:202
+msgid "Extended exporty"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:203
+msgid "Aktivní pro tento klub."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:208
+msgid "Seznam jezdců klubu"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:210
+msgid "KPI přehled jezdců"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:216
+msgid "Pro exporty tohoto klubu aktivuj globální předplatné Extended."
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:224
+msgid "K tomuto účtu zatím nejsou přiřazené žádné aktivní kluby trenéra."
+msgstr ""
+
+#: rider/views.py:211
+msgid "Celá historie"
+msgstr ""
+
+#: rider/views.py:220
+#, python-format
+msgid "%(count)d rok"
+msgid_plural "%(count)d let"
+msgstr[0] ""
+msgstr[1] ""
+
+#: rider/views.py:680
+msgid "Oblíbená trať"
+msgstr ""
+
+#: rider/views.py:682
+msgid "Problémová trať"
+msgstr ""
+
+#: rider/views.py:684
+msgid "Neutrální trať"
+msgstr ""
+
+#: rider/views.py:722
+msgid "Velmi stabilní"
+msgstr ""
+
+#: rider/views.py:724
+msgid "Stabilní"
+msgstr ""
+
+#: rider/views.py:726
+msgid "Kolísavý"
+msgstr ""
+
+#: rider/views.py:728
+msgid "Nevyrovnaný"
+msgstr ""
+
+#: rider/views.py:773
+msgid "Potřebujeme víc startů"
+msgstr ""
+
+#: rider/views.py:790
+msgid "Zlepšuje se"
+msgstr ""
+
+#: rider/views.py:792
+msgid "Zhoršuje se"
+msgstr ""
+
+#: rider/views.py:794
+msgid "Stagnuje"
+msgstr ""
+
+#: rider/views.py:799
+#, python-format
+msgid "čas o %(delta)s s rychlejší"
+msgstr ""
+
+#: rider/views.py:801
+#, python-format
+msgid "čas o %(delta)s s pomalejší"
+msgstr ""
+
+#: rider/views.py:803
+msgid "čas beze změny"
+msgstr ""
+
+#: rider/views.py:806
+msgid "Poslední vs předchozí: "
+msgstr ""
+
+#: rider/views.py:808
+msgid "Málo dat"
+msgstr ""
 
 #: theme/templates/admin/pagination.html:15
 msgid "Show all"
@@ -56,139 +938,134 @@ msgstr "Warnung"
 msgid "Information"
 msgstr "Information"
 
-#: theme/templates/includes/navbar.html:49
-#: theme/templates/includes/navbar.html:52
-#: theme/templates/includes/navbar.html:349
+#: theme/templates/includes/navbar.html:73
+#: theme/templates/includes/navbar.html:76
+#: theme/templates/includes/navbar.html:427
 msgid "HOME"
 msgstr "START"
 
-#: theme/templates/includes/navbar.html:57
-#: theme/templates/includes/navbar.html:60
-#: theme/templates/includes/navbar.html:352
+#: theme/templates/includes/navbar.html:81
+#: theme/templates/includes/navbar.html:84
+#: theme/templates/includes/navbar.html:430
 msgid "ČLÁNKY"
 msgstr "ARTIKEL"
 
-#: theme/templates/includes/navbar.html:65
-#: theme/templates/includes/navbar.html:68
-#: theme/templates/includes/navbar.html:355
+#: theme/templates/includes/navbar.html:89
+#: theme/templates/includes/navbar.html:92
+#: theme/templates/includes/navbar.html:433
 msgid "KALENDÁŘ"
 msgstr "KALENDER"
 
-#: theme/templates/includes/navbar.html:73
-#: theme/templates/includes/navbar.html:76
-#: theme/templates/includes/navbar.html:358
+#: theme/templates/includes/navbar.html:97
+#: theme/templates/includes/navbar.html:100
+#: theme/templates/includes/navbar.html:436
 msgid "JEZDCI"
 msgstr "FAHRER"
 
-#: theme/templates/includes/navbar.html:81
-#: theme/templates/includes/navbar.html:84
-#: theme/templates/includes/navbar.html:361
+#: theme/templates/includes/navbar.html:105
+#: theme/templates/includes/navbar.html:108
+#: theme/templates/includes/navbar.html:439
 msgid "KLUBY"
 msgstr "KLUBS"
 
-#: theme/templates/includes/navbar.html:89
-#: theme/templates/includes/navbar.html:92
-#: theme/templates/includes/navbar.html:364
+#: theme/templates/includes/navbar.html:113
+#: theme/templates/includes/navbar.html:116
+#: theme/templates/includes/navbar.html:442
 msgid "RANKING"
 msgstr "RANKING"
 
-#: theme/templates/includes/navbar.html:97
-#: theme/templates/includes/navbar.html:100
-#: theme/templates/includes/navbar.html:367
+#: theme/templates/includes/navbar.html:121
+#: theme/templates/includes/navbar.html:124
+#: theme/templates/includes/navbar.html:445
 msgid "PRAVIDLA"
 msgstr "REGELN"
 
-#: theme/templates/includes/navbar.html:105
-#: theme/templates/includes/navbar.html:108
-#: theme/templates/includes/navbar.html:370
+#: theme/templates/includes/navbar.html:129
+#: theme/templates/includes/navbar.html:132
+#: theme/templates/includes/navbar.html:448
 msgid "KE STAŽENÍ"
 msgstr "DOWNLOADS"
 
-#: theme/templates/includes/navbar.html:142
+#: theme/templates/includes/navbar.html:166
 msgid "Přepnout světlý/tmavý režim"
 msgstr "Hell/Dunkel umschalten"
 
-#: theme/templates/includes/navbar.html:262
+#: theme/templates/includes/navbar.html:340
 msgid "Open user menu"
 msgstr "Benutzermenü öffnen"
 
-#: theme/templates/includes/navbar.html:275
-#: theme/templates/includes/navbar.html:425
+#: theme/templates/includes/navbar.html:353
+#: theme/templates/includes/navbar.html:503
 msgid "Zobraz/skryj CHIPKU"
 msgstr "CHIPKA anzeigen/verbergen"
 
-#: theme/templates/includes/navbar.html:278
-#: theme/templates/includes/navbar.html:485
+#: theme/templates/includes/navbar.html:356
+#: theme/templates/includes/navbar.html:563
 msgid "Aktivní registrace"
 msgstr "Aktive Registrierungen"
 
-#: theme/templates/includes/navbar.html:280
-#: theme/templates/includes/navbar.html:487
+#: theme/templates/includes/navbar.html:358
+#: theme/templates/includes/navbar.html:565
 msgid "Kredit"
 msgstr "Guthaben"
 
-#: theme/templates/includes/navbar.html:282
-#: theme/templates/includes/navbar.html:489
+#: theme/templates/includes/navbar.html:360
+#: theme/templates/includes/navbar.html:567
 msgid "Moje nastavení a faktury"
 msgstr "Meine Einstellungen und Rechnungen"
 
-#: theme/templates/includes/navbar.html:285
-#: theme/templates/includes/navbar.html:492
-msgid "Trenérský dashboard"
-msgstr "Trainer-Dashboard"
-
-#: theme/templates/includes/navbar.html:288
-#: theme/templates/includes/navbar.html:316
+#: theme/templates/includes/navbar.html:366
+#: theme/templates/includes/navbar.html:394
 msgid "Vyhledej čip"
 msgstr "Chip suchen"
 
-#: theme/templates/includes/navbar.html:291
+#: theme/templates/includes/navbar.html:369
 msgid "Finance"
 msgstr "Finanzen"
 
-#: theme/templates/includes/navbar.html:293
-#: theme/templates/includes/navbar.html:496
+#: theme/templates/includes/navbar.html:371
+#: theme/templates/includes/navbar.html:574
 msgid "Administrace"
 msgstr "Administration"
 
-#: theme/templates/includes/navbar.html:295
-#: theme/templates/includes/navbar.html:498
+#: theme/templates/includes/navbar.html:373
+#: theme/templates/includes/navbar.html:576
 msgid "Nasazení rozhodčích"
 msgstr "Kommissar-Einsätze"
 
-#: theme/templates/includes/navbar.html:297
-#: theme/templates/includes/navbar.html:501
+#: theme/templates/includes/navbar.html:375
+#: theme/templates/includes/navbar.html:579
 msgid "Statistika webu"
 msgstr "Webstatistik"
 
-#: theme/templates/includes/navbar.html:303
-#: theme/templates/includes/navbar.html:506
+#: theme/templates/includes/navbar.html:381
+#: theme/templates/includes/navbar.html:584
 msgid "Úkoly komise"
 msgstr "Kommissionsaufgaben"
 
-#: theme/templates/includes/navbar.html:313
-#: theme/templates/includes/navbar.html:515
+#: theme/templates/includes/navbar.html:391
+#: theme/templates/includes/navbar.html:593
 msgid "Odhlášení"
 msgstr "Abmelden"
 
-#: theme/templates/includes/navbar.html:318
-#: theme/templates/includes/navbar.html:518
+#: theme/templates/includes/navbar.html:396
+#: theme/templates/includes/navbar.html:596
 msgid "Přihlášení"
 msgstr "Anmelden"
 
-#: theme/templates/includes/navbar.html:320
-#: theme/templates/includes/navbar.html:520
+#: theme/templates/includes/navbar.html:398
+#: theme/templates/includes/navbar.html:598
 msgid "Registrace"
 msgstr "Registrieren"
 
-#: theme/templates/includes/navbar.html:330
+#: theme/templates/includes/navbar.html:408
 msgid "Open main menu"
 msgstr "Hauptmenü öffnen"
 
-#: theme/templates/includes/navbar.html:410
+#: theme/templates/includes/navbar.html:488
 msgid "View notifications"
 msgstr "Benachrichtigungen anzeigen"
 
-#: theme/templates/includes/navbar.html:427
+#: theme/templates/includes/navbar.html:505
 msgid "Jazyk"
 msgstr "Sprache"

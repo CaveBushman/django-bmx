@@ -9,6 +9,7 @@ import stripe
 import logging
 from django.conf import settings
 from django.utils.translation import gettext as _
+from django.core.cache import cache
 
 from .func import calculate_user_balance, calculate_stripe_fee
 from event.models import CreditTransaction
@@ -36,35 +37,49 @@ def finance_admin(request):
 
     stripe_fee = calculate_stripe_fee(current_year)
     credit = calculate_user_balance()
-    rider_stats_revenue = (
-        RiderStatsCharge.objects.filter(
-            payment_valid=True,
-            transaction_date__year=current_year,
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
-    )
-    trainer_club_stats_revenue = (
-        TrainerClubCharge.objects.filter(
-            payment_valid=True,
-            transaction_date__year=current_year,
-            product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
-    )
-    trainer_extended_revenue = (
-        TrainerClubCharge.objects.filter(
-            payment_valid=True,
-            transaction_date__year=current_year,
-            product=TrainerClubSubscription.PRODUCT_EXTENDED,
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
-    )
+
+    # Caching těžkých výpočtů na 15 minut (900 sekund)
+    # Klíč obsahuje rok, aby se data nemíchala při přelomu roku
+    cache_key = f"finance_dashboard_stats_{current_year}"
+    cached_stats = cache.get(cache_key)
+
+    if not cached_stats:
+        rider_stats_revenue = (
+            RiderStatsCharge.objects.filter(
+                payment_valid=True,
+                transaction_date__year=current_year,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+        trainer_club_stats_revenue = (
+            TrainerClubCharge.objects.filter(
+                payment_valid=True,
+                transaction_date__year=current_year,
+                product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+        trainer_extended_revenue = (
+            TrainerClubCharge.objects.filter(
+                payment_valid=True,
+                transaction_date__year=current_year,
+                product=TrainerClubSubscription.PRODUCT_EXTENDED,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+        cached_stats = {
+            "rider_stats_revenue": rider_stats_revenue,
+            "trainer_club_stats_revenue": trainer_club_stats_revenue,
+            "trainer_extended_revenue": trainer_extended_revenue,
+        }
+        cache.set(cache_key, cached_stats, 900)
+
     data={
         "credit":credit,
         "stripe_fee": stripe_fee,
-        "rider_stats_revenue": rider_stats_revenue,
-        "trainer_club_stats_revenue": trainer_club_stats_revenue,
-        "trainer_extended_revenue": trainer_extended_revenue,
+        "rider_stats_revenue": cached_stats["rider_stats_revenue"],
+        "trainer_club_stats_revenue": cached_stats["trainer_club_stats_revenue"],
+        "trainer_extended_revenue": cached_stats["trainer_extended_revenue"],
         "current_year": current_year,
         "subscription_invoices": SubscriptionInvoice.objects.select_related("user").order_by("-issue_date", "-created")[:100],
     }
@@ -100,6 +115,8 @@ def finance_admin(request):
         messages.success(request, _("Ověřeno %(count)d plateb za kredity za poslední 2 dny.") % {
             'count': verified_count
         })
+        # Invalidace cache po manuální akci, aby byla čísla aktuální
+        cache.delete(cache_key)
         # Aktualizovat data po ověření
         credit = calculate_user_balance()
         data["credit"] = credit
