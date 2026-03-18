@@ -10,6 +10,7 @@ from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from accounts.models import Account
 from event.credit import calculate_user_balance
@@ -325,10 +326,9 @@ def get_credit_history(user_id):
                 amount=debet.amount,
                 payment_valid=debet.payment_valid,
                 description=(
-                    f"Prémiové statistiky: {debet.rider.first_name} {debet.rider.last_name} "
-                    f"({debet.get_reason_display().lower()})"
+                    _("Prémiové statistiky: %(name)s (%(reason)s)") % {'name': f"{debet.rider.first_name} {debet.rider.last_name}", 'reason': debet.get_reason_display().lower()}
                     if debet.rider
-                    else "Prémiové statistiky jezdce"
+                    else _("Prémiové statistiky jezdce")
                 ),
                 debit_type="rider_stats_subscription",
             )
@@ -341,10 +341,9 @@ def get_credit_history(user_id):
                 amount=debet.amount,
                 payment_valid=debet.payment_valid,
                 description=(
-                    f"Trenérské předplatné: {debet.club.team_name} "
-                    f"({debet.subscription.get_product_display().lower()}, {debet.get_reason_display().lower()})"
+                    _("Trenérské předplatné: %(club)s (%(product)s, %(reason)s)") % {'club': debet.club.team_name, 'product': debet.subscription.get_product_display().lower(), 'reason': debet.get_reason_display().lower()}
                     if debet.club and debet.subscription
-                    else "Trenérské předplatné klubu"
+                    else _("Trenérské předplatné klubu")
                 ),
                 debit_type="trainer_club_subscription",
             )
@@ -397,7 +396,7 @@ def finalize_pending_credit_transactions(user, *, session_id=""):
 def build_recalculate_balances_context():
     return {
         "status": "success",
-        "title": "Kontrola kreditu",
-        "message": "Stavy kreditů se právě překontrolovávají.",
-        "detail": "Po dokončení uvidíte výsledek přepočtu všech aktivních účtů.",
+        "title": _("Kontrola kreditu"),
+        "message": _("Stavy kreditů se právě překontrolovávají."),
+        "detail": _("Po dokončení uvidíte výsledek přepočtu všech aktivních účtů."),
     }

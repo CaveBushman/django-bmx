@@ -381,10 +381,10 @@ def rider_premium_stats_subscribe_view(request, pk):
     if created:
         messages.success(
             request,
-            f"Prémiové statistiky jezdce {rider.first_name} {rider.last_name} jsou aktivní do {timezone.localtime(subscription.expires_at):%d.%m.%Y %H:%M}.",
+            _("Prémiové statistiky jezdce %(name)s jsou aktivní do %(date)s.") % {'name': f"{rider.first_name} {rider.last_name}", 'date': timezone.localtime(subscription.expires_at).strftime("%d.%m.%Y %H:%M")}
         )
     else:
-        messages.info(request, "Prémiové statistiky tohoto jezdce už máš aktivní.")
+        messages.info(request, _("Prémiové statistiky tohoto jezdce už máš aktivní."))
 
     return redirect("rider:premium-stats", pk=pk)
 
@@ -1144,7 +1144,7 @@ def rider_premium_stats_view(request, pk):
     if not premium_access_context["premium_access"]:
         messages.error(
             request,
-            "Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub.",
+            _("Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub."),
         )
         return redirect("rider:detail", pk=pk)
 
@@ -1225,20 +1225,20 @@ def rider_premium_subscriptions_view(request):
             cancel_rider_stats_subscription(subscription)
             messages.success(
                 request,
-                f"Automatické obnovování pro {subscription.rider.first_name} {subscription.rider.last_name} bylo vypnuto.",
+                _("Automatické obnovování pro %(name)s bylo vypnuto.") % {'name': f"{subscription.rider.first_name} {subscription.rider.last_name}"}
             )
         elif action == "enable-renew":
             resume_rider_stats_subscription(subscription)
             messages.success(
                 request,
-                f"Automatické obnovování pro {subscription.rider.first_name} {subscription.rider.last_name} bylo zapnuto.",
+                _("Automatické obnovování pro %(name)s bylo zapnuto.") % {'name': f"{subscription.rider.first_name} {subscription.rider.last_name}"}
             )
         elif action == "delete":
             rider_name = f"{subscription.rider.first_name} {subscription.rider.last_name}"
             subscription.delete()
             messages.success(
                 request,
-                f"Předplatné jezdce {rider_name} bylo smazáno z přehledu.",
+                _("Předplatné jezdce %(name)s bylo smazáno z přehledu.") % {'name': rider_name}
             )
         return redirect("rider:premium-subscriptions")
 
@@ -1366,7 +1366,7 @@ def rider_licence_lookup_view(request):
     uci_id = (request.GET.get("uci_id") or "").strip()
     if not uci_id.isdigit() or len(uci_id) != 11:
         return JsonResponse(
-            {"ok": False, "message": "UCI ID musí obsahovat přesně 11 číslic."},
+            {"ok": False, "message": _("UCI ID musí obsahovat přesně 11 číslic.")},
             status=400,
         )
 
@@ -1375,7 +1375,7 @@ def rider_licence_lookup_view(request):
         return JsonResponse(
             {
                 "ok": False,
-                "message": f"Jezdec {existing.first_name} {existing.last_name} už má přidělené startovní číslo.",
+                "message": _("Jezdec %(name)s už má přidělené startovní číslo.") % {'name': f"{existing.first_name} {existing.last_name}"},
             },
             status=409,
         )
@@ -1383,7 +1383,7 @@ def rider_licence_lookup_view(request):
     data_json, error_msg = get_rider_data(uci_id)
     if error_msg or not data_json:
         return JsonResponse(
-            {"ok": False, "message": "Licence nebyla nalezena."},
+            {"ok": False, "message": _("Licence nebyla nalezena.")},
             status=404,
         )
 
@@ -1391,7 +1391,7 @@ def rider_licence_lookup_view(request):
     last_name = data_json.get("lastName", "").strip()
     birth = (data_json.get("birth", "") or "")[:10]
     gender_code = data_json.get("sex", {}).get("code", "M")
-    gender = "Žena" if gender_code == "F" else "Muž"
+    gender = _("Žena") if gender_code == "F" else _("Muž")
 
     return JsonResponse(
         {
@@ -1437,33 +1437,33 @@ def rider_new_view(request):
         }
         for field, label in required_fields.items():
             if not request.POST.get(field) or request.POST.get(field) in {"", "Vyber..."}:
-                messages.error(request, f"Pole {label} je povinné.")
+                messages.error(request, _("Pole %(label)s je povinné.") % {'label': label})
                 return render(request, "rider/rider-request.html", context)
 
         if request.POST.get("lookup_confirmed") != "1":
-            messages.error(request, "Nejprve ověř UCI ID proti licenci ČSC.")
+            messages.error(request, _("Nejprve ověř UCI ID proti licenci ČSC."))
             return render(request, "rider/rider-request.html", context)
 
         uci_id = request.POST["uci_id"].strip()
         if not uci_id.isdigit() or len(uci_id) != 11:
-            messages.error(request, "UCI ID musí obsahovat přesně 11 číslic.")
+            messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
             return render(request, "rider/rider-request.html", context)
 
         if Rider.objects.filter(uci_id=uci_id).exists():
             existing = Rider.objects.get(uci_id=uci_id)
             messages.error(
                 request,
-                f"Jezdec/jezdkyně {existing.first_name} {existing.last_name}, UCI ID {uci_id}, již má přidělené číslo.",
+                _("Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo.") % {'name': f"{existing.first_name} {existing.last_name}", 'uci_id': uci_id}
             )
             return render(request, "rider/rider-request.html", context)
 
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
-            messages.error(request, error_msg or "Licence UCI ID nebyla nalezena.")
+            messages.error(request, error_msg or _("Licence UCI ID nebyla nalezena."))
             return render(request, "rider/rider-request.html", context)
 
         if "is20" not in request.POST and "is24" not in request.POST:
-            messages.error(request, 'Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.')
+            messages.error(request, _('Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.'))
             return render(request, "rider/rider-request.html", context)
 
         Rider.objects.create(
@@ -1513,7 +1513,7 @@ def deactivate_inactive_rider_view(request, rider_id):
     rider = get_object_or_404(Rider, pk=rider_id)
 
     if rider.pk not in inactive_rider_ids:
-        messages.error(request, "Jezdce nelze deaktivovat mimo seznam neaktivních jezdců.")
+        messages.error(request, _("Jezdce nelze deaktivovat mimo seznam neaktivních jezdců."))
         return redirect("rider:inactive")
 
     rider.is_active = False
@@ -1530,7 +1530,7 @@ def deactivate_inactive_rider_view(request, rider_id):
     )
     messages.success(
         request,
-        f"Jezdec {rider.first_name} {rider.last_name} byl označen jako neaktivní.",
+        _("Jezdec %(name)s byl označen jako neaktivní.") % {'name': f"{rider.first_name} {rider.last_name}"}
     )
     return redirect("rider:inactive")
 
@@ -1539,7 +1539,7 @@ def deactivate_inactive_rider_view(request, rider_id):
 def licence_check_views(request):
     """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
-    messages.success(request, "Ověřování platnosti licencí probíhá na pozadí.")
+    messages.success(request, _("Ověřování platnosti licencí probíhá na pozadí."))
     data = {}
     return render(request, "rider/rider-success.html", data)
 
@@ -1569,7 +1569,7 @@ def participation_riders_on_event(request):
 def recalculate_riders_classes(request):
     # set_all_riders_classes()
     RiderSetClassesThread().start()
-    messages.success(request, "Kategorie jezdců jsou přepočítávány na pozadí.")
+    messages.success(request, _("Kategorie jezdců jsou přepočítávány na pozadí."))
     data = {}
     return render(request, "rider/rider-success.html", data)
 
@@ -1644,7 +1644,7 @@ def riders_by_class_and_club(request):
 def qualify_to_cn(request):
     RiderQualifyToCNThread().start()
     messages.success(
-        request, "Kvalifikace na Mistrovství České republiky je počítána na pozadí."
+        request, _("Kvalifikace na Mistrovství České republiky je počítána na pozadí.")
     )
     data = {}
     return render(request, "rider/rider-success.html", data)
@@ -1689,7 +1689,7 @@ def transponder_search_view(request):
                     "club": rider.club.team_name if rider.club else "-",
                     "plate": rider.plate_display,
                     "matched_in": ", ".join(matched_in) or "-",
-                    "status": "Aktuální čip",
+                    "status": _("Aktuální čip"),
                     "status_tone": "current",
                     "changed_at": None,
                 }
@@ -1709,7 +1709,7 @@ def transponder_search_view(request):
                     "club": rider.club or rider.state or "-",
                     "plate": rider.plate_display,
                     "matched_in": ", ".join(matched_in) or "-",
-                    "status": "Aktuální čip",
+                    "status": _("Aktuální čip"),
                     "status_tone": "current",
                     "changed_at": None,
                 }
@@ -1754,7 +1754,7 @@ def transponder_search_view(request):
                     "club": rider.club.team_name if rider.club else "-",
                     "plate": rider.plate_display,
                     "matched_in": slot_label,
-                    "status": "Historický čip",
+                    "status": _("Historický čip"),
                     "status_tone": "historical",
                     "changed_at": change.changed_at,
                 }
