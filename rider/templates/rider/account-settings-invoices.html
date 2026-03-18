@@ -128,9 +128,122 @@
             </table>
           </div>
         </div>
+        {% if invoices_page_obj %}
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            Zobrazeno {{ invoices|length }} z {{ invoices_count }} faktur.
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            {% if invoices_page_obj.has_previous %}
+            <a href="?invoice_page={{ invoices_page_obj.previous_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+              Předchozí
+            </a>
+            {% endif %}
+            <span class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              Strana {{ invoices_page_obj.number }} / {{ invoices_page_obj.paginator.num_pages }}
+            </span>
+            {% if invoices_page_obj.has_next %}
+            <a href="?invoice_page={{ invoices_page_obj.next_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+              Další
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
         {% else %}
         <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
           Zatím tu nemáš žádné faktury za předplatné.
+        </div>
+        {% endif %}
+
+        {% if managed_club %}
+        <div class="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Klubový manager</p>
+              <h3 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Faktury za startovné klubu</h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                Zobrazené jsou pouze faktury za startovné vztahující se ke klubu {{ managed_club.team_name }}.
+              </p>
+            </div>
+          </div>
+
+          {% if club_event_invoices %}
+          <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                <thead class="bg-slate-100 dark:bg-slate-950">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Číslo</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Závod</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Datum</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Částka</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Stažení</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+                  {% for invoice in club_event_invoices %}
+                  <tr class="align-top text-slate-700 dark:text-slate-200">
+                    <td class="px-4 py-3 font-semibold">{{ invoice.number }}</td>
+                    <td class="px-4 py-3">
+                      {% if invoice.event %}
+                      {{ invoice.event.name }}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-3">{{ invoice.issue_date|date:"d.m.Y" }}</td>
+                    <td class="px-4 py-3">{{ invoice.total_price|floatformat:2 }} Kč</td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-wrap gap-2">
+                        {% if invoice.pdf %}
+                        <a href="{{ invoice.pdf.url }}" target="_blank" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                          PDF
+                        </a>
+                        {% endif %}
+                        {% if invoice.xml_export %}
+                        <a href="{{ invoice.xml_export.url }}" download class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                          XML
+                        </a>
+                        {% endif %}
+                        {% if not invoice.pdf and not invoice.xml_export %}
+                        <span class="text-slate-400">-</span>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% if club_event_invoices_page_obj %}
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              Zobrazeno {{ club_event_invoices|length }} z {{ club_event_invoices_count }} klubových faktur.
+            </p>
+            <div class="flex flex-wrap items-center gap-2">
+              {% if club_event_invoices_page_obj.has_previous %}
+              <a href="?club_invoice_page={{ club_event_invoices_page_obj.previous_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                Předchozí
+              </a>
+              {% endif %}
+              <span class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                Strana {{ club_event_invoices_page_obj.number }} / {{ club_event_invoices_page_obj.paginator.num_pages }}
+              </span>
+              {% if club_event_invoices_page_obj.has_next %}
+              <a href="?club_invoice_page={{ club_event_invoices_page_obj.next_page_number }}" class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                Další
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
+            K tomuto klubu zatím nejsou vystavené žádné faktury za startovné.
+          </div>
+          {% endif %}
         </div>
         {% endif %}
       </section>

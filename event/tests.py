@@ -23,6 +23,7 @@ from event.views.entry_helpers import (
 )
 from rider.models import Rider
 from rider.models import ForeignRider
+from rider.rider import RiderQualifyToCNThread, should_recount_cn_qualification_for_event
 
 
 User = get_user_model()
@@ -134,6 +135,35 @@ class EventEntryWorkflowTests(TestCase):
         self.assertFalse(
             Entry.objects.filter(event=self.event, rider=self.rider, is_24=True).exists()
         )
+
+    def test_historical_czech_cup_does_not_recount_current_year_cn_qualification(self):
+        previous_year = date.today().year - 1
+        SeasonSettings.objects.create(year=previous_year, qualify_to_cn=1)
+
+        old_championship = Event.objects.create(
+            name="Old championship",
+            date=date(previous_year, 9, 1),
+            organizer=self.club,
+            type_for_ranking="Mistrovství ČR jednotlivců",
+        )
+        old_cup = Event.objects.create(
+            name="Old cup",
+            date=date(previous_year, 5, 1),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+
+        self.rider.is_qualify_to_cn_20 = True
+        self.rider.is_qualify_to_cn_24 = False
+        self.rider.save(update_fields=["is_qualify_to_cn_20", "is_qualify_to_cn_24"])
+
+        self.assertFalse(should_recount_cn_qualification_for_event(old_cup))
+
+        RiderQualifyToCNThread(year=previous_year).run()
+
+        self.rider.refresh_from_db()
+        self.assertTrue(self.rider.is_qualify_to_cn_20)
+        self.assertFalse(self.rider.is_qualify_to_cn_24)
 
 
 class Custom404Tests(TestCase):

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -37,7 +37,6 @@ from datetime import date
 import requests
 import requests.packages
 from decouple import config
-from openpyxl import Workbook
 from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
@@ -46,6 +45,7 @@ from rider.subscriptions import (
     get_active_trainer_club_subscription,
     get_active_trainer_extended_subscription,
     get_current_season_settings,
+    has_active_trainer_club_extended_access,
     has_active_trainer_club_stats_access,
     purchase_trainer_club_subscription,
     purchase_rider_stats_subscription,
@@ -53,8 +53,18 @@ from rider.subscriptions import (
     resume_rider_stats_subscription,
 )
 from rider.models import RiderStatsSubscription, TrainerClubSubscription
-from finance.models import SubscriptionInvoice
+from finance.models import EventInvoice, SubscriptionInvoice
 from finance.subscription_invoices import SubscriptionInvoiceService
+from rider.trainer_dashboard import (
+    build_club_kpi_export_rows,
+    build_club_riders_export_rows,
+    build_trainer_dashboard_context,
+    build_trainer_export_filename,
+    export_rows_as_csv,
+    export_rows_as_xlsx,
+    get_exportable_trainer_club_or_403,
+    handle_trainer_dashboard_post,
+)
 
 # Global variables
 now = date.today().year
@@ -186,163 +196,61 @@ def _resolve_kpi_period(period_value):
 
 @trainer_dashboard_required
 def trainer_dashboard_view(request):
-    account = request.user
-    now = timezone.now()
     if request.method == "POST":
-        action = request.POST.get("action")
+        post_response = handle_trainer_dashboard_post(request)
+        if post_response is not None:
+            return post_response
 
-        if action == "purchase-extended":
-            anchor_club = account.trainer_clubs.filter(is_active=True).order_by("team_name").first()
-            if anchor_club is None:
-                messages.error(request, "Pro rozšířené trenérské předplatné musí být k účtu přiřazený alespoň jeden aktivní klub.")
-            else:
-                try:
-                    subscription, created = purchase_trainer_club_subscription(
-                        account,
-                        club=anchor_club,
-                        product=TrainerClubSubscription.PRODUCT_EXTENDED,
-                    )
-                except ValueError as error:
-                    messages.error(request, str(error))
-                else:
-                    if created:
-                        messages.success(
-                            request,
-                            f"Rozšířené trenérské předplatné je aktivní do {timezone.localtime(subscription.expires_at):%d.%m.%Y %H:%M}.",
-                        )
-                    else:
-                        messages.info(request, "Rozšířené trenérské předplatné už máš aktivní.")
-            return redirect("rider:trainer-dashboard")
-
-        if action in {"disable-extended-renew", "enable-extended-renew"}:
-            subscription = get_object_or_404(
-                TrainerClubSubscription,
-                pk=request.POST.get("subscription_id"),
-                user=account,
-                product=TrainerClubSubscription.PRODUCT_EXTENDED,
-            )
-            if action == "disable-extended-renew":
-                cancel_trainer_club_subscription(subscription)
-                messages.success(request, "Automatické obnovování rozšířeného trenérského předplatného bylo vypnuto.")
-            else:
-                resume_trainer_club_subscription(subscription)
-                messages.success(request, "Automatické obnovování rozšířeného trenérského předplatného bylo zapnuto.")
-            return redirect("rider:trainer-dashboard")
-
-        if action == "purchase-stats":
-            club = get_object_or_404(Club, pk=request.POST.get("club_id"), is_active=True)
-            try:
-                subscription, created = purchase_trainer_club_subscription(
-                    account,
-                    club=club,
-                    product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
-                )
-            except ValueError as error:
-                messages.error(request, str(error))
-            else:
-                if created:
-                    messages.success(
-                        request,
-                        f"Klubové stats pro {club.team_name} jsou aktivní do {timezone.localtime(subscription.expires_at):%d.%m.%Y %H:%M}.",
-                    )
-                else:
-                    messages.info(request, f"Klubové stats pro {club.team_name} už máš aktivní.")
-            return redirect("rider:trainer-dashboard")
-
-        if action in {"disable-stats-renew", "enable-stats-renew"}:
-            subscription = get_object_or_404(
-                TrainerClubSubscription.objects.select_related("club"),
-                pk=request.POST.get("subscription_id"),
-                user=account,
-                product=TrainerClubSubscription.PRODUCT_CLUB_STATS,
-            )
-            if action == "disable-stats-renew":
-                cancel_trainer_club_subscription(subscription)
-                messages.success(request, f"Automatické obnovování stats pro {subscription.club.team_name} bylo vypnuto.")
-            else:
-                resume_trainer_club_subscription(subscription)
-                messages.success(request, f"Automatické obnovování stats pro {subscription.club.team_name} bylo zapnuto.")
-            return redirect("rider:trainer-dashboard")
-
-    season_settings = get_current_season_settings()
-    trainer_clubs = list(account.trainer_clubs.filter(is_active=True).order_by("team_name"))
-
-    subscriptions = (
-        TrainerClubSubscription.objects.filter(user=account, club__in=trainer_clubs)
-        .select_related("club")
-        .order_by("club__team_name", "product", "-expires_at")
-    )
-
-    latest_by_club_product = {}
-    for subscription in subscriptions:
-        key = (subscription.club_id, subscription.product)
-        if key not in latest_by_club_product:
-            latest_by_club_product[key] = subscription
-
-    def serialize_subscription(subscription):
-        if not subscription:
-            return {
-                "label": "Bez předplatného",
-                "is_active": False,
-                "expires_at": None,
-                "status": None,
-                "auto_renew": False,
-                "is_simulated": False,
-                "subscription_id": None,
-            }
-        is_active = (
-            subscription.status == TrainerClubSubscription.STATUS_ACTIVE
-            and subscription.expires_at >= now
-        )
-        return {
-            "label": subscription.get_status_display(),
-            "is_active": is_active,
-            "expires_at": subscription.expires_at,
-            "status": subscription.status,
-            "auto_renew": subscription.auto_renew,
-            "is_simulated": False,
-            "subscription_id": subscription.id,
-        }
-
-    club_rows = []
-    global_extended_subscription = get_active_trainer_extended_subscription(account, at_time=now)
-    global_extended_info = serialize_subscription(global_extended_subscription)
-    global_extended_info["requires_active_stats"] = True
-    global_extended_info["has_required_stats"] = False
-    global_extended_info["purchase_block_reason"] = None
-    global_extended_info["can_purchase"] = getattr(account, "is_trainer", False) and not global_extended_info["is_active"]
-    global_extended_info["can_disable_renew"] = global_extended_info["is_active"] and global_extended_info["auto_renew"]
-    global_extended_info["can_enable_renew"] = global_extended_info["is_active"] and not global_extended_info["auto_renew"]
-    active_stats_count = 0
-    for club in trainer_clubs:
-        stats_subscription = latest_by_club_product.get((club.id, TrainerClubSubscription.PRODUCT_CLUB_STATS))
-        stats_info = serialize_subscription(stats_subscription)
-        if stats_info["is_active"]:
-            active_stats_count += 1
-        stats_info["can_purchase"] = getattr(account, "is_trainer", False) and not stats_info["is_active"] and not stats_info["is_simulated"]
-        stats_info["can_disable_renew"] = stats_info["is_active"] and stats_info["auto_renew"] and not stats_info["is_simulated"]
-        stats_info["can_enable_renew"] = stats_info["is_active"] and not stats_info["auto_renew"] and not stats_info["is_simulated"]
-        club_rows.append(
-            {
-                "club": club,
-                "stats": stats_info,
-            }
-        )
-
-    global_extended_info["has_required_stats"] = active_stats_count > 0
-    if global_extended_info["can_purchase"] and not global_extended_info["has_required_stats"]:
-        global_extended_info["can_purchase"] = False
-        global_extended_info["purchase_block_reason"] = "Extended lze aktivovat až po předplacení stats alespoň u jednoho klubu."
-
-    context = {
-        "season_settings": season_settings,
-        "trainer_clubs": club_rows,
-        "trainer_clubs_count": len(club_rows),
-        "active_stats_count": active_stats_count,
-        "global_extended_info": global_extended_info,
-        "can_manage_trainer_subscriptions": getattr(account, "is_trainer", False),
-    }
+    context = build_trainer_dashboard_context(request.user)
     return render(request, "rider/trainer-dashboard.html", context)
+
+
+@trainer_dashboard_required
+def trainer_club_riders_export_view(request, club_id, export_format):
+    club = get_exportable_trainer_club_or_403(request.user, club_id)
+    rows = build_club_riders_export_rows(club)
+    headers = [
+        ("uci_id", "UCI ID"),
+        ("first_name", "Jméno"),
+        ("last_name", "Příjmení"),
+        ("class_20", "Kategorie 20\""),
+        ("class_24", "Kategorie 24\""),
+        ("plate", "Číslo"),
+        ("transponder_20", "Transpondér 20\""),
+        ("transponder_24", "Transpondér 24\""),
+        ("valid_licence", "Platná licence"),
+        ("email", "E-mail"),
+        ("phone", "Telefon"),
+    ]
+    filename = build_trainer_export_filename(club, "riders")
+    if export_format == "xlsx":
+        return export_rows_as_xlsx(f"{filename}.xlsx", "Riders", headers, rows)
+    return export_rows_as_csv(f"{filename}.csv", headers, rows)
+
+
+@trainer_dashboard_required
+def trainer_club_kpi_export_view(request, club_id, export_format):
+    club = get_exportable_trainer_club_or_403(request.user, club_id)
+    rows = build_club_kpi_export_rows(club)
+    headers = [
+        ("uci_id", "UCI ID"),
+        ("first_name", "Jméno"),
+        ("last_name", "Příjmení"),
+        ("class_20", "Kategorie 20\""),
+        ("class_24", "Kategorie 24\""),
+        ("starts_total", "Starty celkem"),
+        ("starts_last_2y", "Starty za 2 roky"),
+        ("best_result", "Best result"),
+        ("avg_place", "Průměrné pořadí"),
+        ("median_finish", "Medián finish"),
+        ("best_finish", "Best finish"),
+        ("median_hill", "Medián hill"),
+        ("median_split_1", "Medián split 1"),
+    ]
+    filename = build_trainer_export_filename(club, "kpi")
+    if export_format == "xlsx":
+        return export_rows_as_xlsx(f"{filename}.xlsx", "KPI", headers, rows)
+    return export_rows_as_csv(f"{filename}.csv", headers, rows)
 
 
 def riders_list_view(request):
@@ -1273,10 +1181,17 @@ def rider_premium_subscriptions_view(request):
 @login_required
 def account_settings_invoices_view(request):
     SubscriptionInvoiceService().ensure_for_user(request.user)
-    invoices = list(
+    invoices_qs = (
         SubscriptionInvoice.objects.filter(user=request.user)
         .order_by("-issue_date", "-created")
     )
+    invoices_count = invoices_qs.count()
+    invoices_page_obj = None
+    if invoices_count > 25:
+        invoices_page_obj = Paginator(invoices_qs, 25).get_page(request.GET.get("invoice_page"))
+        invoices = list(invoices_page_obj.object_list)
+    else:
+        invoices = list(invoices_qs)
     individual_subscriptions = (
         RiderStatsSubscription.objects.filter(user=request.user)
         .select_related("rider")
@@ -1287,13 +1202,38 @@ def account_settings_invoices_view(request):
         .select_related("club")
         .order_by("-expires_at", "club__team_name")[:8]
     )
+    club_event_invoices = []
+    club_event_invoices_count = 0
+    club_event_invoices_page_obj = None
+    managed_club = None
+    if getattr(request.user, "is_club_manager", False) and request.user.club_id:
+        managed_club = request.user.club
+        club_event_invoices_qs = (
+            EventInvoice.objects.filter(club=request.user.club)
+            .select_related("event", "club")
+            .order_by("-issue_date", "-created")
+        )
+        club_event_invoices_count = club_event_invoices_qs.count()
+        if club_event_invoices_count > 25:
+            club_event_invoices_page_obj = Paginator(club_event_invoices_qs, 25).get_page(
+                request.GET.get("club_invoice_page")
+            )
+            club_event_invoices = list(club_event_invoices_page_obj.object_list)
+        else:
+            club_event_invoices = list(club_event_invoices_qs)
     return render(
         request,
         "rider/account-settings-invoices.html",
         {
             "invoices": invoices,
+            "invoices_count": invoices_count,
+            "invoices_page_obj": invoices_page_obj,
             "individual_subscriptions": individual_subscriptions,
             "trainer_subscriptions": trainer_subscriptions,
+            "managed_club": managed_club,
+            "club_event_invoices": club_event_invoices,
+            "club_event_invoices_count": club_event_invoices_count,
+            "club_event_invoices_page_obj": club_event_invoices_page_obj,
         },
     )
 
