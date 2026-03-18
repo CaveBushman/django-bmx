@@ -134,7 +134,7 @@
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:!divide-slate-800 dark:!bg-slate-900">
           {% for rider in riders %}
-            <tr onclick="window.location='{% url 'rider:detail' rider.uci_id %}';" class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95" data-plate="{{ rider.plate|default:'' }}">
+            <tr onclick="window.location='{% url 'rider:detail' rider.uci_id %}';" class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95" data-plate="{{ rider.plate_display|default:'' }}">
               <td class="relative whitespace-nowrap py-5 pl-10 pr-8 before:absolute before:bottom-4 before:left-0 before:top-4 before:w-1 before:rounded-full before:bg-[linear-gradient(180deg,rgba(99,102,241,0.95),rgba(14,165,233,0.9))] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100">
                 <div class="flex items-center">
                     <div class="relative">
@@ -201,19 +201,19 @@
               <div class="flex flex-row space-x-4">
               {%if rider.is_20%}
                 {% if rider.plate_color_20 == "blue" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-800 text-lg font-bold text-white">{{rider.plate}}</div>
+                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-800 text-lg font-bold text-white">{{ rider.plate_display }}</div>
                 {% elif rider.plate_color_20 == "gray" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-500 text-lg font-bold text-white">{{rider.plate}}</div>
+                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-500 text-lg font-bold text-white">{{ rider.plate_display }}</div>
                 {% elif rider.plate_color_20 == "yellow" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-lg font-bold text-black">{{rider.plate}}</div>
+                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-lg font-bold text-black">{{ rider.plate_display }}</div>
                 {% elif rider.plate_color_20 == "white" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-solid border-gray-400 bg-white text-lg font-bold text-black">{{rider.plate}}</div>
+                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-solid border-gray-400 bg-white text-lg font-bold text-black">{{ rider.plate_display }}</div>
                 {% elif rider.plate_color_20 == "black" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">{{rider.plate}}</div>
+                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">{{ rider.plate_display }}</div>
                 {% endif %}
               {% endif %} 
               {%if rider.is_24%}
-                <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white">{{rider.plate}}</div>
+                <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white">{{ rider.plate_display }}</div>
               {% endif %}  
               </div>
               </td>

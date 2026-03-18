@@ -178,8 +178,8 @@
                   </a>
                   <div class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
                     Startovní číslo:
-                    {% if subscription.rider.plate is not None %}
-                    {{ subscription.rider.plate }}
+                    {% if subscription.rider.plate_display != "-" %}
+                    {{ subscription.rider.plate_display }}
                     {% else %}
                     -
                     {% endif %}

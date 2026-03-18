@@ -1,0 +1,109 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: django-bmx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-18 00:00+0000\n"
+"PO-Revision-Date: 2026-03-18 00:00+0000\n"
+"Last-Translator: Codex\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Czech BMX"
+msgstr "Czech BMX"
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Warning"
+msgstr "Warning"
+
+msgid "Information"
+msgstr "Information"
+
+msgid "HOME"
+msgstr "HOME"
+
+msgid "ČLÁNKY"
+msgstr "ARTICLES"
+
+msgid "KALENDÁŘ"
+msgstr "CALENDAR"
+
+msgid "JEZDCI"
+msgstr "RIDERS"
+
+msgid "KLUBY"
+msgstr "CLUBS"
+
+msgid "RANKING"
+msgstr "RANKING"
+
+msgid "PRAVIDLA"
+msgstr "RULES"
+
+msgid "KE STAŽENÍ"
+msgstr "DOWNLOADS"
+
+msgid "Přepnout světlý/tmavý režim"
+msgstr "Toggle light and dark mode"
+
+msgid "Open user menu"
+msgstr "Open user menu"
+
+msgid "Zobraz/skryj CHIPKU"
+msgstr "Show/hide CHIPKA"
+
+msgid "Jazyk"
+msgstr "Language"
+
+msgid "Aktivní registrace"
+msgstr "Active registrations"
+
+msgid "Kredit"
+msgstr "Credit"
+
+msgid "Moje nastavení a faktury"
+msgstr "My settings and invoices"
+
+msgid "Trenérský dashboard"
+msgstr "Coach dashboard"
+
+msgid "Vyhledej čip"
+msgstr "Find transponder"
+
+msgid "Finance"
+msgstr "Finance"
+
+msgid "Administrace"
+msgstr "Administration"
+
+msgid "Nasazení rozhodčích"
+msgstr "Commissar assignments"
+
+msgid "Statistika webu"
+msgstr "Website analytics"
+
+msgid "Úkoly komise"
+msgstr "Commission tasks"
+
+msgid "Odhlášení"
+msgstr "Sign out"
+
+msgid "Přihlášení"
+msgstr "Sign in"
+
+msgid "Registrace"
+msgstr "Sign up"
+
+msgid "Open main menu"
+msgstr "Open main menu"
+
+msgid "View notifications"
+msgstr "View notifications"

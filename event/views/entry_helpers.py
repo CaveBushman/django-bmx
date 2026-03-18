@@ -22,6 +22,7 @@ from event.func import (
 )
 from event.models import Entry, EntryForeign, Event, SeasonSettings
 from rider.models import ForeignRider, Rider
+from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -356,10 +357,7 @@ def _create_foreign_rider_from_entry(paid_entry):
     except (TypeError, ValueError):
         return None
 
-    try:
-        plate_value = int(paid_entry.plate) if str(paid_entry.plate).strip() else 0
-    except (TypeError, ValueError):
-        plate_value = 0
+    normalized_plate = normalize_plate_value(paid_entry.plate)
 
     nationality_code = (paid_entry.nationality or "").strip()[:3]
     foreign_rider = ForeignRider.objects.create(
@@ -370,7 +368,8 @@ def _create_foreign_rider_from_entry(paid_entry):
         gender=paid_entry.gender or "Muž",
         nationality=nationality_code,
         state=nationality_code,
-        plate=plate_value,
+        plate=legacy_plate_int(normalized_plate),
+        plate_text=normalized_plate,
         transponder_20=paid_entry.transponder_20 or "",
         transponder_24=paid_entry.transponder_24 or "",
         is_20=paid_entry.is_20,
@@ -415,11 +414,10 @@ def _update_foreign_rider_from_entry(foreign_rider, paid_entry):
         update_data["nationality"] = nationality_code
         update_data["state"] = nationality_code
 
-    try:
-        if str(paid_entry.plate).strip():
-            update_data["plate"] = int(paid_entry.plate)
-    except (TypeError, ValueError):
-        pass
+    normalized_plate = normalize_plate_value(paid_entry.plate)
+    if normalized_plate:
+        update_data["plate_text"] = normalized_plate
+        update_data["plate"] = legacy_plate_int(normalized_plate)
 
     ForeignRider.objects.filter(pk=foreign_rider.pk).update(**update_data)
     for field_name, field_value in update_data.items():
@@ -444,12 +442,6 @@ def build_public_entry_rows(entries, is_foreign=False):
             continue
 
         if is_foreign:
-            plate_value = getattr(entry, "plate", "")
-            if plate_value in (None, ""):
-                plate_display = "-"
-            else:
-                plate_display = str(plate_value)
-
             rows.append(
                 SimpleNamespace(
                     is_foreign=True,
@@ -461,7 +453,7 @@ def build_public_entry_rows(entries, is_foreign=False):
                     club=(entry.club or entry.nationality or "Foreign rider").upper(),
                     uci_id=entry.uci_id or "",
                     category=category,
-                    plate=plate_display,
+                    plate=display_plate(getattr(entry, "plate", ""), fallback="-"),
                 )
             )
             continue
@@ -473,12 +465,6 @@ def build_public_entry_rows(entries, is_foreign=False):
                 photo_url = rider.photo.url
             except Exception:
                 photo_url = ""
-
-        rider_plate_value = getattr(rider, "plate", "") if rider else ""
-        if rider_plate_value in (None, ""):
-            rider_plate_display = "-"
-        else:
-            rider_plate_display = str(rider_plate_value)
 
         rows.append(
             SimpleNamespace(
@@ -495,7 +481,11 @@ def build_public_entry_rows(entries, is_foreign=False):
                 club=(str(getattr(rider, "club", "")) or "").upper(),
                 uci_id=getattr(rider, "uci_id", "") or "",
                 category=category,
-                plate=rider_plate_display,
+                plate=display_plate(
+                    getattr(rider, "plate_text", "") if rider else "",
+                    getattr(rider, "plate", "") if rider else "",
+                    fallback="-",
+                ),
             )
         )
 
@@ -743,7 +733,7 @@ def load_foreign_rider_response(request):
                     "last_name": rider.last_name,
                     "date_of_birth": rider.date_of_birth,
                     "sex": rider.gender,
-                    "plate": rider.plate,
+                    "plate": rider.plate_display,
                     "transponder_20": rider.transponder_20,
                     "transponder_24": rider.transponder_24,
                     "nationality": nationality_code,

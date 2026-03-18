@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 
 from datetime import date
 import re
+from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
 
 
 # Create your models here.
@@ -147,6 +148,7 @@ class Rider(models.Model):
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
 
     plate = models.IntegerField(blank=True, null=True, default=0)
+    plate_text = models.CharField(max_length=10, blank=True, null=True, default="")
     plate_champ_20 = models.IntegerField(null=True, blank=True)
     plate_champ_24 = models.IntegerField(null=True, blank=True)
     plate_color_20 = models.CharField(max_length=10, default="yellow", null=True)
@@ -166,6 +168,19 @@ class Rider(models.Model):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+    @property
+    def plate_display(self):
+        return display_plate(self.plate_text, self.plate)
+
+    def save(self, *args, **kwargs):
+        normalized_plate = normalize_plate_value(self.plate_text)
+        if not normalized_plate:
+            normalized_plate = normalize_plate_value(self.plate)
+
+        self.plate_text = normalized_plate
+        self.plate = legacy_plate_int(normalized_plate)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "Jezdci"
@@ -690,6 +705,7 @@ class ForeignRider(models.Model):
     transponder_24 = models.CharField(max_length=8, blank=True, null=True)
 
     plate = models.IntegerField(blank=True, null=True, default=0)
+    plate_text = models.CharField(max_length=10, blank=True, null=True, default="")
 
     state = models.CharField(max_length=3, null=True, blank=True)
     club = models.CharField(max_length=200, null=True, blank=True)
@@ -699,6 +715,19 @@ class ForeignRider(models.Model):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+    @property
+    def plate_display(self):
+        return display_plate(self.plate_text, self.plate)
+
+    def save(self, *args, **kwargs):
+        normalized_plate = normalize_plate_value(self.plate_text)
+        if not normalized_plate:
+            normalized_plate = normalize_plate_value(self.plate)
+
+        self.plate_text = normalized_plate
+        self.plate = legacy_plate_int(normalized_plate)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "Zahranicni_jezdci"

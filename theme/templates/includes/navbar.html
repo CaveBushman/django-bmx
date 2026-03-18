@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 {% load l10n %}
 <style>
   html.dark #profile-dropdown {
@@ -30,67 +30,66 @@
           <div class="ml-10 flex items-baseline space-x-4">
             {% if '/' == request.path %}
             <a href="{% url 'news:homepage' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">HOME</a>
+              aria-current="page">{% trans "HOME" %}</a>
             {% else %}
             <a href="{% url 'news:homepage' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">HOME</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "HOME" %}</a>
             {% endif %}
 
             {% if 'news' in request.path %}
             <a href="{% url 'news:news-list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">ČLÁNKY</a>
+              aria-current="page">{% trans "ČLÁNKY" %}</a>
             {% else %}
             <a href="{% url 'news:news-list' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">ČLÁNKY</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ČLÁNKY" %}</a>
             {% endif %}
 
             {% if 'event' in request.path %}
             <a href="{% url 'event:events' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">KALENDÁŘ</a>
+              aria-current="page">{% trans "KALENDÁŘ" %}</a>
             {% else %}
             <a href="{% url 'event:events' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KALENDÁŘ</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KALENDÁŘ" %}</a>
             {% endif %}
 
             {% if '/rider' in request.path %}
             <a href="{% url 'rider:list' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">JEZDCI</a>
+              aria-current="page">{% trans "JEZDCI" %}</a>
             {% else %}
             <a href="{% url 'rider:list' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">JEZDCI</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "JEZDCI" %}</a>
             {% endif %}
 
             {% if 'club' in request.path %}
             <a href="{% url 'club:clubs-list' %}"
-              class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">KLUBY</a>
+              class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">{% trans "KLUBY" %}</a>
             {% else %}
             <a href="{% url 'club:clubs-list' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KLUBY</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KLUBY" %}</a>
             {% endif %}
 
             {% if 'ranking' in request.path %}
             <a href="{% url 'ranking:ranking' %}"
-              class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">RANKING</a>
+              class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">{% trans "RANKING" %}</a>
             {% else %}
             <a href="{% url 'ranking:ranking' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">RANKING</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "RANKING" %}</a>
             {% endif %}
 
             {% if 'rules' in request.path %}
             <a href="{% url 'news:rules' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">PRAVIDLA</a>
+              aria-current="page">{% trans "PRAVIDLA" %}</a>
             {% else %}
             <a href="{% url 'news:rules' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">PRAVIDLA</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "PRAVIDLA" %}</a>
             {% endif %}
 
             {% if 'downloads' in request.path %}
             <a href="{% url 'news:downloads' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">KE STAŽENÍ</a>
+              aria-current="page">{% trans "KE STAŽENÍ" %}</a>
             {% else %}
             <a href="{% url 'news:downloads' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">KE
-              STAŽENÍ</a>
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
             {% endif %}
 
           </div>
@@ -125,7 +124,7 @@
 
             <button id="theme-toggle" type="button" onclick="toggleTheme()"
               class="p-3 ml-3 bg-indigo-800 rounded-full flex items-center justify-center text-white hover:bg-indigo-700 transition-colors duration-200 ease-in-out"
-              aria-label="Přepnout světlý/tmavý režim">
+              aria-label="{% trans 'Přepnout světlý/tmavý režim' %}">
               <!-- Slunce — zobrazuje se v dark modu -->
               <svg id="icon-sun" class="w-6 h-6 hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M10 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-11a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1Zm0 12a1 1 0 0 0-1 1v2a1 1 0 1 0 2 0v-2a1 1 0 0 0-1-1ZM4.343 5.757a1 1 0 0 0 1.414-1.414L4.343 2.929a1 1 0 0 0-1.414 1.414l1.414 1.414Zm11.314 8.486a1 1 0 0 0-1.414 1.414l1.414 1.414a1 1 0 0 0 1.414-1.414l-1.414-1.414ZM4 10a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1Zm15-1h-2a1 1 0 1 0 0 2h2a1 1 0 0 0 0-2ZM4.343 14.243l-1.414 1.414a1 1 0 1 0 1.414 1.414l1.414-1.414a1 1 0 0 0-1.414-1.414ZM14.95 6.05a1 1 0 0 0 .707-.293l1.414-1.414a1 1 0 1 0-1.414-1.414l-1.414 1.414a1 1 0 0 0 .707 1.707Z" />
@@ -146,13 +145,48 @@
             </div>
 
             {% endif %}
+
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% get_available_languages as AVAILABLE_LANGUAGES %}
+            <div class="relative ml-3 hidden md:block">
+              <button type="button"
+                class="inline-flex items-center gap-x-2 rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.04em] text-white shadow-sm backdrop-blur transition hover:bg-white/14 dark:border-white/10 dark:bg-white/8 dark:hover:bg-white/12"
+                id="language-menu-button" aria-expanded="false" aria-haspopup="true">
+                <span>
+                  {% if CURRENT_LANGUAGE == 'cs' %}Čeština{% elif CURRENT_LANGUAGE == 'en' %}English{% elif CURRENT_LANGUAGE == 'de' %}Deutsch{% else %}{{ CURRENT_LANGUAGE|upper }}{% endif %}
+                </span>
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 text-white/80">
+                  <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" />
+                </svg>
+              </button>
+              <div id="language-menu"
+                class="absolute right-0 mt-2 hidden min-w-44 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-slate-900/8 dark:border-slate-700 dark:bg-slate-900 dark:ring-white/10">
+                {% for code, name in AVAILABLE_LANGUAGES %}
+                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <input type="hidden" name="language" value="{{ code }}">
+                  <button type="submit"
+                    class="flex w-full items-center justify-between rounded-xl px-4 py-2 text-left text-sm font-medium transition {% if code == CURRENT_LANGUAGE %}bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white{% else %}text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800{% endif %}">
+                    <span>{{ name }}</span>
+                    {% if code == CURRENT_LANGUAGE %}
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                      <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" />
+                    </svg>
+                    {% endif %}
+                  </button>
+                </form>
+                {% endfor %}
+              </div>
+            </div>
+
             <!-- Profile dropdown -->
             <div class="relative ml-3">
               <div>
                 <button type="button"
                   class="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-800"
                   id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-                  <span class="sr-only">Open user menu</span>
+                  <span class="sr-only">{% trans "Open user menu" %}</span>
                   {% if user.is_authenticated %}
                   <div><img class="h-10 w-10 rounded-full object-cover" src="{{user.photo.url}}" alt="" /></div>
                   {% else %}
@@ -165,36 +199,35 @@
                 class="absolute z-50 right-0 mt-2 w-64 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-slate-900/8 focus:outline-none hidden dark:border-slate-700 dark:bg-slate-900 dark:ring-white/10"
                 role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                 <button class="block w-full rounded-xl px-4 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem" tabindex="-1"
-                  id="toggle-chipka">Zobraz/skryj
-                  CHIPKU</button>
+                  id="toggle-chipka">{% trans "Zobraz/skryj CHIPKU" %}</button>
                 {% if user.is_authenticated %}
                 <a href="{% url 'event:checkout' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-1">Aktivní registrace</a>
+                  tabindex="-1" id="user-menu-item-1">{% trans "Aktivní registrace" %}</a>
                 <a href="{% url 'event:credit' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-credit">Kredit</a>
+                  tabindex="-1" id="user-menu-item-credit">{% trans "Kredit" %}</a>
                 <a href="{% url 'rider:account' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-account">Moje nastavení a faktury</a>
+                  tabindex="-1" id="user-menu-item-account">{% trans "Moje nastavení a faktury" %}</a>
                 {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
                 <a href="{% url 'rider:trainer-dashboard' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-trainer-dashboard">Trenérský dashboard</a>
+                  tabindex="-1" id="user-menu-item-trainer-dashboard">{% trans "Trenérský dashboard" %}</a>
                 {% endif %}
                 <a href="{% url 'rider:transponder-search' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1">Vyhledej čip</a>
+                  role="menuitem" tabindex="-1">{% trans "Vyhledej čip" %}</a>
                 {% if user.is_admin %}
                   <a href="{% url 'finance:finance' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">Finance</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Finance" %}</a>
                 <a href="{% url 'admin:index' %}" target="_blank" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">Administrace</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Administrace" %}</a>
                 <a href="{% url 'event:commissar-assignments' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-commissars">Nasazení rozhodčích</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-commissars">{% trans "Nasazení rozhodčích" %}</a>
                 <a href="{% url 'admin_stats:visit_stats' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">Statistika webu</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Statistika webu" %}</a>
 
                 {% endif %}
                 {% if user.is_commission %}
                 <a href="{% url 'todo:task-list' %}" class="flex items-center justify-between rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   role="menuitem" tabindex="-1" id="user-menu-item-tasks">
-                  <span>Úkoly komise</span>
+                  <span>{% trans "Úkoly komise" %}</span>
                   {% if navbar_task_count %}
                   <span class="ml-3 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold text-white {% if navbar_task_has_overdue %}bg-red-600{% else %}bg-emerald-600{% endif %}">
                     {{ navbar_task_count }}
@@ -204,14 +237,14 @@
                 {% endif %}
                 <div class="my-2 border-t border-slate-200 dark:border-slate-700"></div>
                 <a href="{% url 'accounts:logout' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-3">Odhlášení</a>
+                  tabindex="-1" id="user-menu-item-3">{% trans "Odhlášení" %}</a>
                 {% else %}
                 <a href="{% url 'rider:transponder-search' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1">Vyhledej čip</a>
+                  tabindex="-1">{% trans "Vyhledej čip" %}</a>
                 <a href="{% url 'accounts:login' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-4">Přihlášení</a>
+                  tabindex="-1" id="user-menu-item-4">{% trans "Přihlášení" %}</a>
                 <a href="{% url 'accounts:signup' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
-                  tabindex="-1" id="user-menu-item-5">Registrace</a>
+                  tabindex="-1" id="user-menu-item-5">{% trans "Registrace" %}</a>
                 {% endif %}
               </div>
             </div>
@@ -221,7 +254,7 @@
           <button id="show-mobile-nav-btn" type="button"
             class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
             aria-controls="mobile-menu" aria-expanded="false">
-            <span class="sr-only">Open main menu</span>
+            <span class="sr-only">{% trans "Open main menu" %}</span>
             <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -240,29 +273,28 @@
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="{% url 'news:homepage' %}"
-          class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Home</a>
+          class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">{% trans "HOME" %}</a>
 
         <a href="{% url 'news:news-list' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Články</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ČLÁNKY" %}</a>
 
         <a href="{% url 'event:events' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Kalendář</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KALENDÁŘ" %}</a>
 
         <a href="{% url 'rider:list' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Jezdci</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "JEZDCI" %}</a>
 
         <a href="{% url 'club:clubs-list' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Kluby</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KLUBY" %}</a>
 
         <a href="{% url 'ranking:ranking' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Ranking</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "RANKING" %}</a>
 
         <a href="{% url 'news:rules' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Pravidla</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "PRAVIDLA" %}</a>
 
         <a href="{% url 'news:downloads' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Ke
-          stažení</a>
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
       </div>
 
       {% if user.is_authenticated and request.session.orders %}
@@ -302,7 +334,7 @@
           {% if user.is_authenticated %}
           <button type="button"
             class="ml-auto flex-shrink-0 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-            <span class="sr-only">View notifications</span>
+            <span class="sr-only">{% trans "View notifications" %}</span>
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -316,7 +348,28 @@
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Your
             Profile</a> {% endcomment %}
           <button class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem" tabindex="-1"
-            id="toggle-chipka-mobile">Zobraz/skryj CHIPKU</button>
+            id="toggle-chipka-mobile">{% trans "Zobraz/skryj CHIPKU" %}</button>
+          <div class="px-3 py-2">
+            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{% trans "Jazyk" %}</span>
+            <div class="space-y-2">
+              {% for code, name in AVAILABLE_LANGUAGES %}
+              <form action="{% url 'set_language' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <input type="hidden" name="language" value="{{ code }}">
+                <button type="submit"
+                  class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-base font-semibold transition {% if code == CURRENT_LANGUAGE %}bg-white text-slate-900 shadow-sm{% else %}bg-gray-800 text-white hover:bg-gray-700{% endif %}">
+                  <span>{{ name }}</span>
+                  {% if code == CURRENT_LANGUAGE %}
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                    <path d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" />
+                  </svg>
+                  {% endif %}
+                </button>
+              </form>
+              {% endfor %}
+            </div>
+          </div>
 
           {% if user.is_authenticated %}
           {% comment %} <a href="#"
@@ -324,28 +377,28 @@
             Profile</a> {% endcomment %}
 
           <a href="{% url 'event:checkout' %}" class="block px-3 py-2 text-base font-medium text-gray-400"
-            role="menuitem" tabindex="-1" id="user-menu-item-1">Aktivní registrace</a>
+            role="menuitem" tabindex="-1" id="user-menu-item-1">{% trans "Aktivní registrace" %}</a>
           <a href="{% url 'event:credit' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-credit">Kredit</a>
+            tabindex="-1" id="user-menu-item-credit">{% trans "Kredit" %}</a>
           <a href="{% url 'rider:account' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-account-mobile">Moje nastavení a faktury</a>
+            tabindex="-1" id="user-menu-item-account-mobile">{% trans "Moje nastavení a faktury" %}</a>
           {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
           <a href="{% url 'rider:trainer-dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-trainer-dashboard-mobile">Trenérský dashboard</a>
+            tabindex="-1" id="user-menu-item-trainer-dashboard-mobile">{% trans "Trenérský dashboard" %}</a>
           {% endif %}
           {% if user.is_admin %}
           <a href="{% url 'admin:index' %}" target="_blank"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Administrace</a>
+            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Administrace" %}</a>
           <a href="{% url 'event:commissar-assignments' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Nasazení rozhodčích</a>
+            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Nasazení rozhodčích" %}</a>
           <a href="{% url 'admin_stats:visit_stats' %}"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-            role="menuitem" tabindex="-1" id="user-menu-item-2">Statistika webu</a>
+            role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Statistika webu" %}</a>
           {% endif %}
                 {% if user.is_commission %}
           <a href="{% url 'todo:task-list' %}"
             class="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">
-            <span>Úkoly komise</span>
+            <span>{% trans "Úkoly komise" %}</span>
             {% if navbar_task_count %}
             <span class="ml-3 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold text-white {% if navbar_task_has_overdue %}bg-red-600{% else %}bg-emerald-600{% endif %}">
               {{ navbar_task_count }}
@@ -354,12 +407,12 @@
           </a>
           {% endif %}
           <a href="{% url 'accounts:logout' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Odhlášení</a>
+            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Odhlášení" %}</a>
           {% else %}
           <a href="{% url 'accounts:login' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Přihlášení</a>
+            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Přihlášení" %}</a>
           <a href="{% url 'accounts:signup' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Registrace</a>
+            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Registrace" %}</a>
           {% endif %}
         </div>
       </div>
@@ -372,11 +425,36 @@
           dropdown.classList.add('hidden');
         }
 
+        const languageMenu = document.getElementById("language-menu");
+        if (languageMenu && !languageMenu.classList.contains("hidden")) {
+          languageMenu.classList.add("hidden");
+        }
+
         const mobileMenu = document.getElementById("mobile-menu");
         if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
           mobileMenu.classList.add('hidden');
         }
       }
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const languageButton = document.getElementById("language-menu-button");
+        const languageMenu = document.getElementById("language-menu");
+
+        if (languageButton && languageMenu) {
+          languageButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            languageMenu.classList.toggle("hidden");
+          });
+
+          document.addEventListener("click", function (event) {
+            if (!languageMenu.classList.contains("hidden") && !languageMenu.contains(event.target) && !languageButton.contains(event.target)) {
+              languageMenu.classList.add("hidden");
+            }
+          });
+        }
+      });
     </script>
     <script>
       function toggleChatbot() {

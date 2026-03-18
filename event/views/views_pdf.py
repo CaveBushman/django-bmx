@@ -121,7 +121,7 @@ def generate_pdf(request, pk):
         category = entry.rider.class_20 if entry.is_20 else entry.rider.class_24 if entry.is_24 else ""
         data.append([
             f"{entry.rider.last_name} {entry.rider.first_name}",
-            entry.rider.plate or "",
+            entry.rider.plate_display if entry.rider else "",
             category,
             entry.rider.club or "",
             "", "",  # záloha, čip — vyplní komisař ručně

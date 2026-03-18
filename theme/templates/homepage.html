@@ -646,24 +646,22 @@
             </div>
 
             <div class="relative z-10 mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+                {% for sponsor in sponsors %}
                 <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
-                    <img class="max-h-12 w-full object-contain" src="{% static 'images/partners/skoda.png' %}" alt="Škoda" width="158" height="48">
+                    {% if sponsor.url %}
+                    <a href="{{ sponsor.url }}" target="_blank" rel="noopener noreferrer" class="flex w-full items-center justify-center">
+                    {% endif %}
+                        <img class="max-h-12 w-full object-contain dark:hidden" src="{{ sponsor.logo_light.url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
+                        <img class="hidden max-h-12 w-full object-contain dark:block" src="{{ sponsor.dark_logo_or_light.url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
+                    {% if sponsor.url %}
+                    </a>
+                    {% endif %}
                 </div>
-                <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
-                    <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/csc.png' %}" alt="ČSC" width="158" height="48">
-                    <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/CSC_Logo_Horizontal_CZ_WHITE.png' %}" alt="ČSC" width="158" height="48">
-                </div>
-                <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
-                    <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/sazka.png' %}" alt="Sazka" width="158" height="48">
-                    <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/sazka_dark.png' %}" alt="Sazka" width="158" height="48">
-                </div>
-                <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
-                    <img class="max-h-12 w-full object-contain dark:hidden" src="{% static 'images/partners/uci-logo.svg' %}" alt="UCI" width="158" height="48">
-                    <img class="hidden max-h-12 w-full object-contain dark:block" src="{% static 'images/partners/uci-logo_dark.png' %}" alt="UCI" width="158" height="48">
-                </div>
-                <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5 sm:col-span-3 xl:col-span-1">
-                    <img class="max-h-12 w-full object-contain" src="{% static 'images/partners/koop.svg' %}" alt="Kooperativa" width="158" height="48">
-                </div>
+                {% empty %}
+                <p class="col-span-full text-center text-sm text-slate-500 dark:text-slate-400">
+                    Sponzoři budou doplněni.
+                </p>
+                {% endfor %}
             </div>
         </div>
     </div>

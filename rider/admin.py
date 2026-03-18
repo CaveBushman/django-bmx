@@ -1,4 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import path
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -14,8 +18,12 @@ from .models import (
     RiderStatsSubscription,
     RiderTransponderChange,
 )
+from .plates import display_plate
 
 class RiderResource(resources.ModelResource):
+    def dehydrate_plate(self, obj):
+        return obj.plate_display
+
     class Meta:
         model = Rider
         fields = (
@@ -69,6 +77,7 @@ class RiderResource(resources.ModelResource):
 class RiderAdmin(ExportMixin, admin.ModelAdmin):
 
     resource_class = RiderResource
+    change_list_template = "admin/rider/rider/change_list.html"
 
     def thumbnail(self, object):
         return format_html(
@@ -78,20 +87,24 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
 
     thumbnail.short_description = 'Foto'
 
-    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approved')
+    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate_value','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approved')
     list_display_links = ('last_name',)
     ordering = ('last_name','first_name',)
     list_editable = ('is_20', 'is_24','is_elite','is_active','is_approved')
-    search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate',)
+    search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate', 'plate_text')
     list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club',)
     readonly_fields = ('transponder_change_overview',)
+
+    @admin.display(description='Číslo')
+    def plate_value(self, obj):
+        return obj.plate_display
     fieldsets = (
         ('Identita', {
             'fields': (
                 ('first_name', 'middle_name', 'last_name'),
                 ('uci_id', 'date_of_birth'),
                 ('gender', 'nationality'),
-                ('club', 'plate'),
+                ('club', 'plate', 'plate_text'),
             ),
         }),
         ('Kategorie a ranking', {
@@ -200,13 +213,80 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
         )
         return format_html("{}", mark_safe(table))
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "migrate-plates/",
+                self.admin_site.admin_view(self.migrate_plate_text_view),
+                name="rider_rider_migrate_plates",
+            ),
+        ]
+        return custom_urls + urls
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["plate_migration_url"] = reverse("admin:rider_rider_migrate_plates")
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def _copy_plate_values(self, model):
+        records = list(
+            model.objects.filter(plate__isnull=False, plate__gt=0).order_by("pk")
+        )
+        to_update = []
+        copied = 0
+        skipped = 0
+
+        for record in records:
+            current_value = (record.plate_text or "").strip()
+            expected_value = str(record.plate)
+            if current_value:
+                skipped += 1
+                continue
+            record.plate_text = expected_value
+            to_update.append(record)
+            copied += 1
+
+        if to_update:
+            model.objects.bulk_update(to_update, ["plate_text"])
+
+        return copied, skipped
+
+    def migrate_plate_text_view(self, request):
+        if not self.has_change_permission(request):
+            return TemplateResponse(request, "admin/403.html", status=403)
+
+        if request.method != "POST":
+            context = {
+                **self.admin_site.each_context(request),
+                "opts": self.model._meta,
+                "title": "Překlopení startovních čísel do textového pole",
+                "plate_migration_url": reverse("admin:rider_rider_migrate_plates"),
+            }
+            return TemplateResponse(request, "admin/rider/rider/migrate_plates_confirm.html", context)
+
+        with transaction.atomic():
+            rider_copied, rider_skipped = self._copy_plate_values(Rider)
+            foreign_copied, foreign_skipped = self._copy_plate_values(ForeignRider)
+
+        self.message_user(
+            request,
+            (
+                "Překlopení dokončeno. "
+                f"Domácí jezdci: zkopírováno {rider_copied}, přeskočeno {rider_skipped}. "
+                f"Zahraniční jezdci: zkopírováno {foreign_copied}, přeskočeno {foreign_skipped}."
+            ),
+            level=messages.SUCCESS,
+        )
+        return HttpResponseRedirect(reverse("admin:rider_rider_changelist"))
+
 class ForeignRiderAdmin(admin.ModelAdmin):
 
     list_display = (
         'last_name',
         'first_name',
         'uci_id',
-        'plate',
+        'plate_value',
         'transponder_20',
         'transponder_24',
         'state',
@@ -217,9 +297,13 @@ class ForeignRiderAdmin(admin.ModelAdmin):
         'paid_entries_count',
         'last_paid_event',
     )
+
+    @admin.display(description='Číslo')
+    def plate_value(self, obj):
+        return obj.plate_display
     list_display_links = ('last_name',)
     ordering = ('last_name', 'first_name')
-    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate')
+    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate', 'plate_text')
     list_filter = ('state', 'is_20', 'is_24', 'is_elite')
     readonly_fields = ('registration_overview',)
     fieldsets = (
@@ -228,7 +312,7 @@ class ForeignRiderAdmin(admin.ModelAdmin):
                 ('first_name', 'last_name'),
                 ('uci_id', 'date_of_birth'),
                 ('gender', 'state', 'nationality'),
-                ('club', 'plate'),
+                ('club', 'plate', 'plate_text'),
             ),
         }),
         ('Kategorie a transpondéry', {

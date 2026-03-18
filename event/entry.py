@@ -6,6 +6,7 @@ import event
 logger = logging.getLogger(__name__)
 from .models import Entry, Event, EntryForeign as EntryForeignModel
 from rider.models import Rider, ForeignRider
+from rider.plates import display_plate
 from datetime import datetime
 from django.utils import timezone
 import stripe
@@ -267,9 +268,9 @@ class REMRiders:
             self.ws.cell(row, 16, )
             self.ws.cell(row, 17, )
             self.ws.cell(row, 18, )
-            self.ws.cell(row, 19, rider.plate)
+            self.ws.cell(row, 19, rider.plate_display)
             self.ws.cell(row, 20, rider.transponder_20)
-            self.ws.cell(row, 21, rider.plate)
+            self.ws.cell(row, 21, rider.plate_display)
             self.ws.cell(row, 22, rider.transponder_24)
             self.ws.cell(row, 23, )
             row += 1
@@ -297,9 +298,9 @@ class REMRiders:
             self.ws.cell(row, 16, )
             self.ws.cell(row, 17, )
             self.ws.cell(row, 18, )
-            self.ws.cell(row, 19, rider.plate)
+            self.ws.cell(row, 19, rider.plate_display)
             self.ws.cell(row, 20, rider.transponder_20)
-            self.ws.cell(row, 21, rider.plate)
+            self.ws.cell(row, 21, rider.plate_display)
             self.ws.cell(row, 22, rider.transponder_24)
             self.ws.cell(row, 23, )
             row += 1
@@ -359,12 +360,12 @@ class REMRiders:
                     world_plate = "W" + str(entry.rider.plate_champ_20)
                     self.ws.cell(row, 19, world_plate)
                 elif entry.is_20 or entry.is_beginner:
-                    self.ws.cell(row, 19, entry.rider.plate)
+                    self.ws.cell(row, 19, entry.rider.plate_display)
                 elif entry.is_24 and entry.rider.plate_champ_24:
                     world_plate = "W" + str(entry.rider.plate_champ_24)
                     self.ws.cell(row, 21, world_plate)
                 else:
-                    self.ws.cell(row, 21, entry.rider.plate)
+                    self.ws.cell(row, 21, entry.rider.plate_display)
                 if entry.is_24:
                     self.ws.cell(row, 22, entry.rider.transponder_24)
                 else:
@@ -418,6 +419,5 @@ class REMRiders:
         self.event.rem_entries = file_name
         self.event.rem_entries_created = timezone.now()
         self.event.save()
-
 
 

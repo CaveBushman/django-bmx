@@ -131,12 +131,12 @@
           {% elif rider.plate_color_20 == 'white' %}border-2 border-slate-400 bg-white text-black
           {% elif rider.plate_color_20 == 'black' %}bg-black text-white
           {% else %}bg-yellow-300 text-black{% endif %}">
-          {{ rider.plate }}
+          {{ rider.plate_display }}
         </div>
         {% endif %}
         {% if rider.is_24 %}
         <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-black text-white">
-          {{ rider.plate }}
+          {{ rider.plate_display }}
         </div>
         {% endif %}
       </div>

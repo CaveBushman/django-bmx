@@ -136,9 +136,10 @@
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
-                      <input type="number" name="plate[]"
+                      <input type="text" name="plate[]"
                         class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        min="1" step="1" placeholder="Plate no." value="{{ row.plate }}">
+                        maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                        placeholder="Plate no." value="{{ row.plate }}">
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
@@ -253,9 +254,9 @@
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
-                      <input type="number" name="plate[]"
+                      <input type="text" name="plate[]"
                         class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        min="1" step="1" readonly placeholder="Plate no.">
+                        maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()" readonly placeholder="Plate no.">
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
