@@ -1,7 +1,9 @@
+import datetime
 from django.db import models
 from chat.models import ChatLog
 from django.conf import settings
 from rest_framework import generics
+from django.utils.translation import gettext as _
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -141,17 +143,16 @@ class ChatbotAPIView(APIView):
 
             # Pevně dané FAQ odpovědi (dostupné pro všechny)
             faq = {
-                "kdy je další závod": "Podívej se na tomto webu do sekce Kalendář.",
-                "kdy se otevře registrace": "Registrace se otevře 1. dubna.",
-                "kolik stojí startovné": "Startovné závisí na druhu závodu a kategorii. Na České lize je to zpravidla 400 Kč, na Českém poháru 500 Kč.",
-                "kdo má startovní číslo": "Startovní číslo je přiděleno každému jezdci po registraci. Přehled startovních čísel najdeš v seznamu přihlášených jezdců na stránce závodu."
+                "kdy se otevře registrace": _("Registrace se otevře 1. dubna."),
+                "kolik stojí startovné": _("Startovné závisí na druhu závodu a kategorii. Na České lize je to zpravidla 400 Kč, na Českém poháru 500 Kč."),
+                "kdo má startovní číslo": _("Startovní číslo je přiděleno každému jezdci po registraci. Přehled startovních čísel najdeš v seznamu přihlášených jezdců na stránce závodu.")
             }
 
             match = re.search(r"(startovní\s+)?číslo\s+([a-z]?\d{2,3})", user_message.lower())
             if match:
                 # Vyhledávání jezdce podle startovního čísla — pouze pro přihlášené
                 if not request.user.is_authenticated:
-                    answer = "Pro vyhledávání jezdců se prosím přihlas."
+                    answer = _("Pro vyhledávání jezdců se prosím přihlas.")
                 else:
                     plate = normalize_plate_value(match.group(2))
                     rider_filter = models.Q(plate_text__iexact=plate)
@@ -159,26 +160,71 @@ class ChatbotAPIView(APIView):
                         rider_filter |= models.Q(plate=legacy_plate_int(plate))
                     rider = Rider.objects.filter(rider_filter, is_active=True).first()
                     if rider:
-                        answer = f"Startovní číslo {plate} má {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                        answer = _("Startovní číslo {plate} má {first_name} {last_name} z klubu {club}.").format(plate=plate, first_name=rider.first_name, last_name=rider.last_name, club=rider.club)
                     else:
                         # Stejná zpráva pro "neexistuje" i "nenalezeno" — zamezení enumerace
-                        answer = "Jezdec s tímto startovním číslem nebyl nalezen."
+                        answer = _("Jezdec s tímto startovním číslem nebyl nalezen.")
             else:
                 chip_match = re.search(r"(komu patří|kdo má|čí je)?\s*čip\s*([A-Z]{2}-\d{5})", user_message, re.IGNORECASE)
                 if chip_match:
                     # Vyhledávání jezdce podle čipu — pouze pro přihlášené
                     if not request.user.is_authenticated:
-                        answer = "Pro vyhledávání jezdců se prosím přihlas."
+                        answer = _("Pro vyhledávání jezdců se prosím přihlas.")
                     else:
                         chip_number = chip_match.group(2)
                         rider = Rider.objects.filter(
                             models.Q(transponder_20=chip_number) | models.Q(transponder_24=chip_number)
                         ).first()
                         if rider:
-                            answer = f"Čip {chip_number} patří jezdci {rider.first_name} {rider.last_name} z klubu {rider.club}."
+                            answer = _("Čip {chip_number} patří jezdci {first_name} {last_name} z klubu {club}.").format(chip_number=chip_number, first_name=rider.first_name, last_name=rider.last_name, club=rider.club)
                         else:
                             # Stejná zpráva bez ohledu na existenci — zamezení enumerace
-                            answer = "Jezdec s tímto čipem nebyl nalezen."
+                            answer = _("Jezdec s tímto čipem nebyl nalezen.")
+                elif "další závod" in user_message.lower() or "kdy je závod" in user_message.lower():
+                    next_event = Event.objects.filter(date__gte=datetime.date.today(), canceled=False).order_by('date').first()
+                    if next_event:
+                        answer = _("Další závod je {name}, který se koná {date}.").format(name=next_event.name, date=next_event.date.strftime('%d.%m.%Y'))
+                    else:
+                        answer = _("V kalendáři momentálně není žádný nadcházející závod.")
+                elif any(phrase in user_message.lower() for phrase in ["kdy je", "kde je", "kdy bude", "kde bude", "kdy se koná", "kde se koná"]):
+                    upcoming_events = Event.objects.filter(date__gte=datetime.date.today(), canceled=False)
+                    found_event = None
+                    for event in upcoming_events:
+                        if event.name.lower() in user_message.lower():
+                            found_event = event
+                            break
+                    
+                    if found_event:
+                        answer = _("Závod {name} se koná {date}.").format(name=found_event.name, date=found_event.date.strftime('%d.%m.%Y'))
+                    else:
+                        # Fallback to external model
+                        response = requests.post(
+                            "https://openrouter.ai/api/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "model": "mistralai/mistral-7b-instruct",
+                                "messages": [
+                                    {
+                                        "role": "system",
+                                        "content": "Jsi přátelský chatbot pro web České BMX komunity. Odpovídej stejným jazykem, jakým je dotaz. Buď stručný, přehledný a věcný."
+                                    },
+                                    {
+                                        "role": "user",
+                                        "content": user_message
+                                    }
+                                ]
+                            }
+                        )
+                        data = response.json()
+                        if "choices" in data:
+                            answer = data["choices"][0]["message"]["content"]
+                        elif "error" in data:
+                            answer = _("Externí model odmítl odpověď: {error}").format(error=data['error'].get('message', 'Neznámá chyba'))
+                        else:
+                            answer = _("Odpověď od modelu nebyla ve správném formátu.")
                 elif user_message.lower() in faq:
                     answer = faq[user_message.lower()]
                 else:
@@ -207,9 +253,9 @@ class ChatbotAPIView(APIView):
                     if "choices" in data:
                         answer = data["choices"][0]["message"]["content"]
                     elif "error" in data:
-                        answer = f"Externí model odmítl odpověď: {data['error'].get('message', 'Neznámá chyba')}"
+                        answer = _("Externí model odmítl odpověď: {error}").format(error=data['error'].get('message', 'Neznámá chyba'))
                     else:
-                        answer = "Odpověď od modelu nebyla ve správném formátu."
+                        answer = _("Odpověď od modelu nebyla ve správném formátu.")
 
             logger.info(f"Chatbot dotaz od {'přihlášeného uživatele' if request.user.is_authenticated else 'anonyma'}: {user_message[:100]}")
 

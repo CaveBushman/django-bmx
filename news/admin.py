@@ -10,6 +10,7 @@ class NewsAdmin (admin.ModelAdmin):
     list_editable = ('on_homepage', 'published')
     search_fields = ('title', 'perex', 'content')
     list_filter = ('on_homepage', 'published','created_date')
+    prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_date','view_count')
     exclude = ('time_to_read',)
     
