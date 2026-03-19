@@ -51,5 +51,6 @@ urlpatterns = [
     path('invalid-licences-pdf/<int:pk>', views.invalid_licences_pdf, name='invalid-licences-pdf'),
     path('price-money/<int:pk>', views.price_money_pdf, name='price-money-pdf'),
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
+    path('import-stats/<int:pk>', views.import_event_stats, name='import-stats'),
     path("export-results/<int:event_id>/", views.export_event_results, name="export_event_results"),
 ]

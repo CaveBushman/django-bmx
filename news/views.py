@@ -9,7 +9,7 @@ from news.models import News, Downloads
 from club.models import Club
 from datetime import date
 from django.http import FileResponse, Http404
-from django.db.models import Q
+from django.db.models import F, Q
 import mimetypes
 import os
 from theme.models import Sponsor
@@ -98,14 +98,14 @@ def news_list_view(request):
 
 
 def news_detail_view(request, slug):
-    # Podpora pro staré odkazy s ID (číslo) místo slugu
+    # Podpora pro staré odkazy s ID (číslo) i nové se slugem v jednom dotazu
+    query = Q(slug=slug)
     if slug.isdigit():
-        # Pokud je slug číslo, zkusíme nejdřív najít podle slugu, pak podle PK
-        news = News.objects.filter(slug=slug).first()
-        if not news:
-            news = get_object_or_404(News, pk=int(slug))
-    else:
-        news = get_object_or_404(News, slug=slug)
+        query |= Q(pk=int(slug))
+
+    news = News.objects.filter(query).first()
+    if not news:
+        raise Http404("Článek nebyl nalezen.")
 
     # Přičti zhlédnutí
     news.increment_views()
@@ -125,9 +125,8 @@ def download_file_view(request, pk):
     if not document.path:
         raise Http404("Soubor nebyl nalezen.")
 
-    # Zvýšení počtu stažení
-    document.downloads_count += 1
-    document.save(update_fields=["downloads_count"])
+    # Atomické zvýšení počtu stažení, aby se předešlo race conditions
+    Downloads.objects.filter(pk=pk).update(downloads_count=F("downloads_count") + 1)
 
     # Cesta k souboru
     file_path = document.path.path

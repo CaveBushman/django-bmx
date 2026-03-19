@@ -49,14 +49,14 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
         <a
           href="{% url 'rider:new' %}"
-          class="inline-flex self-start items-center justify-center rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
+          class="inline-flex min-h-[3.75rem] self-start items-center justify-center rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-500"
         >
           <i class="fas fa-id-card mr-2"></i> Požádat o startovní číslo
         </a>
         {% if request.user.is_admin %}
         <a
           href="{% url 'rider:admin' %}"
-          class="inline-flex self-start items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-400 dark:hover:text-blue-300"
+          class="inline-flex min-h-[3.75rem] self-start items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-400 dark:hover:text-blue-300"
         >
           <i class="fas fa-cogs mr-2"></i> Administrace jezdců
         </a>

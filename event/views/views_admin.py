@@ -25,12 +25,13 @@ Obsah:
 
 import logging
 import json
+import datetime
 import os
 from collections import Counter
 import requests
 from datetime import date
 from types import SimpleNamespace
-from django.shortcuts import get_object_or_404, render, reverse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render, reverse, HttpResponseRedirect, redirect
 from django.http import FileResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -41,6 +42,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
+from django.utils.translation import gettext as _
 from event.models import Event, Entry, EntryForeign, Result
 from rider.models import Rider
 from rider.plates import display_plate
@@ -65,6 +67,7 @@ from rider.rider import (
 from finance.invoices import generate_event_invoices
 from event.prize_money import PrizeMoneyPdfService
 from openpyxl import Workbook, load_workbook
+import pandas as pd
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -751,3 +754,88 @@ def price_money_pdf(request, pk):
     response["Pragma"] = "no-cache"
     response["Expires"] = "0"
     return response
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def import_event_stats(request, pk):
+    """Stránka pro import statistických údajů závodu."""
+    event = get_object_or_404(Event, pk=pk)
+
+    if request.method == "POST":
+        # Smazání všech souborů
+        if "delete_all" in request.POST:
+            stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(pk))
+            deleted_count = 0
+            if os.path.exists(stats_dir):
+                for f in os.listdir(stats_dir):
+                    file_path = os.path.join(stats_dir, f)
+                    if os.path.isfile(file_path):
+                        try:
+                            os.remove(file_path)
+                            deleted_count += 1
+                        except Exception as e:
+                            logger.error(f"Nepodařilo se smazat soubor {file_path}: {e}")
+            
+            if deleted_count > 0:
+                messages.success(request, _("Všechny statistiky byly smazány."))
+            else:
+                messages.info(request, _("Žádné soubory k smazání."))
+            return redirect("event:import-stats", pk=pk)
+        
+        # Nahrávání souborů
+        if request.FILES:
+            count = 0
+            for key in request.FILES:
+                file = request.FILES[key]
+                if file.name.lower().endswith(".html"):
+                    # Prefix filename with key to identify category
+                    original_name = os.path.basename(file.name)
+                    file.name = f"{key}__{original_name}"
+                    _save_uploaded_file(file, "event_stats", str(pk))
+                    count += 1
+            
+            if count > 0:
+                messages.success(request, _("Úspěšně nahráno {count} souborů se statistikami.").format(count=count))
+            else:
+                messages.warning(request, _("Nebyly nahrány žádné soubory (povoleny jsou pouze .html)."))
+                
+            return redirect("event:import-stats", pk=pk)
+
+    # Načtení existujících souborů
+    uploaded_files = []
+    stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(pk))
+    
+    category_map = {
+        "motos": _("Motos - Startovní listina"),
+        "motos_results": _("Motos - Výsledky"),
+        "1_16": _("1/16 - Startovní listina"),
+        "1_16_results": _("1/16 - Výsledky"),
+        "1_8": _("1/8 - Startovní listina"),
+        "1_8_results": _("1/8 - Výsledky"),
+        "1_4": _("1/4 - Startovní listina"),
+        "1_4_results": _("1/4 - Výsledky"),
+        "1_2": _("1/2 - Startovní listina"),
+        "1_2_results": _("1/2 - Výsledky"),
+        "final": _("Finále - Startovní listina"),
+        "final_results": _("Finále - Výsledky"),
+    }
+
+    if os.path.exists(stats_dir):
+        for f in os.listdir(stats_dir):
+            if os.path.isfile(os.path.join(stats_dir, f)):
+                parts = f.split("__", 1)
+                key = parts[0]
+                original_name = parts[1] if len(parts) > 1 else f
+                
+                uploaded_files.append({
+                    "filename": f,
+                    "original_name": original_name,
+                    "label": category_map.get(key, _("Neznámá kategorie")),
+                    "url": f"{settings.MEDIA_URL}event_stats/{pk}/{f}",
+                    "created": datetime.datetime.fromtimestamp(os.path.getctime(os.path.join(stats_dir, f)))
+                })
+    
+    uploaded_files.sort(key=lambda x: x['label'])
+
+    return render(request, "event/import-stats.html", {"event": event, "uploaded_files": uploaded_files})

@@ -232,9 +232,9 @@
             <div class="mt-2 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div>
                 <label for="uci_id_lookup" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">UCI ID</label>
-                <div class="relative mt-2">
+                <div class="relative mt-2 group">
                   <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
                     </svg>
                   </div>
@@ -327,6 +327,7 @@
 
           <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
             <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "Kategorie a nastavení" %}</legend>
+            <p class="mt-2 px-2 text-xs text-slate-500 dark:text-slate-400">{% trans 'Vyberte alespoň jednu kategorii kola (20" nebo 24").' %}</p>
             <div class="mt-2 flex w-full flex-col gap-4 md:flex-row md:items-stretch">
               <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-4 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 peer-checked:text-indigo-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:peer-checked:border-indigo-400 dark:peer-checked:bg-indigo-900/30 dark:peer-checked:text-indigo-100 md:min-w-0 md:flex-1">
                 <input type="checkbox" name="is20" id="is20" class="peer mt-0.5 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" {% if is20_checked %}checked{% endif %}>
@@ -350,9 +351,9 @@
             <div class="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label for="emergency-contact" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Jméno kontaktu" %}</label>
-                <div class="relative mt-2">
+                <div class="relative mt-2 group">
                   <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
                   </div>
@@ -362,9 +363,9 @@
 
               <div>
                 <label for="emergency-phone" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Telefon" %}</label>
-                <div class="relative mt-2">
+                <div class="relative mt-2 group">
                   <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                     </svg>
                   </div>

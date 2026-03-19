@@ -67,6 +67,7 @@ from event.views.views_admin import (
     export_event_results,
     send_invoices,
     price_money_pdf,
+    import_event_stats,
 )
 
 from event.views.views_pdf import (
