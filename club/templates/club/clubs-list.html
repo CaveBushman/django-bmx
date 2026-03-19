@@ -108,7 +108,7 @@
           Aktivní kluby, kontaktní osoby a komunikační údaje pohromadě. Přehled je připravený tak, aby se v něm dalo rychle zorientovat podle regionu i dostupnosti kontaktů.
         </p>
       </div>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-1">
         <div class="clubs-stat rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní kluby</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ clubs_count }}</p>
@@ -126,7 +126,7 @@
   </div>
 </header>
 
-<section class="clubs-page pt-8 pb-10">
+<section class="clubs-page pt-8 pb-4">
   <div class="clubs-shell">
     <div class="clubs-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="max-w-3xl">
@@ -181,8 +181,11 @@
               </td>
               <td class="px-6 py-5 align-top text-sm text-slate-600 dark:text-slate-300">
                 {% if club.contact_email and club.contact_email != "nan" %}
-                  <a href="mailto:{{ club.contact_email }}" class="transition hover:text-indigo-600 dark:hover:text-indigo-300">
-                    {{ club.contact_email }}
+                  <a href="mailto:{{ club.contact_email }}" class="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 font-medium text-blue-700 transition hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:hover:bg-blue-500/25">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                      <path d="M3 4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H3Zm9.536 5.464a.75.75 0 1 0-1.072-1.072L9 9.431 5.536 5.964a.75.75 0 0 0-1.072 1.072L7.569 10l-3.533 3.536a.75.75 0 1 0 1.072 1.072L9 10.569l3.464 3.467a.75.75 0 1 0 1.072-1.072L10.431 10l3.535-3.536Z" />
+                    </svg>
+                    <span class="truncate">{{ club.contact_email }}</span>
                   </a>
                 {% else %}
                   <span class="text-slate-400 dark:text-slate-500">-</span>
@@ -190,8 +193,11 @@
               </td>
               <td class="px-6 py-5 align-top text-sm text-slate-600 dark:text-slate-300">
                 {% if club.contact_phone and club.contact_phone != "nan" %}
-                  <a href="tel:{{ club.contact_phone }}" class="transition hover:text-indigo-600 dark:hover:text-indigo-300">
-                    {{ club.contact_phone }}
+                  <a href="tel:{{ club.contact_phone }}" class="inline-flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 font-medium text-green-700 transition hover:bg-green-100 dark:bg-green-500/15 dark:text-green-300 dark:hover:bg-green-500/25">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                      <path d="M2 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3ZM16.555 5.75a1 1 0 0 0-.832.586l-.54 1.08a1 1 0 0 0 .296 1.093L17.5 10.5l-1.581 1.991a1 1 0 0 0-.296 1.093l.54 1.08a1 1 0 0 0 1.519.244l2-2.5a1 1 0 0 0 0-1.268l-2-2.5a1 1 0 0 0-.687-.244ZM2 9a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Z" />
+                    </svg>
+                    <span>{{ club.contact_phone }}</span>
                   </a>
                 {% else %}
                   <span class="text-slate-400 dark:text-slate-500">-</span>

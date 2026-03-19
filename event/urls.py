@@ -1,9 +1,11 @@
 from django.urls import path
 from . import views
+from .feeds import EventFeed
 
 app_name = 'event'
 
 urlpatterns = [
+    path('feed.ics', EventFeed(), name='feed'),
     path('', views.events_list_view, name='events'),
     path('<int:pk>', views.event_detail_views, name='event-detail'),
     path('proposition/<int:pk>', views.proposition_detail_view, name='proposition-detail'),

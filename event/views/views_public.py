@@ -8,6 +8,7 @@ import logging
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from event.models import Event, EventProposition, Result, SeasonSettings, Entry, EntryForeign
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import is_registration_open
@@ -16,6 +17,18 @@ logger = logging.getLogger(__name__)
 
 
 EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like", "structured_proposition")
+
+EVENT_TYPE_STYLES = {
+    "Český pohár": {"color": "#3b82f6", "abbr": "ČP"},
+    "Česká liga": {"color": "#10b981", "abbr": "ČL"},
+    "Evropský pohár": {"color": "#8b5cf6", "abbr": "EP"},
+    "Mistrovství ČR jednotlivců": {"color": "#ef4444", "abbr": "MR"},
+    "Mistrovství ČR družstev": {"color": "#ef4444", "abbr": "MR"},
+    "Mistrovství světa": {"color": "#06b6d4", "abbr": "MS"},
+    "Světový pohár": {"color": "#334155", "abbr": "WC"},
+    "Moravská liga": {"color": "#a16207", "abbr": "ML"},
+    "Mistrovství Evropy": {"color": "#0891b2", "abbr": "ME"},
+}
 
 
 def _get_structured_proposition(event):
@@ -65,6 +78,12 @@ def _decorate_events(events):
         )
         proposition = _get_structured_proposition(event)
         event.has_public_proposition = bool(proposition and proposition.is_published)
+        
+        # Add type styling
+        style = EVENT_TYPE_STYLES.get(event.type_for_ranking, {"color": "#f97316", "abbr": "VZ"})
+        event.type_color = style["color"]
+        event.type_abbr = style["abbr"]
+        
         decorated.append(event)
     return decorated
 
@@ -77,7 +96,9 @@ def events_list_view(request):
     upcomming_events = _decorate_events(
         [event for event in all_events if event.date and event.date >= today]
     )
-    past_events = [event for event in all_events if event.date and event.date < today]
+    past_events = _decorate_events(
+        [event for event in all_events if event.date and event.date < today]
+    )
 
     data = {
         "events": upcomming_events,
@@ -86,12 +107,12 @@ def events_list_view(request):
         "next_year": int(year) + 1,
         "last_year": int(year) - 1,
         "show_title": True,
-        "hero_description": f"Přehled plánovaných závodů, otevřených registrací a archivních termínů pro sezonu {year}.",
-        "upcoming_label": "Následující závody",
-        "archive_label": "Ukončené závody",
-        "season_label": "Nejbližší závody",
-        "archive_heading": "Ukončené závody",
-        "season_context": "Archiv",
+        "hero_description": _("Přehled plánovaných závodů, otevřených registrací a archivních termínů pro sezonu %(year)s.") % {"year": year},
+        "upcoming_label": _("Následující závody"),
+        "archive_label": _("Ukončené závody"),
+        "season_label": _("Nejbližší závody"),
+        "archive_heading": _("Ukončené závody"),
+        "season_context": _("Archiv"),
     }
     return render(request, "event/events-list_new.html", data)
 
@@ -106,20 +127,22 @@ def events_list_by_year_view(request, pk):
     upcoming_events = _decorate_events(
         [event for event in all_events if event.date and event.date >= today]
     )
-    past_events = [event for event in all_events if event.date and event.date < today]
+    past_events = _decorate_events(
+        [event for event in all_events if event.date and event.date < today]
+    )
 
     if pk < today.year:
-        hero_description = f"Přehled archivních závodů a uzavřených termínů pro sezonu {pk}."
-        upcoming_label = "Budoucí závody"
-        archive_label = "Odjeté závody"
-        archive_heading = f"Archiv {pk}"
-        season_context = "Archiv"
+        hero_description = _("Přehled archivních závodů a uzavřených termínů pro sezonu %(year)s.") % {"year": pk}
+        upcoming_label = _("Budoucí závody")
+        archive_label = _("Odjeté závody")
+        archive_heading = _("Archiv %(year)s") % {"year": pk}
+        season_context = _("Archiv")
     else:
-        hero_description = f"Přehled plánovaných závodů a budoucích termínů pro sezonu {pk}."
-        upcoming_label = "Plánované závody"
-        archive_label = "Odjeté závody"
-        archive_heading = f"Sezona {pk}"
-        season_context = "Sezona"
+        hero_description = _("Přehled plánovaných závodů a budoucích termínů pro sezonu %(year)s.") % {"year": pk}
+        upcoming_label = _("Plánované závody")
+        archive_label = _("Odjeté závody")
+        archive_heading = _("Sezona %(year)s") % {"year": pk}
+        season_context = _("Sezona")
 
     data = {
         "events": upcoming_events,
