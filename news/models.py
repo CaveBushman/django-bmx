@@ -19,6 +19,8 @@ import re
 import html as html_stdlib
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+from django.utils.text import slugify
 
 # TTS labels (bez přesné pauzy varianta)
 TTS_SECTION_TITLE = "NADPIS."
@@ -157,6 +159,7 @@ class News (models.Model):
     """ Class for news on this website """
 
     title = models.CharField(max_length=255, default="")
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text=_("Automaticky generováno z titulku pro hezké URL"))
     prefix = RichTextField(max_length=4000, default="", blank=True, null=True)
     content = RichTextField(max_length=30000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
@@ -184,6 +187,9 @@ class News (models.Model):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse("news:news-detail", kwargs={"slug": self.slug})
+
     def increment_views(self):
         # atomicky, bez race condition:
         News.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
@@ -195,6 +201,16 @@ class News (models.Model):
         return News.objects.filter(published=True).count()
 
     def save(self, *args, **kwargs):
+        if not self.slug and self.title:
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            # Zajistíme unikátnost slugu, pokud už existuje
+            while News.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+
         # Hash z očištěného textu (bez HTML/script/style) – porovnáváme to, co TTS skutečně čte
         joined = _article_text_plain(self)
         new_hash = hashlib.sha256(joined.encode("utf-8")).hexdigest() if joined else ""

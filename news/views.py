@@ -97,8 +97,16 @@ def news_list_view(request):
     return render(request, 'news/news-list.html', data)
 
 
-def news_detail_view(request, pk):
-    news = get_object_or_404(News, pk=pk)
+def news_detail_view(request, slug):
+    # Podpora pro staré odkazy s ID (číslo) místo slugu
+    if slug.isdigit():
+        # Pokud je slug číslo, zkusíme nejdřív najít podle slugu, pak podle PK
+        news = News.objects.filter(slug=slug).first()
+        if not news:
+            news = get_object_or_404(News, pk=int(slug))
+    else:
+        news = get_object_or_404(News, slug=slug)
+
     # Přičti zhlédnutí
     news.increment_views()
     queryset = {'news': news, "absolute_image_url": request.build_absolute_uri(news.photo_01.url) if news.photo_01 else None}
