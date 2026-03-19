@@ -58,14 +58,21 @@
           </div>
           <label class="block max-w-xl">
             <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Contact e-mail</span>
-            <input
-              id="customerEmail"
-              type="email"
-              name="customer_email"
-              value="{{ initial_customer_email }}"
-              class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              placeholder="name@example.com"
-              required>
+            <div class="relative group">
+              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <input
+                id="customerEmail"
+                type="email"
+                name="customer_email"
+                value="{{ initial_customer_email }}"
+                class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                placeholder="name@example.com"
+                required>
+            </div>
           </label>
         </div>
 
@@ -100,52 +107,101 @@
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">UCI ID</span>
-                      <input type="text" name="uci_id[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678" value="{{ row.uci_id }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="uci_id[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678" value="{{ row.uci_id }}">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Date of birth</span>
-                      <input type="date" name="dob[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        value="{{ row.date_of_birth }}" required>
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                          </svg>
+                        </div>
+                        <input type="date" name="dob[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          value="{{ row.date_of_birth }}" required>
+                      </div>
                     </label>
                   </div>
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">First name</span>
-                      <input type="text" name="first_name[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        placeholder="Autofill or manual entry" value="{{ row.first_name }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="first_name[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          placeholder="Autofill or manual entry" value="{{ row.first_name }}">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Last name</span>
-                      <input type="text" name="last_name[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        placeholder="Autofill or manual entry" value="{{ row.last_name }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="last_name[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          placeholder="Autofill or manual entry" value="{{ row.last_name }}">
+                      </div>
                     </label>
                   </div>
                   <div class="grid gap-4 md:grid-cols-3">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Sex</span>
-                      <select name="sex[]"
-                        class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                        <option value="Muž" {% if row.sex == "Muž" %}selected{% endif %}>Male</option>
-                        <option value="Žena" {% if row.sex == "Žena" %}selected{% endif %}>Female</option>
-                      </select>
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <select name="sex[]"
+                          class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white pl-11 pr-10 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                          <option value="Muž" {% if row.sex == "Muž" %}selected{% endif %}>Male</option>
+                          <option value="Žena" {% if row.sex == "Žena" %}selected{% endif %}>Female</option>
+                        </select>
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
-                      <input type="text" name="plate[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
-                        placeholder="Plate no." value="{{ row.plate }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" />
+                          </svg>
+                        </div>
+                        <input type="text" name="plate[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                          placeholder="Plate no." value="{{ row.plate }}">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
-                      <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        placeholder="Country code" value="{{ row.nationality }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+                          </svg>
+                        </div>
+                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          placeholder="Country code" value="{{ row.nationality }}">
+                      </div>
                     </label>
                   </div>
                 </div>
@@ -172,17 +228,31 @@
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 20</span>
-                      <input type="text" name="transponder_20[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        oninput="this.value=this.value.toUpperCase()"
-                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_20 }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="transponder_20[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          oninput="this.value=this.value.toUpperCase()"
+                          pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_20 }}">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 24</span>
-                      <input type="text" name="transponder_24[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        oninput="this.value=this.value.toUpperCase()"
-                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_24 }}">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="transponder_24[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          oninput="this.value=this.value.toUpperCase()"
+                          pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_24 }}">
+                      </div>
                     </label>
                   </div>
                   <div class="foreign-entry-note rounded-2xl bg-indigo-50 px-4 py-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200">
@@ -218,51 +288,100 @@
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">UCI ID</span>
-                      <input type="text" name="uci_id[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="uci_id[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Date of birth</span>
-                      <input type="date" name="dob[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        readonly required>
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                          </svg>
+                        </div>
+                        <input type="date" name="dob[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          readonly required>
+                      </div>
                     </label>
                   </div>
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">First name</span>
-                      <input type="text" name="first_name[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        readonly placeholder="Autofill or manual entry">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="first_name[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          readonly placeholder="Autofill or manual entry">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Last name</span>
-                      <input type="text" name="last_name[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        readonly placeholder="Autofill or manual entry">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="last_name[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-base text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          readonly placeholder="Autofill or manual entry">
+                      </div>
                     </label>
                   </div>
                   <div class="grid gap-4 md:grid-cols-3">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Sex</span>
-                      <select name="sex[]"
-                        class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                        <option value="Muž">Male</option>
-                        <option value="Žena">Female</option>
-                      </select>
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
+                        <select name="sex[]"
+                          class="foreign-entry-select w-full rounded-xl border border-slate-300 bg-white pl-11 pr-10 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                          <option value="Muž">Male</option>
+                          <option value="Žena">Female</option>
+                        </select>
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Plate</span>
-                      <input type="text" name="plate[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()" readonly placeholder="Plate no.">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" />
+                          </svg>
+                        </div>
+                        <input type="text" name="plate[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()" readonly placeholder="Plate no.">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Nationality</span>
-                      <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        readonly placeholder="Country code">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+                          </svg>
+                        </div>
+                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          readonly placeholder="Country code">
+                      </div>
                     </label>
                   </div>
                 </div>
@@ -289,17 +408,31 @@
                   <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 20</span>
-                      <input type="text" name="transponder_20[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        oninput="this.value=this.value.toUpperCase()"
-                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="transponder_20[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          oninput="this.value=this.value.toUpperCase()"
+                          pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                      </div>
                     </label>
                     <label class="block">
                       <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Transponder 24</span>
-                      <input type="text" name="transponder_24[]"
-                        class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        oninput="this.value=this.value.toUpperCase()"
-                        pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                      <div class="relative group">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                          </svg>
+                        </div>
+                        <input type="text" name="transponder_24[]"
+                          class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                          oninput="this.value=this.value.toUpperCase()"
+                          pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
+                      </div>
                     </label>
                   </div>
                   <div class="foreign-entry-note rounded-2xl bg-indigo-50 px-4 py-4 text-sm text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200">

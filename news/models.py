@@ -251,7 +251,6 @@ def set_time_to_read(sender, instance, *args, **kwargs):
     if time_to_read < 1:
         time_to_read = 1
     instance.time_to_read = time_to_read
-pre_save.connect(set_time_to_read, sender=News)
 
 # vymazání staré fotky z disku při její změně
 @receiver(pre_save, sender=News)
@@ -274,7 +273,6 @@ def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
                 old_photo_02.delete(save=False)
             if old_photo_03 and old_photo_03.url != new_photo_03.url:
                 old_photo_03.delete(save=False)
-pre_save.connect(delete_photo_on_change_extension, sender=News)
 
 class DocumentTag(models.Model):
     caption=models.CharField(max_length=20)
