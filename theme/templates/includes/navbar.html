@@ -420,7 +420,7 @@
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
-    <div class="hidden" id="mobile-menu">
+    <div class="hidden fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-indigo-800" id="mobile-menu">
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="{% url 'news:homepage' %}"
@@ -494,7 +494,7 @@
           </button>
           {% endif %}
         </div>
-        <div class="mt-3 space-y-1 px-2" id="mobile-menu">
+        <div class="mt-3 space-y-1 px-2" id="mobile-user-menu">
           {% comment %} <a href="#"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Your
             Profile</a> {% endcomment %}
