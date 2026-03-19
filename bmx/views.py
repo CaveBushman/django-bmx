@@ -43,3 +43,88 @@ def csp_report_view(request):
 def error_404_view(request, exception):
     """Projektová 404 stránka s korektním HTTP statusem."""
     return render(request, "404.html", status=404)
+
+
+def sitemap_view(request):
+    """Dynamicky generuje sitemap.xml s URL adresami."""
+    try:
+        urls = []
+
+        # Statické stránky
+        static_urls = [
+            ("", "weekly"),  # Homepage
+            ("news/", "weekly"),
+            ("events/", "weekly"),
+            ("clubs/", "weekly"),
+            ("riders/", "monthly"),
+        ]
+
+        for path, freq in static_urls:
+            urls.append({
+                "loc": request.build_absolute_uri(reverse("home") if path == "" else f"/{path}"),
+                "lastmod": datetime.now().isoformat(),
+                "changefreq": freq,
+                "priority": "0.8" if path == "" else "0.7"
+            })
+
+        # Dynamické stránky - zprávy
+        for news in News.objects.all():
+            urls.append({
+                "loc": request.build_absolute_uri(f"/news/{news.id}/"),
+                "lastmod": news.updated.isoformat() if hasattr(news, 'updated') else datetime.now().isoformat(),
+                "changefreq": "monthly",
+                "priority": "0.6"
+            })
+
+        # Dynamické stránky - závody
+        for event in Event.objects.all():
+            urls.append({
+                "loc": request.build_absolute_uri(f"/events/{event.id}/"),
+                "lastmod": event.modified.isoformat() if hasattr(event, 'modified') else datetime.now().isoformat(),
+                "changefreq": "weekly",
+                "priority": "0.7"
+            })
+
+        # Dynamické stránky - kluby
+        for club in Clubs.objects.all():
+            urls.append({
+                "loc": request.build_absolute_uri(f"/clubs/{club.id}/"),
+                "lastmod": datetime.now().isoformat(),
+                "changefreq": "monthly",
+                "priority": "0.6"
+            })
+
+        # Dynamické stránky - jezdci
+        for rider in Rider.objects.all():
+            urls.append({
+                "loc": request.build_absolute_uri(f"/riders/{rider.id}/"),
+                "lastmod": datetime.now().isoformat(),
+                "changefreq": "monthly",
+                "priority": "0.5"
+            })
+
+        # Generuj XML
+        xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+        xml_lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+
+        for url in urls:
+            xml_lines.append("  <url>")
+            xml_lines.append(f"    <loc>{url['loc']}</loc>")
+            xml_lines.append(f"    <lastmod>{url['lastmod']}</lastmod>")
+            xml_lines.append(f"    <changefreq>{url['changefreq']}</changefreq>")
+            xml_lines.append(f"    <priority>{url['priority']}</priority>")
+            xml_lines.append("  </url>")
+
+        xml_lines.append("</urlset>")
+
+        return HttpResponse(
+            "\n".join(xml_lines),
+            content_type="application/xml"
+        )
+    except Exception as e:
+        logger.error(f"Chyba při generování sitemapů: {e}")
+        return HttpResponse(
+            '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
+            content_type="application/xml",
+            status=500
+        )
