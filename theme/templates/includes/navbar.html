@@ -420,7 +420,7 @@
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
-    <div class="hidden" id="mobile-menu">
+    <div class="hidden fixed top-16 inset-x-0 bottom-0 overflow-y-auto bg-indigo-800" id="mobile-menu">
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="{% url 'news:homepage' %}"
@@ -493,16 +493,22 @@
             </svg>
           </button>
           {% endif %}
-        </div>
-        <div class="mt-3 space-y-1 px-2" id="mobile-menu">
+        </div> 
+        <div class="mt-3 space-y-1 px-2" id="mobile-user-menu-items">
           {% comment %} <a href="#"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Your
             Profile</a> {% endcomment %}
           <button class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem" tabindex="-1"
             id="toggle-chipka-mobile">{% trans "Zobraz/skryj CHIPKU" %}</button>
           <div class="px-3 py-2">
-            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{% trans "Jazyk" %}</span>
-            <div class="space-y-2">
+            <details class="group">
+              <summary class="flex w-full items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer list-none">
+                <span>{% trans "Jazyk" %}</span>
+                <svg class="h-5 w-5 text-gray-400 group-open:rotate-180 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </summary>
+              <div class="mt-2 space-y-2">
               {% for code, name in AVAILABLE_LANGUAGES %}
               <form action="{% url 'set_language' %}" method="post" class="m-0">
                 {% csrf_token %}
@@ -549,7 +555,8 @@
                 </button>
               </form>
               {% endfor %}
-            </div>
+              </div>
+            </details>
           </div>
 
           {% if user.is_authenticated %}
@@ -563,29 +570,9 @@
             tabindex="-1" id="user-menu-item-credit">{% trans "Kredit" %}</a>
           <a href="{% url 'rider:account' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-account-mobile">{% trans "Moje nastavení a faktury" %}</a>
-          {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
-          <a href="{% url 'rider:trainer-dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-trainer-dashboard-mobile">{% trans "Trenérský dashboard" %}</a>
-          {% endif %}
           {% if user.is_admin %}
           <a href="{% url 'admin:index' %}" target="_blank"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Administrace" %}</a>
-          <a href="{% url 'event:commissar-assignments' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Nasazení rozhodčích" %}</a>
-          <a href="{% url 'admin_stats:visit_stats' %}"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-            role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Statistika webu" %}</a>
-          {% endif %}
-                {% if user.is_commission %}
-          <a href="{% url 'todo:task-list' %}"
-            class="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">
-            <span>{% trans "Úkoly komise" %}</span>
-            {% if navbar_task_count %}
-            <span class="ml-3 inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold text-white {% if navbar_task_has_overdue %}bg-red-600{% else %}bg-emerald-600{% endif %}">
-              {{ navbar_task_count }}
-            </span>
-            {% endif %}
-          </a>
           {% endif %}
           <a href="{% url 'accounts:logout' %}"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">{% trans "Odhlášení" %}</a>
