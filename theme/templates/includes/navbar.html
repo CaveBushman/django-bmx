@@ -715,10 +715,8 @@
               if (mutation.type === "attributes" && mutation.attributeName === "class") {
                 if (!mobileMenu.classList.contains("hidden")) {
                   document.body.style.overflow = "hidden";
-                  document.documentElement.style.overflow = "hidden";
                 } else {
                   document.body.style.overflow = "";
-                  document.documentElement.style.overflow = "";
                 }
               }
             });
