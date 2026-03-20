@@ -65,9 +65,7 @@
 <nav class="bg-indigo-800 fixed top-0 left-0 right-0 z-20" id="navbar">
   <div class="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">
-      <div class="hidden md:block"></div>
-      <div class="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
-        <div class="pointer-events-auto flex items-baseline space-x-4">
+      <div class="hidden md:flex items-baseline space-x-4">
             {% if '/' == request.path %}
             <a href="{% url 'news:homepage' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
               aria-current="page">{% trans "HOME" %}</a>
@@ -131,7 +129,6 @@
             <a href="{% url 'news:downloads' %}"
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
             {% endif %}
-        </div>
       </div>
       <div class="hidden md:flex items-center ml-auto">
         <div class="flex items-center">
@@ -349,8 +346,6 @@
               <div id="profile-dropdown"
                 class="absolute z-50 right-0 mt-2 w-64 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-slate-900/8 focus:outline-none hidden dark:border-slate-700 dark:bg-slate-900 dark:ring-white/10"
                 role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
-                <button class="block w-full rounded-xl px-4 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem" tabindex="-1"
-                  id="toggle-chipka">{% trans "Zobraz/skryj CHIPKU" %}</button>
                 {% if user.is_authenticated %}
                 <a href="{% url 'event:checkout' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" role="menuitem"
                   tabindex="-1" id="user-menu-item-1">{% trans "Aktivní registrace" %}</a>
@@ -498,8 +493,6 @@
           {% comment %} <a href="#"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">Your
             Profile</a> {% endcomment %}
-          <button class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem" tabindex="-1"
-            id="toggle-chipka-mobile">{% trans "Zobraz/skryj CHIPKU" %}</button>
           <div class="px-3 py-2">
             <div class="space-y-2">
             <details class="group">
@@ -639,68 +632,6 @@
               languageMenu.classList.add("hidden");
             }
           });
-        }
-      });
-    </script>
-    <script>
-      function toggleChatbot() {
-        console.log("Toggling chatbot visibility");
-        const chatbot = document.getElementById("chatbot");
-        const dropdown = document.getElementById("profile-dropdown");
-
-        if (!chatbot) return;
-
-        const isHidden = chatbot.style.display === "none" || getComputedStyle(chatbot).display === "none";
-        chatbot.style.display = isHidden ? "flex" : "none";
-
-        // Ulož stav do localStorage
-        localStorage.setItem("chatbotVisible", isHidden ? "true" : "false");
-
-        // Skrytí dropdownu, pokud je otevřený
-        if (dropdown && !dropdown.classList.contains('hidden')) {
-          dropdown.classList.add('hidden');
-        }
-
-        // Skrytí hamburger menu (mobilní menu), pokud je otevřené
-        const mobileMenuToggle = document.getElementById("show-mobile-nav-btn");
-        const mobileMenu = document.getElementById("mobile-menu");
-        if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
-          console.log("Hiding mobile menu");
-          mobileMenu.classList.add("hidden");
-          if (mobileMenuToggle) {
-            const icons = mobileMenuToggle.querySelectorAll("svg");
-            if (icons.length === 2) {
-              icons[0].classList.remove("hidden"); // Hamburger icon
-              icons[1].classList.add("hidden");   // Close icon
-            }
-          }
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        const chatbot = document.getElementById("chatbot");
-        const toggleChipkaBtn = document.getElementById("toggle-chipka");
-        const toggleChipkaBtnMobile = document.getElementById("toggle-chipka-mobile");
-        const toggleBtns = [toggleChipkaBtn, toggleChipkaBtnMobile];
-
-        if (chatbot) {
-          // Načti stav z localStorage
-          const savedState = localStorage.getItem("chatbotVisible");
-          if (savedState === "false") {
-            chatbot.style.display = "none";
-          } else {
-            chatbot.style.display = "flex";
-          }
-        }
-
-        if (toggleChipkaBtn) {
-          toggleBtns.forEach(btn => {
-            btn.addEventListener("click", function (e) {
-              e.preventDefault();
-              console.log("Toggle button clicked");
-              toggleChatbot();
-            });
-          })
         }
       });
     </script>
