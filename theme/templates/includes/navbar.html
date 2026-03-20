@@ -420,7 +420,7 @@
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
-    <div class="hidden fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-indigo-800 overscroll-contain" id="mobile-menu" style="overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom);">
+    <div class="hidden fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-indigo-800" id="mobile-menu" style="overscroll-behavior: none; padding-bottom: env(safe-area-inset-bottom);">
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="{% url 'news:homepage' %}"
@@ -715,8 +715,10 @@
               if (mutation.type === "attributes" && mutation.attributeName === "class") {
                 if (!mobileMenu.classList.contains("hidden")) {
                   document.body.style.overflow = "hidden";
+                  document.documentElement.style.overflow = "hidden";
                 } else {
                   document.body.style.overflow = "";
+                  document.documentElement.style.overflow = "";
                 }
               }
             });
