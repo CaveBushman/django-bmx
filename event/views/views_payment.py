@@ -5,10 +5,9 @@ Obsah: success/cancel Stripe flow, webhook pro kredit, košík (order),
        kredit pro jezdce, přepočet zůstatků.
 """
 
-import datetime
 import logging
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -23,7 +22,6 @@ from event.credit import calculate_user_balance, recalculate_all_balances
 from event.services.payments import (
     clear_checkout_session,
     enrich_cart_entries,
-    get_entry_amount,
     get_recent_pending_entries,
     mark_entry_paid,
     remove_conflicting_cart_entries,
