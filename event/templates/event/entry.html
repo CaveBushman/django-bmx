@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Přihlášení na závody{% endblock title %}
+
 {% block extra_head %}
 <style>
     .entry-filter-input {
@@ -18,25 +19,11 @@
         width: 100%;
     }
 
-    .entry-table col.col-plate {
-        width: 7%;
-    }
-
-    .entry-table col.col-last-name {
-        width: 18%;
-    }
-
-    .entry-table col.col-first-name {
-        width: 13%;
-    }
-
-    .entry-table col.col-club {
-        width: 24%;
-    }
-
-    .entry-table col.col-class {
-        width: 19%;
-    }
+    .entry-table col.col-plate { width: 7%; }
+    .entry-table col.col-last-name { width: 18%; }
+    .entry-table col.col-first-name { width: 13%; }
+    .entry-table col.col-club { width: 24%; }
+    .entry-table col.col-class { width: 19%; }
 
     .entry-choice {
         border: 1px solid #e2e8f0;
@@ -64,106 +51,215 @@
         opacity: 1;
     }
 
-    html.dark .entry-filter-input {
-        background: #020617;
-        color: #f8fafc;
-        border-color: #334155;
-    }
-
-    html.dark .entry-filter-input::placeholder {
-        color: #64748b;
-    }
-
-    html.dark .entry-table thead {
-        background: #172033;
-    }
-
-    html.dark .entry-table tbody {
-        background: #020617;
-    }
-
-    html.dark .entry-table tbody tr {
+    .registered-entry {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        border-radius: 999px;
+        padding: .5rem .9rem;
         background: transparent;
+        border: 1px solid transparent;
+        color: #0f172a;
+        font-weight: 500;
+        white-space: nowrap;
     }
 
-    html.dark .entry-table tbody tr:hover {
-        background: #0f172a;
+    .registered-entry__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 999px;
+        background: #16a34a;
+        color: #ffffff;
+        font-size: .75rem;
+        line-height: 1;
+        flex: 0 0 auto;
     }
 
-    html.dark .entry-choice {
-        border-color: #334155;
-        background: #0f172a;
-        color: #e2e8f0;
-    }
-
-    html.dark .entry-choice.selected {
-        background: #15803d;
-        border-color: #15803d;
+    html.dark .registered-entry {
         color: #ffffff;
     }
 
-    html.dark .registered-checkbox {
-        accent-color: #22c55e !important;
+    .entry-cta {
+        position: relative;
+        display: inline-flex;
+        min-height: 4rem;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        border-radius: 1rem;
+        background: #b7e4c7;
+        padding: 1rem 1.75rem;
+        color: #14532d;
+        font-size: .875rem;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 18px 40px rgba(34, 197, 94, 0.20);
+        border: 1px solid #86efac;
+        flex-shrink: 0;
+    }
+
+    .entry-cta:hover {
+        background: #9bd8b0;
+        color: #14532d;
+    }
+
+    html.dark .entry-cta {
+        background: #b7e4c7;
+        color: #14532d;
+        border-color: #86efac;
+        box-shadow: 0 18px 40px rgba(34, 197, 94, 0.24);
+    }
+
+    html.dark .entry-cta:hover {
+        background: #9bd8b0;
+        color: #14532d;
     }
 
     html.dark .entry-page {
         background: #020617;
-        min-height: calc(100vh - 4rem);
+        color: #e2e8f0;
     }
 
-    .entry-table th,
-    .entry-table td {
-        vertical-align: middle;
+    html.dark .entry-page > section {
+        background: #020617;
     }
 
-    .entry-table td:nth-child(1),
-    .entry-table th:nth-child(1) {
-        text-align: center;
+    html.dark .entry-page .bg-white\/95,
+    html.dark .entry-page .bg-white {
+        background: rgba(15, 23, 42, 0.92) !important;
+        color: #e2e8f0 !important;
     }
 
-    .entry-table td:nth-child(3),
-    .entry-table td:nth-child(4),
-    .entry-table td:nth-child(5) {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    html.dark .entry-page .bg-slate-50\/90 {
+        background: rgba(15, 23, 42, 0.78) !important;
+        color: #e2e8f0 !important;
+    }
+
+    html.dark .entry-page .bg-slate-50\/70 {
+        background: rgba(15, 23, 42, 0.72) !important;
+    }
+
+    html.dark .entry-page .border-slate-200 {
+        border-color: #334155 !important;
+    }
+
+    html.dark .entry-page .text-slate-950,
+    html.dark .entry-page .text-slate-900 {
+        color: #f8fafc !important;
+    }
+
+    html.dark .entry-page .text-slate-700,
+    html.dark .entry-page .text-slate-600,
+    html.dark .entry-page .text-slate-500 {
+        color: #cbd5e1 !important;
+    }
+
+    html.dark .entry-page .entry-filter-input {
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #f8fafc !important;
+        border-color: #475569 !important;
+    }
+
+    html.dark .entry-page .entry-filter-input::placeholder {
+        color: #94a3b8 !important;
+    }
+
+    html.dark .entry-page .entry-table thead {
+        background: #0f172a !important;
+    }
+
+    html.dark .entry-page .entry-table tbody {
+        background: rgba(2, 6, 23, 0.55) !important;
+    }
+
+    html.dark .entry-page .entry-table tr:hover {
+        background: rgba(30, 41, 59, 0.9) !important;
+    }
+
+    html.dark .entry-page .entry-choice {
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #e2e8f0 !important;
+        border-color: #475569 !important;
+    }
+
+    html.dark .entry-page .entry-choice.selected {
+        background: #16a34a !important;
+        color: #ffffff !important;
+        border-color: #16a34a !important;
+    }
+
+    html.dark .entry-page .registered-entry {
+        color: #f8fafc !important;
+    }
+
+    html.dark .entry-page .rounded-\[2\.25rem\],
+    html.dark .entry-page .rounded-\[2rem\] {
+        background: rgba(15, 23, 42, 0.92) !important;
+        border-color: #334155 !important;
     }
 </style>
 {% endblock extra_head %}
+
 {% block content %}
 <form method="POST" class="entry-page pb-20">
     {% csrf_token %}
 
     <section class="bg-slate-50 pb-16 pt-10 dark:bg-slate-950">
         <div class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
-            <div class="rounded-[2rem] border border-slate-200 bg-white/95 p-8 shadow-[0_24px_80px_rgba(59,130,246,0.16)] ring-1 ring-white/60 dark:border-slate-800 dark:bg-slate-900/92 dark:shadow-[0_24px_80px_rgba(15,23,42,0.55)] dark:ring-slate-800/60 lg:p-10">
-                <div class="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div class="relative overflow-hidden rounded-[2.25rem] border border-slate-200 bg-white/95 p-8 shadow-[0_28px_90px_rgba(15,23,42,0.10)] ring-1 ring-white/60 dark:border-slate-800 dark:bg-slate-900/92 dark:shadow-[0_28px_90px_rgba(2,6,23,0.55)] dark:ring-slate-800/60 lg:p-10">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_26rem),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.08),transparent_22rem)] dark:bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.20),transparent_26rem),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.10),transparent_22rem)]"></div>
+
+                <div class="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                     <div class="max-w-3xl">
-                        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">
+                        <p class="mb-3 inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-200">
                             Přihlášení jezdců
                         </p>
-                        <h1 class="text-4xl font-black tracking-tight text-slate-950 dark:text-white sm:text-5xl">
+
+                        <h1 class="text-4xl font-black tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-6xl">
                             {{ event.name|upper }}
                         </h1>
-                        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+
+                        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
                             Vyber jezdce a kategorie pro závod. Přihlášení probíhá přímo z aktivní databáze jezdců.
                         </p>
                     </div>
+
                     <div class="flex w-full flex-col gap-4 sm:w-auto lg:flex-row lg:items-stretch lg:justify-end">
-                        <div class="rounded-3xl border border-slate-200 bg-slate-50/90 px-6 py-5 text-slate-950 dark:border-slate-700 dark:bg-slate-950/70 dark:text-white">
-                            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">
-                                Datum konání
-                            </p>
-                            <p class="mt-3 text-3xl font-black leading-none">
-                                {{ event.date }}
-                            </p>
+                        <div class="relative overflow-hidden rounded-[1.75rem] bg-white/80 px-6 py-5 text-slate-950 backdrop-blur dark:border-slate-700 dark:bg-slate-950/60 dark:text-white">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/8 via-transparent to-emerald-500/8 dark:from-indigo-400/10 dark:to-emerald-400/10"></div>
+
+                            <div class="relative flex items-start gap-4">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100 dark:bg-indigo-400/10 dark:text-indigo-200 dark:ring-indigo-400/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                                        <path d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" />
+                                    </svg>
+                                </div>
+
+                                <div class="min-w-0">
+                                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+                                        Datum konání
+                                    </p>
+                                    <p class="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                                        {{ event.date }}
+                                    </p>
+                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Přihlášky jsou vázané pouze na tento závod
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+
                         <button
                             type="submit"
                             name="btn_add"
                             aria-label="Přidat do košíku"
-                            class="inline-flex min-h-16 items-center justify-center rounded-2xl border border-green-500 bg-green-600 px-6 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            class="entry-cta self-start"
                         >
-                            Přidat do košíku
+                            <span>Přidat do košíku</span>
+                            <span aria-hidden="true" class="text-base leading-none">→</span>
                         </button>
                     </div>
                 </div>
@@ -222,69 +318,48 @@
                                 </colgroup>
                                 <thead class="bg-slate-100/90 dark:bg-slate-900">
                                     <tr>
-                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">
-                                            Start.č.
-                                        </th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">
-                                            Příjmení
-                                        </th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
-                                            Jméno
-                                        </th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
-                                            Klub
-                                        </th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
-                                            20"
-                                        </th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
-                                            24" (Cruiser)
-                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">Start.č.</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">Příjmení</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Jméno</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Klub</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">20"</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">24" (Cruiser)</th>
                                         {% if beginners_enabled %}
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">
-                                            Příchozí
-                                        </th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Příchozí</th>
                                         {% endif %}
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
                                     {% for rider in riders %}
                                     <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/80">
-                                        <td class="px-4 py-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 sm:px-6">
-                                            {{ rider.plate_display }}
-                                        </td>
+                                        <td class="px-4 py-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 sm:px-6">{{ rider.plate_display }}</td>
                                         <td class="w-full max-w-0 px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6">
                                             {{ rider.last_name }}
                                             <dl class="font-normal lg:hidden">
                                                 <dt class="sr-only">Jméno</dt>
                                                 <dd class="mt-1 truncate text-slate-500 dark:text-slate-300">{{ rider.first_name }}</dd>
                                                 <dt class="sr-only sm:hidden">Klub</dt>
-                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">
-                                                    {{ rider.club|upper }}
-                                                </dd>
+                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">{{ rider.club|upper }}</dd>
                                             </dl>
                                         </td>
-                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                            {{ rider.first_name }}
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                            {{ rider.club|upper }}
-                                        </td>
+                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.first_name }}</td>
+                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.club|upper }}</td>
+
                                         {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
                                         <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
                                         {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
                                         <td class="px-4 py-4 text-sm">
                                             <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 font-medium text-white">
-                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20" disabled>
+                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white text-[0.75rem] leading-none">✕</span>
                                                 <span>{{ rider.class_20 }}</span>
                                             </div>
                                         </td>
                                         {% elif rider.is_registered_20 %}
                                         <td class="px-4 py-4 text-sm">
-                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
-                                                <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20" checked disabled>
+                                            <span class="registered-entry">
+                                                <span class="registered-entry__icon">✓</span>
                                                 <span>{{ rider.class_20 }}</span>
-                                            </label>
+                                            </span>
                                         </td>
                                         {% else %}
                                         <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
@@ -296,22 +371,27 @@
                                         {% endif %}
 
                                         {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
-                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nelze přihlásit</td>
+                                        <td class="px-4 py-4 text-sm">
+                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-100 px-3 py-2 font-medium text-rose-700">
+                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-[0.75rem] leading-none">✕</span>
+                                                <span>{{ rider.class_24 }}</span>
+                                            </div>
+                                        </td>
                                         {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
                                         <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
                                         {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
                                         <td class="px-4 py-4 text-sm">
-                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 font-medium text-white">
-                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24" disabled>
+                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-100 px-3 py-2 font-medium text-rose-700">
+                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-[0.75rem] leading-none">✕</span>
                                                 <span>{{ rider.class_24 }}</span>
                                             </div>
                                         </td>
                                         {% elif rider.is_registered_24 %}
                                         <td class="px-4 py-4 text-sm">
-                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
-                                                <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24" checked disabled>
+                                            <span class="registered-entry">
+                                                <span class="registered-entry__icon">✓</span>
                                                 <span>{{ rider.class_24 }}</span>
-                                            </label>
+                                            </span>
                                         </td>
                                         {% else %}
                                         <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
@@ -325,10 +405,10 @@
                                         {% if beginners_enabled %}
                                             {% if rider.is_registered_beginner %}
                                             <td class="px-4 py-4 text-sm">
-                                                <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 font-medium">
-                                                    <input class="registered-checkbox" type="checkbox" value="{{ rider.uci_id }}" id="checkbox_beginner" name="checkbox_beginner" disabled checked>
+                                                <span class="registered-entry">
+                                                    <span class="registered-entry__icon">✓</span>
                                                     <span>{{ rider.class_beginner }}</span>
-                                                </label>
+                                                </span>
                                             </td>
                                             {% elif rider.is_beginner %}
                                             <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
@@ -356,4 +436,58 @@
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
 <script src="{% static 'js/entry.js' %}"></script>
 <script src="{% static 'js/arrow.js' %}"></script>
+
+<script>
+function applyEntryFilters() {
+function applyEntryFilters() {
+  const lastNameInput = document.getElementById("inputLastName");
+  const clubInput = document.getElementById("inputClub");
+  const table = document.getElementById("myTable");
+  const rows = table.getElementsByTagName("tr");
+
+  const lastNameFilter = (lastNameInput.value || "").trim().toUpperCase();
+  const clubFilter = (clubInput.value || "").trim().toUpperCase();
+
+  for (let i = 0; i < rows.length; i++) {
+    const cells = rows[i].getElementsByTagName("td");
+
+    if (!cells.length) continue;
+
+    const lastNameText = (cells[1]?.textContent || "").toUpperCase();
+    const clubText = (cells[3]?.textContent || "").toUpperCase();
+
+    const matchesLastName = !lastNameFilter || lastNameText.includes(lastNameFilter);
+    const matchesClub = !clubFilter || clubText.includes(clubFilter);
+
+    rows[i].style.display = matchesLastName && matchesClub ? "" : "none";
+  }
+}
+
+function searchByLastName() {
+  applyEntryFilters();
+}
+
+function searchByClub() {
+  applyEntryFilters();
+}
+
+function syncEntryChoiceState() {
+  var labels = document.querySelectorAll(".entry-choice");
+
+  labels.forEach(function (label) {
+    var input = label.querySelector('input[type="checkbox"]');
+    if (!input) return;
+
+    label.classList.toggle("selected", input.checked);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  syncEntryChoiceState();
+
+  document.querySelectorAll('.entry-choice input[type="checkbox"]').forEach(function (input) {
+    input.addEventListener("change", syncEntryChoiceState);
+  });
+});
+</script>
 {% endblock content %}
