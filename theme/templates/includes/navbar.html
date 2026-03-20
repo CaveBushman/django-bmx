@@ -366,13 +366,13 @@
                   role="menuitem" tabindex="-1">{% trans "Vyhledej čip" %}</a>
                 {% if user.is_admin %}
                   <a href="{% url 'finance:finance' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Finance" %}</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-finance">{% trans "Finance" %}</a>
                 <a href="{% url 'admin:index' %}" target="_blank" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Administrace" %}</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-admin">{% trans "Administrace" %}</a>
                 <a href="{% url 'event:commissar-assignments' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   role="menuitem" tabindex="-1" id="user-menu-item-commissars">{% trans "Nasazení rozhodčích" %}</a>
                 <a href="{% url 'admin_stats:visit_stats' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-                  role="menuitem" tabindex="-1" id="user-menu-item-2">{% trans "Statistika webu" %}</a>
+                  role="menuitem" tabindex="-1" id="user-menu-item-stats">{% trans "Statistika webu" %}</a>
 
                 {% endif %}
                 {% if user.is_commission %}
@@ -420,7 +420,7 @@
     </div>
 
     <!-- Mobile menu, show/hide based on menu state. -->
-    <div class="hidden fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-indigo-800" id="mobile-menu">
+    <div class="hidden fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-indigo-800 overscroll-contain" id="mobile-menu" style="overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom);">
       <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="{% url 'news:homepage' %}"
@@ -566,9 +566,9 @@
             Profile</a> {% endcomment %}
 
           <a href="{% url 'event:checkout' %}" class="block px-3 py-2 text-base font-medium text-gray-400"
-            role="menuitem" tabindex="-1" id="user-menu-item-1">{% trans "Aktivní registrace" %}</a>
+            role="menuitem" tabindex="-1" id="user-menu-item-active-registrations-mobile">{% trans "Aktivní registrace" %}</a>
           <a href="{% url 'event:credit' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-credit">{% trans "Kredit" %}</a>
+            tabindex="-1" id="user-menu-item-credit-mobile">{% trans "Kredit" %}</a>
           <a href="{% url 'rider:account' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-account-mobile">{% trans "Moje nastavení a faktury" %}</a>
           {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
@@ -701,6 +701,27 @@
               toggleChatbot();
             });
           })
+        }
+      });
+    </script>
+    <script>
+      // Fix pro iOS scrolling: Sleduje viditelnost mobilního menu a zamyká scroll na body
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenu = document.getElementById("mobile-menu");
+        
+        if (mobileMenu) {
+          const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+              if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                if (!mobileMenu.classList.contains("hidden")) {
+                  document.body.style.overflow = "hidden";
+                } else {
+                  document.body.style.overflow = "";
+                }
+              }
+            });
+          });
+          observer.observe(mobileMenu, { attributes: true });
         }
       });
     </script>
