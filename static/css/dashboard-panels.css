@@ -425,7 +425,7 @@ html.dark .events-meta-item + .events-meta-item::before {
 
 .order-count-card,
 .checkout-count-card {
-  width: 220px;
+  width: min(100%, 22rem);
 }
 
 .checkout-entry-title-row {
@@ -474,23 +474,23 @@ html.dark .events-meta-item + .events-meta-item::before {
 
 @media (min-width: 1024px) {
   .order-hero-layout {
-    position: relative;
-    min-height: 220px;
-    padding-right: 280px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+    align-items: center;
+    gap: 2rem;
   }
 
   .checkout-hero-layout {
-    position: relative;
-    min-height: 208px;
-    padding-right: 280px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+    align-items: center;
+    gap: 2rem;
   }
 
   .order-count-card,
   .checkout-count-card {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
+    position: static;
+    transform: none;
     margin-right: 0 !important;
   }
 }

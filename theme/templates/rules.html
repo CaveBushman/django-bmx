@@ -45,6 +45,24 @@
     box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
   }
 
+  .rules-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .rules-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .rules-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .rules-prose p {
     text-align: justify;
   }
@@ -78,7 +96,7 @@
 
 <header class="rules-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
       <div>
     <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
       Soutěžní řád
@@ -90,7 +108,7 @@
       Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing.
     </p>
       </div>
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-1">
+      <div class="rules-stats-grid">
         <div class="rules-stat rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pravidla UCI</p>
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Part VI: BMX</p>
@@ -114,7 +132,7 @@
   </div>
 </header>
 
-<section class="rules-page-surface min-h-screen bg-slate-50 pb-24 dark:bg-slate-900">
+<section class="rules-page-surface min-h-screen bg-slate-50 pb-8 dark:bg-slate-900">
 <div class="rules-shell dark:text-slate-200">
   <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
     <div class="rules-panel rules-prose rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
