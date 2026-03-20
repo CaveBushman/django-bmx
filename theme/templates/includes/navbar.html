@@ -704,25 +704,4 @@
         }
       });
     </script>
-    <script>
-      // Fix pro iOS scrolling: Sleduje viditelnost mobilního menu a zamyká scroll na body
-      document.addEventListener("DOMContentLoaded", function () {
-        const mobileMenu = document.getElementById("mobile-menu");
-        
-        if (mobileMenu) {
-          const observer = new MutationObserver(function (mutations) {
-            mutations.forEach(function (mutation) {
-              if (mutation.type === "attributes" && mutation.attributeName === "class") {
-                if (!mobileMenu.classList.contains("hidden")) {
-                  document.body.style.overflow = "hidden";
-                } else {
-                  document.body.style.overflow = "";
-                }
-              }
-            });
-          });
-          observer.observe(mobileMenu, { attributes: true });
-        }
-      });
-    </script>
 </nav>
