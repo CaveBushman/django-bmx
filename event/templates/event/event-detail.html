@@ -1,26 +1,155 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %} Detail závodu {% endblock title %}
+{% block extra_head %}
+<style>
+  .event-detail-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .event-detail-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .event-detail-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .event-detail-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .event-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .event-detail-action-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 0.8rem 1.15rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+
+  .event-detail-action-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(99, 102, 241, 0.34);
+    background: rgba(255, 255, 255, 1);
+    color: #312e81;
+  }
+
+  @media (min-width: 640px) {
+    .event-detail-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .event-detail-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  html.dark .event-detail-page {
+    background: #0f172a;
+  }
+
+  html.dark .event-detail-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .event-detail-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .event-detail-action-chip {
+    border-color: rgba(71, 85, 105, 0.75);
+    background: rgba(15, 23, 42, 0.88);
+    color: #e2e8f0;
+  }
+
+  html.dark .event-detail-action-chip:hover {
+    border-color: rgba(99, 102, 241, 0.34);
+    background: rgba(30, 41, 59, 0.96);
+    color: #c7d2fe;
+  }
+</style>
+{% endblock %}
 {% block content %}
-<section class="min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-900">
-<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
-    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Detail závodu
-        </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-            {{ event.name | upper }}
-        </h1>
+<section class="event-detail-page">
+<header class="event-detail-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+                    {% trans "Detail závodu" %}
+                </p>
+                <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+                    {{ event.name|upper }}
+                </h1>
+                <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+                    {% blocktrans with organizer=event.organizer type=event.type_for_ranking %}Kompletní přehled termínu, pořadatele, registrace a organizačních informací pro závod {{ organizer }} v režimu {{ type }}.{% endblocktrans %}
+                </p>
+            </div>
+
+            <div class="event-detail-stats">
+                <div class="event-detail-stat rounded-2xl px-5 py-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</p>
+                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
+                </div>
+                <div class="event-detail-stat rounded-2xl px-5 py-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pořadatel" %}</p>
+                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.organizer|upper }}</p>
+                </div>
+                <div class="event-detail-stat rounded-2xl px-5 py-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Systém závodu" %}</p>
+                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.system|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
     </div>
 </header>
 
 <div class="mx-auto max-w-screen-xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-screen-xl">
         <div class="flex flex-col gap-4">
-        <div class="flex flex-wrap gap-4 justify-end flex-row-reverse">
+        <div class="event-detail-actions">
             {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer"
-                    class="flex items-center justify-center rounded-md bg-green-600 hover:bg-green-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -29,9 +158,9 @@
                 </a>
             </div>
             {% elif event.reg_open %}
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{% url 'event:entry' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-green-600 hover:bg-green-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -40,9 +169,9 @@
                 </a>
             </div>
             {% endif %}
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{% url 'event:entry-riders' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -51,9 +180,9 @@
                     Přihlášení jezdci
                 </a>
             </div>
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{% url 'event:summary_riders_in_event' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -63,9 +192,9 @@
                 </a>
             </div>
             {% if has_public_proposition %}
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{% url 'event:proposition-detail' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
@@ -74,9 +203,9 @@
                 </a>
             </div>
             {% elif event.proposition %}
-            <div class="mb-4 w-full sm:w-auto">
+            <div class="w-full sm:w-auto">
                 <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
+                    class="event-detail-action-chip w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
@@ -87,7 +216,7 @@
             {% endif %}
         </div>
         {% if request.user.is_admin or can_edit_proposition %}
-        <details class="group self-end">
+        <details class="group self-start sm:self-end">
             <summary class="inline-flex cursor-pointer list-none items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">
                 Další akce
                 <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor">
@@ -141,37 +270,6 @@
 
         <!-- Změna grid-cols pro 2 bloky na řádek na větších obrazovkách a 1 blok na menších -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
-
-            <!-- Datum závodu -->
-            <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
-                <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 4V2h18v2H3zm0 16V8h18v12H3z" />
-                    </svg>
-                </div>
-                <div>
-                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Datum závodu</dt>
-                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.date }}</dd>
-                </div>
-            </div>
-
-            <!-- Pořadatel -->
-            <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
-                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                    <!-- Ikona reprezentující organizátora -->
-                    <svg class="w-8 h-8 text-green-600 dark:text-green-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm-1 2h2c3.86 0 7 3.14 7 7s-3.14 7-7 7H9c-3.86 0-7-3.14-7-7s3.14-7 7-7h2z" />
-                    </svg>
-                </div>
-                <div>
-                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Pořadatel</dt>
-                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.organizer | upper }}</dd>
-                </div>
-            </div>
-
             <!-- Rozhodčí -->
             <div
                 class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
@@ -218,20 +316,6 @@
                 <div>
                     <dt class="text-gray-500 dark:text-gray-300 text-lg">Konec registrace</dt>
                     <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.reg_open_to }} hod.</dd>
-                </div>
-            </div>
-
-            <!-- Způsob závodu -->
-            <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
-                <div class="p-3 bg-teal-100 dark:bg-teal-900 rounded-full">
-                    <svg class="w-8 h-8 text-teal-600 dark:text-teal-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M4 4h16v16H4z" />
-                    </svg>
-                </div>
-                <div>
-                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Způsob závodu</dt>
-                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.system }}</dd>
                 </div>
             </div>
 

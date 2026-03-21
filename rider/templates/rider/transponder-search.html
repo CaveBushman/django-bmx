@@ -6,6 +6,58 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
+  .transponder-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .transponder-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .transponder-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .transponder-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .transponder-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .transponder-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  @media (min-width: 640px) {
+    .transponder-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .transponder-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .transponder-search-input {
     background: #ffffff;
     color: #334155;
@@ -36,6 +88,23 @@
     color: #e2e8f0 !important;
   }
 
+  html.dark .transponder-page {
+    background: #0f172a;
+  }
+
+  html.dark .transponder-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .transponder-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
   html.dark .transponder-search-input {
     background: rgba(15, 23, 42, 0.92) !important;
     color: #f8fafc !important;
@@ -54,31 +123,33 @@
 {% endblock %}
 
 {% block content %}
-<section class="dashboard-surface min-h-screen pb-16 pt-8">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
-    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div class="max-w-3xl">
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
+<div class="transponder-page pb-16">
+  <header class="transponder-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,28rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
             Transponder Check
           </p>
-          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
             Vyhledej čip
           </h1>
-          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
             Systém prověří českou i zahraniční databázi a nově i historii výměn. U starších nepřiřazených čipů zobrazí, že jde o historický záznam.
           </p>
         </div>
-        <div class="dashboard-card min-w-[240px] rounded-[1.5rem] border p-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Stav</p>
-          <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ results|length }}</p>
-          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            nalezených shod
-          </p>
+        <div class="transponder-stats-grid">
+          <div class="transponder-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Stav</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results|length }}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">nalezených shod</p>
+          </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <div class="transponder-shell">
     <div class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
       <form method="get" class="flex flex-col gap-4 md:flex-row md:items-end" onsubmit="return validateTransponderSearch()">
         <label class="block flex-1">
@@ -157,7 +228,7 @@
     </div>
     {% endif %}
   </div>
-</section>
+</div>
 <script>
   function validateTransponderSearch() {
     const input = document.getElementById("transponder-search-input");

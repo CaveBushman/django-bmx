@@ -27,7 +27,6 @@ import csv
 from django.db.models import Q
 from django.db import transaction
 import os
-from event.models import RaceRun
 
 
 # ===========================================================================
@@ -812,55 +811,8 @@ class SetResults(threading.Thread):
         )
 
     @classmethod
-    def _create_race_runs(cls, raw, event, result):
-        """Zapíše detailní průběh jízd z REM TSV do RaceRun."""
-        rider = result.rider
-
-        for index in range(1, 10):
-            place = cls._normalize_value(raw.get(f"MOTO{index}_PLACE"))
-            if not place:
-                continue
-
-            RaceRun.objects.create(
-                result=result,
-                event=event,
-                rider=rider,
-                round_type="MOTO",
-                round_number=index,
-                gate=cls._parse_int(raw.get(f"MOTO{index}_GATE")),
-                lane=cls._parse_int(raw.get(f"MOTO{index}_LANE")),
-                place=place,
-                race_points=cls._parse_int(raw.get(f"MOTO{index}_RACE_POINTS")),
-                moto_points=cls._parse_int(raw.get(f"MOTO{index}_MOTO_POINTS")),
-                hill_time=cls._phase_hill_time(raw, "MOTO", index=index),
-                split_1=cls._phase_inter2_time(raw, "MOTO", index=index),
-                finish_time=cls._parse_float(raw.get(f"MOTO{index}_TIME")),
-            )
-
-        for phase in ["FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"]:
-            place = cls._normalize_value(raw.get(f"{phase}_PLACE"))
-            if not place:
-                continue
-
-            RaceRun.objects.create(
-                result=result,
-                event=event,
-                rider=rider,
-                round_type=phase,
-                round_number=None,
-                gate=cls._parse_int(raw.get(f"{phase}_GATE")),
-                lane=cls._parse_int(raw.get(f"{phase}_LANE")),
-                place=place,
-                race_points=cls._parse_int(raw.get(f"{phase}_RACE_POINTS")),
-                moto_points=cls._parse_int(raw.get(f"{phase}_MOTO_POINTS")),
-                hill_time=cls._phase_hill_time(raw, phase),
-                split_1=cls._phase_inter2_time(raw, phase),
-                finish_time=cls._parse_float(raw.get(f"{phase}_TIME")),
-            )
-
-    @classmethod
     def import_file(cls, event_id, file_path):
-        """Importuje REM TSV soubor a jedním průchodem vytvoří Result i RaceRun."""
+        """Importuje REM TSV soubor a vytvoří pouze Result."""
         event = Event.objects.get(id=event_id)
         ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
 
@@ -907,7 +859,6 @@ class SetResults(threading.Thread):
                         event.organizer.team_name,
                         event.type_for_ranking,
                     ).write_result()
-                    cls._create_race_runs(raw, event, result)
                 except Exception as e:
                     logger.error(f"Chyba při zpracování řádku {raw}: {e}")
 

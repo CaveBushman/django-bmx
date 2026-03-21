@@ -4,8 +4,78 @@
 
 {% block extra_head %}
 <style>
+  .task-board-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .task-board-hero-header {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .task-board-hero-header::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .task-board-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .task-board-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .task-board-hero-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .task-board-card-shell {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark .task-board-page {
+    background: #020617;
+  }
+
+  html.dark .task-board-hero-header {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
   html.dark .task-board-surface {
     background: #020617;
+  }
+
+  html.dark .task-board-hero-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .task-board-card-shell {
+    border-color: #334155;
+    background: #0f172a;
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
   }
 
   html.dark .task-board-card {
@@ -94,46 +164,63 @@
       margin-left: auto;
     }
   }
+
+  @media (min-width: 640px) {
+    .task-board-hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .task-board-hero-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="task-board-surface bg-slate-50 py-10 dark:bg-slate-950">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-100 via-white to-indigo-100 px-6 py-8 shadow-2xl dark:border-slate-800 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 dark:text-white">
-      <p class="text-sm font-semibold uppercase tracking-[0.25em] text-indigo-700 dark:text-indigo-200">BMX komise</p>
-      <div class="task-board-hero mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div class="task-board-hero-copy lg:flex-1">
-          <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl dark:text-white">Úkoly komise BMX</h1>
-          <p class="mt-2 max-w-2xl text-sm text-slate-700 sm:text-base dark:text-slate-200">
-            Přehled rozpracovaných úkolů, přidělení na členy komise a hlídání termínů.
-          </p>
+<header class="task-board-hero-header">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">BMX komise</p>
+        <div class="task-board-hero mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div class="task-board-hero-copy lg:flex-1">
+            <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl dark:text-white">Úkoly komise BMX</h1>
+            <p class="mt-2 max-w-2xl text-sm text-slate-700 sm:text-base dark:text-slate-200">
+              Přehled rozpracovaných úkolů, přidělení na členy komise a hlídání termínů.
+            </p>
+          </div>
+          <a href="{% url 'admin:todo_commissiontask_changelist' %}" class="task-board-hero-action inline-flex items-center justify-center self-start lg:ml-auto lg:self-end rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white ring-1 ring-slate-900/10 transition hover:bg-slate-700 dark:bg-white/10 dark:text-white dark:ring-white/20 dark:hover:bg-white/20">
+            Otevřít správu úkolů
+          </a>
         </div>
-        <a href="{% url 'admin:todo_commissiontask_changelist' %}" class="task-board-hero-action inline-flex items-center justify-center self-start lg:ml-auto lg:self-end rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white ring-1 ring-slate-900/10 transition hover:bg-slate-700 dark:bg-white/10 dark:text-white dark:ring-white/20 dark:hover:bg-white/20">
-          Otevřít správu úkolů
-        </a>
+      </div>
+      <div class="task-board-hero-stats">
+        <div class="task-board-hero-stat rounded-2xl px-5 py-4">
+          <p class="task-board-card-muted text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Otevřené úkoly</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ open_count }}</p>
+        </div>
+        <div class="task-board-hero-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 dark:text-amber-200">Po termínu</p>
+          <p class="mt-2 text-3xl font-black text-amber-900 dark:text-amber-100">{{ overdue_count }}</p>
+        </div>
+        <div class="task-board-hero-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-200">Splněné</p>
+          <p class="mt-2 text-3xl font-black text-emerald-900 dark:text-emerald-100">{{ done_count }}</p>
+        </div>
+        <div class="task-board-hero-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-200">Moje otevřené</p>
+          <p class="mt-2 text-3xl font-black text-indigo-900 dark:text-indigo-100">{{ my_open_count }}</p>
+        </div>
       </div>
     </div>
+  </div>
+</header>
 
-    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="task-board-card rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <p class="task-board-card-muted text-sm text-slate-500 dark:text-slate-400">Otevřené úkoly</p>
-        <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ open_count }}</p>
-      </div>
-      <div class="task-board-card task-board-card-amber rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30">
-        <p class="text-sm text-amber-700 dark:text-amber-200">Po termínu</p>
-        <p class="mt-2 text-3xl font-bold text-amber-900 dark:text-amber-100">{{ overdue_count }}</p>
-      </div>
-      <div class="task-board-card task-board-card-emerald rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/30">
-        <p class="text-sm text-emerald-700 dark:text-emerald-200">Splněné</p>
-        <p class="mt-2 text-3xl font-bold text-emerald-900 dark:text-emerald-100">{{ done_count }}</p>
-      </div>
-      <div class="task-board-card task-board-card-indigo rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/30">
-        <p class="text-sm text-indigo-700 dark:text-indigo-200">Moje otevřené</p>
-        <p class="mt-2 text-3xl font-bold text-indigo-900 dark:text-indigo-100">{{ my_open_count }}</p>
-      </div>
-    </div>
-
+<section class="task-board-page pt-8 pb-4">
+  <div class="task-board-shell">
     <div class="task-board-form mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <form method="get" class="grid gap-4 lg:grid-cols-4">
         <div>
@@ -184,7 +271,6 @@
               <th class="px-6 py-4">Stav</th>
               <th class="px-6 py-4">Priorita</th>
               <th class="px-6 py-4">Termín</th>
-              <th class="px-6 py-4">Závod</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
@@ -192,6 +278,11 @@
               <tr class="align-top">
                 <td class="px-6 py-5">
                   <div class="font-semibold text-slate-900 dark:text-white">{{ task.title }}</div>
+                  {% if task.event %}
+                    <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">
+                      Závod: {{ task.event.name }}
+                    </p>
+                  {% endif %}
                   {% if task.description %}
                     <p class="mt-2 max-w-xl text-sm text-slate-600 dark:text-slate-300">{{ task.description|truncatechars:160 }}</p>
                   {% endif %}
@@ -242,17 +333,10 @@
                     <span class="text-slate-400">Bez termínu</span>
                   {% endif %}
                 </td>
-                <td class="px-6 py-5 text-sm text-slate-700 dark:text-slate-200">
-                  {% if task.event %}
-                    {{ task.event.name }}
-                  {% else %}
-                    <span class="text-slate-400">Obecný úkol</span>
-                  {% endif %}
-                </td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="6" class="task-board-empty px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                <td colspan="5" class="task-board-empty px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
                   Pro zadaný filtr nebyly nalezeny žádné úkoly.
                 </td>
               </tr>

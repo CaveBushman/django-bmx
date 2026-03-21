@@ -102,6 +102,42 @@
     flex: 0 0 auto;
   }
 
+  @media (max-width: 639px) {
+    .homepage-hero-mobile {
+      min-height: 58rem;
+      height: auto;
+    }
+
+    .homepage-hero-mobile .homepage-hero-overlay {
+      justify-content: flex-start;
+      padding-top: 5.5rem;
+      padding-bottom: 2rem;
+    }
+
+    .homepage-hero-mobile .homepage-hero-stats-grid {
+      width: min(100%, 17rem);
+      gap: 1rem;
+    }
+
+    .homepage-champion-stack {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .homepage-champion-media {
+      margin-left: 0;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .homepage-hero-mobile {
+      height: 50vh;
+      min-height: 32rem;
+    }
+  }
+
   @media (min-width: 1024px) {
     .homepage-champions {
       padding-top: 1.5rem;
@@ -388,7 +424,7 @@
 
 <!-- ==== VIDEO ==== -->
 
-<div class="relative w-full h-[50vh] overflow-hidden">
+<div class="homepage-hero-mobile relative w-full overflow-hidden">
     <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
         {% trans "Váš prohlížeč nepodporuje video tag." %}
@@ -402,7 +438,7 @@
         </h1>
         <!-- Grid pro počítadla s responsivitou -->
         <div
-            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 text-xl sm:text-2xl md:text-3xl">
+            class="homepage-hero-stats-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 text-xl sm:text-2xl md:text-3xl">
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
                 <p class="homepage-hero-stat-meta">Databáze</p>
                 <span class="homepage-hero-stat-number mt-3">{{ riders_count }}</span>
@@ -432,7 +468,7 @@
 
         <div class="grid gap-5 lg:grid-cols-2">
             <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#3b82f6;">
-                <div class="flex items-center gap-4">
+                <div class="homepage-champion-stack flex items-center gap-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600 dark:text-sky-300">{% trans "Muži" %}</p>
                         {% if championship_men_leader %}
@@ -451,7 +487,7 @@
                         <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{% trans "Pro mužské Championship kategorie zatím nejsou k dispozici žádné body." %}</p>
                         {% endif %}
                     </div>
-                    <div class="ml-auto flex justify-center">
+                    <div class="homepage-champion-media ml-auto flex justify-center">
                         {% if championship_men_leader %}
                         <img src="{{ championship_men_leader.photo.url }}" alt="{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
@@ -464,8 +500,8 @@
             </article>
 
             <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
-                <div class="flex items-center gap-4">
-                    <div class="order-2 flex justify-center md:justify-start">
+                <div class="homepage-champion-stack flex items-center gap-4">
+                    <div class="homepage-champion-media order-2 flex justify-center md:justify-start">
                         {% if championship_women_leader %}
                         <img src="{{ championship_women_leader.photo.url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}

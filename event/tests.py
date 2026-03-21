@@ -3,6 +3,7 @@ import os
 import tempfile
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -11,6 +12,7 @@ from django.utils import timezone
 from club.models import Club
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
 from event.func import SetResults
+from event.services.race_run_import import RaceRunImportService
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -18,6 +20,7 @@ from event.services.payments import (
 )
 from event.views.entry_helpers import (
     build_public_entry_rows,
+    enrich_foreign_summary_rows,
     sync_paid_foreign_riders,
     validate_foreign_summary_payload,
 )
@@ -425,6 +428,49 @@ class ForeignEntryHelperTests(TestCase):
 
         self.assertFalse(validate_foreign_summary_payload(payload))
 
+    def test_validate_foreign_summary_payload_rejects_championship_with_cruiser(self):
+        payload = {
+            "customer_email": "foreign@example.com",
+            "rows": [
+                {
+                    "first_name": "Anna",
+                    "last_name": "Smith",
+                    "uci_id": "12345678901",
+                    "date_of_birth": "2010-01-01",
+                    "plate": "12",
+                    "championship": True,
+                    "cruiser": True,
+                }
+            ],
+        }
+
+        self.assertFalse(validate_foreign_summary_payload(payload))
+
+    def test_enrich_foreign_summary_rows_supports_challenge_and_cruiser(self):
+        summary_rows, total_fee = enrich_foreign_summary_rows(
+            self.event,
+            [
+                {
+                    "first_name": "Anna",
+                    "last_name": "Smith",
+                    "uci_id": "12345678901",
+                    "date_of_birth": "2020-01-01",
+                    "sex": "Muž",
+                    "plate": "12",
+                    "challenge": True,
+                    "cruiser": True,
+                }
+            ],
+        )
+
+        self.assertEqual(len(summary_rows), 1)
+        self.assertEqual(summary_rows[0]["selected_categories"], ["Challenge", "Cruiser"])
+        self.assertEqual(summary_rows[0]["class_20"], "Boys 6")
+        self.assertEqual(summary_rows[0]["class_24"], "Cruiser 12 and under")
+        self.assertEqual(summary_rows[0]["fee_20"], 0)
+        self.assertEqual(summary_rows[0]["fee_24"], 0)
+        self.assertEqual(total_fee, 0)
+
     def test_build_public_entry_rows_marks_foreign_entries(self):
         foreign_entry = EntryForeign.objects.create(
             event=self.event,
@@ -568,7 +614,7 @@ class RemResultsImportTests(TestCase):
             class_24="Boys 15 and 16",
         )
 
-    def test_import_file_creates_results_and_race_runs_in_single_pass(self):
+    def test_import_file_creates_only_results(self):
         rem_tsv = "\t".join(
             [
                 "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "REGISTRATION_CLASS", "TEAM", "SEX",
@@ -605,10 +651,185 @@ class RemResultsImportTests(TestCase):
         result = Result.objects.get(event=self.event, rider=self.rider)
         self.assertEqual(result.place, 7)
         self.assertEqual(result.points, 75)
+        self.assertFalse(RaceRun.objects.filter(result=result).exists())
 
-        runs = RaceRun.objects.filter(result=result).order_by("round_type", "round_number")
-        self.assertEqual(runs.count(), 4)
-        self.assertTrue(runs.filter(round_type="MOTO", round_number=1, place="1st", hill_time=1.921, split_1=12.441, finish_time=29.224).exists())
-        self.assertTrue(runs.filter(round_type="MOTO", round_number=2, place="2nd", finish_time=29.753).exists())
-        self.assertTrue(runs.filter(round_type="FINAL", place="7th", split_1=12.883, finish_time=30.798).exists())
-        self.assertTrue(runs.filter(round_type="F2", place="2nd", hill_time=1.877, split_1=12.517, finish_time=29.446).exists())
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class RaceRunImportServiceTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Import Club")
+        self.event = Event.objects.create(
+            name="Stats Import Race",
+            date=date(2025, 10, 25),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10125224253,
+            first_name="Simon",
+            last_name="Aksamit",
+            gender="Muž",
+            date_of_birth=date(2009, 8, 2),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+            class_24="Boys 15 and 16",
+            plate_text="868",
+        )
+        self.result = Result.objects.create(
+            event=self.event,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            rider=self.rider,
+            first_name=self.rider.first_name,
+            last_name=self.rider.last_name,
+            club=self.club.team_name,
+            category="Boys 15-16",
+            place=7,
+            points=75,
+            is_beginner=False,
+            is_20=True,
+        )
+
+    def test_import_event_runs_builds_race_runs_from_html_stats(self):
+        target_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        if os.path.isdir(target_dir):
+            for filename in os.listdir(target_dir):
+                os.remove(os.path.join(target_dir, filename))
+        os.makedirs(target_dir, exist_ok=True)
+
+        motos_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th><th>Moto 2</th></tr>
+        <tr><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>40 / 1</td><td>83 / 7</td></tr>
+        </table>
+        </body></html>"""
+        motos_results_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Ranking</th><th>Plate</th><th>Club</th><th>Name</th><th>Moto-Points</th><th>Moto 1</th><th>Moto 2</th></tr>
+        <tr><td>7</td><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>3</td><td>1st 1.921 / 12.441 / 29.224</td><td>2nd 1.955 / 12.700 / 29.753</td></tr>
+        </table>
+        </body></html>"""
+        final_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Final</th><th>Lane</th><th>Plate</th><th>Name</th><th>Club</th></tr>
+        <tr><td>F1 (A)</td><td>Pick 3</td><td>868</td><td>Simon Aksamit</td><td>Import Club</td></tr>
+        </table>
+        </body></html>"""
+
+        files = {
+            "motos__sample.html": motos_html,
+            "motos_results__sample.html": motos_results_html,
+            "final__sample.html": final_html,
+        }
+        for filename, content in files.items():
+            with open(os.path.join(target_dir, filename), "w", encoding="utf-8") as handle:
+                handle.write(content)
+
+        imported_runs = RaceRunImportService().import_event_runs(self.event)
+
+        self.assertEqual(imported_runs, 3)
+        moto_1 = RaceRun.objects.get(result=self.result, round_type="MOTO", round_number=1)
+        self.assertEqual(moto_1.heat_code, "40")
+        self.assertEqual(moto_1.lane, 1)
+        self.assertEqual(moto_1.place, "1st")
+        self.assertEqual(moto_1.hill_time, 1.921)
+        self.assertEqual(moto_1.split_1, 12.441)
+        self.assertEqual(moto_1.finish_time, 29.224)
+        self.assertEqual(moto_1.category, "Boys 15-16")
+        self.assertEqual(moto_1.plate, "868")
+
+        moto_2 = RaceRun.objects.get(result=self.result, round_type="MOTO", round_number=2)
+        self.assertEqual(moto_2.heat_code, "83")
+        self.assertEqual(moto_2.lane, 7)
+        self.assertEqual(moto_2.place, "2nd")
+        self.assertEqual(moto_2.finish_time, 29.753)
+
+        final_run = RaceRun.objects.get(result=self.result, round_type="FINAL")
+        self.assertEqual(final_run.heat_code, "F1 (A)")
+        self.assertEqual(final_run.lane, 3)
+
+    def test_import_event_runs_parses_rem_finish_and_hill_format(self):
+        target_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        if os.path.isdir(target_dir):
+            for filename in os.listdir(target_dir):
+                os.remove(os.path.join(target_dir, filename))
+        os.makedirs(target_dir, exist_ok=True)
+
+        motos_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th></tr>
+        <tr><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>40 / 1</td></tr>
+        </table>
+        </body></html>"""
+        motos_results_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Ranking</th><th>Plate</th><th>Club</th><th>Name</th><th>Moto-Points</th><th>Moto 1</th></tr>
+        <tr><td>7</td><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>3</td><td>3rd<br><small>39,205<br>{1.753}</small></td></tr>
+        </table>
+        </body></html>"""
+
+        files = {
+            "motos__sample.html": motos_html,
+            "motos_results__sample.html": motos_results_html,
+        }
+        for filename, content in files.items():
+            with open(os.path.join(target_dir, filename), "w", encoding="utf-8") as handle:
+                handle.write(content)
+
+        imported_runs = RaceRunImportService().import_event_runs(self.event)
+
+        self.assertEqual(imported_runs, 1)
+        moto_1 = RaceRun.objects.get(result=self.result, round_type="MOTO", round_number=1)
+        self.assertEqual(moto_1.place, "3rd")
+        self.assertEqual(moto_1.hill_time, 1.753)
+        self.assertIsNone(moto_1.split_1)
+        self.assertEqual(moto_1.finish_time, 39.205)
+
+    def test_import_event_runs_creates_runs_without_result(self):
+        self.result.delete()
+        target_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        if os.path.isdir(target_dir):
+            for filename in os.listdir(target_dir):
+                os.remove(os.path.join(target_dir, filename))
+        os.makedirs(target_dir, exist_ok=True)
+
+        motos_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th></tr>
+        <tr><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>40 / 1</td></tr>
+        </table>
+        </body></html>"""
+        motos_results_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Ranking</th><th>Plate</th><th>Club</th><th>Name</th><th>Moto-Points</th><th>Moto 1</th></tr>
+        <tr><td>7</td><td>868</td><td>Import Club</td><td>Simon Aksamit</td><td>3</td><td>3rd<br><small>39,205<br>{1.753}</small></td></tr>
+        </table>
+        </body></html>"""
+
+        for filename, content in {
+            "motos__sample.html": motos_html,
+            "motos_results__sample.html": motos_results_html,
+        }.items():
+            with open(os.path.join(target_dir, filename), "w", encoding="utf-8") as handle:
+                handle.write(content)
+
+        imported_runs = RaceRunImportService().import_event_runs(self.event)
+
+        self.assertEqual(imported_runs, 1)
+        moto_1 = RaceRun.objects.get(event=self.event, rider=self.rider, round_type="MOTO", round_number=1)
+        self.assertIsNone(moto_1.result)
+        self.assertFalse(moto_1.is_beginner)
+        self.assertTrue(moto_1.is_20)
+        self.assertEqual(moto_1.finish_time, 39.205)

@@ -5,6 +5,58 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
+  .finance-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .finance-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .finance-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .finance-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .finance-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .finance-hero-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  @media (min-width: 640px) {
+    .finance-hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .finance-hero-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .finance-stat-accent {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(59, 130, 246, 0.16));
     color: #4338ca;
@@ -34,6 +86,24 @@
     box-shadow: 0 20px 40px rgba(4, 120, 87, 0.24);
     filter: brightness(1.04);
   }
+
+  html.dark .finance-page {
+    background: #0f172a;
+  }
+
+  html.dark .finance-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .finance-hero-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
   html.dark .finance-stat-accent {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.28), rgba(37, 99, 235, 0.28)) !important;
     color: #c7d2fe !important;
@@ -60,72 +130,41 @@
 {% endblock %}
 
 {% block content %}
-<section class="dashboard-surface min-h-screen pb-24">
-  <div class="mx-auto max-w-7xl px-4 pb-12 pt-10 mb-4 sm:px-6 lg:px-8">
-    <header class="dashboard-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
-      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
-        Finance Dashboard
-      </p>
-      <div class="mt-4">
-        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-          Finance
-        </h1>
-        <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
-          Přehled kreditu a platebních nákladů pro interní finanční kontrolu systému.
-        </p>
+<div class="finance-page pb-8">
+  <header class="finance-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Finance Dashboard
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            Finance
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Přehled kreditu a platebních nákladů pro interní finanční kontrolu systému.
+          </p>
+        </div>
+        <div class="finance-hero-stats">
+          <div class="finance-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kredit</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ credit|default:0|floatformat:2 }}</p>
+          </div>
+          <div class="finance-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Stripe poplatky</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ stripe_fee|default:0|floatformat:2 }}</p>
+          </div>
+          <div class="finance-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Výnosy {{ current_year }}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ rider_stats_revenue|default:0|add:trainer_club_stats_revenue|add:trainer_extended_revenue|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
-    </header>
-
-    <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <article class="dashboard-card rounded-[1.5rem] p-5">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-              Kredit
-            </p>
-            <h2 class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">
-              Stav kreditu
-            </h2>
-            <div class="mt-5 text-4xl font-black leading-none text-slate-900 dark:text-white">
-              {{ credit|default:0|floatformat:2 }}
-            </div>
-            <div class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-              CZK
-            </div>
-          </div>
-          <div class="finance-stat-accent flex h-14 w-14 items-center justify-center rounded-2xl">
-            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10V6m0 12v-2m9-4a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-        </div>
-      </article>
-      <article class="dashboard-card rounded-[1.5rem] p-5">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-              Náklady
-            </p>
-            <h2 class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">
-              Stripe poplatky v tomto roce
-            </h2>
-            <div class="mt-5 text-4xl font-black leading-none text-slate-900 dark:text-white">
-              {{ stripe_fee|default:0|floatformat:2 }}
-            </div>
-            <div class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-              CZK
-            </div>
-          </div>
-          <div class="finance-stat-accent-rose flex h-14 w-14 items-center justify-center rounded-2xl">
-            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a5 5 0 00-10 0v2m-2 0h14l-1 11H6L5 9zm5 4v3m4-3v3"/>
-            </svg>
-          </div>
-        </div>
-      </article>
     </div>
+  </header>
 
-    <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+  <div class="finance-shell">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
       <article class="dashboard-card rounded-[1.5rem] p-5">
         <div class="flex items-start justify-between gap-4">
@@ -315,5 +354,5 @@
       {% endif %}
     </section>
   </div>
-</section>
+</div>
 {% endblock %}

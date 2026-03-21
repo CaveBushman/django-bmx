@@ -2,8 +2,6 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from event.models import Event
-
 
 class CommissionTask(models.Model):
     STATUS_NEW = "new"
@@ -34,6 +32,14 @@ class CommissionTask(models.Model):
 
     title = models.CharField(max_length=200, verbose_name="Nazev ukolu")
     description = models.TextField(blank=True, verbose_name="Popis")
+    event = models.ForeignKey(
+        "event.Event",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="commission_tasks",
+        verbose_name="Souvisejici zavod",
+    )
     assignee = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -49,14 +55,6 @@ class CommissionTask(models.Model):
         blank=True,
         related_name="created_commission_tasks",
         verbose_name="Zadal",
-    )
-    event = models.ForeignKey(
-        Event,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="commission_tasks",
-        verbose_name="Souvisejici zavod",
     )
     status = models.CharField(
         max_length=20,
@@ -99,4 +97,3 @@ class CommissionTask(models.Model):
         elif self.status != self.STATUS_DONE:
             self.completed_at = None
         super().save(*args, **kwargs)
-

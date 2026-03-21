@@ -131,22 +131,30 @@
             </div>
 
             <div class="flex flex-wrap gap-2">
-              {% if row.category_20 %}
-                <span class="foreign-summary-wheel-badge">20"</span>
+              {% if row.challenge %}
+                <span class="foreign-summary-wheel-badge">Challenge</span>
               {% endif %}
-              {% if row.category_24 %}
-                <span class="foreign-summary-wheel-badge">24"</span>
+              {% if row.championship %}
+                <span class="inline-flex h-20 items-center justify-center rounded-full bg-amber-100 px-6 text-xl font-black text-amber-800 dark:bg-amber-950 dark:text-amber-200">Championship</span>
               {% endif %}
-              {% if row.elite %}
-                <span class="inline-flex h-20 items-center justify-center rounded-full bg-amber-100 px-6 text-xl font-black text-amber-800 dark:bg-amber-950 dark:text-amber-200">Elite</span>
+              {% if row.cruiser %}
+                <span class="foreign-summary-wheel-badge">Cruiser</span>
               {% endif %}
             </div>
           </div>
 
           <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="foreign-summary-stat rounded-2xl p-4 md:col-span-2 xl:col-span-4">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Category in event</p>
-              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.event_category|default:"-" }}</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Selected categories</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.selected_categories|join:", "|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4 md:col-span-2 xl:col-span-2">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">20&quot; event category</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.class_20|default:"-" }}</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4 md:col-span-2 xl:col-span-2">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">24&quot; event category</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.class_24|default:"-" }}</p>
             </div>
             <div class="foreign-summary-stat rounded-2xl p-4">
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Date of birth</p>
@@ -173,7 +181,15 @@
               <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.transponder_24|default:"-" }}</p>
             </div>
             <div class="foreign-summary-stat rounded-2xl p-4">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Entry fee</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Fee 20&quot;</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.fee_20|default:0 }} CZK</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Fee 24&quot;</p>
+              <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.fee_24|default:0 }} CZK</p>
+            </div>
+            <div class="foreign-summary-stat rounded-2xl p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Total fee</p>
               <p class="mt-2 text-base font-semibold text-slate-900 dark:text-white">{{ row.entry_fee|default:0 }} CZK</p>
             </div>
           </div>

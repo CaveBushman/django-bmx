@@ -3,14 +3,11 @@
 
 {% block extra_head %}
 <style>
-  .credit-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+  .credit-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
   }
 
-  .credit-hero,
   .credit-panel,
   .credit-table-panel {
     background: rgba(255, 255, 255, 0.94);
@@ -19,10 +16,26 @@
   }
 
   .credit-hero {
+    position: relative;
+    overflow: hidden;
     background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 18rem),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .credit-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .credit-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
   }
 
   .credit-hero-grid {
@@ -30,28 +43,19 @@
     gap: 1.5rem;
   }
 
-  .credit-balance-card {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(99, 102, 241, 0.18);
-    background:
-      radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 42%),
-      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(79, 70, 229, 0.9));
-    box-shadow: 0 22px 52px rgba(15, 23, 42, 0.18);
+  .credit-hero-stats {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 
-  .credit-balance-card::after {
-    content: "";
-    position: absolute;
-    inset: auto -15% -35% auto;
-    width: 8rem;
-    height: 8rem;
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.08);
-    filter: blur(2px);
+  .credit-hero-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
   }
 
-  .credit-balance-value {
+  .credit-hero-value {
     font-variant-numeric: tabular-nums;
   }
 
@@ -87,6 +91,12 @@
     align-items: flex-end;
   }
 
+  @media (min-width: 640px) {
+    .credit-hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (min-width: 768px) {
     .credit-form {
       grid-template-columns: 1fr 1fr;
@@ -96,12 +106,12 @@
 
   @media (min-width: 1024px) {
     .credit-hero-grid {
-      grid-template-columns: minmax(0, 1fr) 17rem;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1fr) minmax(36rem, 40rem);
+      align-items: end;
     }
 
-    .credit-balance-card {
-      min-height: 14.5rem;
+    .credit-hero-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
@@ -112,11 +122,8 @@
   }
 
   html.dark body,
-  html.dark .credit-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
-      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
-      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+  html.dark .credit-page {
+    background: #0f172a !important;
   }
 
   html.dark .credit-hero,
@@ -129,16 +136,15 @@
 
   html.dark .credit-hero {
     background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%) !important;
   }
 
-  html.dark .credit-balance-card {
-    border-color: rgba(129, 140, 248, 0.28) !important;
-    background:
-      radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 42%),
-      linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(67, 56, 202, 0.82)) !important;
-    box-shadow: 0 26px 60px rgba(2, 6, 23, 0.44) !important;
+  html.dark .credit-hero-stat {
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: rgba(15, 23, 42, 0.72) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
   }
 
   html.dark .credit-submit {
@@ -162,43 +168,56 @@
 {% endblock %}
 
 {% block content %}
-<section class="credit-surface min-h-screen pb-24">
-  <div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
-    <header class="credit-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
+<div class="credit-page min-h-screen">
+  <header class="credit-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="credit-hero-grid">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
             Credit Top-up
           </p>
-          <div class="mt-4">
-            <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-              Kredit
-            </h1>
-            <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
-              Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
-            </p>
-          </div>
-        </div>
-        <div class="credit-balance-card flex min-h-[11.5rem] flex-col justify-between rounded-[1.75rem] p-6 text-white sm:p-7">
-          <div class="relative z-10">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
-              Aktuální zůstatek
-            </p>
-            <p class="credit-balance-value mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-              {{ user.credit|default:0|floatformat:0 }}
-            </p>
-            <p class="mt-2 text-sm font-medium text-white/72">
-              CZK
-            </p>
-          </div>
-          <p class="relative z-10 mt-6 max-w-[13rem] text-sm leading-6 text-white/80">
-            Kredit se automaticky použije při platbě přihlášek a dalších navazujících služeb.
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            Kredit
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
           </p>
         </div>
+        <div class="credit-hero-stats">
+          <div class="credit-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Aktuální zůstatek
+            </p>
+            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {{ user.credit|default:0|floatformat:0 }}
+            </p>
+            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">CZK</p>
+          </div>
+          <div class="credit-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Kreditní transakce
+            </p>
+            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {{ credits|length }}
+            </p>
+            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">za poslední rok</p>
+          </div>
+          <div class="credit-hero-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Debetní transakce
+            </p>
+            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {{ debets|length }}
+            </p>
+            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">za poslední rok</p>
+          </div>
+        </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <div class="mt-8 space-y-6">
+  <div class="credit-shell">
+    <div class="space-y-6">
       {% for message in messages %}
       <div class="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
         <div class="flex gap-3">
@@ -352,5 +371,5 @@
       </section>
     </div>
   </div>
-</section>
+</div>
 {% endblock content %}

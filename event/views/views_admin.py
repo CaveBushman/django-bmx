@@ -43,7 +43,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from django.utils.translation import gettext as _
-from event.models import Event, Entry, EntryForeign, Result
+from event.models import Event, Entry, EntryForeign, Result, RaceRun
 from rider.models import Rider
 from rider.plates import display_plate
 from club.models import Club
@@ -66,12 +66,22 @@ from rider.rider import (
 )
 from finance.invoices import generate_event_invoices
 from event.prize_money import PrizeMoneyPdfService
+from event.services.race_run_import import RaceRunImportService
 from openpyxl import Workbook, load_workbook
 import pandas as pd
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+
+COMMISSAR_EXCLUDED_EVENT_TYPES = [
+    "Evropský pohár",
+    "Mistrovství Evropy",
+    "Mistrovství světa",
+    "Světový pohár",
+]
+
+COMMISSAR_PLACEHOLDER_LAST_NAME = "Bude upřesněno"
 
 
 def _get_event_year_options():
@@ -99,8 +109,29 @@ def _build_media_storage(*parts):
 
 def _save_uploaded_file(uploaded_file, *storage_parts):
     storage, relative_dir = _build_media_storage(*storage_parts)
+    if storage.exists(uploaded_file.name):
+        storage.delete(uploaded_file.name)
     filename = storage.save(uploaded_file.name, uploaded_file)
     return storage, filename, os.path.join(relative_dir, filename)
+
+
+def _delete_uploaded_files_by_prefix(*storage_parts, prefix):
+    storage, _ = _build_media_storage(*storage_parts)
+    location = getattr(storage, "location", "")
+    if not location or not os.path.isdir(location):
+        return 0
+
+    deleted_count = 0
+    filename_prefix = f"{prefix}__"
+    for existing_name in os.listdir(location):
+        existing_path = os.path.join(location, existing_name)
+        if not os.path.isfile(existing_path):
+            continue
+        if not existing_name.startswith(filename_prefix):
+            continue
+        storage.delete(existing_name)
+        deleted_count += 1
+    return deleted_count
 
 
 def _download_generated_file(file_path):
@@ -399,7 +430,7 @@ def _handle_rem_riders(request, event):
 
 
 def _handle_upload_txt(request, event, pk):
-    """Nahraje TSV výsledky z REM a v jednom kroku zapíše Result i RaceRun."""
+    """Nahraje TSV výsledky z REM a zapíše pouze Result."""
     if "result-file-txt" not in request.FILES:
         messages.error(request, "Musíš vybrat soubor s výsledky závodu")
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
@@ -407,7 +438,6 @@ def _handle_upload_txt(request, event, pk):
     result_file = request.FILES["result-file-txt"]
     storage, filename, relative_path = _save_uploaded_file(result_file, "rem_results")
 
-    # Import výsledků i detailních jízd probíhá synchronně v jednom průchodu nad TSV.
     results = SetResults()
     results.setEvent(pk)
     results.setFile(filename)
@@ -603,14 +633,28 @@ def commissar_assignments_view(request):
 
     events = (
         Event.objects.filter(date__year=selected_year)
+        .exclude(type_for_ranking__in=COMMISSAR_EXCLUDED_EVENT_TYPES)
         .select_related("pcp", "pcp_assist", "start_commissar")
         .order_by("date", "name")
     )
+
+    pcp_events_count = events.exclude(pcp__isnull=True).exclude(
+        pcp__last_name=COMMISSAR_PLACEHOLDER_LAST_NAME
+    ).count()
+    pcp_assist_events_count = events.exclude(pcp_assist__isnull=True).exclude(
+        pcp_assist__last_name=COMMISSAR_PLACEHOLDER_LAST_NAME
+    ).count()
+    start_commissar_events_count = events.exclude(start_commissar__isnull=True).exclude(
+        start_commissar__last_name=COMMISSAR_PLACEHOLDER_LAST_NAME
+    ).count()
 
     return render(request, "event/commissar-assignments.html", {
         "events": events,
         "selected_year": int(selected_year),
         "year_options": year_options,
+        "pcp_events_count": pcp_events_count,
+        "pcp_assist_events_count": pcp_assist_events_count,
+        "start_commissar_events_count": start_commissar_events_count,
     })
 
 
@@ -622,26 +666,43 @@ def commissar_statistics_view(request):
 
     commissars = (
         Commissar.objects.filter(is_active=True)
+        .exclude(last_name=COMMISSAR_PLACEHOLDER_LAST_NAME)
         .annotate(
-            pcp_count=Count("PCP", filter=Q(PCP__date__year=selected_year), distinct=True),
+            pcp_count=Count(
+                "PCP",
+                filter=Q(PCP__date__year=selected_year)
+                & ~Q(PCP__type_for_ranking__in=COMMISSAR_EXCLUDED_EVENT_TYPES),
+                distinct=True,
+            ),
             pcp_assist_count=Count(
                 "PCP_asist",
-                filter=Q(PCP_asist__date__year=selected_year),
+                filter=Q(PCP_asist__date__year=selected_year)
+                & ~Q(PCP_asist__type_for_ranking__in=COMMISSAR_EXCLUDED_EVENT_TYPES),
                 distinct=True,
             ),
             start_commissar_count=Count(
                 "start_commissar_events",
-                filter=Q(start_commissar_events__date__year=selected_year),
+                filter=Q(start_commissar_events__date__year=selected_year)
+                & ~Q(start_commissar_events__type_for_ranking__in=COMMISSAR_EXCLUDED_EVENT_TYPES),
                 distinct=True,
             ),
         )
         .order_by("last_name", "first_name")
     )
 
+    active_commissars_count = commissars.count()
+    pcp_total = sum(commissar.pcp_count for commissar in commissars)
+    pcp_assist_total = sum(commissar.pcp_assist_count for commissar in commissars)
+    start_commissar_total = sum(commissar.start_commissar_count for commissar in commissars)
+
     return render(request, "event/commissar-statistics.html", {
         "commissars": commissars,
         "selected_year": int(selected_year),
         "year_options": year_options,
+        "active_commissars_count": active_commissars_count,
+        "pcp_total": pcp_total,
+        "pcp_assist_total": pcp_assist_total,
+        "start_commissar_total": start_commissar_total,
     })
 
 
@@ -777,6 +838,8 @@ def import_event_stats(request, pk):
                         except Exception as e:
                             logger.error(f"Nepodařilo se smazat soubor {file_path}: {e}")
             
+            RaceRun.objects.filter(event=event).delete()
+
             if deleted_count > 0:
                 messages.success(request, _("Všechny statistiky byly smazány."))
             else:
@@ -789,6 +852,7 @@ def import_event_stats(request, pk):
             for key in request.FILES:
                 file = request.FILES[key]
                 if file.name.lower().endswith(".html"):
+                    _delete_uploaded_files_by_prefix("event_stats", str(pk), prefix=key)
                     # Prefix filename with key to identify category
                     original_name = os.path.basename(file.name)
                     file.name = f"{key}__{original_name}"
@@ -796,7 +860,24 @@ def import_event_stats(request, pk):
                     count += 1
             
             if count > 0:
+                results_count = Result.objects.filter(event=event).count()
+                imported_runs = RaceRunImportService().import_event_runs(event)
                 messages.success(request, _("Úspěšně nahráno {count} souborů se statistikami.").format(count=count))
+                messages.info(request, _("RaceRun aktualizován, zapsáno {count} jízd.").format(count=imported_runs))
+                if results_count == 0:
+                    messages.warning(
+                        request,
+                        _(
+                            "Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a potom spusť import statistik znovu."
+                        ),
+                    )
+                elif imported_runs == 0:
+                    messages.warning(
+                        request,
+                        _(
+                            "Statistické soubory se nahrály, ale nevznikl žádný RaceRun. Zkontroluj, že kategorie, jména a čísla v HTML odpovídají výsledkům uloženým v Result."
+                        ),
+                    )
             else:
                 messages.warning(request, _("Nebyly nahrány žádné soubory (povoleny jsou pouze .html)."))
                 

@@ -3,6 +3,89 @@
 {% block title %}Nasazení rozhodčích{% endblock title %}
 {% block extra_head %}
 <style>
+  .commissar-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .commissar-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .commissar-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .commissar-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .commissar-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .commissar-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .commissar-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .commissar-table-wrap {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  html.dark .commissar-page {
+    background: #0f172a;
+  }
+
+  html.dark .commissar-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .commissar-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .commissar-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  html.dark .commissar-table-wrap {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.9);
+  }
+
   html.dark .commissar-year-select {
     background-color: #1e293b !important;
     border-color: #475569 !important;
@@ -15,84 +98,122 @@
     background-color: #1e293b;
     color: #f8fafc;
   }
+
+  @media (min-width: 640px) {
+    .commissar-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .commissar-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
-    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+<header class="commissar-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+      <div>
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Komisaři a pořadatelé
+          Komisaři a pořadatelé
         </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-            NASAZENÍ ROZHODČÍCH
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          NASAZENÍ ROZHODČÍCH
         </h1>
-        <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-            Přehled závodů a nasazených komisařů pro sezonu {{ selected_year }}.
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Přehled závodů a nasazených komisařů pro sezonu {{ selected_year }}.
         </p>
+      </div>
+      <div class="commissar-stats-grid">
+        <div class="commissar-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">PCP nasazení</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ pcp_events_count }}</p>
+        </div>
+        <div class="commissar-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">PCP asist.</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ pcp_assist_events_count }}</p>
+        </div>
+        <div class="commissar-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Start Commissar</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ start_commissar_events_count }}</p>
+        </div>
+      </div>
     </div>
+  </div>
 </header>
 
-<section class="bg-slate-50 pb-10 pt-8 dark:bg-slate-900">
-    <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-        <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <a href="{% url 'event:commissar-statistics' %}?year={{ selected_year }}"
-                class="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-400">
-                Statistiky nasazení rozhodčích
-            </a>
+<section class="commissar-page pt-8 pb-4">
+  <div class="commissar-shell">
+    <div class="commissar-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <a href="{% url 'event:commissar-statistics' %}?year={{ selected_year }}"
+          class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+          Statistiky nasazení rozhodčích
+        </a>
 
-            <form method="get" class="flex flex-wrap items-end gap-3">
-                <div>
-                    <label for="year" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Rok</label>
-                    <select
-                        id="year"
-                        name="year"
-                        style="color: inherit;"
-                        class="commissar-year-select mt-1 block rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                    >
-                        {% for year in year_options %}
-                        <option value="{{ year.year }}" {% if year.year == selected_year %}selected{% endif %}>{{ year.year }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
-                    Zobrazit
-                </button>
-            </form>
-        </div>
+        <form method="get" class="flex flex-wrap items-end gap-3">
+          <div>
+            <label for="year" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Rok</label>
+            <select
+              id="year"
+              name="year"
+              style="color: inherit;"
+              class="commissar-year-select mt-1 block rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            >
+              {% for year in year_options %}
+              <option value="{{ year.year }}" {% if year.year == selected_year %}selected{% endif %}>{{ year.year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
+            Zobrazit
+          </button>
+        </form>
+      </div>
 
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                    <thead class="bg-slate-50 dark:bg-slate-950">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Datum</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Závod</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">PCP</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">PCP asist.</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Start commissar</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
-                        {% for event in events %}
-                        <tr class="dark:bg-slate-900">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.date|date:"d.m.Y" }}</td>
-                            <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ event.name }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.pcp|default:"-" }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.pcp_assist|default:"-" }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.start_commissar|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr class="dark:bg-slate-900">
-                            <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
-                                Pro vybraný rok nejsou evidované žádné závody.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+      <div class="commissar-table-wrap mt-8 rounded-[1.75rem]">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead class="bg-slate-50 dark:bg-slate-950">
+              <tr>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Datum</th>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Závod</th>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">PCP</th>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">PCP asist.</th>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Start Commissar</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+              {% for event in events %}
+              <tr class="dark:bg-slate-900">
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.date|date:"d.m.Y" }}</td>
+                <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ event.name }}</td>
+                <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if event.pcp and event.pcp.last_name != "Bude upřesněno" %}{{ event.pcp }}{% else %}-{% endif %}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if event.pcp_assist and event.pcp_assist.last_name != "Bude upřesněno" %}{{ event.pcp_assist }}{% else %}-{% endif %}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if event.start_commissar and event.start_commissar.last_name != "Bude upřesněno" %}{{ event.start_commissar }}{% else %}-{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr class="dark:bg-slate-900">
+                <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                  Pro vybraný rok nejsou evidované žádné závody.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
+  </div>
 </section>
 {% endblock content %}

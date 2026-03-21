@@ -43,6 +43,40 @@
 
 .foreign-entry-checkbox {
   accent-color: #4f46e5;
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.foreign-entry-category-option {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 4.25rem;
+  padding: 0.95rem 1rem !important;
+  border-radius: 1.1rem !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.foreign-entry-category-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.38) !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.foreign-entry-category-option .foreign-entry-category-title {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #334155;
+  min-width: 0;
+}
+
+.foreign-entry-category-option .foreign-entry-checkbox {
+  width: 1.2rem !important;
+  height: 1.2rem !important;
+  margin-top: 0;
 }
 
 .foreign-entry-delete-button {
@@ -187,6 +221,14 @@ html.dark .riderCard .foreign-entry-category-option {
   background: rgba(15, 23, 42, 0.92) !important;
   border-color: rgba(71, 85, 105, 0.92) !important;
   color: #f8fafc !important;
+}
+
+html.dark .foreign-entry-category-option .foreign-entry-category-title {
+  color: #f8fafc;
+}
+
+html.dark .foreign-entry-category-option .foreign-entry-category-meta {
+  color: #94a3b8;
 }
 
 html.dark .riderCard .foreign-entry-note {
