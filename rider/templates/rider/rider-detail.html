@@ -2,6 +2,58 @@
 {% block title %} Detail jezdce {% endblock title %}
 {% block extra_head %}
 <style>
+  .rider-profile-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .rider-profile-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .rider-profile-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .rider-profile-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 1rem;
+  }
+
+  .rider-profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .rider-profile-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .rider-profile-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .rider-profile-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
   html.dark .rider-detail-surface {
     background-color: #0f172a !important;
   }
@@ -73,6 +125,23 @@
     color: #cbd5e1 !important;
   }
 
+  html.dark .rider-profile-page {
+    background: #0f172a;
+  }
+
+  html.dark .rider-profile-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .rider-profile-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
   .rider-premium-panel {
     min-width: 320px;
     max-width: 360px;
@@ -113,42 +182,44 @@
 {% endblock %}
 {% block content %}
 
-<header class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
-  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-      Profil jezdce
-    </p>
-    <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-        {{ rider.first_name|upper }} {{ rider.last_name|upper }}
-      </h1>
-      <div class="flex flex-wrap gap-3 sm:justify-end">
-        {% if rider.is_20 %}
-        <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-lg font-black
-          {% if rider.plate_color_20 == 'blue' %}bg-blue-800 text-white
-          {% elif rider.plate_color_20 == 'gray' %}bg-slate-500 text-white
-          {% elif rider.plate_color_20 == 'yellow' %}bg-yellow-300 text-black
-          {% elif rider.plate_color_20 == 'white' %}border-2 border-slate-400 bg-white text-black
-          {% elif rider.plate_color_20 == 'black' %}bg-black text-white
-          {% else %}bg-yellow-300 text-black{% endif %}">
-          {{ rider.plate_display }}
+<header class="rider-profile-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          Profil jezdce
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ rider.first_name|upper }} {{ rider.last_name|upper }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Přehled registračních údajů, kategorií a výsledků za posledních 365 dní.
+        </p>
+      </div>
+      <div class="rider-profile-stats-grid">
+        <div class="rider-profile-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Startovní číslo</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ rider.plate_display|default:"-" }}</p>
         </div>
-        {% endif %}
-        {% if rider.is_24 %}
-        <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-black text-white">
-          {{ rider.plate_display }}
+        <div class="rider-profile-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 20"</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+            {% if rider.is_20 %}{{ rider.class_20 }}{% else %}Nejezdí{% endif %}
+          </p>
         </div>
-        {% endif %}
+        <div class="rider-profile-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 24"</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+            {% if rider.is_24 %}{{ rider.class_24 }}{% else %}Nejezdí{% endif %}
+          </p>
+        </div>
       </div>
     </div>
-    <p class="mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-      Přehled registračních údajů, kategorií a výsledků za posledních 365 dní.
-    </p>
   </div>
 </header>
 
-<section class="rider-detail-surface min-h-screen bg-slate-50 pb-10 dark:bg-slate-900">
-  <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+<section class="rider-profile-page rider-detail-surface pb-10">
+  <div class="rider-profile-shell">
     <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-stretch">
       <div class="rider-detail-card flex h-full min-h-[20rem] flex-col justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
         <div class="flex flex-col items-center text-center">

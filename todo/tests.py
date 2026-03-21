@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from bmx.context_processors import navbar_context
+from event.models import Event
 from .models import CommissionTask
 
 
@@ -32,6 +33,29 @@ class CommissionTaskModelTests(TestCase):
         task.save()
 
         self.assertIsNone(task.completed_at)
+
+    def test_task_can_exist_without_related_event(self):
+        task = CommissionTask.objects.create(
+            title="Domluvit briefing rozhodčích",
+            status=CommissionTask.STATUS_NEW,
+        )
+
+        self.assertIsNone(task.event)
+
+    def test_task_can_be_linked_to_event(self):
+        event = Event.objects.create(
+            name="Openseason 2026",
+            date=timezone.localdate(),
+            type_for_ranking="Volný závod",
+        )
+
+        task = CommissionTask.objects.create(
+            title="Připravit checklist pro závod",
+            event=event,
+            status=CommissionTask.STATUS_NEW,
+        )
+
+        self.assertEqual(task.event, event)
 
 
 class CommissionTaskViewTests(TestCase):
@@ -74,6 +98,17 @@ class CommissionTaskViewTests(TestCase):
             assignee=self.commission_user,
             status=CommissionTask.STATUS_DONE,
         )
+        self.event = Event.objects.create(
+            name="Openseason 2026",
+            date=timezone.localdate(),
+            type_for_ranking="Volný závod",
+        )
+        self.task_with_event = CommissionTask.objects.create(
+            title="Připravit podklady pro briefing",
+            assignee=self.commission_user,
+            event=self.event,
+            status=CommissionTask.STATUS_NEW,
+        )
 
     def test_commission_member_can_open_task_board(self):
         self.client.force_login(self.commission_user)
@@ -110,6 +145,14 @@ class CommissionTaskViewTests(TestCase):
         self.assertContains(response, self.overdue_task.title)
         self.assertNotContains(response, self.mine_task.title)
         self.assertNotContains(response, self.done_task.title)
+
+    def test_task_board_shows_related_event_only_when_present(self):
+        self.client.force_login(self.commission_user)
+
+        response = self.client.get(reverse("todo:task-list"))
+
+        self.assertContains(response, self.task_with_event.title)
+        self.assertContains(response, "Závod: Openseason 2026")
 
 
 class NavbarTaskBadgeTests(TestCase):

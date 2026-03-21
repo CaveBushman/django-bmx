@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Porovnání jezdců" %}{% endblock title %}
+{% block extra_head %}
+<style>
+  .clubs-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .clubs-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .clubs-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .clubs-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .clubs-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .clubs-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .rider-compare-shell {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.12), transparent 26rem);
+  }
+
+  .rider-compare-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.12), transparent 26rem);
+  }
+
+  .dark .rider-compare-shell {
+    background:
+      linear-gradient(180deg, rgb(2 6 23) 0%, rgb(15 23 42) 38%, rgb(2 6 23) 100%),
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.06), transparent 26rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.08), transparent 24rem);
+  }
+
+  .dark .rider-compare-shell::before {
+    position: fixed;
+    inset: 4rem 0 0 0;
+    background:
+      linear-gradient(180deg, rgb(2 6 23) 0%, rgb(15 23 42) 38%, rgb(2 6 23) 100%),
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.06), transparent 26rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.08), transparent 24rem);
+  }
+
+  .dark .rider-compare-panel {
+    border-color: rgba(71, 85, 105, 0.8);
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.98)),
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.14), transparent 22rem);
+    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.36);
+  }
+
+  .dark .rider-compare-select {
+    color-scheme: dark;
+    background-color: rgba(15, 23, 42, 0.92);
+    border-color: rgba(71, 85, 105, 0.95);
+    color: rgb(241 245 249);
+  }
+
+  .dark .rider-compare-card {
+    border-color: rgba(51, 65, 85, 0.92);
+    background-color: rgba(15, 23, 42, 0.9);
+  }
+
+  .dark .rider-compare-kpi {
+    border-color: rgba(51, 65, 85, 0.92);
+    background-color: rgba(2, 6, 23, 0.88);
+  }
+
+  .dark .rider-compare-link {
+    border-color: rgba(71, 85, 105, 0.95);
+    background-color: rgba(15, 23, 42, 0.9);
+    color: rgb(241 245 249);
+  }
+
+  .dark .rider-compare-link:hover {
+    background-color: rgba(30, 41, 59, 0.96);
+  }
+
+  .dark .rider-compare-chip {
+    border-color: rgba(71, 85, 105, 0.95);
+    background-color: rgba(15, 23, 42, 0.92);
+    color: rgb(226 232 240);
+  }
+
+  .dark .rider-compare-chip:hover {
+    border-color: rgba(99, 102, 241, 0.7);
+    background-color: rgba(30, 41, 59, 0.96);
+  }
+
+  .dark .rider-compare-empty {
+    border-color: rgba(71, 85, 105, 0.72) !important;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.98)) !important;
+    color: rgb(203 213 225) !important;
+  }
+
+  .dark .rider-compare-empty * {
+    color: inherit !important;
+  }
+
+  .rider-compare-page {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.14), transparent 28rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.12), transparent 26rem);
+  }
+
+  .rider-compare-content-shell {
+    margin: 0 auto;
+    max-width: 80rem;
+    padding: 1rem 1rem 4rem;
+  }
+
+  .dark .rider-compare-page {
+    background:
+      linear-gradient(180deg, rgb(2 6 23) 0%, rgb(15 23 42) 38%, rgb(2 6 23) 100%),
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.06), transparent 26rem),
+      radial-gradient(circle at top right, rgba(129, 140, 248, 0.08), transparent 24rem);
+  }
+
+  html.dark .clubs-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .clubs-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+</style>
+{% endblock extra_head %}
+{% block content %}
+<header class="clubs-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Porovnání jezdců" %}</p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ rider.first_name|upper }} {{ rider.last_name|upper }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          {% trans "Vyber soupeře ze stejné kategorie a porovnej KPI i přímé souboje." %}
+        </p>
+      </div>
+      <div class="clubs-stats-grid">
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kategorie 20\"" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{% if rider.is_20 %}{{ rider.class_20 }}{% else %}-{% endif %}</p>
+        </div>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kategorie 24\"" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{% if rider.is_24 %}{{ rider.class_24 }}{% else %}-{% endif %}</p>
+        </div>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "KPI období" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ kpi_period.label }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="rider-compare-page rider-compare-shell min-h-screen bg-slate-50 pb-16 dark:bg-slate-950">
+  <div class="rider-compare-content-shell">
+    <div class="rider-compare-panel rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">{% trans "Výběr soupeře" %}</h2>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">
+            {% trans "Vyber trať, disciplínu a soupeře. Systém pak zobrazí head-to-head porovnání i rozdíly v KPI." %}
+          </p>
+        </div>
+        <a href="{% url 'rider:premium-stats' rider.uci_id %}{% if selected_track or selected_wheel or kpi_period %}?{% endif %}{% if selected_track %}track={{ selected_track.id }}{% endif %}{% if selected_track and selected_wheel %}&{% endif %}{% if selected_wheel %}wheel={{ selected_wheel }}{% endif %}{% if selected_track or selected_wheel %}&{% endif %}years={{ kpi_period.value }}" class="rider-compare-link inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">
+          {% trans "Zpět na premium stats" %}
+        </a>
+      </div>
+
+      <form method="get" class="mt-8">
+        <div class="grid gap-4 lg:grid-cols-4">
+          <div>
+            <label for="track-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Trať / klub" %}</label>
+            <select id="track-select" name="track" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+              <option value="">{% trans "Vyber trať" %}</option>
+              {% for track in track_options %}
+              <option value="{{ track.id }}"{% if selected_track and selected_track.id == track.id %} selected{% endif %}>{{ track.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="wheel-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Disciplína" %}</label>
+            <select id="wheel-select" name="wheel" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+              <option value="">{% trans "Vyber disciplínu" %}</option>
+              {% for wheel in available_wheels %}
+              <option value="{{ wheel.value }}"{% if selected_wheel == wheel.value %} selected{% endif %}>{{ wheel.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="opponent-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Soupeř" %}</label>
+            <select id="opponent-select" name="opponent" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+              <option value="">{% trans "Vyber jezdce" %}</option>
+              {% for item in compare_candidates %}
+              <option value="{{ item.uci_id }}"{% if opponent and opponent.uci_id == item.uci_id %} selected{% endif %}>{{ item.first_name }} {{ item.last_name }}{% if item.club %} | {{ item.club.team_name }}{% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500">
+              {% trans "Porovnat" %}
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6 w-full">
+          <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "KPI období" %}</span>
+          <div class="flex w-full flex-nowrap items-center gap-3 overflow-x-auto pb-1">
+            {% for option in kpi_period_options %}
+            <label class="rider-compare-chip inline-flex flex-shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              <input
+                type="radio"
+                name="years"
+                value="{{ option.value }}"
+                class="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                {% if kpi_period.value == option.value %}checked{% endif %}
+              >
+              <span>{{ option.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {% if require_wheel_selection %}
+    <div class="rider-compare-empty mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      {% trans 'Na této trati jsou výsledky jak pro 20", tak pro 24". Nejdřív vyber disciplínu.' %}
+    </div>
+    {% elif not selected_track %}
+    <div class="rider-compare-empty mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      {% trans "Nejdřív vyber trať nebo klub." %}
+    </div>
+    {% elif not opponent %}
+    <div class="rider-compare-empty mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      {% trans "Vyber soupeře ze stejné kategorie a zobrazí se head-to-head porovnání." %}
+    </div>
+    {% else %}
+    <div class="mt-8 grid gap-6 xl:grid-cols-2">
+      <div class="rider-compare-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Náš jezdec" %}</p>
+        <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</h2>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median finish" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu finish time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median finish' %}" data-help-body="{% trans 'Medián všech dostupných cílových časů vybraného jezdce na této trati a v tomto období. Je vhodný pro porovnání typického výkonu bez vlivu extrémů.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.median_finish_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best finish" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best finish time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best finish' %}" data-help-body="{% trans 'Nejlepší naměřený cílový čas vybraného jezdce na této trati v daném období. Ukazuje strop výkonu, ne typický standard.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.best_finish_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median hill" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu hill time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median hill' %}" data-help-body="{% trans 'Medián všech dostupných hill time na této trati v daném období. Ukazuje typickou kvalitu startu na kopci.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.median_hill_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best hill" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best hill time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best hill' %}" data-help-body="{% trans 'Nejlepší naměřený hill time vybraného jezdce na této trati v daném období. Ukazuje maximální kvalitu startu.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.best_hill_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median split 1" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu split 1' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median split 1' %}" data-help-body="{% trans 'Medián mezičasů ze split 1. Zatím se zobrazí jen tam, kde už jsou split data k dispozici.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.median_split_1|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best split 1" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best split 1' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best split 1' %}" data-help-body="{% trans 'Nejlepší dostupný mezičas split 1. Hodí se pro porovnání špičkové akcelerace v první části tratě.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.best_split_1|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Final rate" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k final rate' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Final rate' %}" data-help-body="{% trans 'Podíl závodů v daném období, kde se jezdec dostal do velkého finále F1. Pomáhá porovnat, jak často se oba jezdci dostanou mezi nejlepší.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.final_rate|default:"-" }}{% if base_track_stats.final_rate %}%{% endif %}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Podium rate" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k podium rate' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Podium rate' %}" data-help-body="{% trans 'Podíl výsledků na této trati v daném období, kde jezdec skončil na 1. až 3. místě.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ base_track_stats.podium_rate|default:"-" }}{% if base_track_stats.podium_rate %}%{% endif %}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rider-compare-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700 dark:text-emerald-300">{% trans "Soupeř" %}</p>
+        <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ opponent.first_name }} {{ opponent.last_name }}</h2>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median finish" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu finish time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median finish' %}" data-help-body="{% trans 'Medián všech dostupných cílových časů vybraného jezdce na této trati a v tomto období. Je vhodný pro porovnání typického výkonu bez vlivu extrémů.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.median_finish_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best finish" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best finish time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best finish' %}" data-help-body="{% trans 'Nejlepší naměřený cílový čas vybraného jezdce na této trati v daném období. Ukazuje strop výkonu, ne typický standard.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.best_finish_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median hill" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu hill time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median hill' %}" data-help-body="{% trans 'Medián všech dostupných hill time na této trati v daném období. Ukazuje typickou kvalitu startu na kopci.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.median_hill_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best hill" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best hill time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best hill' %}" data-help-body="{% trans 'Nejlepší naměřený hill time vybraného jezdce na této trati v daném období. Ukazuje maximální kvalitu startu.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.best_hill_time|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Median split 1" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k mediánu split 1' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Median split 1' %}" data-help-body="{% trans 'Medián mezičasů ze split 1. Zatím se zobrazí jen tam, kde už jsou split data k dispozici.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.median_split_1|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Best split 1" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k best split 1' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best split 1' %}" data-help-body="{% trans 'Nejlepší dostupný mezičas split 1. Hodí se pro porovnání špičkové akcelerace v první části tratě.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.best_split_1|default:"-" }}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Final rate" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k final rate' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Final rate' %}" data-help-body="{% trans 'Podíl závodů v daném období, kde se jezdec dostal do velkého finále F1. Pomáhá porovnat, jak často se oba jezdci dostanou mezi nejlepší.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.final_rate|default:"-" }}{% if opponent_track_stats.final_rate %}%{% endif %}</p>
+          </div>
+          <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Podium rate" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k podium rate' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Podium rate' %}" data-help-body="{% trans 'Podíl výsledků na této trati v daném období, kde jezdec skončil na 1. až 3. místě.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ opponent_track_stats.podium_rate|default:"-" }}{% if opponent_track_stats.podium_rate %}%{% endif %}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rider-compare-card mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Přímé souboje" %}</p>
+      <div class="mt-5 grid gap-4 md:grid-cols-3">
+        <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Motos" %}</p>
+            <button type="button" aria-label="{% trans 'Nápověda k moto soubojům' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Motos' %}" data-help-body="{% trans 'Poměr výher a proher v přímých moto jízdách, kde jeli oba jezdci ve stejné jízdě. Vyhrává ten, kdo skončil v jízdě lépe.' %}">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ head_to_head.moto.wins }} : {{ head_to_head.moto.losses }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% blocktrans with shared=head_to_head.moto.shared %}Společné jízdy {{ shared }}{% endblocktrans %}</p>
+        </div>
+        <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Finálové jízdy" %}</p>
+            <button type="button" aria-label="{% trans 'Nápověda k finálovým soubojům' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Finálové jízdy' %}" data-help-body="{% trans 'Poměr výher a proher v knockout a finálových jízdách, kde oba jezdci nastoupili proti sobě ve stejné jízdě.' %}">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ head_to_head.final.wins }} : {{ head_to_head.final.losses }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% blocktrans with shared=head_to_head.final.shared %}Společné jízdy {{ shared }}{% endblocktrans %}</p>
+        </div>
+        <div class="rider-compare-kpi rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Celkový výsledek závodu" %}</p>
+            <button type="button" aria-label="{% trans 'Nápověda k celkovému výsledku závodu' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Celkový výsledek závodu' %}" data-help-body="{% trans 'Porovnání celkového pořadí v závodech, kde startovali oba jezdci. Vyhrává ten, kdo skončil v závodě na lepším místě.' %}">i</button>
+          </div>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ head_to_head.event.wins }} : {{ head_to_head.event.losses }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% blocktrans with shared=head_to_head.event.shared %}Společné závody {{ shared }}{% endblocktrans %}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+<div id="help-modal" class="fixed inset-0 z-[120] hidden">
+  <div class="absolute inset-0 bg-slate-950/70"></div>
+  <div class="relative flex min-h-full items-center justify-center p-4 sm:p-6">
+    <div class="w-full max-w-2xl rounded-[28px] border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 dark:border-slate-800">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">{% trans "Kontextová nápověda" %}</p>
+          <h3 id="help-modal-title" class="mt-2 text-3xl font-black leading-tight text-slate-900 dark:text-white"></h3>
+        </div>
+        <button type="button" id="help-modal-close" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white">
+          ✕
+        </button>
+      </div>
+      <div class="px-6 py-6">
+        <div class="rounded-2xl bg-sky-50 p-5 ring-1 ring-sky-100 dark:bg-sky-500/10 dark:ring-sky-400/20">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{% trans "Jak Se Počítá" %}</p>
+          <p id="help-modal-body" class="mt-3 text-base leading-8 text-slate-700 dark:text-slate-200"></p>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button type="button" id="help-modal-action" class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500">
+            {% trans "Rozumím" %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (() => {
+    const modal = document.getElementById("help-modal");
+    const title = document.getElementById("help-modal-title");
+    const body = document.getElementById("help-modal-body");
+    const closeButton = document.getElementById("help-modal-close");
+    const actionButton = document.getElementById("help-modal-action");
+    if (!modal || !title || !body || !closeButton || !actionButton) return;
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    };
+
+    document.querySelectorAll(".help-trigger").forEach((button) => {
+      button.addEventListener("click", () => {
+        title.textContent = button.dataset.helpTitle || "{% trans 'Nápověda' %}";
+        body.textContent = button.dataset.helpBody || "";
+        modal.classList.remove("hidden");
+        document.body.classList.add("overflow-hidden");
+      });
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    actionButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target === modal.firstElementChild) {
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+  })();
+</script>
+{% endblock content %}

@@ -447,7 +447,7 @@ def _matches_wheel_filter(result_or_run, wheel):
         return True
 
     if hasattr(result_or_run, "result"):
-        is_20 = bool(result_or_run.result and result_or_run.result.is_20)
+        is_20 = bool(result_or_run.is_20)
     else:
         is_20 = bool(result_or_run.is_20)
 
@@ -570,14 +570,182 @@ def _build_track_options(results, runs, kpi_cutoff=None):
     return sorted(track_options, key=lambda item: (-item["runs_count"], item["name"]))
 
 
+def _build_peer_context(rider, selected_track, wheel, kpi_cutoff=None):
+    default_context = {
+        "uci_category": None,
+        "peer_label": None,
+        "peer_results": Result.objects.none(),
+        "peer_runs": RaceRun.objects.none(),
+        "candidates": [],
+    }
+
+    if selected_track is None or wheel not in {"20", "24"}:
+        return default_context
+
+    if wheel == "20":
+        uci_category = rider.class_20
+        peer_label = f"{uci_category} (20\")" if uci_category else None
+        peer_results = (
+            Result.objects.filter(
+                event__organizer_id=selected_track["id"],
+                rider__class_20=uci_category,
+                is_20=True,
+                is_beginner=False,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.uci_id)
+            .select_related("rider")
+        )
+        peer_runs = (
+            RaceRun.objects.filter(
+                event__organizer_id=selected_track["id"],
+                is_20=True,
+                is_beginner=False,
+                rider__class_20=uci_category,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.id)
+            .select_related("rider", "result")
+        )
+    else:
+        uci_category = rider.class_24
+        peer_label = f"{uci_category} (24\")" if uci_category else None
+        peer_results = (
+            Result.objects.filter(
+                event__organizer_id=selected_track["id"],
+                rider__class_24=uci_category,
+                is_20=False,
+                is_beginner=False,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.uci_id)
+            .select_related("rider")
+        )
+        peer_runs = (
+            RaceRun.objects.filter(
+                event__organizer_id=selected_track["id"],
+                is_20=False,
+                is_beginner=False,
+                rider__class_24=uci_category,
+            )
+            .exclude(rider_id__isnull=True)
+            .exclude(rider_id=rider.id)
+            .select_related("rider", "result")
+        )
+
+    if kpi_cutoff is not None:
+        peer_results = peer_results.filter(date__gte=kpi_cutoff)
+        peer_runs = peer_runs.filter(event__date__gte=kpi_cutoff)
+
+    candidate_map = {}
+    for result in peer_results:
+        if result.rider_id and result.rider:
+            candidate_map[result.rider.uci_id] = result.rider
+    for run in peer_runs:
+        if run.rider_id and run.rider:
+            candidate_map[run.rider.uci_id] = run.rider
+
+    candidates = sorted(
+        candidate_map.values(),
+        key=lambda item: ((item.last_name or "").lower(), (item.first_name or "").lower(), item.uci_id),
+    )
+
+    return {
+        "uci_category": uci_category,
+        "peer_label": peer_label,
+        "peer_results": peer_results,
+        "peer_runs": peer_runs,
+        "candidates": candidates,
+    }
+
+
+def _build_head_to_head(base_results, opponent_results, base_runs, opponent_runs):
+    def _build_run_map(runs, allowed_round_types):
+        run_map = defaultdict(list)
+        for run in runs:
+            if run.round_type not in allowed_round_types:
+                continue
+            parsed_place = _parse_numeric_place(run.place)
+            if parsed_place is None or not run.event_id:
+                continue
+            key = (
+                run.event_id,
+                run.round_type,
+                run.round_number or 0,
+                run.heat_code or "",
+            )
+            run_map[key].append(parsed_place)
+        for values in run_map.values():
+            values.sort()
+        return run_map
+
+    def _compare_run_maps(base_map, opponent_map):
+        wins = losses = ties = 0
+        for key in set(base_map.keys()) & set(opponent_map.keys()):
+            for base_place, opponent_place in zip(base_map[key], opponent_map[key]):
+                if base_place < opponent_place:
+                    wins += 1
+                elif base_place > opponent_place:
+                    losses += 1
+                else:
+                    ties += 1
+        return {
+            "wins": wins,
+            "losses": losses,
+            "ties": ties,
+            "shared": wins + losses + ties,
+        }
+
+    moto_h2h = _compare_run_maps(
+        _build_run_map(base_runs, {"MOTO"}),
+        _build_run_map(opponent_runs, {"MOTO"}),
+    )
+    final_h2h = _compare_run_maps(
+        _build_run_map(base_runs, FINAL_ROUND_TYPES),
+        _build_run_map(opponent_runs, FINAL_ROUND_TYPES),
+    )
+
+    base_results_map = {
+        result.event_id: result.place
+        for result in base_results
+        if result.event_id and result.place is not None
+    }
+    opponent_results_map = {
+        result.event_id: result.place
+        for result in opponent_results
+        if result.event_id and result.place is not None
+    }
+    event_wins = event_losses = event_ties = 0
+    for event_id in set(base_results_map.keys()) & set(opponent_results_map.keys()):
+        base_place = base_results_map[event_id]
+        opponent_place = opponent_results_map[event_id]
+        if base_place < opponent_place:
+            event_wins += 1
+        elif base_place > opponent_place:
+            event_losses += 1
+        else:
+            event_ties += 1
+
+    return {
+        "moto": moto_h2h,
+        "final": final_h2h,
+        "event": {
+            "wins": event_wins,
+            "losses": event_losses,
+            "ties": event_ties,
+            "shared": event_wins + event_losses + event_ties,
+        },
+    }
+
+
 def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None, kpi_cutoff=None, kpi_label="2 roky"):
     if selected_track is None:
         return None
 
     track_results = [result for result in all_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
     track_runs = [run for run in all_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
-    track_has_20 = any(result.is_20 for result in track_results) or any(run.result and run.result.is_20 for run in track_runs)
-    track_has_24 = any(not result.is_20 for result in track_results) or any(run.result and not run.result.is_20 for run in track_runs)
+    track_has_20 = any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs)
+    track_has_24 = any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs)
 
     if wheel in {"20", "24"}:
         track_results = [result for result in track_results if _matches_wheel_filter(result, wheel)]
@@ -590,6 +758,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         for run in track_runs
         if run.event and run.event.date and (kpi_cutoff is None or run.event.date >= kpi_cutoff)
     ]
+    recent_track_event_ids = {run.event_id for run in recent_track_runs if run.event_id}
     event_metrics = defaultdict(
         lambda: {
             "moto_places": [],
@@ -605,6 +774,11 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
 
     finish_times = []
     hill_times = []
+    split_times = []
+    hill_ranks = []
+    hill_rankable_runs = 0
+    positions_gained_after_hill = []
+    lane_hill_times = defaultdict(list)
     moto_finish_times = []
     final_finish_times = []
     moto_places = []
@@ -614,6 +788,9 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     eligible_clean_runs = 0
 
     for run in recent_track_runs:
+        if run.lane and run.hill_time is not None:
+            lane_hill_times[run.lane].append(float(run.hill_time))
+
         parsed_place = _parse_numeric_place(run.place)
         finish_time = run.finish_time
         run_metrics = event_metrics[run.event_id]
@@ -624,6 +801,9 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
 
         if run.hill_time is not None:
             hill_times.append(float(run.hill_time))
+
+        if run.split_1 is not None:
+            split_times.append(float(run.split_1))
 
         place_text = (run.place or "").upper()
         is_bad_status = any(flag in place_text for flag in ("DNF", "DNS", "DSQ", "REL"))
@@ -647,12 +827,67 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
             if finish_time is not None:
                 final_finish_times.append(float(finish_time))
 
+    heat_runs = defaultdict(list)
+    if recent_track_event_ids:
+        comparable_runs_qs = RaceRun.objects.filter(
+            event_id__in=recent_track_event_ids,
+            is_beginner=False,
+            hill_time__isnull=False,
+        )
+        if wheel in {"20", "24"}:
+            comparable_runs_qs = comparable_runs_qs.filter(is_20=(wheel == "20"))
+
+        for item in comparable_runs_qs.only("id", "event_id", "round_type", "round_number", "heat_code", "rider_id", "hill_time"):
+            heat_key = (
+                item.event_id,
+                item.round_type,
+                item.round_number or 0,
+                item.heat_code or "",
+            )
+            heat_runs[heat_key].append(item)
+
+    for run in recent_track_runs:
+        if run.hill_time is None or not run.event_id:
+            continue
+        heat_key = (
+            run.event_id,
+            run.round_type,
+            run.round_number or 0,
+            run.heat_code or "",
+        )
+        same_heat_runs = sorted(heat_runs.get(heat_key, []), key=lambda item: (float(item.hill_time), item.id))
+        if not same_heat_runs:
+            continue
+        hill_rankable_runs += 1
+        for index, item in enumerate(same_heat_runs, start=1):
+            if item.id == run.id:
+                hill_ranks.append(index)
+                parsed_finish_place = _parse_numeric_place(run.place)
+                if parsed_finish_place is not None:
+                    positions_gained_after_hill.append(index - parsed_finish_place)
+                break
+
     track_place_values = [result.place for result in recent_track_results if result.place is not None]
     overall_place_values = [result.place for result in overall_results if result.place is not None]
     events_count = len({result.event_id for result in recent_track_results if result.event_id})
     events_with_motos = sum(1 for item in event_metrics.values() if item["moto_places"])
     events_with_final_stage = sum(1 for item in event_metrics.values() if item["final_places"])
     events_with_final = len({run.event_id for run in recent_track_runs if run.round_type == "FINAL"})
+    events_with_moto_qualification_flag = len({
+        run.event_id
+        for run in recent_track_runs
+        if run.round_type == "MOTO" and run.qualified_to_next_round is True and run.event_id
+    })
+    events_with_any_moto_qualification_info = len({
+        run.event_id
+        for run in recent_track_runs
+        if run.round_type == "MOTO" and run.qualified_to_next_round is not None and run.event_id
+    })
+    progressed_events_count = (
+        events_with_moto_qualification_flag
+        if events_with_any_moto_qualification_info
+        else events_with_final_stage
+    )
 
     strong_start_events = [item for item in event_metrics.values() if item["moto_places"] and mean(item["moto_places"]) <= 3]
     weak_start_events = [item for item in event_metrics.values() if item["moto_places"] and mean(item["moto_places"]) > 3]
@@ -726,6 +961,17 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
             consistency_label = _("Kolísavý")
         else:
             consistency_label = _("Nevyrovnaný")
+
+    best_hill_lane = None
+    best_hill_lane_median = None
+    if lane_hill_times:
+        lane_medians = {
+            lane: round(median(values), 3)
+            for lane, values in lane_hill_times.items()
+            if values
+        }
+        if lane_medians:
+            best_hill_lane, best_hill_lane_median = min(lane_medians.items(), key=lambda item: item[1])
 
     ordered_results = sorted(
         [result for result in recent_track_results if result.date],
@@ -969,78 +1215,15 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
 
     split_chart = _build_chart_series(raw_split_event_rows, event_split_times, "median_split_time")
 
-    compare_is_20 = wheel == "20" or any(result.is_20 and not result.is_beginner for result in recent_track_results)
-    compare_is_24 = wheel == "24" or any((not result.is_20) and not result.is_beginner for result in recent_track_results)
-    uci_category = None
-    peer_label = None
+    peer_context = _build_peer_context(rider, selected_track, wheel, kpi_cutoff=kpi_cutoff)
     peer_place_percentile = None
     peer_finish_percentile = None
     peer_group_size = 0
     pace_index = None
 
-    if compare_is_20:
-        uci_category = rider.class_20
-        peer_label = f"{uci_category} (20\")"
-        peer_results = (
-            Result.objects.filter(
-                event__organizer_id=selected_track["id"],
-                rider__class_20=uci_category,
-                is_20=True,
-                is_beginner=False,
-            )
-            .exclude(rider_id__isnull=True)
-            .exclude(rider_id=rider.uci_id)
-            .select_related("rider")
-        )
-        if kpi_cutoff is not None:
-            peer_results = peer_results.filter(date__gte=kpi_cutoff)
-        peer_runs = (
-            RaceRun.objects.filter(
-                event__organizer_id=selected_track["id"],
-                result__is_20=True,
-                result__is_beginner=False,
-                rider__class_20=uci_category,
-            )
-            .exclude(rider_id__isnull=True)
-            .exclude(rider_id=rider.id)
-            .select_related("rider", "result")
-        )
-        if kpi_cutoff is not None:
-            peer_runs = peer_runs.filter(event__date__gte=kpi_cutoff)
-    elif compare_is_24:
-        uci_category = rider.class_24
-        peer_label = f"{uci_category} (24\")"
-        peer_results = (
-            Result.objects.filter(
-                event__organizer_id=selected_track["id"],
-                rider__class_24=uci_category,
-                is_20=False,
-                is_beginner=False,
-            )
-            .exclude(rider_id__isnull=True)
-            .exclude(rider_id=rider.uci_id)
-            .select_related("rider")
-        )
-        if kpi_cutoff is not None:
-            peer_results = peer_results.filter(date__gte=kpi_cutoff)
-        peer_runs = (
-            RaceRun.objects.filter(
-                event__organizer_id=selected_track["id"],
-                result__is_20=False,
-                result__is_beginner=False,
-                rider__class_24=uci_category,
-            )
-            .exclude(rider_id__isnull=True)
-            .exclude(rider_id=rider.id)
-            .select_related("rider", "result")
-        )
-        if kpi_cutoff is not None:
-            peer_runs = peer_runs.filter(event__date__gte=kpi_cutoff)
-    else:
-        peer_results = Result.objects.none()
-        peer_runs = RaceRun.objects.none()
-
-    if uci_category:
+    if peer_context["uci_category"]:
+        peer_results = peer_context["peer_results"]
+        peer_runs = peer_context["peer_runs"]
         peer_places_by_rider = defaultdict(list)
         for result in peer_results:
             if result.rider_id and result.place is not None:
@@ -1077,8 +1260,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "starts_count": events_count,
         "runs_count": len(recent_track_runs),
         "final_runs_count": len([run for run in recent_track_runs if run.round_type in FINAL_ROUND_TYPES]),
-        "progressed_events_count": events_with_final_stage,
-        "progression_rate": _safe_rate(events_with_final_stage, events_with_motos),
+        "progressed_events_count": progressed_events_count,
+        "progression_rate": _safe_rate(progressed_events_count, events_with_motos),
         "final_rate": _safe_rate(events_with_final, events_count),
         "average_moto_place": avg_moto_place,
         "average_final_place": avg_final_place,
@@ -1089,6 +1272,17 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "average_finish_time": _safe_mean(finish_times),
         "best_finish_time": round(min(finish_times), 3) if finish_times else None,
         "median_finish_time": _safe_median(finish_times),
+        "best_hill_time": round(min(hill_times), 3) if hill_times else None,
+        "median_hill_time": _safe_median(hill_times),
+        "best_split_1": round(min(split_times), 3) if split_times else None,
+        "median_split_1": _safe_median(split_times),
+        "average_hill_rank": _safe_mean(hill_ranks),
+        "hill_win_rate": _safe_rate(sum(1 for rank in hill_ranks if rank == 1), len(hill_ranks)),
+        "hill_top3_rate": _safe_rate(sum(1 for rank in hill_ranks if rank <= 3), len(hill_ranks)),
+        "average_positions_gained_after_hill": _safe_mean(positions_gained_after_hill),
+        "hill_rankable_runs_count": hill_rankable_runs,
+        "best_hill_lane": best_hill_lane,
+        "best_hill_lane_median": best_hill_lane_median,
         "finish_time_stddev": _safe_stddev(finish_times),
         "conversion_score": _safe_rate(converted_events, len(strong_start_events)),
         "recovery_score": _safe_rate(recovered_events, len(weak_start_events)),
@@ -1128,7 +1322,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "split_chart_min_time": split_chart["min"],
         "split_chart_max_time": split_chart["max"],
         "split_chart_y_ticks": split_chart["ticks"],
-        "peer_label": peer_label,
+        "peer_label": peer_context["peer_label"],
         "peer_group_size": peer_group_size,
         "peer_place_percentile": peer_place_percentile,
         "peer_finish_percentile": peer_finish_percentile,
@@ -1149,7 +1343,7 @@ def rider_premium_stats_view(request, pk):
         return redirect("rider:detail", pk=pk)
 
     runs = list(
-        RaceRun.objects.filter(rider=rider, result__is_beginner=False)
+        RaceRun.objects.filter(rider=rider, is_beginner=False)
         .select_related("event", "event__organizer", "result")
         .order_by("-event__date", "round_type", "round_number", "id")
     )
@@ -1174,9 +1368,9 @@ def rider_premium_stats_view(request, pk):
         track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
         track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
         available_wheels = []
-        if any(result.is_20 for result in track_results) or any(run.result and run.result.is_20 for run in track_runs):
+        if any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs):
             available_wheels.append({"value": "20", "label": '20"'})
-        if any(not result.is_20 for result in track_results) or any(run.result and not run.result.is_20 for run in track_runs):
+        if any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs):
             available_wheels.append({"value": "24", "label": '24"'})
         if selected_wheel is None and len(available_wheels) == 1:
             selected_wheel = available_wheels[0]["value"]
@@ -1193,6 +1387,14 @@ def rider_premium_stats_view(request, pk):
         kpi_cutoff=kpi_period["cutoff"],
         kpi_label=kpi_period["label"],
     )
+    compare_candidates = []
+    if selected_track is not None and selected_wheel in {"20", "24"}:
+        compare_candidates = _build_peer_context(
+            rider,
+            selected_track,
+            selected_wheel,
+            kpi_cutoff=kpi_period["cutoff"],
+        )["candidates"]
     data = {
         "rider": rider,
         "runs": runs,
@@ -1208,8 +1410,149 @@ def rider_premium_stats_view(request, pk):
         "selected_wheel": selected_wheel,
         "require_wheel_selection": require_wheel_selection,
         "track_stats": track_stats,
+        "compare_candidates": compare_candidates,
     }
     return render(request, "rider/rider-premium-stats.html", data)
+
+
+@login_required
+def rider_compare_view(request, pk):
+    rider = get_object_or_404(Rider, uci_id=pk)
+    premium_access_context = _get_premium_access_context(request.user, rider)
+    if not premium_access_context["premium_access"]:
+        messages.error(
+            request,
+            _("Pro porovnání jezdců potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub."),
+        )
+        return redirect("rider:detail", pk=pk)
+
+    base_runs = list(
+        RaceRun.objects.filter(rider=rider, is_beginner=False)
+        .select_related("event", "event__organizer", "result")
+        .order_by("-event__date", "round_type", "round_number", "id")
+    )
+    base_results = list(
+        Result.objects.filter(rider_id=rider.uci_id, is_beginner=False)
+        .select_related("event", "event__organizer")
+        .order_by("-date", "-id")
+    )
+    kpi_period = _resolve_kpi_period(request.GET.get("years"))
+    track_options = _build_track_options(base_results, base_runs, kpi_cutoff=kpi_period["cutoff"])
+    selected_track_id = request.GET.get("track")
+    selected_wheel = request.GET.get("wheel")
+    if selected_wheel not in {"20", "24"}:
+        selected_wheel = None
+    selected_track = None
+    require_wheel_selection = False
+    if selected_track_id and selected_track_id.isdigit():
+        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
+    elif len(track_options) == 1:
+        selected_track = track_options[0]
+
+    if selected_track is not None:
+        selected_track_results = [result for result in base_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
+        selected_track_runs = [run for run in base_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+        available_wheels = []
+        if any(result.is_20 for result in selected_track_results) or any(run.is_20 is True for run in selected_track_runs):
+            available_wheels.append({"value": "20", "label": '20"'})
+        if any(not result.is_20 for result in selected_track_results) or any(run.is_20 is False for run in selected_track_runs):
+            available_wheels.append({"value": "24", "label": '24"'})
+        if selected_wheel is None and len(available_wheels) == 1:
+            selected_wheel = available_wheels[0]["value"]
+        elif selected_wheel is None and len(available_wheels) > 1:
+            require_wheel_selection = True
+    else:
+        available_wheels = []
+
+    base_track_stats = None if require_wheel_selection else _build_track_stats(
+        rider,
+        selected_track,
+        base_results,
+        base_runs,
+        wheel=selected_wheel,
+        kpi_cutoff=kpi_period["cutoff"],
+        kpi_label=kpi_period["label"],
+    )
+
+    peer_context = _build_peer_context(rider, selected_track, selected_wheel, kpi_cutoff=kpi_period["cutoff"])
+    opponent = None
+    opponent_track_stats = None
+    head_to_head = None
+    opponent_id = request.GET.get("opponent")
+    if opponent_id and selected_track is not None and selected_wheel in {"20", "24"}:
+        opponent = next((item for item in peer_context["candidates"] if str(item.uci_id) == opponent_id), None)
+        if opponent is not None:
+            opponent_runs = list(
+                RaceRun.objects.filter(rider=opponent, is_beginner=False)
+                .select_related("event", "event__organizer", "result")
+                .order_by("-event__date", "round_type", "round_number", "id")
+            )
+            opponent_results = list(
+                Result.objects.filter(rider_id=opponent.uci_id, is_beginner=False)
+                .select_related("event", "event__organizer")
+                .order_by("-date", "-id")
+            )
+            opponent_track_stats = _build_track_stats(
+                opponent,
+                selected_track,
+                opponent_results,
+                opponent_runs,
+                wheel=selected_wheel,
+                kpi_cutoff=kpi_period["cutoff"],
+                kpi_label=kpi_period["label"],
+            )
+            base_track_results = [
+                result
+                for result in base_results
+                if ((result.event and result.event.organizer_id) or 0) == selected_track["id"] and _matches_wheel_filter(result, selected_wheel)
+            ]
+            base_track_runs = [
+                run
+                for run in base_runs
+                if ((run.event and run.event.organizer_id) or 0) == selected_track["id"] and _matches_wheel_filter(run, selected_wheel)
+            ]
+            opponent_track_results = [
+                result
+                for result in opponent_results
+                if ((result.event and result.event.organizer_id) or 0) == selected_track["id"] and _matches_wheel_filter(result, selected_wheel)
+            ]
+            opponent_track_runs = [
+                run
+                for run in opponent_runs
+                if ((run.event and run.event.organizer_id) or 0) == selected_track["id"] and _matches_wheel_filter(run, selected_wheel)
+            ]
+            if kpi_period["cutoff"] is not None:
+                base_track_results = [item for item in base_track_results if item.date and item.date >= kpi_period["cutoff"]]
+                opponent_track_results = [item for item in opponent_track_results if item.date and item.date >= kpi_period["cutoff"]]
+                base_track_runs = [item for item in base_track_runs if item.event and item.event.date and item.event.date >= kpi_period["cutoff"]]
+                opponent_track_runs = [item for item in opponent_track_runs if item.event and item.event.date and item.event.date >= kpi_period["cutoff"]]
+            head_to_head = _build_head_to_head(
+                base_track_results,
+                opponent_track_results,
+                base_track_runs,
+                opponent_track_runs,
+            )
+
+    data = {
+        "rider": rider,
+        "subscription": premium_access_context["active_subscription"],
+        "trainer_club_subscription": premium_access_context["trainer_club_subscription"],
+        "has_admin_access": premium_access_context["premium_access_via_admin"],
+        "has_trainer_club_access": premium_access_context["premium_access_via_trainer_club"],
+        "kpi_period": kpi_period,
+        "kpi_period_options": KPI_PERIOD_OPTIONS,
+        "track_options": track_options,
+        "selected_track": selected_track,
+        "available_wheels": available_wheels,
+        "selected_wheel": selected_wheel,
+        "require_wheel_selection": require_wheel_selection,
+        "base_track_stats": base_track_stats,
+        "opponent": opponent,
+        "opponent_track_stats": opponent_track_stats,
+        "compare_candidates": peer_context["candidates"],
+        "head_to_head": head_to_head,
+    }
+    return render(request, "rider/rider-compare.html", data)
 
 
 @login_required

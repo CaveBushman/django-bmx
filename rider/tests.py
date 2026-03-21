@@ -75,6 +75,8 @@ class RiderPremiumSubscriptionTests(TestCase):
             result=self.result,
             event=self.event,
             rider=self.rider,
+            is_20=True,
+            is_beginner=False,
             round_type="MOTO",
             round_number=1,
             lane=3,
@@ -174,6 +176,8 @@ class RiderPremiumSubscriptionTests(TestCase):
             result=other_result,
             event=other_event,
             rider=self.rider,
+            is_20=True,
+            is_beginner=False,
             round_type="FINAL",
             lane=5,
             place="4th",
@@ -192,6 +196,71 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertContains(response, "Secondary Track")
         self.assertContains(response, "Traťový profil")
         self.assertContains(response, "35,44")
+
+    def test_premium_compare_page_renders_hill_and_head_to_head(self):
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=100,
+            transaction_id="credit-4",
+            payment_complete=True,
+        )
+        opponent = Rider.objects.create(
+            uci_id=12345670002,
+            first_name="Marek",
+            last_name="Souper",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20=self.rider.class_20,
+            is_20=True,
+        )
+        opponent_result = Result.objects.create(
+            event=self.event,
+            rider=opponent,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category=opponent.class_20,
+            place=2,
+            points=80,
+            is_20=True,
+        )
+        RaceRun.objects.create(
+            result=opponent_result,
+            event=self.event,
+            rider=opponent,
+            category=opponent.class_20,
+            is_beginner=False,
+            is_20=True,
+            round_type="MOTO",
+            round_number=1,
+            heat_code="1",
+            lane=4,
+            place="2nd",
+            finish_time=34.55,
+            hill_time=2.61,
+        )
+        self.client.force_login(self.user)
+        self.client.post(reverse("rider:premium-stats-subscribe", kwargs={"pk": self.rider.uci_id}))
+
+        response = self.client.get(
+            reverse("rider:premium-compare", kwargs={"pk": self.rider.uci_id}),
+            {
+                "track": self.club.id,
+                "wheel": "20",
+                "years": "3",
+                "opponent": opponent.uci_id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Median hill")
+        self.assertContains(response, "Porovnání jezdců")
+        self.assertContains(response, "Motos")
+        self.assertContains(response, "1 : 0")
 
 
 class TrainerClubSubscriptionTests(TestCase):

@@ -19,7 +19,7 @@ def task_list_view(request):
     selected_assignee = request.GET.get("assignee", "")
     selected_scope = request.GET.get("scope", "all")
 
-    tasks = CommissionTask.objects.select_related("assignee", "created_by", "event")
+    tasks = CommissionTask.objects.select_related("event", "assignee", "created_by")
 
     if selected_status:
         tasks = tasks.filter(status=selected_status)
@@ -38,7 +38,7 @@ def task_list_view(request):
             status__in=[CommissionTask.STATUS_DONE, CommissionTask.STATUS_CANCELLED]
         ).filter(due_date__lt=timezone.localdate())
 
-    all_tasks = CommissionTask.objects.all()
+    all_tasks = CommissionTask.objects.select_related("event")
     open_statuses = [
         CommissionTask.STATUS_NEW,
         CommissionTask.STATUS_IN_PROGRESS,

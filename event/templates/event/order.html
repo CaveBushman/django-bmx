@@ -5,8 +5,63 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
-  .order-hero-title {
-    max-width: 22ch;
+  .clubs-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .clubs-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .clubs-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .clubs-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 3rem;
+  }
+
+  .clubs-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .clubs-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .clubs-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .clubs-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .clubs-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
   }
 
   .order-summary-card {
@@ -68,6 +123,30 @@
     border-color: rgba(51, 65, 85, 0.95);
   }
 
+  html.dark .clubs-page {
+    background: #0f172a;
+  }
+
+  html.dark .clubs-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .clubs-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .clubs-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
   html.dark .order-pay-btn {
     background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
     color: #14532d;
@@ -94,29 +173,40 @@
 {% endblock %}
 
 {% block content %}
-<section class="dashboard-surface min-h-screen pb-16 pt-8">
-  <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8 mb-4">
-    <header class="dashboard-hero overflow-hidden rounded-[2rem] border px-6 py-8 sm:px-8 lg:px-10">
-      <div class="order-hero-layout flex flex-col gap-8 lg:block">
-        <div class="max-w-3xl lg:flex-1">
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-600 dark:text-indigo-300">
-            Potvrzení registrace
-          </p>
-          <h1 class="order-hero-title mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-            Košík přihlášek
-          </h1>
-          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
-            Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je odečtením kreditu.
-          </p>
+<header class="clubs-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          Potvrzení registrace
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          Košík přihlášek
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je odečtením kreditu.
+        </p>
+      </div>
+      <div class="clubs-stats-grid">
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Položky v košíku</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum|default:0 }}</p>
         </div>
-        <div class="order-count-card dashboard-card mt-0 rounded-[1.5rem] border p-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Položky v košíku</p>
-          <p class="mt-3 text-4xl font-black text-slate-900 dark:text-white">{{ sum|default:0 }}</p>
-          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">čekají na potvrzení</p>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celková platba</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ price }} CZK</p>
+        </div>
+        <div class="clubs-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Potvrzení</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">Kreditem</p>
         </div>
       </div>
-    </header>
+    </div>
+  </div>
+</header>
 
+<section class="clubs-page pb-16">
+  <div class="clubs-shell">
     {% if messages %}
     <div class="space-y-3">
       {% for message in messages %}
@@ -131,9 +221,9 @@
       {% csrf_token %}
 
       {% if duplicities %}
-      <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <section class="clubs-card rounded-[2rem] p-6 sm:p-8">
         <div class="rounded-[1.5rem] border border-rose-200 bg-rose-50 px-6 py-6 dark:border-rose-900/60 dark:bg-rose-950/30">
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-rose-600 dark:text-rose-300">Duplicitní položky</p>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">Duplicitní položky</p>
           <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Košík byl automaticky vyčištěn</h2>
           <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
             Z košíku byli odebráni jezdci, kteří už jsou na závod přihlášeni nebo jsou aktuálně v košíku jiného uživatele.
@@ -159,22 +249,14 @@
         </div>
       </section>
       {% else %}
-      <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
+      <section class="clubs-card rounded-[2rem] p-6 sm:p-8">
         <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div class="order-summary-card rounded-[1.5rem] border p-5 sm:p-6">
-            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celková platba</p>
-                <p class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ price }} CZK</p>
-              </div>
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Počet položek</p>
-                <p class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum }}</p>
-              </div>
-              <div class="hidden lg:block">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Co se stane</p>
-                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Potvrzením se přihlášky odečtou z uživatelského kreditu.</p>
-              </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Co se stane</p>
+              <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Potvrzením se přihlášky odečtou z uživatelského kreditu a položky v košíku se převedou na aktivní registrace.
+              </p>
             </div>
           </div>
 

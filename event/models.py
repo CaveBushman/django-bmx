@@ -449,17 +449,23 @@ def sync_rider_categories_from_result(sender, instance, **kwargs):
 
 
 class RaceRun(models.Model):
-    result = models.ForeignKey(Result, on_delete=models.CASCADE, related_name="runs")
+    result = models.ForeignKey(Result, on_delete=models.SET_NULL, related_name="runs", null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     rider = models.ForeignKey(Rider, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    is_beginner = models.BooleanField(default=False)
+    is_20 = models.BooleanField(null=True, blank=True)
     round_type = models.CharField(max_length=20)  # např. MOTO, FINAL, F2, ...
     round_number = models.IntegerField(null=True, blank=True)  # např. 1 až 8 pro MOTO, None pro FINAL
+    heat_code = models.CharField(max_length=50, null=True, blank=True)  # např. 38, F1 (A)
+    plate = models.CharField(max_length=20, null=True, blank=True)
 
     gate = models.IntegerField(null=True, blank=True)
     lane = models.IntegerField(null=True, blank=True)
     place = models.CharField(max_length=10, null=True, blank=True)  # např. "1st", "DNF"
     race_points = models.IntegerField(null=True, blank=True)
     moto_points = models.IntegerField(null=True, blank=True)
+    qualified_to_next_round = models.BooleanField(null=True, blank=True)
 
     hill_time = models.FloatField(null=True, blank=True)     # ⛰️ Inter1 / čas na kopci (start hill)
     finish_time = models.FloatField(null=True, blank=True)   # 🏁 čas v cíli
@@ -477,7 +483,8 @@ class RaceRun(models.Model):
         verbose_name_plural = "Jízdy závodníka"
 
     def __str__(self):
-        return f"{self.result} – {self.round_type} {self.round_number or ''} ({self.place})"
+        label = self.result or self.rider or self.plate or "RaceRun"
+        return f"{label} – {self.round_type} {self.round_number or ''} ({self.place})"
 
 
 class Entry(models.Model):

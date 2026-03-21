@@ -37,14 +37,33 @@
     background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
-  .article-hero-grid {
+  .article-shell {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 2.5rem;
+  }
+
+  .article-stats-grid {
     display: grid;
-    gap: 2rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .article-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .article-hero-media-shell {
+    border: 1px solid rgba(226, 232, 240, 0.94);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
   }
 
   .article-hero-image-shell {
     position: relative;
-    min-height: 280px;
+    min-height: 320px;
     overflow: hidden;
     border-radius: 2rem;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(56, 189, 248, 0.1));
@@ -57,24 +76,43 @@
     object-fit: cover;
   }
 
-  .article-meta-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    border-radius: 9999px;
-    border: 1px solid rgba(99, 102, 241, 0.12);
-    background: rgba(255, 255, 255, 0.82);
-    padding: 0.55rem 0.85rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #334155;
-    box-shadow: 0 14px 28px -24px rgba(15, 23, 42, 0.24);
-  }
-
   .article-intro-card {
     border: 1px solid rgba(199, 210, 254, 0.72);
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 255, 0.9));
     box-shadow: 0 24px 44px -26px rgba(79, 70, 229, 0.22);
+  }
+
+  .article-feature-card {
+    border: 1px solid rgba(199, 210, 254, 0.72);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 255, 0.9));
+    box-shadow: 0 24px 44px -26px rgba(79, 70, 229, 0.22);
+  }
+
+  .article-feature-grid {
+    display: grid;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .article-feature-image-shell {
+    position: relative;
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: 2rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(56, 189, 248, 0.1));
+    box-shadow: 0 28px 64px -34px rgba(15, 23, 42, 0.35);
+  }
+
+  .article-feature-image-shell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .article-feature-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .article-audio-card {
@@ -123,17 +161,33 @@
     box-shadow: 0 32px 70px -38px rgba(2, 6, 23, 0.8);
   }
 
-  html.dark .article-meta-chip {
-    border-color: rgba(99, 102, 241, 0.22);
+  html.dark .article-stat {
+    border-color: rgba(99, 102, 241, 0.24);
     background: rgba(15, 23, 42, 0.72);
-    color: #cbd5e1;
-    box-shadow: 0 18px 32px -28px rgba(2, 6, 23, 0.75);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .article-hero-media-shell {
+    border-color: rgba(51, 65, 85, 0.95);
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 28px 60px -36px rgba(2, 6, 23, 0.82);
   }
 
   html.dark .article-intro-card {
     border-color: rgba(79, 70, 229, 0.34);
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.9));
     box-shadow: 0 30px 54px -34px rgba(2, 6, 23, 0.68);
+  }
+
+  html.dark .article-feature-card {
+    border-color: rgba(79, 70, 229, 0.34);
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 30px 54px -34px rgba(2, 6, 23, 0.68);
+  }
+
+  html.dark .article-feature-image-shell {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.34), rgba(14, 165, 233, 0.16));
+    box-shadow: 0 32px 70px -38px rgba(2, 6, 23, 0.8);
   }
 
   html.dark .article-audio-card {
@@ -149,31 +203,34 @@
   }
 
   @media (min-width: 1024px) {
-    .article-hero-grid {
-      grid-template-columns: minmax(0, 1.12fr) 28rem;
-      align-items: end;
+    .article-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .article-feature-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
   }
 
   @media (max-width: 1023px) {
     .article-hero-image-shell {
-      min-height: 240px;
+      min-height: 260px;
     }
   }
 
   @media (max-width: 767px) {
     .article-hero-image-shell {
-      order: -1;
-      min-height: 210px;
+      min-height: 220px;
       border-radius: 1.5rem;
     }
 
-    .article-meta-chip {
-      font-size: 0.72rem;
-      padding: 0.45rem 0.75rem;
+    .article-feature-image-shell {
+      min-height: 240px;
+      border-radius: 1.5rem;
     }
 
     .article-intro-card,
+    .article-feature-card,
     .article-body-card {
       border-radius: 1.5rem;
       padding-left: 1.1rem;
@@ -218,51 +275,35 @@
 {% block content %}
 <section class="article-page-surface min-h-screen">
   <header class="article-hero">
-    <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div class="article-hero-grid">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
             Článek
           </p>
-          <h1 class="mt-3 max-w-4xl text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+          <h1 class="mt-2 max-w-4xl text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
             {{ news.title }}
           </h1>
-
-          <div class="mt-8 border-t border-slate-200 pt-5 dark:border-slate-700">
-            <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-              <div class="flex min-w-0 items-center gap-4">
-                <div class="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/80 shadow-sm ring-1 ring-slate-200 dark:border-slate-600 dark:ring-slate-500">
-                  <img class="h-full w-full object-cover" src="{{ news.created.photo.url }}" alt="{{ news.created }}">
-                </div>
-                <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Autor článku</p>
-                  <p class="mt-1 truncate text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ news.created }}</p>
-                  <div class="mt-2 flex flex-wrap gap-2">
-                    <span class="article-meta-chip">{{ news.publish_date }}</span>
-                    <span class="article-meta-chip">{{ news.time_to_read }} min. čtení</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-2 md:max-w-[45%] md:justify-end">
-                {% for tag in news.tags.all %}
-                <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-100">
-                  {{ tag }}
-                </span>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
         </div>
-
-        <div class="article-hero-image-shell">
-          <img src="{{ news.photo_01.url }}" alt="{{ news.title }}">
+        <div class="article-stats-grid">
+          <div class="article-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Autor článku</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.created }}</p>
+          </div>
+          <div class="article-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Publikováno</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.publish_date }}</p>
+          </div>
+          <div class="article-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Doba čtení</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.time_to_read }} min.</p>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
-  <article class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+  <article class="article-shell">
     {% if news.audio_file and news.published_audio %}
     <div class="article-audio-card mb-6 rounded-[2rem] px-5 py-5 sm:px-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -295,9 +336,25 @@
     </div>
     {% endif %}
 
-    <div class="article-intro-card rounded-[2rem] px-6 py-6 sm:px-8">
-      <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
-        {{ news.prefix|safe }}
+    <div class="article-feature-card mb-8 rounded-[2rem] px-6 py-6 sm:px-8 sm:py-8">
+      <div class="article-feature-grid">
+        <div class="article-feature-image-shell">
+          <img src="{{ news.photo_01.url }}" alt="{{ news.title }}">
+        </div>
+        <div class="article-feature-copy">
+          <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
+            {{ news.prefix|safe }}
+          </div>
+          {% if news.tags.all %}
+          <div class="mt-6 flex flex-wrap gap-2">
+              {% for tag in news.tags.all %}
+              <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-100">
+                {{ tag }}
+              </span>
+              {% endfor %}
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
 

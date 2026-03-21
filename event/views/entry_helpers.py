@@ -29,6 +29,34 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 
 
+def _normalize_foreign_category_flags(row):
+    challenge = bool(row.get("challenge"))
+    championship = bool(row.get("championship"))
+    cruiser = bool(row.get("cruiser"))
+
+    # Backward compatibility for older payloads/form posts.
+    legacy_20 = bool(row.get("category_20"))
+    legacy_24 = bool(row.get("category_24"))
+    legacy_elite = bool(row.get("elite"))
+
+    if legacy_elite:
+        championship = True
+    elif legacy_20:
+        challenge = True
+
+    if legacy_24:
+        cruiser = True
+
+    return {
+        "challenge": challenge,
+        "championship": championship,
+        "cruiser": cruiser,
+        "category_20": challenge or championship,
+        "category_24": cruiser,
+        "elite": championship,
+    }
+
+
 def _get_rider_event_snapshot(rider):
     snapshot = getattr(rider, "_event_entry_snapshot", None)
     if snapshot is None:
@@ -95,9 +123,9 @@ def build_foreign_entry_summary(request):
     nationalities = request.GET.getlist("nationality[]")
     transponder_20_list = request.GET.getlist("transponder_20[]")
     transponder_24_list = request.GET.getlist("transponder_24[]")
-    category_20_flags = request.GET.getlist("category_20[]")
-    category_24_flags = request.GET.getlist("category_24[]")
-    elite_flags = request.GET.getlist("category_elite[]")
+    challenge_flags = request.GET.getlist("challenge[]")
+    championship_flags = request.GET.getlist("championship[]")
+    cruiser_flags = request.GET.getlist("cruiser[]")
 
     customer_email = request.GET.get("customer_email", "").strip()
     rows = []
@@ -114,6 +142,14 @@ def build_foreign_entry_summary(request):
     )
 
     for index in range(total_rows):
+        category_flags = _normalize_foreign_category_flags(
+            {
+                "challenge": index < len(challenge_flags),
+                "championship": index < len(championship_flags),
+                "cruiser": index < len(cruiser_flags),
+            }
+        )
+
         row = {
             "uci_id": uci_ids[index] if index < len(uci_ids) else "",
             "first_name": first_names[index] if index < len(first_names) else "",
@@ -124,9 +160,7 @@ def build_foreign_entry_summary(request):
             "nationality": nationalities[index] if index < len(nationalities) else "",
             "transponder_20": transponder_20_list[index] if index < len(transponder_20_list) else "",
             "transponder_24": transponder_24_list[index] if index < len(transponder_24_list) else "",
-            "category_20": index < len(category_20_flags),
-            "category_24": index < len(category_24_flags),
-            "elite": index < len(elite_flags),
+            **category_flags,
         }
 
         if any(
@@ -139,9 +173,9 @@ def build_foreign_entry_summary(request):
                 row["nationality"],
                 row["transponder_20"],
                 row["transponder_24"],
-                row["category_20"],
-                row["category_24"],
-                row["elite"],
+                row["challenge"],
+                row["championship"],
+                row["cruiser"],
             ]
         ):
             rows.append(row)
@@ -172,6 +206,7 @@ def build_foreign_entry_summary_from_payload(request):
     for row in rows:
         if not isinstance(row, dict):
             continue
+        category_flags = _normalize_foreign_category_flags(row)
         normalized_rows.append(
             {
                 "uci_id": row.get("uci_id", ""),
@@ -183,9 +218,7 @@ def build_foreign_entry_summary_from_payload(request):
                 "nationality": row.get("nationality", ""),
                 "transponder_20": row.get("transponder_20", ""),
                 "transponder_24": row.get("transponder_24", ""),
-                "category_20": bool(row.get("category_20")),
-                "category_24": bool(row.get("category_24")),
-                "elite": bool(row.get("elite")),
+                **category_flags,
             }
         )
 
@@ -205,44 +238,69 @@ def enrich_foreign_summary_rows(event, summary_rows):
     }
 
     for row in summary_rows:
-        event_category = ""
-        entry_fee = 0
-
         rider_gender = row.get("sex") or "Muž"
-        rider_is_elite = bool(row.get("elite"))
         rider_dob = row.get("date_of_birth")
+        category_flags = _normalize_foreign_category_flags(row)
 
         try:
             parsed_dob = date.fromisoformat(rider_dob) if rider_dob else date.today()
         except ValueError:
             parsed_dob = date.today()
 
-        temp_rider = SimpleNamespace(
-            gender=rider_gender,
-            is_elite=rider_is_elite,
-            date_of_birth=parsed_dob,
-        )
-
         age = date.today().year - parsed_dob.year
-        temp_rider.class_20 = ForeignRider.set_class_20(rider_gender, age, rider_is_elite)
-        temp_rider.class_24 = ForeignRider.set_class_24(rider_gender, age)
+        class_20 = ""
+        class_24 = ""
+        fee_20 = 0
+        fee_24 = 0
+        selected_labels = []
 
-        try:
-            if row.get("category_24"):
-                event_category = resolve_event_classes(event, temp_rider, is_20=False)
-                entry_fee = resolve_event_fee(event, temp_rider, is_20=False)
-            elif row.get("category_20"):
-                event_category = resolve_event_classes(event, temp_rider, is_20=True)
-                entry_fee = resolve_event_fee(event, temp_rider, is_20=True)
-        except Exception:
-            event_category = ""
-            entry_fee = 0
+        if category_flags["challenge"] or category_flags["championship"]:
+            rider_20 = SimpleNamespace(
+                gender=rider_gender,
+                is_elite=category_flags["championship"],
+                date_of_birth=parsed_dob,
+            )
+            rider_20.class_20 = ForeignRider.set_class_20(
+                rider_gender,
+                age,
+                category_flags["championship"],
+            )
+            rider_20.class_24 = ForeignRider.set_class_24(rider_gender, age)
+            try:
+                class_20 = resolve_event_classes(event, rider_20, is_20=True)
+                fee_20 = resolve_event_fee(event, rider_20, is_20=True)
+            except Exception:
+                class_20 = ""
+                fee_20 = 0
+            selected_labels.append("Championship" if category_flags["championship"] else "Challenge")
+
+        if category_flags["cruiser"]:
+            rider_24 = SimpleNamespace(
+                gender=rider_gender,
+                is_elite=False,
+                date_of_birth=parsed_dob,
+            )
+            rider_24.class_20 = ForeignRider.set_class_20(rider_gender, age, False)
+            rider_24.class_24 = ForeignRider.set_class_24(rider_gender, age)
+            try:
+                class_24 = resolve_event_classes(event, rider_24, is_20=False)
+                fee_24 = resolve_event_fee(event, rider_24, is_20=False)
+            except Exception:
+                class_24 = ""
+                fee_24 = 0
+            selected_labels.append("Cruiser")
 
         enriched_row = dict(row)
+        enriched_row.update(category_flags)
         enriched_row["sex_label"] = sex_labels.get(row.get("sex"), row.get("sex", ""))
-        enriched_row["event_category"] = event_category
-        enriched_row["entry_fee"] = entry_fee
-        total_fee += entry_fee or 0
+        enriched_row["class_20"] = class_20
+        enriched_row["class_24"] = class_24
+        enriched_row["event_category"] = " / ".join(filter(None, [class_20, class_24]))
+        enriched_row["entry_fee"] = (fee_20 or 0) + (fee_24 or 0)
+        enriched_row["fee_20"] = fee_20
+        enriched_row["fee_24"] = fee_24
+        enriched_row["selected_categories"] = selected_labels
+        total_fee += enriched_row["entry_fee"]
         enriched_rows.append(enriched_row)
 
     return enriched_rows, total_fee
@@ -266,7 +324,11 @@ def validate_foreign_summary_payload(payload):
             return False
         if not str(row.get("plate") or "").strip():
             return False
-        if not (row.get("category_20") or row.get("category_24")):
+        category_flags = _normalize_foreign_category_flags(row)
+
+        if category_flags["championship"] and (category_flags["challenge"] or category_flags["cruiser"]):
+            return False
+        if not (category_flags["challenge"] or category_flags["championship"] or category_flags["cruiser"]):
             return False
 
     return True
@@ -278,28 +340,43 @@ def build_foreign_checkout_line_items(event, summary_rows):
         if not row.get("entry_fee"):
             continue
 
-        category = row.get("event_category") or (
-            '20"' if row.get("category_20") else '24"' if row.get("category_24") else "Entry"
-        )
         rider_name = (
             f'{row.get("first_name", "").strip()} {row.get("last_name", "").strip()}'.strip()
             or row.get("uci_id")
             or "Foreign rider"
         )
-
-        line_items.append(
-            {
-                "price_data": {
-                    "currency": "czk",
-                    "unit_amount": int(row["entry_fee"]) * 100,
-                    "product_data": {
-                        "name": rider_name,
-                        "description": f"{event.name} - {category}",
+        if row.get("fee_20"):
+            category_20_label = row.get("class_20") or (
+                "Championship" if row.get("championship") else "Challenge"
+            )
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": "czk",
+                        "unit_amount": int(row["fee_20"]) * 100,
+                        "product_data": {
+                            "name": rider_name,
+                            "description": f"{event.name} - {category_20_label}",
+                        },
                     },
-                },
-                "quantity": 1,
-            }
-        )
+                    "quantity": 1,
+                }
+            )
+        if row.get("fee_24"):
+            category_24_label = row.get("class_24") or "Cruiser"
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": "czk",
+                        "unit_amount": int(row["fee_24"]) * 100,
+                        "product_data": {
+                            "name": rider_name,
+                            "description": f"{event.name} - {category_24_label}",
+                        },
+                    },
+                    "quantity": 1,
+                }
+            )
 
     return line_items
 
@@ -320,13 +397,13 @@ def save_foreign_entries(event, checkout_session, summary_rows, customer_email):
             transponder_20=row.get("transponder_20", ""),
             transponder_24=row.get("transponder_24", ""),
             plate=str(row.get("plate", "")),
-            is_20=bool(row.get("category_20")),
-            is_24=bool(row.get("category_24")),
-            is_elite=bool(row.get("elite")),
-            class_20=row.get("event_category", "") if row.get("category_20") else "",
-            class_24=row.get("event_category", "") if row.get("category_24") else "",
-            fee_20=row.get("entry_fee", 0) if row.get("category_20") else 0,
-            fee_24=row.get("entry_fee", 0) if row.get("category_24") else 0,
+            is_20=bool(row.get("challenge") or row.get("championship") or row.get("category_20")),
+            is_24=bool(row.get("cruiser") or row.get("category_24")),
+            is_elite=bool(row.get("championship") or row.get("elite")),
+            class_20=row.get("class_20", "") if (row.get("challenge") or row.get("championship") or row.get("category_20")) else "",
+            class_24=row.get("class_24", "") if (row.get("cruiser") or row.get("category_24")) else "",
+            fee_20=row.get("fee_20", 0) if (row.get("challenge") or row.get("championship") or row.get("category_20")) else 0,
+            fee_24=row.get("fee_24", 0) if (row.get("cruiser") or row.get("category_24")) else 0,
             customer_email=customer_email,
             payment_complete=False,
             checkout=False,

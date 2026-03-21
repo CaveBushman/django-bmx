@@ -81,17 +81,17 @@ def build_club_kpi_export_rows(club):
         places = list(results_qs.exclude(place__lte=0).values_list("place", flat=True))
         finish_runs = RaceRun.objects.filter(
             rider=rider,
-            result__is_beginner=False,
+            is_beginner=False,
             finish_time__isnull=False,
         )
         hill_runs = RaceRun.objects.filter(
             rider=rider,
-            result__is_beginner=False,
+            is_beginner=False,
             hill_time__isnull=False,
         )
         split_runs = RaceRun.objects.filter(
             rider=rider,
-            result__is_beginner=False,
+            is_beginner=False,
             split_1__isnull=False,
         )
 
