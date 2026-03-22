@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Kontrola startovného podle MOTO" %}{% endblock title %}
+{% block extra_head %}
+<style>
+  .unpaid-report-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .unpaid-report-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .unpaid-report-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .unpaid-report-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .unpaid-report-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark .unpaid-report-page {
+    background: #0f172a;
+  }
+
+  html.dark .unpaid-report-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .unpaid-report-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .unpaid-report-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="unpaid-report-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          {% trans "MOTO kontrola" %}
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ event.name }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          {% trans "Sestava porovnává jezdce z MOTO jízd v RaceRun s uhrazenými online registracemi. Záznamy bez UCI ID jsou vedené zvlášť pro ruční kontrolu." %}
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+        <div class="unpaid-report-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Jezdci v MOTO" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ moto_riders_count }}</p>
+        </div>
+        <div class="unpaid-report-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Uhrazené online registrace" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ paid_entries_count }}</p>
+        </div>
+        <div class="unpaid-report-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Podezřelé neshody" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ flagged_count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="unpaid-report-page py-8">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="unpaid-report-card rounded-[2rem] p-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            {% trans "Jezdci bez uhrazeného startovného" %}
+          </h2>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {% trans "Tady jsou pouze záznamy, kde je k dispozici UCI ID a nebyla nalezena uhrazená online registrace." %}
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'event:unpaid-moto-riders-report-pdf' event.id %}" class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500">
+            {% trans "Exportovat PDF" %}
+          </a>
+          <a href="{% url 'event:event-admin' event.id %}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+            {% trans "Zpět do administrace" %}
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead class="bg-slate-50 dark:bg-slate-900">
+                <tr>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Příjmení" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Jméno" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "UCI ID" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Startovní číslo" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Kategorie" %}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+                {% for row in confirmed_unpaid %}
+                <tr>
+                  <td class="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ row.last_name|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.first_name|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.uci_id }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.plate|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.category|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">{% trans "Nebyla nalezena žádná jistá neshoda." %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">{% trans "Záznamy bez UCI ID" %}</h2>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          {% trans "Tyto záznamy jsou oddělené, protože v MOTO datech není k dispozici UCI ID a je potřeba ruční kontrola." %}
+        </p>
+
+        <div class="mt-5 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead class="bg-slate-50 dark:bg-slate-900">
+                <tr>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Příjmení" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Jméno" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Startovní číslo" %}</th>
+                  <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Kategorie" %}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+                {% for row in missing_uci %}
+                <tr>
+                  <td class="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ row.last_name|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.first_name|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.plate|default:"-" }}</td>
+                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ row.category|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">{% trans "Žádné problematické záznamy bez UCI ID nebyly nalezeny." %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% block title %} Přihlášení na závody{% endblock title %}
-{% load static %}
+{% load static i18n %}
+{% block title %}{% trans "Přihlášení na závody" %}{% endblock title %}
 {% block extra_head %}
 <style>
   .entry-list-surface {
@@ -135,20 +135,20 @@
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Přihlášení jezdci
+            {% trans "Přihlášení jezdci" %}
           </p>
           <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
             {{ event.name }}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Veřejný přehled uhrazených registrací včetně zahraničních jezdců a jejich kategorií.
+            {% trans "Veřejný přehled uhrazených registrací včetně zahraničních jezdců a jejich kategorií." %}
           </p>
         </div>
         <div class="entry-list-hero-stats">
           <div class="entry-list-hero-badge rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální stav</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktuální stav" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ entries|length }}</p>
-            <p class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">přihlášených jezdců</p>
+            <p class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{% trans "přihlášených jezdců" %}</p>
           </div>
         </div>
       </div>
@@ -159,14 +159,14 @@
     <div class="pt-8">
     <div class="entry-list-panel rounded-[2rem] p-6 sm:p-8">
       <div class="text-lg font-medium text-slate-900 dark:text-slate-100">
-        Počet přihlášených jezdců:
+        {% trans "Počet přihlášených jezdců:" %}
       </div>
 
       <div class="grid grid-cols-1 gap-4 mb-6 mt-4 lg:grid-cols-3">
         <input
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
-          placeholder="Napiš příjmení"
+          placeholder="{% trans 'Napiš příjmení' %}"
           aria-label="default input example"
           onkeyup="searchByName()"
           id="inputName"/>
@@ -174,7 +174,7 @@
         <input
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
-          placeholder="Napiš klub"
+          placeholder="{% trans 'Napiš klub' %}"
           aria-label="default input example"
           onkeyup="searchByClub()"
           id="inputClub"/>
@@ -182,7 +182,7 @@
         <input
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
-          placeholder="Napiš kategorii"
+          placeholder="{% trans 'Napiš kategorii' %}"
           aria-label="default input example"
           onkeyup="searchByClass()"
           id="inputClass"/>
@@ -190,20 +190,20 @@
 
       <div class="overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
         <div class="overflow-x-auto">
-        <table class="min-w-[760px] divide-y divide-gray-200 dark:divide-slate-700 sm:min-w-full" id="myTable">
+        <table class="w-full min-w-[760px] divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
           <thead class="bg-slate-50 dark:bg-slate-900">
             <tr>
               <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                Jméno
+                {% trans "Jméno" %}
               </th>
               <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                Klub, UCI ID
+                {% trans "Klub, UCI ID" %}
               </th>
               <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                Kategorie
+                {% trans "Kategorie" %}
               </th>
               <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                Startovní číslo
+                {% trans "Startovní číslo" %}
               </th>
             </tr>
           </thead>
@@ -258,28 +258,28 @@
 
     {% if checkout %}
       <div class="entry-list-panel mt-8 rounded-[2rem] p-6 sm:p-8">
-        <div class="text-3xl font-bold text-slate-900 dark:text-slate-100">Seznam odhlášených jezdců</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-slate-100">{% trans "Seznam odhlášených jezdců" %}</div>
 
         <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
           <div class="overflow-x-auto">
-          <table class="min-w-[880px] divide-y divide-gray-200 dark:divide-slate-700 sm:min-w-full">
+          <table class="w-full min-w-[880px] divide-y divide-gray-200 dark:divide-slate-700">
             <thead class="bg-slate-50 dark:bg-slate-900">
               <tr>
                 <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                  Jméno
+                  {% trans "Jméno" %}
                 </th>
                 <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                  Klub, UCI ID
+                  {% trans "Klub, UCI ID" %}
                 </th>
                 <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                  Kategorie
+                  {% trans "Kategorie" %}
                 </th>
                 <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                  Startovní číslo
+                  {% trans "Startovní číslo" %}
                 </th>
                 {% if user.is_superuser %}
                 <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
-                  Info o platbě
+                  {% trans "Info o platbě" %}
                 </th>
                 {% endif %}
               </tr>

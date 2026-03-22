@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static i18n %}
-{% block title %}Homepage{% endblock title %}
+{% block title %}{% trans "Homepage" %}{% endblock title %}
 {% block extra_head %}
 <style>
   html.dark body,
@@ -444,17 +444,17 @@
         <div
             class="homepage-hero-stats-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 text-xl sm:text-2xl md:text-3xl">
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
-                <p class="homepage-hero-stat-meta">Databáze</p>
+                <p class="homepage-hero-stat-meta">{% trans "Databáze" %}</p>
                 <span class="homepage-hero-stat-number mt-3">{{ riders_count }}</span>
                 <p class="homepage-hero-stat-label">{% trans "aktivních jezdců" %}</p>
             </div>
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
-                <p class="homepage-hero-stat-meta">Zázemí</p>
+                <p class="homepage-hero-stat-meta">{% trans "Zázemí" %}</p>
                 <span class="homepage-hero-stat-number mt-3">{{ clubs_count }}</span>
                 <p class="homepage-hero-stat-label">{% trans "klubů" %}</p>
             </div>
             <div class="homepage-hero-stat p-4 sm:p-5 md:p-6 rounded-[1.5rem] flex flex-col items-center text-center">
-                <p class="homepage-hero-stat-meta">Sezona</p>
+                <p class="homepage-hero-stat-meta">{% trans "Sezona" %}</p>
                 <span class="homepage-hero-stat-number mt-3">{{ races_count }}</span>
                 <p class="homepage-hero-stat-label">{% trans "závodů letos" %}</p>
             </div>
@@ -466,7 +466,7 @@
 <section class="homepage-champions px-6 py-6 sm:px-8 lg:px-10 xl:px-12">
     <div class="mx-auto max-w-screen-2xl">
         <div class="mb-4 text-center">
-            <h2 class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-300">CHAMPIONSHIP BEST RIDERS BY RANKING</h2>
+            <h2 class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-300">{% trans "CHAMPIONSHIP BEST RIDERS BY RANKING" %}</h2>
         </div>
 
         <div class="grid gap-5 lg:grid-cols-2">
@@ -491,7 +491,7 @@
                         {% endif %}
                     </div>
                     <div class="homepage-champion-media ml-auto flex justify-center">
-                        {% if championship_men_leader %}
+                        {% if championship_men_leader and championship_men_leader.photo %}
                         <img src="{{ championship_men_leader.photo.url }}" alt="{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
                         <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
@@ -505,7 +505,7 @@
             <article class="homepage-champion-card homepage-champion-card--right rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
                 <div class="homepage-champion-stack flex items-center gap-4">
                     <div class="homepage-champion-media flex justify-center md:justify-start">
-                        {% if championship_women_leader %}
+                        {% if championship_women_leader and championship_women_leader.photo %}
                         <img src="{{ championship_women_leader.photo.url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
                         <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
@@ -573,7 +573,13 @@
                     </div>
                 </div>
                 <div class="homepage-news-author relative flex items-center gap-4 px-6 py-4 sm:px-7">
+                    {% if article.created.photo %}
                     <img src="{{ article.created.photo.url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800">
+                    {% else %}
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 ring-2 ring-white/80 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-800">
+                        N/A
+                    </div>
+                    {% endif %}
                     <div class="min-w-0 text-sm leading-6">
                         <p class="truncate font-semibold text-slate-900 dark:text-slate-100">
                             <a href="#">
@@ -720,7 +726,7 @@
                         href="https://www.facebook.com/czechbmxcommission/"
                         class="text-gray-400 hover:text-gray-500"
                 >
-                    <span class="sr-only">Facebook</span>
+                    <span class="sr-only">{% trans "Facebook" %}</span>
                     <svg
                             class="h-6 w-6"
                             fill="currentColor"
@@ -739,7 +745,7 @@
                         href="https://www.instagram.com/czechbmxcommission/"
                         class="text-gray-400 hover:text-gray-500"
                 >
-                    <span class="sr-only">Instagram</span>
+                    <span class="sr-only">{% trans "Instagram" %}</span>
                     <svg
                             class="h-6 w-6"
                             fill="currentColor"

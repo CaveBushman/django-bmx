@@ -75,6 +75,24 @@
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
   }
 
+  .event-admin-command-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .event-admin-command-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .event-admin-command-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .event-admin-action-link,
   .event-admin-action-btn {
     border: 1px solid rgba(99, 102, 241, 0.22);
@@ -170,42 +188,6 @@
 
 <section class="event-admin-page pb-8">
 <div class="event-admin-shell">
-
-<div class="">
-  {% if request.user.is_superuser %}
-
-  <div id="message" class="container mx-auto px-4 alert-container">
-    {% if messages %} {% for message in messages %}
-
-    <div class="rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg
-            class="h-5 w-5 text-red-400"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">Chybové hlášení</h3>
-          <div class="mt-2 text-sm text-red-700">
-            <ul role="list" class="list-disc space-y-1 pl-5">
-              <li>{{message}}</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endfor %} {% endif %}
-  </div>
-</div>
 <div class="container mt-4 mx-auto px-4">
 
 <!-- RACE CONTROL -->
@@ -220,7 +202,7 @@
       </p>
     </div>
   
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="event-admin-command-grid">
       <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
         <div>
           <div class="flex items-center gap-3">
@@ -360,6 +342,26 @@
         </a>
       </div>
 
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-200">
+              <i class="fas fa-file-signature text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Ruční přihláška</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Tisk prázdného formuláře pro ruční zápis jezdců na místě včetně kontroly úhrady startovného.
+          </p>
+        </div>
+        <a href="{% url 'event:manual-entry-form-pdf' pk=event.pk %}" target="_blank"
+          rel="noopener noreferrer"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
+          aria-label="Vytisknout ruční přihlášku">
+          Otevřít PDF
+        </a>
+      </div>
+
       {% if not event.ccf_uploaded and results_exist %}
       <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
         <div>
@@ -400,6 +402,27 @@
           class="event-admin-action-link mt-5 inline-flex w-full items-center justify-center py-3 px-5 text-center rounded-[1rem] sm:w-auto"
           aria-label="{% trans 'Exportuj UCI výsledky' %}">
           {% trans "Exportovat UCI" %}
+        </a>
+      </div>
+      {% endif %}
+
+      {% if moto_runs_exist %}
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-200">
+              <i class="fas fa-user-check text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Kontrola startovného podle MOTO" %}</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {% trans "Porovná jezdce z nahraných MOTO jízd v RaceRun s uhrazenými online registracemi a ukáže podezřelé neshody." %}
+          </p>
+        </div>
+        <a href="{% url 'event:unpaid-moto-riders-report' event.id %}"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
+          aria-label="{% trans 'Otevři kontrolu startovného' %}">
+          {% trans "Zobrazit sestavu" %}
         </a>
       </div>
       {% endif %}
@@ -618,7 +641,6 @@
     </div>
   </form>
 
-  {% endif %} 
 </div>
 </section>
   {% endblock content %}

@@ -70,6 +70,8 @@ from event.services.uci_export import (
     generate_uci_export_zip,
     get_missing_uci_competition_codes,
 )
+from event.services.unpaid_moto_report import build_unpaid_moto_report
+from event.services.unpaid_moto_report_pdf import UnpaidMotoReportPdfService
 from openpyxl import Workbook, load_workbook
 import pandas as pd
 import stripe
@@ -532,6 +534,7 @@ def event_admin_view(request, pk):
         "sum_of_riders": entries.count(),
         "asociation_fee": int(sum_of_fees * event.commission_fee / 100),
         "results_exist": Result.objects.filter(event=event).exists(),
+        "moto_runs_exist": RaceRun.objects.filter(event=event, round_type="MOTO").exists(),
         "prize_money_amount_toggle": PrizeMoneyPdfService().allows_amount_toggle(event),
     }
     return render(request, "event/event-admin.html", data)
@@ -843,6 +846,44 @@ def export_uci_results(request, event_id):
     )
     response = HttpResponse(zip_bytes, content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{zip_name}"'
+    return response
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def unpaid_moto_riders_report(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+
+    if not RaceRun.objects.filter(event=event, round_type="MOTO").exists():
+        messages.error(request, _("Pro tento závod zatím nejsou nahrané žádné MOTO jízdy v RaceRun."))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+
+    report = build_unpaid_moto_report(event)
+    return render(
+        request,
+        "event/unpaid-moto-riders-report.html",
+        {
+            "event": event,
+            **report,
+        },
+    )
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def unpaid_moto_riders_report_pdf(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+
+    if not RaceRun.objects.filter(event=event, round_type="MOTO").exists():
+        messages.error(request, _("Pro tento závod zatím nejsou nahrané žádné MOTO jízdy v RaceRun."))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+
+    report = build_unpaid_moto_report(event)
+    service = UnpaidMotoReportPdfService()
+    pdf_bytes = service.build_pdf(event, report)
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{service.build_filename(event)}"'
     return response
 
 

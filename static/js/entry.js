@@ -57,63 +57,30 @@ function getEntrySelectionCounts() {
 }
 
 function updateEntrySelectionSummary() {
+  var form = document.getElementById("entry-form");
   var submitButton = document.getElementById("entry-submit-btn");
   var selectionLabel = document.getElementById("entry-selection-label");
   var selectionBreakdown = document.getElementById("entry-selection-breakdown");
-  var stickyCart = document.getElementById("entry-sticky-cart");
-  var stickyValue = document.getElementById("entry-sticky-cart-value");
-  var stickySubmit = document.getElementById("entry-sticky-submit");
 
-  if (!submitButton || !selectionLabel || !selectionBreakdown) {
+  if (!form || !submitButton || !selectionLabel || !selectionBreakdown) {
     return;
   }
 
   var counts = getEntrySelectionCounts();
+  var selectedLabel = form.dataset.selectedLabel || "Vybráno";
+  var registrationsLabel = form.dataset.registrationsLabel || "registrací";
+  var beginnerLabel = form.dataset.beginnerLabel || "Příchozí";
   var beginnerInputs = document.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
   var breakdown =
     '20" ' + counts.count20 + ' | 24" ' + counts.count24 +
-    (beginnerInputs ? " | Příchozí " + counts.countBeginner : "");
+    (beginnerInputs ? " | " + beginnerLabel + " " + counts.countBeginner : "");
 
-  selectionLabel.textContent = "Vybráno " + counts.total + " registrací";
+  selectionLabel.textContent = selectedLabel + " " + counts.total + " " + registrationsLabel;
   selectionBreakdown.textContent = breakdown;
 
   submitButton.disabled = counts.total === 0;
   submitButton.classList.toggle("opacity-60", counts.total === 0);
   submitButton.classList.toggle("cursor-not-allowed", counts.total === 0);
-
-  if (stickyCart && stickyValue && stickySubmit) {
-    stickyValue.textContent = counts.total + " položek";
-    stickySubmit.disabled = counts.total === 0;
-    stickySubmit.classList.toggle("opacity-60", counts.total === 0);
-    stickySubmit.classList.toggle("cursor-not-allowed", counts.total === 0);
-    stickyCart.classList.toggle("is-visible", counts.total > 0);
-    stickyCart.setAttribute("aria-hidden", counts.total > 0 ? "false" : "true");
-  }
-}
-
-function confirmEntrySubmit(event) {
-  var form = event.currentTarget;
-  var submitter = event.submitter;
-  if (!submitter || submitter.name !== "btn_add") {
-    return;
-  }
-
-  var counts = getEntrySelectionCounts();
-  if (!counts.total) {
-    event.preventDefault();
-    return;
-  }
-
-  var beginnerInputs = document.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
-  var message =
-    "Opravdu přidat do košíku " + counts.total + " registrací?\n\n" +
-    '20": ' + counts.count20 + "\n" +
-    '24": ' + counts.count24 +
-    (beginnerInputs ? "\nPříchozí: " + counts.countBeginner : "");
-
-  if (!window.confirm(message)) {
-    event.preventDefault();
-  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -130,6 +97,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var form = document.getElementById("entry-form");
   if (form) {
-    form.addEventListener("submit", confirmEntrySubmit);
+    form.addEventListener("change", function (event) {
+      var target = event.target;
+      if (!target || target.type !== "checkbox") return;
+      syncEntryChoiceState();
+      updateEntrySelectionSummary();
+    });
   }
 });

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}Přihlášení na závody{% endblock title %}
+{% load static i18n %}
+{% block title %}{% trans "Přihlášení na závody" %}{% endblock title %}
 
 {% block extra_head %}
 <style>
@@ -50,62 +50,6 @@
     .entry-selection-count {
         font-weight: 700;
         color: #0f172a;
-    }
-
-    .entry-sticky-cart {
-        position: fixed;
-        left: 50%;
-        bottom: 1rem;
-        z-index: 40;
-        display: flex;
-        width: min(calc(100% - 2rem), 32rem);
-        transform: translateX(-50%) translateY(140%);
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        border: 1px solid rgba(99, 102, 241, 0.18);
-        border-radius: 1.25rem;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
-        padding: 0.9rem 1rem;
-        backdrop-filter: blur(12px);
-        transition: transform 180ms ease, opacity 180ms ease;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .entry-sticky-cart.is-visible {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .entry-sticky-cart__summary {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-        min-width: 0;
-    }
-
-    .entry-sticky-cart__label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: #64748b;
-    }
-
-    .entry-sticky-cart__value {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: #0f172a;
-        white-space: nowrap;
-    }
-
-    .entry-sticky-cart__button {
-        flex-shrink: 0;
-        min-height: 0;
-        padding: 0.9rem 1.1rem;
     }
 
     .entry-hero-stats {
@@ -161,17 +105,18 @@
     }
 
     .entry-choice input {
-        accent-color: #16a34a;
+        accent-color: #4f46e5;
     }
 
     .entry-choice.selected {
-        background: #16a34a;
-        border-color: #16a34a;
-        color: #ffffff;
+        background: #eef2ff;
+        border-color: #818cf8;
+        color: #312e81;
+        box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.14);
     }
 
     .entry-choice.selected span {
-        color: #ffffff;
+        color: #312e81;
     }
 
     .registered-checkbox {
@@ -207,6 +152,33 @@
         flex: 0 0 auto;
     }
 
+    .entry-status-muted {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 1rem;
+        padding: 0.55rem 0.9rem;
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        color: #be123c;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .entry-status-muted__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 999px;
+        background: #fb7185;
+        color: #ffffff;
+        font-size: 0.75rem;
+        line-height: 1;
+        flex: 0 0 auto;
+    }
+
     html.dark .registered-entry {
         color: #ffffff;
     }
@@ -219,32 +191,32 @@
         justify-content: center;
         gap: .5rem;
         border-radius: 1rem;
-        background: #b7e4c7;
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
         padding: 1rem 1.75rem;
-        color: #14532d;
+        color: #312e81;
         font-size: .875rem;
         font-weight: 700;
         line-height: 1;
-        box-shadow: 0 18px 40px rgba(34, 197, 94, 0.20);
-        border: 1px solid #86efac;
+        box-shadow: 0 18px 40px rgba(79, 70, 229, 0.16);
+        border: 1px solid #a5b4fc;
         flex-shrink: 0;
     }
 
     .entry-cta:hover {
-        background: #9bd8b0;
-        color: #14532d;
+        background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+        color: #312e81;
     }
 
     html.dark .entry-cta {
-        background: #b7e4c7;
-        color: #14532d;
-        border-color: #86efac;
-        box-shadow: 0 18px 40px rgba(34, 197, 94, 0.24);
+        background: linear-gradient(135deg, #c7d2fe, #818cf8);
+        color: #1e1b4b;
+        border-color: #818cf8;
+        box-shadow: 0 18px 40px rgba(79, 70, 229, 0.24);
     }
 
     html.dark .entry-cta:hover {
-        background: #9bd8b0;
-        color: #14532d;
+        background: linear-gradient(135deg, #a5b4fc, #6366f1);
+        color: #1e1b4b;
     }
 
     html.dark .entry-page {
@@ -328,13 +300,25 @@
     }
 
     html.dark .entry-page .entry-choice.selected {
-        background: #16a34a !important;
-        color: #ffffff !important;
-        border-color: #16a34a !important;
+        background: rgba(79, 70, 229, 0.24) !important;
+        color: #e0e7ff !important;
+        border-color: #818cf8 !important;
+        box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.18) !important;
     }
 
     html.dark .entry-page .registered-entry {
         color: #f8fafc !important;
+    }
+
+    html.dark .entry-status-muted {
+        background: rgba(190, 24, 93, 0.16) !important;
+        border-color: rgba(244, 114, 182, 0.24) !important;
+        color: #fbcfe8 !important;
+    }
+
+    html.dark .entry-status-muted__icon {
+        background: #ec4899 !important;
+        color: #ffffff !important;
     }
 
     html.dark .entry-selection-meta {
@@ -342,20 +326,6 @@
     }
 
     html.dark .entry-selection-count {
-        color: #f8fafc !important;
-    }
-
-    html.dark .entry-sticky-cart {
-        background: rgba(15, 23, 42, 0.96) !important;
-        border-color: rgba(99, 102, 241, 0.22) !important;
-        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.4) !important;
-    }
-
-    html.dark .entry-sticky-cart__label {
-        color: #94a3b8 !important;
-    }
-
-    html.dark .entry-sticky-cart__value {
         color: #f8fafc !important;
     }
 
@@ -368,7 +338,10 @@
 {% endblock extra_head %}
 
 {% block content %}
-<form method="POST" class="entry-page pb-20" id="entry-form">
+<form method="POST" class="entry-page" id="entry-form"
+      data-selected-label="{% trans 'Vybráno' %}"
+      data-registrations-label="{% trans 'registrací' %}"
+      data-beginner-label="{% trans 'Příchozí' %}">
     {% csrf_token %}
 
     <header class="entry-hero">
@@ -376,23 +349,23 @@
             <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-                        Přihlášení jezdců
+                        {% trans "Přihlášení jezdců" %}
                     </p>
                     <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
                         {{ event.name|upper }}
                     </h1>
                     <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                        Vyber jezdce a kategorie pro závod. Přihlášení probíhá přímo z aktivní databáze jezdců.
+                        {% trans "Vyber jezdce a kategorie pro závod. Přihlášení probíhá přímo z aktivní databáze jezdců." %}
                     </p>
                 </div>
 
                 <div class="entry-hero-stats">
                     <div class="entry-hero-stat rounded-2xl px-5 py-4">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datum konání</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum konání" %}</p>
                         <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
                     </div>
                     <div class="entry-hero-stat rounded-2xl px-5 py-4">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Konec registrace</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Konec registrace" %}</p>
                         <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.reg_open_to|date:"j. F Y H:i" }}</p>
                     </div>
                     <div class="entry-hero-action">
@@ -400,15 +373,15 @@
                             <button
                                 type="submit"
                                 name="btn_add"
-                                aria-label="Přidat do košíku"
+                                aria-label="{% trans 'Přidat do košíku' %}"
                                 class="entry-cta"
                                 id="entry-submit-btn"
                             >
-                                <span>Přidat do košíku</span>
+                                <span>{% trans "Přidat do košíku" %}</span>
                                 <span aria-hidden="true" class="text-base leading-none">→</span>
                             </button>
                             <div class="entry-selection-meta">
-                                <span id="entry-selection-label">Vybráno 0 registrací</span>
+                                <span id="entry-selection-label">{% trans "Vybráno 0 registrací" %}</span>
                                 <span class="entry-selection-count" id="entry-selection-breakdown">20&quot; 0 | 24&quot; 0</span>
                             </div>
                         </div>
@@ -423,21 +396,21 @@
             <section class="rounded-[2rem] border border-slate-200 bg-white/95 p-8 shadow-[0_20px_70px_rgba(15,23,42,0.08)] ring-1 ring-white/70 dark:border-slate-800 dark:bg-slate-900/92 dark:shadow-[0_20px_70px_rgba(2,6,23,0.45)] dark:ring-slate-800/50">
                 <div class="flex flex-col gap-6">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-950 dark:text-white">Startovní listina</h2>
+                        <h2 class="text-2xl font-bold text-slate-950 dark:text-white">{% trans "Startovní listina" %}</h2>
                         <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                            Filtrovat můžeš podle příjmení nebo klubu. Vybrané checkboxy se po odeslání přidají do košíku.
+                            {% trans "Filtrovat můžeš podle příjmení nebo klubu. Vybrané checkboxy se po odeslání přidají do košíku." %}
                         </p>
                     </div>
 
                     <div class="grid gap-4 lg:grid-cols-2">
                         <label class="block">
                             <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-                                Příjmení
+                                {% trans "Příjmení" %}
                             </span>
                             <input
                                 id="inputLastName"
                                 type="text"
-                                placeholder="Napiš příjmení jezdce"
+                                placeholder="{% trans 'Napiš příjmení jezdce' %}"
                                 onkeyup="searchByLastName()"
                                 class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                             />
@@ -445,12 +418,12 @@
 
                         <label class="block">
                             <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-                                Klub
+                                {% trans "Klub" %}
                             </span>
                             <input
                                 id="inputClub"
                                 type="text"
-                                placeholder="Napiš klub"
+                                placeholder="{% trans 'Napiš klub' %}"
                                 onkeyup="searchByClub()"
                                 class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                             />
@@ -473,14 +446,14 @@
                                 </colgroup>
                                 <thead class="bg-slate-100/90 dark:bg-slate-900">
                                     <tr>
-                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">Start.č.</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">Příjmení</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Jméno</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Klub</th>
+                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">{% trans "Start.č." %}</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">{% trans "Příjmení" %}</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Jméno" %}</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Klub" %}</th>
                                         <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">20"</th>
                                         <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">24" (Cruiser)</th>
                                         {% if beginners_enabled %}
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">Příchozí</th>
+                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Příchozí" %}</th>
                                         {% endif %}
                                     </tr>
                                 </thead>
@@ -491,9 +464,9 @@
                                         <td class="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6 whitespace-nowrap">
                                             {{ rider.last_name }}
                                             <dl class="font-normal lg:hidden">
-                                                <dt class="sr-only">Jméno</dt>
+                                                <dt class="sr-only">{% trans "Jméno" %}</dt>
                                                 <dd class="mt-1 truncate text-slate-500 dark:text-slate-300">{{ rider.first_name }}</dd>
-                                                <dt class="sr-only sm:hidden">Klub</dt>
+                                                <dt class="sr-only sm:hidden">{% trans "Klub" %}</dt>
                                                 <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">{{ rider.club|upper }}</dd>
                                             </dl>
                                         </td>
@@ -501,11 +474,11 @@
                                         <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.club|upper }}</td>
 
                                         {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
-                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
+                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</td>
                                         {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
                                         <td class="px-4 py-4 text-sm">
-                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 font-medium text-white">
-                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white text-[0.75rem] leading-none">✕</span>
+                                            <div class="entry-status-muted">
+                                                <span class="entry-status-muted__icon">✕</span>
                                                 <span>{{ rider.class_20 }}</span>
                                             </div>
                                         </td>
@@ -527,17 +500,17 @@
 
                                         {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
                                         <td class="px-4 py-4 text-sm">
-                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-100 px-3 py-2 font-medium text-rose-700">
-                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-[0.75rem] leading-none">✕</span>
+                                            <div class="entry-status-muted">
+                                                <span class="entry-status-muted__icon">✕</span>
                                                 <span>{{ rider.class_24 }}</span>
                                             </div>
                                         </td>
                                         {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
-                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">Nekvalifikoval se</td>
+                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</td>
                                         {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
                                         <td class="px-4 py-4 text-sm">
-                                            <div class="inline-flex items-center gap-2 rounded-2xl bg-rose-100 px-3 py-2 font-medium text-rose-700">
-                                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-[0.75rem] leading-none">✕</span>
+                                            <div class="entry-status-muted">
+                                                <span class="entry-status-muted__icon">✕</span>
                                                 <span>{{ rider.class_24 }}</span>
                                             </div>
                                         </td>
@@ -587,17 +560,6 @@
         </div>
     </section>
 </form>
-
-<div id="entry-sticky-cart" class="entry-sticky-cart" aria-hidden="true">
-    <div class="entry-sticky-cart__summary">
-        <span class="entry-sticky-cart__label">Vybrané registrace</span>
-        <span id="entry-sticky-cart-value" class="entry-sticky-cart__value">0 položek</span>
-    </div>
-    <button type="submit" form="entry-form" name="btn_add" id="entry-sticky-submit" class="entry-cta entry-sticky-cart__button">
-        <span>Pokračovat</span>
-        <span aria-hidden="true" class="text-base leading-none">→</span>
-    </button>
-</div>
 
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
 <script src="{% static 'js/entry.js' %}"></script>
