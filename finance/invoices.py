@@ -723,3 +723,8 @@ def save_invoice_override(event, club, manual_descriptions, manual_amounts):
     override.save(update_fields=["manual_descriptions", "manual_amounts", "updated"])
     EventInvoiceService().update_invoice_for_club(event, club)
     return override
+
+
+def delete_invoice_override(event, club):
+    EventInvoiceOverride.objects.filter(event=event, club=club).delete()
+    return EventInvoiceService().update_invoice_for_club(event, club)

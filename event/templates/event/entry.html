@@ -52,6 +52,62 @@
         color: #0f172a;
     }
 
+    .entry-sticky-cart {
+        position: fixed;
+        left: 50%;
+        bottom: 1rem;
+        z-index: 40;
+        display: flex;
+        width: min(calc(100% - 2rem), 32rem);
+        transform: translateX(-50%) translateY(140%);
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border: 1px solid rgba(99, 102, 241, 0.18);
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+        padding: 0.9rem 1rem;
+        backdrop-filter: blur(12px);
+        transition: transform 180ms ease, opacity 180ms ease;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .entry-sticky-cart.is-visible {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .entry-sticky-cart__summary {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 0;
+    }
+
+    .entry-sticky-cart__label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .entry-sticky-cart__value {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #0f172a;
+        white-space: nowrap;
+    }
+
+    .entry-sticky-cart__button {
+        flex-shrink: 0;
+        min-height: 0;
+        padding: 0.9rem 1.1rem;
+    }
+
     .entry-hero-stats {
         display: grid;
         grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -289,6 +345,20 @@
         color: #f8fafc !important;
     }
 
+    html.dark .entry-sticky-cart {
+        background: rgba(15, 23, 42, 0.96) !important;
+        border-color: rgba(99, 102, 241, 0.22) !important;
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.4) !important;
+    }
+
+    html.dark .entry-sticky-cart__label {
+        color: #94a3b8 !important;
+    }
+
+    html.dark .entry-sticky-cart__value {
+        color: #f8fafc !important;
+    }
+
     html.dark .entry-page .rounded-\[2\.25rem\],
     html.dark .entry-page .rounded-\[2rem\] {
         background: rgba(15, 23, 42, 0.92) !important;
@@ -298,7 +368,7 @@
 {% endblock extra_head %}
 
 {% block content %}
-<form method="POST" class="entry-page pb-20">
+<form method="POST" class="entry-page pb-20" id="entry-form">
     {% csrf_token %}
 
     <header class="entry-hero">
@@ -517,6 +587,17 @@
         </div>
     </section>
 </form>
+
+<div id="entry-sticky-cart" class="entry-sticky-cart" aria-hidden="true">
+    <div class="entry-sticky-cart__summary">
+        <span class="entry-sticky-cart__label">Vybrané registrace</span>
+        <span id="entry-sticky-cart-value" class="entry-sticky-cart__value">0 položek</span>
+    </div>
+    <button type="submit" form="entry-form" name="btn_add" id="entry-sticky-submit" class="entry-cta entry-sticky-cart__button">
+        <span>Pokračovat</span>
+        <span aria-hidden="true" class="text-base leading-none">→</span>
+    </button>
+</div>
 
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
 <script src="{% static 'js/entry.js' %}"></script>

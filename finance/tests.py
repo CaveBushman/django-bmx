@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from club.models import Club
 from event.models import Entry, Event
+from finance.invoices import delete_invoice_override, save_invoice_override
 from finance.models import EventInvoice
 from rider.models import Rider
 
@@ -131,3 +132,39 @@ class EventInvoiceGenerationTests(TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Test Race", mail.outbox[0].subject)
+
+    def test_invoice_override_allows_custom_number_of_lines_and_reset_to_defaults(self):
+        self.client.force_login(self.admin_user)
+        self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.pk}),
+            {"btn-send-invoices": "invoices"},
+            follow=True,
+        )
+
+        save_invoice_override(
+            self.event,
+            self.customer_club,
+            "Ruční položka A\nRuční položka B",
+            "100.00\n250.00",
+        )
+
+        invoice = EventInvoice.objects.get(event=self.event, club=self.customer_club)
+        self.assertEqual(float(invoice.total_price), 350.0)
+
+        invoice.xml_export.open("rb")
+        try:
+            xml_content = invoice.xml_export.read().decode("utf-8")
+        finally:
+            invoice.xml_export.close()
+        self.assertIn("Ruční položka A", xml_content)
+        self.assertIn("Ruční položka B", xml_content)
+
+        delete_invoice_override(self.event, self.customer_club)
+        invoice.refresh_from_db()
+
+        invoice.xml_export.open("rb")
+        try:
+            reset_xml_content = invoice.xml_export.read().decode("utf-8")
+        finally:
+            invoice.xml_export.close()
+        self.assertIn("Jan Novak", reset_xml_content)

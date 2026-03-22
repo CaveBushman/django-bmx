@@ -94,6 +94,10 @@
     background: var(--champion-accent, #6366f1);
   }
 
+  .homepage-champion-card--right::before {
+    inset: 0 0 0 auto;
+  }
+
   .homepage-champion-avatar {
     width: 7.5rem;
     height: 7.5rem;
@@ -499,9 +503,9 @@
                 </div>
             </article>
 
-            <article class="homepage-champion-card rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
+            <article class="homepage-champion-card homepage-champion-card--right rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
                 <div class="homepage-champion-stack flex items-center gap-4">
-                    <div class="homepage-champion-media order-2 flex justify-center md:justify-start">
+                    <div class="homepage-champion-media flex justify-center md:justify-start">
                         {% if championship_women_leader %}
                         <img src="{{ championship_women_leader.photo.url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
@@ -510,7 +514,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    <div class="order-1 ml-auto text-right">
+                    <div class="ml-auto text-right">
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">{% trans "Ženy" %}</p>
                         {% if championship_women_leader %}
                         <p class="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ championship_women_leader.class_20 }}</p>
