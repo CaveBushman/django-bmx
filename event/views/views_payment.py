@@ -43,6 +43,14 @@ import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+audit_logger = logging.getLogger("audit")
+
+
+def _sum_order_amount(orders):
+    return sum(
+        getattr(order, "fee_beginner", 0) + getattr(order, "fee_20", 0) + getattr(order, "fee_24", 0)
+        for order in orders
+    )
 
 
 def success_view(request, pk):
@@ -113,18 +121,37 @@ def confirm_user_order(request):
         return render(request, "event/order.html", {"duplicities": duplicities})
 
     if "btn-del" in request.POST:
-        delete_order_from_cart(request.POST["btn-del"], request.user)
+        deleted_order_id = request.POST["btn-del"]
+        delete_order_from_cart(deleted_order_id, request.user)
+        audit_logger.info(
+            "cart_order_deleted user_id=%s order_id=%s",
+            request.user.id,
+            deleted_order_id,
+        )
         update_cart(request)
         return redirect("event:order")
 
     if request.POST:
         user = Account.objects.get(id=request.user.id)
         if not pay_orders_from_credit(user=user, orders=orders):
+            audit_logger.warning(
+                "cart_credit_checkout_rejected user_id=%s items=%s total_amount=%s current_credit=%s",
+                request.user.id,
+                orders.count(),
+                _sum_order_amount(orders),
+                user.credit,
+            )
             messages.error(
                 request,
                 "Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku.",
             )
             return redirect("event:order")
+        audit_logger.info(
+            "cart_credit_checkout_confirmed user_id=%s items=%s total_amount=%s",
+            request.user.id,
+            orders.count(),
+            _sum_order_amount(orders),
+        )
         update_cart(request)
         return redirect("event:checkout")
 
@@ -174,6 +201,12 @@ def checkout_view(request):
         # Storno přihlášky — smaž Entry a příslušné debetní transakce
         entry = Entry.objects.filter(id=request.POST["btn-change"], user=user).first()
         if entry:
+            audit_logger.info(
+                "confirmed_entry_deleted user_id=%s entry_id=%s event_id=%s",
+                user.id,
+                entry.id,
+                entry.event_id,
+            )
             DebetTransaction.objects.filter(user=user, entry=entry).delete()
             entry.delete()
         user.credit = calculate_user_balance(user.id)
@@ -225,8 +258,19 @@ def credit_view(request):
             CreditTransaction(
                 transaction_id=checkout_session.id, amount=amount, user_id=user_id
             ).save()
+            audit_logger.info(
+                "credit_checkout_started user_id=%s amount=%s session_id=%s",
+                user_id,
+                amount,
+                checkout_session.id,
+            )
             return redirect(checkout_session.url, code=303)
         except Exception as e:
+            audit_logger.exception(
+                "credit_checkout_failed user_id=%s amount=%s",
+                user_id,
+                amount,
+            )
             return JsonResponse({'error': str(e)}, status=403)
 
     credits, debets = get_credit_history(user_id)
@@ -245,10 +289,24 @@ def success_credit_view(request):
     if session_id:
         try:
             finalize_credit_transaction_by_session_id(session_id, user=request.user)
+            audit_logger.info(
+                "credit_checkout_finalized user_id=%s session_id=%s",
+                request.user.id,
+                session_id,
+            )
         except Exception as error:
             logger.error(f"Chyba při potvrzení kreditní platby {session_id}: {error}")
+            audit_logger.exception(
+                "credit_checkout_finalize_failed user_id=%s session_id=%s",
+                request.user.id,
+                session_id,
+            )
     else:
         finalize_pending_credit_transactions(request.user)
+        audit_logger.info(
+            "credit_checkout_finalize_pending user_id=%s",
+            request.user.id,
+        )
     return redirect("event:success-credit-update")
 
 

@@ -26,6 +26,8 @@ except ImportError:
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+LOG_DIR = BASE_DIR / "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
@@ -68,7 +70,6 @@ ALLOWED_HOSTS = config_list("ALLOWED_HOSTS", default=",".join(DEFAULT_ALLOWED_HO
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 OPENAI_API_KEY = config("OPENAI_API_KEY")
-OPENROUTER_API_KEY = config("OPENROUTER_API_KEY")
 
 STRIPE_LIVE_MODE = config_bool("STRIPE_LIVE_MODE", default=not DEBUG)
 
@@ -124,7 +125,6 @@ INSTALLED_APPS = [
     "commissar",
     "accounts",
     "admin_stats",
-    "chat",
     'finance',
     "todo",
 ]
@@ -379,24 +379,29 @@ LOGGING = {
     },
     "handlers": {
         "console": {"class": "logging.StreamHandler", "formatter": "verbose",},
-        "chatbot_file": {
+        "audit_file": {
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", "chatbot.log"),
+            "formatter": "verbose",
+            "filename": str(LOG_DIR / "audit.log"),
             "when": "midnight",
             "interval": 1,
-            "backupCount": 14,
-            "formatter": "verbose",
+            "backupCount": 30,
             "encoding": "utf-8",
         },
     },
     "loggers": {
+        "audit": {
+            "handlers": ["console", "audit_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "api.views": {
-            "handlers": ["console", "chatbot_file"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },
         "rider.views": {
-            "handlers": ["console", "chatbot_file"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },

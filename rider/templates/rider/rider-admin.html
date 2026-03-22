@@ -62,6 +62,16 @@
       border-color 180ms ease;
   }
 
+  .rider-admin-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 1rem;
+    flex: 0 0 auto;
+  }
+
   @media (min-width: 640px) {
     .rider-admin-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -165,7 +175,9 @@
 
       <div class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <a href="{% url 'rider:ranking' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🔢</span>
+          <span class="rider-admin-action-icon bg-indigo-500/10 text-indigo-200">
+            <i class="fas fa-arrow-trend-up text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Přepočítej ranking</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace pořadí a bodového přehledu</span>
@@ -173,7 +185,9 @@
         </a>
 
         <a href="{% url 'rider:inactive' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🛑</span>
+          <span class="rider-admin-action-icon bg-rose-500/10 text-rose-200">
+            <i class="fas fa-user-slash text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Neaktivní jezdci</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Seznam a správa neaktivních profilů</span>
@@ -181,7 +195,9 @@
         </a>
 
         <a href="{% url 'rider:licence' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">✅</span>
+          <span class="rider-admin-action-icon bg-emerald-500/10 text-emerald-200">
+            <i class="fas fa-badge-check text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Zkontroluj platnost licencí</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Ověření stavu licence napříč databází</span>
@@ -189,7 +205,9 @@
         </a>
 
         <a href="{% url 'rider:participation' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">📋</span>
+          <span class="rider-admin-action-icon bg-amber-500/10 text-amber-200">
+            <i class="fas fa-clipboard-list text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Účast jezdců na závodech</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Přehled startů a zapojení jezdců</span>
@@ -197,7 +215,9 @@
         </a>
 
         <a href="{% url 'rider:free-plates' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🔢</span>
+          <span class="rider-admin-action-icon bg-sky-500/10 text-sky-200">
+            <i class="fas fa-hashtag text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Volná startovní čísla</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Přehled neobsazených čísel pro nové jezdce</span>
@@ -205,7 +225,9 @@
         </a>
 
         <a href="{% url 'rider:recalculate-classes' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">📊</span>
+          <span class="rider-admin-action-icon bg-cyan-500/10 text-cyan-200">
+            <i class="fas fa-chart-column text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Přepočítej kategorie</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Přegenerování tříd podle aktuálních pravidel</span>
@@ -213,7 +235,9 @@
         </a>
 
         <a href="{% url 'rider:cruiser' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🚴</span>
+          <span class="rider-admin-action-icon bg-violet-500/10 text-violet-200">
+            <i class="fas fa-person-biking text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Přepočítej medián cruiserů</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace metrik pro cruiser kategorii</span>
@@ -221,7 +245,9 @@
         </a>
 
         <a href="{% url 'rider:riders-by-class' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🏆</span>
+          <span class="rider-admin-action-icon bg-yellow-500/10 text-yellow-200">
+            <i class="fas fa-trophy text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Jezdci dle klubů a kategorií</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Strukturovaný přehled jezdců v systému</span>
@@ -229,7 +255,9 @@
         </a>
 
         <a href="{% url 'rider:qualify' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
-          <span class="text-2xl">🎟️</span>
+          <span class="rider-admin-action-icon bg-pink-500/10 text-pink-200">
+            <i class="fas fa-ticket text-lg"></i>
+          </span>
           <span>
             <span class="block text-lg font-semibold">Přepočítej kvalifikaci na MČR</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Kontrola kvalifikačního stavu jezdců</span>

@@ -1,5 +1,4 @@
-from django.contrib import admin
-from django.urls import include, path
+from django.urls import path
 from api import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
@@ -20,7 +19,6 @@ urlpatterns = [
     path('news', views.NewsListAPIView.as_view()),
 
     path('entry', views.EntryAdminAPIView.as_view()),
-    path('chatbot', views.ChatbotAPIView.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

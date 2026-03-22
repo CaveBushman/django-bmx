@@ -1058,6 +1058,44 @@ class RaceRunImportServiceTests(TestCase):
         self.assertIsNone(moto_1.split_1)
         self.assertEqual(moto_1.finish_time, 39.205)
 
+    def test_import_event_runs_parses_final_result_list_times_and_places(self):
+        target_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        if os.path.isdir(target_dir):
+            for filename in os.listdir(target_dir):
+                os.remove(os.path.join(target_dir, filename))
+        os.makedirs(target_dir, exist_ok=True)
+
+        final_start_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Final</th><th>Lane</th><th>Plate</th><th>Name</th><th>Club</th></tr>
+        <tr><td>F1 (A)</td><td>Pick 3</td><td>868</td><td>Simon Aksamit</td><td>Import Club</td></tr>
+        </table>
+        </body></html>"""
+        final_result_html = """<html><body>
+        <table class="gridtable">
+        <caption>Boys 15-16 (1 Riders)</caption>
+        <tr><th>Final</th><th>Result</th><th>Plate</th><th>Club</th><th>Name</th></tr>
+        <tr><td>F1 (A)</td><td>1st<br><small>33,380</small></td><td>868</td><td>Import Club</td><td>Simon Aksamit</td></tr>
+        </table>
+        </body></html>"""
+
+        for filename, content in {
+            "final__sample.html": final_start_html,
+            "final_results__sample.html": final_result_html,
+        }.items():
+            with open(os.path.join(target_dir, filename), "w", encoding="utf-8") as handle:
+                handle.write(content)
+
+        imported_runs = RaceRunImportService().import_event_runs(self.event)
+
+        self.assertEqual(imported_runs, 1)
+        final_run = RaceRun.objects.get(result=self.result, round_type="FINAL")
+        self.assertEqual(final_run.heat_code, "F1 (A)")
+        self.assertEqual(final_run.lane, 3)
+        self.assertEqual(final_run.place, "1st")
+        self.assertEqual(final_run.finish_time, 33.380)
+
     def test_import_event_runs_creates_runs_without_result(self):
         self.result.delete()
         target_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))

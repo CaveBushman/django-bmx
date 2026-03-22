@@ -21,6 +21,7 @@ from finance.subscription_invoices import SubscriptionInvoiceService
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+audit_logger = logging.getLogger("audit")
 
 # Create your views here.
 
@@ -85,6 +86,10 @@ def finance_admin(request):
     }
 
     if request.method == "POST" and "verify_payments" in request.POST:
+        audit_logger.info(
+            "finance_manual_credit_verification_started admin_user_id=%s",
+            request.user.id,
+        )
         # Manuální ověření plateb za poslední 2 dny
         two_days_ago = timezone.now() - timedelta(days=2)
         credit_transactions = CreditTransaction.objects.filter(
@@ -109,12 +114,29 @@ def finance_admin(request):
                         ct.save()
                         verified_count += 1
                         logger.info(f"Manuálně ověřena platba kreditu: {ct}")
+                        audit_logger.info(
+                            "finance_credit_payment_verified admin_user_id=%s transaction_id=%s target_user_id=%s amount=%s",
+                            request.user.id,
+                            ct.id,
+                            ct.user_id,
+                            ct.amount,
+                        )
             except Exception as e:
                 logger.error(f"Chyba při manuálním ověření kreditu {ct.id}: {e}")
+                audit_logger.exception(
+                    "finance_credit_payment_verification_failed admin_user_id=%s transaction_id=%s",
+                    request.user.id,
+                    ct.id,
+                )
 
         messages.success(request, _("Ověřeno %(count)d plateb za kredity za poslední 2 dny.") % {
             'count': verified_count
         })
+        audit_logger.info(
+            "finance_manual_credit_verification_finished admin_user_id=%s verified_count=%s",
+            request.user.id,
+            verified_count,
+        )
         # Invalidace cache po manuální akci, aby byla čísla aktuální
         cache.delete(cache_key)
         # Aktualizovat data po ověření

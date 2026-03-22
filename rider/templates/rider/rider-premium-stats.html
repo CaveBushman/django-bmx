@@ -281,7 +281,15 @@
               <option value="">{% trans "Vyber trať" %}</option>
               {% for track in track_options %}
               <option value="{{ track.id }}"{% if selected_track and selected_track.id == track.id %} selected{% endif %}>
-                {{ track.name }} | {{ track.starts_count }} závodů | KPI {{ track.recent_timed_runs_count }} měřených jízd{% if track.best_result %} | Best #{{ track.best_result }}{% endif %}
+                {% if track.best_result %}
+                  {% blocktrans with name=track.name starts=track.starts_count runs=track.recent_timed_runs_count best=track.best_result trimmed %}
+                  {{ name }} | {{ starts }} závodů | KPI {{ runs }} měřených jízd | Nejlépe #{{ best }}
+                  {% endblocktrans %}
+                {% else %}
+                  {% blocktrans with name=track.name starts=track.starts_count runs=track.recent_timed_runs_count trimmed %}
+                  {{ name }} | {{ starts }} závodů | KPI {{ runs }} měřených jízd
+                  {% endblocktrans %}
+                {% endif %}
               </option>
               {% endfor %}
             </select>
@@ -378,8 +386,8 @@
           <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             <div class="premium-stats-light-card min-w-0 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <div class="flex items-center justify-between gap-2">
-                <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Starty" %}</p>
-                <button type="button" aria-label="{% trans 'Nápověda k položce Starty' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Starty' %}" data-help-body="{% trans 'Hlavní číslo ukazuje počet startů na této trati ve vybraném období. Druhý řádek ukazuje celkový počet startů v celé historii.' %}">i</button>
+                <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Počet závodů" %}</p>
+                <button type="button" aria-label="{% trans 'Nápověda k položce Počet závodů' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Počet závodů' %}" data-help-body="{% trans 'Hlavní číslo ukazuje počet závodů na této trati ve vybraném období, ve kterých má jezdec alespoň jednu měřenou jízdu. Druhý řádek ukazuje celkový počet takových závodů v celé historii.' %}">i</button>
               </div>
               <p class="mt-3 text-3xl font-black text-slate-900">{{ track_stats.starts_count }}</p>
               <p class="mt-2 text-sm text-slate-500">{% trans "Celkem" %} {{ track_stats.total_starts_count }}</p>
@@ -400,8 +408,8 @@
             </div>
             <div class="premium-stats-light-card min-w-0 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <div class="flex items-center justify-between gap-2">
-                <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Best result" %}</p>
-                <button type="button" aria-label="{% trans 'Nápověda k Best result' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Best result' %}" data-help-body="{% trans 'Nejlepší celkové umístění v závodě na této trati ve vybraném období. Nižší číslo je lepší.' %}">i</button>
+                <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Nejlepší výsledek" %}</p>
+                <button type="button" aria-label="{% trans 'Nápověda k Best result' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Nejlepší výsledek' %}" data-help-body="{% trans 'Nejlepší celkové umístění v závodě na této trati ve vybraném období. Nižší číslo je lepší.' %}">i</button>
               </div>
               <p class="mt-3 text-3xl font-black text-slate-900">{{ track_stats.best_result|default:"-" }}</p>
             </div>
@@ -419,19 +427,19 @@
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">
-              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Median time's" %}</p>
+              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Medián cílových časů" %}</p>
               <button type="button" aria-label="{% trans 'Nápověda k časům' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Finish time' %}" data-help-body="{% trans 'Hlavní číslo je medián všech dostupných cílových časů ve vybraném období na této trati. Dole zůstává nejlepší naměřený čas.' %}">i</button>
             </div>
             <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.median_finish_time|default:"-" }}</p>
-            <p class="mt-2 text-sm text-slate-500">{% trans "Best" %} {{ track_stats.best_finish_time|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500">{% trans "Nejlepší čas" %} {{ track_stats.best_finish_time|default:"-" }}</p>
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">
-              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Median hill time" %}</p>
+              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Medián hill time" %}</p>
               <button type="button" aria-label="{% trans 'Nápověda k hill time' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Hill time' %}" data-help-body="{% trans 'Hlavní číslo je medián všech dostupných startových časů na kopci ve vybraném období. Dole zůstává nejlepší naměřený hill time.' %}">i</button>
             </div>
             <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.median_hill_time|default:"-" }}</p>
-            <p class="mt-2 text-sm text-slate-500">{% trans "Best" %} {{ track_stats.best_hill_time|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500">{% trans "Nejlepší čas" %} {{ track_stats.best_hill_time|default:"-" }}</p>
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">
@@ -467,16 +475,24 @@
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">
-              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Conversion / Recovery" %}</p>
-              <button type="button" aria-label="{% trans 'Nápověda ke Conversion/Recovery' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Conversion / Recovery' %}" data-help-body="{% trans 'Conversion ukazuje, jak často jezdec promění silné motos v celkový výsledek do 3. místa. Recovery ukazuje, jak často po slabším startu skončí lépe než naznačují motos. Obojí ve vybraném období.' %}">i</button>
+              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Nejlepší dráha pro výsledek" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k nejlepší dráze pro výsledek' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Nejlepší dráha pro výsledek' %}" data-help-body="{% trans 'Dráha, ze které jezdec na této trati ve vybraném období v průměru dosahuje nejlepších umístění. Nižší průměrné pořadí je lepší.' %}">i</button>
             </div>
-            <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.conversion_score|default:"-" }}{% if track_stats.conversion_score %}%{% endif %}</p>
-            <p class="mt-2 text-sm text-slate-500">{% trans "Recovery" %} {{ track_stats.recovery_score|default:"-" }}{% if track_stats.recovery_score %}%{% endif %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900">{% if track_stats.best_result_lane %}{% trans "Dráha" %} {{ track_stats.best_result_lane }}{% else %}-{% endif %}</p>
+            <p class="mt-2 text-sm text-slate-500">{% trans "Průměrné umístění" %} {{ track_stats.best_result_lane_average|default:"-" }}</p>
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">
-              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Pressure / Affinity" %}</p>
-              <button type="button" aria-label="{% trans 'Nápověda k Pressure/Affinity' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Pressure / Affinity' %}" data-help-body="{% trans 'Pressure score je škála 1 až 100, která porovnává průměrné umístění v motos a ve finálových jízdách. Hodnota 100 znamená, že jezdec ve finálových jízdách výrazně zlepšuje výkon oproti motos a zvládá tlak rozhodujících jízd nadprůměrně dobře. Hodnota 50 znamená přibližně stejný výkon v motos i ve finále. Nízké hodnoty znamenají, že ve finálových jízdách proti výkonu z motos spíš ztrácí. Affinity ukazuje, zda se jezdci na této trati daří lépe, nebo hůře než obvykle na ostatních tratích. Je to malé číslo v závorce a představuje rozdíl proti jeho běžnému průměrnému umístění na všech tratích: kladná hodnota znamená, že je tato trať pro jezdce lepší než obvykle, záporná, že horší, a hodnota blízko nule znamená neutrální trať.' %}">i</button>
+              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Konverze / návrat" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda ke Conversion/Recovery' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Konverze / návrat' %}" data-help-body="{% trans 'Conversion ukazuje, jak často jezdec promění silné motos v celkový výsledek do 3. místa. Recovery ukazuje, jak často po slabším startu skončí lépe než naznačují motos. Obojí ve vybraném období.' %}">i</button>
+            </div>
+            <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.conversion_score|default:"-" }}{% if track_stats.conversion_score %}%{% endif %}</p>
+            <p class="mt-2 text-sm text-slate-500">{% trans "Návrat" %} {{ track_stats.recovery_score|default:"-" }}{% if track_stats.recovery_score %}%{% endif %}</p>
+          </div>
+          <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs uppercase tracking-wide text-slate-600">{% trans "Tlak / affinity" %}</p>
+              <button type="button" aria-label="{% trans 'Nápověda k Pressure/Affinity' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Tlak / affinity' %}" data-help-body="{% trans 'Pressure score je škála 1 až 100, která porovnává průměrné umístění v motos a ve finálových jízdách. Hodnota 100 znamená, že jezdec ve finálových jízdách výrazně zlepšuje výkon oproti motos a zvládá tlak rozhodujících jízd nadprůměrně dobře. Hodnota 50 znamená přibližně stejný výkon v motos i ve finále. Nízké hodnoty znamenají, že ve finálových jízdách proti výkonu z motos spíš ztrácí. Affinity ukazuje, zda se jezdci na této trati daří lépe, nebo hůře než obvykle na ostatních tratích. Je to malé číslo v závorce a představuje rozdíl proti jeho běžnému průměrnému umístění na všech tratích: kladná hodnota znamená, že je tato trať pro jezdce lepší než obvykle, záporná, že horší, a hodnota blízko nule znamená neutrální trať.' %}">i</button>
             </div>
             <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.pressure_score|default:"-" }}</p>
             <p class="mt-2 text-sm text-slate-500">{{ track_stats.track_affinity_label|default:"-" }}{% if track_stats.track_affinity_delta %} ({{ track_stats.track_affinity_delta }}){% endif %}</p>
@@ -487,7 +503,7 @@
               <button type="button" aria-label="{% trans 'Nápověda ke Stability score' %}" class="help-trigger inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600" data-help-title="{% trans 'Stability score' %}" data-help-body="{% trans 'Stability score je škála 1 až 100, která kombinuje rozptyl umístění, rozptyl časů a počet problémových jízd. Hodnota 100 znamená velmi stabilní výkony bez velkých výkyvů mezi závody a jízdami. Hodnota kolem 50 znamená střední kolísání výkonu. Nízké hodnoty znamenají, že výkon jezdce je výrazně proměnlivý a výsledky i časy mezi jízdami více skáčou. Risk pod tím ukazuje opačný pohled, tedy míru nestability a rizika.' %}">i</button>
             </div>
             <p class="mt-2 text-3xl font-black text-slate-900">{{ track_stats.stability_score|default:"-" }}</p>
-            <p class="mt-2 text-sm text-slate-500">{% trans "Risk" %} {{ track_stats.risk_score|default:"-" }}</p>
+            <p class="mt-2 text-sm text-slate-500">{% trans "Riziko" %} {{ track_stats.risk_score|default:"-" }}</p>
           </div>
           <div class="premium-stats-light-card rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-center justify-between gap-2">

@@ -22,6 +22,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import cm
 
 logger = logging.getLogger(__name__)
+audit_logger = logging.getLogger("audit")
 
 # Shared konstanty pro PDF
 FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
@@ -146,6 +147,13 @@ def generate_pdf(request, pk):
 
     p.showPage()
     p.save()
+    if request.user.is_authenticated:
+        audit_logger.info(
+            "event_chip_rental_pdf_generated user_id=%s event_id=%s entries=%s",
+            request.user.id,
+            event.id,
+            entries.count(),
+        )
     return response
 
 
@@ -183,6 +191,12 @@ def generate_invoice_preparation_pdf(request, pk):
 
     p.showPage()
     p.save()
+    if request.user.is_authenticated:
+        audit_logger.info(
+            "event_invoice_preparation_pdf_generated user_id=%s event_id=%s",
+            request.user.id,
+            event.id,
+        )
     return response
 
 
@@ -256,6 +270,11 @@ def generate_manual_entry_form_pdf(request, pk):
     )
 
     p.save()
+    audit_logger.info(
+        "event_manual_entry_form_pdf_generated user_id=%s event_id=%s",
+        request.user.id,
+        event.id,
+    )
     return response
 
 

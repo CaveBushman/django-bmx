@@ -53,6 +53,7 @@ import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+audit_logger = logging.getLogger("audit")
 
 
 def _redirect_european_cup_registration(event):
@@ -85,6 +86,15 @@ def add_entries_view(request, pk):
 
         if "btn_add" in request.POST:
             store_selected_entries(request, event, riders_beginner, riders_20, riders_24)
+            audit_logger.info(
+                "entry_cart_updated user_id=%s event_id=%s beginner=%s class20=%s class24=%s total_fee=%s",
+                request.user.id,
+                event.id,
+                len(riders_beginner),
+                len(riders_20),
+                len(riders_24),
+                total_fee,
+            )
             update_cart(request)
             return redirect("event:events")
 
@@ -154,6 +164,7 @@ def confirm_view(request):
 
     if request.method == "POST":
         line_items = build_checkout_line_items(event, riders_beginner, riders_20, riders_24)
+        total_selected = len(riders_beginner) + len(riders_20) + len(riders_24)
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -173,8 +184,26 @@ def confirm_view(request):
                 create_checkout_entries(event, checkout_session, riders_20, is_20=True)
                 create_checkout_entries(event, checkout_session, riders_24, is_24=True)
 
+            audit_logger.info(
+                "event_checkout_started user_id=%s event_id=%s beginner=%s class20=%s class24=%s total_entries=%s session_id=%s",
+                request.user.id if request.user.is_authenticated else None,
+                event.id,
+                len(riders_beginner),
+                len(riders_20),
+                len(riders_24),
+                total_selected,
+                checkout_session.id,
+            )
             return JsonResponse({"id": checkout_session.id})
         except Exception as e:
+            audit_logger.exception(
+                "event_checkout_failed user_id=%s event_id=%s beginner=%s class20=%s class24=%s",
+                request.user.id if request.user.is_authenticated else None,
+                event.id,
+                len(riders_beginner),
+                len(riders_20),
+                len(riders_24),
+            )
             return JsonResponse({"error": str(e)}, status=403)
 
 
@@ -255,8 +284,22 @@ def entry_foreign_pay_view(request, pk):
             cancel_url=settings.YOUR_DOMAIN + f"/event/entry-foreign-summary/{event.id}",
         )
         save_foreign_entries(event, checkout_session, summary_rows, customer_email)
+        audit_logger.info(
+            "foreign_entry_checkout_started event_id=%s rows=%s total_fee=%s customer_email=%s session_id=%s",
+            event.id,
+            len(summary_rows),
+            total_fee,
+            customer_email,
+            checkout_session.id,
+        )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
+        audit_logger.exception(
+            "foreign_entry_checkout_failed event_id=%s rows=%s customer_email=%s",
+            event.id,
+            len(summary_rows),
+            customer_email,
+        )
         return JsonResponse({"error": str(e)}, status=403)
 
 
