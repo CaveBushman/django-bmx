@@ -23,6 +23,32 @@
     flex-wrap: wrap;
   }
 
+  .invoice-edit-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    background: #f8fafc;
+  }
+
+  .invoice-edit-summary__label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .invoice-edit-summary__value {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #0f172a;
+  }
+
   .invoice-edit-primary,
   .invoice-edit-secondary {
     display: inline-flex;
@@ -76,6 +102,19 @@
     background: rgba(190, 24, 93, 0.12);
     color: #fda4af;
     border-color: rgba(244, 114, 182, 0.25);
+  }
+
+  html.dark .invoice-edit-summary {
+    border-color: #334155;
+    background: #0f172a;
+  }
+
+  html.dark .invoice-edit-summary__label {
+    color: #94a3b8;
+  }
+
+  html.dark .invoice-edit-summary__value {
+    color: #f8fafc;
   }
 </style>
 {% endblock %}
@@ -138,8 +177,15 @@
             </tbody>
           </table>
         </div>
+        <div class="invoice-edit-summary">
+          <div>
+            <div class="invoice-edit-summary__label">Celková částka faktury</div>
+          </div>
+          <div id="invoice-edit-total" class="invoice-edit-summary__value">{{ preview.total|floatformat:2 }} Kč</div>
+        </div>
         <div class="invoice-edit-actions">
           <button type="button" id="invoice-add-row" class="invoice-edit-secondary">Přidat položku</button>
+          <button type="submit" name="btn_reset_defaults" value="1" class="invoice-edit-secondary">Obnovit výchozí položky</button>
           <button type="submit" class="invoice-edit-primary">Uložit a přegenerovat</button>
           <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-edit-secondary">Zpět na přehled</a>
         </div>
@@ -178,16 +224,42 @@
             return;
           }
           this.closest(".invoice-edit-row").remove();
+          updateTotal();
         };
       });
+    }
+
+    function updateTotal() {
+      const totalElement = document.getElementById("invoice-edit-total");
+      if (!totalElement) {
+        return;
+      }
+
+      let total = 0;
+      rowsContainer.querySelectorAll('input[name="amount"]').forEach((input) => {
+        const normalized = String(input.value || "").trim().replace(",", ".");
+        const parsed = Number(normalized);
+        if (!Number.isNaN(parsed)) {
+          total += parsed;
+        }
+      });
+      totalElement.textContent = total.toFixed(2).replace(".", ",") + " Kč";
     }
 
     addButton.addEventListener("click", function () {
       rowsContainer.appendChild(template.content.cloneNode(true));
       bindRemoveButtons();
+      updateTotal();
+    });
+
+    rowsContainer.addEventListener("input", function (event) {
+      if (event.target && event.target.name === "amount") {
+        updateTotal();
+      }
     });
 
     bindRemoveButtons();
+    updateTotal();
   })();
 </script>
 {% endblock content %}

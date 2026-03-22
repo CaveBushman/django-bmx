@@ -18,7 +18,13 @@ from django.conf import settings
 from event.models import Event, Entry, EntryForeign
 from event.func import update_cart
 from finance.cash_receipts import EventCashReceiptService, parse_receipt_amount
-from finance.invoices import EventInvoiceService, generate_event_invoices, save_invoice_override, send_event_invoices
+from finance.invoices import (
+    EventInvoiceService,
+    delete_invoice_override,
+    generate_event_invoices,
+    save_invoice_override,
+    send_event_invoices,
+)
 from finance.models import EventCashReceipt, EventInvoice
 from event.views.entry_helpers import (
     annotate_riders_for_event,
@@ -332,6 +338,11 @@ def invoice_edit_view(request, pk, club_id):
         return redirect("event:fees-on-event", pk=pk)
 
     if request.method == "POST":
+        if "btn_reset_defaults" in request.POST:
+            delete_invoice_override(event, preview["club"])
+            messages.success(request, f"Výchozí položky faktury pro klub {preview['club'].team_name} byly obnoveny.")
+            return redirect("event:invoice-edit", pk=pk, club_id=club_id)
+
         descriptions = request.POST.getlist("description")
         amounts = request.POST.getlist("amount")
         cleaned_rows = []

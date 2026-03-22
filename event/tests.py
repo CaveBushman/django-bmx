@@ -17,6 +17,7 @@ from club.models import Club
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
+from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -868,6 +869,28 @@ class UciExportTests(TestCase):
         self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
         messages = [message.message for message in get_messages(response.wsgi_request)]
         self.assertIn("U závodu chybí UCI_EVENT_CODE.", messages)
+
+    def test_uci_export_service_builds_rows_and_zip_metadata(self):
+        rows = build_uci_export_rows(self.event, "Men Elite")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["rank"], 1)
+        self.assertEqual(rows[0]["uci_id"], self.men_elite_best.uci_id)
+        self.assertEqual(rows[0]["result"], "1st, 33.333")
+
+        temp_dir, template_path = self._create_uci_template()
+        try:
+            zip_name, zip_bytes, export_metadata = generate_uci_export_zip(self.event, template_path)
+        finally:
+            for filename in os.listdir(temp_dir):
+                os.remove(os.path.join(temp_dir, filename))
+            os.rmdir(temp_dir)
+
+        self.assertTrue(zip_name.endswith(".zip"))
+        self.assertEqual(len(export_metadata), 6)
+        self.assertTrue(any(item["slug"] == "men_elite" and item["rows"] == 2 for item in export_metadata))
+
+        archive = zipfile.ZipFile(BytesIO(zip_bytes))
+        self.assertEqual(len(archive.namelist()), 6)
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
