@@ -78,6 +78,7 @@ import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+audit_logger = logging.getLogger("audit")
 
 COMMISSAR_EXCLUDED_EVENT_TYPES = [
     "Evropský pohár",
@@ -233,6 +234,12 @@ def _handle_upload_xls(request, event, pk):
     schedule_ranking_recount()
     trigger_cn_qualification_recount_if_needed(event)
     logger.info(f"BEM výsledky nahrány pro závod {event.id}")
+    audit_logger.info(
+        "event_bem_results_uploaded admin_user_id=%s event_id=%s filename=%s",
+        request.user.id,
+        event.id,
+        filename,
+    )
     return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
 
@@ -251,6 +258,11 @@ def _handle_delete_xls(request, event, pk):
             logger.warning(f"XLS soubor nenalezen při mazání: {xls_path}")
     event.xls_results.delete(save=True)
     logger.info(f"BEM výsledky smazány pro závod {event.id}")
+    audit_logger.info(
+        "event_bem_results_deleted admin_user_id=%s event_id=%s",
+        request.user.id,
+        event.id,
+    )
     return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
 
@@ -452,6 +464,12 @@ def _handle_upload_txt(request, event, pk):
     event.save(update_fields=["rem_results"])
 
     logger.info(f"REM výsledky nahrány pro závod {event.id}")
+    audit_logger.info(
+        "event_rem_results_uploaded admin_user_id=%s event_id=%s filename=%s",
+        request.user.id,
+        event.id,
+        filename,
+    )
     return None  # Pokračuj na shrnutí
 
 
@@ -473,6 +491,11 @@ def _handle_delete_txt(request, event, pk):
             logger.warning(f"REM soubor nenalezen při mazání: {rem_path}")
     event.rem_results.delete(save=True)
     logger.info(f"REM výsledky smazány pro závod {event.id}")
+    audit_logger.info(
+        "event_rem_results_deleted admin_user_id=%s event_id=%s",
+        request.user.id,
+        event.id,
+    )
     return None
 
 
@@ -504,15 +527,19 @@ def event_admin_view(request, pk):
         return _handle_delete_xls(request, event, pk)
 
     elif "btn-bem-file" in request.POST:
+        audit_logger.info("event_bem_entries_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
         return _download_generated_file(_handle_bem_entries(request, event))
 
     elif "btn-riders-list" in request.POST:
+        audit_logger.info("event_bem_riders_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
         return _download_generated_file(_handle_bem_riders(request, event))
 
     elif "btn-rem-file" in request.POST:
+        audit_logger.info("event_rem_entries_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
         return _download_generated_file(_handle_rem_entries(request, event))
 
     elif "btn-rem-riders-list" in request.POST:
+        audit_logger.info("event_rem_riders_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
         return _download_generated_file(_handle_rem_riders(request, event))
 
     elif "btn-upload-txt" in request.POST:
@@ -790,6 +817,12 @@ def export_event_results(request, event_id):
     event.ccf_created = now()
     event.ccf_uploaded = True
     event.save()
+    audit_logger.info(
+        "event_results_exported_to_ccf admin_user_id=%s event_id=%s sent_count=%s",
+        request.user.id,
+        event.id,
+        len(payload),
+    )
 
     return render(request, "event/results_sent.html", {"event": event, "sent_count": len(payload)})
 
@@ -844,6 +877,13 @@ def export_uci_results(request, event_id):
         len(export_metadata),
         zip_name,
     )
+    audit_logger.info(
+        "event_uci_export_generated admin_user_id=%s event_id=%s files=%s zip_name=%s",
+        request.user.id,
+        event.id,
+        len(export_metadata),
+        zip_name,
+    )
     response = HttpResponse(zip_bytes, content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{zip_name}"'
     return response
@@ -859,6 +899,13 @@ def unpaid_moto_riders_report(request, pk):
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
     report = build_unpaid_moto_report(event)
+    audit_logger.info(
+        "event_unpaid_moto_report_opened admin_user_id=%s event_id=%s unmatched=%s no_uci=%s",
+        request.user.id,
+        event.id,
+        len(report.get("unpaid_riders", [])),
+        len(report.get("riders_without_uci", [])),
+    )
     return render(
         request,
         "event/unpaid-moto-riders-report.html",
@@ -881,6 +928,13 @@ def unpaid_moto_riders_report_pdf(request, pk):
     report = build_unpaid_moto_report(event)
     service = UnpaidMotoReportPdfService()
     pdf_bytes = service.build_pdf(event, report)
+    audit_logger.info(
+        "event_unpaid_moto_report_pdf_generated admin_user_id=%s event_id=%s unmatched=%s no_uci=%s",
+        request.user.id,
+        event.id,
+        len(report.get("unpaid_riders", [])),
+        len(report.get("riders_without_uci", [])),
+    )
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{service.build_filename(event)}"'
@@ -892,6 +946,12 @@ def unpaid_moto_riders_report_pdf(request, pk):
 def send_invoices(request, pk):
     """Rozesílání faktur klubům pro daný závod."""
     result = generate_event_invoices(pk)
+    audit_logger.info(
+        "event_invoices_generated admin_user_id=%s event_id=%s sent_count=%s",
+        request.user.id,
+        pk,
+        len(result["sent"]),
+    )
     return render(request, "event/results_sent.html", {
         "event": Event.objects.get(pk=pk),
         "sent_count": len(result["sent"]),
@@ -913,6 +973,12 @@ def price_money_pdf(request, pk):
     except ValueError as exc:
         messages.error(request, str(exc))
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+    audit_logger.info(
+        "event_prize_money_pdf_generated admin_user_id=%s event_id=%s include_amounts=%s",
+        request.user.id,
+        event.id,
+        include_amounts,
+    )
 
     suffix = "with-amounts" if include_amounts else "without-amounts"
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -945,6 +1011,12 @@ def import_event_stats(request, pk):
                             logger.error(f"Nepodařilo se smazat soubor {file_path}: {e}")
             
             RaceRun.objects.filter(event=event).delete()
+            audit_logger.info(
+                "event_stats_deleted admin_user_id=%s event_id=%s deleted_files=%s",
+                request.user.id,
+                event.id,
+                deleted_count,
+            )
 
             if deleted_count > 0:
                 messages.success(request, _("Všechny statistiky byly smazány."))
@@ -968,6 +1040,14 @@ def import_event_stats(request, pk):
             if count > 0:
                 results_count = Result.objects.filter(event=event).count()
                 imported_runs = RaceRunImportService().import_event_runs(event)
+                audit_logger.info(
+                    "event_stats_imported admin_user_id=%s event_id=%s uploaded_files=%s imported_runs=%s results_count=%s",
+                    request.user.id,
+                    event.id,
+                    count,
+                    imported_runs,
+                    results_count,
+                )
                 messages.success(request, _("Úspěšně nahráno {count} souborů se statistikami.").format(count=count))
                 messages.info(request, _("RaceRun aktualizován, zapsáno {count} jízd.").format(count=imported_runs))
                 if results_count == 0:

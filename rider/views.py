@@ -256,10 +256,13 @@ def _build_rider_premium_stats_context(request, rider, premium_access_context):
     if selected_track is not None:
         track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
         track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+        timed_track_event_ids = {run.event_id for run in track_runs if run.finish_time is not None and run.event_id}
+        timed_track_results = [result for result in track_results if result.event_id in timed_track_event_ids]
+        timed_track_runs = [run for run in track_runs if run.finish_time is not None]
         available_wheels = []
-        if any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs):
+        if any(result.is_20 for result in timed_track_results) or any(run.is_20 is True for run in timed_track_runs):
             available_wheels.append({"value": "20", "label": '20"'})
-        if any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs):
+        if any(not result.is_20 for result in timed_track_results) or any(run.is_20 is False for run in timed_track_runs):
             available_wheels.append({"value": "24", "label": '24"'})
         if selected_wheel is None and len(available_wheels) == 1:
             selected_wheel = available_wheels[0]["value"]
@@ -284,9 +287,11 @@ def _build_rider_premium_stats_context(request, rider, premium_access_context):
             selected_wheel,
             kpi_cutoff=kpi_period["cutoff"],
         )["candidates"]
+    premium_runs_count = len([run for run in runs if run.finish_time is not None])
     return {
         "rider": rider,
         "runs": runs,
+        "premium_runs_count": premium_runs_count,
         "subscription": premium_access_context["active_subscription"],
         "trainer_club_subscription": premium_access_context["trainer_club_subscription"],
         "has_admin_access": premium_access_context["premium_access_via_admin"],
@@ -520,6 +525,23 @@ def _get_table_column_key(run):
     return None
 
 
+def _overall_result_places(results):
+    per_event_places = {}
+    standalone_places = []
+
+    for result in results:
+        if result.place is None:
+            continue
+        if result.event_id:
+            current = per_event_places.get(result.event_id)
+            if current is None or result.place < current:
+                per_event_places[result.event_id] = result.place
+        else:
+            standalone_places.append(result.place)
+
+    return list(per_event_places.values()) + standalone_places
+
+
 def _matches_wheel_filter(result_or_run, wheel):
     if wheel not in {"20", "24"}:
         return True
@@ -609,6 +631,7 @@ def _build_track_options(results, runs, kpi_cutoff=None):
                 "id": track_id,
                 "name": track_name,
                 "event_ids": set(),
+                "timed_event_ids": set(),
                 "results_count": 0,
                 "runs_count": 0,
                 "display_runs": set(),
@@ -635,14 +658,33 @@ def _build_track_options(results, runs, kpi_cutoff=None):
         item = ensure_track(track_id, track_name)
         if run.event_id:
             item["event_ids"].add(run.event_id)
-        item["runs_count"] += 1
         if run.finish_time is not None and run.event and run.event.date and (kpi_cutoff is None or run.event.date >= kpi_cutoff):
+            item["runs_count"] += 1
+            if run.event_id:
+                item["timed_event_ids"].add(run.event_id)
             item["recent_timed_runs_count"] += 1
+
+    result_places_by_track = defaultdict(list)
+    for result in results:
+        organizer = result.event.organizer if result.event else None
+        track_id = organizer.id if organizer else 0
+        result_places_by_track[track_id].append(result)
 
     track_options = []
     for item in track_map.values():
-        item["starts_count"] = len(item["event_ids"])
+        overall_places = _overall_result_places(
+            [
+                result
+                for result in result_places_by_track.get(item["id"], [])
+                if result.event_id in item["timed_event_ids"]
+            ]
+        )
+        item["best_result"] = min(overall_places) if overall_places else None
+        item["starts_count"] = len(item["timed_event_ids"])
+        item.pop("timed_event_ids", None)
         item.pop("display_runs", None)
+        if item["runs_count"] <= 0:
+            continue
         track_options.append(item)
 
     return sorted(track_options, key=lambda item: (-item["runs_count"], item["name"]))
@@ -822,21 +864,36 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
 
     track_results = [result for result in all_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
     track_runs = [run for run in all_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
-    track_has_20 = any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs)
-    track_has_24 = any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs)
 
     if wheel in {"20", "24"}:
         track_results = [result for result in track_results if _matches_wheel_filter(result, wheel)]
         track_runs = [run for run in track_runs if _matches_wheel_filter(run, wheel)]
 
-    overall_results = [result for result in all_results if _matches_wheel_filter(result, wheel)]
+    timed_track_runs = [run for run in track_runs if run.finish_time is not None]
+    timed_track_event_ids = {run.event_id for run in timed_track_runs if run.event_id}
+    timed_track_results = [result for result in track_results if result.event_id in timed_track_event_ids]
+    track_has_20 = any(result.is_20 for result in timed_track_results) or any(run.is_20 is True for run in timed_track_runs)
+    track_has_24 = any(not result.is_20 for result in timed_track_results) or any(run.is_20 is False for run in timed_track_runs)
+    overall_timed_event_ids = {
+        run.event_id
+        for run in all_runs
+        if run.finish_time is not None and _matches_wheel_filter(run, wheel) and run.event_id
+    }
+    overall_results = [
+        result
+        for result in all_results
+        if _matches_wheel_filter(result, wheel) and result.event_id in overall_timed_event_ids
+    ]
     recent_track_results = [result for result in track_results if result.date and (kpi_cutoff is None or result.date >= kpi_cutoff)]
     recent_track_runs = [
         run
         for run in track_runs
         if run.event and run.event.date and (kpi_cutoff is None or run.event.date >= kpi_cutoff)
     ]
-    recent_track_event_ids = {run.event_id for run in recent_track_runs if run.event_id}
+    timed_recent_track_runs = [run for run in recent_track_runs if run.finish_time is not None]
+    timed_recent_track_event_ids = {run.event_id for run in timed_recent_track_runs if run.event_id}
+    recent_track_results = [result for result in recent_track_results if result.event_id in timed_recent_track_event_ids]
+    recent_track_event_ids = timed_recent_track_event_ids
     event_metrics = defaultdict(
         lambda: {
             "moto_places": [],
@@ -857,6 +914,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     hill_rankable_runs = 0
     positions_gained_after_hill = []
     lane_hill_times = defaultdict(list)
+    lane_result_places = defaultdict(list)
     moto_finish_times = []
     final_finish_times = []
     moto_places = []
@@ -865,7 +923,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     clean_runs = 0
     eligible_clean_runs = 0
 
-    for run in recent_track_runs:
+    for run in timed_recent_track_runs:
         if run.lane and run.hill_time is not None:
             lane_hill_times[run.lane].append(float(run.hill_time))
 
@@ -905,6 +963,9 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
             if finish_time is not None:
                 final_finish_times.append(float(finish_time))
 
+        if run.lane and parsed_place is not None:
+            lane_result_places[run.lane].append(parsed_place)
+
     heat_runs = defaultdict(list)
     if recent_track_event_ids:
         comparable_runs_qs = RaceRun.objects.filter(
@@ -924,7 +985,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
             )
             heat_runs[heat_key].append(item)
 
-    for run in recent_track_runs:
+    for run in timed_recent_track_runs:
         if run.hill_time is None or not run.event_id:
             continue
         heat_key = (
@@ -945,20 +1006,20 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
                     positions_gained_after_hill.append(index - parsed_finish_place)
                 break
 
-    track_place_values = [result.place for result in recent_track_results if result.place is not None]
-    overall_place_values = [result.place for result in overall_results if result.place is not None]
+    track_place_values = _overall_result_places(recent_track_results)
+    overall_place_values = _overall_result_places(overall_results)
     events_count = len({result.event_id for result in recent_track_results if result.event_id})
     events_with_motos = sum(1 for item in event_metrics.values() if item["moto_places"])
     events_with_final_stage = sum(1 for item in event_metrics.values() if item["final_places"])
-    events_with_final = len({run.event_id for run in recent_track_runs if run.round_type == "FINAL"})
+    events_with_final = len({run.event_id for run in timed_recent_track_runs if run.round_type == "FINAL"})
     events_with_moto_qualification_flag = len({
         run.event_id
-        for run in recent_track_runs
+        for run in timed_recent_track_runs
         if run.round_type == "MOTO" and run.qualified_to_next_round is True and run.event_id
     })
     events_with_any_moto_qualification_info = len({
         run.event_id
-        for run in recent_track_runs
+        for run in timed_recent_track_runs
         if run.round_type == "MOTO" and run.qualified_to_next_round is not None and run.event_id
     })
     progressed_events_count = (
@@ -1002,13 +1063,13 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         100
         - ((_safe_stddev(track_place_values) or 0) * 12)
         - ((_safe_stddev(finish_times) or 0) * 8)
-        - (_safe_rate(bad_status_count, len(track_runs)) or 0)
-    ) if recent_track_runs else None
+        - (_safe_rate(bad_status_count, len(timed_recent_track_runs)) or 0)
+    ) if timed_recent_track_runs else None
     risk_score = _clamp_score(
-        ((_safe_rate(bad_status_count, len(recent_track_runs)) or 0) * 0.7)
+        ((_safe_rate(bad_status_count, len(timed_recent_track_runs)) or 0) * 0.7)
         + ((_safe_stddev(track_place_values) or 0) * 10)
         + ((_safe_stddev(finish_times) or 0) * 6)
-    ) if recent_track_runs else None
+    ) if timed_recent_track_runs else None
 
     gate_avg = _safe_mean(hill_times)
     gate_std = _safe_stddev(hill_times)
@@ -1027,7 +1088,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     if has_gate_data and has_finish_data:
         consistency_metric = 0.4 * gate_cv + 0.4 * finish_cv + 0.2 * pos_std
 
-    consistency_score = _clamp_score(100 - consistency_metric * 3) if (consistency_metric is not None and recent_track_runs) else None
+    consistency_score = _clamp_score(100 - consistency_metric * 3) if (consistency_metric is not None and timed_recent_track_runs) else None
 
     consistency_label = None
     if consistency_score is not None:
@@ -1051,6 +1112,17 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         if lane_medians:
             best_hill_lane, best_hill_lane_median = min(lane_medians.items(), key=lambda item: item[1])
 
+    best_result_lane = None
+    best_result_lane_average = None
+    if lane_result_places:
+        lane_place_averages = {
+            lane: round(mean(values), 2)
+            for lane, values in lane_result_places.items()
+            if values
+        }
+        if lane_place_averages:
+            best_result_lane, best_result_lane_average = min(lane_place_averages.items(), key=lambda item: item[1])
+
     ordered_results = sorted(
         [result for result in recent_track_results if result.date],
         key=lambda item: (item.date, item.id),
@@ -1069,7 +1141,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         )
         item["place"] = result.place
 
-    for run in recent_track_runs:
+    for run in timed_recent_track_runs:
         if run.event_id and run.event and run.event.date and run.finish_time is not None:
             item = recent_event_trends.setdefault(
                 run.event_id,
@@ -1098,13 +1170,13 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     timed_trend_rows = [item for item in recent_event_trend_rows if item["median_time"] is not None]
 
     if len(timed_trend_rows) >= 2:
-        previous_event = timed_trend_rows[-2]
+        earliest_event = timed_trend_rows[0]
         latest_event = timed_trend_rows[-1]
         time_delta = None
         time_signal = 0
 
-        if previous_event["median_time"] is not None and latest_event["median_time"] is not None:
-            time_delta = round(previous_event["median_time"] - latest_event["median_time"], 3)
+        if earliest_event["median_time"] is not None and latest_event["median_time"] is not None:
+            time_delta = round(earliest_event["median_time"] - latest_event["median_time"], 3)
             if time_delta > 0.05:
                 time_signal = 1
             elif time_delta < -0.05:
@@ -1127,7 +1199,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
                 detail_parts.append(_("čas beze změny"))
 
         trend_delta = time_delta
-        trend_detail = _("Poslední vs předchozí: ") + " | ".join(detail_parts) if detail_parts else trend_detail
+        trend_detail = _("Poslední vs první: ") + " | ".join(detail_parts) if detail_parts else trend_detail
     else:
         trend_label = _("Málo dat")
 
@@ -1138,7 +1210,7 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     event_hill_times = defaultdict(list)
     event_split_times = defaultdict(list)
     for run in sorted(
-        track_runs,
+        timed_track_runs,
         key=lambda item: (
             item.event.date if item.event and item.event.date else date.min,
             item.event_id or 0,
@@ -1302,9 +1374,10 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     if peer_context["uci_category"]:
         peer_results = peer_context["peer_results"]
         peer_runs = peer_context["peer_runs"]
+        peer_timed_event_ids = {run.event_id for run in peer_runs if run.event_id and run.finish_time is not None}
         peer_places_by_rider = defaultdict(list)
         for result in peer_results:
-            if result.rider_id and result.place is not None:
+            if result.rider_id and result.place is not None and result.event_id in peer_timed_event_ids:
                 peer_places_by_rider[result.rider_id].append(result.place)
 
         peer_finish_by_rider = defaultdict(list)
@@ -1332,12 +1405,12 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "track_has_24": track_has_24,
         "kpi_cutoff": kpi_cutoff,
         "kpi_label": kpi_label,
-        "total_starts_count": len({result.event_id for result in track_results if result.event_id}),
+        "total_starts_count": len(timed_track_event_ids),
         "recent_track_results_count": len(recent_track_results),
-        "recent_track_runs_count": len(recent_track_runs),
+        "recent_track_runs_count": len(timed_recent_track_runs),
         "starts_count": events_count,
-        "runs_count": len(recent_track_runs),
-        "final_runs_count": len([run for run in recent_track_runs if run.round_type in FINAL_ROUND_TYPES]),
+        "runs_count": len(timed_recent_track_runs),
+        "final_runs_count": len([run for run in timed_recent_track_runs if run.round_type in FINAL_ROUND_TYPES]),
         "progressed_events_count": progressed_events_count,
         "progression_rate": _safe_rate(progressed_events_count, events_with_motos),
         "final_rate": _safe_rate(events_with_final, events_count),
@@ -1361,6 +1434,8 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         "hill_rankable_runs_count": hill_rankable_runs,
         "best_hill_lane": best_hill_lane,
         "best_hill_lane_median": best_hill_lane_median,
+        "best_result_lane": best_result_lane,
+        "best_result_lane_average": best_result_lane_average,
         "finish_time_stddev": _safe_stddev(finish_times),
         "conversion_score": _safe_rate(converted_events, len(strong_start_events)),
         "recovery_score": _safe_rate(recovered_events, len(weak_start_events)),
@@ -1505,10 +1580,13 @@ def rider_compare_view(request, pk):
     if selected_track is not None:
         selected_track_results = [result for result in base_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
         selected_track_runs = [run for run in base_runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+        timed_track_event_ids = {run.event_id for run in selected_track_runs if run.finish_time is not None and run.event_id}
+        timed_track_results = [result for result in selected_track_results if result.event_id in timed_track_event_ids]
+        timed_track_runs = [run for run in selected_track_runs if run.finish_time is not None]
         available_wheels = []
-        if any(result.is_20 for result in selected_track_results) or any(run.is_20 is True for run in selected_track_runs):
+        if any(result.is_20 for result in timed_track_results) or any(run.is_20 is True for run in timed_track_runs):
             available_wheels.append({"value": "20", "label": '20"'})
-        if any(not result.is_20 for result in selected_track_results) or any(run.is_20 is False for run in selected_track_runs):
+        if any(not result.is_20 for result in timed_track_results) or any(run.is_20 is False for run in timed_track_runs):
             available_wheels.append({"value": "24", "label": '24"'})
         if selected_wheel is None and len(available_wheels) == 1:
             selected_wheel = available_wheels[0]["value"]

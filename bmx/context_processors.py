@@ -3,6 +3,7 @@ from django.utils import timezone
 
 def navbar_context(request):
     from accounts.models import Account
+    from rider.models import Rider
     from todo.models import CommissionTask
 
     if request.user.is_authenticated:
@@ -10,6 +11,15 @@ def navbar_context(request):
             account = Account.objects.get(id=request.user.id)
             is_task_user = getattr(request.user, "is_commission", False)
             navbar_data = {"user_credit": account.credit}
+
+            if request.user.is_superuser:
+                pending_plate_count = Rider.objects.filter(is_approved=False).count()
+                navbar_data.update(
+                    {
+                        "navbar_plate_pending_count": pending_plate_count,
+                        "navbar_plate_pending": pending_plate_count > 0,
+                    }
+                )
 
             if is_task_user:
                 open_statuses = [

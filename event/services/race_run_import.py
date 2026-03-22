@@ -390,13 +390,22 @@ class RaceRunImportService:
                 continue
 
             for row in table["rows"]:
-                plate = row[1]["text"]
-                full_name = row[3]["text"]
+                if len(row) >= 5:
+                    heat_code = row[0]["text"]
+                    result_cell = row[1]["text"]
+                    plate = row[2]["text"]
+                    full_name = row[4]["text"]
+                else:
+                    plate = row[1]["text"] if len(row) > 1 else ""
+                    full_name = row[3]["text"] if len(row) > 3 else ""
+                    heat_code = headers[5] if len(headers) > 5 else round_type
+                    result_cell = row[5]["text"] if len(row) > 5 else ""
+
                 payload = self._match_entities(entity_index, category, plate, full_name)
                 if not payload:
                     logger.warning("RaceRun import: chybí Rider/Result pro %s / %s / %s", category, plate, full_name)
                     continue
-                heat_code = headers[5] if len(headers) > 5 else round_type
+
                 record = self._ensure_record(
                     records,
                     payload.get("result"),
@@ -407,9 +416,9 @@ class RaceRunImportService:
                     heat_code,
                     plate,
                 )
-                place = row[5]["text"] if len(row) > 5 else ""
-                hill_time, split_1, finish_time = _parse_time_triplet(row[5]["text"] if len(row) > 5 else "")
-                record["place"] = _parse_place_token(place)
+                hill_time, split_1, finish_time = _parse_time_triplet(result_cell)
+                record["place"] = _parse_place_token(result_cell)
+                record["qualified_to_next_round"] = _parse_qualified_marker(result_cell)
                 if hill_time is not None:
                     record["hill_time"] = hill_time
                 if split_1 is not None:
