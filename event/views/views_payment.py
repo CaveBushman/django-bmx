@@ -120,7 +120,11 @@ def confirm_user_order(request):
     if request.POST:
         user = Account.objects.get(id=request.user.id)
         if not pay_orders_from_credit(user=user, orders=orders):
-            return render(request, "event/order_error.html", {})
+            messages.error(
+                request,
+                "Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku.",
+            )
+            return redirect("event:order")
         update_cart(request)
         return redirect("event:checkout")
 
