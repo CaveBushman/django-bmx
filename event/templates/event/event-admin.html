@@ -75,6 +75,16 @@
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
   }
 
+  .event-admin-file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 1rem;
+    flex: 0 0 auto;
+  }
+
   .event-admin-command-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -435,9 +445,14 @@
 
     <!-- REM SUPPORT -->
     <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-6">
-      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-6 text-center">
-        📁 SOUBORY PRO REM
-      </h2>
+      <div class="mb-6 flex items-center justify-center gap-3 text-center">
+        <div class="event-admin-file-icon bg-slate-500/10 text-slate-600 dark:text-slate-200">
+          <i class="fas fa-folder-open text-lg"></i>
+        </div>
+        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          SOUBORY PRO REM
+        </h2>
+      </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Registrovaní jezdci online -->
@@ -445,9 +460,14 @@
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              🏁 Registrovaní jezdci
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
+                <i class="fas fa-flag-checkered text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Registrovaní jezdci
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">
               Aktualizováno:
               <span class="font-medium">{{ event.rem_entries_created }}</span>
@@ -468,9 +488,14 @@
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              🚴‍♂️ Všichni jezdci
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-sky-500/10 text-sky-600 dark:text-sky-200">
+                <i class="fas fa-bicycle text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Všichni jezdci
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">
               Aktualizováno:
               <span class="font-medium">{{ event.rem_riders_created }}</span>
@@ -491,9 +516,14 @@
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              📄 Výsledky závodu
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-rose-500/10 text-rose-600 dark:text-rose-200">
+                <i class="fas fa-file-lines text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Výsledky závodu
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">
               Nahrání souboru s výsledky závodu
             </p>
@@ -540,18 +570,28 @@
 
     <!-- BEM SUPPORT -->
     <div class="event-admin-section max-w-7xl mx-auto mt-8 mb-4 rounded-[2rem] p-6">
-      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-6 text-center">
-        📁 SOUBORY PRO BEM
-      </h2>
+      <div class="mb-6 flex items-center justify-center gap-3 text-center">
+        <div class="event-admin-file-icon bg-slate-500/10 text-slate-600 dark:text-slate-200">
+          <i class="fas fa-folder-open text-lg"></i>
+        </div>
+        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          SOUBORY PRO BEM
+        </h2>
+      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Registrovaní jezdci online -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              🏁 Registrovaní jezdci
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
+                <i class="fas fa-flag-checkered text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Registrovaní jezdci
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">
               Aktualizováno:
               <span class="font-medium">{{ event.bem_entries_created }}</span>
@@ -572,9 +612,14 @@
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              🚴‍♂️ Všichni jezdci
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-sky-500/10 text-sky-600 dark:text-sky-200">
+                <i class="fas fa-bicycle text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Všichni jezdci
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">
               Aktualizováno:
               <span class="font-medium">{{ event.bem_riders_created }}</span>
@@ -595,9 +640,14 @@
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
           <div>
-            <h3 class="font-semibold text-gray-800 text-lg">
-              📄 Výsledky závodu
-            </h3>
+            <div class="flex items-center gap-3">
+              <div class="event-admin-file-icon bg-rose-500/10 text-rose-600 dark:text-rose-200">
+                <i class="fas fa-file-lines text-lg"></i>
+              </div>
+              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
+                Výsledky závodu
+              </h3>
+            </div>
             <p class="text-gray-600 text-sm mb-4">Nahrání souboru s výsledky</p>
             <input
               type="file"
