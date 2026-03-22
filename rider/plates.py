@@ -21,7 +21,7 @@ def resolve_plate_value(plate_text=None, plate=None):
     if text_value:
         return text_value
 
-    if plate in (None, "", 0, "0"):
+    if plate in (None, ""):
         return ""
 
     return normalize_plate_value(plate)

@@ -27,6 +27,8 @@ import logging
 import json
 import datetime
 import os
+import tempfile
+import zipfile
 from collections import Counter
 import requests
 from datetime import date
@@ -83,6 +85,16 @@ COMMISSAR_EXCLUDED_EVENT_TYPES = [
 
 COMMISSAR_PLACEHOLDER_LAST_NAME = "Bude upřesněno"
 
+UCI_EXPORT_TEMPLATE = os.path.join(settings.MEDIA_ROOT, "uci-templates", "uci-results-template.xlsx")
+UCI_EXPORT_CATEGORY_CONFIG = (
+    ("women_elite", "Women Elite", "uci_code_women_elite"),
+    ("men_elite", "Men Elite", "uci_code_men_elite"),
+    ("women_u23", "Women Under 23", "uci_code_women_under_23"),
+    ("men_u23", "Men Under 23", "uci_code_men_under_23"),
+    ("women_junior", "Women Junior", "uci_code_women_junior"),
+    ("men_junior", "Men Junior", "uci_code_men_junior"),
+)
+
 
 def _get_event_year_options():
     return (
@@ -137,6 +149,101 @@ def _delete_uploaded_files_by_prefix(*storage_parts, prefix):
 def _download_generated_file(file_path):
     file_handle = open(file_path, "rb")
     return FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
+
+
+def _sanitize_export_filename(value):
+    safe = "".join(char if char.isalnum() or char in ("-", "_") else "_" for char in str(value or ""))
+    return safe.strip("_") or "export"
+
+
+def _format_uci_rank_suffix(rank):
+    try:
+        rank_int = int(rank)
+    except (TypeError, ValueError):
+        return str(rank or "")
+
+    if 10 <= rank_int % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(rank_int % 10, "th")
+    return f"{rank_int}{suffix}"
+
+
+def _resolve_uci_finish_time(event, result):
+    runs = (
+        RaceRun.objects.filter(event=event, rider_id=result.rider_id, finish_time__isnull=False)
+        .order_by("-updated", "-created", "-id")
+    )
+    final_run = runs.filter(round_type="FINAL").first()
+    if final_run and final_run.finish_time is not None:
+        return final_run.finish_time
+    fallback_run = runs.first()
+    return fallback_run.finish_time if fallback_run else None
+
+
+def _build_uci_export_rows(event, rider_class_name):
+    rows = []
+    results = (
+        Result.objects.filter(event=event, rider__class_20=rider_class_name)
+        .select_related("rider__club")
+        .order_by("place", "last_name", "first_name")
+    )
+
+    subgroup_rank = 0
+    for result in results:
+        rider = result.rider
+        if not rider:
+            continue
+        subgroup_rank += 1
+
+        finish_time = _resolve_uci_finish_time(event, result)
+        rows.append({
+            "rank": subgroup_rank,
+            "bib": display_plate(rider) or "",
+            "uci_id": rider.uci_id,
+            "last_name": result.last_name or rider.last_name or "",
+            "first_name": result.first_name or rider.first_name or "",
+            "country": result.country or "CZE",
+            "team": rider.club.team_name if rider.club else (result.club or ""),
+            "gender": "W" if rider.gender == "Žena" else "M",
+            "phase": "Final",
+            "heat": 1,
+            "result": (
+                f"{_format_uci_rank_suffix(subgroup_rank)}, {finish_time:.3f}"
+                if finish_time is not None
+                else _format_uci_rank_suffix(subgroup_rank)
+            ),
+            "irm": "",
+        })
+
+    return rows
+
+
+def _write_uci_export_workbook(template_path, destination_path, competition_code, event_code, rows):
+    wb = load_workbook(template_path)
+    general_ws = wb["General"]
+    results_ws = wb["Results"]
+
+    general_ws["B4"] = competition_code
+    general_ws["B5"] = event_code
+
+    row_index = 2
+    for row in rows:
+        results_ws.cell(row_index, 1, row["rank"])
+        results_ws.cell(row_index, 2, row["bib"])
+        results_ws.cell(row_index, 3, row["uci_id"])
+        results_ws.cell(row_index, 4, row["last_name"])
+        results_ws.cell(row_index, 5, row["first_name"])
+        results_ws.cell(row_index, 6, row["country"])
+        results_ws.cell(row_index, 7, row["team"])
+        results_ws.cell(row_index, 8, row["gender"])
+        results_ws.cell(row_index, 9, row["phase"])
+        results_ws.cell(row_index, 10, row["heat"])
+        results_ws.cell(row_index, 11, row["result"])
+        results_ws.cell(row_index, 12, row["irm"])
+        row_index += 1
+
+    wb.save(destination_path)
 
 
 # ===========================================================================
@@ -584,7 +691,6 @@ def ec_by_club_xls(request, pk):
     return response
 
 
-@staff_member_required
 def summary_riders_in_event(request, pk):
     """Přehled počtu jezdců v každé třídě na závodě."""
     event = Event.objects.get(id=pk)
@@ -765,11 +871,19 @@ def export_event_results(request, event_id):
     )
 
     try:
+        logger.info(
+            "Odesílám výsledky do API ČSC pro event_id=%s, race_id=%s, payload_items=%s",
+            event.id,
+            event.ccf_id,
+            len(payload),
+        )
         response = requests.post(api_url, json=payload, headers={"Authorization": f"Bearer {token}"})
         response.raise_for_status()
         with open(f"media/api-payloads/payload_event_{event.id}.json", "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
+        logger.info("Výsledky úspěšně odeslány do API ČSC pro event_id=%s", event.id)
     except Exception as e:
+        logger.exception("Chyba při odesílání výsledků do API ČSC pro event_id=%s", event.id)
         return render(request, "error.html", {
             "message": "Nepodařilo se odeslat výsledky na API.", "detail": str(e)
         })
@@ -779,6 +893,92 @@ def export_event_results(request, event_id):
     event.save()
 
     return render(request, "event/results_sent.html", {"event": event, "sent_count": len(payload)})
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def export_uci_results(request, event_id):
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), id=event_id)
+    logger.info("Spouštím UCI export pro event_id=%s", event.id)
+
+    if not event.is_uci_race:
+        logger.warning("UCI export odmítnut: event_id=%s není UCI závod", event.id)
+        messages.error(request, _("Tento závod není označen jako UCI závod."))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    if not os.path.exists(UCI_EXPORT_TEMPLATE):
+        logger.error("UCI export selhal: chybí šablona %s", UCI_EXPORT_TEMPLATE)
+        messages.error(request, _("Chybí UCI XLSX šablona pro export."))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    if not event.uci_event_code.strip():
+        logger.warning("UCI export odmítnut: event_id=%s nemá UCI_EVENT_CODE", event.id)
+        messages.error(request, _("U závodu chybí UCI_EVENT_CODE."))
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    missing_competition_codes = [
+        competition_code_field
+        for _, _, competition_code_field in UCI_EXPORT_CATEGORY_CONFIG
+        if not (getattr(event, competition_code_field, "") or "").strip()
+    ]
+    if missing_competition_codes:
+        logger.warning(
+            "UCI export odmítnut: event_id=%s chybí competition codes %s",
+            event.id,
+            ", ".join(missing_competition_codes),
+        )
+        messages.error(
+            request,
+            _("U závodu chybí některé UCI kódy kategorií: %(fields)s.")
+            % {"fields": ", ".join(missing_competition_codes)},
+        )
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    generated_files = []
+    with tempfile.TemporaryDirectory(prefix="uci-export-") as tmp_dir:
+        for slug, rider_class_name, competition_code_field in UCI_EXPORT_CATEGORY_CONFIG:
+            competition_code = getattr(event, competition_code_field, "") or ""
+            rows = _build_uci_export_rows(event, rider_class_name)
+
+            export_name = (
+                f"uci_results_{event.id}_"
+                f"{_sanitize_export_filename(slug)}_"
+                f"{_sanitize_export_filename(competition_code)}.xlsx"
+            )
+            destination_path = os.path.join(tmp_dir, export_name)
+            _write_uci_export_workbook(
+                template_path=UCI_EXPORT_TEMPLATE,
+                destination_path=destination_path,
+                competition_code=competition_code,
+                event_code=event.uci_event_code,
+                rows=rows,
+            )
+            logger.info(
+                "UCI export kategorie vygenerován pro event_id=%s, slug=%s, rows=%s",
+                event.id,
+                slug,
+                len(rows),
+            )
+            generated_files.append(destination_path)
+
+        zip_name = (
+            f"uci_results_event_{event.id}_{_sanitize_export_filename(event.name)}.zip"
+        )
+        zip_path = os.path.join(tmp_dir, zip_name)
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path in generated_files:
+                zip_file.write(file_path, arcname=os.path.basename(file_path))
+
+        with open(zip_path, "rb") as zip_handle:
+            logger.info(
+                "UCI export ZIP připraven pro event_id=%s, files=%s, zip_name=%s",
+                event.id,
+                len(generated_files),
+                zip_name,
+            )
+            response = HttpResponse(zip_handle.read(), content_type="application/zip")
+            response["Content-Disposition"] = f'attachment; filename="{zip_name}"'
+            return response
 
 
 @login_required(login_url="/login/")

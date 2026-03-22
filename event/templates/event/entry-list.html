@@ -4,10 +4,7 @@
 {% block extra_head %}
 <style>
   .entry-list-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28rem),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 26rem),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%);
+    background: #f8fafc;
   }
 
   .entry-list-panel {
@@ -17,22 +14,44 @@
   }
 
   .entry-list-hero {
+    position: relative;
+    overflow: hidden;
     background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.92));
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .entry-list-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
   .entry-list-hero-badge {
-    position: relative;
-    min-width: min(100%, 21rem);
-    border: 1px solid rgba(99, 102, 241, 0.18);
-    background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 7rem),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 255, 0.95));
-    color: #0f172a !important;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .entry-list-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .entry-list-hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .entry-list-hero-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   .entry-list-input {
@@ -46,10 +65,7 @@
 
   html.dark body,
   html.dark .entry-list-surface {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 24rem),
-      radial-gradient(circle at top right, rgba(79, 70, 229, 0.22), transparent 22rem),
-      linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%) !important;
+    background: #0f172a !important;
   }
 
   html.dark .entry-list-panel {
@@ -60,19 +76,15 @@
 
   html.dark .entry-list-hero {
     background:
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.2), transparent 18rem),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)) !important;
-    border-color: rgba(51, 65, 85, 0.95) !important;
-    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42) !important;
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%) !important;
   }
 
   html.dark .entry-list-hero-badge {
-    border-color: rgba(99, 102, 241, 0.34) !important;
-    background:
-      radial-gradient(circle at top right, rgba(129, 140, 248, 0.24), transparent 8rem),
-      linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(49, 46, 129, 0.74)) !important;
-    color: #f8fafc !important;
-    box-shadow: 0 22px 44px rgba(2, 6, 23, 0.42) !important;
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: rgba(15, 23, 42, 0.72) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
   }
 
   html.dark .entry-list-input {
@@ -118,34 +130,32 @@
 {% block content %}
 
 <section class="entry-list-surface min-h-screen pb-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-    <header class="entry-list-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
-      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
-        Přihlášení jezdci
-      </p>
-      <div class="mt-4 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div class="max-w-4xl flex-1">
-          <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+  <header class="entry-list-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Přihlášení jezdci
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
             {{ event.name }}
           </h1>
-          <p class="mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
             Veřejný přehled uhrazených registrací včetně zahraničních jezdců a jejich kategorií.
           </p>
         </div>
-        <div class="entry-list-hero-badge rounded-[1.75rem] px-6 py-5 backdrop-blur lg:ml-auto lg:self-center">
-          <div class="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-300">
-            Aktuální stav
-          </div>
-          <div class="mt-2 text-4xl font-black leading-none text-slate-900 dark:text-white">
-            {{ entries|length }}
-          </div>
-          <div class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-200">
-            přihlášených jezdců
+        <div class="entry-list-hero-stats">
+          <div class="entry-list-hero-badge rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální stav</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ entries|length }}</p>
+            <p class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">přihlášených jezdců</p>
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
     <div class="pt-8">
     <div class="entry-list-panel rounded-[2rem] p-6 sm:p-8">
       <div class="text-lg font-medium text-slate-900 dark:text-slate-100">
@@ -179,19 +189,20 @@
       </div>
 
       <div class="overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
+        <div class="overflow-x-auto">
+        <table class="min-w-[760px] divide-y divide-gray-200 dark:divide-slate-700 sm:min-w-full" id="myTable">
           <thead class="bg-slate-50 dark:bg-slate-900">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+              <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                 Jméno
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+              <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                 Klub, UCI ID
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+              <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                 Kategorie
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+              <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                 Startovní číslo
               </th>
             </tr>
@@ -199,7 +210,7 @@
           <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
             {% for entry in entries %}
             <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
-              <td class="px-6 py-3 whitespace-nowrap">
+              <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                 <div class="flex items-center">
                   <div class="relative">
                     {% if entry.photo_url %}
@@ -225,22 +236,23 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-3 whitespace-nowrap">
+              <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                 <div class="entry-list-cell-primary text-sm text-slate-900 dark:text-slate-100">{{ entry.club|upper }}</div>
                 <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">{{ entry.uci_id }}</div>
               </td>
-              <td class="px-6 py-3 whitespace-nowrap">
+              <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                 <div class="entry-list-cell-secondary text-sm font-medium text-slate-600 dark:text-slate-300">
                   {{ entry.category }}
                 </div>
               </td>
-              <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200">
+              <td class="entry-list-cell-secondary px-4 py-3 text-slate-700 dark:text-slate-200 sm:px-6">
                 {{ entry.plate }}
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -249,23 +261,24 @@
         <div class="text-3xl font-bold text-slate-900 dark:text-slate-100">Seznam odhlášených jezdců</div>
 
         <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+          <div class="overflow-x-auto">
+          <table class="min-w-[880px] divide-y divide-gray-200 dark:divide-slate-700 sm:min-w-full">
             <thead class="bg-slate-50 dark:bg-slate-900">
               <tr>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                   Jméno
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                   Klub, UCI ID
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                   Kategorie
                 </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                   Startovní číslo
                 </th>
                 {% if user.is_superuser %}
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300 sm:px-6">
                   Info o platbě
                 </th>
                 {% endif %}
@@ -274,7 +287,7 @@
             <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
               {% for entry in checkout %}
               <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
-                <td class="px-6 py-3 whitespace-nowrap">
+                <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                   <div class="flex items-center">
                     <div class="relative">
                       {% if entry.photo_url %}
@@ -300,25 +313,26 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-3 whitespace-nowrap">
+                <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                   <div class="entry-list-cell-primary text-sm text-slate-900 dark:text-slate-100">{{ entry.club|upper }}</div>
                   <div class="entry-list-cell-secondary text-sm text-slate-500 dark:text-slate-300">{{ entry.uci_id }}</div>
                 </td>
-                <td class="px-6 py-3 whitespace-nowrap">
+                <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                   <div class="entry-list-cell-secondary text-sm font-medium text-slate-600 dark:text-slate-300">
                     {{ entry.category }}
                   </div>
                 </td>
-                <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200">
+                <td class="entry-list-cell-secondary px-4 py-3 text-slate-700 dark:text-slate-200 sm:px-6">
                   {{ entry.plate }}
                 </td>
                 {% if user.is_superuser %}
-                <td class="entry-list-cell-secondary px-6 py-3 text-slate-700 dark:text-slate-200"></td>
+                <td class="entry-list-cell-secondary px-4 py-3 text-slate-700 dark:text-slate-200 sm:px-6"></td>
                 {% endif %}
               </tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     {% endif %}

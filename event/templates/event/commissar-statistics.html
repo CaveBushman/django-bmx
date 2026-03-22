@@ -162,7 +162,7 @@
               id="year"
               name="year"
               style="color: inherit;"
-              class="commissar-year-select mt-1 block rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              class="commissar-year-select mt-1 block min-w-[5.75rem] rounded-xl border border-slate-300 bg-white pl-4 pr-10 py-2.5 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             >
               {% for year in year_options %}
               <option value="{{ year.year }}" {% if year.year == selected_year %}selected{% endif %}>{{ year.year }}</option>

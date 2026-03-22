@@ -53,4 +53,5 @@ urlpatterns = [
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),
     path('import-stats/<int:pk>', views.import_event_stats, name='import-stats'),
     path("export-results/<int:event_id>/", views.export_event_results, name="export_event_results"),
+    path("export-uci-results/<int:event_id>/", views.export_uci_results, name="export_uci_results"),
 ]

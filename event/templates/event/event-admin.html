@@ -1,6 +1,6 @@
 {% extends 'base.html' %} 
 {% block title %}Administrace závodu{% endblock title%} 
-{% load static %} 
+{% load static i18n %} 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
@@ -381,6 +381,28 @@
         </a>
       </div>
     {% endif %}
+
+      {% if event.is_uci_race and results_exist %}
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
+              <i class="fas fa-file-excel text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "UCI Excel export" %}</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {% trans "Vygeneruje ZIP se samostatným XLSX souborem pro každou UCI kategorii podle finálních výsledků." %}
+          </p>
+        </div>
+        <a href="{% url 'event:export_uci_results' event.id %}" target="_blank"
+          rel="noopener noreferrer"
+          class="event-admin-action-link mt-5 inline-flex w-full items-center justify-center py-3 px-5 text-center rounded-[1rem] sm:w-auto"
+          aria-label="{% trans 'Exportuj UCI výsledky' %}">
+          {% trans "Exportovat UCI" %}
+        </a>
+      </div>
+      {% endif %}
 
     </div>
   </div>

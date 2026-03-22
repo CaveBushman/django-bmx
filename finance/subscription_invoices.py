@@ -24,6 +24,7 @@ from finance.invoices import (
     SUPPLIER_ICO,
     SUPPLIER_NAME,
     SUPPLIER_STREET,
+    draw_pdf_footer,
     _money,
     _register_fonts,
 )
@@ -151,6 +152,7 @@ class SubscriptionInvoiceService:
     def _generate_pdf(self, invoice):
         buffer = BytesIO()
         pdf = NumberedCanvas(buffer, pagesize=A4)
+        generated_at = timezone.localtime().strftime("%d.%m.%Y %H:%M")
         line = self._line_for_invoice(invoice)
         current_y = self._draw_invoice_header(pdf, invoice)
         table_top = current_y - 8 * mm
@@ -173,6 +175,11 @@ class SubscriptionInvoiceService:
         pdf.drawRightString(187 * mm, summary_y - 12 * mm, f"{invoice.total_price:.2f} Kč")
         pdf.setFont("DejaVuSans", 9)
         pdf.drawString(20 * mm, summary_y - 24 * mm, "Faktura byla vytvořena automaticky po stržení kreditu za předplatné.")
+        draw_pdf_footer(
+            pdf,
+            left_text=f"Předplatné | {invoice.get_invoice_type_display()}",
+            right_text=f"Generováno {generated_at}",
+        )
         pdf.save()
         buffer.seek(0)
         return buffer.getvalue()

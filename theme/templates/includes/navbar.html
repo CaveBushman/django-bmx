@@ -61,11 +61,19 @@
   html.dark .navbar-pill:hover {
     background: rgba(255, 255, 255, 0.12);
   }
+
+  .navbar-desktop-links {
+    scrollbar-width: none;
+  }
+
+  .navbar-desktop-links::-webkit-scrollbar {
+    display: none;
+  }
 </style>
 <nav class="bg-indigo-800 fixed top-0 left-0 right-0 z-20" id="navbar">
   <div class="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">
-      <div class="hidden md:flex items-baseline space-x-4">
+      <div class="navbar-desktop-links hidden min-w-0 flex-1 items-baseline gap-1 overflow-x-auto pr-4 md:flex lg:gap-2">
             {% if '/' == request.path %}
             <a href="{% url 'news:homepage' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
               aria-current="page">{% trans "HOME" %}</a>
@@ -130,7 +138,7 @@
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
             {% endif %}
       </div>
-      <div class="hidden md:flex items-center ml-auto">
+      <div class="ml-auto hidden shrink-0 items-center md:flex">
         <div class="flex items-center">
 
             {% if request.user.is_superuser and request.session.plate %}
@@ -396,7 +404,17 @@
             </div>
         </div>
       </div>
-        <div class="-mr-2 flex md:hidden">
+        <div class="-mr-2 flex items-center gap-2 md:hidden">
+          <button id="theme-toggle-mobile" type="button" onclick="toggleTheme()"
+            class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+            aria-label="{% trans 'Přepnout světlý/tmavý režim' %}">
+            <svg class="h-5 w-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 24" aria-hidden="true">
+              <path d="M17.8 13.75a1 1 0 0 0-.859-.5A7.488 7.488 0 0 1 10.52 2a1 1 0 0 0 0-.969A1.035 1.035 0 0 0 9.687.5h-.113a9.5 9.5 0 1 0 8.222 14.247 1 1 0 0 0 .004-.997Z" />
+            </svg>
+            <svg class="hidden h-5 w-5 dark:block" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-11a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1Zm0 12a1 1 0 0 0-1 1v2a1 1 0 1 0 2 0v-2a1 1 0 0 0-1-1ZM4.343 5.757a1 1 0 0 0 1.414-1.414L4.343 2.929a1 1 0 0 0-1.414 1.414l1.414 1.414Zm11.314 8.486a1 1 0 0 0-1.414 1.414l1.414 1.414a1 1 0 0 0 1.414-1.414l-1.414-1.414ZM4 10a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1Zm15-1h-2a1 1 0 1 0 0 2h2a1 1 0 0 0 0-2ZM4.343 14.243l-1.414 1.414a1 1 0 1 0 1.414 1.414l1.414-1.414a1 1 0 0 0-1.414-1.414ZM14.95 6.05a1 1 0 0 0 .707-.293l1.414-1.414a1 1 0 1 0-1.414-1.414l-1.414 1.414a1 1 0 0 0 .707 1.707Z" />
+            </svg>
+          </button>
           <button id="show-mobile-nav-btn" type="button"
             class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
             aria-controls="mobile-menu" aria-expanded="false">

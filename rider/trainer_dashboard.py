@@ -5,10 +5,13 @@ from statistics import mean, median
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 from club.models import Club
 from event.models import RaceRun, Result
@@ -24,10 +27,20 @@ from rider.subscriptions import (
 )
 
 
+VALID_EXPORT_FORMATS = {"csv", "xlsx"}
+
+
 def _format_export_number(value, digits=2):
     if value is None:
         return ""
     return f"{value:.{digits}f}"
+
+
+def normalize_export_format_or_404(export_format):
+    normalized = (export_format or "").strip().lower()
+    if normalized not in VALID_EXPORT_FORMATS:
+        raise Http404("Unsupported export format.")
+    return normalized
 
 
 def trainer_can_use_extended_exports(user, club, *, at_time=None):
@@ -122,6 +135,7 @@ def build_club_kpi_export_rows(club):
 def export_rows_as_csv(filename, headers, rows):
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response.write("\ufeff")
     writer = csv.writer(response, delimiter=";")
     writer.writerow([label for _, label in headers])
     for row in rows:
@@ -140,6 +154,23 @@ def export_rows_as_xlsx(filename, sheet_name, headers, rows):
     worksheet.append([label for _, label in headers])
     for row in rows:
         worksheet.append([row.get(key, "") for key, _ in headers])
+
+    header_fill = PatternFill(fill_type="solid", fgColor="E0E7FF")
+    header_font = Font(bold=True)
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    for cell in worksheet[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+
+    worksheet.freeze_panes = "A2"
+    worksheet.auto_filter.ref = worksheet.dimensions
+
+    for column_cells in worksheet.columns:
+        values = [cell.value for cell in column_cells if cell.value is not None]
+        max_length = max((len(str(value)) for value in values), default=0)
+        worksheet.column_dimensions[get_column_letter(column_cells[0].column)].width = min(max(max_length + 2, 12), 40)
+
     workbook.save(response)
     return response
 
