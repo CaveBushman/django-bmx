@@ -1,7 +1,7 @@
 """
 event/views/views_pdf.py — generování PDF dokumentů
 
-Obsah: protokol čipů (půjčovné), podklad pro fakturaci, faktura, přehled neplatných licencí.
+Obsah: protokol čipů (půjčovné), podklad pro fakturaci, ruční přihláška, faktura, přehled neplatných licencí.
 """
 
 import logging
@@ -54,7 +54,7 @@ def _draw_logo_and_title(p, width, height, margin, title_text, subtitle_text):
 
 
 def _draw_table_page(p, data, header, col_widths, margin, width, height, total_pages,
-                     start_row, current_page, rows_per_page, top_offset=60):
+                     start_row, current_page, rows_per_page, top_offset=60, draw_footer=True):
     """Vykreslí jednu stránku tabulky s paginací (rekurzivní pro víc stránek)."""
     page_data = data[start_row:start_row + rows_per_page]
     if start_row > 0:
@@ -74,17 +74,18 @@ def _draw_table_page(p, data, header, col_widths, margin, width, height, total_p
     table_width, table_height = table.wrap(0, 0)
     table.drawOn(p, margin, height - margin - top_offset - table_height)
 
-    # Číslo stránky vpravo dole
-    p.setFont("DejaVuSans", 10)
-    p.drawRightString(width - margin - 10, margin + 10, f"Stránka {current_page} z {total_pages}")
-    # Datum tisku vlevo dole
-    current_date = datetime.datetime.now().strftime("%d.%m.%Y")
-    p.drawString(margin, margin + 10, f"VYTIŠTĚNO DNE: {current_date}")
+    if draw_footer:
+        # Číslo stránky vpravo dole
+        p.setFont("DejaVuSans", 10)
+        p.drawRightString(width - margin - 10, margin + 10, f"Stránka {current_page} z {total_pages}")
+        # Datum tisku vlevo dole
+        current_date = datetime.datetime.now().strftime("%d.%m.%Y")
+        p.drawString(margin, margin + 10, f"VYTIŠTĚNO DNE: {current_date}")
 
     if start_row + rows_per_page < len(data):
         p.showPage()
         _draw_table_page(p, data, header, col_widths, margin, width, height, total_pages,
-                         start_row + rows_per_page, current_page + 1, rows_per_page, top_offset)
+                         start_row + rows_per_page, current_page + 1, rows_per_page, top_offset, draw_footer)
 
 
 def generate_pdf(request, pk):
@@ -181,6 +182,79 @@ def generate_invoice_preparation_pdf(request, pk):
                      total_pages, 0, 1, rows_per_page)
 
     p.showPage()
+    p.save()
+    return response
+
+
+@login_required(login_url="/login/")
+@staff_member_required
+def generate_manual_entry_form_pdf(request, pk):
+    """Prázdný formulář pro ruční přihlášku jezdců na místě.
+
+    Formát: A4 na šířku, jedna stránka.
+    """
+    try:
+        event = Event.objects.get(pk=pk)
+    except Event.DoesNotExist:
+        return HttpResponse("Event not found", status=404)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="manual-entry-form.pdf"'
+
+    p = canvas.Canvas(response, pagesize=landscape(A4))
+    width, height = landscape(A4)
+    margin = 2 * cm
+    content_width = width - 2 * margin
+
+    _register_fonts()
+    event_date = event.date.strftime("%d.%m.%Y") if event.date else ""
+    _draw_logo_and_title(
+        p,
+        width,
+        height,
+        margin,
+        f"{event.name.upper()} | {event_date}",
+        "RUČNÍ PŘIHLÁŠKA",
+    )
+
+    p.setFont("DejaVuSans", 10)
+    p.setFillColor(colors.HexColor("#475569"))
+    p.drawString(
+        margin,
+        height - margin - 52,
+        "Vyplň ručně: startovní číslo, jméno a příjmení, UCI ID, kategorii a potvrzení o úhradě startovného.",
+    )
+
+    header = ["START. Č.", "JMÉNO A PŘÍJMENÍ", "UCI ID", "KATEGORIE", "ČIP", "UHRAZENO"]
+    data = [header] + [["", "", "", "", "", "☐"] for _ in range(11)]
+
+    col_widths = [
+        content_width * 0.11,
+        content_width * 0.31,
+        content_width * 0.16,
+        content_width * 0.18,
+        content_width * 0.10,
+        content_width * 0.14,
+    ]
+    rows_per_page = len(data)
+    total_pages = 1
+
+    _draw_table_page(
+        p,
+        data,
+        header,
+        col_widths,
+        margin,
+        width,
+        height,
+        total_pages,
+        0,
+        1,
+        rows_per_page,
+        top_offset=78,
+        draw_footer=False,
+    )
+
     p.save()
     return response
 

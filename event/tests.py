@@ -499,6 +499,30 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(rows[0].club, "HUN")
         self.assertEqual(rows[0].category, "Elite 17+")
 
+    def test_build_public_entry_rows_returns_both_categories_for_single_entry(self):
+        foreign_entry = EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_multi",
+            first_name="David",
+            last_name="Průša",
+            uci_id="10047037910",
+            gender="Muž",
+            nationality="CZE",
+            plate="0",
+            is_20=True,
+            is_24=True,
+            class_20="Master 30+",
+            class_24="Cruiser",
+            fee_20=400,
+            fee_24=400,
+            payment_complete=True,
+        )
+
+        rows = build_public_entry_rows([foreign_entry], is_foreign=True)
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({row.category for row in rows}, {"Master 30+", "Cruiser"})
+
     def test_sync_paid_foreign_riders_creates_missing_foreign_rider(self):
         EntryForeign.objects.create(
             event=self.event,

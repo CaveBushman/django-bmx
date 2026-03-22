@@ -64,6 +64,8 @@ from event.views.views_admin import (
     find_payment_view,
     ec_by_club_xls,
     summary_riders_in_event,
+    unpaid_moto_riders_report,
+    unpaid_moto_riders_report_pdf,
     export_event_results,
     export_uci_results,
     send_invoices,
@@ -73,6 +75,7 @@ from event.views.views_admin import (
 
 from event.views.views_pdf import (
     generate_pdf,
+    generate_manual_entry_form_pdf,
     generate_invoice_preparation_pdf,
     invoice_view,
     invalid_licences_pdf,

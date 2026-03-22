@@ -501,38 +501,40 @@ def _update_foreign_rider_from_entry(foreign_rider, paid_entry):
         setattr(foreign_rider, field_name, field_value)
 
 
-def resolve_public_entry_category(entry):
+def resolve_public_entry_categories(entry):
+    categories = []
     if getattr(entry, "is_beginner", False) and getattr(entry, "class_beginner", ""):
-        return entry.class_beginner
+        categories.append(entry.class_beginner)
     if getattr(entry, "is_20", False) and getattr(entry, "class_20", ""):
-        return entry.class_20
+        categories.append(entry.class_20)
     if getattr(entry, "is_24", False) and getattr(entry, "class_24", ""):
-        return entry.class_24
-    return ""
+        categories.append(entry.class_24)
+    return categories
 
 
 def build_public_entry_rows(entries, is_foreign=False):
     rows = []
     for entry in entries:
-        category = resolve_public_entry_category(entry)
-        if not category:
+        categories = resolve_public_entry_categories(entry)
+        if not categories:
             continue
 
         if is_foreign:
-            rows.append(
-                SimpleNamespace(
-                    is_foreign=True,
-                    detail_url="",
-                    photo_url="",
-                    valid_licence=True,
-                    last_name=(entry.last_name or "").upper(),
-                    first_name=entry.first_name or "",
-                    club=(entry.club or entry.nationality or "Foreign rider").upper(),
-                    uci_id=entry.uci_id or "",
-                    category=category,
-                    plate=display_plate(getattr(entry, "plate", ""), fallback="-"),
+            for category in categories:
+                rows.append(
+                    SimpleNamespace(
+                        is_foreign=True,
+                        detail_url="",
+                        photo_url="",
+                        valid_licence=True,
+                        last_name=(entry.last_name or "").upper(),
+                        first_name=entry.first_name or "",
+                        club=(entry.club or entry.nationality or "Foreign rider").upper(),
+                        uci_id=entry.uci_id or "",
+                        category=category,
+                        plate=display_plate(getattr(entry, "plate", ""), fallback="-"),
+                    )
                 )
-            )
             continue
 
         rider = entry.rider
@@ -543,28 +545,29 @@ def build_public_entry_rows(entries, is_foreign=False):
             except Exception:
                 photo_url = ""
 
-        rows.append(
-            SimpleNamespace(
-                is_foreign=False,
-                detail_url=(
-                    reverse("rider:detail", args=[rider.uci_id])
-                    if rider and getattr(rider, "uci_id", "")
-                    else ""
-                ),
-                photo_url=photo_url,
-                valid_licence=bool(getattr(rider, "valid_licence", False)),
-                last_name=(getattr(rider, "last_name", "") or "").upper(),
-                first_name=getattr(rider, "first_name", "") or "",
-                club=(str(getattr(rider, "club", "")) or "").upper(),
-                uci_id=getattr(rider, "uci_id", "") or "",
-                category=category,
-                plate=display_plate(
-                    getattr(rider, "plate_text", "") if rider else "",
-                    getattr(rider, "plate", "") if rider else "",
-                    fallback="-",
-                ),
+        for category in categories:
+            rows.append(
+                SimpleNamespace(
+                    is_foreign=False,
+                    detail_url=(
+                        reverse("rider:detail", args=[rider.uci_id])
+                        if rider and getattr(rider, "uci_id", "")
+                        else ""
+                    ),
+                    photo_url=photo_url,
+                    valid_licence=bool(getattr(rider, "valid_licence", False)),
+                    last_name=(getattr(rider, "last_name", "") or "").upper(),
+                    first_name=getattr(rider, "first_name", "") or "",
+                    club=(str(getattr(rider, "club", "")) or "").upper(),
+                    uci_id=getattr(rider, "uci_id", "") or "",
+                    category=category,
+                    plate=display_plate(
+                        getattr(rider, "plate_text", "") if rider else "",
+                        getattr(rider, "plate", "") if rider else "",
+                        fallback="-",
+                    ),
+                )
             )
-        )
 
     return rows
 
@@ -719,7 +722,15 @@ def annotate_riders_for_event(event, riders, beginners_enabled):
     registered = Entry.objects.filter(event=event, payment_complete=True).only(
         "rider_id", "is_beginner", "is_20", "is_24"
     )
-    registered_map = {entry.rider_id: entry for entry in registered}
+    registered_map = {}
+    for entry in registered:
+        rider_flags = registered_map.setdefault(
+            entry.rider_id,
+            {"is_beginner": False, "is_20": False, "is_24": False},
+        )
+        rider_flags["is_beginner"] = rider_flags["is_beginner"] or bool(entry.is_beginner)
+        rider_flags["is_20"] = rider_flags["is_20"] or bool(entry.is_20)
+        rider_flags["is_24"] = rider_flags["is_24"] or bool(entry.is_24)
 
     for rider in riders:
         rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=beginners_enabled)
@@ -728,10 +739,10 @@ def annotate_riders_for_event(event, riders, beginners_enabled):
         rider.class_20 = rider_data["class_20"]
         rider.class_24 = rider_data["class_24"]
 
-        entry = registered_map.get(rider.pk)
-        rider.is_registered_beginner = bool(entry and entry.is_beginner)
-        rider.is_registered_20 = bool(entry and entry.is_20)
-        rider.is_registered_24 = bool(entry and entry.is_24)
+        entry_flags = registered_map.get(rider.pk, {})
+        rider.is_registered_beginner = bool(entry_flags.get("is_beginner"))
+        rider.is_registered_20 = bool(entry_flags.get("is_20"))
+        rider.is_registered_24 = bool(entry_flags.get("is_24"))
 
 
 def load_checkout_session_payload(request):
