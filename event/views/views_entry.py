@@ -7,6 +7,7 @@ Obsah: výběr jezdců, potvrzení košíku, Stripe checkout flow pro přihláš
 
 import json
 import logging
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.contrib import messages
@@ -333,23 +334,33 @@ def invoice_edit_view(request, pk, club_id):
     if request.method == "POST":
         descriptions = request.POST.getlist("description")
         amounts = request.POST.getlist("amount")
-        expected_count = len(preview["lines"])
-        provided_descriptions = [line.strip() for line in descriptions if line.strip()]
-        provided_amounts = [line.strip() for line in amounts if line.strip()]
-        if expected_count != len(provided_descriptions) or expected_count != len(provided_amounts):
-            messages.error(
-                request,
-                f"Počet řádků musí zůstat {expected_count}. Každý řádek odpovídá jedné položce faktury.",
-            )
+        cleaned_rows = []
+        for description, amount in zip(descriptions, amounts):
+            normalized_description = description.strip()
+            normalized_amount = amount.strip().replace(",", ".")
+            if not normalized_description and not normalized_amount:
+                continue
+            if not normalized_description or not normalized_amount:
+                messages.error(request, "Každá položka faktury musí mít vyplněný název i částku.")
+                break
+            try:
+                Decimal(normalized_amount)
+            except (InvalidOperation, ValueError):
+                messages.error(request, f'Částka "{amount}" není ve správném formátu.')
+                break
+            cleaned_rows.append((normalized_description, normalized_amount))
         else:
-            save_invoice_override(
-                event,
-                preview["club"],
-                "\n".join(provided_descriptions),
-                "\n".join(provided_amounts),
-            )
-            messages.success(request, f"Položky faktury pro klub {preview['club'].team_name} byly upraveny a PDF/XML byly přegenerovány.")
-            return redirect("event:fees-on-event", pk=pk)
+            if not cleaned_rows:
+                messages.error(request, "Faktura musí obsahovat alespoň jednu položku.")
+            else:
+                save_invoice_override(
+                    event,
+                    preview["club"],
+                    "\n".join(description for description, _ in cleaned_rows),
+                    "\n".join(amount for _, amount in cleaned_rows),
+                )
+                messages.success(request, f"Položky faktury pro klub {preview['club'].team_name} byly upraveny a PDF/XML byly přegenerovány.")
+                return redirect("event:fees-on-event", pk=pk)
 
     return render(
         request,

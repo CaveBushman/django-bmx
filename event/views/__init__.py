@@ -65,6 +65,7 @@ from event.views.views_admin import (
     ec_by_club_xls,
     summary_riders_in_event,
     export_event_results,
+    export_uci_results,
     send_invoices,
     price_money_pdf,
     import_event_stats,

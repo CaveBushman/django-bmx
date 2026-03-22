@@ -45,6 +45,15 @@
     border: 1px solid #cbd5e1;
   }
 
+  .invoice-edit-danger {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+    padding: 0.7rem 0.95rem;
+    border-radius: 0.9rem;
+    font-weight: 700;
+  }
+
   html.dark .invoice-edit-textarea {
     border-color: #334155;
     background: #020617;
@@ -61,6 +70,12 @@
     background: #0f172a;
     color: #e2e8f0;
     border-color: #334155;
+  }
+
+  html.dark .invoice-edit-danger {
+    background: rgba(190, 24, 93, 0.12);
+    color: #fda4af;
+    border-color: rgba(244, 114, 182, 0.25);
   }
 </style>
 {% endblock %}
@@ -82,10 +97,7 @@
       <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Úprava faktury</p>
       <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ preview.club.team_name }}</h1>
       <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
-        Závod {{ event.name }}. Jeden řádek odpovídá jedné položce faktury. Po uložení se přegeneruje PDF i XML.
-      </p>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        Očekávaný počet řádků: {{ preview.lines|length }}
+        Závod {{ event.name }}. Po uložení se přegeneruje PDF i XML. Položky můžeš přidávat i odebírat.
       </p>
 
       <form method="post">
@@ -96,11 +108,12 @@
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Položka</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Částka</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Akce</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
+            <tbody id="invoice-edit-rows" class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
               {% for line in preview.lines %}
-              <tr>
+              <tr class="invoice-edit-row">
                 <td class="px-4 py-3 align-top">
                   <input
                     type="text"
@@ -117,12 +130,16 @@
                     class="invoice-edit-textarea"
                   >
                 </td>
+                <td class="px-4 py-3 align-top w-[5rem]">
+                  <button type="button" class="invoice-edit-danger js-remove-invoice-row">Odebrat</button>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
         <div class="invoice-edit-actions">
+          <button type="button" id="invoice-add-row" class="invoice-edit-secondary">Přidat položku</button>
           <button type="submit" class="invoice-edit-primary">Uložit a přegenerovat</button>
           <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-edit-secondary">Zpět na přehled</a>
         </div>
@@ -130,4 +147,47 @@
     </section>
   </div>
 </section>
+<template id="invoice-edit-row-template">
+  <tr class="invoice-edit-row">
+    <td class="px-4 py-3 align-top">
+      <input type="text" name="description" value="" class="invoice-edit-textarea">
+    </td>
+    <td class="px-4 py-3 align-top w-[12rem]">
+      <input type="text" name="amount" value="" class="invoice-edit-textarea" placeholder="0.00">
+    </td>
+    <td class="px-4 py-3 align-top w-[5rem]">
+      <button type="button" class="invoice-edit-danger js-remove-invoice-row">Odebrat</button>
+    </td>
+  </tr>
+</template>
+<script>
+  (function () {
+    const rowsContainer = document.getElementById("invoice-edit-rows");
+    const addButton = document.getElementById("invoice-add-row");
+    const template = document.getElementById("invoice-edit-row-template");
+
+    if (!rowsContainer || !addButton || !template) {
+      return;
+    }
+
+    function bindRemoveButtons() {
+      rowsContainer.querySelectorAll(".js-remove-invoice-row").forEach((button) => {
+        button.onclick = function () {
+          const rows = rowsContainer.querySelectorAll(".invoice-edit-row");
+          if (rows.length <= 1) {
+            return;
+          }
+          this.closest(".invoice-edit-row").remove();
+        };
+      });
+    }
+
+    addButton.addEventListener("click", function () {
+      rowsContainer.appendChild(template.content.cloneNode(true));
+      bindRemoveButtons();
+    });
+
+    bindRemoveButtons();
+  })();
+</script>
 {% endblock content %}

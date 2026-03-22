@@ -8,11 +8,10 @@ from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import gettext as _, gettext_lazy as _gl, ngettext
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
@@ -30,14 +29,10 @@ from .rider import (
 )
 from rider.rider import set_all_riders_classes
 from club.models import Club
-import json
 from event.models import Event, RaceRun, Result
 from ranking.ranking import RankPositionCount
 import datetime
 from datetime import date
-import requests
-import requests.packages
-from decouple import config
 from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
@@ -65,14 +60,13 @@ from rider.trainer_dashboard import (
     export_rows_as_csv,
     export_rows_as_xlsx,
     get_exportable_trainer_club_or_403,
+    normalize_export_format_or_404,
     handle_trainer_dashboard_post,
 )
-
-# Global variables
-now = date.today().year
-
-
-# Create your views here.
+from rider.premium_stats_pdf import (
+    build_rider_premium_stats_pdf,
+    build_rider_premium_stats_pdf_filename,
+)
 
 def can_manage_premium_stats(user):
     return user.is_authenticated and (user.is_admin or user.is_superuser or user.is_staff)
@@ -204,6 +198,14 @@ def _get_premium_access_context(user, rider, at_time=None):
     }
 
 
+def _can_export_rider_premium_stats_pdf(user, rider):
+    if can_manage_premium_stats(user):
+        return True
+    if rider.club_id is None:
+        return False
+    return has_active_trainer_club_extended_access(user, rider.club)
+
+
 def _resolve_kpi_period(period_value):
     if period_value == "all":
         return {
@@ -228,6 +230,80 @@ def _resolve_kpi_period(period_value):
     }
 
 
+def _build_rider_premium_stats_context(request, rider, premium_access_context):
+    runs = list(
+        RaceRun.objects.filter(rider=rider, is_beginner=False)
+        .select_related("event", "event__organizer", "result")
+        .order_by("-event__date", "round_type", "round_number", "id")
+    )
+    results = list(
+        Result.objects.filter(rider_id=rider.uci_id, is_beginner=False)
+        .select_related("event", "event__organizer")
+        .order_by("-date", "-id")
+    )
+    kpi_period = _resolve_kpi_period(request.GET.get("years"))
+    track_options = _build_track_options(results, runs, kpi_cutoff=kpi_period["cutoff"])
+    selected_track_id = request.GET.get("track")
+    selected_wheel = request.GET.get("wheel")
+    if selected_wheel not in {"20", "24"}:
+        selected_wheel = None
+    selected_track = None
+    require_wheel_selection = False
+    if selected_track_id and selected_track_id.isdigit():
+        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
+    elif len(track_options) == 1:
+        selected_track = track_options[0]
+    if selected_track is not None:
+        track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
+        track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
+        available_wheels = []
+        if any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs):
+            available_wheels.append({"value": "20", "label": '20"'})
+        if any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs):
+            available_wheels.append({"value": "24", "label": '24"'})
+        if selected_wheel is None and len(available_wheels) == 1:
+            selected_wheel = available_wheels[0]["value"]
+        elif selected_wheel is None and len(available_wheels) > 1:
+            require_wheel_selection = True
+    else:
+        available_wheels = []
+    track_stats = None if require_wheel_selection else _build_track_stats(
+        rider,
+        selected_track,
+        results,
+        runs,
+        wheel=selected_wheel,
+        kpi_cutoff=kpi_period["cutoff"],
+        kpi_label=kpi_period["label"],
+    )
+    compare_candidates = []
+    if selected_track is not None and selected_wheel in {"20", "24"}:
+        compare_candidates = _build_peer_context(
+            rider,
+            selected_track,
+            selected_wheel,
+            kpi_cutoff=kpi_period["cutoff"],
+        )["candidates"]
+    return {
+        "rider": rider,
+        "runs": runs,
+        "subscription": premium_access_context["active_subscription"],
+        "trainer_club_subscription": premium_access_context["trainer_club_subscription"],
+        "has_admin_access": premium_access_context["premium_access_via_admin"],
+        "has_trainer_club_access": premium_access_context["premium_access_via_trainer_club"],
+        "kpi_period": kpi_period,
+        "kpi_period_options": KPI_PERIOD_OPTIONS,
+        "track_options": track_options,
+        "selected_track": selected_track,
+        "available_wheels": available_wheels,
+        "selected_wheel": selected_wheel,
+        "require_wheel_selection": require_wheel_selection,
+        "track_stats": track_stats,
+        "compare_candidates": compare_candidates,
+        "premium_pdf_export_enabled": _can_export_rider_premium_stats_pdf(request.user, rider),
+    }
+
+
 @trainer_dashboard_required
 def trainer_dashboard_view(request):
     if request.method == "POST":
@@ -241,6 +317,7 @@ def trainer_dashboard_view(request):
 
 @trainer_dashboard_required
 def trainer_club_riders_export_view(request, club_id, export_format):
+    export_format = normalize_export_format_or_404(export_format)
     club = get_exportable_trainer_club_or_403(request.user, club_id)
     rows = build_club_riders_export_rows(club)
     headers = [
@@ -264,6 +341,7 @@ def trainer_club_riders_export_view(request, club_id, export_format):
 
 @trainer_dashboard_required
 def trainer_club_kpi_export_view(request, club_id, export_format):
+    export_format = normalize_export_format_or_404(export_format)
     club = get_exportable_trainer_club_or_403(request.user, club_id)
     rows = build_club_kpi_export_rows(club)
     headers = [
@@ -1334,85 +1412,60 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
 def rider_premium_stats_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
     premium_access_context = _get_premium_access_context(request.user, rider)
-    has_admin_access = premium_access_context["premium_access_via_admin"]
     if not premium_access_context["premium_access"]:
         messages.error(
             request,
             _("Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub."),
         )
         return redirect("rider:detail", pk=pk)
+    return render(
+        request,
+        "rider/rider-premium-stats.html",
+        _build_rider_premium_stats_context(request, rider, premium_access_context),
+    )
 
-    runs = list(
-        RaceRun.objects.filter(rider=rider, is_beginner=False)
-        .select_related("event", "event__organizer", "result")
-        .order_by("-event__date", "round_type", "round_number", "id")
+
+@login_required
+def rider_premium_stats_pdf_view(request, pk):
+    rider = get_object_or_404(Rider, uci_id=pk)
+    premium_access_context = _get_premium_access_context(request.user, rider)
+    if not premium_access_context["premium_access"]:
+        messages.error(
+            request,
+            _("Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo trenérský přístup přes klub."),
+        )
+        return redirect("rider:detail", pk=pk)
+    if not _can_export_rider_premium_stats_pdf(request.user, rider):
+        messages.error(
+            request,
+            _("PDF export premium statistik je dostupný jen pro aktivní trainer extended."),
+        )
+        return redirect("rider:premium-stats", pk=pk)
+
+    context = _build_rider_premium_stats_context(request, rider, premium_access_context)
+    if context["selected_track"] is None:
+        messages.error(request, _("Nejdřív vyber trať nebo klub, který chceš exportovat do PDF."))
+        return redirect("rider:premium-stats", pk=pk)
+    if context["require_wheel_selection"]:
+        messages.error(request, _("Pro PDF export nejdřív vyber disciplínu 20\" nebo 24\"."))
+        return redirect("rider:premium-stats", pk=pk)
+    if context["track_stats"] is None:
+        messages.error(request, _("Pro vybranou trať zatím nejsou k dispozici detailní data pro PDF export."))
+        return redirect("rider:premium-stats", pk=pk)
+
+    pdf_bytes = build_rider_premium_stats_pdf(
+        rider=rider,
+        track=context["selected_track"],
+        track_stats=context["track_stats"],
+        kpi_period=context["kpi_period"],
     )
-    results = list(
-        Result.objects.filter(rider_id=rider.uci_id, is_beginner=False)
-        .select_related("event", "event__organizer")
-        .order_by("-date", "-id")
-    )
-    kpi_period = _resolve_kpi_period(request.GET.get("years"))
-    track_options = _build_track_options(results, runs, kpi_cutoff=kpi_period["cutoff"])
-    selected_track_id = request.GET.get("track")
-    selected_wheel = request.GET.get("wheel")
-    if selected_wheel not in {"20", "24"}:
-        selected_wheel = None
-    selected_track = None
-    require_wheel_selection = False
-    if selected_track_id and selected_track_id.isdigit():
-        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
-    elif len(track_options) == 1:
-        selected_track = track_options[0]
-    if selected_track is not None:
-        track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
-        track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
-        available_wheels = []
-        if any(result.is_20 for result in track_results) or any(run.is_20 is True for run in track_runs):
-            available_wheels.append({"value": "20", "label": '20"'})
-        if any(not result.is_20 for result in track_results) or any(run.is_20 is False for run in track_runs):
-            available_wheels.append({"value": "24", "label": '24"'})
-        if selected_wheel is None and len(available_wheels) == 1:
-            selected_wheel = available_wheels[0]["value"]
-        elif selected_wheel is None and len(available_wheels) > 1:
-            require_wheel_selection = True
-    else:
-        available_wheels = []
-    track_stats = None if require_wheel_selection else _build_track_stats(
-        rider,
-        selected_track,
-        results,
-        runs,
-        wheel=selected_wheel,
-        kpi_cutoff=kpi_period["cutoff"],
-        kpi_label=kpi_period["label"],
-    )
-    compare_candidates = []
-    if selected_track is not None and selected_wheel in {"20", "24"}:
-        compare_candidates = _build_peer_context(
-            rider,
-            selected_track,
-            selected_wheel,
-            kpi_cutoff=kpi_period["cutoff"],
-        )["candidates"]
-    data = {
-        "rider": rider,
-        "runs": runs,
-        "subscription": premium_access_context["active_subscription"],
-        "trainer_club_subscription": premium_access_context["trainer_club_subscription"],
-        "has_admin_access": has_admin_access,
-        "has_trainer_club_access": premium_access_context["premium_access_via_trainer_club"],
-        "kpi_period": kpi_period,
-        "kpi_period_options": KPI_PERIOD_OPTIONS,
-        "track_options": track_options,
-        "selected_track": selected_track,
-        "available_wheels": available_wheels,
-        "selected_wheel": selected_wheel,
-        "require_wheel_selection": require_wheel_selection,
-        "track_stats": track_stats,
-        "compare_candidates": compare_candidates,
-    }
-    return render(request, "rider/rider-premium-stats.html", data)
+    filename = build_rider_premium_stats_pdf_filename(rider, context["selected_track"])
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 
 @login_required

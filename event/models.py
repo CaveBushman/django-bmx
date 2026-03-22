@@ -9,9 +9,8 @@ from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.core.cache import cache
-from django.core.exceptions import FieldDoesNotExist
 import datetime
-from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -282,6 +281,20 @@ class Event(models.Model):
     ccf_id = models.IntegerField(default = 0, help_text="ID závodu na portálu ČSC")
     ccf_created = models.DateField(auto_now_add=True, null=True)
     ccf_uploaded = models.BooleanField(default=False)
+
+    uci_event_code = models.CharField(
+        _("UCI event code"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("Unique UCI event code"),
+    )
+    uci_code_women_elite = models.CharField(_("UCI code women elite"), max_length=64, blank=True, default="")
+    uci_code_men_elite = models.CharField(_("UCI code men elite"), max_length=64, blank=True, default="")
+    uci_code_women_under_23 = models.CharField(_("UCI code women under 23"), max_length=64, blank=True, default="")
+    uci_code_men_under_23 = models.CharField(_("UCI code men under 23"), max_length=64, blank=True, default="")
+    uci_code_women_junior = models.CharField(_("UCI code women junior"), max_length=64, blank=True, default="")
+    uci_code_men_junior = models.CharField(_("UCI code men junior"), max_length=64, blank=True, default="")
 
     uec_link = models.URLField(max_length=500, blank=True, null=True, help_text="Externí registrace na UEC")
     flexibee_export = models.FileField(upload_to='invoices/xml/', null=True, blank=True)

@@ -1,13 +1,17 @@
 from datetime import date, timedelta
+from io import BytesIO
 import os
 import tempfile
+import zipfile
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from openpyxl import Workbook, load_workbook
 
 from club.models import Club
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
@@ -652,6 +656,218 @@ class RemResultsImportTests(TestCase):
         self.assertEqual(result.place, 7)
         self.assertEqual(result.points, 75)
         self.assertFalse(RaceRun.objects.filter(result=result).exists())
+
+
+class UciExportTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="UCI",
+            last_name="Staff",
+            username="uci_staff",
+            email="uci_staff@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+
+        self.club = Club.objects.create(team_name="UCI Club")
+        self.event = Event.objects.create(
+            name="UCI Combined Race",
+            date=date(2025, 6, 1),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Český pohár",
+            is_uci_race=True,
+            uci_event_code="D2EV268824",
+            uci_code_women_elite="WE123",
+            uci_code_men_elite="ME123",
+            uci_code_women_under_23="WU23123",
+            uci_code_men_under_23="MU23123",
+            uci_code_women_junior="WJ123",
+            uci_code_men_junior="MJ123",
+        )
+
+        self.men_u23 = Rider.objects.create(
+            uci_id=10000000001,
+            first_name="Adam",
+            last_name="U23",
+            gender="Muž",
+            date_of_birth=date(2004, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_elite=True,
+            plate=101,
+        )
+        self.men_elite_best = Rider.objects.create(
+            uci_id=10000000002,
+            first_name="Boris",
+            last_name="Elite",
+            gender="Muž",
+            date_of_birth=date(1998, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_elite=True,
+            plate=202,
+        )
+        self.men_elite_second = Rider.objects.create(
+            uci_id=10000000003,
+            first_name="Cyril",
+            last_name="Elite",
+            gender="Muž",
+            date_of_birth=date(1995, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_elite=True,
+            plate=303,
+        )
+
+        self.u23_result = Result.objects.create(
+            event=self.event,
+            rider=self.men_u23,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category="Combined Men",
+            place=1,
+            points=100,
+            is_20=True,
+        )
+        self.elite_best_result = Result.objects.create(
+            event=self.event,
+            rider=self.men_elite_best,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category="Combined Men",
+            place=4,
+            points=70,
+            is_20=True,
+        )
+        self.elite_second_result = Result.objects.create(
+            event=self.event,
+            rider=self.men_elite_second,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category="Combined Men",
+            place=5,
+            points=60,
+            is_20=True,
+        )
+
+        RaceRun.objects.create(
+            result=self.u23_result,
+            event=self.event,
+            rider=self.men_u23,
+            is_20=True,
+            is_beginner=False,
+            round_type="FINAL",
+            finish_time=31.111,
+        )
+        RaceRun.objects.create(
+            result=self.elite_best_result,
+            event=self.event,
+            rider=self.men_elite_best,
+            is_20=True,
+            is_beginner=False,
+            round_type="FINAL",
+            finish_time=33.333,
+        )
+        RaceRun.objects.create(
+            result=self.elite_second_result,
+            event=self.event,
+            rider=self.men_elite_second,
+            is_20=True,
+            is_beginner=False,
+            round_type="FINAL",
+            finish_time=34.444,
+        )
+
+    def _create_uci_template(self):
+        temp_dir = tempfile.mkdtemp()
+        template_path = os.path.join(temp_dir, "uci-template.xlsx")
+        workbook = Workbook()
+        general_ws = workbook.active
+        general_ws.title = "General"
+        general_ws["A4"] = "Competition Code"
+        general_ws["A5"] = "Event Code"
+        results_ws = workbook.create_sheet("Results")
+        headers = ["Rank", "BIB", "UCI ID", "Last Name", "First Name", "Country", "Team", "Gender", "Phase", "Heat", "Result", "IRM"]
+        for index, header in enumerate(headers, start=1):
+            results_ws.cell(1, index, header)
+        workbook.create_sheet("Reference")
+        workbook.create_sheet("Country Reference")
+        workbook.save(template_path)
+        return temp_dir, template_path
+
+    def test_uci_export_creates_six_files_and_recalculates_rank_within_each_uci_group(self):
+        self.client.force_login(self.staff_user)
+        temp_dir, template_path = self._create_uci_template()
+
+        try:
+            with patch("event.views.views_admin.UCI_EXPORT_TEMPLATE", template_path):
+                response = self.client.get(reverse("event:export_uci_results", kwargs={"event_id": self.event.id}))
+        finally:
+            for filename in os.listdir(temp_dir):
+                os.remove(os.path.join(temp_dir, filename))
+            os.rmdir(temp_dir)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/zip")
+
+        archive = zipfile.ZipFile(BytesIO(response.content))
+        filenames = sorted(archive.namelist())
+        self.assertEqual(len(filenames), 6)
+        self.assertTrue(any("men_elite" in name for name in filenames))
+        self.assertTrue(any("men_u23" in name for name in filenames))
+
+        men_elite_name = next(name for name in filenames if "men_elite" in name)
+        men_u23_name = next(name for name in filenames if "men_u23" in name)
+
+        men_elite_workbook = load_workbook(BytesIO(archive.read(men_elite_name)))
+        men_elite_results = men_elite_workbook["Results"]
+        self.assertEqual(men_elite_results["A2"].value, 1)
+        self.assertEqual(men_elite_results["C2"].value, self.men_elite_best.uci_id)
+        self.assertEqual(men_elite_results["K2"].value, "1st, 33.333")
+        self.assertEqual(men_elite_results["A3"].value, 2)
+        self.assertEqual(men_elite_results["C3"].value, self.men_elite_second.uci_id)
+        self.assertEqual(men_elite_results["K3"].value, "2nd, 34.444")
+
+        men_u23_workbook = load_workbook(BytesIO(archive.read(men_u23_name)))
+        men_u23_general = men_u23_workbook["General"]
+        men_u23_results = men_u23_workbook["Results"]
+        self.assertEqual(men_u23_general["B4"].value, "MU23123")
+        self.assertEqual(men_u23_general["B5"].value, "D2EV268824")
+        self.assertEqual(men_u23_results["A2"].value, 1)
+        self.assertEqual(men_u23_results["C2"].value, self.men_u23.uci_id)
+
+    def test_uci_export_redirects_with_flash_message_when_event_code_is_missing(self):
+        self.client.force_login(self.staff_user)
+        self.event.uci_event_code = ""
+        self.event.save(update_fields=["uci_event_code"])
+        temp_dir, template_path = self._create_uci_template()
+
+        try:
+            with patch("event.views.views_admin.UCI_EXPORT_TEMPLATE", template_path):
+                response = self.client.get(
+                    reverse("event:export_uci_results", kwargs={"event_id": self.event.id}),
+                    follow=True,
+                )
+        finally:
+            for filename in os.listdir(temp_dir):
+                os.remove(os.path.join(temp_dir, filename))
+            os.rmdir(temp_dir)
+
+        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertIn("U závodu chybí UCI_EVENT_CODE.", messages)
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())

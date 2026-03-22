@@ -220,7 +220,7 @@
         <div class="grid gap-4 lg:grid-cols-4">
           <div>
             <label for="track-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Trať / klub" %}</label>
-            <select id="track-select" name="track" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            <select id="track-select" name="track" onchange="this.form.submit()" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
               <option value="">{% trans "Vyber trať" %}</option>
               {% for track in track_options %}
               <option value="{{ track.id }}"{% if selected_track and selected_track.id == track.id %} selected{% endif %}>{{ track.name }}</option>
@@ -229,7 +229,7 @@
           </div>
           <div>
             <label for="wheel-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Disciplína" %}</label>
-            <select id="wheel-select" name="wheel" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            <select id="wheel-select" name="wheel" onchange="this.form.submit()" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
               <option value="">{% trans "Vyber disciplínu" %}</option>
               {% for wheel in available_wheels %}
               <option value="{{ wheel.value }}"{% if selected_wheel == wheel.value %} selected{% endif %}>{{ wheel.label }}</option>
@@ -238,7 +238,7 @@
           </div>
           <div>
             <label for="opponent-select" class="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Soupeř" %}</label>
-            <select id="opponent-select" name="opponent" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            <select id="opponent-select" name="opponent" onchange="this.form.submit()" class="rider-compare-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
               <option value="">{% trans "Vyber jezdce" %}</option>
               {% for item in compare_candidates %}
               <option value="{{ item.uci_id }}"{% if opponent and opponent.uci_id == item.uci_id %} selected{% endif %}>{{ item.first_name }} {{ item.last_name }}{% if item.club %} | {{ item.club.team_name }}{% endif %}</option>

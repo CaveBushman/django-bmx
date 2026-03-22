@@ -93,6 +93,19 @@ class NumberedCanvas(canvas.Canvas):
         self.drawRightString(width - 20 * mm, 12 * mm, f"Stránka {page_number} z {page_count}")
 
 
+def draw_pdf_footer(pdf, *, left_text="", right_text=""):
+    width, _ = A4
+    footer_y = 16 * mm
+    pdf.setStrokeColor(colors.HexColor("#CBD5E1"))
+    pdf.line(20 * mm, footer_y + 4 * mm, width - 20 * mm, footer_y + 4 * mm)
+    pdf.setFillColor(colors.HexColor("#64748B"))
+    pdf.setFont("DejaVuSans", 8)
+    if left_text:
+        pdf.drawString(20 * mm, footer_y, left_text)
+    if right_text:
+        pdf.drawRightString(width - 20 * mm, footer_y, right_text)
+
+
 class EventInvoiceService:
     def __init__(self):
         _register_fonts()
@@ -174,15 +187,23 @@ class EventInvoiceService:
                 continue
             manual_lines = [line.strip() for line in override.manual_descriptions.splitlines() if line.strip()]
             manual_amounts = [line.strip() for line in (override.manual_amounts or "").splitlines() if line.strip()]
-            if len(manual_lines) != len(lines):
+            if not manual_lines or len(manual_lines) != len(manual_amounts):
                 continue
+            overridden_lines = []
             for index, manual_description in enumerate(manual_lines):
-                lines[index].description = manual_description
-                if len(manual_amounts) == len(lines):
-                    try:
-                        lines[index].unit_price = _money(Decimal(manual_amounts[index].replace(",", ".")))
-                    except (InvalidOperation, ValueError):
-                        pass
+                try:
+                    unit_price = _money(Decimal(manual_amounts[index].replace(",", ".")))
+                except (InvalidOperation, ValueError):
+                    continue
+                overridden_lines.append(
+                    InvoiceLine(
+                        description=manual_description,
+                        quantity=1,
+                        unit_price=unit_price,
+                    )
+                )
+            if overridden_lines:
+                club_lines[club] = overridden_lines
         return club_lines
 
     def get_club_lines(self, event):
@@ -293,6 +314,7 @@ class EventInvoiceService:
                 mask="auto",
             )
 
+        pdf.setFillColor(colors.black)
         pdf.setTitle(f"Faktura {invoice.number}")
         pdf.setFont("DejaVuSans-Bold", 18)
         pdf.drawString(header_x, header_y, f"Faktura č. {invoice.number}")
@@ -365,6 +387,9 @@ class EventInvoiceService:
         buffer = BytesIO()
         pdf = NumberedCanvas(buffer, pagesize=A4)
         _, height = A4
+        generated_at = timezone.localtime().strftime("%d.%m.%Y %H:%M")
+        footer_left = f"Startovné | {invoice.event.name}"
+        footer_right = f"Generováno {generated_at}"
 
         subject_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=True)
         table_top = subject_bottom_y - 16 * mm
@@ -379,6 +404,7 @@ class EventInvoiceService:
             row_height = max(6 * mm, (len(description_lines) * 4.6 * mm) + 1.5 * mm)
 
             if current_y - row_height < bottom_limit + summary_reserved:
+                draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
                 pdf.showPage()
                 header_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=False)
                 table_top = header_bottom_y - 10 * mm
@@ -396,6 +422,7 @@ class EventInvoiceService:
             current_y -= row_height
 
         if current_y - summary_reserved < bottom_limit:
+            draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
             pdf.showPage()
             header_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=False)
             table_top = header_bottom_y - 10 * mm
@@ -403,6 +430,7 @@ class EventInvoiceService:
             current_y = table_top - 7 * mm
 
         self._draw_invoice_summary(pdf, invoice, current_y)
+        draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
         pdf.save()
         buffer.seek(0)
         return buffer.getvalue()

@@ -37,6 +37,21 @@
         min-height: 100%;
     }
 
+    .entry-selection-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    .entry-selection-count {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
     .entry-hero-stats {
         display: grid;
         grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -66,15 +81,22 @@
     }
 
     .entry-table {
-        table-layout: fixed;
+        table-layout: auto;
         width: 100%;
+        min-width: 760px;
     }
 
-    .entry-table col.col-plate { width: 7%; }
-    .entry-table col.col-last-name { width: 18%; }
-    .entry-table col.col-first-name { width: 13%; }
-    .entry-table col.col-club { width: 24%; }
-    .entry-table col.col-class { width: 19%; }
+    .entry-table col.col-plate { width: 5.5rem; }
+    .entry-table col.col-last-name { width: 12rem; }
+    .entry-table col.col-first-name { width: 9rem; }
+    .entry-table col.col-club { width: 13rem; }
+    .entry-table col.col-class { width: 11.5rem; }
+
+    @media (max-width: 640px) {
+        .entry-table {
+            min-width: 680px;
+        }
+    }
 
     .entry-choice {
         border: 1px solid #e2e8f0;
@@ -259,6 +281,14 @@
         color: #f8fafc !important;
     }
 
+    html.dark .entry-selection-meta {
+        color: #cbd5e1 !important;
+    }
+
+    html.dark .entry-selection-count {
+        color: #f8fafc !important;
+    }
+
     html.dark .entry-page .rounded-\[2\.25rem\],
     html.dark .entry-page .rounded-\[2rem\] {
         background: rgba(15, 23, 42, 0.92) !important;
@@ -296,15 +326,22 @@
                         <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.reg_open_to|date:"j. F Y H:i" }}</p>
                     </div>
                     <div class="entry-hero-action">
-                        <button
-                            type="submit"
-                            name="btn_add"
-                            aria-label="Přidat do košíku"
-                            class="entry-cta"
-                        >
-                            <span>Přidat do košíku</span>
-                            <span aria-hidden="true" class="text-base leading-none">→</span>
-                        </button>
+                        <div class="w-full">
+                            <button
+                                type="submit"
+                                name="btn_add"
+                                aria-label="Přidat do košíku"
+                                class="entry-cta"
+                                id="entry-submit-btn"
+                            >
+                                <span>Přidat do košíku</span>
+                                <span aria-hidden="true" class="text-base leading-none">→</span>
+                            </button>
+                            <div class="entry-selection-meta">
+                                <span id="entry-selection-label">Vybráno 0 registrací</span>
+                                <span class="entry-selection-count" id="entry-selection-breakdown">20&quot; 0 | 24&quot; 0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -381,7 +418,7 @@
                                     {% for rider in riders %}
                                     <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/80">
                                         <td class="px-4 py-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 sm:px-6">{{ rider.plate_display }}</td>
-                                        <td class="w-full max-w-0 px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6">
+                                        <td class="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6 whitespace-nowrap">
                                             {{ rider.last_name }}
                                             <dl class="font-normal lg:hidden">
                                                 <dt class="sr-only">Jméno</dt>
@@ -390,7 +427,7 @@
                                                 <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">{{ rider.club|upper }}</dd>
                                             </dl>
                                         </td>
-                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.first_name }}</td>
+                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ rider.first_name }}</td>
                                         <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.club|upper }}</td>
 
                                         {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}

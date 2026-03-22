@@ -114,7 +114,7 @@
 
 <header class="clubs-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
       <div>
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
           Kontakty a regiony
@@ -156,19 +156,20 @@
       </div>
 
       <div class="clubs-table-wrap mt-8 rounded-[1.75rem]">
+        <div class="overflow-x-auto">
         <table class="clubs-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
           <thead class="bg-slate-50 dark:bg-slate-900">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              <th scope="col" class="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:px-6">
                 Klub
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              <th scope="col" class="hidden px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:table-cell">
                 Region
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              <th scope="col" class="hidden px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 lg:table-cell">
                 Kontaktní osoba
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              <th scope="col" class="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:px-6">
                 E-mail
               </th>
               <th scope="col" class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
@@ -180,24 +181,37 @@
             {% for club in clubs %}
             {% if club.team_name != "Bez klubové příslušnosti" %}
             <tr class="dark:bg-slate-900">
-              <td class="px-6 py-5 align-top">
+              <td class="px-4 py-5 align-top sm:px-6">
                 <a href="{% url 'club:club-detail' club.id %}" class="inline-flex items-start text-base font-black tracking-tight text-slate-900 transition hover:text-indigo-600 dark:text-white dark:hover:text-indigo-300">
                   {{ club.team_name|upper }}
                 </a>
+                <div class="mt-2 sm:hidden">
+                  <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 inset-ring inset-ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:inset-ring-slate-700">
+                    {{ club.region|default:"-" }}
+                  </span>
+                </div>
+                <div class="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300 lg:hidden">
+                  <div>
+                    <span class="font-medium text-slate-900 dark:text-white">{% if club.contact_person and club.contact_person != "nan" %}{{ club.contact_person }}{% else %}-{% endif %}</span>
+                  </div>
+                  {% if club.contact_phone and club.contact_phone != "nan" %}
+                  <div class="md:hidden">{{ club.contact_phone }}</div>
+                  {% endif %}
+                </div>
               </td>
-              <td class="px-6 py-5 align-top">
+              <td class="hidden px-6 py-5 align-top sm:table-cell">
                 <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 inset-ring inset-ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:inset-ring-slate-700">
                   {{ club.region|default:"-" }}
                 </span>
               </td>
-              <td class="px-6 py-5 align-top text-sm font-medium text-slate-900 dark:text-white">
+              <td class="hidden px-6 py-5 align-top text-sm font-medium text-slate-900 dark:text-white lg:table-cell">
                 {% if club.contact_person and club.contact_person != "nan" %}
                   {{ club.contact_person }}
                 {% else %}
                   <span class="text-slate-400 dark:text-slate-500">-</span>
                 {% endif %}
               </td>
-              <td class="px-6 py-5 align-top text-sm text-slate-600 dark:text-slate-300">
+              <td class="px-4 py-5 align-top text-sm text-slate-600 dark:text-slate-300 sm:px-6">
                 {% if club.contact_email and club.contact_email != "nan" %}
                   <a href="mailto:{{ club.contact_email }}" class="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 font-medium text-blue-700 transition hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:hover:bg-blue-500/25">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
@@ -226,6 +240,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>

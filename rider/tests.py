@@ -1,9 +1,11 @@
 from datetime import date, timedelta
+from io import BytesIO
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from openpyxl import load_workbook
 
 from club.models import Club
 from event.models import CreditTransaction, Event, RaceRun, Result, SeasonSettings
@@ -262,6 +264,94 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertContains(response, "Motos")
         self.assertContains(response, "1 : 0")
 
+    def test_premium_compare_page_populates_wheels_and_candidates_for_selected_track(self):
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=100,
+            transaction_id="credit-5",
+            payment_complete=True,
+        )
+        opponent = Rider.objects.create(
+            uci_id=12345670003,
+            first_name="Petr",
+            last_name="Souper",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20=self.rider.class_20,
+            is_20=True,
+        )
+        opponent_result = Result.objects.create(
+            event=self.event,
+            rider=opponent,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category=opponent.class_20,
+            place=2,
+            points=80,
+            is_20=True,
+        )
+        RaceRun.objects.create(
+            result=opponent_result,
+            event=self.event,
+            rider=opponent,
+            category=opponent.class_20,
+            is_beginner=False,
+            is_20=True,
+            round_type="MOTO",
+            round_number=1,
+            heat_code="1",
+            lane=4,
+            place="2nd",
+            finish_time=34.55,
+        )
+
+        self.client.force_login(self.user)
+        self.client.post(reverse("rider:premium-stats-subscribe", kwargs={"pk": self.rider.uci_id}))
+
+        track_response = self.client.get(
+            reverse("rider:premium-compare", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "years": "2"},
+        )
+        self.assertEqual(track_response.status_code, 200)
+        self.assertContains(track_response, 'value="20"')
+
+        wheel_response = self.client.get(
+            reverse("rider:premium-compare", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "wheel": "20", "years": "2"},
+        )
+        self.assertEqual(wheel_response.status_code, 200)
+        self.assertContains(wheel_response, "Petr Souper")
+
+    def test_premium_stats_pdf_export_requires_trainer_extended(self):
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=100,
+            transaction_id="credit-6",
+            payment_complete=True,
+        )
+        self.client.force_login(self.user)
+        self.client.post(reverse("rider:premium-stats-subscribe", kwargs={"pk": self.rider.uci_id}))
+
+        page_response = self.client.get(
+            reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "wheel": "20", "years": "2"},
+        )
+        self.assertEqual(page_response.status_code, 200)
+        self.assertNotContains(page_response, reverse("rider:premium-stats-pdf", kwargs={"pk": self.rider.uci_id}))
+
+        export_response = self.client.get(
+            reverse("rider:premium-stats-pdf", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "wheel": "20", "years": "2"},
+            follow=True,
+        )
+        self.assertRedirects(export_response, reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}))
+        self.assertContains(export_response, "trainer extended")
+
 
 class TrainerClubSubscriptionTests(TestCase):
     def setUp(self):
@@ -290,6 +380,49 @@ class TrainerClubSubscriptionTests(TestCase):
             amount=2000,
             transaction_id="coach-credit",
             payment_complete=True,
+        )
+        self.rider = Rider.objects.create(
+            uci_id=12345678888,
+            first_name="Trainer",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_20=True,
+        )
+        self.event = Event.objects.create(
+            name="Trainer Race",
+            date=date.today() - timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.result = Result.objects.create(
+            event=self.event,
+            rider=self.rider,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category=self.rider.class_20,
+            place=2,
+            points=80,
+            is_20=True,
+        )
+        self.run = RaceRun.objects.create(
+            result=self.result,
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            is_beginner=False,
+            round_type="MOTO",
+            round_number=1,
+            lane=4,
+            finish_time=34.78,
+            hill_time=2.63,
+            split_1=8.94,
         )
 
     def test_purchase_trainer_club_stats_subscription_is_billed_per_club(self):
@@ -431,6 +564,152 @@ class TrainerClubSubscriptionTests(TestCase):
         self.assertIsNone(active_extended)
         self.assertEqual(extended_subscription.status, TrainerClubSubscription.STATUS_EXPIRED)
         self.assertFalse(extended_subscription.auto_renew)
+
+    def test_trainer_riders_csv_export_includes_utf8_bom_for_excel(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+        Rider.objects.create(
+            uci_id=12345679999,
+            first_name="Žaneta",
+            last_name="Černá",
+            gender="Žena",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            email="zaneta@example.com",
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("rider:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "csv"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith("\ufeff".encode("utf-8")))
+        self.assertIn("Žaneta".encode("utf-8"), response.content)
+
+    def test_trainer_extended_can_export_rider_premium_stats_pdf(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        self.client.force_login(self.user)
+        page_response = self.client.get(
+            reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "wheel": "20", "years": "2"},
+        )
+        self.assertEqual(page_response.status_code, 200)
+        self.assertContains(page_response, reverse("rider:premium-stats-pdf", kwargs={"pk": self.rider.uci_id}))
+
+        export_response = self.client.get(
+            reverse("rider:premium-stats-pdf", kwargs={"pk": self.rider.uci_id}),
+            {"track": self.club.id, "wheel": "20", "years": "2"},
+        )
+        self.assertEqual(export_response.status_code, 200)
+        self.assertEqual(export_response["Content-Type"], "application/pdf")
+        self.assertTrue(export_response.content.startswith(b"%PDF"))
+
+    def test_trainer_kpi_xlsx_export_has_formatted_header_and_freeze_panes(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+        rider = Rider.objects.create(
+            uci_id=12345678889,
+            first_name="KPI",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_20=True,
+        )
+        event = Event.objects.create(
+            name="Coach KPI Race",
+            date=date.today() - timedelta(days=7),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        result = Result.objects.create(
+            event=event,
+            rider=rider,
+            date=event.date,
+            event_type=event.type_for_ranking,
+            organizer=self.club.team_name,
+            category=rider.class_20,
+            place=3,
+            points=70,
+            is_20=True,
+        )
+        RaceRun.objects.create(
+            result=result,
+            event=event,
+            rider=rider,
+            is_20=True,
+            is_beginner=False,
+            round_type="FINAL",
+            finish_time=33.21,
+            hill_time=2.45,
+            split_1=10.11,
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("rider:trainer-club-kpi-export", kwargs={"club_id": self.club.id, "export_format": "xlsx"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        workbook = load_workbook(BytesIO(response.content))
+        worksheet = workbook["KPI"]
+        self.assertEqual(worksheet.freeze_panes, "A2")
+        self.assertEqual(worksheet["A1"].value, "UCI ID")
+        self.assertTrue(worksheet["A1"].font.bold)
+        self.assertEqual(worksheet["A2"].value, rider.uci_id)
+
+    def test_trainer_export_rejects_unsupported_format(self):
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_CLUB_STATS,
+        )
+        purchase_trainer_club_subscription(
+            self.user,
+            self.club,
+            TrainerClubSubscription.PRODUCT_EXTENDED,
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("rider:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "pdf"})
+        )
+
+        self.assertEqual(response.status_code, 404)
 
 
 class InactiveRiderActionsTests(TestCase):

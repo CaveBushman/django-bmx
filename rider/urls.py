@@ -12,6 +12,7 @@ urlpatterns = [
     path('account', views.account_settings_invoices_view, name='account'),
     path('premium-subscriptions', views.rider_premium_subscriptions_view, name='premium-subscriptions'),
     path('<int:pk>/premium-stats', views.rider_premium_stats_view, name='premium-stats'),
+    path('<int:pk>/premium-stats/export/pdf', views.rider_premium_stats_pdf_view, name='premium-stats-pdf'),
     path('<int:pk>/premium-stats/compare', views.rider_compare_view, name='premium-compare'),
     path('<int:pk>/premium-stats/subscribe', views.rider_premium_stats_subscribe_view, name='premium-stats-subscribe'),
     path('<int:pk>', views.rider_detail_view, name='detail'),

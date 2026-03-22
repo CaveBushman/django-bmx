@@ -281,7 +281,7 @@
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
             Článek
           </p>
-          <h1 class="mt-2 max-w-4xl text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          <h1 class="mt-2 max-w-4xl text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white md:text-5xl">
             {{ news.title }}
           </h1>
         </div>
@@ -304,6 +304,28 @@
   </header>
 
   <article class="article-shell">
+    <div class="article-feature-card mb-8 rounded-[2rem] px-6 py-6 sm:px-8 sm:py-8">
+      <div class="article-feature-grid">
+        <div class="article-feature-image-shell">
+          <img src="{{ news.photo_01.url }}" alt="{{ news.title }}">
+        </div>
+        <div class="article-feature-copy">
+          <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
+            {{ news.prefix|safe }}
+          </div>
+          {% if news.tags.all %}
+          <div class="mt-6 flex flex-wrap gap-2">
+              {% for tag in news.tags.all %}
+              <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-100">
+                {{ tag }}
+              </span>
+              {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
     {% if news.audio_file and news.published_audio %}
     <div class="article-audio-card mb-6 rounded-[2rem] px-5 py-5 sm:px-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -335,28 +357,6 @@
       </div>
     </div>
     {% endif %}
-
-    <div class="article-feature-card mb-8 rounded-[2rem] px-6 py-6 sm:px-8 sm:py-8">
-      <div class="article-feature-grid">
-        <div class="article-feature-image-shell">
-          <img src="{{ news.photo_01.url }}" alt="{{ news.title }}">
-        </div>
-        <div class="article-feature-copy">
-          <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
-            {{ news.prefix|safe }}
-          </div>
-          {% if news.tags.all %}
-          <div class="mt-6 flex flex-wrap gap-2">
-              {% for tag in news.tags.all %}
-              <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-100">
-                {{ tag }}
-              </span>
-              {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
 
     <div class="article-body-card mt-8 rounded-[2rem] px-6 py-7 sm:px-8 sm:py-9">
       <div class="article-richtext-dark prose prose-slate max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-indigo-700 hover:prose-a:text-indigo-600 prose-img:rounded-xl dark:prose-invert dark:prose-p:text-slate-100 dark:prose-strong:text-white dark:prose-li:text-slate-100 dark:prose-headings:text-white dark:prose-blockquote:text-slate-100 dark:prose-blockquote:border-indigo-400/40 dark:prose-a:text-indigo-300 dark:hover:prose-a:text-indigo-200 dark:[&_*]:!bg-transparent dark:[&_div]:!bg-transparent dark:[&_p]:!bg-transparent dark:[&_span]:!bg-transparent">
