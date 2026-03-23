@@ -164,7 +164,7 @@
                   {% elif event.reg_open %}
                   <a href="{% url 'event:entry' event.id %}" class="events-chip events-chip-secondary">{% trans "Přihlášení" %}</a>
                   {% endif %}
-                  {% if request.user.is_superuser and event.reg_open and event.type_for_ranking != "Evropský pohár" %}
+                  {% if event.reg_open and event.type_for_ranking != "Evropský pohár" %}
                   <a href="{% url 'event:entry-foreign' event.id %}" class="events-chip events-chip-purple">{% trans "Foreign riders" %}</a>
                   {% endif %}
                   {% if event.has_public_proposition %}
