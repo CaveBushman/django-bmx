@@ -8,10 +8,14 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from openpyxl import Workbook, load_workbook
+from commissar.models import Commissar
+from reportlab.pdfgen import canvas
 
 from club.models import Club
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
@@ -915,6 +919,274 @@ class UciExportTests(TestCase):
 
         archive = zipfile.ZipFile(BytesIO(zip_bytes))
         self.assertEqual(len(archive.namelist()), 6)
+
+
+class EuropeanCupAdminTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="EC",
+            last_name="Admin",
+            username="ec_admin",
+            email="ec_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_staff = True
+        self.staff_user.is_active = True
+        self.staff_user.save(update_fields=["is_staff", "is_active"])
+
+        self.club = Club.objects.create(team_name="European Club")
+        self.event = Event.objects.create(
+            name="UEC BMX Racing European Cup - Round 1",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            type_for_ranking="Evropský pohár",
+            reg_open=False,
+        )
+
+    def _make_pdf_upload(self, filename="results.pdf", text="results"):
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100, 750, text)
+        pdf.showPage()
+        pdf.save()
+        return SimpleUploadedFile(filename, buffer.getvalue(), content_type="application/pdf")
+
+    def test_ec_admin_get_does_not_generate_exports(self):
+        self.client.force_login(self.staff_user)
+
+        with patch("event.views.views_admin._generate_ec_file") as generate_ec_file_mock, patch(
+            "event.views.views_admin.generate_insurance_file"
+        ) as generate_insurance_file_mock:
+            response = self.client.get(reverse("event:event-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "btn-generate-ec-file")
+        self.assertContains(response, "btn-generate-ec-insurance-file")
+        generate_ec_file_mock.assert_not_called()
+        generate_insurance_file_mock.assert_not_called()
+
+    def test_ec_admin_generate_ec_file_runs_only_on_explicit_post(self):
+        self.client.force_login(self.staff_user)
+
+        with patch("event.views.views_admin._generate_ec_file") as generate_ec_file_mock:
+            response = self.client.post(
+                reverse("event:event-admin", kwargs={"pk": self.event.id}),
+                {"btn-generate-ec-file": "1"},
+                follow=True,
+            )
+
+        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        generate_ec_file_mock.assert_called_once_with(self.event)
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertIn("UEC XLS soubor byl vygenerován.", messages)
+
+    def test_ec_admin_rejects_non_pdf_results_upload(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.id}),
+            {
+                "btn-upload-ec-results-pdf": "1",
+                "results-pdf-morning": SimpleUploadedFile(
+                    "results.txt",
+                    b"not-a-pdf",
+                    content_type="text/plain",
+                ),
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertTrue(any("mus\u00ed b\u00fdt PDF soubor" in message for message in messages))
+
+    def test_ec_admin_accepts_single_pdf_results_upload(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.id}),
+            {
+                "btn-upload-ec-results-pdf": "1",
+                "results-pdf-morning": self._make_pdf_upload(),
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        self.event.refresh_from_db()
+        self.assertTrue(bool(self.event.full_results))
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertIn("Výsledky byly nahrány a zveřejněny jako jedno sloučené PDF.", messages)
+
+
+class CommissarAssignmentsTests(TestCase):
+    def setUp(self):
+        self.commission_user = User.objects.create_user(
+            first_name="Komise",
+            last_name="User",
+            username="commission_user",
+            email="commission@example.com",
+            password="StrongPass123!",
+        )
+        self.commission_user.is_active = True
+        self.commission_user.is_commission = True
+        self.commission_user.save(update_fields=["is_active", "is_commission"])
+
+        self.staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="Viewer",
+            username="staff_viewer",
+            email="staff_viewer@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save(update_fields=["is_active", "is_staff"])
+
+        self.superuser = User.objects.create_user(
+            first_name="Super",
+            last_name="User",
+            username="super_user",
+            email="super_user@example.com",
+            password="StrongPass123!",
+        )
+        self.superuser.is_active = True
+        self.superuser.is_superuser = True
+        self.superuser.save(update_fields=["is_active", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Commissar Club")
+        self.pcp = Commissar.objects.create(first_name="Petr", last_name="Hlavni", is_active=True)
+        self.assist = Commissar.objects.create(first_name="Alena", last_name="Asistent", is_active=True)
+        self.start = Commissar.objects.create(first_name="Start", last_name="Komisar", is_active=True)
+
+        self.event = Event.objects.create(
+            name="Commissar Race",
+            date=date(date.today().year, 7, 15),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+            reg_open=False,
+        )
+
+    def test_commission_user_sees_edit_button(self):
+        self.client.force_login(self.commission_user)
+
+        response = self.client.get(reverse("event:commissar-assignments"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Editovat")
+
+    def test_staff_user_can_view_but_not_edit(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("event:commissar-assignments"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Editovat")
+
+    def test_superuser_sees_edit_button(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(reverse("event:commissar-assignments"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Editovat")
+
+    def test_edit_mode_renders_sticky_change_bar(self):
+        self.client.force_login(self.commission_user)
+
+        response = self.client.get(
+            f"{reverse('event:commissar-assignments')}?year={self.event.date.year}&edit=1"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "commissar-edit-sticky-bar")
+        self.assertContains(response, "Neuložené změny")
+
+    def test_commission_user_can_update_assignments_and_audit_is_logged(self):
+        self.client.force_login(self.commission_user)
+
+        with self.assertLogs("audit", level="INFO") as audit_logs:
+            response = self.client.post(
+                reverse("event:commissar-assignments"),
+                {
+                    "year": str(self.event.date.year),
+                    f"pcp_{self.event.id}": str(self.pcp.id),
+                    f"pcp_assist_{self.event.id}": str(self.assist.id),
+                    f"start_commissar_{self.event.id}": "",
+                },
+                follow=True,
+            )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('event:commissar-assignments')}?year={self.event.date.year}",
+            fetch_redirect_response=False,
+        )
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.pcp_id, self.pcp.id)
+        self.assertEqual(self.event.pcp_assist_id, self.assist.id)
+        self.assertTrue(any("commissar_assignment_updated" in line for line in audit_logs.output))
+
+    def test_same_commissar_cannot_hold_two_roles_in_one_event(self):
+        self.client.force_login(self.commission_user)
+
+        response = self.client.post(
+            reverse("event:commissar-assignments"),
+            {
+                "year": str(self.event.date.year),
+                f"pcp_{self.event.id}": str(self.pcp.id),
+                f"pcp_assist_{self.event.id}": str(self.pcp.id),
+                f"start_commissar_{self.event.id}": "",
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('event:commissar-assignments')}?year={self.event.date.year}&edit=1",
+            fetch_redirect_response=False,
+        )
+        self.event.refresh_from_db()
+        self.assertIsNone(self.event.pcp_id)
+        self.assertIsNone(self.event.pcp_assist_id)
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertTrue(any("nemůže být jeden rozhodčí nasazen do více rolí" in message for message in messages))
+
+    def test_conflicting_concurrent_edit_is_rejected(self):
+        self.client.force_login(self.commission_user)
+        self.event.pcp = self.start
+        self.event.save(update_fields=["pcp"])
+
+        response = self.client.post(
+            reverse("event:commissar-assignments"),
+            {
+                "year": str(self.event.date.year),
+                f"original_pcp_{self.event.id}": "",
+                f"original_pcp_assist_{self.event.id}": "",
+                f"original_start_commissar_{self.event.id}": "",
+                f"pcp_{self.event.id}": str(self.pcp.id),
+                f"pcp_assist_{self.event.id}": "",
+                f"start_commissar_{self.event.id}": "",
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('event:commissar-assignments')}?year={self.event.date.year}&edit=1",
+            fetch_redirect_response=False,
+        )
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.pcp_id, self.start.id)
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertTrue(any("mezitím upravil někdo jiný" in message for message in messages))
+
+    def test_event_model_rejects_duplicate_commissar_roles(self):
+        self.event.pcp = self.pcp
+        self.event.pcp_assist = self.pcp
+
+        with self.assertRaises(ValidationError):
+            self.event.full_clean()
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())

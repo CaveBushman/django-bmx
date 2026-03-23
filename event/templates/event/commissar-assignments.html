@@ -150,10 +150,24 @@
   <div class="commissar-shell">
     <div class="commissar-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <a href="{% url 'event:commissar-statistics' %}?year={{ selected_year }}"
-          class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-400">
-          Statistiky nasazení rozhodčích
-        </a>
+        <div class="flex flex-wrap gap-3">
+          <a href="{% url 'event:commissar-statistics' %}?year={{ selected_year }}"
+            class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+            Statistiky nasazení rozhodčích
+          </a>
+          {% if can_edit_assignments and not edit_mode %}
+          <a href="{% url 'event:commissar-assignments' %}?year={{ selected_year }}&edit=1"
+            class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
+            Editovat
+          </a>
+          {% endif %}
+          {% if edit_mode %}
+          <a href="{% url 'event:commissar-assignments' %}?year={{ selected_year }}"
+            class="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white">
+            Zrušit editaci
+          </a>
+          {% endif %}
+        </div>
 
         <form method="get" class="flex flex-wrap items-end gap-3">
           <div>
@@ -175,7 +189,29 @@
         </form>
       </div>
 
-      <div class="commissar-table-wrap mt-8 rounded-[1.75rem]">
+      {% if edit_mode %}
+      <form method="post" class="mt-8">
+        {% csrf_token %}
+        <input type="hidden" name="year" value="{{ selected_year }}">
+        <div id="commissar-edit-sticky-bar" class="sticky top-20 z-20 mb-6 hidden rounded-2xl border border-indigo-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-indigo-500/30 dark:bg-slate-900/95">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="text-sm text-slate-700 dark:text-slate-200">
+              Neuložené změny:
+              <span id="commissar-edit-change-count" class="font-black text-indigo-600 dark:text-indigo-300">0</span>
+            </div>
+            <div class="flex gap-3">
+              <a href="{% url 'event:commissar-assignments' %}?year={{ selected_year }}"
+                class="inline-flex items-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white">
+                Zrušit editaci
+              </a>
+              <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
+                Uložit změny
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      <div class="{% if not edit_mode %}commissar-table-wrap mt-8 rounded-[1.75rem]{% else %}commissar-table-wrap mt-8 rounded-[1.75rem]{% endif %}">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead class="bg-slate-50 dark:bg-slate-950">
@@ -193,13 +229,58 @@
                 <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-200">{{ event.date|date:"d.m.Y" }}</td>
                 <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{{ event.name }}</td>
                 <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if edit_mode %}
+                  <input type="hidden" name="original_pcp_{{ event.id }}" value="{{ event.pcp_id|default:'' }}">
+                  <select
+                    name="pcp_{{ event.id }}"
+                    data-initial-value="{{ event.pcp_id|default:'' }}"
+                    data-commissar-edit-input="1"
+                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="">Bez nasazení</option>
+                    {% for commissar in active_commissars %}
+                    <option value="{{ commissar.id }}" {% if event.pcp_id == commissar.id %}selected{% endif %}>{{ commissar }}</option>
+                    {% endfor %}
+                  </select>
+                  {% else %}
                   {% if event.pcp and event.pcp.last_name != "Bude upřesněno" %}{{ event.pcp }}{% else %}-{% endif %}
+                  {% endif %}
                 </td>
                 <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if edit_mode %}
+                  <input type="hidden" name="original_pcp_assist_{{ event.id }}" value="{{ event.pcp_assist_id|default:'' }}">
+                  <select
+                    name="pcp_assist_{{ event.id }}"
+                    data-initial-value="{{ event.pcp_assist_id|default:'' }}"
+                    data-commissar-edit-input="1"
+                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="">Bez nasazení</option>
+                    {% for commissar in active_commissars %}
+                    <option value="{{ commissar.id }}" {% if event.pcp_assist_id == commissar.id %}selected{% endif %}>{{ commissar }}</option>
+                    {% endfor %}
+                  </select>
+                  {% else %}
                   {% if event.pcp_assist and event.pcp_assist.last_name != "Bude upřesněno" %}{{ event.pcp_assist }}{% else %}-{% endif %}
+                  {% endif %}
                 </td>
                 <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
+                  {% if edit_mode %}
+                  <input type="hidden" name="original_start_commissar_{{ event.id }}" value="{{ event.start_commissar_id|default:'' }}">
+                  <select
+                    name="start_commissar_{{ event.id }}"
+                    data-initial-value="{{ event.start_commissar_id|default:'' }}"
+                    data-commissar-edit-input="1"
+                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="">Bez nasazení</option>
+                    {% for commissar in active_commissars %}
+                    <option value="{{ commissar.id }}" {% if event.start_commissar_id == commissar.id %}selected{% endif %}>{{ commissar }}</option>
+                    {% endfor %}
+                  </select>
+                  {% else %}
                   {% if event.start_commissar and event.start_commissar.last_name != "Bude upřesněno" %}{{ event.start_commissar }}{% else %}-{% endif %}
+                  {% endif %}
                 </td>
               </tr>
               {% empty %}
@@ -213,7 +294,39 @@
           </table>
         </div>
       </div>
+      {% if edit_mode %}
+      <div class="mt-6 flex justify-end">
+        <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500">
+          Uložit změny
+        </button>
+      </div>
+      </form>
+      {% endif %}
     </div>
   </div>
 </section>
+{% if edit_mode %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const inputs = Array.from(document.querySelectorAll("[data-commissar-edit-input='1']"));
+    const stickyBar = document.getElementById("commissar-edit-sticky-bar");
+    const changeCount = document.getElementById("commissar-edit-change-count");
+    if (!inputs.length || !stickyBar || !changeCount) {
+      return;
+    }
+
+    const updateDirtyState = () => {
+      const dirtyCount = inputs.filter((input) => (input.value || "") !== (input.dataset.initialValue || "")).length;
+      changeCount.textContent = String(dirtyCount);
+      stickyBar.classList.toggle("hidden", dirtyCount === 0);
+    };
+
+    inputs.forEach((input) => {
+      input.addEventListener("change", updateDirtyState);
+    });
+
+    updateDirtyState();
+  });
+</script>
+{% endif %}
 {% endblock content %}

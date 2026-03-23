@@ -1,3 +1,6 @@
+import os
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import FileResponse, Http404
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls.base import reverse
@@ -30,12 +33,24 @@ def club_detail_view(request, pk):
     this_year = date.today().year
     events = Event.objects.filter(organizer=club.id, date__year=str(this_year)).order_by('date')
 
-    club.riders_on_events = riders_on_events(pk)
-    club.save()
-
     data = {'club': club, 'riders_of_club_count': riders_of_club_count, 'events': events}
 
     return render(request, 'club/club-detail.html', data)
+
+
+@staff_member_required
+def riders_on_events_export_view(request, pk):
+    club = get_object_or_404(Club, pk=pk)
+    file_path = riders_on_events(pk)
+
+    if not file_path or not os.path.exists(file_path):
+        raise Http404("Export účasti jezdců nebyl vygenerován.")
+
+    return FileResponse(
+        open(file_path, "rb"),
+        as_attachment=True,
+        filename=os.path.basename(file_path),
+    )
 
 class Participation:
     name = ""

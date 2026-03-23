@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from django.core.exceptions import ValidationError
 from club.models import Club
 from commissar.models import Commissar
 from rider.models import Rider
@@ -9,6 +10,7 @@ from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.core.cache import cache
+from django.db.models import F, Q
 import datetime
 from django.utils.translation import gettext_lazy as _
 
@@ -322,10 +324,38 @@ class Event(models.Model):
         else:
             return True
 
+    def clean(self):
+        super().clean()
+
+        assignments = {
+            "pcp": self.pcp,
+            "pcp_assist": self.pcp_assist,
+            "start_commissar": self.start_commissar,
+        }
+        selected_ids = [commissar.id for commissar in assignments.values() if commissar is not None]
+        if len(selected_ids) != len(set(selected_ids)):
+            raise ValidationError(
+                _("Jeden rozhodčí nemůže být v jednom závodě nasazen do více rolí současně.")
+            )
+
     class Meta:
         verbose_name = "Závod"
         verbose_name_plural = 'Závody'
         ordering = ['-date', ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(pcp__isnull=True) | Q(pcp_assist__isnull=True) | ~Q(pcp=F("pcp_assist")),
+                name="event_distinct_pcp_and_pcp_assist",
+            ),
+            models.CheckConstraint(
+                condition=Q(pcp__isnull=True) | Q(start_commissar__isnull=True) | ~Q(pcp=F("start_commissar")),
+                name="event_distinct_pcp_and_start_commissar",
+            ),
+            models.CheckConstraint(
+                condition=Q(pcp_assist__isnull=True) | Q(start_commissar__isnull=True) | ~Q(pcp_assist=F("start_commissar")),
+                name="event_distinct_pcp_assist_and_start_commissar",
+            ),
+        ]
 
 
 class EventProposition(models.Model):

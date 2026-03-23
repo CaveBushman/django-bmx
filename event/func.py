@@ -13,6 +13,7 @@ Obsah:
 import logging
 from datetime import date, datetime
 from club.models import Club
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 from event.models import EntryClasses, Event, Entry, SeasonSettings
@@ -863,7 +864,7 @@ class SetResults(threading.Thread):
                     logger.error(f"Chyba při zpracování řádku {raw}: {e}")
 
     def run(self):
-        file_path = os.path.join("media", "rem_results", self.file)
+        file_path = os.path.join(settings.MEDIA_ROOT, "rem_results", self.file)
         self.import_file(self.event, file_path)
 
         # Po importu výsledků spustit přepočet rankingu na pozadí

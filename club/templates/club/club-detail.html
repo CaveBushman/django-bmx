@@ -144,7 +144,7 @@
             Účast na klubu v závodech
           </a>
           {% if request.user.is_staff %}
-          <a href="../../{{ club.riders_on_events }}"
+          <a href="{% url 'club:riders-on-events-export' club.id %}"
             class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400"
             download>
             Účast jezdců v závodech

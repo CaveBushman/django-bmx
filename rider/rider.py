@@ -12,7 +12,10 @@ Obsah:
 """
 
 import logging
+import os
 from statistics import median
+import time
+from django.conf import settings
 from django.utils import timezone
 import requests
 
@@ -30,6 +33,11 @@ from openpyxl import Workbook
 
 
 now = datetime.today().year
+API_CONNECT_TIMEOUT_SECONDS = 5
+API_READ_TIMEOUT_SECONDS = 20
+API_TIMEOUT = (API_CONNECT_TIMEOUT_SECONDS, API_READ_TIMEOUT_SECONDS)
+TOKEN_CACHE_TTL_SECONDS = 300
+_api_token_cache = {"value": None, "expires_at": 0.0}
 
 
 # ===========================================================================
@@ -65,6 +73,10 @@ class RiderSetClassesThread(threading.Thread):
 def get_api_token():
     """Získá access token z Czech Cycling Federation API (OAuth2 password flow)."""
     TOKEN_URL = "https://portal.api.czechcyclingfederation.com/connect/token"
+    now_monotonic = time.monotonic()
+    cached_token = _api_token_cache.get("value")
+    if cached_token and _api_token_cache.get("expires_at", 0.0) > now_monotonic:
+        return cached_token
 
     data = {
         "grant_type": "password",
@@ -83,16 +95,36 @@ def get_api_token():
             TOKEN_URL,
             data=data,
             headers=headers,
-            verify=True  # nebo False pokud testuješ
+            verify=True,
+            timeout=API_TIMEOUT,
         )
         response.raise_for_status()
         token = response.json().get("access_token")
         if not token:
             raise ValueError("Token nebyl vrácen v odpovědi.")
+        _api_token_cache["value"] = token
+        _api_token_cache["expires_at"] = now_monotonic + TOKEN_CACHE_TTL_SECONDS
         return token
 
-    except Exception as e:
-        logger.error(f"Chyba při získávání tokenu: {e}")
+    except requests.Timeout:
+        logger.error("Timeout při získávání tokenu z API ČSC.")
+        _api_token_cache["value"] = None
+        _api_token_cache["expires_at"] = 0.0
+        return None
+    except requests.RequestException as exc:
+        logger.error("HTTP chyba při získávání tokenu z API ČSC: %s", exc)
+        _api_token_cache["value"] = None
+        _api_token_cache["expires_at"] = 0.0
+        return None
+    except ValueError as exc:
+        logger.error("Neplatná odpověď při získávání tokenu z API ČSC: %s", exc)
+        _api_token_cache["value"] = None
+        _api_token_cache["expires_at"] = 0.0
+        return None
+    except Exception as exc:
+        logger.exception("Neočekávaná chyba při získávání tokenu z API ČSC: %s", exc)
+        _api_token_cache["value"] = None
+        _api_token_cache["expires_at"] = 0.0
         return None
 
 
@@ -114,7 +146,7 @@ def get_rider_data(uci_id):
     logger.debug(f"Odesílám požadavek na: {url}")
 
     try:
-        response = requests.get(url, headers=headers, verify=True)
+        response = requests.get(url, headers=headers, verify=True, timeout=API_TIMEOUT)
         logger.debug(f"Status kód: {response.status_code}")
 
         if response.status_code == 404 or "Http_NotFound" in response.text:
@@ -129,9 +161,18 @@ def get_rider_data(uci_id):
         logger.debug(f"Úspěšně načteno pro UCI ID: {uci_id}")
         return data, None
 
-    except Exception as e:
-        logger.error(f"Výjimka při volání API ČSC: {e}")
-        return None, f"Chyba při komunikaci s API ČSC: {e}"
+    except requests.Timeout:
+        logger.error("Timeout při načítání licence z API ČSC pro UCI ID %s.", uci_id)
+        return None, "API ČSC neodpovědělo včas."
+    except requests.RequestException as exc:
+        logger.error("HTTP chyba při načítání licence z API ČSC pro UCI ID %s: %s", uci_id, exc)
+        return None, "Chyba při komunikaci s API ČSC."
+    except ValueError as exc:
+        logger.error("Neplatná JSON odpověď z API ČSC pro UCI ID %s: %s", uci_id, exc)
+        return None, "API ČSC vrátilo neplatná data."
+    except Exception as exc:
+        logger.exception("Neočekávaná chyba při volání API ČSC pro UCI ID %s: %s", uci_id, exc)
+        return None, "Neočekávaná chyba při komunikaci s API ČSC."
 
 
 def valid_licence(rider, token=None):
@@ -155,7 +196,7 @@ def valid_licence(rider, token=None):
     }
 
     try:
-        response = requests.get(check_url, headers=headers, params=params, verify=True)
+        response = requests.get(check_url, headers=headers, params=params, verify=True, timeout=API_TIMEOUT)
         response.raise_for_status()
 
         data = response.json()
@@ -171,8 +212,17 @@ def valid_licence(rider, token=None):
 
         return is_valid
 
-    except Exception as e:
-        logger.error(f"Chyba při ověřování licence {rider.uci_id}: {e}")
+    except requests.Timeout:
+        logger.error("Timeout při ověřování licence %s.", rider.uci_id)
+        return None
+    except requests.RequestException as exc:
+        logger.error("HTTP chyba při ověřování licence %s: %s", rider.uci_id, exc)
+        return None
+    except ValueError as exc:
+        logger.error("Neplatná odpověď API při ověřování licence %s: %s", rider.uci_id, exc)
+        return None
+    except Exception as exc:
+        logger.exception("Neočekávaná chyba při ověřování licence %s: %s", rider.uci_id, exc)
         return None
 
 
@@ -268,6 +318,9 @@ class Participation:
     def __init__(self):
         self.wb = Workbook()
         self.ws = self.wb.active
+        self.file_path = os.path.join(
+            settings.MEDIA_ROOT, "participation", "participation.xlsx"
+        )
 
     def first_line(self):
         self.ws.cell(1, 1, "Last_name")
@@ -281,7 +334,8 @@ class Participation:
         self.ws.cell(1, 9, "Ostatní")
 
     def save(self):
-        self.wb.save(filename='media/participation/participation.xlsx')
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+        self.wb.save(filename=self.file_path)
 
     def calculate(self):
         self.first_line()
@@ -618,7 +672,12 @@ def generate_insurance_file(event):
         ws.column_dimensions[col_letter].width = width
 
     # Ulož soubor
-    file_path = f"media/ec-files/INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx"
+    file_path = os.path.join(
+        settings.MEDIA_ROOT,
+        "ec-files",
+        f"INSURANCE_FOR_RACE_ID-{event.id}-{event.name}.xlsx",
+    )
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     wb.save(file_path)
 
     # Ulož do eventu

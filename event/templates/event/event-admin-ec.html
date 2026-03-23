@@ -2,22 +2,52 @@
 {% load static %}
 {% block title %}Administrace závodu{% endblock title %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
-  .event-admin-section,
-  .event-admin-file-card {
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(226, 232, 240, 0.92);
-    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  .ec-admin-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
   }
 
-  .event-admin-stat-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 9999px;
+  .ec-admin-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .ec-admin-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .ec-admin-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .ec-admin-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .ec-admin-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .ec-admin-file-card {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
   }
 
   .event-admin-action-link {
@@ -33,11 +63,34 @@
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
   }
 
-  html.dark .event-admin-section,
-  html.dark .event-admin-file-card {
-    background: rgba(15, 23, 42, 0.88) !important;
-    border-color: rgba(51, 65, 85, 0.95) !important;
-    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.4) !important;
+  html.dark .ec-admin-page {
+    background: #0f172a;
+  }
+
+  html.dark .ec-admin-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .ec-admin-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .ec-admin-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  html.dark .ec-admin-file-card {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.32);
   }
 
   html.dark .event-admin-action-link {
@@ -48,18 +101,28 @@
 </style>
 {% endblock %}
 {% block content %}
-<section class="dashboard-surface min-h-screen pb-24">
-  <div class="max-w-7xl mx-auto px-4 pt-10 sm:px-6 lg:px-8">
-    <header class="dashboard-hero overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8 sm:py-10">
-      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300">
-        European Cup Admin
-      </p>
-      <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">{{ event.name }}</h1>
-          <p class="mt-3 max-w-3xl text-base text-slate-600 dark:text-slate-300 sm:text-lg">
-            Přehled evropského poháru s rychlým exportem souborů pro UEC, pojišťovnu a klubové zpracování.
-          </p>
+<header class="ec-admin-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          European Cup Admin
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ event.name }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Přehled evropského poháru s rychlým exportem souborů pro UEC, pojišťovnu a klubové zpracování.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="ec-admin-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přihlášení jezdci</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum_entries }}</p>
+        </div>
+        <div class="ec-admin-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vybrané startovné</p>
+          <p id="payment-amount" class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ payments }}</p>
         </div>
         <a href="{% url 'event:ec_by_club_xls' event.id %}"
            class="event-admin-action-link inline-flex items-center justify-center gap-3 rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">
@@ -69,117 +132,133 @@
           XLS dle klubů
         </a>
       </div>
-    </header>
+    </div>
+  </div>
+</header>
 
-    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <section class="event-admin-section rounded-[1.75rem] p-6 sm:p-7">
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 17v-6a2 2 0 1 1 4 0v6M12 4v4" />
-              <circle cx="12" cy="12" r="10" />
-            </svg>
-          </span>
+<section class="ec-admin-page pt-8 pb-4">
+  <div class="ec-admin-shell">
+    <div class="ec-admin-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div class="max-w-3xl">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Soubory a výstupy</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Evropský pohár na jednom místě</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Exporty pro UEC, pojišťovnu i veřejné zveřejnění výsledků ve stejném vizuálním režimu jako přehled klubů.
+        </p>
+      </div>
+
+      <div class="mt-8 grid gap-4 lg:grid-cols-2">
+        <article class="ec-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Statistické informace</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Průběžný součet jezdců a vybraného startovného.</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">UEC export</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro UEC</h3>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Aktuální ke dni
+              {% if event.ec_file_created %}{{ event.ec_file_created }}{% else %}-{% endif %}
+            </p>
           </div>
-        </div>
+          <form method="post">
+            {% csrf_token %}
+            <button
+              type="submit"
+              name="btn-generate-ec-file"
+              class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
+            >
+              Vygenerovat a stáhnout
+            </button>
+          </form>
+        </article>
 
-        <div class="mt-6 grid gap-4 sm:grid-cols-2">
-          <article class="dashboard-card rounded-[1.5rem] p-5">
-            <div class="flex items-center gap-4">
-              <span class="event-admin-stat-icon bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Počet přihlášených jezdců</p>
-                <p class="mt-1 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum_entries }}</p>
-              </div>
-            </div>
+        <article class="ec-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Pojištění</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro pojišťovnu</h3>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Aktuální ke dni
+              {% if event.ec_insurance_file_created %}{{ event.ec_insurance_file_created }}{% else %}-{% endif %}
+            </p>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <button
+              type="submit"
+              name="btn-generate-ec-insurance-file"
+              class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
+            >
+              Vygenerovat a stáhnout
+            </button>
+          </form>
+        </article>
+      </div>
+
+      <div class="mt-8 max-w-3xl">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zveřejnění výsledků</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Spojení dopoledního a odpoledního PDF</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Nahraj dopolední a případně odpolední PDF. Systém je spojí do jednoho veřejného souboru a publikuje ho v přehledu závodů.
+        </p>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="mt-8">
+        {% csrf_token %}
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <article class="ec-admin-file-card rounded-[1.5rem] p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Dopoledne</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF výsledků 1. blok</h3>
+            <input
+              type="file"
+              name="results-pdf-morning"
+              accept=".pdf,application/pdf"
+              class="mt-4 block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
+            />
+            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Povinné, pokud nahráváš výsledky.</p>
           </article>
 
-          <article class="dashboard-card rounded-[1.5rem] p-5">
-            <div class="flex items-center gap-4">
-              <span class="event-admin-stat-icon bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 1v22" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14.5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Vybrané startovné</p>
-                <p id="payment-amount" class="mt-1 text-3xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{{ payments }}</p>
-              </div>
-            </div>
+          <article class="ec-admin-file-card rounded-[1.5rem] p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Odpoledne</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF výsledků 2. blok</h3>
+            <input
+              type="file"
+              name="results-pdf-afternoon"
+              accept=".pdf,application/pdf"
+              class="mt-4 block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
+            />
+            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Volitelné. Když chybí, zveřejní se jen dopolední soubor.</p>
           </article>
-        </div>
-      </section>
 
-      <section class="event-admin-section rounded-[1.75rem] p-6 sm:p-7">
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </span>
-          <div>
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Soubory pro Evropský pohár</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Připravené exporty pro UEC a pojišťovnu na jednom místě.</p>
-          </div>
-        </div>
-
-        <div class="mt-6 space-y-4">
-          <article class="event-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <article class="ec-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between">
             <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">UEC export</p>
-              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro UEC</h3>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Veřejný výstup</p>
+              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">Sloučené PDF</h3>
               <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                Aktuální ke dni
-                {% if event.ec_file_created %}{{ event.ec_file_created }}{% else %}-{% endif %}
+                {% if event.full_results %}
+                Aktuálně zveřejněno:
+                <a href="{{ event.full_results.url }}" target="_blank" class="font-semibold text-indigo-600 dark:text-indigo-300">stáhnout PDF</a>
+                {% else %}
+                Zatím není zveřejněný žádný výsledkový PDF soubor.
+                {% endif %}
               </p>
             </div>
-            {% if event.ec_file %}
-            <a href="../../{{ event.ec_file }}"
-               class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
-               download>
-              Stáhnout
-            </a>
-            {% else %}
-            <span class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-400 dark:border-slate-700 dark:text-slate-500">
-              Soubor chybí
-            </span>
-            {% endif %}
-          </article>
-
-          <article class="event-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Pojištění</p>
-              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro pojišťovnu</h3>
-              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                Aktuální ke dni
-                {% if event.ec_insurance_file_created %}{{ event.ec_insurance_file_created }}{% else %}-{% endif %}
-              </p>
+            <div class="mt-5 flex flex-col gap-3">
+              <button
+                type="submit"
+                name="btn-upload-ec-results-pdf"
+                class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
+              >
+                Nahrát a sloučit PDF
+              </button>
+              <button
+                type="submit"
+                name="btn-delete-ec-results-pdf"
+                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-rose-300 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500/50 dark:hover:text-rose-300"
+                {% if not event.full_results %}disabled{% endif %}
+              >
+                Smazat zveřejněné PDF
+              </button>
             </div>
-            {% if event.ec_insurance_file %}
-            <a href="../../{{ event.ec_insurance_file }}"
-               class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
-               download>
-              Stáhnout
-            </a>
-            {% else %}
-            <span class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-400 dark:border-slate-700 dark:text-slate-500">
-              Soubor chybí
-            </span>
-            {% endif %}
           </article>
         </div>
-      </section>
+      </form>
     </div>
   </div>
 </section>
