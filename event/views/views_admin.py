@@ -28,17 +28,21 @@ import json
 import datetime
 import os
 from collections import Counter
+from io import BytesIO
 import requests
+import pikepdf
 from datetime import date
 from types import SimpleNamespace
 from django.shortcuts import get_object_or_404, render, reverse, HttpResponseRedirect, redirect
 from django.http import FileResponse, HttpResponse
 from django.contrib import messages
+from django.core.files.base import ContentFile
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Count, Q
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
@@ -79,6 +83,8 @@ import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
+MAX_RESULTS_PDF_SIZE_BYTES = 20 * 1024 * 1024
+CCF_API_TIMEOUT = (5, 20)
 
 COMMISSAR_EXCLUDED_EVENT_TYPES = [
     "Evropský pohár",
@@ -105,6 +111,27 @@ def _resolve_selected_year(selected_year, year_options):
     return selected_year
 
 
+def can_access_commissar_pages(user):
+    return user.is_authenticated and (
+        getattr(user, "is_staff", False)
+        or getattr(user, "is_superuser", False)
+        or getattr(user, "is_commission", False)
+    )
+
+
+def can_edit_commissar_assignments(user):
+    return user.is_authenticated and (
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_commission", False)
+    )
+
+
+commissar_pages_required = user_passes_test(
+    can_access_commissar_pages,
+    login_url="/bmx-admin/login/",
+)
+
+
 def _build_media_storage(*parts):
     relative_dir = os.path.join(*parts)
     return FileSystemStorage(
@@ -119,6 +146,169 @@ def _save_uploaded_file(uploaded_file, *storage_parts):
         storage.delete(uploaded_file.name)
     filename = storage.save(uploaded_file.name, uploaded_file)
     return storage, filename, os.path.join(relative_dir, filename)
+
+
+def _merge_uploaded_pdfs(*uploaded_files):
+    merged_buffer = BytesIO()
+    appended_any_file = False
+
+    with pikepdf.Pdf.new() as merged_pdf:
+        for uploaded_file in uploaded_files:
+            if not uploaded_file:
+                continue
+            uploaded_file.seek(0)
+            with pikepdf.Pdf.open(BytesIO(uploaded_file.read())) as source_pdf:
+                merged_pdf.pages.extend(source_pdf.pages)
+                appended_any_file = True
+
+        if not appended_any_file:
+            raise ValueError("Nebyl nahrán žádný PDF soubor.")
+
+        merged_pdf.save(merged_buffer)
+
+    return merged_buffer.getvalue()
+
+
+def _validate_uploaded_results_pdf(uploaded_file, field_label, required=False):
+    if not uploaded_file:
+        if required:
+            raise ValueError(f"Nahraj {field_label}.")
+        return
+
+    filename = (uploaded_file.name or "").lower()
+    if not filename.endswith(".pdf"):
+        raise ValueError(f"{field_label} musí být PDF soubor.")
+
+    content_type = (uploaded_file.content_type or "").lower()
+    if content_type and content_type not in {"application/pdf", "application/x-pdf"}:
+        raise ValueError(f"{field_label} nemá platný PDF content type.")
+
+    if uploaded_file.size > MAX_RESULTS_PDF_SIZE_BYTES:
+        raise ValueError(
+            f"{field_label} je příliš velké. Maximální velikost je {MAX_RESULTS_PDF_SIZE_BYTES // (1024 * 1024)} MB."
+        )
+
+
+def _build_ec_results_pdf_name(event):
+    event_slug = slugify(event.name) or f"event-{event.id}"
+    timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
+    return f"ec-results-{event.id}-{event_slug}-{timestamp}.pdf"
+
+
+def _handle_ec_results_pdf_upload(request, event):
+    morning_pdf = request.FILES.get("results-pdf-morning")
+    afternoon_pdf = request.FILES.get("results-pdf-afternoon")
+
+    if not morning_pdf and not afternoon_pdf:
+        messages.error(request, "Nahraj alespoň dopolední PDF s výsledky.")
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    try:
+        _validate_uploaded_results_pdf(morning_pdf, "dopolední PDF s výsledky", required=True)
+        _validate_uploaded_results_pdf(afternoon_pdf, "odpolední PDF s výsledky")
+        merged_pdf_bytes = _merge_uploaded_pdfs(morning_pdf, afternoon_pdf)
+    except Exception as exc:
+        logger.exception("Chyba při spojování PDF výsledků pro event_id=%s", event.id)
+        messages.error(request, f"Nepodařilo se spojit PDF soubory: {exc}")
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+    event.full_results.save(
+        _build_ec_results_pdf_name(event),
+        ContentFile(merged_pdf_bytes),
+        save=False,
+    )
+    event.save(update_fields=["full_results"])
+
+    messages.success(request, "Výsledky byly nahrány a zveřejněny jako jedno sloučené PDF.")
+    audit_logger.info(
+        "event_ec_results_pdf_uploaded admin_user_id=%s event_id=%s morning=%s afternoon=%s",
+        request.user.id,
+        event.id,
+        bool(morning_pdf),
+        bool(afternoon_pdf),
+    )
+    return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+
+def _handle_ec_results_pdf_delete(request, event):
+    if event.full_results:
+        event.full_results.delete(save=True)
+        messages.success(request, "Zveřejněné PDF výsledků bylo smazáno.")
+        audit_logger.info(
+            "event_ec_results_pdf_deleted admin_user_id=%s event_id=%s",
+            request.user.id,
+            event.id,
+        )
+    else:
+        messages.warning(request, "U závodu není nahrané žádné zveřejněné PDF výsledků.")
+    return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+
+
+def _generate_ec_file(event):
+    entries = Entry.objects.filter(
+        event=event.id,
+        payment_complete=True,
+        checkout=False,
+    ).select_related("rider")
+
+    template = os.path.join(
+        settings.MEDIA_ROOT,
+        "ec-files",
+        "Entries example - UEC.xlsx"
+        if event.type_for_ranking == "Evropský pohár"
+        else "Entries_upload_UEC_Champ_2024.xlsx",
+    )
+    target_path = os.path.join(
+        settings.MEDIA_ROOT,
+        "ec-files",
+        f"EC_RACE_ID-{event.id}-{event.name}.xlsx",
+    )
+    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+    wb = load_workbook(filename=template)
+    ws = wb.active
+
+    row_index = 3
+    for entry in entries:
+        rider = entry.rider
+        try:
+            ws.cell(row_index, 2, rider.uci_id)
+            ws.cell(row_index, 3, rider.date_of_birth)
+            ws.cell(row_index, 4, rider.first_name)
+            ws.cell(row_index, 5, rider.last_name)
+            ws.cell(row_index, 6, gender_resolve_small_letter(rider.gender))
+            ws.cell(row_index, 7, rider.transponder_20 if entry.is_20 else rider.transponder_24)
+            if entry.is_24:
+                ws.cell(row_index, 8, "x")
+            if entry.is_20:
+                if rider.is_elite:
+                    ws.cell(row_index, 9, "x")
+                if rider.class_20 in ["Women Under 23", "Men Under 23"]:
+                    ws.cell(row_index, 10, "x")
+            row_index += 1
+        except Exception as exc:
+            logger.error("Chyba při zápisu do EC souboru pro event_id=%s rider_id=%s: %s", event.id, rider.uci_id, exc)
+
+    wb.save(target_path)
+    event.ec_file = target_path
+    event.ec_file_created = timezone.now()
+    event.save(update_fields=["ec_file", "ec_file_created"])
+    return target_path
+
+
+def _get_ec_admin_context(event):
+    entries = Entry.objects.filter(
+        event=event.id,
+        payment_complete=True,
+        checkout=False,
+    )
+    payments = sum((entry.fee_20 if entry.is_20 else 0) + (entry.fee_24 if entry.is_24 else 0) for entry in entries)
+    sum_entries = entries.filter(Q(is_20=True) | Q(is_24=True)).count()
+    return {
+        "event": event,
+        "sum_entries": sum_entries,
+        "payments": payments,
+    }
 
 
 def _delete_uploaded_files_by_prefix(*storage_parts, prefix):
@@ -152,61 +342,40 @@ def _download_generated_file(file_path):
 # ===========================================================================
 
 def _handle_ec_event(request, event):
-    """Generuje EC přihlašovací soubor pro UEC (Evropský pohár / ME)."""
-    token = get_api_token()
+    """Admin stránka pro Evropský pohár / ME s explicitními akcemi."""
+    if request.method == "POST":
+        if "btn-upload-ec-results-pdf" in request.POST:
+            return _handle_ec_results_pdf_upload(request, event)
+        if "btn-delete-ec-results-pdf" in request.POST:
+            return _handle_ec_results_pdf_delete(request, event)
+        if "btn-generate-ec-file" in request.POST:
+            try:
+                file_path = _generate_ec_file(event)
+                audit_logger.info(
+                    "event_ec_file_generated_and_downloaded admin_user_id=%s event_id=%s",
+                    request.user.id,
+                    event.id,
+                )
+                return _download_generated_file(file_path)
+            except Exception as exc:
+                logger.exception("Chyba při generování UEC XLS pro event_id=%s", event.id)
+                messages.error(request, f"Nepodařilo se vygenerovat UEC XLS: {exc}")
+            return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
+        if "btn-generate-ec-insurance-file" in request.POST:
+            try:
+                file_path = generate_insurance_file(event)
+                audit_logger.info(
+                    "event_ec_insurance_file_generated_and_downloaded admin_user_id=%s event_id=%s",
+                    request.user.id,
+                    event.id,
+                )
+                return _download_generated_file(file_path)
+            except Exception as exc:
+                logger.exception("Chyba při generování pojišťovacího XLS pro event_id=%s", event.id)
+                messages.error(request, f"Nepodařilo se vygenerovat XLS pro pojišťovnu: {exc}")
+            return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
 
-    payments = 0
-    entries = Entry.objects.filter(
-        event=event.id, payment_complete=True, checkout=False
-    ).select_related("rider")
-    sum_entries = entries.filter(is_20=True).count() + entries.filter(is_24=True).count()
-
-    # Načti šablonu UEC souboru podle typu závodu
-    file_name = f"media/ec-files/EC_RACE_ID-{event.id}-{event.name}.xlsx"
-    template = (
-        "media/ec-files/Entries example - UEC.xlsx"
-        if event.type_for_ranking == "Evropský pohár"
-        else "media/ec-files/Entries_upload_UEC_Champ_2024.xlsx"
-    )
-    wb = load_workbook(filename=template)
-    ws = wb.active
-
-    x = 3
-    for entry in entries:
-        rider = entry.rider
-        try:
-            ws.cell(x, 2, rider.uci_id)
-            ws.cell(x, 3, rider.date_of_birth)
-            ws.cell(x, 4, rider.first_name)
-            ws.cell(x, 5, rider.last_name)
-            ws.cell(x, 6, gender_resolve_small_letter(rider.gender))
-            ws.cell(x, 7, rider.transponder_20 if entry.is_20 else rider.transponder_24)
-            if entry.is_24:
-                ws.cell(x, 8, "x")
-            if entry.is_20:
-                if rider.is_elite:
-                    ws.cell(x, 9, "x")
-                if rider.class_20 in ["Women Under 23", "Men Under 23"]:
-                    ws.cell(x, 10, "x")
-            x += 1
-        except Exception as e:
-            logger.error(f"Chyba při zápisu do EC souboru: {e}")
-
-        payments += entry.fee_20 if entry.is_20 else entry.fee_24
-
-    wb.save(file_name)
-    event.ec_file = file_name
-    event.ec_file_created = timezone.now()
-    event.save()
-
-    # Vygeneruj pojistný seznam pro UEC
-    generate_insurance_file(event)
-
-    return render(request, "event/event-admin-ec.html", {
-        "event": event,
-        "sum_entries": sum_entries,
-        "payments": payments,
-    })
+    return render(request, "event/event-admin-ec.html", _get_ec_admin_context(event))
 
 
 def _handle_upload_xls(request, event, pk):
@@ -599,7 +768,9 @@ def ec_by_club_xls(request, pk):
     response = HttpResponse(content_type="application/ms-excel")
     response["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
-    wb = load_workbook(filename="media/ec-files/Club example - UEC.xlsx")
+    wb = load_workbook(
+        filename=os.path.join(settings.MEDIA_ROOT, "ec-files", "Club example - UEC.xlsx")
+    )
     ws = wb.active
     ws.cell(3, 2, event.name)
 
@@ -657,11 +828,113 @@ def summary_riders_in_event(request, pk):
     )
 
 
-@staff_member_required
+@commissar_pages_required
 def commissar_assignments_view(request):
-    """Admin-only přehled nasazení rozhodčích podle roku."""
+    """Přehled nasazení rozhodčích podle roku s volitelným editačním režimem."""
     year_options = list(_get_event_year_options())
     selected_year = _resolve_selected_year(request.GET.get("year"), year_options)
+    can_edit = can_edit_commissar_assignments(request.user)
+    edit_mode = can_edit and request.GET.get("edit") == "1"
+
+    if request.method == "POST":
+        if not can_edit:
+            return HttpResponse(status=403)
+
+        selected_year = _resolve_selected_year(request.POST.get("year"), year_options)
+        events_to_update = list(
+            Event.objects.filter(date__year=selected_year)
+            .exclude(type_for_ranking__in=COMMISSAR_EXCLUDED_EVENT_TYPES)
+            .select_related("pcp", "pcp_assist", "start_commissar")
+            .order_by("date", "name")
+        )
+
+        active_commissars = {
+            str(commissar.id): commissar
+            for commissar in Commissar.objects.filter(is_active=True).order_by("last_name", "first_name")
+        }
+
+        validation_errors = []
+        updated_events = []
+        for event in events_to_update:
+            original_values = {
+                "pcp": event.pcp,
+                "pcp_assist": event.pcp_assist,
+                "start_commissar": event.start_commissar,
+            }
+            submitted_assignments = {}
+            changed_fields = []
+            has_conflict = False
+
+            original_snapshot = {
+                "pcp": str(event.pcp_id or ""),
+                "pcp_assist": str(event.pcp_assist_id or ""),
+                "start_commissar": str(event.start_commissar_id or ""),
+            }
+            for field_name, snapshot_value in original_snapshot.items():
+                posted_snapshot = (request.POST.get(f"original_{field_name}_{event.id}") or "").strip()
+                if posted_snapshot != snapshot_value:
+                    validation_errors.append(
+                        _("Závod %(event)s mezitím upravil někdo jiný. Obnov stránku a zkontroluj aktuální nasazení.")
+                        % {"event": event.name}
+                    )
+                    has_conflict = True
+                    break
+
+            if has_conflict:
+                continue
+
+            for field_name in ("pcp", "pcp_assist", "start_commissar"):
+                submitted_value = (request.POST.get(f"{field_name}_{event.id}") or "").strip()
+                new_value = active_commissars.get(submitted_value) if submitted_value else None
+                submitted_assignments[field_name] = new_value
+
+            selected_ids = [
+                commissar.id
+                for commissar in submitted_assignments.values()
+                if commissar is not None
+            ]
+            if len(selected_ids) != len(set(selected_ids)):
+                validation_errors.append(
+                    _("V závodu %(event)s nemůže být jeden rozhodčí nasazen do více rolí současně.")
+                    % {"event": event.name}
+                )
+                continue
+
+            for field_name, new_value in submitted_assignments.items():
+                if getattr(event, field_name) != new_value:
+                    setattr(event, field_name, new_value)
+                    changed_fields.append(field_name)
+
+            if changed_fields:
+                event.save(update_fields=changed_fields)
+                updated_events.append(event)
+                for field_name in changed_fields:
+                    previous = original_values[field_name] or "-"
+                    current = getattr(event, field_name) or "-"
+                    audit_logger.info(
+                        "commissar_assignment_updated user_id=%s event_id=%s field=%s old=%s new=%s",
+                        request.user.id,
+                        event.id,
+                        field_name,
+                        previous,
+                        current,
+                    )
+
+        if validation_errors:
+            for error in validation_errors:
+                messages.error(request, error)
+            return HttpResponseRedirect(
+                f"{reverse('event:commissar-assignments')}?year={selected_year}&edit=1"
+            )
+
+        if updated_events:
+            messages.success(request, _("Nasazení rozhodčích bylo uloženo."))
+        else:
+            messages.info(request, _("Nebyla provedena žádná změna."))
+
+        return HttpResponseRedirect(
+            f"{reverse('event:commissar-assignments')}?year={selected_year}"
+        )
 
     events = (
         Event.objects.filter(date__year=selected_year)
@@ -684,13 +957,16 @@ def commissar_assignments_view(request):
         "events": events,
         "selected_year": int(selected_year),
         "year_options": year_options,
+        "can_edit_assignments": can_edit,
+        "edit_mode": edit_mode,
+        "active_commissars": Commissar.objects.filter(is_active=True).order_by("last_name", "first_name"),
         "pcp_events_count": pcp_events_count,
         "pcp_assist_events_count": pcp_assist_events_count,
         "start_commissar_events_count": start_commissar_events_count,
     })
 
 
-@staff_member_required
+@commissar_pages_required
 def commissar_statistics_view(request):
     """Admin-only statistika nasazení rozhodčích podle roku."""
     year_options = list(_get_event_year_options())
@@ -803,12 +1079,29 @@ def export_event_results(request, event_id):
             event.ccf_id,
             len(payload),
         )
-        response = requests.post(api_url, json=payload, headers={"Authorization": f"Bearer {token}"})
+        response = requests.post(
+            api_url,
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=CCF_API_TIMEOUT,
+        )
         response.raise_for_status()
-        with open(f"media/api-payloads/payload_event_{event.id}.json", "w", encoding="utf-8") as f:
+        payload_dir = os.path.join(settings.MEDIA_ROOT, "api-payloads")
+        os.makedirs(payload_dir, exist_ok=True)
+        with open(
+            os.path.join(payload_dir, f"payload_event_{event.id}.json"),
+            "w",
+            encoding="utf-8",
+        ) as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
         logger.info("Výsledky úspěšně odeslány do API ČSC pro event_id=%s", event.id)
-    except Exception as e:
+    except requests.Timeout:
+        logger.exception("Timeout při odesílání výsledků do API ČSC pro event_id=%s", event.id)
+        return render(request, "error.html", {
+            "message": "Nepodařilo se odeslat výsledky na API.",
+            "detail": "API ČSC neodpovědělo včas.",
+        })
+    except requests.RequestException as e:
         logger.exception("Chyba při odesílání výsledků do API ČSC pro event_id=%s", event.id)
         return render(request, "error.html", {
             "message": "Nepodařilo se odeslat výsledky na API.", "detail": str(e)

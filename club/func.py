@@ -1,3 +1,5 @@
+import os
+from django.conf import settings
 from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -61,7 +63,12 @@ def riders_on_events(club_pk):
 
         i = i + 1
 
-    file_path = f"media/riders_on_events/RIDERS_IN_EVENTS-{year}-{club_pk}.xlsx"
+    file_path = os.path.join(
+        settings.MEDIA_ROOT,
+        "riders_on_events",
+        f"RIDERS_IN_EVENTS-{year}-{club_pk}.xlsx",
+    )
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     wb.save(file_path)
 
     return file_path
