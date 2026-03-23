@@ -2013,8 +2013,17 @@ def deactivate_inactive_rider_view(request, rider_id):
 def licence_check_views(request):
     """ Function for checking valid licence"""
     CheckValidLicenceThread().start()
-    messages.success(request, _("Ověřování platnosti licencí probíhá na pozadí."))
-    data = {}
+    data = {
+        "status_eyebrow": _("Správa jezdců"),
+        "status_title": _("Kontrola licencí byla spuštěna"),
+        "status_description": _("Ověřování platnosti licencí nyní běží na pozadí. Po dokončení se stav propíše přímo v databázi jezdců."),
+        "status_note": _("Není potřeba čekat na této stránce. Můžeš pokračovat v administraci nebo se vrátit zpět na přehled nástrojů."),
+        "status_icon": "license",
+        "primary_action_label": _("Zpět na administraci jezdců"),
+        "primary_action_url": "rider:admin",
+        "secondary_action_label": _("Seznam jezdců"),
+        "secondary_action_url": "rider:list",
+    }
     return render(request, "rider/rider-success.html", data)
 
 
@@ -2043,8 +2052,17 @@ def participation_riders_on_event(request):
 def recalculate_riders_classes(request):
     # set_all_riders_classes()
     RiderSetClassesThread().start()
-    messages.success(request, _("Kategorie jezdců jsou přepočítávány na pozadí."))
-    data = {}
+    data = {
+        "status_eyebrow": _("Správa jezdců"),
+        "status_title": _("Přepočet kategorií byl spuštěn"),
+        "status_description": _("Kategorie jezdců se teď přepočítávají na pozadí podle aktuálních pravidel."),
+        "status_note": _("Po dokončení se nové třídy propíšou do profilů jezdců. Můžeš se vrátit do administrace nebo pokračovat v jiné práci."),
+        "status_icon": "classes",
+        "primary_action_label": _("Zpět na administraci jezdců"),
+        "primary_action_url": "rider:admin",
+        "secondary_action_label": _("Seznam jezdců"),
+        "secondary_action_url": "rider:list",
+    }
     return render(request, "rider/rider-success.html", data)
 
 
@@ -2117,10 +2135,17 @@ def riders_by_class_and_club(request):
 @staff_member_required
 def qualify_to_cn(request):
     RiderQualifyToCNThread().start()
-    messages.success(
-        request, _("Kvalifikace na Mistrovství České republiky je počítána na pozadí.")
-    )
-    data = {}
+    data = {
+        "status_eyebrow": _("Správa jezdců"),
+        "status_title": _("Výpočet kvalifikace byl spuštěn"),
+        "status_description": _("Kvalifikace na Mistrovství České republiky se právě počítá na pozadí."),
+        "status_note": _("Po dokončení budou nové výsledky dostupné v příslušném přehledu. Není potřeba čekat na této stránce."),
+        "status_icon": "qualify",
+        "primary_action_label": _("Zpět na administraci jezdců"),
+        "primary_action_url": "rider:admin",
+        "secondary_action_label": _("Seznam jezdců"),
+        "secondary_action_url": "rider:list",
+    }
     return render(request, "rider/rider-success.html", data)
 def _get_event_year_options():
     return Event.objects.exclude(date__isnull=True).dates("date", "year", order="DESC")
