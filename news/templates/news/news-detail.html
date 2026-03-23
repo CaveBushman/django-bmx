@@ -3,13 +3,33 @@
 {{ news.title }}
 {% endblock title %}
 
+{% block meta_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block twitter_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
 {% block meta_tags %}
 <meta property="og:title" content="{{ news.title }}">
-<meta property="og:description" content="{{ news.prefix }}">
-<meta property="og:image" content="{{ absolute_image_url }}">
-<meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="Czech BMX website">
+<meta property="og:description" content="{{ news.prefix|striptags|truncatechars:155 }}">
+{% if absolute_image_url %}<meta property="og:image" content="{{ absolute_image_url }}">{% endif %}
+<meta property="og:url" content="{{ seo_canonical_url }}">
+<meta name="twitter:title" content="{{ news.title }}">
+<meta name="twitter:description" content="{{ news.prefix|striptags|truncatechars:155 }}">
+{% if absolute_image_url %}<meta name="twitter:image" content="{{ absolute_image_url }}">{% endif %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "{{ news.title|escapejs }}",
+  "datePublished": "{{ news.publish_date|date:'Y-m-d' }}",
+  "dateModified": "{{ news.created_date|date:'c' }}",
+  "mainEntityOfPage": "{{ seo_canonical_url }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Czech BMX"
+  }{% if absolute_image_url %},
+  "image": ["{{ absolute_image_url }}"]{% endif %}
+}
+</script>
 {% endblock %}
 
 {% block extra_head %}

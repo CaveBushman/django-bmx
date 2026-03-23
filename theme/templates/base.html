@@ -48,6 +48,16 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <title>{% blocktrans %}Czech BMX{% endblocktrans %} - {% block title %}{% endblock %}</title>
   <link rel="icon" type="image/x-icon" href="{% static 'images/homepage/bmx.png' %}" />
+  <meta name="description" content="{% block meta_description %}{{ seo_default_description }}{% endblock %}" />
+  <meta name="robots" content="{% block meta_robots %}index,follow{% endblock %}" />
+  <link rel="canonical" href="{% block canonical_url %}{{ seo_canonical_url }}{% endblock %}" />
+  <meta property="og:site_name" content="{{ seo_site_name }}">
+  <meta property="og:locale" content="cs_CZ">
+  <meta property="og:url" content="{% block og_url %}{{ seo_canonical_url }}{% endblock %}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ seo_default_description }}{% endblock %}">
+  <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ seo_default_description }}{% endblock %}">
 
   <!-- Open Graph meta tagy -->
   {% block meta_tags %}

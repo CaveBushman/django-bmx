@@ -14,6 +14,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from openpyxl import Workbook, load_workbook
+from PIL import Image
 from commissar.models import Commissar
 from reportlab.pdfgen import canvas
 
@@ -33,6 +34,7 @@ from event.views.entry_helpers import (
     sync_paid_foreign_riders,
     validate_foreign_summary_payload,
 )
+from accounts.models import Account
 from rider.models import Rider
 from rider.models import ForeignRider
 from rider.rider import RiderQualifyToCNThread, should_recount_cn_qualification_for_event
@@ -972,13 +974,10 @@ class EuropeanCupAdminTests(TestCase):
             response = self.client.post(
                 reverse("event:event-admin", kwargs={"pk": self.event.id}),
                 {"btn-generate-ec-file": "1"},
-                follow=True,
             )
 
-        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        self.assertEqual(response.status_code, 200)
         generate_ec_file_mock.assert_called_once_with(self.event)
-        messages = [message.message for message in get_messages(response.wsgi_request)]
-        self.assertIn("UEC XLS soubor byl vygenerován.", messages)
 
     def test_ec_admin_rejects_non_pdf_results_upload(self):
         self.client.force_login(self.staff_user)
@@ -987,7 +986,7 @@ class EuropeanCupAdminTests(TestCase):
             reverse("event:event-admin", kwargs={"pk": self.event.id}),
             {
                 "btn-upload-ec-results-pdf": "1",
-                "results-pdf-morning": SimpleUploadedFile(
+                "results-pdf-files": SimpleUploadedFile(
                     "results.txt",
                     b"not-a-pdf",
                     content_type="text/plain",
@@ -1007,7 +1006,7 @@ class EuropeanCupAdminTests(TestCase):
             reverse("event:event-admin", kwargs={"pk": self.event.id}),
             {
                 "btn-upload-ec-results-pdf": "1",
-                "results-pdf-morning": self._make_pdf_upload(),
+                "results-pdf-files": self._make_pdf_upload(),
             },
             follow=True,
         )
@@ -1017,6 +1016,145 @@ class EuropeanCupAdminTests(TestCase):
         self.assertTrue(bool(self.event.full_results))
         messages = [message.message for message in get_messages(response.wsgi_request)]
         self.assertIn("Výsledky byly nahrány a zveřejněny jako jedno sloučené PDF.", messages)
+
+    def test_ec_admin_accepts_multiple_pdf_results_upload(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.id}),
+            {
+                "btn-upload-ec-results-pdf": "1",
+                "results-pdf-files": [
+                    self._make_pdf_upload("results-1.pdf", "block-1"),
+                    self._make_pdf_upload("results-2.pdf", "block-2"),
+                    self._make_pdf_upload("results-3.pdf", "block-3"),
+                ],
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("event:event-admin", kwargs={"pk": self.event.id}))
+        self.event.refresh_from_db()
+        self.assertTrue(bool(self.event.full_results))
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+        self.assertIn("Výsledky byly nahrány a zveřejněny jako jedno sloučené PDF.", messages)
+
+
+class EventPropositionEditorUploadTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="Upload Club")
+
+        self.club_manager = User.objects.create_user(
+            first_name="Club",
+            last_name="Manager",
+            username="club_manager",
+            email="club_manager@example.com",
+            password="StrongPass123!",
+        )
+        self.club_manager.is_active = True
+        self.club_manager.is_club_manager = True
+        self.club_manager.club = self.club
+        self.club_manager.save(update_fields=["is_active", "is_club_manager", "club"])
+
+        self.regular_user = User.objects.create_user(
+            first_name="Regular",
+            last_name="User",
+            username="regular_user",
+            email="regular_user@example.com",
+            password="StrongPass123!",
+        )
+        self.regular_user.is_active = True
+        self.regular_user.save(update_fields=["is_active"])
+
+    def _make_image_upload(self, name="editor-image.png", image_format="PNG"):
+        buffer = BytesIO()
+        image = Image.new("RGB", (32, 32), color=(12, 120, 220))
+        image.save(buffer, format=image_format)
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    def test_club_manager_can_upload_editor_image(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {"upload": self._make_image_upload()},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("url", response.json())
+        self.assertIn("/media/proposition_uploads/", response.json()["url"])
+
+    def test_regular_authenticated_user_cannot_upload_editor_image(self):
+        self.client.force_login(self.regular_user)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {"upload": self._make_image_upload()},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("error", response.json())
+
+    def test_non_image_upload_is_rejected(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {
+                "upload": SimpleUploadedFile(
+                    "editor-file.txt",
+                    b"not-an-image",
+                    content_type="text/plain",
+                )
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+
+class EventPropositionSanitizationTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Sanitize Club")
+        self.user = Account.objects.create_user(
+            first_name="Event",
+            last_name="Editor",
+            username="event_editor",
+            email="event_editor@example.com",
+            password="StrongPass123!",
+        )
+        self.event = Event.objects.create(
+            name="Sanitized Proposition Event",
+            date=date.today() + timedelta(days=20),
+            organizer=self.club,
+            type_for_ranking="Volný závod",
+        )
+
+    def test_event_proposition_save_sanitizes_html_and_preserves_safe_media(self):
+        from event.models import EventProposition
+
+        proposition = EventProposition.objects.create(
+            event=self.event,
+            created_by=self.user,
+            updated_by=self.user,
+            summary=(
+                '<p>Summary</p><iframe src="https://www.youtube.com/embed/x"></iframe>'
+                '<a href="https://www.youtube.com/watch?v=abc" target="_blank">Video</a>'
+                '<img src="/media/proposition_uploads/test.png" onerror="alert(1)" alt="Track map">'
+            ),
+        )
+
+        self.assertNotIn("<iframe", proposition.summary)
+        self.assertIn('href="https://www.youtube.com/watch?v=abc"', proposition.summary)
+        self.assertIn('rel="noopener noreferrer"', proposition.summary)
+        self.assertIn('src="/media/proposition_uploads/test.png"', proposition.summary)
+        self.assertNotIn("onerror", proposition.summary)
 
 
 class CommissarAssignmentsTests(TestCase):

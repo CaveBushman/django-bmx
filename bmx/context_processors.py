@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.utils import timezone
 
 
 def navbar_context(request):
     from accounts.models import Account
+    from accounts.models import AvatarChangeRequest
     from rider.models import Rider
     from todo.models import CommissionTask
 
@@ -18,6 +20,18 @@ def navbar_context(request):
                     {
                         "navbar_plate_pending_count": pending_plate_count,
                         "navbar_plate_pending": pending_plate_count > 0,
+                    }
+                )
+
+            if request.user.is_staff:
+                AvatarChangeRequest.expire_stale_requests()
+                pending_avatar_count = AvatarChangeRequest.objects.filter(
+                    status=AvatarChangeRequest.STATUS_PENDING
+                ).count()
+                navbar_data.update(
+                    {
+                        "navbar_avatar_pending_count": pending_avatar_count,
+                        "navbar_avatar_pending": pending_avatar_count > 0,
                     }
                 )
 
@@ -45,3 +59,14 @@ def navbar_context(request):
         except Account.DoesNotExist:
             return {"user_credit": 0}
     return {}
+
+
+def seo_context(request):
+    return {
+        "seo_canonical_url": f"{settings.YOUR_DOMAIN.rstrip('/')}{request.path}",
+        "seo_default_description": (
+            "Oficialni web Czech BMX. Aktuality, kalendar zavodu, vysledky, "
+            "propozice a informace pro jezdce, kluby a rozhodci."
+        ),
+        "seo_site_name": "Czech BMX",
+    }

@@ -196,17 +196,16 @@ def _build_ec_results_pdf_name(event):
 
 
 def _handle_ec_results_pdf_upload(request, event):
-    morning_pdf = request.FILES.get("results-pdf-morning")
-    afternoon_pdf = request.FILES.get("results-pdf-afternoon")
+    uploaded_pdfs = [uploaded_file for uploaded_file in request.FILES.getlist("results-pdf-files") if uploaded_file]
 
-    if not morning_pdf and not afternoon_pdf:
-        messages.error(request, "Nahraj alespoň dopolední PDF s výsledky.")
+    if not uploaded_pdfs:
+        messages.error(request, "Nahraj alespoň jeden PDF soubor s výsledky.")
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
 
     try:
-        _validate_uploaded_results_pdf(morning_pdf, "dopolední PDF s výsledky", required=True)
-        _validate_uploaded_results_pdf(afternoon_pdf, "odpolední PDF s výsledky")
-        merged_pdf_bytes = _merge_uploaded_pdfs(morning_pdf, afternoon_pdf)
+        for index, uploaded_pdf in enumerate(uploaded_pdfs, start=1):
+            _validate_uploaded_results_pdf(uploaded_pdf, f"PDF s výsledky #{index}", required=True)
+        merged_pdf_bytes = _merge_uploaded_pdfs(*uploaded_pdfs)
     except Exception as exc:
         logger.exception("Chyba při spojování PDF výsledků pro event_id=%s", event.id)
         messages.error(request, f"Nepodařilo se spojit PDF soubory: {exc}")
@@ -221,11 +220,10 @@ def _handle_ec_results_pdf_upload(request, event):
 
     messages.success(request, "Výsledky byly nahrány a zveřejněny jako jedno sloučené PDF.")
     audit_logger.info(
-        "event_ec_results_pdf_uploaded admin_user_id=%s event_id=%s morning=%s afternoon=%s",
+        "event_ec_results_pdf_uploaded admin_user_id=%s event_id=%s pdf_count=%s",
         request.user.id,
         event.id,
-        bool(morning_pdf),
-        bool(afternoon_pdf),
+        len(uploaded_pdfs),
     )
     return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": event.id}))
 

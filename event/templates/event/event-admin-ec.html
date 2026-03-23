@@ -98,6 +98,43 @@
     border-color: rgba(99, 102, 241, 0.3) !important;
     color: #fff !important;
   }
+
+  .ec-results-input-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ec-results-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    color: #64748b;
+    transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+  }
+
+  .ec-results-remove:hover {
+    border-color: rgba(244, 63, 94, 0.35);
+    color: #e11d48;
+    background: rgba(254, 226, 226, 0.7);
+  }
+
+  html.dark .ec-results-remove {
+    border-color: rgba(71, 85, 105, 0.9);
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.6);
+  }
+
+  html.dark .ec-results-remove:hover {
+    border-color: rgba(244, 63, 94, 0.35);
+    color: #fda4af;
+    background: rgba(127, 29, 29, 0.3);
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -193,37 +230,45 @@
 
       <div class="mt-8 max-w-3xl">
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zveřejnění výsledků</p>
-        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Spojení dopoledního a odpoledního PDF</h2>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Spojení více výsledkových PDF</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Nahraj dopolední a případně odpolední PDF. Systém je spojí do jednoho veřejného souboru a publikuje ho v přehledu závodů.
+          Nahraj libovolný počet PDF souborů s výsledky. Systém je spojí do jednoho veřejného souboru a publikuje ho v přehledu závodů.
         </p>
       </div>
 
       <form method="post" enctype="multipart/form-data" class="mt-8">
         {% csrf_token %}
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
           <article class="ec-admin-file-card rounded-[1.5rem] p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Dopoledne</p>
-            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF výsledků 1. blok</h3>
-            <input
-              type="file"
-              name="results-pdf-morning"
-              accept=".pdf,application/pdf"
-              class="mt-4 block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
-            />
-            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Povinné, pokud nahráváš výsledky.</p>
-          </article>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Výsledkové bloky</p>
+                <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF soubory s výsledky</h3>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">První pole je povinné. Další přidej tlačítkem +.</p>
+              </div>
+              <button
+                type="button"
+                id="ec-results-add-input"
+                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 text-xl font-semibold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500/50 dark:hover:text-indigo-300"
+                aria-label="Přidat další PDF výsledků"
+              >
+                +
+              </button>
+            </div>
 
-          <article class="ec-admin-file-card rounded-[1.5rem] p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Odpoledne</p>
-            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF výsledků 2. blok</h3>
-            <input
-              type="file"
-              name="results-pdf-afternoon"
-              accept=".pdf,application/pdf"
-              class="mt-4 block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
-            />
-            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Volitelné. Když chybí, zveřejní se jen dopolední soubor.</p>
+            <div id="ec-results-inputs" class="mt-4 space-y-4">
+              <div class="ec-results-input-row">
+                <div class="ec-results-input-header">
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">PDF výsledků 1</label>
+                </div>
+                <input
+                  type="file"
+                  name="results-pdf-files"
+                  accept=".pdf,application/pdf"
+                  class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+            </div>
           </article>
 
           <article class="ec-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between">
@@ -273,6 +318,71 @@
     if (!Number.isNaN(value)) {
       paymentEl.textContent = value.toLocaleString("cs-CZ") + " CZK";
     }
+
+    const addButton = document.getElementById("ec-results-add-input");
+    const inputsWrapper = document.getElementById("ec-results-inputs");
+    if (!addButton || !inputsWrapper) {
+      return;
+    }
+
+    function createInputRow(index) {
+      const row = document.createElement("div");
+      row.className = "ec-results-input-row";
+      row.innerHTML = `
+        <div class="ec-results-input-header">
+          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">PDF výsledků ${index}</label>
+          <button
+            type="button"
+            class="ec-results-remove"
+            aria-label="Odebrat PDF výsledků ${index}"
+            title="Odebrat toto pole"
+          >
+            −
+          </button>
+        </div>
+        <input
+          type="file"
+          name="results-pdf-files"
+          accept=".pdf,application/pdf"
+          class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
+        />
+      `;
+      return row;
+    }
+
+    function renumberInputs() {
+      inputsWrapper.querySelectorAll(".ec-results-input-row").forEach(function (row, index) {
+        const label = row.querySelector("label");
+        if (label) {
+          label.textContent = `PDF výsledků ${index + 1}`;
+        }
+
+        const removeButton = row.querySelector(".ec-results-remove");
+        if (removeButton) {
+          removeButton.setAttribute("aria-label", `Odebrat PDF výsledků ${index + 1}`);
+        }
+      });
+    }
+
+    addButton.addEventListener("click", function () {
+      const nextIndex = inputsWrapper.querySelectorAll(".ec-results-input-row").length + 1;
+      inputsWrapper.appendChild(createInputRow(nextIndex));
+    });
+
+    inputsWrapper.addEventListener("click", function (event) {
+      const removeButton = event.target.closest(".ec-results-remove");
+      if (!removeButton) {
+        return;
+      }
+
+      const row = removeButton.closest(".ec-results-input-row");
+      if (!row) {
+        return;
+      }
+
+      row.remove();
+      renumberInputs();
+    });
   });
 </script>
 {% endblock %}

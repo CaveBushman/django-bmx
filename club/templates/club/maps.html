@@ -2,40 +2,112 @@
 {% block title %}Mapa klubů{% endblock title %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-{% endblock %}
-{% block content %}
+<style>
+  .clubs-map-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 32%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 28%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-3xl font-extrabold uppercase">MAPA KLUBŮ</h1>
+  .clubs-map-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.35), transparent);
+  }
+
+  .clubs-map-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .clubs-map-panel {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  #map {
+    height: 680px;
+    width: 100%;
+    border-radius: 1.5rem;
+  }
+
+  html.dark .clubs-map-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .clubs-map-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .clubs-map-panel {
+    border-color: rgba(71, 85, 105, 0.55);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="clubs-map-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Klubová síť</p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Mapa klubů</h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Přehled aktivních klubů na mapě s rychlým přístupem k jejich základním kontaktům a webům.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="clubs-map-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kluby na mapě</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ kluby|length }}</p>
+        </div>
+        <div class="clubs-map-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vrstva</p>
+          <p class="mt-2 text-base font-black text-slate-900 dark:text-white">OpenStreetMap</p>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
-<div id="map" class="h-[600px] w-full"></div>
+<section class="bg-slate-50 py-8 dark:bg-slate-900">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="clubs-map-panel rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div id="map"></div>
+    </div>
+  </div>
+</section>
 
-<!-- Leaflet knihovna -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
-  const map = L.map('map').setView([49.75, 15.5], 7); // Střed ČR
+  const map = L.map('map').setView([49.75, 15.5], 7);
 
-  // Základní dlaždice
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap přispěvatelé'
   }).addTo(map);
 
-  // Markery klubů
   {% for klub in kluby %}
     L.marker([{{ klub.lon }}, {{ klub.lng }}]).addTo(map)
       .bindPopup(`
-        <b>{{ klub.team_name }}</b>
-        {% if klub.have_track %} 🏁{% endif %}
-        <br>{{ klub.city }}
+        <b>{{ klub.team_name }}</b><br>{{ klub.city }}
         {% if klub.web %}
-          <br><a href="{{ klub.web }}" target="_blank">Web</a>
+          <br><a href="{{ klub.web }}" target="_blank" rel="noopener noreferrer">Web</a>
         {% endif %}
       `);
   {% endfor %}
 </script>
-
 {% endblock %}

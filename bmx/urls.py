@@ -27,6 +27,7 @@ urlpatterns = [
     path('bmx-admin/', admin.site.urls),
     path('finance/', include('finance.urls')),
     path('csp-report/', bmx_views.csp_report_view, name='csp-report'),
+    path('sitemap.xml', bmx_views.sitemap_view, name='sitemap'),
     ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

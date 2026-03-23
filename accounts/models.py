@@ -1,10 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.utils import timezone
 from event.credit import calculate_user_balance
 from club.models import Club
+from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from PIL import Image, ImageOps
+from io import BytesIO
+import uuid
 
 
 # Create your models here.
@@ -81,6 +88,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name="trainers",
     )
+    riders = models.ManyToManyField(
+        "rider.Rider",
+        through="AccountRiderLink",
+        blank=True,
+        related_name="linked_accounts",
+    )
 
     # not required
     photo = models.ImageField(
@@ -103,6 +116,202 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, add_label):
         return self.is_superuser
+
+
+class AccountRiderLink(models.Model):
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="rider_links",
+    )
+    rider = models.ForeignKey(
+        "rider.Rider",
+        on_delete=models.CASCADE,
+        related_name="account_links",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Vazba uživatel-jezdec"
+        verbose_name_plural = "Vazby uživatel-jezdec"
+        ordering = ["account__last_name", "account__first_name", "rider__last_name", "rider__first_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["account", "rider"],
+                name="unique_account_rider_link",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.account} -> {self.rider}"
+
+
+class AvatarChangeRequest(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_EXPIRED = "expired"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Čeká na schválení"),
+        (STATUS_APPROVED, "Schváleno"),
+        (STATUS_REJECTED, "Zamítnuto"),
+        (STATUS_EXPIRED, "Expirováno"),
+    )
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="submitted_avatar_change_requests",
+    )
+    target_account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="avatar_change_requests",
+    )
+    target_rider = models.ForeignKey(
+        "rider.Rider",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="avatar_change_requests",
+    )
+    image = models.ImageField(upload_to="images/avatar-change-requests/")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    review_note = models.CharField(max_length=255, blank=True, default="")
+    created = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_avatar_change_requests",
+    )
+
+    class Meta:
+        verbose_name = "Žádost o změnu avataru"
+        verbose_name_plural = "Žádosti o změnu avataru"
+        ordering = ["-created"]
+        indexes = [
+            models.Index(fields=["status", "-created"], name="avatar_req_status_created_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["target_account"],
+                condition=models.Q(status="pending", target_account__isnull=False),
+                name="unique_pending_avatar_request_per_account",
+            ),
+            models.UniqueConstraint(
+                fields=["target_rider"],
+                condition=models.Q(status="pending", target_rider__isnull=False),
+                name="unique_pending_avatar_request_per_rider",
+            ),
+        ]
+
+    def __str__(self):
+        target = self.target_account or self.target_rider
+        return f"{self.get_status_display()}: {target}"
+
+    def clean(self):
+        super().clean()
+        has_account = bool(self.target_account_id)
+        has_rider = bool(self.target_rider_id)
+        if has_account == has_rider:
+            raise ValidationError("Žádost musí cílit právě na jeden profil.")
+
+    @property
+    def target_label(self):
+        if self.target_account_id:
+            return str(self.target_account)
+        if self.target_rider_id:
+            return str(self.target_rider)
+        return ""
+
+    @classmethod
+    def expiration_days(cls):
+        return getattr(settings, "AVATAR_REQUEST_EXPIRATION_DAYS", 30)
+
+    @classmethod
+    def pending_cutoff(cls):
+        return timezone.now() - timezone.timedelta(days=cls.expiration_days())
+
+    @classmethod
+    def expire_stale_requests(cls):
+        stale_requests = list(
+            cls.objects.filter(
+                status=cls.STATUS_PENDING,
+                created__lt=cls.pending_cutoff(),
+            )
+        )
+        for stale_request in stale_requests:
+            stale_request.expire()
+        return len(stale_requests)
+
+    @property
+    def is_stale(self):
+        return self.status == self.STATUS_PENDING and self.created < self.pending_cutoff()
+
+    def _build_normalized_avatar(self):
+        final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
+        output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
+
+        with self.image.open("rb") as image_file:
+            image = Image.open(image_file)
+            image = ImageOps.exif_transpose(image).convert("RGB")
+            image = ImageOps.fit(
+                image,
+                (final_size, final_size),
+                method=Image.Resampling.LANCZOS,
+                centering=(0.5, 0.5),
+            )
+            output = BytesIO()
+            image.save(output, format="WEBP", quality=output_quality, method=6)
+
+        output.seek(0)
+        if self.target_account_id:
+            filename = f"account-avatar-{self.target_account_id}-{uuid.uuid4().hex[:12]}.webp"
+        else:
+            filename = f"rider-avatar-{self.target_rider_id}-{uuid.uuid4().hex[:12]}.webp"
+        return filename, ContentFile(output.read())
+
+    def _cleanup_request_image(self):
+        if not self.image:
+            return
+        self.image.delete(save=False)
+        self.image = ""
+
+    def _finalize(self, *, status, reviewer=None, note=""):
+        self.status = status
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+        self.review_note = note
+        self._cleanup_request_image()
+        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_note", "image"])
+
+    def approve(self, reviewer, note=""):
+        filename, normalized_image = self._build_normalized_avatar()
+        if self.target_account_id:
+            self.target_account.photo.save(filename, normalized_image, save=False)
+            self.target_account.save(update_fields=["photo"])
+        elif self.target_rider_id:
+            self.target_rider.photo.save(filename, normalized_image, save=False)
+            self.target_rider.save(update_fields=["photo"])
+        self._finalize(status=self.STATUS_APPROVED, reviewer=reviewer, note=note)
+
+    def reject(self, reviewer, note=""):
+        self._finalize(status=self.STATUS_REJECTED, reviewer=reviewer, note=note)
+
+    def expire(self, note=""):
+        self._finalize(status=self.STATUS_EXPIRED, reviewer=None, note=note or "Žádost expirovala bez schválení.")
+
+
+class PendingAvatarChangeRequest(AvatarChangeRequest):
+    class Meta:
+        proxy = True
+        verbose_name = "Čekající avatar"
+        verbose_name_plural = "Čekající avatary"
 
 import logging
 logger = logging.getLogger(__name__)

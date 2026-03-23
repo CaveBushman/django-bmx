@@ -1,6 +1,8 @@
-from django.shortcuts import render, get_object_or_404 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage
+from django.conf import settings
 from event.models import Event, SeasonSettings
 from event.func import update_cart
 from rider.rider import update_plate_notify
@@ -24,32 +26,48 @@ def get_image_dimensions(image_field):
 def homepage_view(request):
     this_year = date.today().year
     today = date.today()
-    events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count()
-    riders_sum = Rider.sum_of_riders()
-    clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
-    homepage_news = News.objects.filter(published=True, on_homepage=True).select_related('created').prefetch_related('tags').order_by('-publish_date')
-    sponsors = Sponsor.objects.filter(
-        is_published=True,
-        valid_from__lte=today,
-    ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=today))
-    championship_men_leader = Rider.objects.filter(
-        is_active=True,
-        is_approved=True,
-        class_20__in=["Men Junior", "Men Under 23", "Men Elite"],
-    ).order_by("-points_20", "last_name", "first_name").first()
-    championship_women_leader = Rider.objects.filter(
-        is_active=True,
-        is_approved=True,
-        class_20__in=["Women Junior", "Women Under 23", "Women Elite"],
-    ).order_by("-points_20", "last_name", "first_name").first()
+    cache_key = f"homepage:view-data:{this_year}:{today.isoformat()}"
+    content = cache.get(cache_key)
+
+    if content is None:
+        events_sum = Event.objects.filter(date__year=str(this_year), canceled=False).count()
+        riders_sum = Rider.sum_of_riders()
+        clubs_sum = Club.active_club() - 1  # odečítám "Bez klubové příslušnosti"
+        homepage_news = list(
+            News.objects.filter(published=True, on_homepage=True)
+            .select_related("created")
+            .prefetch_related("tags")
+            .order_by("-publish_date")
+        )
+        sponsors = list(
+            Sponsor.objects.filter(
+                is_published=True,
+                valid_from__lte=today,
+            ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=today))
+        )
+        championship_men_leader = Rider.objects.filter(
+            is_active=True,
+            is_approved=True,
+            class_20__in=["Men Junior", "Men Under 23", "Men Elite"],
+        ).order_by("-points_20", "last_name", "first_name").first()
+        championship_women_leader = Rider.objects.filter(
+            is_active=True,
+            is_approved=True,
+            class_20__in=["Women Junior", "Women Under 23", "Women Elite"],
+        ).order_by("-points_20", "last_name", "first_name").first()
+        content = {
+            "clubs_count": clubs_sum,
+            "riders_count": riders_sum,
+            "races_count": events_sum,
+            "homepage_news": homepage_news,
+            "sponsors": sponsors,
+            "championship_men_leader": championship_men_leader,
+            "championship_women_leader": championship_women_leader,
+        }
+        cache.set(cache_key, content, settings.HOMEPAGE_DATA_CACHE_SECONDS)
+
     update_cart(request)
     update_plate_notify(request)
-    content = {'clubs_count': clubs_sum, 'riders_count': riders_sum,
-               'races_count': events_sum,
-               'homepage_news': homepage_news,
-               'sponsors': sponsors,
-               'championship_men_leader': championship_men_leader,
-               'championship_women_leader': championship_women_leader}
     return render(request, "homepage.html", content)
 
 
@@ -98,7 +116,8 @@ def news_list_view(request):
 
 
 def news_detail_view(request, slug):
-    # Podpora pro staré odkazy s ID (číslo) i nové se slugem v jednom dotazu
+    # Podpora pro staré odkazy s ID (číslo) i nové se slugem v jednom dotazu.
+    # Vždy ale přesměrujeme na kanonickou slug URL, pokud ji článek má.
     query = Q(slug=slug)
     if slug.isdigit():
         query |= Q(pk=int(slug))
@@ -106,6 +125,9 @@ def news_detail_view(request, slug):
     news = News.objects.filter(query).first()
     if not news:
         raise Http404("Článek nebyl nalezen.")
+
+    if news.slug and news.slug != slug:
+        return redirect(news.get_absolute_url(), permanent=True)
 
     # Přičti zhlédnutí
     news.increment_views()

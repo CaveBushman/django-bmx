@@ -8,6 +8,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
 from import_export import resources
+from accounts.models import AccountRiderLink
 from event.models import EntryForeign
 from .models import (
     ForeignRider,
@@ -19,6 +20,14 @@ from .models import (
     RiderTransponderChange,
 )
 from .plates import display_plate
+
+
+class RiderAccountLinkInline(admin.TabularInline):
+    model = AccountRiderLink
+    extra = 1
+    autocomplete_fields = ("account",)
+    verbose_name = "Navázaný účet"
+    verbose_name_plural = "Navázané účty"
 
 class RiderResource(resources.ModelResource):
     def dehydrate_plate(self, obj):
@@ -94,10 +103,12 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate', 'plate_text')
     list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club',)
     readonly_fields = ('transponder_change_overview',)
+    inlines = (RiderAccountLinkInline,)
 
     @admin.display(description='Číslo')
     def plate_value(self, obj):
         return obj.plate_display
+
     fieldsets = (
         ('Identita', {
             'fields': (

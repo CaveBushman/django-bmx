@@ -2,6 +2,73 @@
 {% load static %}
 {% load i18n %}
 {% block title %}{% trans "Kalendář závodů" %}{% endblock title %}
+{% block meta_description %}{{ hero_description }}{% endblock %}
+{% block og_description %}{{ hero_description }}{% endblock %}
+{% block twitter_description %}{{ hero_description }}{% endblock %}
+{% block meta_tags %}
+<meta property="og:title" content="{% trans 'Kalendář závodů Czech BMX' %}">
+<meta property="og:description" content="{{ hero_description }}">
+<meta name="twitter:title" content="{% trans 'Kalendář závodů Czech BMX' %}">
+<meta name="twitter:description" content="{{ hero_description }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": "{{ seo_canonical_url }}#collection",
+      "name": "{% trans 'Kalendář závodů Czech BMX' %}",
+      "url": "{{ seo_canonical_url }}",
+      "description": "{{ hero_description|escapejs }}"
+    },
+    {
+      "@type": "ItemList",
+      "@id": "{{ seo_canonical_url }}#upcoming-events",
+      "name": "{% trans 'Nadcházející závody' %}",
+      "numberOfItems": {{ events|length }},
+      "itemListOrder": "https://schema.org/ItemListOrderAscending",
+      "itemListElement": [
+        {% for event in events %}
+        {
+          "@type": "ListItem",
+          "position": {{ forloop.counter }},
+          "url": "{% url 'event:event-detail' event.id %}",
+          "item": {
+            "@type": "SportsEvent",
+            "name": "{{ event.name|escapejs }}",
+            "startDate": "{{ event.date|date:'Y-m-d' }}",
+            "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}"
+          }
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "@id": "{{ seo_canonical_url }}#past-events",
+      "name": "{% trans 'Archiv závodů' %}",
+      "numberOfItems": {{ past_events|length }},
+      "itemListOrder": "https://schema.org/ItemListOrderAscending",
+      "itemListElement": [
+        {% for event in past_events %}
+        {
+          "@type": "ListItem",
+          "position": {{ forloop.counter }},
+          "url": "{% url 'event:event-detail' event.id %}",
+          "item": {
+            "@type": "SportsEvent",
+            "name": "{{ event.name|escapejs }}",
+            "startDate": "{{ event.date|date:'Y-m-d' }}",
+            "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}"
+          }
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">

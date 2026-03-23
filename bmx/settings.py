@@ -28,6 +28,11 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = BASE_DIR / "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
+HOMEPAGE_DATA_CACHE_SECONDS = 300
+SITEMAP_CACHE_SECONDS = 900
+AVATAR_REQUEST_EXPIRATION_DAYS = 30
+AVATAR_FINAL_IMAGE_SIZE = 512
+AVATAR_FINAL_IMAGE_QUALITY = 86
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deploymentpyt/checklist/
@@ -159,6 +164,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "bmx.context_processors.navbar_context",
+                "bmx.context_processors.seo_context",
             ],
         },
     },
@@ -369,18 +375,23 @@ CKEDITOR_CONFIGS = {
 
 CKEDITOR_5_CONFIGS = {
     "event_proposition": {
-        "toolbar": [
-            "heading",
-            "|",
-            "bold",
-            "italic",
-            "link",
-            "bulletedList",
-            "numberedList",
-            "|",
-            "undo",
-            "redo",
-        ],
+        "toolbar": {
+            "items": [
+                "heading",
+                "|",
+                "bold",
+                "italic",
+                "link",
+                "imageUpload",
+                "bulletedList",
+                "numberedList",
+                "blockQuote",
+                "|",
+                "undo",
+                "redo",
+            ],
+            "shouldNotGroupWhenFull": True,
+        },
         "heading": {
             "options": [
                 {"model": "paragraph", "title": "Paragraph", "class": "ck-heading_paragraph"},
@@ -388,9 +399,57 @@ CKEDITOR_5_CONFIGS = {
                 {"model": "heading3", "view": "h3", "title": "Heading 3", "class": "ck-heading_heading3"},
             ]
         },
+        "image": {
+            "toolbar": [
+                "imageTextAlternative",
+                "|",
+                "imageStyle:alignLeft",
+                "imageStyle:alignCenter",
+                "imageStyle:alignRight",
+            ],
+        },
         "language": "cs",
-    }
+    },
+    "news_content": {
+        "toolbar": {
+            "items": [
+                "heading",
+                "|",
+                "bold",
+                "italic",
+                "link",
+                "imageUpload",
+                "bulletedList",
+                "numberedList",
+                "blockQuote",
+                "|",
+                "undo",
+                "redo",
+            ],
+            "shouldNotGroupWhenFull": True,
+        },
+        "heading": {
+            "options": [
+                {"model": "paragraph", "title": "Paragraph", "class": "ck-heading_paragraph"},
+                {"model": "heading2", "view": "h2", "title": "Heading 2", "class": "ck-heading_heading2"},
+                {"model": "heading3", "view": "h3", "title": "Heading 3", "class": "ck-heading_heading3"},
+            ]
+        },
+        "image": {
+            "toolbar": [
+                "imageTextAlternative",
+                "|",
+                "imageStyle:alignLeft",
+                "imageStyle:alignCenter",
+                "imageStyle:alignRight",
+            ],
+        },
+        "language": "cs",
+    },
 }
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "event:proposition-editor-upload"
+CKEDITOR_5_UPLOAD_FILE_TYPES = ["jpg", "jpeg", "png", "gif", "webp"]
+CKEDITOR_5_MAX_FILE_SIZE = 8
 
 CRONJOBS = [("0 */6 * * *", "bmx.cron.valid_licence_scheduled")]
 
