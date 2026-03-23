@@ -2,11 +2,14 @@ from datetime import date, timedelta
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from openpyxl import load_workbook
+from PIL import Image
 
+from accounts.models import AccountRiderLink, AvatarChangeRequest
 from club.models import Club
 from event.models import CreditTransaction, Event, RaceRun, Result, SeasonSettings
 from rider.models import (
@@ -26,6 +29,161 @@ from rider.subscriptions import (
 
 
 User = get_user_model()
+
+
+class AccountSettingsLinkedRidersTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="David",
+            last_name="Parent",
+            username="linked_parent",
+            email="linked_parent@example.com",
+            password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+        self.club = Club.objects.create(team_name="Linked Riders Club")
+        self.rider = Rider.objects.create(
+            uci_id=12345670077,
+            first_name="Adam",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2012, 4, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        AccountRiderLink.objects.create(account=self.user, rider=self.rider)
+
+    def test_account_page_shows_linked_rider(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("rider:account"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Profily jezdců navázané na účet")
+        self.assertContains(response, "Adam Rider")
+        self.assertContains(response, "Linked Riders Club")
+
+    def _build_test_image(self, *, name="avatar.png", color=(20, 100, 220)):
+        buffer = BytesIO()
+        image = Image.new("RGB", (240, 240), color=color)
+        image.save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    def test_account_can_submit_own_avatar_change_request(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("rider:account"),
+            {
+                "action": "submit-avatar-request",
+                "target_type": "account",
+                "target_id": str(self.user.pk),
+                "avatar_image": self._build_test_image(),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        avatar_request = AvatarChangeRequest.objects.get(target_account=self.user)
+        self.assertEqual(avatar_request.status, AvatarChangeRequest.STATUS_PENDING)
+        self.assertContains(response, "odeslán ke schválení")
+
+    def test_account_can_submit_linked_rider_avatar_change_request(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("rider:account"),
+            {
+                "action": "submit-avatar-request",
+                "target_type": "rider",
+                "target_id": str(self.rider.pk),
+                "avatar_image": self._build_test_image(name="rider-avatar.png"),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        avatar_request = AvatarChangeRequest.objects.get(target_rider=self.rider)
+        self.assertEqual(avatar_request.status, AvatarChangeRequest.STATUS_PENDING)
+        self.assertContains(response, "odeslán ke schválení")
+
+    def test_account_cannot_submit_avatar_for_unlinked_rider(self):
+        other_rider = Rider.objects.create(
+            uci_id=12345670078,
+            first_name="Petr",
+            last_name="Other",
+            gender="Muž",
+            date_of_birth=date(2013, 4, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("rider:account"),
+            {
+                "action": "submit-avatar-request",
+                "target_type": "rider",
+                "target_id": str(other_rider.pk),
+                "avatar_image": self._build_test_image(name="other.png"),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(AvatarChangeRequest.objects.filter(target_rider=other_rider).exists())
+        self.assertContains(response, "Nemůžeš žádat změnu avataru pro cizího jezdce")
+
+
+class RiderAdminAvatarModerationTests(TestCase):
+    def _build_test_image(self, *, name="avatar.png", color=(30, 120, 220)):
+        buffer = BytesIO()
+        image = Image.new("RGB", (240, 240), color=color)
+        image.save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="Moderator",
+            username="staff_moderator",
+            email="staff_moderator@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save(update_fields=["is_active", "is_staff"])
+
+        AvatarChangeRequest.objects.create(
+            uploaded_by=self.staff_user,
+            target_account=self.staff_user,
+            image=self._build_test_image(),
+        )
+
+    def test_rider_admin_shows_avatar_moderation_link_and_badge(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("rider:admin"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["pending_avatar_count"], 1)
+        self.assertContains(response, "Schvalování avatarů")
+        self.assertContains(response, reverse("accounts:avatar-moderation"))
+        self.assertContains(response, "Ruční kontrola nových avatarů")
+
+    def test_staff_user_sees_avatar_badge_in_navbar(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("rider:account"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AVATAR")
+        self.assertContains(response, reverse("accounts:avatar-moderation"))
 
 
 class RiderPremiumSubscriptionTests(TestCase):

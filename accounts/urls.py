@@ -9,6 +9,7 @@ urlpatterns = [
     path('signup/', views.sign_up, name='signup'),
     path('login/', views.sign_in, name='login'),
     path('logout/', views.sign_out, name='logout'),
+    path('avatar-moderation/', views.avatar_moderation_dashboard, name='avatar-moderation'),
     path(
         'reset_password/',
         auth_views.PasswordResetView.as_view(

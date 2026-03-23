@@ -83,9 +83,9 @@
     min-width: 1.5rem;
     height: 1.5rem;
     border-radius: 9999px;
-    background: rgba(17, 24, 39, 0.16);
-    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.08);
-    color: #111827;
+    background: rgba(17, 24, 39, 0.84);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    color: #ffffff;
   }
 
   html.dark .navbar-plate-alert {
@@ -96,8 +96,37 @@
   }
 
   html.dark .navbar-plate-alert-count {
-    background: rgba(17, 24, 39, 0.18);
-    color: #111827;
+    background: rgba(17, 24, 39, 0.88);
+    color: #ffffff;
+  }
+
+  .navbar-avatar-alert {
+    height: 2.875rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(251, 113, 133, 0.6);
+    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+    box-shadow: 0 0 0 1px rgba(136, 19, 55, 0.2), 0 10px 24px rgba(225, 29, 72, 0.28);
+    color: #fff;
+  }
+
+  .navbar-avatar-alert-count {
+    min-width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: rgba(15, 23, 42, 0.88);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+
+  html.dark .navbar-avatar-alert {
+    border-color: rgba(251, 113, 133, 0.66);
+    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+    box-shadow: 0 0 0 1px rgba(136, 19, 55, 0.22), 0 10px 26px rgba(244, 63, 94, 0.24);
+  }
+
+  html.dark .navbar-avatar-alert-count {
+    background: rgba(15, 23, 42, 0.9);
+    color: #fff;
   }
 </style>
 <nav class="bg-indigo-800 fixed top-0 left-0 right-0 z-20" id="navbar">
@@ -180,6 +209,18 @@
                 {{ navbar_plate_pending_count }}
               </span>
             </span>
+            {% endif %}
+
+            {% if request.user.is_staff and navbar_avatar_pending %}
+            <a
+              href="{% url 'accounts:avatar-moderation' %}"
+              title="{% blocktrans count count=navbar_avatar_pending_count %}1 avatar čeká na schválení{% plural %}{{ count }} avatarů čeká na schválení{% endblocktrans %}"
+              class="navbar-avatar-alert ml-2 inline-flex items-center gap-2 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em]">
+              <span>AVATAR</span>
+              <span class="navbar-avatar-alert-count inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-black">
+                {{ navbar_avatar_pending_count }}
+              </span>
+            </a>
             {% endif %}
 
             {% if user.is_authenticated and request.session.orders %}

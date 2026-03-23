@@ -23,6 +23,7 @@ from event.views.views_public import (
 from event.views.views_proposition import (
     proposition_detail_view,
     proposition_edit_view,
+    proposition_editor_upload_view,
 )
 
 from event.views.views_entry import (

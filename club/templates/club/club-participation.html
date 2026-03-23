@@ -1,57 +1,125 @@
 {% extends 'base.html' %}
-{% block title %} Účast na závodech {% endblock title %}
-{% block content %}
+{% block title %}Účast na závodech{% endblock title %}
 
-<header class="shadow-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white">
-  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-white">
-      {{ club.team_name|upper }} - ÚČAST NA ZÁVODECH V ROCE {{ year }}
-    </h1>
+{% block extra_head %}
+<style>
+  .club-participation-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 32%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 28%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .club-participation-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.35), transparent);
+  }
+
+  .club-participation-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .club-participation-panel {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark .club-participation-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .club-participation-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .club-participation-panel {
+    border-color: rgba(71, 85, 105, 0.55);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="club-participation-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Klubová statistika</p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ club.team_name|upper }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Účast na závodech v roce {{ year }} s přehledem počtu jezdců a vybraných částek za jednotlivé termíny.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="club-participation-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Rok</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ year }}</p>
+        </div>
+        <div class="club-participation-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Závody</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ participations|length }}</p>
+        </div>
+        <div class="club-participation-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celkem</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum }} CZK</p>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
-
-<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 dark:text-gray-200">
-
-  <!-- Table container -->
-  <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-    <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-      <thead class="bg-gray-100 dark:bg-gray-700">
-        <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
-            Datum</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Název
-          </th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Počet
-            jezdců</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">Vybraná
-            částka</th>
-        </tr>
-      </thead>
-
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-        {% for participation in participations %}
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-gray-200">{{ participation.date }}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200">{{ participation.name }}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200">{{ participation.count }}
-          </td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200">{{ participation.sum }} CZK
-          </td>
-        </tr>
-        {% endfor %}
-
-        <!-- Footer row with total sum -->
-        <tr class="font-bold text-black bg-gray-100 dark:bg-gray-700">
-          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0 dark:text-gray-200">Celkem:</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200"></td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200"></td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-200">{{ sum }} CZK</td>
-        </tr>
-      </tbody>
-    </table>
+<section class="bg-slate-50 py-8 dark:bg-slate-900">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="club-participation-panel overflow-hidden rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+          <thead class="bg-slate-50/90 dark:bg-slate-900/70">
+            <tr>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Datum</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Název</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Počet jezdců</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Vybraná částka</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 bg-white/90 dark:divide-slate-800 dark:bg-slate-950/80">
+            {% for participation in participations %}
+            <tr class="transition hover:bg-indigo-50/70 dark:hover:bg-slate-800/70">
+              <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ participation.date }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-300">{{ participation.name }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-300">{{ participation.count }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-700 dark:text-slate-200">{{ participation.sum }} CZK</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Pro tento klub zatím v daném roce nejsou žádné závodní účasti.</td>
+            </tr>
+            {% endfor %}
+            <tr class="bg-slate-100/80 font-bold dark:bg-slate-800/70">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white">Celkem</td>
+              <td class="px-3 py-4"></td>
+              <td class="px-3 py-4"></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white">{{ sum }} CZK</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
-
-</div>
-
+</section>
 {% endblock content %}

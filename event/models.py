@@ -13,6 +13,7 @@ from django.core.cache import cache
 from django.db.models import F, Q
 import datetime
 from django.utils.translation import gettext_lazy as _
+from bmx.html_sanitizer import sanitize_rich_html
 
 
 # Create your models here.
@@ -402,6 +403,16 @@ class EventProposition(models.Model):
 
     def __str__(self):
         return f"Propozice: {self.event.name}"
+
+    def save(self, *args, **kwargs):
+        self.summary = sanitize_rich_html(self.summary)
+        self.schedule = sanitize_rich_html(self.schedule)
+        self.categories = sanitize_rich_html(self.categories)
+        self.registration_info = sanitize_rich_html(self.registration_info)
+        self.awards = sanitize_rich_html(self.awards)
+        self.accommodation = sanitize_rich_html(self.accommodation)
+        self.additional_info = sanitize_rich_html(self.additional_info)
+        super().save(*args, **kwargs)
 
 
 # Smazání starých souborů při aktualizaci — jeden signal, jeden DB dotaz místo 7

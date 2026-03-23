@@ -32,21 +32,210 @@
     padding: 2rem 1.5rem 3rem;
   }
 
-  .account-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
   .account-stat {
     border: 1px solid rgba(99, 102, 241, 0.14);
     background: rgba(255, 255, 255, 0.82);
     box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
   }
 
+  .account-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .account-section-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(100 116 139);
+  }
+
+  .account-section-title {
+    margin-top: 0.5rem;
+    font-size: 1.875rem;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: rgb(15 23 42);
+  }
+
+  .account-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .account-table-wrap {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .avatar-request-card {
+    border: 1px solid rgba(129, 140, 248, 0.18);
+    background:
+      linear-gradient(145deg, rgba(238, 242, 255, 0.88), rgba(255, 255, 255, 0.98));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .avatar-upload-grid {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .avatar-upload-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .avatar-file-label {
+    display: flex;
+    min-height: 3.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px dashed rgba(99, 102, 241, 0.34);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .avatar-file-label:hover {
+    border-color: rgba(79, 70, 229, 0.56);
+    background: rgba(255, 255, 255, 0.96);
+    transform: translateY(-1px);
+  }
+
+  .avatar-file-meta {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .avatar-file-cta {
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: rgb(30 41 59);
+    padding: 0.55rem 0.95rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: white;
+  }
+
+  .avatar-file-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .avatar-submit {
+    width: 100%;
+    min-height: 3.25rem;
+    border: 1px solid rgba(79, 70, 229, 0.28);
+    background: linear-gradient(135deg, rgb(79 70 229), rgb(99 102 241));
+    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.24);
+    color: #ffffff;
+  }
+
+  .avatar-submit:hover {
+    background: linear-gradient(135deg, rgb(67 56 202), rgb(79 70 229));
+    box-shadow: 0 16px 34px rgba(79, 70, 229, 0.3);
+  }
+
+  .account-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    border-radius: 9999px;
+    background: rgb(226 232 240);
+    color: rgb(15 23 42);
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.32);
+    font-weight: 800;
+  }
+
+  .avatar-help-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    color: rgb(71 85 105);
+  }
+
+  .avatar-help-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.86);
+    padding: 0.35rem 0.7rem;
+  }
+
+  .profile-split-card {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .profile-info-card {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .profile-info-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .profile-meta-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .profile-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background: rgba(224, 231, 255, 0.72);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(55 65 81);
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
   @media (min-width: 640px) {
     .account-stats-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .avatar-upload-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .profile-split-card {
+      grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
     }
   }
 
@@ -67,10 +256,85 @@
       linear-gradient(180deg, #111827 0%, #0f172a 100%);
   }
 
+  html.dark .account-section-eyebrow {
+    color: rgb(148 163 184);
+  }
+
+  html.dark .account-section-title {
+    color: rgb(255 255 255);
+  }
+
   html.dark .account-stat {
     border-color: rgba(99, 102, 241, 0.24);
     background: rgba(15, 23, 42, 0.72);
     box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .account-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  html.dark .account-table-wrap {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  html.dark .avatar-request-card {
+    border-color: rgba(99, 102, 241, 0.24);
+    background:
+      linear-gradient(145deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96));
+  }
+
+  html.dark .avatar-file-label {
+    border-color: rgba(129, 140, 248, 0.3);
+    background: rgba(15, 23, 42, 0.72);
+  }
+
+  html.dark .avatar-file-label:hover {
+    border-color: rgba(129, 140, 248, 0.48);
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  html.dark .avatar-file-cta {
+    background: rgb(99 102 241);
+  }
+
+  html.dark .avatar-help-list {
+    color: rgb(148 163 184);
+  }
+
+  html.dark .avatar-help-pill {
+    background: rgba(15, 23, 42, 0.82);
+  }
+
+  html.dark .profile-info-card {
+    border-color: rgba(71, 85, 105, 0.72);
+    background: rgba(15, 23, 42, 0.62);
+  }
+
+  html.dark .profile-meta-pill {
+    background: rgba(99, 102, 241, 0.16);
+    color: rgb(226 232 240);
+  }
+
+  html.dark .avatar-submit {
+    border-color: rgba(129, 140, 248, 0.4);
+    background: linear-gradient(135deg, rgb(99 102 241), rgb(129 140 248));
+    box-shadow: 0 14px 32px rgba(79, 70, 229, 0.34);
+    color: #ffffff;
+  }
+
+  html.dark .avatar-submit:hover {
+    background: linear-gradient(135deg, rgb(129 140 248), rgb(99 102 241));
+  }
+
+  html.dark .account-count-badge {
+    background: rgba(99, 102, 241, 0.26);
+    color: rgb(255 255 255);
+    box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.28);
   }
 </style>
 {% endblock %}
@@ -84,7 +348,7 @@
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Účet uživatele" %}</p>
           <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Moje nastavení a faktury" %}</h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {% trans "Přehled předplatných, faktur ke stažení a základ nastavení účtu. Sem časem přidáme i správu avatara." %}
+            {% trans "Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn avatarů." %}
           </p>
           <div class="mt-5">
             <a href="{% url 'rider:premium-subscriptions' %}" class="inline-flex w-auto items-center gap-x-2 whitespace-nowrap rounded-md bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500">
@@ -97,16 +361,16 @@
         </div>
         <div class="account-stats-grid">
           <div class="account-stat rounded-2xl px-5 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Navázaní jezdci" %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ linked_riders_count }}</p>
+          </div>
+          <div class="account-stat rounded-2xl px-5 py-4">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Faktury" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ invoices_count }}</p>
           </div>
           <div class="account-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Individuální předplatná" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ individual_subscriptions|length }}</p>
-          </div>
-          <div class="account-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Trenérská předplatná" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ trainer_subscriptions|length }}</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Předplatná" %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ subscriptions_summary_count }}</p>
           </div>
         </div>
       </div>
@@ -115,28 +379,173 @@
 
   <div class="account-shell">
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.95fr]">
-      <section class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Profil" %}</p>
-        <div class="mt-4 flex items-center gap-4">
-          <img src="{{ request.user.photo.url }}" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200 dark:ring-indigo-500/30">
-          <div>
-            <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ request.user.first_name }} {{ request.user.last_name }}</h2>
-            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ request.user.email }}</p>
-            {% if request.user.phone_number %}
-            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ request.user.phone_number }}</p>
-            {% endif %}
+      <section class="account-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
+        <p class="account-section-eyebrow">{% trans "Profil" %}</p>
+        <div class="profile-split-card mt-4">
+          <div class="profile-info-card rounded-3xl p-5 sm:p-6">
+            <div class="profile-info-stack">
+              <div class="flex items-center gap-4">
+                <img src="{{ request.user.photo.url }}" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200 dark:ring-indigo-500/30">
+                <div class="min-w-0">
+                  <h2 class="account-section-title">{{ request.user.first_name }} {{ request.user.last_name }}</h2>
+                  <p class="mt-1 break-all text-sm text-slate-600 dark:text-slate-300">{{ request.user.email }}</p>
+                  {% if request.user.phone_number %}
+                  <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ request.user.phone_number }}</p>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="profile-meta-list">
+                <span class="profile-meta-pill">{% trans "Účet uživatele" %}</span>
+                {% if linked_riders_count %}
+                <span class="profile-meta-pill">{% blocktrans count count=linked_riders_count %}{{ count }} navázaný jezdec{% plural %}{{ count }} navázaní jezdci{% endblocktrans %}</span>
+                {% endif %}
+                {% if account_avatar_request_pending %}
+                <span class="profile-meta-pill">{% trans "Avatar čeká na schválení" %}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="avatar-request-card rounded-3xl p-5 sm:p-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900 dark:text-white">{% trans "Změna avataru účtu" %}</p>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  {% trans "Nahraný obrázek se neprojeví hned. Nejprve počká na ruční schválení administrátorem." %}
+                </p>
+              </div>
+              {% if account_avatar_request_pending %}
+              <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                {% trans "Čeká na schválení" %}
+              </span>
+              {% endif %}
+            </div>
+            <div class="avatar-help-list mt-4">
+              <span class="avatar-help-pill">{% trans "JPG, PNG nebo WEBP" %}</span>
+              <span class="avatar-help-pill">{% trans "Max. 5 MB" %}</span>
+              <span class="avatar-help-pill">{% trans "Doporučený čtvercový portrét" %}</span>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="avatar-upload-grid mt-4">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="submit-avatar-request">
+              <input type="hidden" name="target_type" value="account">
+              <input type="hidden" name="target_id" value="{{ request.user.pk }}">
+              <label class="avatar-file-label">
+                <div class="avatar-file-meta">
+                  <span class="text-sm font-semibold text-slate-900 dark:text-white">{% trans "Vybrat obrázek k posouzení" %}</span>
+                  <span class="avatar-file-name text-sm text-slate-500 dark:text-slate-400" data-file-name>{% trans "Zatím není vybrán žádný soubor" %}</span>
+                </div>
+                <span class="avatar-file-cta">{% trans "Vybrat soubor" %}</span>
+                <input type="file" name="avatar_image" accept="image/jpeg,image/png,image/webp" class="sr-only" data-avatar-input>
+              </label>
+              <div class="avatar-upload-actions">
+                <button type="submit" class="avatar-submit inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                  {% trans "Odeslat vybraný obrázek ke schválení" %}
+                </button>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  {% trans "Po výběru souboru odešli žádost tímto tlačítkem." %}
+                </p>
+              </div>
+            </form>
           </div>
         </div>
-        <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
-          {% trans "Avatar a další osobní nastavení sem doplníme v další fázi. Teď je to hlavně místo pro faktury a přehled předplatných." %}
+
+        <div class="mt-6">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="account-section-eyebrow">{% trans "Navázaní jezdci" %}</p>
+              <h3 class="account-section-title">{% trans "Profily jezdců navázané na účet" %}</h3>
+            </div>
+            <span class="account-count-badge text-xs">{{ linked_riders_count }}</span>
+          </div>
+
+          {% if linked_riders %}
+          <div class="mt-4 space-y-3">
+            {% for rider in linked_riders %}
+            <div class="profile-split-card rounded-2xl border border-slate-200 p-4 dark:border-slate-700 sm:p-5">
+              <div class="profile-info-card rounded-3xl p-5">
+                <div class="profile-info-stack">
+                  <div class="flex items-center gap-4">
+                    <img src="{{ rider.photo.url }}" alt="{{ rider.first_name }} {{ rider.last_name }}" class="h-16 w-16 rounded-full object-cover ring-2 ring-indigo-100 dark:ring-indigo-500/20">
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-base font-semibold text-slate-900 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</p>
+                      <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span>UCI ID: {{ rider.uci_id }}</span>
+                        {% if rider.club %}<span>{{ rider.club.team_name }}</span>{% endif %}
+                        {% if rider.plate_display %}<span>{% trans "Číslo" %}: {{ rider.plate_display }}</span>{% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="profile-meta-list">
+                    <span class="profile-meta-pill">{% trans "Navázaný jezdec" %}</span>
+                    {% if rider.id in linked_rider_pending_request_ids %}
+                    <span class="profile-meta-pill">{% trans "Avatar čeká na schválení" %}</span>
+                    {% endif %}
+                  </div>
+                  <div class="profile-actions">
+                    <a href="{% url 'rider:detail' rider.uci_id %}" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                      {% trans "Detail" %}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="avatar-request-card rounded-3xl p-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{% trans "Návrh nového avataru" %}</p>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                      {% trans "U jezdců se nový obrázek zveřejní až po kontrole administrátorem." %}
+                    </p>
+                  </div>
+                  {% if rider.id in linked_rider_pending_request_ids %}
+                  <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                    {% trans "Čeká na schválení" %}
+                  </span>
+                  {% endif %}
+                </div>
+                <div class="avatar-help-list mt-4">
+                  <span class="avatar-help-pill">{% trans "JPG, PNG nebo WEBP" %}</span>
+                  <span class="avatar-help-pill">{% trans "Max. 5 MB" %}</span>
+                  <span class="avatar-help-pill">{% trans "Nezveřejní se bez kontroly" %}</span>
+                </div>
+                <form method="post" enctype="multipart/form-data" class="avatar-upload-grid mt-4">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="submit-avatar-request">
+                  <input type="hidden" name="target_type" value="rider">
+                  <input type="hidden" name="target_id" value="{{ rider.id }}">
+                  <label class="avatar-file-label">
+                    <div class="avatar-file-meta">
+                      <span class="text-sm font-semibold text-slate-900 dark:text-white">{% trans "Vybrat obrázek k posouzení" %}</span>
+                      <span class="avatar-file-name text-sm text-slate-500 dark:text-slate-400" data-file-name>{% trans "Zatím není vybrán žádný soubor" %}</span>
+                    </div>
+                    <span class="avatar-file-cta">{% trans "Vybrat soubor" %}</span>
+                    <input type="file" name="avatar_image" accept="image/jpeg,image/png,image/webp" class="sr-only" data-avatar-input>
+                  </label>
+                  <div class="avatar-upload-actions">
+                    <button type="submit" class="avatar-submit inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                      {% trans "Odeslat vybraný obrázek ke schválení" %}
+                    </button>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      {% trans "Po výběru souboru odešli žádost tímto tlačítkem." %}
+                    </p>
+                  </div>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
+            {% trans "K tomuto účtu zatím není navázaný žádný jezdec. Vazbu nastavuje administrátor ručně." %}
+          </div>
+          {% endif %}
         </div>
 
         {% if can_manage_inactive_riders %}
         <div class="mt-6 rounded-2xl border border-rose-200 bg-rose-50/70 p-4 dark:border-rose-500/20 dark:bg-rose-500/10">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">{% trans "Správa jezdců" %}</p>
-              <h3 class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Neaktivní jezdci" %}</h3>
+              <p class="account-section-eyebrow !text-rose-600 dark:!text-rose-300">{% trans "Správa jezdců" %}</p>
+              <h3 class="account-section-title">{% trans "Neaktivní jezdci" %}</h3>
               <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {% if managed_club %}
                 {% blocktrans with team_name=managed_club.team_name %}Přístup k deaktivaci neaktivních profilů v klubu {{ team_name }}.{% endblocktrans %}
@@ -154,7 +563,7 @@
 
         {% if individual_subscriptions %}
         <div class="mt-6">
-          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Individuální předplatná" %}</p>
+          <p class="account-section-eyebrow">{% trans "Individuální předplatná" %}</p>
           <div class="mt-3 space-y-3">
             {% for subscription in individual_subscriptions %}
             <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
@@ -173,7 +582,7 @@
 
         {% if trainer_subscriptions %}
         <div class="mt-6">
-          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Trenérská předplatná" %}</p>
+          <p class="account-section-eyebrow">{% trans "Trenérská předplatná" %}</p>
           <div class="mt-3 space-y-3">
             {% for subscription in trainer_subscriptions %}
             <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
@@ -191,11 +600,11 @@
         {% endif %}
       </section>
 
-      <section class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <section class="account-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Faktury" %}</p>
-            <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Faktury za předplatné" %}</h2>
+            <p class="account-section-eyebrow">{% trans "Faktury" %}</p>
+            <h2 class="account-section-title">{% trans "Faktury za předplatné" %}</h2>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
               {% trans "Tady najdeš PDF faktury za individuální, klubové i extended předplatné." %}
             </p>
@@ -203,7 +612,7 @@
         </div>
 
         {% if invoices %}
-        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div class="account-table-wrap mt-6 rounded-[1.75rem]">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
               <thead class="bg-slate-100 dark:bg-slate-950">
@@ -278,8 +687,8 @@
         <div class="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Klubový manager" %}</p>
-              <h3 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Faktury za startovné klubu" %}</h3>
+              <p class="account-section-eyebrow">{% trans "Klubový manager" %}</p>
+              <h3 class="account-section-title">{% trans "Faktury za startovné klubu" %}</h3>
               <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {% blocktrans with team_name=managed_club.team_name %}Zobrazené jsou pouze faktury za startovné vztahující se ke klubu {{ team_name }}.{% endblocktrans %}
               </p>
@@ -287,7 +696,7 @@
           </div>
 
           {% if club_event_invoices %}
-          <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div class="account-table-wrap mt-6 rounded-[1.75rem]">
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
                 <thead class="bg-slate-100 dark:bg-slate-950">
@@ -372,4 +781,13 @@
     </div>
   </div>
 </div>
+<script>
+  document.querySelectorAll("[data-avatar-input]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const fileNameTarget = input.closest("label")?.querySelector("[data-file-name]");
+      if (!fileNameTarget) return;
+      fileNameTarget.textContent = input.files?.length ? input.files[0].name : "Zatím není vybrán žádný soubor";
+    });
+  });
+</script>
 {% endblock %}

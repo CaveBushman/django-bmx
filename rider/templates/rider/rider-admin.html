@@ -72,6 +72,21 @@
     flex: 0 0 auto;
   }
 
+  .rider-admin-action-badge {
+    display: inline-flex;
+    min-width: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(244, 63, 94, 0.18);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: rgb(254 205 211);
+    box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.2);
+  }
+
   @media (min-width: 640px) {
     .rider-admin-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -117,6 +132,11 @@
       linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
     border-color: rgba(99, 102, 241, 0.3) !important;
     box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32) !important;
+  }
+
+  html.dark .rider-admin-action-badge {
+    background: rgba(244, 63, 94, 0.22);
+    color: rgb(255 228 230);
   }
 </style>
 {% endblock %}
@@ -251,6 +271,21 @@
           <span>
             <span class="block text-lg font-semibold">Jezdci dle klubů a kategorií</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Strukturovaný přehled jezdců v systému</span>
+          </span>
+        </a>
+
+        <a href="{% url 'accounts:avatar-moderation' %}" class="rider-admin-action flex items-center gap-4 rounded-[1.4rem] px-5 py-5 text-white">
+          <span class="rider-admin-action-icon bg-rose-500/10 text-rose-200">
+            <i class="fas fa-image-portrait text-lg"></i>
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="flex items-center gap-3">
+              <span class="block text-lg font-semibold">Schvalování avatarů</span>
+              {% if pending_avatar_count %}
+              <span class="rider-admin-action-badge">{{ pending_avatar_count }}</span>
+              {% endif %}
+            </span>
+            <span class="mt-1 block text-sm text-indigo-100/80">Ruční kontrola nových avatarů účtů a navázaných jezdců</span>
           </span>
         </a>
 

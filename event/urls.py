@@ -10,6 +10,7 @@ urlpatterns = [
     path('<int:pk>', views.event_detail_views, name='event-detail'),
     path('proposition/<int:pk>', views.proposition_detail_view, name='proposition-detail'),
     path('proposition/<int:pk>/edit', views.proposition_edit_view, name='proposition-edit'),
+    path('proposition-editor/upload/', views.proposition_editor_upload_view, name='proposition-editor-upload'),
     path('results/<int:pk>', views.results_view, name='results'),
     path('events-by-year/<int:pk>', views.events_list_by_year_view, name='events-by-year'),
     path('entry-riders/<int:pk>', views.entry_riders_view, name='entry-riders'),

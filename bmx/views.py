@@ -1,9 +1,18 @@
 import json
 import logging
 
+from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+
+from club.models import Club
+from event.models import Event
+from news.models import News
+from rider.models import Rider
 
 
 logger = logging.getLogger("security.csp")
@@ -48,60 +57,73 @@ def error_404_view(request, exception):
 def sitemap_view(request):
     """Dynamicky generuje sitemap.xml s URL adresami."""
     try:
+        cache_key = f"sitemap:xml:{request.get_host()}"
+        cached_xml = cache.get(cache_key)
+        if cached_xml is not None:
+            return HttpResponse(cached_xml, content_type="application/xml")
+
         urls = []
 
-        # Statické stránky
         static_urls = [
-            ("", "weekly"),  # Homepage
-            ("news/", "weekly"),
-            ("events/", "weekly"),
-            ("clubs/", "weekly"),
-            ("riders/", "monthly"),
+            (reverse("news:homepage"), "weekly", "1.0"),
+            (reverse("news:news-list"), "daily", "0.9"),
+            (reverse("event:events"), "daily", "0.9"),
+            (reverse("club:clubs-list"), "weekly", "0.8"),
+            (reverse("rider:list"), "weekly", "0.7"),
+            (reverse("news:downloads"), "weekly", "0.6"),
+            (reverse("news:rules"), "monthly", "0.6"),
         ]
+        today_iso = timezone.now().date().isoformat()
 
-        for path, freq in static_urls:
-            urls.append({
-                "loc": request.build_absolute_uri(reverse("home") if path == "" else f"/{path}"),
-                "lastmod": datetime.now().isoformat(),
-                "changefreq": freq,
-                "priority": "0.8" if path == "" else "0.7"
-            })
+        for path, freq, priority in static_urls:
+            urls.append(
+                {
+                    "loc": request.build_absolute_uri(path),
+                    "lastmod": today_iso,
+                    "changefreq": freq,
+                    "priority": priority,
+                }
+            )
 
-        # Dynamické stránky - zprávy
-        for news in News.objects.all():
-            urls.append({
-                "loc": request.build_absolute_uri(f"/news/{news.id}/"),
-                "lastmod": news.updated.isoformat() if hasattr(news, 'updated') else datetime.now().isoformat(),
-                "changefreq": "monthly",
-                "priority": "0.6"
-            })
+        for news in News.objects.filter(published=True).only("id", "slug", "publish_date"):
+            urls.append(
+                {
+                    "loc": request.build_absolute_uri(news.get_absolute_url()),
+                    "lastmod": news.publish_date.isoformat() if news.publish_date else today_iso,
+                    "changefreq": "monthly",
+                    "priority": "0.8",
+                }
+            )
 
-        # Dynamické stránky - závody
-        for event in Event.objects.all():
-            urls.append({
-                "loc": request.build_absolute_uri(f"/events/{event.id}/"),
-                "lastmod": event.modified.isoformat() if hasattr(event, 'modified') else datetime.now().isoformat(),
-                "changefreq": "weekly",
-                "priority": "0.7"
-            })
+        for event in Event.objects.filter(canceled=False).only("id", "updated"):
+            urls.append(
+                {
+                    "loc": request.build_absolute_uri(reverse("event:event-detail", kwargs={"pk": event.pk})),
+                    "lastmod": event.updated.isoformat() if event.updated else today_iso,
+                    "changefreq": "weekly",
+                    "priority": "0.8",
+                }
+            )
 
-        # Dynamické stránky - kluby
-        for club in Clubs.objects.all():
-            urls.append({
-                "loc": request.build_absolute_uri(f"/clubs/{club.id}/"),
-                "lastmod": datetime.now().isoformat(),
-                "changefreq": "monthly",
-                "priority": "0.6"
-            })
+        for club in Club.objects.filter(is_active=True).only("id", "updated"):
+            urls.append(
+                {
+                    "loc": request.build_absolute_uri(reverse("club:club-detail", kwargs={"pk": club.pk})),
+                    "lastmod": club.updated.isoformat() if club.updated else today_iso,
+                    "changefreq": "monthly",
+                    "priority": "0.7",
+                }
+            )
 
-        # Dynamické stránky - jezdci
-        for rider in Rider.objects.all():
-            urls.append({
-                "loc": request.build_absolute_uri(f"/riders/{rider.id}/"),
-                "lastmod": datetime.now().isoformat(),
-                "changefreq": "monthly",
-                "priority": "0.5"
-            })
+        for rider in Rider.objects.filter(is_active=True, is_approved=True).only("id", "created"):
+            urls.append(
+                {
+                    "loc": request.build_absolute_uri(reverse("rider:detail", kwargs={"pk": rider.pk})),
+                    "lastmod": rider.created.date().isoformat() if rider.created else today_iso,
+                    "changefreq": "monthly",
+                    "priority": "0.5",
+                }
+            )
 
         # Generuj XML
         xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
@@ -117,10 +139,9 @@ def sitemap_view(request):
 
         xml_lines.append("</urlset>")
 
-        return HttpResponse(
-            "\n".join(xml_lines),
-            content_type="application/xml"
-        )
+        xml_content = "\n".join(xml_lines)
+        cache.set(cache_key, xml_content, settings.SITEMAP_CACHE_SECONDS)
+        return HttpResponse(xml_content, content_type="application/xml")
     except Exception as e:
         logger.error(f"Chyba při generování sitemapů: {e}")
         return HttpResponse(

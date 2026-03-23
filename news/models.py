@@ -21,6 +21,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.text import slugify
+from bmx.html_sanitizer import sanitize_rich_html
 
 # TTS labels (bez přesné pauzy varianta)
 TTS_SECTION_TITLE = "NADPIS."
@@ -188,7 +189,7 @@ class News (models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("news:news-detail", kwargs={"slug": self.slug})
+        return reverse("news:news-detail", kwargs={"slug": self.slug or self.pk})
 
     def increment_views(self):
         # atomicky, bez race condition:
@@ -201,6 +202,9 @@ class News (models.Model):
         return News.objects.filter(published=True).count()
 
     def save(self, *args, **kwargs):
+        self.prefix = sanitize_rich_html(self.prefix)
+        self.content = sanitize_rich_html(self.content)
+
         if not self.slug and self.title:
             base_slug = slugify(self.title)
             slug = base_slug
@@ -296,6 +300,10 @@ class Downloads(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        self.description = sanitize_rich_html(self.description)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("Ke stažení")

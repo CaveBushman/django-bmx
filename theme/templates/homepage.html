@@ -1,6 +1,53 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 {% block title %}{% trans "Homepage" %}{% endblock title %}
+{% block meta_description %}Oficialni web ceskeho BMX se zpravami, kalendarem zavodu, vysledky, zebrickem a informacemi pro jezdce, kluby a rozhodci.{% endblock %}
+{% block og_description %}Oficialni web ceskeho BMX se zpravami, kalendarem zavodu, vysledky, zebrickem a informacemi pro jezdce, kluby a rozhodci.{% endblock %}
+{% block twitter_description %}Oficialni web ceskeho BMX se zpravami, kalendarem zavodu, vysledky, zebrickem a informacemi pro jezdce, kluby a rozhodci.{% endblock %}
+{% block meta_tags %}
+<meta property="og:title" content="Czech BMX">
+<meta property="og:image" content="{% static 'images/homepage/bmx.png' %}">
+<meta name="twitter:title" content="Czech BMX">
+<meta name="twitter:image" content="{% static 'images/homepage/bmx.png' %}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ seo_canonical_url }}#organization",
+      "name": "Czech BMX",
+      "url": "{{ seo_canonical_url }}"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ seo_canonical_url }}#website",
+      "name": "Czech BMX",
+      "url": "{{ seo_canonical_url }}",
+      "publisher": {
+        "@id": "{{ seo_canonical_url }}#organization"
+      },
+      "inLanguage": "cs-CZ"
+    },
+    {
+      "@type": "ItemList",
+      "@id": "{{ seo_canonical_url }}#top-news",
+      "name": "Aktuality Czech BMX",
+      "numberOfItems": {{ homepage_news|length }},
+      "itemListElement": [
+        {% for article in homepage_news %}
+        {
+          "@type": "ListItem",
+          "position": {{ forloop.counter }},
+          "url": "{{ article.get_absolute_url }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 {% block extra_head %}
 <style>
   html.dark body,
@@ -582,7 +629,6 @@
                 class="homepage-news-card flex h-full flex-col rounded-[1.75rem]">
                 <div class="flex h-full flex-col justify-between">
                     <div class="homepage-news-media relative aspect-[16/9] lg:aspect-[16/10]w-full">
-                        <meta property="og:image" content="{% if article.photo_01 %}{{ article.photo_01.url }}{% endif %}" />
                         <img src="{% if article.photo_01 %}{{ article.photo_01.url }}{% endif %}"
                              alt="{{ article.title }}"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
@@ -602,7 +648,7 @@
                         </div>
                         <div class="mt-4">
                             <h3 class="text-3xl sm:text-xl font-black leading-tight tracking-tight text-slate-950 dark:text-slate-100">
-                                <a href="{% url 'news:news-detail' article.id %}" class="transition hover:text-sky-700 dark:hover:text-sky-300">
+                                <a href="{{ article.get_absolute_url }}" class="transition hover:text-sky-700 dark:hover:text-sky-300">
                                     {{article.title | upper}}
                                 </a>
                             </h3>

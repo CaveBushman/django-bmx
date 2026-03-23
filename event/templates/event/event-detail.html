@@ -1,6 +1,27 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %} Detail závodu {% endblock title %}
+{% block meta_description %}{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}. Datum {{ event.date|date:"j. n. Y" }}. Detail zavodu, registrace, propozice a vysledky na Czech BMX.{% endblock %}
+{% block meta_tags %}
+<meta property="og:title" content="{{ event.name }}">
+<meta property="og:description" content="{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}.">
+<meta name="twitter:title" content="{{ event.name }}">
+<meta name="twitter:description" content="{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SportsEvent",
+  "name": "{{ event.name|escapejs }}",
+  "startDate": "{{ event.date|date:'Y-m-d' }}",
+  "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
+  "organizer": {
+    "@type": "SportsOrganization",
+    "name": "{{ event.organizer|default:''|escapejs }}"
+  },
+  "url": "{{ seo_canonical_url }}"
+}
+</script>
+{% endblock %}
 {% block extra_head %}
 <style>
   .event-detail-page {

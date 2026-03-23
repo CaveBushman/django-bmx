@@ -1,8 +1,11 @@
 import logging
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login, logout, authenticate
-from django.shortcuts import render, redirect
-from .models import Account
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.cache import cache_control
+
+from .models import Account, AvatarChangeRequest
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -97,3 +100,54 @@ def sign_out(request):
         )
     logout(request)
     return redirect('news:homepage')
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@staff_member_required
+def avatar_moderation_dashboard(request):
+    expired_count = AvatarChangeRequest.expire_stale_requests()
+    if expired_count:
+        messages.info(
+            request,
+            f"{expired_count} žádostí o avatar automaticky expirovalo kvůli stáří.",
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        request_id = request.POST.get("request_id")
+        avatar_request = get_object_or_404(
+            AvatarChangeRequest.objects.select_related("target_account", "target_rider", "uploaded_by"),
+            pk=request_id,
+            status=AvatarChangeRequest.STATUS_PENDING,
+        )
+        if action == "approve":
+            avatar_request.approve(request.user)
+            messages.success(request, f"Avatar pro {avatar_request.target_label} byl schválen.")
+        elif action == "reject":
+            avatar_request.reject(request.user)
+            messages.success(request, f"Avatar pro {avatar_request.target_label} byl zamítnut.")
+        else:
+            messages.error(request, "Neplatná akce moderace avataru.")
+        return redirect("accounts:avatar-moderation")
+
+    pending_requests = list(
+        AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_PENDING)
+        .select_related("uploaded_by", "target_account", "target_rider")
+        .order_by("created")
+    )
+    recent_requests = list(
+        AvatarChangeRequest.objects.exclude(status=AvatarChangeRequest.STATUS_PENDING)
+        .select_related("uploaded_by", "target_account", "target_rider", "reviewed_by")
+        .order_by("-reviewed_at", "-created")[:12]
+    )
+
+    context = {
+        "pending_requests": pending_requests,
+        "recent_requests": recent_requests,
+        "pending_count": len(pending_requests),
+        "approved_count": AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_APPROVED).count(),
+        "rejected_count": AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_REJECTED).count(),
+        "expired_count": AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_EXPIRED).count(),
+        "expiration_days": AvatarChangeRequest.expiration_days(),
+    }
+    return render(request, "accounts/avatar-moderation-dashboard.html", context)

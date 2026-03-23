@@ -2,8 +2,10 @@ import logging
 import os
 import re
 from collections import defaultdict
+from io import BytesIO
 from statistics import mean, median, pstdev
 from openpyxl import Workbook
+from PIL import Image, UnidentifiedImageError
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
@@ -18,6 +20,7 @@ from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from bmx import settings
+from accounts.models import AvatarChangeRequest
 from .models import Rider, ForeignRider, RiderTransponderChange
 from .rider import (
     two_years_inactive,
@@ -110,6 +113,8 @@ def can_access_trainer_dashboard(user):
 
 
 trainer_dashboard_required = user_passes_test(can_access_trainer_dashboard, login_url="/login/")
+AVATAR_UPLOAD_MAX_BYTES = 5 * 1024 * 1024
+AVATAR_ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 FINAL_ROUND_TYPES = {"FINAL", "F2", "F4", "F8", "F16", "F32", "F64", "F128"}
 TRACK_TABLE_COLUMNS = [
     ("M1", _gl("M1")),
@@ -197,6 +202,41 @@ def _get_premium_access_context(user, rider, at_time=None):
         "active_subscription": individual_subscription,
         "trainer_club_subscription": trainer_club_subscription,
     }
+
+
+def _validate_avatar_upload(uploaded_file):
+    if not uploaded_file:
+        raise ValueError(_("Vyber obrázek, který chceš nahrát."))
+    if uploaded_file.size > AVATAR_UPLOAD_MAX_BYTES:
+        raise ValueError(_("Avatar může mít maximálně 5 MB."))
+    if uploaded_file.content_type not in AVATAR_ALLOWED_CONTENT_TYPES:
+        raise ValueError(_("Povolené jsou pouze obrázky JPG, PNG nebo WEBP."))
+
+    try:
+        uploaded_file.seek(0)
+        image = Image.open(uploaded_file)
+        image.verify()
+        uploaded_file.seek(0)
+        checked = Image.open(uploaded_file)
+        width, height = checked.size
+        uploaded_file.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise ValueError(_("Nahraný soubor není platný obrázek."))
+
+    if width < 120 or height < 120:
+        raise ValueError(_("Avatar musí mít alespoň 120 × 120 px."))
+    if width > 6000 or height > 6000:
+        raise ValueError(_("Avatar je příliš velký."))
+
+
+def _get_pending_avatar_request_for_target(*, account=None, rider=None):
+    AvatarChangeRequest.expire_stale_requests()
+    queryset = AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_PENDING)
+    if account is not None:
+        return queryset.filter(target_account=account).first()
+    if rider is not None:
+        return queryset.filter(target_rider=rider).first()
+    return None
 
 
 def _can_export_rider_premium_stats_pdf(user, rider):
@@ -1736,6 +1776,10 @@ def rider_premium_subscriptions_view(request):
 
 @login_required
 def account_settings_invoices_view(request):
+    AvatarChangeRequest.expire_stale_requests()
+    if request.method == "POST" and request.POST.get("action") == "submit-avatar-request":
+        return submit_avatar_change_request_view(request)
+
     SubscriptionInvoiceService().ensure_for_user(request.user)
     invoices_qs = (
         SubscriptionInvoice.objects.filter(user=request.user)
@@ -1753,11 +1797,25 @@ def account_settings_invoices_view(request):
         .select_related("rider")
         .order_by("-expires_at", "rider__last_name", "rider__first_name")[:5]
     )
+    linked_riders = list(
+        request.user.riders.select_related("club")
+        .filter(is_active=True)
+        .order_by("last_name", "first_name")
+    )
+    account_avatar_request_pending = _get_pending_avatar_request_for_target(account=request.user) is not None
+    linked_rider_pending_request_ids = {
+        request_obj.target_rider_id
+        for request_obj in AvatarChangeRequest.objects.filter(
+            status=AvatarChangeRequest.STATUS_PENDING,
+            target_rider__in=linked_riders,
+        ).only("target_rider_id")
+    }
     trainer_subscriptions = (
         TrainerClubSubscription.objects.filter(user=request.user)
         .select_related("club")
         .order_by("-expires_at", "club__team_name")[:8]
     )
+    subscriptions_summary_count = len(individual_subscriptions) + len(trainer_subscriptions)
     club_event_invoices = []
     club_event_invoices_count = 0
     club_event_invoices_page_obj = None
@@ -1785,7 +1843,12 @@ def account_settings_invoices_view(request):
             "invoices_count": invoices_count,
             "invoices_page_obj": invoices_page_obj,
             "individual_subscriptions": individual_subscriptions,
+            "linked_riders": linked_riders,
+            "linked_riders_count": len(linked_riders),
+            "account_avatar_request_pending": account_avatar_request_pending,
+            "linked_rider_pending_request_ids": linked_rider_pending_request_ids,
             "trainer_subscriptions": trainer_subscriptions,
+            "subscriptions_summary_count": subscriptions_summary_count,
             "can_manage_inactive_riders": can_manage_inactive_riders(request.user),
             "managed_club": managed_club,
             "club_event_invoices": club_event_invoices,
@@ -1795,12 +1858,78 @@ def account_settings_invoices_view(request):
     )
 
 
+@login_required
+def submit_avatar_change_request_view(request):
+    if request.method != "POST":
+        return redirect("rider:account")
+
+    AvatarChangeRequest.expire_stale_requests()
+
+    uploaded_file = request.FILES.get("avatar_image")
+    target_type = request.POST.get("target_type")
+    target_id = request.POST.get("target_id")
+
+    try:
+        _validate_avatar_upload(uploaded_file)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("rider:account")
+
+    if target_type == "account":
+        if str(request.user.pk) != str(target_id):
+            messages.error(request, _("Nemůžeš žádat změnu avataru pro jiný účet."))
+            return redirect("rider:account")
+        pending_request = _get_pending_avatar_request_for_target(account=request.user)
+        if pending_request:
+            messages.error(request, _("Pro tvůj účet už čeká jedna žádost o změnu avataru na schválení."))
+            return redirect("rider:account")
+        AvatarChangeRequest.objects.create(
+            uploaded_by=request.user,
+            target_account=request.user,
+            image=uploaded_file,
+        )
+        messages.success(request, _("Nový avatar účtu byl odeslán ke schválení administrátorem."))
+        return redirect("rider:account")
+
+    if target_type == "rider":
+        rider = request.user.riders.filter(pk=target_id, is_active=True).first()
+        if not rider:
+            messages.error(request, _("Nemůžeš žádat změnu avataru pro cizího jezdce."))
+            return redirect("rider:account")
+        pending_request = _get_pending_avatar_request_for_target(rider=rider)
+        if pending_request:
+            messages.error(request, _("Pro tohoto jezdce už čeká jedna žádost o změnu avataru na schválení."))
+            return redirect("rider:account")
+        AvatarChangeRequest.objects.create(
+            uploaded_by=request.user,
+            target_rider=rider,
+            image=uploaded_file,
+        )
+        messages.success(
+            request,
+            _("Nový avatar pro jezdce %(name)s byl odeslán ke schválení administrátorem.")
+            % {"name": f"{rider.first_name} {rider.last_name}"},
+        )
+        return redirect("rider:account")
+
+    messages.error(request, _("Neplatný cíl změny avataru."))
+    return redirect("rider:account")
+
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def rider_admin(request):
+    AvatarChangeRequest.expire_stale_requests()
     total_riders = Rider.objects.filter().count()
     active_riders = Rider.objects.filter(is_active=True).count()
-    data = {"total_riders": total_riders, "active_riders": active_riders}
+    pending_avatar_count = AvatarChangeRequest.objects.filter(
+        status=AvatarChangeRequest.STATUS_PENDING
+    ).count()
+    data = {
+        "total_riders": total_riders,
+        "active_riders": active_riders,
+        "pending_avatar_count": pending_avatar_count,
+    }
     return render(request, "rider/rider-admin.html", data)
 
 
