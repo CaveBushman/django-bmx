@@ -1,5 +1,5 @@
 from django import forms
-from ckeditor.widgets import CKEditorWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 from event.models import EventProposition
 
@@ -12,6 +12,21 @@ TEXT_INPUT_CLASS = (
 
 
 class EventPropositionForm(forms.ModelForm):
+    RICH_TEXT_FIELDS = (
+        "summary",
+        "schedule",
+        "categories",
+        "registration_info",
+        "awards",
+        "accommodation",
+        "additional_info",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.RICH_TEXT_FIELDS:
+            self.fields[field_name].widget = CKEditor5Widget(config_name="event_proposition")
+
     class Meta:
         model = EventProposition
         fields = [
@@ -37,11 +52,4 @@ class EventPropositionForm(forms.ModelForm):
             "contact_name": forms.TextInput(attrs={"class": TEXT_INPUT_CLASS}),
             "contact_email": forms.EmailInput(attrs={"class": TEXT_INPUT_CLASS}),
             "contact_phone": forms.TextInput(attrs={"class": TEXT_INPUT_CLASS}),
-            "summary": CKEditorWidget(),
-            "schedule": CKEditorWidget(),
-            "categories": CKEditorWidget(),
-            "registration_info": CKEditorWidget(),
-            "awards": CKEditorWidget(),
-            "accommodation": CKEditorWidget(),
-            "additional_info": CKEditorWidget(),
         }

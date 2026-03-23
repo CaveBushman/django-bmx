@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     # 3rd party
     "rest_framework",
     "ckeditor",
+    "django_ckeditor_5",
     "tailwind",
     "theme",
     "import_export",
@@ -364,6 +365,31 @@ CKEDITOR_CONFIGS = {
         ],
         "extraPlugins": "justify,liststyle,indent",
     },
+}
+
+CKEDITOR_5_CONFIGS = {
+    "event_proposition": {
+        "toolbar": [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "link",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "undo",
+            "redo",
+        ],
+        "heading": {
+            "options": [
+                {"model": "paragraph", "title": "Paragraph", "class": "ck-heading_paragraph"},
+                {"model": "heading2", "view": "h2", "title": "Heading 2", "class": "ck-heading_heading2"},
+                {"model": "heading3", "view": "h3", "title": "Heading 3", "class": "ck-heading_heading3"},
+            ]
+        },
+        "language": "cs",
+    }
 }
 
 CRONJOBS = [("0 */6 * * *", "bmx.cron.valid_licence_scheduled")]
