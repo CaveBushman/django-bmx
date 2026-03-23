@@ -25,7 +25,15 @@ class EventPropositionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name in self.RICH_TEXT_FIELDS:
-            self.fields[field_name].widget = CKEditor5Widget(config_name="event_proposition")
+            self.fields[field_name].widget = CKEditor5Widget(
+                config_name="event_proposition",
+                attrs={"class": "django_ckeditor_5"},
+            )
+        self.fields["is_published"].widget.attrs.update(
+            {
+                "class": "h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            }
+        )
 
     class Meta:
         model = EventProposition
