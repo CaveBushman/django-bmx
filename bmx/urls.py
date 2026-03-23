@@ -10,6 +10,7 @@ handler404 = "bmx.views.error_404_view"
 
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
+    path("ckeditor5/", include("django_ckeditor_5.urls")),
     path('api/', include('api.urls')),
     path('', include('news.urls')),
     path('accounts/', include('accounts.urls')),
