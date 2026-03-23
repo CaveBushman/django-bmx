@@ -4,17 +4,162 @@
 
 {% block extra_head %}
 {{ form.media }}
+<style>
+  .proposition-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .proposition-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .proposition-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .proposition-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .proposition-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .proposition-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .proposition-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .proposition-form-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .proposition-rich-field .django_ckeditor_5,
+  .proposition-rich-field .ck-editor,
+  .proposition-rich-field .ck-editor__editable {
+    width: 100%;
+  }
+
+  .proposition-rich-field .ck.ck-editor__main > .ck-editor__editable {
+    min-height: 14rem;
+  }
+
+  html.dark .proposition-page {
+    background: #0f172a;
+  }
+
+  html.dark .proposition-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .proposition-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .proposition-card {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  @media (min-width: 640px) {
+    .proposition-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .proposition-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .proposition-form-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<section class="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 dark:bg-slate-900">
-  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-8 lg:p-10">
-      <div class="border-b border-slate-200 pb-6 dark:border-slate-800">
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Editor propozic</p>
-        <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ event.name }}</h1>
-        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Propozice může upravovat pouze pořadatelský klub nebo administrátor.</p>
+<header class="proposition-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          Editor propozic
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {{ event.name|upper }}
+        </h1>
+        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          Formulářová propozice pro pořadatele a administrátory. Strukturovaný obsah se publikuje přímo na detailu závodu.
+        </p>
       </div>
+      <div class="proposition-stats-grid">
+        <div class="proposition-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pořadatel</p>
+          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.organizer.team_name|default:"-" }}</p>
+        </div>
+        <div class="proposition-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datum závodu</p>
+          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.date|date:"j. n. Y"|default:"-" }}</p>
+        </div>
+        <div class="proposition-stat rounded-2xl px-5 py-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Stav</p>
+          <p class="mt-2 text-lg font-black {% if form.instance.is_published %}text-emerald-700 dark:text-emerald-300{% else %}text-amber-700 dark:text-amber-300{% endif %}">
+            {% if form.instance.is_published %}Zveřejněno{% else %}Rozpracováno{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="proposition-page pt-8 pb-4">
+  <div class="proposition-shell">
+    <div class="proposition-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
+      <div class="max-w-3xl">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Formulář závodu</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Základní údaje a strukturovaný obsah</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Hero i rozvržení editoru jsou sjednocené s přehledovými stránkami webu. Textové bloky používají `django-ckeditor-5`.
+        </p>
+      </div>
+
+      {% if form.errors %}
+      <div class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        Formulář obsahuje chyby. Zkontroluj zvýrazněná pole níže.
+      </div>
+      {% endif %}
 
       <form method="post" class="mt-8 space-y-8">
         {% csrf_token %}
@@ -22,37 +167,71 @@
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Místo závodu</label>
             {{ form.venue_name }}
+            {% if form.venue_name.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.venue_name.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Adresa areálu</label>
             {{ form.venue_address }}
+            {% if form.venue_address.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.venue_address.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kancelář závodu / otevřeno</label>
             {{ form.office_hours }}
+            {% if form.office_hours.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.office_hours.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kontaktní osoba</label>
             {{ form.contact_name }}
+            {% if form.contact_name.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.contact_name.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">E-mail</label>
             {{ form.contact_email }}
+            {% if form.contact_email.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.contact_email.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Telefon</label>
             {{ form.contact_phone }}
+            {% if form.contact_phone.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.contact_phone.errors|join:", " }}</p>{% endif %}
           </div>
         </div>
 
-        <div class="space-y-6">
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Základní informace</label>{{ form.summary }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Časový harmonogram</label>{{ form.schedule }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kategorie</label>{{ form.categories }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Registrace a podmínky</label>{{ form.registration_info }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Vyhlašování a ceny</label>{{ form.awards }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Ubytování</label>{{ form.accommodation }}</div>
-          <div><label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Další informace</label>{{ form.additional_info }}</div>
+        <div class="proposition-form-grid">
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Základní informace</label>
+            {{ form.summary }}
+            {% if form.summary.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.summary.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Časový harmonogram</label>
+            {{ form.schedule }}
+            {% if form.schedule.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.schedule.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kategorie</label>
+            {{ form.categories }}
+            {% if form.categories.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.categories.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Registrace a podmínky</label>
+            {{ form.registration_info }}
+            {% if form.registration_info.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.registration_info.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Vyhlašování a ceny</label>
+            {{ form.awards }}
+            {% if form.awards.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.awards.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Ubytování</label>
+            {{ form.accommodation }}
+            {% if form.accommodation.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.accommodation.errors|join:", " }}</p>{% endif %}
+          </div>
+          <div class="proposition-rich-field lg:col-span-2">
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Další informace</label>
+            {{ form.additional_info }}
+            {% if form.additional_info.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.additional_info.errors|join:", " }}</p>{% endif %}
+          </div>
         </div>
 
         <label class="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">

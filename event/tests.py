@@ -13,12 +13,14 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django_ckeditor_5.widgets import CKEditor5Widget
 from openpyxl import Workbook, load_workbook
 from PIL import Image
 from commissar.models import Commissar
 from reportlab.pdfgen import canvas
 
 from club.models import Club
+from event.forms import EventPropositionForm
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
@@ -1155,6 +1157,14 @@ class EventPropositionSanitizationTests(TestCase):
         self.assertIn('rel="noopener noreferrer"', proposition.summary)
         self.assertIn('src="/media/proposition_uploads/test.png"', proposition.summary)
         self.assertNotIn("onerror", proposition.summary)
+
+
+class EventPropositionFormTests(TestCase):
+    def test_event_proposition_form_uses_ckeditor5_for_rich_text_fields(self):
+        form = EventPropositionForm()
+
+        for field_name in EventPropositionForm.RICH_TEXT_FIELDS:
+            self.assertIsInstance(form.fields[field_name].widget, CKEditor5Widget)
 
 
 class CommissarAssignmentsTests(TestCase):

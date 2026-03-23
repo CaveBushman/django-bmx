@@ -5,7 +5,7 @@ from club.models import Club
 from commissar.models import Commissar
 from rider.models import Rider
 from accounts.models import Account
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
@@ -371,13 +371,13 @@ class EventProposition(models.Model):
     contact_name = models.CharField(max_length=255, blank=True, default="")
     contact_email = models.EmailField(blank=True, default="")
     contact_phone = models.CharField(max_length=100, blank=True, default="")
-    summary = RichTextField(max_length=4000, blank=True, null=True, default="")
-    schedule = RichTextField(max_length=8000, blank=True, null=True, default="")
-    categories = RichTextField(max_length=6000, blank=True, null=True, default="")
-    registration_info = RichTextField(max_length=6000, blank=True, null=True, default="")
-    awards = RichTextField(max_length=4000, blank=True, null=True, default="")
-    accommodation = RichTextField(max_length=4000, blank=True, null=True, default="")
-    additional_info = RichTextField(max_length=6000, blank=True, null=True, default="")
+    summary = CKEditor5Field(max_length=4000, blank=True, null=True, default="", config_name="event_proposition")
+    schedule = CKEditor5Field(max_length=8000, blank=True, null=True, default="", config_name="event_proposition")
+    categories = CKEditor5Field(max_length=6000, blank=True, null=True, default="", config_name="event_proposition")
+    registration_info = CKEditor5Field(max_length=6000, blank=True, null=True, default="", config_name="event_proposition")
+    awards = CKEditor5Field(max_length=4000, blank=True, null=True, default="", config_name="event_proposition")
+    accommodation = CKEditor5Field(max_length=4000, blank=True, null=True, default="", config_name="event_proposition")
+    additional_info = CKEditor5Field(max_length=6000, blank=True, null=True, default="", config_name="event_proposition")
     is_published = models.BooleanField(default=False)
     created_by = models.ForeignKey(
         Account,
