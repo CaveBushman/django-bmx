@@ -175,7 +175,7 @@ def confirm_view(request):
                     settings.YOUR_DOMAIN
                     + f"/event/success/{event.id}?session_id={{CHECKOUT_SESSION_ID}}"
                 ),
-                cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
+                cancel_url=settings.YOUR_DOMAIN + "/event/cancel?source=entries",
             )
 
             # Atomicky zapsat všechny přihlášky — zabrání nekonzistentnímu stavu
@@ -281,7 +281,7 @@ def entry_foreign_pay_view(request, pk):
             mode="payment",
             customer_email=customer_email,
             success_url=settings.YOUR_DOMAIN + f"/event/entry-foreign-success/{event.id}?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=settings.YOUR_DOMAIN + f"/event/entry-foreign-summary/{event.id}",
+            cancel_url=settings.YOUR_DOMAIN + f"/event/cancel?source=foreign&event_id={event.id}",
         )
         save_foreign_entries(event, checkout_session, summary_rows, customer_email)
         audit_logger.info(

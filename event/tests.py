@@ -403,6 +403,26 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(credit_transaction.payment_intent, "pi_credit_exact")
         self.assertEqual(self.user.credit, 700)
 
+    def test_cancel_view_redirects_entry_checkout_back_to_confirm(self):
+        response = self.client.get(reverse("event:cancel") + "?source=entries")
+
+        self.assertRedirects(response, reverse("event:confirm"))
+
+    def test_cancel_view_redirects_credit_checkout_back_to_credit(self):
+        response = self.client.get(reverse("event:cancel") + "?source=credit")
+
+        self.assertRedirects(response, reverse("event:credit"))
+
+    def test_cancel_view_redirects_foreign_checkout_back_to_summary(self):
+        response = self.client.get(
+            reverse("event:cancel") + f"?source=foreign&event_id={self.event.id}"
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("event:entry-foreign-summary", kwargs={"pk": self.event.id}),
+        )
+
 
 class ForeignEntryHelperTests(TestCase):
     def setUp(self):
@@ -625,6 +645,78 @@ class BalanceRecalculationViewTests(TestCase):
         self.assertContains(response, "Kontrola kreditu")
         self.assertContains(response, "Stavy kreditů byly úspěšně překontrolovány.")
         recalculate_mock.assert_called_once()
+
+
+class EventAdminViewTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Tester",
+            username="admin_tester",
+            email="admin_tester@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+
+        self.club = Club.objects.create(team_name="Admin Club")
+        self.event = Event.objects.create(
+            name="Admin Race",
+            date=date.today() + timedelta(days=7),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000000010,
+            first_name="Czech",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+
+    def test_event_admin_counts_czech_and_foreign_riders_in_kpi(self):
+        Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+        EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_foreign_admin",
+            first_name="Foreign",
+            last_name="Rider",
+            uci_id="10115844151",
+            gender="Muž",
+            nationality="HUN",
+            club="Foreign Club",
+            transponder="TR-20",
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("event:event-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["sum_of_riders"], 2)
+        self.assertEqual(response.context["sum_of_fees"], 800)
+        self.assertEqual(response.context["asociation_fee"], 40)
+        self.assertContains(response, ">2</p>", html=False)
+        self.assertContains(response, "800 CZK")
+        self.assertContains(response, "40 CZK")
 
 
 class RemResultsImportTests(TestCase):
