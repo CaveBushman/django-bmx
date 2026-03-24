@@ -34,7 +34,7 @@ from .rider import (
 from rider.rider import set_all_riders_classes
 from club.models import Club
 from event.models import Event, RaceRun, Result
-from ranking.ranking import RankPositionCount
+from ranking.ranking import RankingCount, RankPositionCount
 import datetime
 from datetime import date
 from rider.rider import get_rider_data
@@ -2159,7 +2159,12 @@ def licence_check_views(request):
 @staff_member_required
 def ranking_count_views(request):
     """ Function for recount ranking"""
-    RankPositionCount().count_ranking_position()
+    try:
+        RankingCount.set_ranking_points()
+        RankPositionCount().count_ranking_position()
+    except Exception as error:
+        logger.exception("Ruční přepočet rankingu selhal")
+        messages.error(request, str(error))
     return render(request, "rider/rider-rank.html")
 
 

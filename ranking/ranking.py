@@ -78,9 +78,14 @@ class RankingCount:
         self.points_24:int = 0
         self.rider = None
         year = datetime.date.today().year
-        season = SeasonSettings.objects.filter(year=year)
-        self.CZECH_CUP:int = season.best_cup
-        self.LIGA:int = season.best_league
+        season = SeasonSettings.objects.filter(year=year).first()
+        if season is None:
+            logger.warning("Chybí SeasonSettings pro rok %s, ranking použije 0 započítaných závodů.", year)
+            self.CZECH_CUP = 0
+            self.LIGA = 0
+        else:
+            self.CZECH_CUP = season.best_cup
+            self.LIGA = season.best_league
 
     def resolve_category(self):
         self.rider = Rider.objects.select_related('club').get(uci_id=self.uci_id)
@@ -112,11 +117,13 @@ class RankingCount:
     def count_points(self):
         self.resolve_category()
         if self.rider.is_20:
+            Result.objects.filter(rider_id=self.uci_id).update(marked_20=False)
             self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=1)
             self.set_points(["Český pohár"], self.CZECH_CUP, is_20=1)
             self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=1)
 
         if self.rider.is_24:
+            Result.objects.filter(rider_id=self.uci_id).update(marked_24=False)
             self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=0)
             self.set_points(["Český pohár"], self.CZECH_CUP, is_20=0)
             self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=0)
