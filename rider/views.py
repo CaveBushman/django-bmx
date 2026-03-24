@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import gettext as _, gettext_lazy as _gl, ngettext
-from django.contrib import messages
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
@@ -34,7 +34,7 @@ from .rider import (
 from rider.rider import set_all_riders_classes
 from club.models import Club
 from event.models import Event, RaceRun, Result
-from ranking.ranking import RankingCount, RankPositionCount
+from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
 from rider.rider import get_rider_data
@@ -2160,12 +2160,29 @@ def licence_check_views(request):
 def ranking_count_views(request):
     """ Function for recount ranking"""
     try:
-        RankingCount.set_ranking_points()
-        RankPositionCount().count_ranking_position()
+        recount_already_running = bool(cache.get(RANKING_RECOUNT_RUNNING_KEY))
+        schedule_ranking_recount()
+        if recount_already_running:
+            data = {
+                "status_is_error": False,
+                "status_title": _("INFORMACE."),
+                "status_description": _("Přepočet rankingu už běží. Další průchod byl zařazen do fronty."),
+            }
+        else:
+            data = {
+                "status_is_error": False,
+                "status_title": _("INFORMACE."),
+                "status_description": _("Přepočet rankingu byl spuštěn na pozadí."),
+            }
     except Exception as error:
-        logger.exception("Ruční přepočet rankingu selhal")
-        messages.error(request, str(error))
-    return render(request, "rider/rider-rank.html")
+        logger.exception("Naplánování přepočtu rankingu selhalo")
+        data = {
+            "status_is_error": True,
+            "status_title": _("OOPS. NĚKDE SE STALA CHYBA."),
+            "status_description": _("Při naplánování přepočtu rankingu došlo k následující chybě: %(message)s")
+            % {"message": error},
+        }
+    return render(request, "rider/rider-rank.html", data)
 
 
 @staff_member_required
