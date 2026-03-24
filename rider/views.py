@@ -15,6 +15,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import gettext as _, gettext_lazy as _gl, ngettext
 from django.core.cache import cache
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
@@ -2163,26 +2164,17 @@ def ranking_count_views(request):
         recount_already_running = bool(cache.get(RANKING_RECOUNT_RUNNING_KEY))
         schedule_ranking_recount()
         if recount_already_running:
-            data = {
-                "status_is_error": False,
-                "status_title": _("INFORMACE."),
-                "status_description": _("Přepočet rankingu už běží. Další průchod byl zařazen do fronty."),
-            }
+            messages.info(request, _("Přepočet rankingu už běží. Další průchod byl zařazen do fronty."))
         else:
-            data = {
-                "status_is_error": False,
-                "status_title": _("INFORMACE."),
-                "status_description": _("Přepočet rankingu byl spuštěn na pozadí."),
-            }
+            messages.info(request, _("Přepočet rankingu byl spuštěn na pozadí."))
     except Exception as error:
         logger.exception("Naplánování přepočtu rankingu selhalo")
-        data = {
-            "status_is_error": True,
-            "status_title": _("OOPS. NĚKDE SE STALA CHYBA."),
-            "status_description": _("Při naplánování přepočtu rankingu došlo k následující chybě: %(message)s")
+        messages.error(
+            request,
+            _("Při naplánování přepočtu rankingu došlo k následující chybě: %(message)s")
             % {"message": error},
-        }
-    return render(request, "rider/rider-rank.html", data)
+        )
+    return redirect("rider:admin")
 
 
 @staff_member_required

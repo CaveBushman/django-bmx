@@ -155,8 +155,8 @@ class RankingRecountViewTests(TestCase):
     @patch("rider.views.schedule_ranking_recount")
     def test_staff_recount_view_schedules_background_recount(self, schedule_mock):
         self.client.force_login(self.staff_user)
-        response = self.client.get(reverse("rider:ranking"))
+        response = self.client.get(reverse("rider:ranking"), follow=True)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse("rider:admin"))
         schedule_mock.assert_called_once_with()
         self.assertContains(response, "Přepočet rankingu byl spuštěn na pozadí")
