@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -151,55 +152,11 @@ class RankingRecountViewTests(TestCase):
             class_20="Men Junior",
         )
 
-    def create_result(self, *, days_ago, name, event_type, place, points, marked_20=False):
-        event_date = date.today() - timedelta(days=days_ago)
-        event = Event.objects.create(
-            name=name,
-            date=event_date,
-            organizer=self.club,
-            reg_open=False,
-            type_for_ranking=event_type,
-        )
-        return Result.objects.create(
-            event=event,
-            rider=self.rider,
-            date=event_date,
-            event_type=event_type,
-            organizer=self.club.team_name,
-            category=self.rider.class_20,
-            place=place,
-            points=points,
-            is_20=True,
-            marked_20=marked_20,
-        )
-
-    def test_staff_recount_view_recomputes_points_and_marked_results(self):
-        low_result = self.create_result(
-            days_ago=200,
-            name="10. závod SAZKA Českého poháru",
-            event_type="Český pohár",
-            place=8,
-            points=70,
-            marked_20=True,
-        )
-        high_result = self.create_result(
-            days_ago=210,
-            name="6. závod SAZKA Českého poháru",
-            event_type="Český pohár",
-            place=4,
-            points=100,
-            marked_20=False,
-        )
-
+    @patch("rider.views.schedule_ranking_recount")
+    def test_staff_recount_view_schedules_background_recount(self, schedule_mock):
         self.client.force_login(self.staff_user)
         response = self.client.get(reverse("rider:ranking"))
 
         self.assertEqual(response.status_code, 200)
-
-        low_result.refresh_from_db()
-        high_result.refresh_from_db()
-        self.rider.refresh_from_db()
-
-        self.assertFalse(low_result.marked_20)
-        self.assertTrue(high_result.marked_20)
-        self.assertEqual(self.rider.points_20, 100)
+        schedule_mock.assert_called_once_with()
+        self.assertContains(response, "Přepočet rankingu byl spuštěn na pozadí")
