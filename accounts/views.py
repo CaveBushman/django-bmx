@@ -13,12 +13,13 @@ audit_logger = logging.getLogger("audit")
 
 def sign_up(request):
     if request.method == 'POST':
-        first_name = request.POST['firstname']
-        last_name = request.POST['lastname']
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        password2 = request.POST['password2']
+        first_name = request.POST.get('firstname', '').strip()
+        last_name = request.POST.get('lastname', '').strip()
+        submitted_identity = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip() or submitted_identity
+        username = submitted_identity or email
+        password = request.POST.get('password', '')
+        password2 = request.POST.get('password2', '')
         if password == password2:
             if Account.objects.filter(email=email).exists():
                 audit_logger.warning(
@@ -28,7 +29,21 @@ def sign_up(request):
                 )
                 messages.error(request, "Uživatel s tímto e-mailem již existuje.")
                 return render(request, 'accounts/signup.html')
-            user = Account.objects.create_user(first_name, last_name, username, email, password)
+            if Account.objects.filter(username=username).exists():
+                audit_logger.warning(
+                    "signup_rejected_duplicate_username username=%s ip=%s",
+                    username,
+                    request.META.get("REMOTE_ADDR", ""),
+                )
+                messages.error(request, "Uživatel s tímto uživatelským jménem již existuje.")
+                return render(request, 'accounts/signup.html')
+            user = Account.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                password=password,
+            )
             user.is_active = True
             user.save()
             login(request, user)
@@ -48,7 +63,7 @@ def sign_up(request):
                 email,
                 request.META.get("REMOTE_ADDR", ""),
             )
-            messages.success(request, "Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu")
+            messages.error(request, "Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu")
             return render(request, 'accounts/signup.html')
     else:
         data = {}
