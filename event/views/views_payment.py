@@ -83,7 +83,31 @@ def success_view(request, pk):
 
 
 def cancel_view(request):
-    """Stripe cancel redirect — platba byla zrušena."""
+    """Stripe cancel redirect — vrať uživatele na správný krok flow."""
+    source = (request.GET.get("source") or "").strip().lower()
+    event_id = request.GET.get("event_id", "").strip()
+
+    if source == "entries":
+        messages.info(
+            request,
+            "Platba byla ve Stripe zrušena. Přihlášky zůstaly připravené a můžeš je znovu potvrdit.",
+        )
+        return redirect("event:confirm")
+
+    if source == "credit":
+        messages.info(
+            request,
+            "Dobití kreditu bylo ve Stripe zrušeno. Můžeš upravit částku a platbu zkusit znovu.",
+        )
+        return redirect("event:credit")
+
+    if source == "foreign" and event_id.isdigit():
+        messages.info(
+            request,
+            "Platba zahraničních přihlášek byla ve Stripe zrušena. Souhrn zůstal zachovaný a můžeš pokračovat znovu.",
+        )
+        return redirect("event:entry-foreign-summary", pk=int(event_id))
+
     return render(request, "event/cancel.html")
 
 
@@ -253,7 +277,7 @@ def credit_view(request):
                     settings.YOUR_DOMAIN
                     + "/event/success-credit?session_id={CHECKOUT_SESSION_ID}"
                 ),
-                cancel_url=settings.YOUR_DOMAIN + "/event/cancel",
+                cancel_url=settings.YOUR_DOMAIN + "/event/cancel?source=credit",
             )
             CreditTransaction(
                 transaction_id=checkout_session.id, amount=amount, user_id=user_id

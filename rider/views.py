@@ -284,16 +284,11 @@ def _build_rider_premium_stats_context(request, rider, premium_access_context):
     )
     kpi_period = _resolve_kpi_period(request.GET.get("years"))
     track_options = _build_track_options(results, runs, kpi_cutoff=kpi_period["cutoff"])
-    selected_track_id = request.GET.get("track")
     selected_wheel = request.GET.get("wheel")
     if selected_wheel not in {"20", "24"}:
         selected_wheel = None
-    selected_track = None
+    selected_track = _resolve_selected_track(track_options, request.GET.get("track"))
     require_wheel_selection = False
-    if selected_track_id and selected_track_id.isdigit():
-        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
-    elif len(track_options) == 1:
-        selected_track = track_options[0]
     if selected_track is not None:
         track_results = [result for result in results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]
         track_runs = [run for run in runs if ((run.event and run.event.organizer_id) or 0) == selected_track["id"]]
@@ -729,6 +724,15 @@ def _build_track_options(results, runs, kpi_cutoff=None):
         track_options.append(item)
 
     return sorted(track_options, key=lambda item: (-item["runs_count"], item["name"]))
+
+
+def _resolve_selected_track(track_options, selected_track_id):
+    if selected_track_id and selected_track_id.isdigit():
+        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
+        if selected_track is not None:
+            return selected_track
+
+    return track_options[0] if track_options else None
 
 
 def _build_peer_context(rider, selected_track, wheel, kpi_cutoff=None):
@@ -1607,16 +1611,11 @@ def rider_compare_view(request, pk):
     )
     kpi_period = _resolve_kpi_period(request.GET.get("years"))
     track_options = _build_track_options(base_results, base_runs, kpi_cutoff=kpi_period["cutoff"])
-    selected_track_id = request.GET.get("track")
     selected_wheel = request.GET.get("wheel")
     if selected_wheel not in {"20", "24"}:
         selected_wheel = None
-    selected_track = None
+    selected_track = _resolve_selected_track(track_options, request.GET.get("track"))
     require_wheel_selection = False
-    if selected_track_id and selected_track_id.isdigit():
-        selected_track = next((track for track in track_options if track["id"] == int(selected_track_id)), None)
-    elif len(track_options) == 1:
-        selected_track = track_options[0]
 
     if selected_track is not None:
         selected_track_results = [result for result in base_results if ((result.event and result.event.organizer_id) or 0) == selected_track["id"]]

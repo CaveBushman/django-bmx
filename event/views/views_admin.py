@@ -719,13 +719,15 @@ def event_admin_view(request, pk):
 
     # Shrnutí pro šablonu event-admin.html (zobrazí se vždy po akci nebo při GET)
     entries = Entry.objects.filter(event=event.id, payment_complete=True, checkout=False)
-    sum_of_fees = sum(e.fee_beginner + e.fee_20 + e.fee_24 for e in entries)
+    foreign_entries = EntryForeign.objects.filter(event=event.id, payment_complete=True, checkout=False)
+    sum_of_fees = sum((e.fee_beginner or 0) + (e.fee_20 or 0) + (e.fee_24 or 0) for e in entries)
+    sum_of_fees += sum((e.fee_20 or 0) + (e.fee_24 or 0) for e in foreign_entries)
 
     data = {
         "event": event,
         "invalid_licences": invalid_licence_in_event(event),
         "sum_of_fees": sum_of_fees,
-        "sum_of_riders": entries.count(),
+        "sum_of_riders": entries.count() + foreign_entries.count(),
         "asociation_fee": int(sum_of_fees * event.commission_fee / 100),
         "results_exist": Result.objects.filter(event=event).exists(),
         "moto_runs_exist": RaceRun.objects.filter(event=event, round_type="MOTO").exists(),

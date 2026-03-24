@@ -1,13 +1,91 @@
-{% extends 'base.html' %} {% block title %} Chyba {% endblock title %}
+{% extends 'base.html' %}
+{% block title %}Platba zrušena{% endblock title %}
+
+{% block extra_head %}
+<style>
+  .cancel-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .cancel-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .cancel-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .cancel-panel {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark .cancel-page {
+    background: #0f172a;
+  }
+
+  html.dark .cancel-hero {
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  }
+
+  html.dark .cancel-panel {
+    border-color: rgba(71, 85, 105, 0.55);
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<header class="cancel-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Stripe checkout</p>
+    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Platba byla zrušena</h1>
+    <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+      Platba nebyla dokončená. Pokud to byl jen návrat zpět, můžeš se vrátit do příslušného kroku a pokračovat znovu.
+    </p>
+  </div>
+</header>
 
-<div class="flex flex-col items-center mx-auto mt-20 dark:text-gray-200">
-  <div class="">
-  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
-</svg></div>
-    <div class = "text-5xl text-center mt-20">OOPS. NĚKDE SE STALA CHYBA.</div>
-    <div class = "text-center text-lg mt-6">Vaše platba nebyla přijata. Přihlašte prosím své jezdce znovu, pokud by ani tak přihlášení nebylo úspěšné, kontaktujte Komisi BMX. </div>
-</div>
-
+<section class="cancel-page py-8">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <div class="cancel-panel rounded-[2rem] p-8 text-center sm:p-10">
+      <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-slate-700 text-white shadow-lg shadow-slate-900/10 dark:bg-slate-800">
+        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+        </svg>
+      </div>
+      <h2 class="mt-6 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Žádná chyba serveru, jen nedokončená platba</h2>
+      <p class="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">
+        Tohle je pouze záložní stránka pro přímý vstup na `cancel` URL. Běžné flow už vrací uživatele zpět do správného kroku registrace nebo kreditu.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="{% url 'event:events' %}" class="inline-flex items-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500">
+          Zpět na kalendář
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'event:credit' %}" class="inline-flex items-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white">
+          Otevřít kredit
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

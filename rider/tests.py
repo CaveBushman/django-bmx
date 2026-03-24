@@ -357,6 +357,83 @@ class RiderPremiumSubscriptionTests(TestCase):
         self.assertContains(response, "Traťový profil")
         self.assertContains(response, "35,44")
 
+    def test_premium_stats_auto_selects_track_with_most_timed_runs(self):
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=100,
+            transaction_id="credit-3b",
+            payment_complete=True,
+        )
+        other_club = Club.objects.create(team_name="Secondary Track")
+        older_event = Event.objects.create(
+            name="Secondary Race One",
+            date=date.today() - timedelta(days=4),
+            organizer=other_club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        newer_event = Event.objects.create(
+            name="Secondary Race Two",
+            date=date.today() - timedelta(days=3),
+            organizer=other_club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        older_result = Result.objects.create(
+            event=older_event,
+            rider=self.rider,
+            date=older_event.date,
+            event_type=older_event.type_for_ranking,
+            organizer=other_club.team_name,
+            category=self.rider.class_20,
+            place=4,
+            points=50,
+        )
+        newer_result = Result.objects.create(
+            event=newer_event,
+            rider=self.rider,
+            date=newer_event.date,
+            event_type=newer_event.type_for_ranking,
+            organizer=other_club.team_name,
+            category=self.rider.class_20,
+            place=2,
+            points=75,
+        )
+        RaceRun.objects.create(
+            result=older_result,
+            event=older_event,
+            rider=self.rider,
+            is_20=True,
+            is_beginner=False,
+            round_type="MOTO",
+            round_number=1,
+            lane=5,
+            place="4th",
+            finish_time=35.44,
+        )
+        RaceRun.objects.create(
+            result=newer_result,
+            event=newer_event,
+            rider=self.rider,
+            is_20=True,
+            is_beginner=False,
+            round_type="FINAL",
+            lane=6,
+            place="2nd",
+            finish_time=35.01,
+        )
+
+        self.client.force_login(self.user)
+        self.client.post(reverse("rider:premium-stats-subscribe", kwargs={"pk": self.rider.uci_id}))
+
+        response = self.client.get(reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["selected_track"]["id"], other_club.id)
+        self.assertContains(response, "Secondary Track")
+        self.assertContains(response, "35,44")
+        self.assertContains(response, "35,01")
+
     def test_premium_compare_page_renders_hill_and_head_to_head(self):
         CreditTransaction.objects.create(
             user=self.user,
