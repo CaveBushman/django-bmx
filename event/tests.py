@@ -553,6 +553,24 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual({row.category for row in rows}, {"Master 30+", "Cruiser"})
 
+    def test_entry_foreign_save_normalizes_uci_id(self):
+        entry = EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_normalized_uci",
+            first_name="Péter",
+            last_name="Balogh",
+            uci_id="100 459 968",
+            gender="Muž",
+            nationality="HUN",
+            plate="15",
+            is_20=True,
+            class_20="Elite 17+",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        self.assertEqual(entry.uci_id, "100459968")
+
     def test_sync_paid_foreign_riders_creates_missing_foreign_rider(self):
         EntryForeign.objects.create(
             event=self.event,
@@ -578,6 +596,29 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(foreign_rider.first_name, "Péter")
         self.assertEqual(foreign_rider.state, "HUN")
         self.assertEqual(foreign_rider.class_24, "Cruiser")
+
+    def test_sync_paid_foreign_riders_handles_formatted_uci_id(self):
+        EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_sync_spaced",
+            first_name="Péter",
+            last_name="Balogh",
+            uci_id="100 459 968",
+            date_of_birth=date(1980, 7, 8),
+            gender="Muž",
+            nationality="HUN",
+            plate="15",
+            transponder_20="TR-20",
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        sync_paid_foreign_riders(self.event, "sess_sync_spaced")
+
+        foreign_rider = ForeignRider.objects.get(uci_id=100459968)
+        self.assertEqual(foreign_rider.first_name, "Péter")
 
     @patch("event.views.payment_helpers._construct_stripe_event")
     def test_webhook_marks_foreign_entries_paid(self, construct_event_mock):
@@ -740,7 +781,8 @@ class EntryForeignAdminTests(TestCase):
 
         admin_instance = EntryForeignAdmin(EntryForeign, admin.site)
 
-        self.assertEqual(admin_instance.foreign_rider_link(entry), "Nenalezen")
+        self.assertEqual(entry.uci_id, "")
+        self.assertEqual(admin_instance.foreign_rider_link(entry), "Bez UCI ID")
 
     def test_changelist_renders_with_invalid_uci_id(self):
         staff_user = User.objects.create_user(
