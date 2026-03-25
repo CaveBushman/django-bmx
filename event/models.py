@@ -18,6 +18,9 @@ from bmx.html_sanitizer import sanitize_rich_html
 
 # Create your models here.
 
+def normalize_uci_id(value):
+    return "".join(ch for ch in str(value or "") if ch.isdigit())
+
 class SeasonSettings(models.Model):
     year = models.IntegerField(default=2024)
     qualify_to_cn = models.IntegerField (default=2)
@@ -614,6 +617,9 @@ class EntryForeign(models.Model):
     customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
 
+    def save(self, *args, **kwargs):
+        self.uci_id = normalize_uci_id(self.uci_id)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Registrace zahraničních jezdců"

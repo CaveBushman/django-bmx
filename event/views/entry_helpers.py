@@ -20,7 +20,7 @@ from event.func import (
     resolve_event_fee,
     update_cart,
 )
-from event.models import Entry, EntryForeign, Event, SeasonSettings
+from event.models import Entry, EntryForeign, Event, SeasonSettings, normalize_uci_id
 from rider.models import ForeignRider, Rider
 from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
 
@@ -418,9 +418,12 @@ def sync_paid_foreign_riders(event, session_id):
     )
 
     for paid_entry in paid_entries:
+        normalized_uci_id = normalize_uci_id(paid_entry.uci_id)
+        if not normalized_uci_id:
+            continue
         try:
-            foreign_rider = ForeignRider.objects.get(uci_id=paid_entry.uci_id)
-        except ForeignRider.DoesNotExist:
+            foreign_rider = ForeignRider.objects.get(uci_id=int(normalized_uci_id))
+        except (ForeignRider.DoesNotExist, ValueError):
             foreign_rider = _create_foreign_rider_from_entry(paid_entry)
             if foreign_rider is None:
                 continue
@@ -430,7 +433,7 @@ def sync_paid_foreign_riders(event, session_id):
 
 def _create_foreign_rider_from_entry(paid_entry):
     try:
-        uci_id_value = int(str(paid_entry.uci_id).strip())
+        uci_id_value = int(normalize_uci_id(paid_entry.uci_id))
     except (TypeError, ValueError):
         return None
 

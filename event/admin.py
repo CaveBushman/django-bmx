@@ -4,7 +4,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.urls import reverse
 from django.urls import NoReverseMatch
 from django.utils.html import format_html
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from rider.models import ForeignRider
 from django.utils.timezone import now
 from datetime import timedelta
@@ -158,8 +158,11 @@ class EntryForeignAdmin(BaseAdmin):
     def foreign_rider_link(self, obj):
         if not obj.uci_id:
             return "Bez UCI ID"
+        normalized_uci_id = normalize_uci_id(obj.uci_id)
+        if not normalized_uci_id:
+            return "Nenalezen"
         try:
-            foreign_rider = ForeignRider.objects.get(uci_id=obj.uci_id)
+            foreign_rider = ForeignRider.objects.get(uci_id=int(normalized_uci_id))
         except (ForeignRider.DoesNotExist, ValidationError, ValueError):
             return "Nenalezen"
         except MultipleObjectsReturned:
