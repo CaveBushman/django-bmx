@@ -1,0 +1,15 @@
+[2026-03-24 10:19:15,068] INFO audit: signin_success user_id=1 username=david@black-ops.eu remember_me=False ip=127.0.0.1
+[2026-03-24 10:19:47,778] INFO audit: event_stats_imported admin_user_id=1 event_id=244 uploaded_files=6 imported_runs=877 results_count=221
+[2026-03-24 10:50:34,549] INFO audit: signout user_id=1 username=david@black-ops.eu ip=127.0.0.1
+[2026-03-24 10:52:16,551] INFO audit: signup_success user_id=1 username=dp@dp.cz email=dp@dp.cz ip=127.0.0.1
+[2026-03-24 10:52:23,466] INFO audit: signin_success user_id=1 username=remember_tester remember_me=True ip=127.0.0.1
+[2026-03-24 10:52:24,247] INFO audit: signin_success user_id=1 username=remember_tester remember_me=False ip=127.0.0.1
+[2026-03-24 10:52:24,724] INFO audit: signup_success user_id=1 username=dp@dp.cz email=dp@dp.cz ip=127.0.0.1
+[2026-03-24 10:54:12,263] INFO audit: signin_success user_id=1 username=remember_tester remember_me=True ip=127.0.0.1
+[2026-03-24 10:54:13,045] INFO audit: signin_success user_id=1 username=remember_tester remember_me=False ip=127.0.0.1
+[2026-03-24 10:54:13,529] INFO audit: signup_success user_id=1 username=dp@dp.cz email=dp@dp.cz ip=127.0.0.1
+[2026-03-24 10:54:38,529] INFO audit: signup_success user_id=1 username=dp@dp.cz email=dp@dp.cz ip=127.0.0.1
+[2026-03-24 10:55:15,342] INFO audit: signup_success user_id=1 username=dp@dp.cz email=dp@dp.cz ip=127.0.0.1
+[2026-03-24 10:55:39,811] INFO audit: signup_success user_id=714 username=dp@dp.dp email=dp@dp.dp ip=127.0.0.1
+[2026-03-24 10:55:48,972] INFO audit: signout user_id=714 username=dp@dp.dp ip=127.0.0.1
+[2026-03-24 10:55:54,330] INFO audit: signin_success user_id=1 username=david@black-ops.eu remember_me=False ip=127.0.0.1

@@ -6,11 +6,12 @@ import zipfile
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django_ckeditor_5.widgets import CKEditor5Widget
@@ -21,6 +22,7 @@ from reportlab.pdfgen import canvas
 
 from club.models import Club
 from event.forms import EventPropositionForm
+from event.admin import EntryForeignAdmin
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
@@ -717,6 +719,62 @@ class EventAdminViewTests(TestCase):
         self.assertContains(response, ">2</p>", html=False)
         self.assertContains(response, "800 CZK")
         self.assertContains(response, "40 CZK")
+
+
+class EntryForeignAdminTests(TestCase):
+    def test_foreign_rider_link_handles_non_numeric_uci_id(self):
+        entry = EntryForeign.objects.create(
+            transaction_id="sess_invalid_uci",
+            first_name="Foreign",
+            last_name="Broken",
+            uci_id="TEMP-UNKNOWN",
+            gender="Muž",
+            nationality="GER",
+            club="Foreign Club",
+            transponder="TR-20",
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        admin_instance = EntryForeignAdmin(EntryForeign, admin.site)
+
+        self.assertEqual(admin_instance.foreign_rider_link(entry), "Nenalezen")
+
+    def test_changelist_renders_with_invalid_uci_id(self):
+        staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Foreign",
+            username="foreign_admin",
+            email="foreign_admin@example.com",
+            password="StrongPass123!",
+        )
+        staff_user.is_staff = True
+        staff_user.is_superuser = True
+        staff_user.save(update_fields=["is_staff", "is_superuser"])
+        EntryForeign.objects.create(
+            transaction_id="sess_invalid_uci_page",
+            first_name="Foreign",
+            last_name="Broken",
+            uci_id="TEMP-UNKNOWN",
+            gender="Muž",
+            nationality="GER",
+            club="Foreign Club",
+            transponder="TR-24",
+            is_24=True,
+            class_24="Men 17-24",
+            fee_24=400,
+            payment_complete=True,
+        )
+
+        request = RequestFactory().get("/bmx-admin/event/entryforeign/")
+        request.user = staff_user
+
+        response = EntryForeignAdmin(EntryForeign, admin.site).changelist_view(request)
+        response.render()
+
+        self.assertEqual(response.status_code, 200)
 
 
 class RemResultsImportTests(TestCase):

@@ -1,5 +1,8 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.core.exceptions import MultipleObjectsReturned
 from django.urls import reverse
+from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition
 from rider.models import ForeignRider
@@ -157,10 +160,15 @@ class EntryForeignAdmin(BaseAdmin):
             return "Bez UCI ID"
         try:
             foreign_rider = ForeignRider.objects.get(uci_id=obj.uci_id)
-        except ForeignRider.DoesNotExist:
+        except (ForeignRider.DoesNotExist, ValidationError, ValueError):
             return "Nenalezen"
+        except MultipleObjectsReturned:
+            return "Duplicitní jezdec"
 
-        url = reverse('admin:rider_foreignrider_change', args=[foreign_rider.pk])
+        try:
+            url = reverse('admin:rider_foreignrider_change', args=[foreign_rider.pk])
+        except NoReverseMatch:
+            return "Detail nedostupný"
         return format_html('<a href="{}">Otevřít jezdce</a>', url)
 
 
