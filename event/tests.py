@@ -621,12 +621,13 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(foreign_rider.first_name, "Péter")
 
     @patch("event.views.payment_helpers._construct_stripe_event")
-    def test_webhook_marks_foreign_entries_paid(self, construct_event_mock):
+    def test_webhook_marks_foreign_entries_paid_and_syncs_foreign_rider(self, construct_event_mock):
         foreign_entry = EntryForeign.objects.create(
             event=self.event,
             transaction_id="sess_foreign_webhook",
             first_name="Péter",
             last_name="Balogh",
+            date_of_birth=date(1980, 7, 8),
             uci_id="10115844151",
             gender="Muž",
             nationality="HUN",
@@ -663,6 +664,45 @@ class ForeignEntryHelperTests(TestCase):
         foreign_entry.refresh_from_db()
         self.assertTrue(foreign_entry.payment_complete)
         self.assertEqual(foreign_entry.customer_email, "foreign@example.com")
+        foreign_rider = ForeignRider.objects.get(uci_id=10115844151)
+        self.assertEqual(foreign_rider.first_name, "Péter")
+        self.assertEqual(foreign_rider.state, "HUN")
+
+    @patch("event.views.payment_helpers.stripe.checkout.Session.retrieve")
+    def test_foreign_success_view_syncs_rider_even_when_entry_was_already_marked_paid(self, retrieve_mock):
+        EntryForeign.objects.create(
+            event=self.event,
+            transaction_id="sess_foreign_success",
+            first_name="Nina",
+            last_name="Meyer",
+            date_of_birth=date(2005, 5, 4),
+            uci_id="10123456789",
+            gender="Žena",
+            nationality="GER",
+            plate="G7",
+            transponder_20="TX20",
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=400,
+            payment_complete=True,
+        )
+        retrieve_mock.return_value = {
+            "payment_status": "paid",
+            "customer_details": {
+                "name": "Foreign Buyer",
+                "email": "foreign@example.com",
+            },
+        }
+
+        response = self.client.get(
+            reverse("event:entry-foreign-success", kwargs={"pk": self.event.pk})
+            + "?session_id=sess_foreign_success"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        foreign_rider = ForeignRider.objects.get(uci_id=10123456789)
+        self.assertEqual(foreign_rider.first_name, "Nina")
+        self.assertEqual(foreign_rider.state, "GER")
 
 
 class BalanceRecalculationViewTests(TestCase):
