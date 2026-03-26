@@ -17,6 +17,7 @@ from event.credit import calculate_user_balance
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryForeign
 from rider.models import RiderStatsCharge, TrainerClubCharge
 from event.services.payments import get_entry_amount
+from event.views.entry_helpers import sync_paid_foreign_riders
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -211,6 +212,7 @@ def handle_credit_webhook(payload, sig_header):
             entries = list(entries)
             if entries and payment_status == "paid":
                 _mark_entry_records_paid(entries, customer_details=customer_details)
+                sync_paid_foreign_riders(entries[0].event, session_id)
                 logger.info(
                     "[Webhook] Zahraniční přihlášky označeny jako zaplacené: %s",
                     [str(e) for e in entries]

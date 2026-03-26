@@ -312,12 +312,12 @@ def entry_foreign_success_view(request, pk):
     session_id = request.GET.get("session_id", "")
     if session_id:
         try:
-            if finalize_entry_checkout_session(
+            finalize_entry_checkout_session(
                 session_id,
                 event_id=event.id,
                 is_foreign=True,
-            ):
-                sync_paid_foreign_riders(event, session_id)
+            )
+            sync_paid_foreign_riders(event, session_id)
         except Exception as e:
             logger.error(f"Chyba při potvrzení foreign Stripe platby: {e}")
 
