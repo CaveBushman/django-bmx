@@ -25,7 +25,7 @@ from accounts.models import AvatarChangeRequest
 from .models import Rider, ForeignRider, RiderTransponderChange
 from .rider import (
     two_years_inactive,
-    CheckValidLicenceThread,
+    start_licence_check,
     Participation,
     Cruiser,
     RiderSetClassesThread,
@@ -2142,18 +2142,31 @@ def deactivate_inactive_rider_view(request, rider_id):
 @staff_member_required
 def licence_check_views(request):
     """ Function for checking valid licence"""
-    CheckValidLicenceThread().start()
-    data = {
-        "status_eyebrow": _("Správa jezdců"),
-        "status_title": _("Kontrola licencí byla spuštěna"),
-        "status_description": _("Ověřování platnosti licencí nyní běží na pozadí. Po dokončení se stav propíše přímo v databázi jezdců."),
-        "status_note": _("Není potřeba čekat na této stránce. Můžeš pokračovat v administraci nebo se vrátit zpět na přehled nástrojů."),
-        "status_icon": "license",
-        "primary_action_label": _("Zpět na administraci jezdců"),
-        "primary_action_url": "rider:admin",
-        "secondary_action_label": _("Seznam jezdců"),
-        "secondary_action_url": "rider:list",
-    }
+    started = start_licence_check()
+    if started:
+        data = {
+            "status_eyebrow": _("Správa jezdců"),
+            "status_title": _("Kontrola licencí byla spuštěna"),
+            "status_description": _("Ověřování platnosti licencí nyní běží na pozadí. Po dokončení se stav propíše přímo v databázi jezdců."),
+            "status_note": _("Není potřeba čekat na této stránce. Můžeš pokračovat v administraci nebo se vrátit zpět na přehled nástrojů."),
+            "status_icon": "license",
+            "primary_action_label": _("Zpět na administraci jezdců"),
+            "primary_action_url": "rider:admin",
+            "secondary_action_label": _("Seznam jezdců"),
+            "secondary_action_url": "rider:list",
+        }
+    else:
+        data = {
+            "status_eyebrow": _("Správa jezdců"),
+            "status_title": _("Kontrola licencí již probíhá"),
+            "status_description": _("Ověřování platnosti licencí již běží na pozadí. Počkej na dokončení předchozího průchodu."),
+            "status_note": _("Není potřeba spouštět kontrolu znovu. Výsledky se propíší do databáze automaticky."),
+            "status_icon": "license",
+            "primary_action_label": _("Zpět na administraci jezdců"),
+            "primary_action_url": "rider:admin",
+            "secondary_action_label": _("Seznam jezdců"),
+            "secondary_action_url": "rider:list",
+        }
     return render(request, "rider/rider-success.html", data)
 
 

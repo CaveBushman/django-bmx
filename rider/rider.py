@@ -38,6 +38,7 @@ API_READ_TIMEOUT_SECONDS = 20
 API_TIMEOUT = (API_CONNECT_TIMEOUT_SECONDS, API_READ_TIMEOUT_SECONDS)
 TOKEN_CACHE_TTL_SECONDS = 300
 _api_token_cache = {"value": None, "expires_at": 0.0}
+_licence_check_lock = threading.Lock()
 
 
 # ===========================================================================
@@ -47,10 +48,24 @@ _api_token_cache = {"value": None, "expires_at": 0.0}
 class CheckValidLicenceThread(threading.Thread):
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        super().__init__(daemon=True)
 
     def run(self):
-        refresh_valid_licences()
+        if not _licence_check_lock.acquire(blocking=False):
+            logger.warning("Kontrola licencí již probíhá, nové spuštění přeskočeno.")
+            return
+        try:
+            refresh_valid_licences()
+        finally:
+            _licence_check_lock.release()
+
+
+def start_licence_check() -> bool:
+    """Spustí kontrolu licencí na pozadí. Vrátí False, pokud již běží."""
+    if _licence_check_lock.locked():
+        return False
+    CheckValidLicenceThread().start()
+    return True
 
 
 class RiderSetClassesThread(threading.Thread):
