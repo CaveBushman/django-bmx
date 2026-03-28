@@ -451,7 +451,11 @@ CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "event:proposition-editor-upload"
 CKEDITOR_5_UPLOAD_FILE_TYPES = ["jpg", "jpeg", "png", "gif", "webp"]
 CKEDITOR_5_MAX_FILE_SIZE = 8
 
-CRONJOBS = [("0 */6 * * *", "bmx.cron.valid_licence_scheduled")]
+CRONJOBS = [
+    ("0 */6 * * *", "bmx.cron.valid_licence_scheduled"),
+    ("0 2 * * *", "bmx.cron.renew_rider_stats_subscriptions_scheduled"),
+    ("15 2 * * *", "bmx.cron.renew_trainer_club_subscriptions_scheduled"),
+]
 
 LOGGING = {
     "version": 1,
