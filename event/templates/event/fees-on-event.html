@@ -317,7 +317,7 @@
             Odeslat
           </button>
           <a
-            {% if event.flexibee_export %}href="../../{{ event.flexibee_export }}"{% endif %}
+            {% if event.flexibee_export %}href="{{ event.flexibee_export.url }}"{% endif %}
             class="invoice-action-secondary{% if not event.flexibee_export %} is-disabled{% endif %}"
             {% if event.flexibee_export %}download{% endif %}
           >
@@ -355,7 +355,7 @@
                   <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                     <div class="invoice-link-group">
                       {% if invoice.pdf %}
-                      <a href="../../{{ invoice.pdf }}" class="invoice-link-chip" download>
+                      <a href="{{ invoice.pdf.url }}" class="invoice-link-chip" download>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M12 3v11" />
                           <path d="M8 10l4 4 4-4" />
@@ -365,7 +365,7 @@
                       </a>
                       {% endif %}
                       {% if invoice.xml_export %}
-                      <a href="../../{{ invoice.xml_export }}" class="invoice-link-chip" download>
+                      <a href="{{ invoice.xml_export.url }}" class="invoice-link-chip" download>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 9l-3 3 3 3" />
                           <path d="M16 9l3 3-3 3" />
