@@ -1040,9 +1040,9 @@ def export_event_results(request, event_id):
     payload = []
 
     for res in results:
-        rider = Rider.objects.filter(uci_id=res.rider).first()
+        rider = res.rider
         if not rider:
-            logger.warning(f"Jezdec s UCI ID {res.rider} nenalezen, přeskakuji.")
+            logger.warning(f"Výsledek {res.pk} nemá přiřazeného jezdce, přeskakuji.")
             continue
 
         cruiser = not res.is_20 and not res.is_beginner
