@@ -362,8 +362,7 @@ class EventInvoiceService:
         pdf.setFillColor(colors.white)
         pdf.setFont("DejaVuSans-Bold", 9)
         pdf.drawString(24 * mm, table_top + 2.5 * mm, "Položka")
-        pdf.drawString(145 * mm, table_top + 2.5 * mm, "Cena")
-        pdf.drawString(172 * mm, table_top + 2.5 * mm, "Celkem")
+        pdf.drawRightString(187 * mm, table_top + 2.5 * mm, "Cena")
 
     def _draw_invoice_summary(self, pdf, invoice, current_y):
         pdf.setFillColor(colors.black)
@@ -374,10 +373,10 @@ class EventInvoiceService:
         pdf.line(120 * mm, current_y, 190 * mm, current_y)
         current_y -= 7 * mm
         pdf.setFont("DejaVuSans-Bold", 11)
-        pdf.drawString(129 * mm, current_y, "Celková částka")
+        pdf.drawRightString(152 * mm, current_y, "Celková částka")
         pdf.drawRightString(187 * mm, current_y, f"{invoice.total_price:.2f} Kč")
         current_y -= 7 * mm
-        pdf.drawString(138 * mm, current_y, "K úhradě")
+        pdf.drawRightString(152 * mm, current_y, "K úhradě")
         pdf.drawRightString(187 * mm, current_y, "0.00 Kč")
         current_y -= 12 * mm
         pdf.setFont("DejaVuSans", 9)
@@ -417,8 +416,7 @@ class EventInvoiceService:
             for description_line in description_lines:
                 pdf.drawString(24 * mm, text_y, description_line)
                 text_y -= 4.6 * mm
-            pdf.drawRightString(164 * mm, current_y, f"{line.unit_price:.2f} Kč")
-            pdf.drawRightString(187 * mm, current_y, f"{line.total:.2f} Kč")
+            pdf.drawRightString(187 * mm, current_y, f"{line.unit_price:.2f} Kč")
             current_y -= row_height
 
         if current_y - summary_reserved < bottom_limit:
