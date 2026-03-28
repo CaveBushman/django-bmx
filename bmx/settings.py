@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     "tailwind",
     "theme",
     "import_export",
+    "django_crontab",
 
     # My app
     "rider",
