@@ -1354,10 +1354,10 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     start_event_rows = []
     for item in raw_start_event_rows:
         event_id = item["event_id"]
-        hill_times = event_hill_times.get(event_id, [])
-        if hill_times:
+        event_hill_time_list = event_hill_times.get(event_id, [])
+        if event_hill_time_list:
             item["cells"]["DAY_MEDIAN"] = {
-                "time": round(median(hill_times), 3),
+                "time": round(median(event_hill_time_list), 3),
             }
         row_cells = []
         for key, label in START_TABLE_COLUMNS:
@@ -1386,10 +1386,10 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     split_event_rows = []
     for item in raw_split_event_rows:
         event_id = item["event_id"]
-        split_times = event_split_times.get(event_id, [])
-        if split_times:
+        event_split_time_list = event_split_times.get(event_id, [])
+        if event_split_time_list:
             item["cells"]["DAY_MEDIAN"] = {
-                "time": round(median(split_times), 3),
+                "time": round(median(event_split_time_list), 3),
             }
         row_cells = []
         for key, label in SPLIT_TABLE_COLUMNS:
