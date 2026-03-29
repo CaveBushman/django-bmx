@@ -430,7 +430,9 @@ def delete_old_event_files(sender, instance, **kwargs):
 
     def _delete_if_url_changed(old_field, new_field):
         try:
-            if old_field and old_field.url != new_field.url:
+            old_name = getattr(old_field, "name", "") or ""
+            new_name = getattr(new_field, "name", "") or ""
+            if old_field and old_name != new_name:
                 old_field.delete(save=False)
         except Exception:
             pass

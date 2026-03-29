@@ -678,7 +678,7 @@ def event_admin_view(request, pk):
     Pro Evropský pohár/ME vrátí okamžitě EC stránku.
     Pro ostatní závodní typy zpracuje POST akci (btn-*) nebo zobrazí shrnutí.
     """
-    event = Event.objects.get(id=pk)
+    event = get_object_or_404(Event, id=pk)
 
     # Evropský pohár a Mistrovství Evropy mají vlastní admin stránku
     if event.type_for_ranking in ["Evropský pohár", "Mistrovství Evropy"]:
@@ -742,17 +742,18 @@ def find_payment_view(request):
     events = Event.objects.all()
 
     if "find-payment" in request.POST:
-        try:
-            rider_uci = request.POST["rider"]
-            event_id = request.POST["event"]
-            entry = Entry.objects.get(event=event_id, rider=rider_uci, payment_complete=True)
-            rider = Rider.objects.get(uci_id=rider_uci)
-            event = Event.objects.get(id=event_id)
+        rider_uci = (request.POST.get("rider") or "").strip()
+        event_id = (request.POST.get("event") or "").strip()
+        entry = Entry.objects.filter(event=event_id, rider=rider_uci, payment_complete=True).first()
+        rider = Rider.objects.filter(uci_id=rider_uci).first()
+        event = Event.objects.filter(id=event_id).first()
+
+        if entry and rider and event:
             return render(request, "event/find-payment.html", {
                 "event": event, "rider": rider, "entry": entry
             })
-        except Exception:
-            pass
+
+        messages.error(request, "Platbu pro vybraného jezdce a závod se nepodařilo najít.")
 
     return render(request, "event/find-payment.html", {"events": events})
 
@@ -790,7 +791,7 @@ def ec_by_club_xls(request, pk):
 
 def summary_riders_in_event(request, pk):
     """Přehled počtu jezdců v každé třídě na závodě."""
-    event = Event.objects.get(id=pk)
+    event = get_object_or_404(Event, id=pk)
     category_counts = Counter()
 
     czech_entries = Entry.objects.filter(event=pk, payment_complete=True, checkout=False)
@@ -1027,34 +1028,39 @@ def export_event_results(request, event_id):
         return render(request, "error.html", {"message": "Závod nebyl nalezen."})
 
     if event.ccf_uploaded:
+        sent_at = event.ccf_created.strftime("%d.%m.%Y %H:%M:%S") if event.ccf_created else "v minulosti"
         return render(request, "error.html", {
             "message": "Výsledky už byly odeslány.",
-            "detail": f"Závod {event.name} byl již odeslán {event.ccf_created.strftime('%d.%m.%Y %H:%M:%S')}.",
+            "detail": f"Závod {event.name} byl již odeslán {sent_at}.",
         })
 
     token = get_api_token()
     if not token:
         return render(request, "error.html", {"message": "Nepodařilo se získat token pro přihlášení k API ČSC."})
 
-    results = Result.objects.filter(event=event).select_related("rider__club")
+    results = list(Result.objects.filter(event=event).select_related("rider__club"))
     payload = []
+    category_breakdown = Counter()
+    skipped_results = 0
 
     for res in results:
         rider = res.rider
         if not rider:
             logger.warning(f"Výsledek {res.pk} nemá přiřazeného jezdce, přeskakuji.")
+            skipped_results += 1
             continue
 
         cruiser = not res.is_20 and not res.is_beginner
         category_code = resolve_api_category_code(
             rider=rider, is_20=res.is_20, is_24=cruiser, is_beginner=res.is_beginner
         )
+        category_breakdown[category_code or _("Bez kódu")] += 1
 
         payload.append({
             "category": category_code,
             "rank": res.place,
             "bib": rider.plate_display,
-            "uciid": str(rider.uci_id),
+            "uciid": str(rider.uci_id or ""),
             "lastName": rider.last_name,
             "firstName": rider.first_name,
             "country": res.country,
@@ -1117,7 +1123,48 @@ def export_event_results(request, event_id):
         len(payload),
     )
 
-    return render(request, "event/results_sent.html", {"event": event, "sent_count": len(payload)})
+    sent_count = len(payload)
+    total_results = len(results)
+
+    def _pct(value, total):
+        if not total:
+            return 0
+        return round((value / total) * 100)
+
+    export_summary = {
+        "total_results": total_results,
+        "sent_count": sent_count,
+        "skipped_count": skipped_results,
+        "sent_ratio": _pct(sent_count, total_results),
+        "women_count": sum(1 for item in payload if item["gender"] == "F"),
+        "men_count": sum(1 for item in payload if item["gender"] == "M"),
+        "czech_count": sum(1 for item in payload if (item["country"] or "").upper() == "CZE"),
+        "foreign_count": sum(1 for item in payload if (item["country"] or "").upper() != "CZE"),
+        "bike20_count": sum(1 for res in results if res.rider and res.is_20 and not res.is_beginner),
+        "cruiser_count": sum(1 for res in results if res.rider and not res.is_20 and not res.is_beginner),
+        "beginner_count": sum(1 for res in results if res.rider and res.is_beginner),
+        "with_uci_count": sum(1 for item in payload if item["uciid"]),
+        "with_bib_count": sum(1 for item in payload if item["bib"]),
+        "with_team_count": sum(1 for item in payload if item["team"]),
+        "unique_teams_count": len({item["team"] for item in payload if item["team"]}),
+        "unique_categories_count": len({item["category"] for item in payload if item["category"]}),
+        "top_categories": [
+            {"label": label, "count": count, "percent": _pct(count, sent_count)}
+            for label, count in category_breakdown.most_common(5)
+        ],
+        "coverage_metrics": [
+            {"label": _("Spárovaní jezdci"), "value": sent_count, "total": total_results, "percent": _pct(sent_count, total_results)},
+            {"label": _("UCI ID"), "value": sum(1 for item in payload if item["uciid"]), "total": sent_count, "percent": _pct(sum(1 for item in payload if item["uciid"]), sent_count)},
+            {"label": _("Startovní číslo"), "value": sum(1 for item in payload if item["bib"]), "total": sent_count, "percent": _pct(sum(1 for item in payload if item["bib"]), sent_count)},
+            {"label": _("Klub / tým"), "value": sum(1 for item in payload if item["team"]), "total": sent_count, "percent": _pct(sum(1 for item in payload if item["team"]), sent_count)},
+        ],
+    }
+
+    return render(request, "event/results_sent.html", {
+        "event": event,
+        "sent_count": sent_count,
+        "export_summary": export_summary,
+    })
 
 
 @login_required(login_url="/login/")
@@ -1246,8 +1293,25 @@ def send_invoices(request, pk):
         len(result["sent"]),
     )
     return render(request, "event/results_sent.html", {
-        "event": Event.objects.get(pk=pk),
+        "event": get_object_or_404(Event, pk=pk),
         "sent_count": len(result["sent"]),
+        "export_summary": {
+            "total_results": len(result["sent"]),
+            "sent_count": len(result["sent"]),
+            "skipped_count": 0,
+            "sent_ratio": 100 if result["sent"] else 0,
+            "women_count": 0,
+            "men_count": 0,
+            "czech_count": 0,
+            "foreign_count": 0,
+            "bike20_count": 0,
+            "cruiser_count": 0,
+            "beginner_count": 0,
+            "unique_teams_count": 0,
+            "unique_categories_count": 0,
+            "coverage_metrics": [],
+            "top_categories": [],
+        },
     })
 
 
