@@ -8,12 +8,13 @@ Obsah:
 
 from django.db.models import Sum
 from django.apps import apps
-from datetime import date
 
 # Lazy načtení modelů (vyhnutí se circular importům)
 CREDIT_MODEL = apps.get_model("event", "CreditTransaction")
 DEBIT_MODEL = apps.get_model("event", "DebetTransaction")
 STRIPE_MODEL = apps.get_model('event', "StripeFee")
+RIDER_STATS_CHARGE_MODEL = apps.get_model("rider", "RiderStatsCharge")
+TRAINER_CHARGE_MODEL = apps.get_model("rider", "TrainerClubCharge")
 
 
 # ===========================================================================
@@ -23,15 +24,22 @@ STRIPE_MODEL = apps.get_model('event', "StripeFee")
 def calculate_user_balance():
     """Vrátí celkový zůstatek na účtu svazu.
 
-    Zůstatek = součet dokončených kreditů − součet platných debetů − Stripe poplatky.
+    Zůstatek = součet dokončených kreditů − české registrace − prémiové odečty.
     - CreditTransaction.payment_complete=True → přijatá platba
-    - DebetTransaction.payment_valid=True → vyplacená/platná výplata
+    - DebetTransaction.payment_valid=True → odečet za české registrace
+    - RiderStatsCharge.payment_valid=True → odečet za individuální premium
+    - TrainerClubCharge.payment_valid=True → odečet za trenérské premium
     """
     credit_sum = CREDIT_MODEL.objects.filter(payment_complete=True).aggregate(total=Sum("amount"))["total"] or 0
     debit_sum = DEBIT_MODEL.objects.filter(payment_valid=True).aggregate(total=Sum("amount"))["total"] or 0
-    stripe_sum = STRIPE_MODEL.objects.aggregate(total=Sum("fee"))["total"] or 0
+    rider_stats_sum = (
+        RIDER_STATS_CHARGE_MODEL.objects.filter(payment_valid=True).aggregate(total=Sum("amount"))["total"] or 0
+    )
+    trainer_charge_sum = (
+        TRAINER_CHARGE_MODEL.objects.filter(payment_valid=True).aggregate(total=Sum("amount"))["total"] or 0
+    )
 
-    return credit_sum - debit_sum - stripe_sum
+    return credit_sum - debit_sum - rider_stats_sum - trainer_charge_sum
 
 
 def calculate_stripe_fee(year):
