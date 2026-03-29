@@ -361,11 +361,13 @@ def invalid_licences_pdf(request, pk):
     header = ["Příjmení a jméno", "UCI ID", "Licence", "Klub"]
     data = [header]
     for rider in riders:
+        licence_status = "NEPLATNÁ" if getattr(rider, "valid_licence", False) is False else "OK"
+        club_name = rider.club.team_name if getattr(rider, "club", None) else ""
         data.append([
-            f"{rider.last_name} {rider.first_name}",
+            f"{rider.last_name or ''} {rider.first_name or ''}".strip(),
             rider.uci_id or "",
-            rider.licence or "",
-            rider.club.team_name if rider.club else "",
+            licence_status,
+            club_name,
         ])
 
     if len(data) == 1:

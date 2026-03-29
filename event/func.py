@@ -654,6 +654,7 @@ def invalid_licence_in_event(event):
     """Vrátí množinu jezdců s neplatnou licencí přihlášených na daný závod.
 
     Používá se v komisařském přehledu před závodem.
+    Kontrolují se pouze čeští jezdci.
     """
     check_20_entries = Entry.objects.filter(
         event=event.id, is_20=True, payment_complete=True, checkout=False
@@ -665,11 +666,19 @@ def invalid_licence_in_event(event):
     invalid_licences = []
 
     for entry in check_20_entries:
-        if entry.rider and not entry.rider.valid_licence:
+        if (
+            entry.rider
+            and (entry.rider.nationality or "").upper() == "CZE"
+            and not entry.rider.valid_licence
+        ):
             invalid_licences.append(entry.rider)
 
     for entry in check_24_entries:
-        if entry.rider and not entry.rider.valid_licence:
+        if (
+            entry.rider
+            and (entry.rider.nationality or "").upper() == "CZE"
+            and not entry.rider.valid_licence
+        ):
             invalid_licences.append(entry.rider)
 
     # set() odstraní duplicitu jezdce, který startuje na 20" i 24"
