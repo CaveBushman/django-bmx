@@ -120,12 +120,13 @@ def generate_pdf(request, pk):
     header = ["JEZDEC", "ČÍSLO", "KATEGORIE", "KLUB", "ZÁLOHA", "ČIP", "PŘED.", "VRÁC."]
     data = [header]
     for entry in entries:
-        category = entry.rider.class_20 if entry.is_20 else entry.rider.class_24 if entry.is_24 else ""
+        rider = entry.rider
+        category = rider.class_20 if rider and entry.is_20 else rider.class_24 if rider and entry.is_24 else ""
         data.append([
-            f"{entry.rider.last_name} {entry.rider.first_name}",
-            entry.rider.plate_display if entry.rider else "",
+            f"{rider.last_name} {rider.first_name}" if rider else "",
+            rider.plate_display if rider else "",
             category,
-            entry.rider.club or "",
+            rider.club or "" if rider else "",
             "", "",  # záloha, čip — vyplní komisař ručně
             "☐", "☐",  # předáno, vráceno
         ])
@@ -162,7 +163,10 @@ def generate_invoice_preparation_pdf(request, pk):
 
     Formát: A4 na výšku, 16 prázdných řádků.
     """
-    event = Event.objects.get(pk=pk)
+    try:
+        event = Event.objects.get(pk=pk)
+    except Event.DoesNotExist:
+        return HttpResponse("Event not found", status=404)
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = 'inline; filename="podklad_pro_fakturaci.pdf"'
 
@@ -172,7 +176,7 @@ def generate_invoice_preparation_pdf(request, pk):
     content_width = width - 2 * margin
 
     _register_fonts()
-    event_date = event.date.strftime("%d.%m.%Y")
+    event_date = event.date.strftime("%d.%m.%Y") if event.date else "-"
     _draw_logo_and_title(p, width, height, margin,
                          f"{event_date} - {event.name.upper()}", "PODKLAD PRO FAKTURACI")
 
@@ -322,7 +326,10 @@ def invoice_view(request, pk):
 @staff_member_required
 def invalid_licences_pdf(request, pk):
     """PDF seznam přihlášených jezdců s neplatnou licencí."""
-    event = Event.objects.get(pk=pk)
+    try:
+        event = Event.objects.get(pk=pk)
+    except Event.DoesNotExist:
+        return HttpResponse("Event not found", status=404)
     riders = sorted(
         invalid_licence_in_event(event),
         key=lambda rider: ((rider.last_name or "").lower(), (rider.first_name or "").lower()),

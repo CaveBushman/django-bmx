@@ -13,7 +13,7 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.conf import settings
 from event.models import Event, Entry, EntryForeign
 from event.func import update_cart
@@ -196,7 +196,7 @@ def confirm_view(request):
                 checkout_session.id,
             )
             return JsonResponse({"id": checkout_session.id})
-        except Exception as e:
+        except (stripe.error.StripeError, DatabaseError) as error:
             audit_logger.exception(
                 "event_checkout_failed user_id=%s event_id=%s beginner=%s class20=%s class24=%s",
                 request.user.id if request.user.is_authenticated else None,
@@ -205,7 +205,7 @@ def confirm_view(request):
                 len(riders_20),
                 len(riders_24),
             )
-            return JsonResponse({"error": str(e)}, status=403)
+            return JsonResponse({"error": str(error)}, status=403)
 
     hydrated_riders_beginner = hydrate_checkout_riders(event, riders_beginner, is_beginner=True)
     hydrated_riders_20 = hydrate_checkout_riders(event, riders_20, is_20=True)
@@ -316,14 +316,14 @@ def entry_foreign_pay_view(request, pk):
             checkout_session.id,
         )
         return redirect(checkout_session.url, code=303)
-    except Exception as e:
+    except (stripe.error.StripeError, DatabaseError) as error:
         audit_logger.exception(
             "foreign_entry_checkout_failed event_id=%s rows=%s customer_email=%s",
             event.id,
             len(summary_rows),
             customer_email,
         )
-        return JsonResponse({"error": str(e)}, status=403)
+        return JsonResponse({"error": str(error)}, status=403)
 
 
 def entry_foreign_success_view(request, pk):
@@ -342,8 +342,8 @@ def entry_foreign_success_view(request, pk):
             )
             sync_paid_foreign_riders(event, session_id)
             request.session.pop("foreign_summary_payload", None)
-        except Exception as e:
-            logger.error(f"Chyba při potvrzení foreign Stripe platby: {e}")
+        except (stripe.error.StripeError, DatabaseError) as error:
+            logger.exception("Chyba při potvrzení foreign Stripe platby %s: %s", session_id, error)
 
     return render(
         request,
@@ -361,7 +361,7 @@ def check_rider(request):
 @staff_member_required
 def fees_on_event(request, pk):
     """Přehled startovného na závodě rozdělený po klubech."""
-    event = Event.objects.get(pk=pk)
+    event = get_object_or_404(Event, pk=pk)
 
     if request.method == "POST":
         if "btn-generate-invoices" in request.POST:

@@ -1,92 +1,9 @@
 {% extends 'base.html' %} 
 {% block title %} Jezdci {% endblock title %} 
 {% load static %} 
-{% block extra_head %}
-<style>
-  .riders-hero-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .riders-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .riders-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 960px) {
-    .riders-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  html.dark .riders-hero-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
-
-  .riders-btn-primary {
-    background: #4f46e5;
-    color: #ffffff;
-    box-shadow: 0 18px 38px rgba(99, 102, 241, 0.24);
-  }
-
-  .riders-btn-primary:hover {
-    background: #6366f1;
-  }
-
-  .riders-btn-secondary {
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-  }
-
-  .riders-btn-secondary:hover {
-    border-color: #94a3b8;
-    background: #f8fafc;
-    color: #0f172a;
-  }
-
-  html.dark .riders-btn-secondary {
-    border-color: rgba(71, 85, 105, 0.95);
-    background: rgba(15, 23, 42, 0.9);
-    color: #e2e8f0;
-  }
-
-  html.dark .riders-btn-secondary:hover {
-    border-color: rgba(129, 140, 248, 0.45);
-    background: rgba(30, 41, 59, 0.96);
-    color: #ffffff;
-  }
-
-  .riders-btn-disabled,
-  .riders-btn-disabled:hover {
-    border-color: rgba(226, 232, 240, 0.95);
-    background: rgba(248, 250, 252, 0.96);
-    color: #cbd5e1;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  html.dark .riders-btn-disabled,
-  html.dark .riders-btn-disabled:hover {
-    border-color: rgba(51, 65, 85, 0.95);
-    background: rgba(30, 41, 59, 0.92);
-    color: #64748b;
-  }
-</style>
-{% endblock %}
 {% block content %}
 
-<header class="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgba(99,102,241,0.35),transparent)] dark:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.22),transparent_30%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.14),transparent_26%),linear-gradient(180deg,#111827_0%,#0f172a_100%)]">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
       <div>
@@ -100,16 +17,16 @@
           Vyhledávání registrovaných jezdců podle jména, klubu a základních údajů. Rychlý přehled aktivních licencí, klubů a startovních čísel na jednom místě.
         </p>
       </div>
-      <div class="riders-stats-grid">
-        <div class="riders-hero-stat rounded-2xl px-5 py-4">
+      <div class="page-stats-grid">
+        <div class="page-stat-card">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní jezdci</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_riders }}</p>
         </div>
-        <div class="riders-hero-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Platná licence</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ valid_licence_riders }}</p>
         </div>
-        <div class="riders-hero-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zastoupené kluby</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ clubs_count }}</p>
         </div>
@@ -118,9 +35,9 @@
   </div>
 </header>
 
-<section class="min-h-[calc(100vh-4rem)] bg-slate-50 pt-8 pb-10 dark:bg-slate-900">
-<div class="mx-auto max-w-[88rem] px-4 py-8 pb-12 sm:px-6 lg:px-8">
-  <div class="rounded-[2rem] border border-slate-300/25 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(241,245,249,0.92))] p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] dark:border-slate-600/55 dark:bg-[linear-gradient(145deg,rgba(15,23,42,0.96),rgba(23,37,84,0.86))] dark:shadow-[0_22px_48px_rgba(2,6,23,0.44)] sm:p-6 lg:p-8">
+<section class="page-surface pb-10">
+<div class="page-shell">
+  <div class="page-content-card">
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="max-w-2xl">
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vyhledávání a akce</p>
@@ -132,14 +49,14 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
         <a
           href="{% url 'rider:new' %}"
-          class="riders-btn-primary inline-flex min-h-[3.75rem] self-start items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition"
+          class="btn-primary self-start border border-indigo-300/30 bg-[linear-gradient(135deg,#312e81,#4338ca_45%,#2563eb)] text-white shadow-[0_22px_44px_rgba(79,70,229,0.30)] hover:bg-[linear-gradient(135deg,#27246b,#3730a3_45%,#1d4ed8)] hover:text-white hover:shadow-[0_26px_54px_rgba(79,70,229,0.38)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-indigo-400/20 dark:bg-[linear-gradient(135deg,#4338ca,#4f46e5_45%,#2563eb)] dark:text-white"
         >
           <i class="fas fa-id-card mr-2"></i> Požádat o startovní číslo
         </a>
         {% if request.user.is_admin %}
         <a
           href="{% url 'rider:admin' %}"
-          class="riders-btn-secondary inline-flex min-h-[3.75rem] self-start items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition"
+          class="btn-secondary self-start border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700"
         >
           <i class="fas fa-cogs mr-2"></i> Administrace jezdců
         </a>
@@ -181,13 +98,13 @@
       <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
         <button
           type="submit"
-          class="riders-btn-primary inline-flex min-h-[3.75rem] items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition"
+          class="btn-primary w-full sm:w-[8.75rem] border border-slate-900/10 !bg-slate-900 !text-white shadow-[0_16px_28px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:!bg-[linear-gradient(135deg,#312e81,#4338ca_55%,#2563eb)] hover:!text-white hover:shadow-[0_24px_44px_rgba(79,70,229,0.30)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-indigo-400/20 dark:!bg-indigo-500 dark:!text-slate-950 dark:hover:!bg-indigo-400 dark:hover:!text-slate-950"
         >
           Hledat
         </button>
         <a
           href="{% url 'rider:list' %}"
-          class="riders-btn-secondary inline-flex min-h-[3.75rem] items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition"
+          class="btn-secondary w-full sm:w-[8.75rem] border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-[linear-gradient(135deg,#ffffff,#eef2ff)] hover:text-indigo-700 hover:shadow-[0_18px_32px_rgba(99,102,241,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700 dark:hover:text-white"
         >
           Vyčistit
         </a>
@@ -197,8 +114,8 @@
 
   <div class="mt-8 flex flex-col">
     <div class="overflow-x-auto">
-      <div class="overflow-hidden rounded-[2rem] border border-slate-300/25 bg-white/95 shadow-[0_28px_55px_rgba(15,23,42,0.08)] backdrop-blur-[8px] dark:border-slate-700/85 dark:bg-slate-900/90 dark:shadow-[0_28px_55px_rgba(2,6,23,0.4)]">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
+      <div class="page-table-wrap rounded-[2rem] border-slate-300/25 dark:border-slate-700/85 dark:bg-slate-900/90 dark:shadow-[0_28px_55px_rgba(2,6,23,0.4)]">
+        <table class="page-table min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
           <thead class="bg-gray-50 dark:!bg-slate-900 dark:text-slate-200">
             <tr>
               <th scope="col" class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
