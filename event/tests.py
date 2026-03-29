@@ -343,6 +343,65 @@ class UnpaidMotoReportTests(TestCase):
         self.assertEqual(len(report["confirmed_unpaid"]), 1)
         self.assertEqual(report["confirmed_unpaid"][0].uci_id, str(matched_rider.uci_id))
 
+    def test_report_uses_motos_start_file_and_event_paid_entries_only(self):
+        paid_rider = Rider.objects.create(
+            uci_id=10000000005,
+            first_name="Paid",
+            last_name="Starter",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 5),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 10",
+            plate_text="101",
+        )
+        stray_rider = Rider.objects.create(
+            uci_id=10000000006,
+            first_name="Stray",
+            last_name="Starter",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 6),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 10",
+            plate_text="102",
+        )
+        Entry.objects.create(
+            event=self.event,
+            rider=paid_rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 10",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_media:
+            with override_settings(MEDIA_ROOT=temp_media):
+                target_dir = os.path.join(temp_media, "event_stats", str(self.event.pk))
+                os.makedirs(target_dir, exist_ok=True)
+                with open(os.path.join(target_dir, "motos__sample.html"), "w", encoding="utf-8") as handle:
+                    handle.write(
+                        """<html><body>
+                        <table class="gridtable">
+                        <caption>Boys 10 (2 Riders)</caption>
+                        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th></tr>
+                        <tr><td>101</td><td>Report Club</td><td>Paid Starter</td><td>12 / 1</td></tr>
+                        <tr><td>102</td><td>Report Club</td><td>Stray Starter</td><td>13 / 2</td></tr>
+                        </table>
+                        </body></html>"""
+                    )
+
+                report = build_unpaid_moto_report(self.event)
+
+        self.assertEqual(report["flagged_count"], 1)
+        self.assertEqual(len(report["confirmed_unpaid"]), 1)
+        self.assertEqual(report["confirmed_unpaid"][0].last_name, "Starter")
+        self.assertEqual(report["confirmed_unpaid"][0].plate, "102")
+        self.assertEqual(report["confirmed_unpaid"][0].uci_id, str(stray_rider.uci_id))
+
 
 class PaymentServiceTests(TestCase):
     def setUp(self):
@@ -557,16 +616,45 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(self.user.credit, 700)
 
     def test_cancel_view_redirects_entry_checkout_back_to_confirm(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["event"] = '{"event": %d}' % self.event.id
+        session["riders_beginner"] = "[]"
+        session["riders_20"] = "[]"
+        session["riders_24"] = "[]"
+        session.save()
+
         response = self.client.get(reverse("event:cancel") + "?source=entries")
 
-        self.assertRedirects(response, reverse("event:confirm"))
+        self.assertRedirects(response, reverse("event:confirm"), fetch_redirect_response=False)
+
+    def test_confirm_view_renders_checkout_summary_from_session(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["event"] = '{"event": %d}' % self.event.id
+        session["riders_beginner"] = "[]"
+        session["riders_20"] = '[{"model":"rider.rider","pk":1,"fields":{"uci_id":12345678999}}]'
+        session["riders_24"] = "[]"
+        session.save()
+
+        response = self.client.get(reverse("event:confirm"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.event.name)
+        self.assertContains(response, "Pokračovat k platbě")
 
     def test_cancel_view_redirects_credit_checkout_back_to_credit(self):
+        self.client.force_login(self.user)
+
         response = self.client.get(reverse("event:cancel") + "?source=credit")
 
-        self.assertRedirects(response, reverse("event:credit"))
+        self.assertRedirects(response, reverse("event:credit"), fetch_redirect_response=False)
 
     def test_cancel_view_redirects_foreign_checkout_back_to_summary(self):
+        session = self.client.session
+        session["foreign_summary_payload"] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
+        session.save()
+
         response = self.client.get(
             reverse("event:cancel") + f"?source=foreign&event_id={self.event.id}"
         )
@@ -574,7 +662,22 @@ class PaymentServiceTests(TestCase):
         self.assertRedirects(
             response,
             reverse("event:entry-foreign-summary", kwargs={"pk": self.event.id}),
+            fetch_redirect_response=False,
         )
+
+    def test_cancel_view_foreign_follow_redirect_keeps_summary_payload(self):
+        session = self.client.session
+        session["foreign_summary_payload"] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
+        session.save()
+
+        response = self.client.get(
+            reverse("event:cancel") + f"?source=foreign&event_id={self.event.id}",
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "foreign@example.com")
+        self.assertContains(response, "Foreign")
 
 
 class ForeignEntryHelperTests(TestCase):

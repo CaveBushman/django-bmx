@@ -38,6 +38,7 @@ from event.views.entry_helpers import (
     create_checkout_entries,
     enrich_foreign_summary_rows,
     get_active_riders,
+    hydrate_checkout_riders,
     is_event_open_for_entries,
     load_checkout_session_payload,
     load_foreign_rider_response,
@@ -206,6 +207,27 @@ def confirm_view(request):
             )
             return JsonResponse({"error": str(e)}, status=403)
 
+    hydrated_riders_beginner = hydrate_checkout_riders(event, riders_beginner, is_beginner=True)
+    hydrated_riders_20 = hydrate_checkout_riders(event, riders_20, is_20=True)
+    hydrated_riders_24 = hydrate_checkout_riders(event, riders_24, is_24=True)
+    total_fee = calculate_selected_fee(
+        event,
+        hydrated_riders_beginner,
+        hydrated_riders_20,
+        hydrated_riders_24,
+    )
+    return render(
+        request,
+        "event/checkout.html",
+        {
+            "event": event,
+            "riders_beginner": hydrated_riders_beginner,
+            "riders_20": hydrated_riders_20,
+            "riders_24": hydrated_riders_24,
+            "sum_fee": total_fee,
+        },
+    )
+
 
 def entry_foreign_view(request, pk):
     """Přihláška zahraničního jezdce (formulář)."""
@@ -239,6 +261,7 @@ def entry_foreign_summary_view(request, pk):
         "customer_email": summary_payload.get("customer_email", ""),
         "rows": summary_rows,
     }
+    request.session["foreign_summary_payload"] = json.dumps(normalized_payload)
     return render(
         request,
         "event/entry-foreign-summary.html",
@@ -318,6 +341,7 @@ def entry_foreign_success_view(request, pk):
                 is_foreign=True,
             )
             sync_paid_foreign_riders(event, session_id)
+            request.session.pop("foreign_summary_payload", None)
         except Exception as e:
             logger.error(f"Chyba při potvrzení foreign Stripe platby: {e}")
 
