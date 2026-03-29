@@ -35,13 +35,13 @@ function searchByClub() {
 
 function syncEntryChoiceState() {
   var labels = document.querySelectorAll(".entry-choice");
-
-  labels.forEach(function (label) {
+  for (var i = 0; i < labels.length; i++) {
+    var label = labels[i];
     var input = label.querySelector('input[type="checkbox"]');
-    if (!input) return;
+    if (!input) continue;
 
     label.classList.toggle("selected", input.checked);
-  });
+  }
 }
 
 function getEntrySelectionCounts() {
@@ -88,20 +88,27 @@ document.addEventListener("DOMContentLoaded", function () {
   syncEntryChoiceState();
   updateEntrySelectionSummary();
 
-  document.querySelectorAll('.entry-choice input[type="checkbox"]').forEach(function (input) {
-    input.addEventListener("change", function () {
-      syncEntryChoiceState();
-      updateEntrySelectionSummary();
-    });
-  });
-
   var form = document.getElementById("entry-form");
   if (form) {
+    var refreshSelectionSummary = function () {
+      syncEntryChoiceState();
+      updateEntrySelectionSummary();
+    };
+
     form.addEventListener("change", function (event) {
       var target = event.target;
       if (!target || target.type !== "checkbox") return;
-      syncEntryChoiceState();
-      updateEntrySelectionSummary();
+      refreshSelectionSummary();
+    });
+
+    form.addEventListener("click", function (event) {
+      var target = event.target;
+      if (!target) return;
+
+      var clickedLabel = target.closest ? target.closest(".entry-choice") : null;
+      if (!clickedLabel) return;
+
+      window.setTimeout(refreshSelectionSummary, 0);
     });
   }
 });
