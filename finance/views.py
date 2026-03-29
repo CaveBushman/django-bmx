@@ -11,8 +11,9 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 
-from .func import calculate_user_balance, calculate_stripe_fee
+from .func import calculate_stripe_fee, calculate_system_balance_total
 from event.models import CreditTransaction
+from event.credit import get_system_balance_components
 from accounts.models import Account
 from django.db.models import F
 from rider.models import RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
@@ -37,7 +38,8 @@ def finance_admin(request):
     SubscriptionInvoiceService().ensure_for_all()
 
     stripe_fee = calculate_stripe_fee(current_year)
-    credit = calculate_user_balance()
+    credit = calculate_system_balance_total()
+    balance_components = get_system_balance_components()
 
     # Caching těžkých výpočtů na 15 minut (900 sekund)
     # Klíč obsahuje rok, aby se data nemíchala při přelomu roku
@@ -77,6 +79,7 @@ def finance_admin(request):
 
     data={
         "credit":credit,
+        "balance_components": balance_components,
         "stripe_fee": stripe_fee,
         "rider_stats_revenue": cached_stats["rider_stats_revenue"],
         "trainer_club_stats_revenue": cached_stats["trainer_club_stats_revenue"],
@@ -140,7 +143,8 @@ def finance_admin(request):
         # Invalidace cache po manuální akci, aby byla čísla aktuální
         cache.delete(cache_key)
         # Aktualizovat data po ověření
-        credit = calculate_user_balance()
+        credit = calculate_system_balance_total()
         data["credit"] = credit
+        data["balance_components"] = get_system_balance_components()
 
     return render(request, "finance/finance.html", data)

@@ -239,6 +239,37 @@
       </article>
     </div>
 
+    <section class="dashboard-panel mt-8 rounded-[1.75rem] border p-6 sm:p-8">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+            Rozpad kreditu
+          </p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            Výpočet netto zůstatku
+          </h2>
+        </div>
+      </div>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Kreditní transakce</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ balance_components.credit|floatformat:2 }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Registrace CZ</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ balance_components.event_debit|floatformat:2 }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Rider premium</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ balance_components.rider_stats_debit|floatformat:2 }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Trainer premium</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ balance_components.trainer_charge_debit|floatformat:2 }}</p>
+        </div>
+      </div>
+    </section>
+
     <section class="finance-action-card mt-8 rounded-[1.75rem] p-6 sm:p-8">
       <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>

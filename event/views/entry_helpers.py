@@ -184,7 +184,11 @@ def build_foreign_entry_summary(request):
 
 
 def build_foreign_entry_summary_from_payload(request):
-    payload = request.POST.get("summary_payload") or request.GET.get("summary_payload")
+    payload = (
+        request.POST.get("summary_payload")
+        or request.GET.get("summary_payload")
+        or request.session.get("foreign_summary_payload", "")
+    )
     if not payload:
         return None
 
@@ -766,6 +770,27 @@ def _map_riders_from_payloads(*payload_groups):
                 uci_ids.append(uci_id)
 
     return Rider.objects.in_bulk(uci_ids, field_name="uci_id")
+
+
+def hydrate_checkout_riders(event, rider_payloads, *, is_beginner=False, is_20=False, is_24=False):
+    rider_map = _map_riders_from_payloads(rider_payloads)
+    riders = []
+    for rider_data in rider_payloads:
+        rider = rider_map.get(rider_data["fields"]["uci_id"])
+        if rider is None:
+            continue
+        event_data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
+        rider.is_beginner = is_beginner
+        rider.is_20 = is_20
+        rider.is_24 = is_24
+        rider.class_beginner = event_data["class_beginner"]
+        rider.class_20 = event_data["class_20"]
+        rider.class_24 = event_data["class_24"]
+        rider.fee_beginner = event_data["fee_beginner"]
+        rider.fee_20 = event_data["fee_20"]
+        rider.fee_24 = event_data["fee_24"]
+        riders.append(rider)
+    return riders
 
 
 def build_checkout_line_items(event, riders_beginner, riders_20, riders_24):
