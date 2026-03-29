@@ -243,11 +243,24 @@ class RaceRunImportService:
         payload = entity_index["name"].get(key_by_name)
         if payload:
             return payload
+        normalized_name = _normalize_name(full_name)
         fallback_plate = ("", normalize_plate_value(plate))
         payload = entity_index["plate"].get(fallback_plate)
         if payload:
-            return payload
-        fallback_name = ("", _normalize_name(full_name))
+            rider = payload.get("rider")
+            result = payload.get("result")
+            payload_name = ""
+            if rider:
+                payload_name = _normalize_name(
+                    f"{getattr(rider, 'first_name', '')} {getattr(rider, 'last_name', '')}"
+                )
+            elif result:
+                payload_name = _normalize_name(
+                    f"{result.first_name or ''} {result.last_name or ''}"
+                )
+            if payload_name and payload_name == normalized_name:
+                return payload
+        fallback_name = ("", normalized_name)
         return entity_index["name"].get(fallback_name)
 
     def _run_key(self, rider, plate, round_type, round_number, heat_code):

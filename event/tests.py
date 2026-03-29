@@ -26,6 +26,7 @@ from event.admin import EntryForeignAdmin
 from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
+from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
 from event.services.payments import (
     enrich_cart_entries,
@@ -191,6 +192,156 @@ class Custom404Tests(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertContains(response, "Stránka nebyla nalezena", status_code=404)
+
+
+class UnpaidMotoReportTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Report Club")
+        self.event = Event.objects.create(
+            name="Moto report event",
+            date=date.today(),
+            organizer=self.club,
+            type_for_ranking="Volný závod",
+        )
+
+    def test_flagged_count_excludes_rows_without_uci(self):
+        paid_rider = Rider.objects.create(
+            uci_id=10000000001,
+            first_name="Paid",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        unpaid_rider = Rider.objects.create(
+            uci_id=10000000002,
+            first_name="Unpaid",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 2),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+
+        Entry.objects.create(event=self.event, rider=paid_rider, payment_complete=True)
+        Result.objects.create(
+            event=self.event,
+            rider=paid_rider,
+            first_name=paid_rider.first_name,
+            last_name=paid_rider.last_name,
+            category="Boys 10",
+            place=1,
+        )
+        Result.objects.create(
+            event=self.event,
+            rider=unpaid_rider,
+            first_name=unpaid_rider.first_name,
+            last_name=unpaid_rider.last_name,
+            category="Boys 10",
+            place=2,
+        )
+
+        RaceRun.objects.create(
+            event=self.event,
+            rider=paid_rider,
+            category="Boys 10",
+            round_type="MOTO",
+            round_number=1,
+            plate="101",
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            rider=unpaid_rider,
+            category="Boys 10",
+            round_type="MOTO",
+            round_number=1,
+            plate="102",
+        )
+
+        missing_uci_result = Result.objects.create(
+            event=self.event,
+            first_name="Manual",
+            last_name="Check",
+            category="Boys 10",
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            result=missing_uci_result,
+            category="Boys 10",
+            round_type="MOTO",
+            round_number=1,
+            plate="103",
+        )
+
+        report = build_unpaid_moto_report(self.event)
+
+        self.assertEqual(report["flagged_count"], 1)
+        self.assertEqual(len(report["confirmed_unpaid"]), 1)
+        self.assertEqual(report["confirmed_unpaid"][0].uci_id, str(unpaid_rider.uci_id))
+        self.assertEqual(len(report["missing_uci"]), 1)
+
+    def test_report_ignores_moto_riders_without_matching_event_result(self):
+        matched_rider = Rider.objects.create(
+            uci_id=10000000003,
+            first_name="Matched",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 3),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+        stray_rider = Rider.objects.create(
+            uci_id=10000000004,
+            first_name="Stray",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 4),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+
+        Result.objects.create(
+            event=self.event,
+            rider=matched_rider,
+            first_name=matched_rider.first_name,
+            last_name=matched_rider.last_name,
+            category="Boys 10",
+            place=5,
+        )
+
+        RaceRun.objects.create(
+            event=self.event,
+            rider=matched_rider,
+            category="Boys 10",
+            round_type="MOTO",
+            round_number=1,
+            plate="201",
+            place="3rd",
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            rider=stray_rider,
+            category="Boys 10",
+            round_type="MOTO",
+            round_number=1,
+            plate="202",
+            place="4th",
+        )
+
+        report = build_unpaid_moto_report(self.event)
+
+        self.assertEqual(report["flagged_count"], 1)
+        self.assertEqual(len(report["confirmed_unpaid"]), 1)
+        self.assertEqual(report["confirmed_unpaid"][0].uci_id, str(matched_rider.uci_id))
 
 
 class PaymentServiceTests(TestCase):

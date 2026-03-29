@@ -1,17 +1,20 @@
 import shutil
 import tempfile
-from datetime import date
+from datetime import date, datetime
 
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from club.models import Club
-from event.models import Entry, Event
+from event.credit import calculate_user_balance as calculate_account_balance
+from event.models import CreditTransaction, DebetTransaction, Entry, Event, SeasonSettings, StripeFee
+from finance.func import calculate_user_balance as calculate_finance_balance
 from finance.invoices import delete_invoice_override, save_invoice_override
 from finance.models import EventInvoice
-from rider.models import Rider
+from rider.models import Rider, RiderStatsCharge, TrainerClubCharge
 
 
 User = get_user_model()
@@ -43,6 +46,85 @@ class FinanceAccessTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
+
+
+class FinanceBalanceCalculationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="Balance",
+            last_name="User",
+            username="balance_user",
+            email="balance_user@example.com",
+            password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save()
+
+        self.club = Club.objects.create(team_name="Balance Club")
+        self.season = SeasonSettings.objects.create(year=date.today().year)
+        self.period_start = timezone.make_aware(datetime(2026, 1, 1, 0, 0, 0))
+        self.period_end = timezone.make_aware(datetime(2026, 1, 31, 0, 0, 0))
+        self.rider = Rider.objects.create(
+            uci_id=100200301,
+            first_name="Balance",
+            last_name="Rider",
+            date_of_birth=date(2010, 1, 1),
+            gender="Muž",
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            is_20=True,
+            class_20="Boys 16",
+        )
+
+    def test_finance_dashboard_balance_subtracts_registrations_and_premium_charges_only(self):
+        CreditTransaction.objects.create(user=self.user, amount=1000, payment_complete=True)
+        DebetTransaction.objects.create(user=self.user, amount=200, payment_valid=True)
+        RiderStatsCharge.objects.create(
+            user=self.user,
+            rider=self.rider,
+            season=self.season,
+            amount=50,
+            period_start=self.period_start,
+            period_end=self.period_end,
+            payment_valid=True,
+        )
+        TrainerClubCharge.objects.create(
+            user=self.user,
+            club=self.club,
+            season=self.season,
+            amount=150,
+            period_start=self.period_start,
+            period_end=self.period_end,
+            payment_valid=True,
+        )
+        StripeFee.objects.create(date=date.today(), fee=30)
+
+        self.assertEqual(calculate_finance_balance(), 600)
+
+    def test_account_balance_subtracts_trainer_premium_charge(self):
+        CreditTransaction.objects.create(user=self.user, amount=1000, payment_complete=True)
+        DebetTransaction.objects.create(user=self.user, amount=200, payment_valid=True)
+        RiderStatsCharge.objects.create(
+            user=self.user,
+            rider=self.rider,
+            season=self.season,
+            amount=50,
+            period_start=self.period_start,
+            period_end=self.period_end,
+            payment_valid=True,
+        )
+        TrainerClubCharge.objects.create(
+            user=self.user,
+            club=self.club,
+            season=self.season,
+            amount=150,
+            period_start=self.period_start,
+            period_end=self.period_end,
+            payment_valid=True,
+        )
+
+        self.assertEqual(calculate_account_balance(self.user.id), 600)
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
