@@ -14,6 +14,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import DatabaseError, transaction
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from event.models import Entry, CreditTransaction, DebetTransaction
 from accounts.models import Account
@@ -166,7 +167,7 @@ def confirm_user_order(request):
             )
             messages.error(
                 request,
-                "Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku.",
+                _("Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku."),
             )
             return redirect("event:order")
         audit_logger.info(
@@ -204,7 +205,7 @@ def check_order_payments(request):
                 logger.error(f"Chyba při ověřování transakce: {e}")
 
     update_cart(request)
-    messages.success(request, "Vaše přihláška byla úspěšně přijata.")
+    messages.success(request, _("Vaše přihláška byla úspěšně přijata."))
     return render(request, "event/success.html", {})
 
 
