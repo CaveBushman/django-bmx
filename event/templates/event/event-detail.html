@@ -29,39 +29,38 @@
     background: #f8fafc;
   }
 
-  .event-detail-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .event-detail-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
-  }
-
-  .event-detail-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .event-detail-stats {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
   .event-detail-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+  }
+
+  .event-detail-kpi {
+    min-height: 7.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .event-detail-kpi-value {
+    font-size: clamp(1.75rem, 2vw, 2.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .event-detail-kpi-value--compact {
+    font-size: clamp(1.35rem, 1.55vw, 2rem);
+    line-height: 1.12;
+  }
+
+  .event-detail-panel {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 2rem;
+    background:
+      radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.08), transparent 28%),
+      rgba(255, 255, 255, 0.95);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
   }
 
   .event-detail-action-chip {
@@ -76,6 +75,7 @@
     font-size: 0.95rem;
     font-weight: 700;
     color: #0f172a;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, transform 180ms ease;
   }
 
@@ -86,33 +86,28 @@
     color: #312e81;
   }
 
-  @media (min-width: 640px) {
-    .event-detail-stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .event-detail-action-primary {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #312e81, #4338ca 50%, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 22px 44px rgba(79, 70, 229, 0.28);
   }
 
-  @media (min-width: 960px) {
-    .event-detail-stats {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  .event-detail-action-primary:hover {
+    border-color: rgba(99, 102, 241, 0.36);
+    background: linear-gradient(135deg, #27246b, #3730a3 50%, #1d4ed8);
+    color: #ffffff;
+  }
+
+  .event-detail-info-card {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 1.6rem;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
   }
 
   html.dark .event-detail-page {
     background: #0f172a;
-  }
-
-  html.dark .event-detail-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
-  html.dark .event-detail-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
   }
 
   html.dark .event-detail-action-chip {
@@ -126,13 +121,38 @@
     background: rgba(30, 41, 59, 0.96);
     color: #c7d2fe;
   }
+
+  html.dark .event-detail-panel {
+    border-color: rgba(51, 65, 85, 0.95);
+    background:
+      radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.12), transparent 28%),
+      rgba(15, 23, 42, 0.92);
+    box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42);
+  }
+
+  html.dark .event-detail-action-primary {
+    border-color: rgba(99, 102, 241, 0.28);
+    background: linear-gradient(135deg, #4338ca, #4f46e5 50%, #2563eb);
+    color: #ffffff;
+  }
+
+  html.dark .event-detail-action-primary:hover {
+    background: linear-gradient(135deg, #3730a3, #4338ca 50%, #1d4ed8);
+    color: #ffffff;
+  }
+
+  html.dark .event-detail-info-card {
+    border-color: rgba(51, 65, 85, 0.95);
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
 </style>
 {% endblock %}
 {% block content %}
 <section class="event-detail-page">
-<header class="event-detail-hero">
+<header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-center">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
                     {% trans "Detail závodu" %}
@@ -145,18 +165,18 @@
                 </p>
             </div>
 
-            <div class="event-detail-stats">
-                <div class="event-detail-stat rounded-2xl px-5 py-4">
+            <div class="page-stats-grid">
+                <div class="page-stat-card event-detail-kpi px-5 py-4">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</p>
-                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
+                    <p class="event-detail-kpi-value font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
                 </div>
-                <div class="event-detail-stat rounded-2xl px-5 py-4">
+                <div class="page-stat-card event-detail-kpi px-5 py-4">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pořadatel" %}</p>
-                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.organizer|upper }}</p>
+                    <p class="event-detail-kpi-value event-detail-kpi-value--compact font-black text-slate-900 dark:text-white">{{ event.organizer|upper }}</p>
                 </div>
-                <div class="event-detail-stat rounded-2xl px-5 py-4">
+                <div class="page-stat-card event-detail-kpi px-5 py-4">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Systém závodu" %}</p>
-                    <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.system|default:"-" }}</p>
+                    <p class="event-detail-kpi-value event-detail-kpi-value--compact font-black text-slate-900 dark:text-white">{{ event.system|default:"-" }}</p>
                 </div>
             </div>
         </div>
@@ -164,136 +184,153 @@
 </header>
 
 <div class="mx-auto max-w-screen-xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-screen-xl">
-        <div class="flex flex-col gap-4">
-        <div class="event-detail-actions">
-            {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
-            <div class="w-full sm:w-auto">
-                <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Registrace na UEC
-                </a>
-            </div>
-            {% elif event.reg_open %}
-            <div class="w-full sm:w-auto">
-                <a href="{% url 'event:entry' event.id %}"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Přihlášení do závodu
-                </a>
-            </div>
-            {% endif %}
-            <div class="w-full sm:w-auto">
-                <a href="{% url 'event:entry-riders' event.id %}"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 2l2 5h5l-4 3 2 5-4-3-4 3 2-5-4-3h5z" />
-                    </svg>
-                    Přihlášení jezdci
-                </a>
-            </div>
-            <div class="w-full sm:w-auto">
-                <a href="{% url 'event:summary_riders_in_event' event.id %}"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 2l2 5h5l-4 3 2 5-4-3-4 3 2-5-4-3h5z" />
-                    </svg>
-                    Počet přihlášených jezdců
-                </a>
-            </div>
-            {% if has_public_proposition %}
-            <div class="w-full sm:w-auto">
-                <a href="{% url 'event:proposition-detail' event.id %}"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                    </svg>
-                    Propozice
-                </a>
-            </div>
-            {% elif event.proposition %}
-            <div class="w-full sm:w-auto">
-                <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer"
-                    class="event-detail-action-chip w-full sm:w-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                    </svg>
-                    Propozice PDF
-                </a>
-            </div>
-            {% endif %}
-        </div>
-        {% if request.user.is_admin or can_edit_proposition %}
-        <details class="group self-start sm:self-end">
-            <summary class="inline-flex cursor-pointer list-none items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">
-                Další akce
-                <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.512a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                </svg>
-            </summary>
-            <div class="mt-3 flex flex-wrap justify-end gap-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800/95">
-                {% if can_edit_proposition %}
-                <a href="{% url 'event:proposition-edit' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5h2m-7 7h12m-9 7h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
-                    </svg>
-                    Upravit propozice
-                </a>
-                {% endif %}
-                {% if request.user.is_admin %}
-                <a href="{% url 'event:fees-on-event' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4V2h18v2H3zm0 16V8h18v12H3z" />
-                    </svg>
-                    Vybrané startovné
-                </a>
-                <a href="{% url 'event:event-admin' event.id %}"
-                    class="flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Administrace závodu
-                </a>
-                {% endif %}
-                {% if event.xml_results %}
-                <a href="#"
-                    class="flex items-center justify-center rounded-md bg-teal-600 hover:bg-teal-500 text-white py-2 px-4 text-sm font-semibold shadow-md transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
-                    </svg>
-                    Výsledky
-                </a>
-                {% endif %}
-            </div>
-        </details>
-        {% endif %}
-        </div>
+    <div class="mx-auto max-w-screen-xl space-y-8">
+        <section class="event-detail-panel p-6 sm:p-8">
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="max-w-2xl">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                            {% trans "Vyhledávání a akce" %}
+                        </p>
+                        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                            {% trans "Rychlý přístup k závodu" %}
+                        </h2>
+                        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                            {% trans "Registrace, přihlášení jezdci, souhrn startujících a organizační výstupy máš na jednom místě." %}
+                        </p>
+                    </div>
 
-        <!-- Změna grid-cols pro 2 bloky na řádek na větších obrazovkách a 1 blok na menších -->
+                    {% if request.user.is_admin or can_edit_proposition %}
+                    <details class="group self-start lg:self-end">
+                        <summary class="inline-flex cursor-pointer list-none items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">
+                            {% trans "Další akce" %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.512a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                            </svg>
+                        </summary>
+                        <div class="mt-3 flex flex-wrap gap-3 rounded-[1.5rem] border border-slate-200 bg-white/90 p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800/95">
+                            {% if can_edit_proposition %}
+                            <a href="{% url 'event:proposition-edit' event.id %}"
+                                class="flex items-center justify-center rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-5 text-sm font-semibold shadow-md transition duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5h2m-7 7h12m-9 7h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                                </svg>
+                                {% trans "Upravit propozice" %}
+                            </a>
+                            {% endif %}
+                            {% if request.user.is_admin %}
+                            <a href="{% url 'event:fees-on-event' event.id %}"
+                                class="flex items-center justify-center rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-5 text-sm font-semibold shadow-md transition duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4V2h18v2H3zm0 16V8h18v12H3z" />
+                                </svg>
+                                {% trans "Vybrané startovné" %}
+                            </a>
+                            <a href="{% url 'event:event-admin' event.id %}"
+                                class="flex items-center justify-center rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-5 text-sm font-semibold shadow-md transition duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                                {% trans "Administrace závodu" %}
+                            </a>
+                            {% endif %}
+                            {% if event.xml_results %}
+                            <a href="#"
+                                class="flex items-center justify-center rounded-2xl bg-teal-600 hover:bg-teal-500 text-white py-3 px-5 text-sm font-semibold shadow-md transition duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
+                                </svg>
+                                {% trans "Výsledky" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </details>
+                    {% endif %}
+                </div>
+
+                <div class="event-detail-actions items-start">
+                    {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer"
+                            class="event-detail-action-chip event-detail-action-primary w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            {% trans "Registrace na UEC" %}
+                        </a>
+                    </div>
+                    {% elif event.reg_open %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{% url 'event:entry' event.id %}"
+                            class="event-detail-action-chip event-detail-action-primary w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            {% trans "Přihlášení do závodu" %}
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{% url 'event:entry-riders' event.id %}"
+                            class="event-detail-action-chip w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 2l2 5h5l-4 3 2 5-4-3-4 3 2-5-4-3h5z" />
+                            </svg>
+                            {% trans "Přihlášení jezdci" %}
+                        </a>
+                    </div>
+                    <div class="w-full sm:w-auto">
+                        <a href="{% url 'event:summary_riders_in_event' event.id %}"
+                            class="event-detail-action-chip w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 2l2 5h5l-4 3 2 5-4-3-4 3 2-5-4-3h5z" />
+                            </svg>
+                            {% trans "Počet přihlášených jezdců" %}
+                        </a>
+                    </div>
+                    {% if has_public_proposition %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{% url 'event:proposition-detail' event.id %}"
+                            class="event-detail-action-chip w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                            </svg>
+                            {% trans "Propozice" %}
+                        </a>
+                    </div>
+                    {% elif event.proposition %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer"
+                            class="event-detail-action-chip w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                            </svg>
+                            {% trans "Propozice PDF" %}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <div class="flex flex-col gap-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
             <!-- Rozhodčí -->
             <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
+                class="event-detail-info-card p-6 flex items-center space-x-4 transition-transform transform hover:scale-[1.01]">
                 <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
                     <svg class="w-8 h-8 text-yellow-600 dark:text-yellow-300" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -310,7 +347,7 @@
 
             <!-- Asistent rozhodčího -->
             <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
+                class="event-detail-info-card p-6 flex items-center space-x-4 transition-transform transform hover:scale-[1.01]">
                 <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
                     <svg class="w-8 h-8 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -328,7 +365,7 @@
 
             <!-- Datum registrace -->
             <div
-                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
+                class="event-detail-info-card p-6 flex items-center space-x-4 transition-transform transform hover:scale-[1.01]">
                 <div class="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-full">
                     <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-300" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M3 4V2h18v2H3zm0 16V8h18v12H3z" />

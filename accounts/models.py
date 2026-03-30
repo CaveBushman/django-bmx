@@ -111,6 +111,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
+    @property
+    def photo_url(self):
+        try:
+            return self.photo.url if self.photo else ""
+        except (ValueError, OSError):
+            return ""
+
     def has_perm(self, perm, obj=None):
         return self.is_superuser
 

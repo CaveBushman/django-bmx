@@ -171,6 +171,13 @@ class Rider(models.Model):
         return self.first_name + " " + self.last_name
 
     @property
+    def photo_url(self):
+        try:
+            return self.photo.url if self.photo else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
     def plate_display(self):
         return display_plate(self.plate_text, self.plate)
 
