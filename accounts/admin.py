@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin.views.main import ChangeList
@@ -5,6 +7,9 @@ from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from .models import Account, AccountRiderLink, AvatarChangeRequest, PendingAvatarChangeRequest
+
+
+logger = logging.getLogger(__name__)
 
 
 class AccountRiderLinkInline(admin.TabularInline):
@@ -114,9 +119,18 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
                     obj.status = previous.status
                     obj.review_note = previous.review_note
                     return
-                except Exception:
+                except Exception as exc:
+                    logger.exception(
+                        "Avatar approval failed for request pk=%s by user=%s",
+                        previous.pk,
+                        getattr(request.user, "pk", None),
+                    )
                     request._avatar_review_failed = True
-                    request._avatar_review_error = "Žádost se nepodařilo zpracovat. Zkontroluj zdrojový obrázek a zkus to znovu."
+                    request._avatar_review_error = (
+                        f"Žádost se nepodařilo zpracovat: {exc}"
+                        if str(exc)
+                        else "Žádost se nepodařilo zpracovat. Zkontroluj zdrojový obrázek a zkus to znovu."
+                    )
                     obj.status = previous.status
                     obj.review_note = previous.review_note
                     return
