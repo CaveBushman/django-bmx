@@ -131,7 +131,10 @@ def news_detail_view(request, slug):
 
     # Přičti zhlédnutí
     news.increment_views()
-    queryset = {'news': news, "absolute_image_url": request.build_absolute_uri(news.photo_01.url) if news.photo_01 else None}
+    queryset = {
+        'news': news,
+        "absolute_image_url": request.build_absolute_uri(news.photo_01_url) if news.photo_01_url else None,
+    }
     return render(request, 'news/news-detail.html', queryset)
 
 

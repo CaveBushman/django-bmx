@@ -1974,8 +1974,8 @@ def rider_licence_lookup_view(request):
             status=400,
         )
 
-    if Rider.objects.filter(uci_id=uci_id).exists():
-        existing = Rider.objects.get(uci_id=uci_id)
+    existing = Rider.objects.filter(uci_id=uci_id).first()
+    if existing:
         return JsonResponse(
             {
                 "ok": False,
@@ -2053,8 +2053,8 @@ def rider_new_view(request):
             messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
             return render(request, "rider/rider-request.html", context)
 
-        if Rider.objects.filter(uci_id=uci_id).exists():
-            existing = Rider.objects.get(uci_id=uci_id)
+        existing = Rider.objects.filter(uci_id=uci_id).first()
+        if existing:
             messages.error(
                 request,
                 _("Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo.") % {'name': f"{existing.first_name} {existing.last_name}", 'uci_id': uci_id}

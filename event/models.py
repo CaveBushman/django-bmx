@@ -313,6 +313,33 @@ class Event(models.Model):
     def __str__(self):
         return self.name
 
+    @staticmethod
+    def _file_url(field):
+        try:
+            return field.url if field else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
+    def proposition_url(self):
+        return self._file_url(self.proposition)
+
+    @property
+    def series_url(self):
+        return self._file_url(self.series)
+
+    @property
+    def html_results_url(self):
+        return self._file_url(self.html_results)
+
+    @property
+    def full_results_url(self):
+        return self._file_url(self.full_results)
+
+    @property
+    def flexibee_export_url(self):
+        return self._file_url(self.flexibee_export)
+
     def events_in_year(self, year):
         year = date.today().year
         events_in_year = Event.objects.filter(date__year=year).count()
