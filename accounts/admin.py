@@ -1,7 +1,9 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin.views.main import ChangeList
+from django.http import HttpResponseRedirect
 from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 from .models import Account, AccountRiderLink, AvatarChangeRequest, PendingAvatarChangeRequest
 
 
@@ -95,26 +97,47 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
             previous = AvatarChangeRequest.objects.get(pk=obj.pk)
             status_changed = "status" in form.changed_data and previous.status != obj.status
             if status_changed and previous.status == AvatarChangeRequest.STATUS_PENDING:
-                if obj.status == AvatarChangeRequest.STATUS_APPROVED:
-                    previous.review_note = obj.review_note
-                    previous.approve(request.user, note=obj.review_note)
+                previous.review_note = obj.review_note
+                try:
+                    if obj.status == AvatarChangeRequest.STATUS_APPROVED:
+                        previous.approve(request.user, note=obj.review_note)
+                        return
+                    if obj.status == AvatarChangeRequest.STATUS_REJECTED:
+                        previous.reject(request.user, note=obj.review_note)
+                        return
+                    if obj.status == AvatarChangeRequest.STATUS_EXPIRED:
+                        previous.expire(note=obj.review_note)
+                        return
+                except ValidationError as exc:
+                    request._avatar_review_failed = True
+                    request._avatar_review_error = "; ".join(exc.messages)
+                    obj.status = previous.status
+                    obj.review_note = previous.review_note
                     return
-                if obj.status == AvatarChangeRequest.STATUS_REJECTED:
-                    previous.review_note = obj.review_note
-                    previous.reject(request.user, note=obj.review_note)
-                    return
-                if obj.status == AvatarChangeRequest.STATUS_EXPIRED:
-                    previous.review_note = obj.review_note
-                    previous.expire(note=obj.review_note)
+                except Exception:
+                    request._avatar_review_failed = True
+                    request._avatar_review_error = "Žádost se nepodařilo zpracovat. Zkontroluj zdrojový obrázek a zkus to znovu."
+                    obj.status = previous.status
+                    obj.review_note = previous.review_note
                     return
 
         super().save_model(request, obj, form, change)
 
+    def response_change(self, request, obj):
+        if getattr(request, "_avatar_review_failed", False):
+            self.message_user(
+                request,
+                getattr(request, "_avatar_review_error", "Žádost se nepodařilo zpracovat."),
+                level=messages.ERROR,
+            )
+            return HttpResponseRedirect(request.path)
+        return super().response_change(request, obj)
+
     @admin.display(description="Náhled")
     def image_preview(self, obj):
-        if not obj.image:
+        if not obj.image_url:
             return "-"
-        return format_html('<img src="{}" style="max-height: 120px; border-radius: 12px;" />', obj.image.url)
+        return format_html('<img src="{}" style="max-height: 120px; border-radius: 12px;" />', obj.image_url)
 
     @admin.action(description="Schválit vybrané žádosti")
     def approve_selected(self, request, queryset):
