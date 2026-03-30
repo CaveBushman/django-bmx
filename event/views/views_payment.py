@@ -156,7 +156,7 @@ def confirm_user_order(request):
         return redirect("event:order")
 
     if request.POST:
-        user = Account.objects.get(id=request.user.id)
+        user = request.user
         if not pay_orders_from_credit(user=user, orders=orders):
             audit_logger.warning(
                 "cart_credit_checkout_rejected user_id=%s items=%s total_amount=%s current_credit=%s",
@@ -213,7 +213,7 @@ def check_order_payments(request):
 def checkout_view(request):
     """Přehled zaplacených přihlášek uživatele s možností stornování."""
     user_id = request.user.id
-    user = Account.objects.get(id=user_id)
+    user = request.user
     confirmed_events = Entry.objects.filter(
         user__id=user_id, payment_complete=True, event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
@@ -249,7 +249,7 @@ def credit_view(request):
     POST: Vytvoří Stripe Checkout session pro nákup kreditu (100–10 000 Kč).
     """
     user_id = request.user.id
-    user = Account.objects.get(id=user_id)
+    user = request.user
 
     if request.POST:
         try:
