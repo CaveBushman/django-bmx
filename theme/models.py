@@ -38,3 +38,18 @@ class Sponsor(models.Model):
     @property
     def dark_logo_or_light(self):
         return self.logo_dark or self.logo_light
+
+    @property
+    def logo_light_url(self):
+        try:
+            return self.logo_light.url if self.logo_light else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
+    def dark_logo_or_light_url(self):
+        try:
+            logo = self.dark_logo_or_light
+            return logo.url if logo else ""
+        except (ValueError, OSError):
+            return ""

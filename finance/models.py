@@ -24,6 +24,20 @@ class EventInvoice(models.Model):
     def __str__(self):
         return f"Faktura {self.number}"
 
+    @property
+    def pdf_url(self):
+        try:
+            return self.pdf.url if self.pdf else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
+    def xml_export_url(self):
+        try:
+            return self.xml_export.url if self.xml_export else ""
+        except (ValueError, OSError):
+            return ""
+
     class Meta:
         verbose_name = "Faktura za startovné"
         verbose_name_plural = 'Faktury za startovné'
@@ -70,6 +84,13 @@ class EventCashReceipt(models.Model):
 
     def __str__(self):
         return f"Pokladní doklad {self.number}"
+
+    @property
+    def pdf_url(self):
+        try:
+            return self.pdf.url if self.pdf else ""
+        except (ValueError, OSError):
+            return ""
 
     class Meta:
         verbose_name = "Pokladní doklad"
@@ -126,3 +147,17 @@ class SubscriptionInvoice(models.Model):
 
     def __str__(self):
         return f"Faktura {self.number}"
+
+    @property
+    def pdf_url(self):
+        try:
+            return self.pdf.url if self.pdf else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
+    def xml_export_url(self):
+        try:
+            return self.xml_export.url if self.xml_export else ""
+        except (ValueError, OSError):
+            return ""

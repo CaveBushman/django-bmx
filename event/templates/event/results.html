@@ -81,7 +81,7 @@
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results|length }}</p>
         </div>
         {% if event.full_results %}
-        <a href="{{ event.full_results.url }}" target="_blank" rel="noopener noreferrer" class="results-hero-stat inline-flex flex-col justify-center rounded-2xl px-5 py-4 transition hover:bg-white/90 dark:hover:bg-slate-900/80">
+        <a href="{{ event.full_results_url }}" target="_blank" rel="noopener noreferrer" class="results-hero-stat inline-flex flex-col justify-center rounded-2xl px-5 py-4 transition hover:bg-white/90 dark:hover:bg-slate-900/80">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Soubor</p>
           <p class="mt-2 text-base font-black text-slate-900 dark:text-white">PDF výsledků</p>
           <span class="mt-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">Otevřít</span>
