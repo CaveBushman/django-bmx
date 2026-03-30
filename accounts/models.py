@@ -9,7 +9,7 @@ from club.models import Club
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from PIL import Image, ImageOps, UnidentifiedImageError, features
+from PIL import Image, ImageOps, ImageFile, UnidentifiedImageError, features
 from io import BytesIO
 import uuid
 
@@ -272,10 +272,13 @@ class AvatarChangeRequest(models.Model):
         output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
         preferred_format = "WEBP" if features.check("webp") else "JPEG"
         extension = "webp" if preferred_format == "WEBP" else "jpg"
+        original_truncated_setting = ImageFile.LOAD_TRUNCATED_IMAGES
 
         try:
+            ImageFile.LOAD_TRUNCATED_IMAGES = True
             with self.image.open("rb") as image_file:
                 image = Image.open(image_file)
+                image.load()
                 image = ImageOps.exif_transpose(image).convert("RGB")
                 image = ImageOps.fit(
                     image,
@@ -300,6 +303,8 @@ class AvatarChangeRequest(models.Model):
             raise ValidationError("Nahraný soubor není platný obrázek.") from exc
         except OSError as exc:
             raise ValidationError(f"Nahraný avatar se nepodařilo zpracovat: {exc}") from exc
+        finally:
+            ImageFile.LOAD_TRUNCATED_IMAGES = original_truncated_setting
 
         output.seek(0)
         if self.target_account_id:
