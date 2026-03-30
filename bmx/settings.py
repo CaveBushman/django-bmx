@@ -478,6 +478,15 @@ LOGGING = {
             "backupCount": 30,
             "encoding": "utf-8",
         },
+        "error_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "formatter": "verbose",
+            "filename": str(LOG_DIR / "errors.log"),
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 30,
+            "encoding": "utf-8",
+        },
     },
     "loggers": {
         "audit": {
@@ -500,6 +509,25 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django.request": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "admin_stats.middleware": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console", "error_file"],
+        "level": "ERROR",
     },
 }
 
