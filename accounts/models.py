@@ -9,7 +9,7 @@ from club.models import Club
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 from io import BytesIO
 import uuid
 
@@ -236,6 +236,13 @@ class AvatarChangeRequest(models.Model):
             return str(self.target_rider)
         return ""
 
+    @property
+    def image_url(self):
+        try:
+            return self.image.url if self.image else ""
+        except (ValueError, OSError):
+            return ""
+
     @classmethod
     def expiration_days(cls):
         return getattr(settings, "AVATAR_REQUEST_EXPIRATION_DAYS", 30)
@@ -264,17 +271,20 @@ class AvatarChangeRequest(models.Model):
         final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
         output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
 
-        with self.image.open("rb") as image_file:
-            image = Image.open(image_file)
-            image = ImageOps.exif_transpose(image).convert("RGB")
-            image = ImageOps.fit(
-                image,
-                (final_size, final_size),
-                method=Image.Resampling.LANCZOS,
-                centering=(0.5, 0.5),
-            )
-            output = BytesIO()
-            image.save(output, format="WEBP", quality=output_quality, method=6)
+        try:
+            with self.image.open("rb") as image_file:
+                image = Image.open(image_file)
+                image = ImageOps.exif_transpose(image).convert("RGB")
+                image = ImageOps.fit(
+                    image,
+                    (final_size, final_size),
+                    method=Image.Resampling.LANCZOS,
+                    centering=(0.5, 0.5),
+                )
+                output = BytesIO()
+                image.save(output, format="WEBP", quality=output_quality, method=6)
+        except (FileNotFoundError, OSError, UnidentifiedImageError) as exc:
+            raise ValidationError("Nahraný avatar se nepodařilo zpracovat.") from exc
 
         output.seek(0)
         if self.target_account_id:
@@ -305,6 +315,8 @@ class AvatarChangeRequest(models.Model):
         elif self.target_rider_id:
             self.target_rider.photo.save(filename, normalized_image, save=False)
             self.target_rider.save(update_fields=["photo"])
+        else:
+            raise ValidationError("Žádost o avatar nemá cílový profil.")
         self._finalize(status=self.STATUS_APPROVED, reviewer=reviewer, note=note)
 
     def reject(self, reviewer, note=""):
