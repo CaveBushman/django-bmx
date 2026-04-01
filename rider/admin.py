@@ -19,7 +19,7 @@ from .models import (
     RiderStatsSubscription,
     RiderTransponderChange,
 )
-from .plates import display_plate
+from .plates import display_plate, normalize_plate_value
 
 
 class RiderAccountLinkInline(admin.TabularInline):
@@ -83,12 +83,28 @@ class RiderResource(resources.ModelResource):
         )
         export_order = fields  # zachová stejné pořadí při exportu
 
-class RiderAdmin(ExportMixin, admin.ModelAdmin):
+
+class PlateAwareSearchAdminMixin:
+    plate_search_field = "plate"
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        normalized_plate = normalize_plate_value(search_term)
+        if normalized_plate.isdigit():
+            queryset |= self.model.objects.filter(**{self.plate_search_field: int(normalized_plate)})
+
+        return queryset, use_distinct
+
+
+class RiderAdmin(PlateAwareSearchAdminMixin, ExportMixin, admin.ModelAdmin):
 
     resource_class = RiderResource
     change_list_template = "admin/rider/rider/change_list.html"
 
     def thumbnail(self, object):
+        if not object.photo:
+            return "-"
         return format_html(
             '<img src="{}" width="30" style="border-radius: 50px;" />',
             object.photo.url,
@@ -100,7 +116,7 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
     list_display_links = ('last_name',)
     ordering = ('last_name','first_name',)
     list_editable = ('is_20', 'is_24','is_elite','is_active','is_approved')
-    search_fields = ('last_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate', 'plate_text')
+    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate_text')
     list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club',)
     readonly_fields = ('transponder_change_overview',)
     inlines = (RiderAccountLinkInline,)
@@ -291,7 +307,7 @@ class RiderAdmin(ExportMixin, admin.ModelAdmin):
         )
         return HttpResponseRedirect(reverse("admin:rider_rider_changelist"))
 
-class ForeignRiderAdmin(admin.ModelAdmin):
+class ForeignRiderAdmin(PlateAwareSearchAdminMixin, admin.ModelAdmin):
 
     list_display = (
         'last_name',
@@ -314,7 +330,7 @@ class ForeignRiderAdmin(admin.ModelAdmin):
         return obj.plate_display
     list_display_links = ('last_name',)
     ordering = ('last_name', 'first_name')
-    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate', 'plate_text')
+    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate_text')
     list_filter = ('state', 'is_20', 'is_24', 'is_elite')
     readonly_fields = ('registration_overview',)
     fieldsets = (
