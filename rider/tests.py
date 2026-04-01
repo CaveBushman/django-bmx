@@ -1,9 +1,10 @@
 from datetime import date, timedelta
 from io import BytesIO
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from openpyxl import load_workbook
@@ -19,6 +20,7 @@ from rider.models import (
     TrainerClubCharge,
     TrainerClubSubscription,
 )
+from rider.admin import RiderAdmin
 from rider.subscriptions import (
     cancel_trainer_club_subscription,
     get_active_trainer_extended_subscription,
@@ -184,6 +186,72 @@ class RiderAdminAvatarModerationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "AVATAR")
         self.assertContains(response, reverse("accounts:avatar-moderation"))
+
+
+class RiderAdminSearchTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Rider",
+            username="rider_admin",
+            email="rider_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Admin Search Club")
+        self.admin_instance = RiderAdmin(Rider, admin.site)
+
+    def test_changelist_renders_for_text_search_when_rider_has_no_photo(self):
+        Rider.objects.create(
+            uci_id=12345670090,
+            first_name="Ivan",
+            last_name="Zelenko",
+            gender="Muž",
+            date_of_birth=date(2012, 4, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            photo="",
+        )
+
+        request = RequestFactory().get("/bmx-admin/rider/rider/", {"q": "Zelenko"})
+        request.user = self.staff_user
+
+        response = self.admin_instance.changelist_view(request)
+        response.render()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Zelenko")
+
+    def test_changelist_keeps_numeric_search_for_legacy_plate_field(self):
+        Rider.objects.create(
+            uci_id=12345670091,
+            first_name="Numeric",
+            last_name="Plate",
+            gender="Muž",
+            date_of_birth=date(2012, 5, 1),
+            club=self.club,
+            plate=321,
+            plate_text="",
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            photo="",
+        )
+
+        request = RequestFactory().get("/bmx-admin/rider/rider/", {"q": "321"})
+        request.user = self.staff_user
+
+        response = self.admin_instance.changelist_view(request)
+        response.render()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Plate")
 
 
 class RiderPremiumSubscriptionTests(TestCase):
