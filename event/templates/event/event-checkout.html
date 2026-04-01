@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}Seznam registrací na závody{% endblock title %}
+{% load static i18n %}
+{% block title %}{% trans "Seznam registrací na závody" %}{% endblock title %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
@@ -83,20 +83,20 @@
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,28rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Přehled registrací
+            {% trans "Přehled registrací" %}
           </p>
           <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            Aktivní registrace
+            {% trans "Aktivní registrace" %}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Přehled zaplacených registrací na nadcházející závody s možností změny stavu přihlášení.
+            {% trans "Přehled zaplacených registrací na nadcházející závody s možností změny stavu přihlášení." %}
           </p>
         </div>
         <div class="checkout-hero-stats">
           <div class="checkout-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní položky</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní položky" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ confirmed_events|length }}</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">registrací v přehledu</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "registrací v přehledu" %}</p>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@
             <div class="flex min-w-0 flex-1 items-center gap-4">
               <img
                 class="h-14 w-14 shrink-0 rounded-2xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                src="{{ confirmed_event.rider.photo.url }}"
+                src="{{ confirmed_event.rider.photo_url }}"
                 alt=""
               >
 
@@ -132,7 +132,13 @@
                 </div>
 
                 <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-slate-500 dark:text-slate-300">
-                  <span>{{ confirmed_event.rider.club|default:"Bez klubové příslušnosti" }}</span>
+                  <span>
+                    {% if confirmed_event.rider.club %}
+                      {{ confirmed_event.rider.club }}
+                    {% else %}
+                      {% trans "Bez klubové příslušnosti" %}
+                    {% endif %}
+                  </span>
                   <span class="text-slate-300 dark:text-slate-600">•</span>
                   <span>{{ confirmed_event.event.date }}</span>
                 </div>
@@ -162,7 +168,7 @@
             <div class="flex shrink-0 items-center justify-start lg:ml-auto lg:justify-end">
               {% if confirmed_event.checkout %}
                 <span class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                  Čeká na potvrzení
+                  {% trans "Čeká na potvrzení" %}
                 </span>
               {% else %}
                 <button
@@ -172,7 +178,7 @@
                   value="{{ confirmed_event.id }}"
                   class="checkout-danger-btn rounded-xl border px-5 py-2.5 text-sm font-semibold shadow-lg shadow-rose-900/20 transition focus:outline-none focus:ring-2 focus:ring-rose-300"
                 >
-                  Odhlásit
+                  {% trans "Odhlásit" %}
                 </button>
               {% endif %}
             </div>
@@ -183,8 +189,8 @@
       </div>
       {% else %}
       <div class="rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
-        <p class="text-lg font-semibold text-slate-900 dark:text-white">Žádné aktivní registrace</p>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Momentálně nemáš žádnou zaplacenou registraci na budoucí závod.</p>
+        <p class="text-lg font-semibold text-slate-900 dark:text-white">{% trans "Žádné aktivní registrace" %}</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "Momentálně nemáš žádnou zaplacenou registraci na budoucí závod." %}</p>
       </div>
       {% endif %}
     </form>

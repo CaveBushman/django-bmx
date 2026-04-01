@@ -573,8 +573,8 @@
                         {% endif %}
                     </div>
                     <div class="homepage-champion-media ml-auto flex justify-center">
-                        {% if championship_men_leader and championship_men_leader.photo %}
-                        <img src="{{ championship_men_leader.photo.url }}" alt="{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
+                        {% if championship_men_leader and championship_men_leader.photo_url %}
+                        <img src="{{ championship_men_leader.photo_url }}" alt="{{ championship_men_leader.first_name }} {{ championship_men_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
                         <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
                             N/A
@@ -587,8 +587,8 @@
             <article class="homepage-champion-card homepage-champion-card--right rounded-[1.75rem] p-4 sm:p-5" style="--champion-accent:#ec4899;">
                 <div class="homepage-champion-stack flex items-center gap-4">
                     <div class="homepage-champion-media flex justify-center md:justify-start">
-                        {% if championship_women_leader and championship_women_leader.photo %}
-                        <img src="{{ championship_women_leader.photo.url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
+                        {% if championship_women_leader and championship_women_leader.photo_url %}
+                        <img src="{{ championship_women_leader.photo_url }}" alt="{{ championship_women_leader.first_name }} {{ championship_women_leader.last_name }}" class="homepage-champion-avatar ring-4 ring-white shadow-2xl dark:ring-white/10">
                         {% else %}
                         <div class="homepage-champion-avatar flex items-center justify-center bg-slate-200 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10">
                             N/A
@@ -629,7 +629,7 @@
                 class="homepage-news-card flex h-full flex-col rounded-[1.75rem]">
                 <div class="flex h-full flex-col justify-between">
                     <div class="homepage-news-media relative aspect-[16/9] lg:aspect-[16/10]w-full">
-                        <img src="{% if article.photo_01 %}{{ article.photo_01.url }}{% endif %}"
+                        <img src="{% if article.photo_01_url %}{{ article.photo_01_url }}{% endif %}"
                              alt="{{ article.title }}"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                              class="h-full w-full object-cover transition duration-500 hover:scale-105">
@@ -659,8 +659,8 @@
                     </div>
                 </div>
                 <div class="homepage-news-author relative flex items-center gap-4 px-6 py-4 sm:px-7">
-                    {% if article.created.photo %}
-                    <img src="{{ article.created.photo.url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800">
+                    {% if article.created.photo_url %}
+                    <img src="{{ article.created.photo_url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800">
                     {% else %}
                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 ring-2 ring-white/80 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-800">
                         N/A
@@ -783,8 +783,8 @@
                     {% if sponsor.url %}
                     <a href="{{ sponsor.url }}" target="_blank" rel="noopener noreferrer" class="flex w-full items-center justify-center">
                     {% endif %}
-                        <img class="max-h-12 w-full object-contain dark:hidden" src="{{ sponsor.logo_light.url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
-                        <img class="hidden max-h-12 w-full object-contain dark:block" src="{{ sponsor.dark_logo_or_light.url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
+                        <img class="max-h-12 w-full object-contain dark:hidden" src="{{ sponsor.logo_light_url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
+                        <img class="hidden max-h-12 w-full object-contain dark:block" src="{{ sponsor.dark_logo_or_light_url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
                     {% if sponsor.url %}
                     </a>
                     {% endif %}

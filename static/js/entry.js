@@ -35,19 +35,37 @@ function searchByClub() {
 
 function syncEntryChoiceState() {
   var labels = document.querySelectorAll(".entry-choice");
-
-  labels.forEach(function (label) {
+  for (var i = 0; i < labels.length; i++) {
+    var label = labels[i];
     var input = label.querySelector('input[type="checkbox"]');
-    if (!input) return;
+    if (!input) continue;
 
     label.classList.toggle("selected", input.checked);
-  });
+  }
 }
 
-function getEntrySelectionCounts() {
-  var count20 = document.querySelectorAll('input[name="checkbox_20"]:checked').length;
-  var count24 = document.querySelectorAll('input[name="checkbox_24"]:checked').length;
-  var countBeginner = document.querySelectorAll('input[name="checkbox_beginner"]:checked').length;
+function getSelectedLabelCount(name, form) {
+  var labels = (form || document).querySelectorAll(".entry-choice.selected");
+  var count = 0;
+
+  for (var i = 0; i < labels.length; i++) {
+    var input = labels[i].querySelector('input[name="' + name + '"]');
+    if (input) count += 1;
+  }
+
+  return count;
+}
+
+function getEntrySelectionCounts(form) {
+  var root = form || document;
+  var count20 = root.querySelectorAll('input[name="checkbox_20"]:checked').length;
+  var count24 = root.querySelectorAll('input[name="checkbox_24"]:checked').length;
+  var countBeginner = root.querySelectorAll('input[name="checkbox_beginner"]:checked').length;
+
+  if (count20 === 0) count20 = getSelectedLabelCount("checkbox_20", root);
+  if (count24 === 0) count24 = getSelectedLabelCount("checkbox_24", root);
+  if (countBeginner === 0) countBeginner = getSelectedLabelCount("checkbox_beginner", root);
+
   return {
     count20: count20,
     count24: count24,
@@ -66,11 +84,11 @@ function updateEntrySelectionSummary() {
     return;
   }
 
-  var counts = getEntrySelectionCounts();
+  var counts = getEntrySelectionCounts(form);
   var selectedLabel = form.dataset.selectedLabel || "Vybráno";
   var registrationsLabel = form.dataset.registrationsLabel || "registrací";
   var beginnerLabel = form.dataset.beginnerLabel || "Příchozí";
-  var beginnerInputs = document.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
+  var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
   var breakdown =
     '20" ' + counts.count20 + ' | 24" ' + counts.count24 +
     (beginnerInputs ? " | " + beginnerLabel + " " + counts.countBeginner : "");
@@ -88,20 +106,30 @@ document.addEventListener("DOMContentLoaded", function () {
   syncEntryChoiceState();
   updateEntrySelectionSummary();
 
-  document.querySelectorAll('.entry-choice input[type="checkbox"]').forEach(function (input) {
-    input.addEventListener("change", function () {
-      syncEntryChoiceState();
-      updateEntrySelectionSummary();
-    });
-  });
-
   var form = document.getElementById("entry-form");
   if (form) {
+    var refreshSelectionSummary = function () {
+      syncEntryChoiceState();
+      updateEntrySelectionSummary();
+    };
+
     form.addEventListener("change", function (event) {
       var target = event.target;
       if (!target || target.type !== "checkbox") return;
-      syncEntryChoiceState();
-      updateEntrySelectionSummary();
+      refreshSelectionSummary();
+    });
+
+    form.addEventListener("click", function (event) {
+      var target = event.target;
+      if (!target) return;
+
+      var clickedLabel = target.closest ? target.closest(".entry-choice") : null;
+      if (!clickedLabel) return;
+
+      window.setTimeout(refreshSelectionSummary, 0);
     });
   }
 });
+
+window.syncEntryChoiceState = syncEntryChoiceState;
+window.updateEntrySelectionSummary = updateEntrySelectionSummary;

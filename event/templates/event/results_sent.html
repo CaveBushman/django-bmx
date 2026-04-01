@@ -1,46 +1,190 @@
 {% extends 'base.html' %}
 {% block title %}Výsledky odeslány{% endblock title %}
+
 {% block content %}
+<div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_26rem),linear-gradient(180deg,_#eff6ff_0%,_#ffffff_38%,_#f8fafc_100%)] px-4 py-10 dark:bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_24rem),linear-gradient(180deg,_#020617_0%,_#0f172a_42%,_#020617_100%)]">
+  <div class="mx-auto max-w-6xl">
+    <section class="overflow-hidden rounded-[2rem] border border-emerald-200/70 bg-white/95 shadow-[0_30px_80px_rgba(15,23,42,0.10)] dark:border-emerald-500/20 dark:bg-slate-950/85">
+      <div class="grid gap-0 lg:grid-cols-[minmax(0,1.25fr)_minmax(19rem,0.75fr)]">
+        <div class="p-6 sm:p-8 lg:p-10">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-inner shadow-emerald-200/60 dark:bg-emerald-500/15 dark:text-emerald-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 10-1.414 1.414L9 13l4.707-4.707z" clip-rule="evenodd" />
+            </svg>
+          </div>
 
-<div class="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-50 flex items-center justify-center px-4 py-12">
-  <div class="bg-white shadow-2xl rounded-3xl p-10 max-w-xl w-full text-center animate-fade-in">
+          <p class="mt-6 text-xs font-black uppercase tracking-[0.28em] text-emerald-600 dark:text-emerald-300">
+            Export do API ČSC dokončen
+          </p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            {{ event.name }}
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Finální výsledky byly odeslány do Českého svazu cyklistiky. Stránka teď ukazuje reálný stav exportu, ne jen potvrzení o úspěchu.
+          </p>
 
-    <div class="flex justify-center mb-6">
-      <div class="bg-green-100 p-6 rounded-full shadow-md">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 10-1.414 1.414L9 13l4.707-4.707z" clip-rule="evenodd" />
-        </svg>
+          <div class="mt-8 grid gap-4 sm:grid-cols-3">
+            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Odesláno</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.sent_count }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">záznamů do ČSC</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.unique_categories_count }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">unikátních API kódů</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kluby</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.unique_teams_count }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">týmů v exportu</p>
+            </article>
+          </div>
+
+          <div class="mt-8 rounded-[1.5rem] border border-emerald-200 bg-emerald-50/80 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p class="text-sm font-bold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">Progress exportu</p>
+                <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.sent_ratio }} %</p>
+              </div>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                {{ export_summary.sent_count }} z {{ export_summary.total_results }} výsledků se propsalo do payloadu.
+              </p>
+            </div>
+            <div class="mt-4 h-4 overflow-hidden rounded-full bg-white/80 ring-1 ring-emerald-200 dark:bg-slate-900/80 dark:ring-emerald-500/20">
+              <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" style="width: {{ export_summary.sent_ratio }}%"></div>
+            </div>
+            {% if export_summary.skipped_count %}
+            <p class="mt-3 text-sm font-medium text-amber-700 dark:text-amber-300">
+              Přeskočeno {{ export_summary.skipped_count }} výsledků bez navázaného jezdce.
+            </p>
+            {% else %}
+            <p class="mt-3 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+              Všechny výsledky měly navázaného jezdce a byly připravené pro odeslání.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <aside class="border-t border-slate-200/80 bg-slate-50/80 p-6 sm:p-8 lg:border-l lg:border-t-0 dark:border-slate-800 dark:bg-slate-900/50">
+          <p class="text-xs font-black uppercase tracking-[0.26em] text-slate-500 dark:text-slate-400">Metadata exportu</p>
+          <dl class="mt-5 space-y-4">
+            <div>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">ID závodu v ČSC</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.ccf_id|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">Odesláno</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.ccf_created|date:"d.m.Y H:i:s" }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">Datum závodu</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.date|date:"d.m.Y"|default:"-" }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">Typ závodu</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.type_for_ranking|default:"-" }}</dd>
+            </div>
+          </dl>
+
+          <div class="mt-8 flex flex-col gap-3">
+            <a href="{% url 'event:event-admin' event.id %}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400">
+              Zpět do administrace
+            </a>
+            <a href="{% url 'event:event-detail' event.id %}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+              Otevřít detail závodu
+            </a>
+          </div>
+        </aside>
       </div>
-    </div>
+    </section>
 
-    <h1 class="text-3xl font-bold text-gray-800 mb-4">
-      Výsledky závodu <span class="text-indigo-600">{{ event.name }}</span> byly úspěšně odeslány.
-    </h1>
+    <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <article class="rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datová kvalita</p>
+            <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Coverage payloadu</h2>
+          </div>
+          <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
+            Reálná data
+          </span>
+        </div>
 
-    <p class="text-lg text-gray-600 mb-8">
-      Počet odeslaných záznamů: <strong>{{ sent_count }}</strong>
-    </p>
+        <div class="mt-6 space-y-5">
+          {% for item in export_summary.coverage_metrics %}
+          <div>
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ item.label }}</p>
+              <p class="text-sm font-bold text-slate-900 dark:text-white">{{ item.value }}/{{ item.total }}</p>
+            </div>
+            <div class="mt-2 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-500" style="width: {{ item.percent }}%"></div>
+            </div>
+            <p class="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ item.percent }} %</p>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
 
-    <div class="flex justify-center space-x-4">
-      <a href="{% url 'event:event-admin' event.id %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl shadow transition">
-        Zpět do administrace
-      </a>
-      <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-xl shadow transition">
-        Domů
-      </a>
-    </div>
+      <article class="rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
+        <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Složení exportu</p>
+        <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Rozpad odeslaných výsledků</h2>
 
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">20"</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.bike20_count }}</p>
+          </div>
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Cruiser</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.cruiser_count }}</p>
+          </div>
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Ženy</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.women_count }}</p>
+          </div>
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Muži</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.men_count }}</p>
+          </div>
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">CZE</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.czech_count }}</p>
+          </div>
+          <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Zahraničí</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.foreign_count }}</p>
+          </div>
+        </div>
+
+        {% if export_summary.beginner_count %}
+        <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">
+          Beginner výsledky v exportu: <span class="font-bold text-slate-900 dark:text-white">{{ export_summary.beginner_count }}</span>
+        </p>
+        {% endif %}
+      </article>
+    </section>
+
+    {% if export_summary.top_categories %}
+    <section class="mt-6 rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
+      <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
+      <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Nejčastější API kódy v exportu</h2>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-5">
+        {% for item in export_summary.top_categories %}
+        <article class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{{ item.label }}</p>
+          <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ item.count }}</p>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+            <div class="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-indigo-500" style="width: {{ item.percent }}%"></div>
+          </div>
+          <p class="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ item.percent }} % exportu</p>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
   </div>
 </div>
-
-<style>
-@keyframes fade-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out;
-}
-</style>
-
 {% endblock content %}

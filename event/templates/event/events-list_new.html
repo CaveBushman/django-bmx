@@ -237,20 +237,20 @@
                   {% if event.has_public_proposition %}
                   <a href="{% url 'event:proposition-detail' event.id %}" class="events-chip events-chip-sky">{% trans "Propozice" %}</a>
                   {% elif event.proposition %}
-                  <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">{% trans "Propozice PDF" %}</a>
+                  <a href="{{ event.proposition_url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">{% trans "Propozice PDF" %}</a>
                   {% endif %}
                   {% if event.html_results %}
-                  <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
+                  <a href="{{ event.html_results_url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
                   {% elif event.full_results %}
-                  <a href="{{ event.full_results.url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
+                  <a href="{{ event.full_results_url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
                   {% endif %}
                   {% if event.youtube_link %}
                   <a href="{{ event.youtube_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-red">{% trans "YouTube" %}</a>
                   {% endif %}
                   {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
-                  <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky družstev" %}</a>
+                  <a href="{{ event.series_url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky družstev" %}</a>
                   {% elif event.series %}
-                  <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky seriálu" %}</a>
+                  <a href="{{ event.series_url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky seriálu" %}</a>
                   {% endif %}
                   {% if request.user.is_superuser %}
                   <a href="{% url 'event:event-admin' event.id %}" class="events-chip events-chip-secondary">{% trans "Administrace" %}</a>
@@ -300,20 +300,20 @@
               {% if event.has_public_proposition %}
               <a href="{% url 'event:proposition-detail' event.id %}" class="events-chip events-chip-sky">{% trans "Propozice" %}</a>
               {% elif event.proposition %}
-              <a href="{{ event.proposition.url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">{% trans "Propozice PDF" %}</a>
+              <a href="{{ event.proposition_url }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-sky">{% trans "Propozice PDF" %}</a>
               {% endif %}
               {% if event.html_results %}
-              <a href="{{ event.html_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
+              <a href="{{ event.html_results_url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
               {% elif event.full_results %}
-              <a href="{{ event.full_results.url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
+              <a href="{{ event.full_results_url }}" target="_blank" class="events-chip events-chip-orange">Výsledky závodu</a>
               {% endif %}
               {% if event.youtube_link %}
               <a href="{{ event.youtube_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-red">YouTube</a>
               {% endif %}
               {% if event.series and event.type_for_ranking == "Mistrovství ČR družstev" %}
-              <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky družstev" %}</a>
+              <a href="{{ event.series_url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky družstev" %}</a>
               {% elif event.series %}
-              <a href="{{ event.series.url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky seriálu" %}</a>
+              <a href="{{ event.series_url }}" target="_blank" class="events-chip events-chip-success">{% trans "Výsledky seriálu" %}</a>
               {% endif %}
               {% if request.user.is_superuser %}
               <a href="{% url 'event:event-admin' event.id %}" class="events-chip events-chip-secondary">Administrace</a>

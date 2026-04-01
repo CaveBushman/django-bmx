@@ -66,7 +66,7 @@
 
     @media (min-width: 960px) {
         .entry-hero-stats {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: minmax(16rem, 1.05fr) minmax(16rem, 1.05fr) minmax(17rem, 1.25fr);
         }
     }
 
@@ -346,7 +346,7 @@
 
     <header class="entry-hero">
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
+            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(40rem,46rem)] lg:items-end">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
                         {% trans "Přihlášení jezdců" %}
@@ -562,6 +562,63 @@
 </form>
 
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
-<script src="{% static 'js/entry.js' %}"></script>
+<script src="{% static 'js/entry.js' %}?v=2"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var form = document.getElementById("entry-form");
+    if (!form) return;
+
+    var refreshEntrySummary = function () {
+        if (typeof window.syncEntryChoiceState === "function") {
+            window.syncEntryChoiceState();
+        } else {
+            var labels = form.querySelectorAll(".entry-choice");
+            for (var i = 0; i < labels.length; i++) {
+                var input = labels[i].querySelector('input[type="checkbox"]');
+                if (!input) continue;
+                labels[i].classList.toggle("selected", input.checked);
+            }
+        }
+
+        if (typeof window.updateEntrySelectionSummary === "function") {
+            window.updateEntrySelectionSummary();
+            return;
+        }
+
+        var selectionLabel = document.getElementById("entry-selection-label");
+        var selectionBreakdown = document.getElementById("entry-selection-breakdown");
+        var submitButton = document.getElementById("entry-submit-btn");
+        if (!selectionLabel || !selectionBreakdown || !submitButton) return;
+
+        var count20 = form.querySelectorAll('input[name="checkbox_20"]:checked').length;
+        var count24 = form.querySelectorAll('input[name="checkbox_24"]:checked').length;
+        var countBeginner = form.querySelectorAll('input[name="checkbox_beginner"]:checked').length;
+        var total = count20 + count24 + countBeginner;
+        var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
+
+        selectionLabel.textContent = (form.dataset.selectedLabel || "Vybráno") + " " + total + " " + (form.dataset.registrationsLabel || "registrací");
+        selectionBreakdown.textContent = '20" ' + count20 + ' | 24" ' + count24 + (beginnerInputs ? " | " + (form.dataset.beginnerLabel || "Příchozí") + " " + countBeginner : "");
+        submitButton.disabled = total === 0;
+        submitButton.classList.toggle("opacity-60", total === 0);
+        submitButton.classList.toggle("cursor-not-allowed", total === 0);
+    };
+
+    form.addEventListener("change", function (event) {
+        if (event.target && event.target.type === "checkbox") {
+            refreshEntrySummary();
+        }
+    });
+
+    form.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!target) return;
+        var clickedLabel = target.closest ? target.closest(".entry-choice") : null;
+        if (!clickedLabel) return;
+        window.setTimeout(refreshEntrySummary, 0);
+    });
+
+    refreshEntrySummary();
+});
+</script>
 <script src="{% static 'js/arrow.js' %}"></script>
 {% endblock content %}

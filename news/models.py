@@ -188,6 +188,20 @@ class News (models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def photo_01_url(self):
+        try:
+            return self.photo_01.url if self.photo_01 else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
+    def audio_file_url(self):
+        try:
+            return self.audio_file.url if self.audio_file else ""
+        except (ValueError, OSError):
+            return ""
+
     def get_absolute_url(self):
         return reverse("news:news-detail", kwargs={"slug": self.slug or self.pk})
 
@@ -271,11 +285,42 @@ def delete_photo_on_change_extension(sender, instance, *args, **kwargs):
             new_photo_01 = instance.photo_01
             new_photo_02 = instance.photo_02
             new_photo_03 = instance.photo_03
-            if old_photo_01 and old_photo_01.url != new_photo_01.url:
+            old_photo_01_url = ""
+            new_photo_01_url = ""
+            old_photo_02_url = ""
+            new_photo_02_url = ""
+            old_photo_03_url = ""
+            new_photo_03_url = ""
+            try:
+                old_photo_01_url = old_photo_01.url if old_photo_01 else ""
+            except (ValueError, OSError):
+                old_photo_01_url = ""
+            try:
+                new_photo_01_url = new_photo_01.url if new_photo_01 else ""
+            except (ValueError, OSError):
+                new_photo_01_url = ""
+            try:
+                old_photo_02_url = old_photo_02.url if old_photo_02 else ""
+            except (ValueError, OSError):
+                old_photo_02_url = ""
+            try:
+                new_photo_02_url = new_photo_02.url if new_photo_02 else ""
+            except (ValueError, OSError):
+                new_photo_02_url = ""
+            try:
+                old_photo_03_url = old_photo_03.url if old_photo_03 else ""
+            except (ValueError, OSError):
+                old_photo_03_url = ""
+            try:
+                new_photo_03_url = new_photo_03.url if new_photo_03 else ""
+            except (ValueError, OSError):
+                new_photo_03_url = ""
+
+            if old_photo_01_url and old_photo_01_url != new_photo_01_url:
                 old_photo_01.delete(save=False)
-            if old_photo_02 and old_photo_02.url != new_photo_02.url:
+            if old_photo_02_url and old_photo_02_url != new_photo_02_url:
                 old_photo_02.delete(save=False)
-            if old_photo_03 and old_photo_03.url != new_photo_03.url:
+            if old_photo_03_url and old_photo_03_url != new_photo_03_url:
                 old_photo_03.delete(save=False)
 
 class DocumentTag(models.Model):

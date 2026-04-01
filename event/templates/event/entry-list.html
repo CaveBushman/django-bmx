@@ -167,7 +167,7 @@
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
           placeholder="{% trans 'Napiš příjmení' %}"
-          aria-label="default input example"
+          aria-label="{% trans 'Filtrovat podle příjmení' %}"
           onkeyup="searchByName()"
           id="inputName"/>
 
@@ -175,7 +175,7 @@
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
           placeholder="{% trans 'Napiš klub' %}"
-          aria-label="default input example"
+          aria-label="{% trans 'Filtrovat podle klubu' %}"
           onkeyup="searchByClub()"
           id="inputClub"/>
 
@@ -183,7 +183,7 @@
           class="entry-list-input shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full border border-gray-300 rounded-xl px-4 py-3"
           type="text"
           placeholder="{% trans 'Napiš kategorii' %}"
-          aria-label="default input example"
+          aria-label="{% trans 'Filtrovat podle kategorie' %}"
           onkeyup="searchByClass()"
           id="inputClass"/>
       </div>

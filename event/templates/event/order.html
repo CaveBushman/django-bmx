@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}Potvrzení přihlášky{% endblock title %}
+{% load static i18n %}
+{% block title %}{% trans "Potvrzení přihlášky" %}{% endblock title %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
@@ -178,27 +178,27 @@
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
       <div>
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          Potvrzení registrace
+          {% trans "Potvrzení registrace" %}
         </p>
         <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          Košík přihlášek
+          {% trans "Košík přihlášek" %}
         </h1>
         <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je odečtením kreditu.
+          {% trans "Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je odečtením kreditu." %}
         </p>
       </div>
       <div class="clubs-stats-grid">
         <div class="clubs-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Položky v košíku</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Položky v košíku" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum|default:0 }}</p>
         </div>
         <div class="clubs-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celková platba</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celková platba" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ price }} CZK</p>
         </div>
         <div class="clubs-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Potvrzení</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">Kreditem</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Potvrzení" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{% trans "Kreditem" %}</p>
         </div>
       </div>
     </div>
@@ -213,28 +213,28 @@
       {% if duplicities %}
       <section class="clubs-card rounded-[2rem] p-6 sm:p-8">
         <div class="rounded-[1.5rem] border border-rose-200 bg-rose-50 px-6 py-6 dark:border-rose-900/60 dark:bg-rose-950/30">
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">Duplicitní položky</p>
-          <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Košík byl automaticky vyčištěn</h2>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-rose-600 dark:text-rose-300">{% trans "Duplicitní položky" %}</p>
+          <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Košík byl automaticky vyčištěn" %}</h2>
           <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Z košíku byli odebráni jezdci, kteří už jsou na závod přihlášeni nebo jsou aktuálně v košíku jiného uživatele.
+            {% trans "Z košíku byli odebráni jezdci, kteří už jsou na závod přihlášeni nebo jsou aktuálně v košíku jiného uživatele." %}
           </p>
 
           <ul class="mt-5 space-y-3 text-sm text-slate-700 dark:text-slate-200">
             {% for duplicity in duplicities %}
             <li class="rounded-xl border border-rose-100 bg-white/80 px-4 py-3 dark:border-rose-900/40 dark:bg-slate-950/50">
               {% if duplicity.is_beginner %}
-                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_beginner }}, v košíku uživatele: {{ duplicity.user }}
+                {% blocktrans with last_name=duplicity.rider.last_name first_name=duplicity.rider.first_name event_name=duplicity.event category=duplicity.class_beginner user_name=duplicity.user %}{{ last_name }} {{ first_name }} ze závodu {{ event_name }} v kategorii {{ category }}, v košíku uživatele: {{ user_name }}{% endblocktrans %}
               {% elif duplicity.is_20 %}
-                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_20 }}, v košíku uživatele: {{ duplicity.user }}
+                {% blocktrans with last_name=duplicity.rider.last_name first_name=duplicity.rider.first_name event_name=duplicity.event category=duplicity.class_20 user_name=duplicity.user %}{{ last_name }} {{ first_name }} ze závodu {{ event_name }} v kategorii {{ category }}, v košíku uživatele: {{ user_name }}{% endblocktrans %}
               {% else %}
-                {{ duplicity.rider.last_name }} {{ duplicity.rider.first_name }} ze závodu {{ duplicity.event }} v kategorii {{ duplicity.class_24 }}, v košíku uživatele: {{ duplicity.user }}
+                {% blocktrans with last_name=duplicity.rider.last_name first_name=duplicity.rider.first_name event_name=duplicity.event category=duplicity.class_24 user_name=duplicity.user %}{{ last_name }} {{ first_name }} ze závodu {{ event_name }} v kategorii {{ category }}, v košíku uživatele: {{ user_name }}{% endblocktrans %}
               {% endif %}
             </li>
             {% endfor %}
           </ul>
 
           <a href="{% url 'event:order' %}" class="mt-6 inline-flex items-center justify-center rounded-xl border border-rose-700 bg-rose-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-800">
-            Beru na vědomí
+            {% trans "Beru na vědomí" %}
           </a>
         </div>
       </section>
@@ -243,9 +243,9 @@
         <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div class="order-summary-card rounded-[1.5rem] border p-5 sm:p-6">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Co se stane</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Co se stane" %}</p>
               <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-                Potvrzením se přihlášky odečtou z uživatelského kreditu a položky v košíku se převedou na aktivní registrace.
+                {% trans "Potvrzením se přihlášky odečtou z uživatelského kreditu a položky v košíku se převedou na aktivní registrace." %}
               </p>
             </div>
           </div>
@@ -256,7 +256,7 @@
             name="checkin-button"
             class="order-pay-btn inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300"
           >
-            Potvrdit a odečíst kredit
+            {% trans "Potvrdit a odečíst kredit" %}
           </button>
         </div>
 
@@ -268,7 +268,7 @@
               <div class="flex min-w-0 flex-1 items-center gap-4">
                 <div class="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200 dark:ring-slate-700">
                   <img
-                    src="{{ order.rider.photo.url }}"
+                    src="{{ order.rider.photo_url }}"
                     alt="{{ order.rider.first_name }} {{ order.rider.last_name }}"
                     class="h-full w-full object-cover"
                   >
@@ -279,7 +279,13 @@
                     <span class="order-pill">{{ order.event_class }}</span>
                   </div>
                   <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-300">
-                    <span>{{ order.rider.club|default:"Bez klubové příslušnosti" }}</span>
+                    <span>
+                      {% if order.rider.club %}
+                        {{ order.rider.club }}
+                      {% else %}
+                        {% trans "Bez klubové příslušnosti" %}
+                      {% endif %}
+                    </span>
                     <span class="text-slate-300 dark:text-slate-600">•</span>
                     <span>{{ order.event }}</span>
                     <span class="text-slate-300 dark:text-slate-600">•</span>
@@ -287,11 +293,11 @@
                   </div>
                   <div class="mt-3 text-sm text-slate-600 dark:text-slate-300">
                     {% if order.fee_20 %}
-                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_20 }} CZK</span>
+                      {% trans "Startovné:" %} <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_20 }} CZK</span>
                     {% elif order.fee_beginner %}
-                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_beginner }} CZK</span>
+                      {% trans "Startovné:" %} <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_beginner }} CZK</span>
                     {% else %}
-                      Startovné: <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_24 }} CZK</span>
+                      {% trans "Startovné:" %} <span class="font-semibold text-slate-900 dark:text-white">{{ order.fee_24 }} CZK</span>
                     {% endif %}
                   </div>
                 </div>
@@ -305,7 +311,7 @@
                   name="btn-del"
                   value="{{ order.id }}"
                 >
-                  Smazat
+                  {% trans "Smazat" %}
                 </button>
               </div>
             </div>
@@ -314,8 +320,8 @@
         </div>
         {% else %}
         <div class="mt-6 rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
-          <p class="text-lg font-semibold text-slate-900 dark:text-white">Košík je prázdný</p>
-          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">V tuto chvíli nemáš připravené žádné přihlášky k potvrzení.</p>
+          <p class="text-lg font-semibold text-slate-900 dark:text-white">{% trans "Košík je prázdný" %}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "V tuto chvíli nemáš připravené žádné přihlášky k potvrzení." %}</p>
         </div>
         {% endif %}
       </section>

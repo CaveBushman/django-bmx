@@ -116,7 +116,8 @@ class SendConfirmEmail:
     def get_event_id(self):
         """ Method for getting event ID from Entry database table"""
         transaction = Entry.objects.filter(transaction_id=self.transaction_id)
-        return transaction[0].event
+        first_entry = transaction.first()
+        return first_entry.event if first_entry else None
 
     def get_message_body(self):
         """ Method for setting e-mail MESSAGE_BODY """
@@ -159,7 +160,10 @@ class SendConfirmEmail:
         """ Method for sending e-mail with confirm registration - transaction ID required at creating instance """
         recipient = self.get_customers_email()
         message = self.get_message_body()
-        event = Event.objects.get(id=self.get_event_id())
+        event_id = self.get_event_id()
+        event = Event.objects.filter(id=event_id).first()
+        if not event:
+            return
         MESSAGE_SUBJECT = f"TEST!!! Potvrzení o registraci jezdců na závod BMX race - {event.name}"
         MESSAGE_BODY = f"Do závodu -- {event.name} -- konaného dne {event.date} byly registrováni: " + message + "\r\n \r\n Komise BMX Českého svazu cyklistiky "
 
@@ -419,5 +423,3 @@ class REMRiders:
         self.event.rem_entries = file_name
         self.event.rem_entries_created = timezone.now()
         self.event.save()
-
-

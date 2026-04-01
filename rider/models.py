@@ -171,6 +171,13 @@ class Rider(models.Model):
         return self.first_name + " " + self.last_name
 
     @property
+    def photo_url(self):
+        try:
+            return self.photo.url if self.photo else ""
+        except (ValueError, OSError):
+            return ""
+
+    @property
     def plate_display(self):
         return display_plate(self.plate_text, self.plate)
 
@@ -607,7 +614,9 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
                 return
 
             try:
-                if old_photo and str(old_photo) not in default_paths and old_photo.url != new_photo.url:
+                old_name = getattr(old_photo, "name", "") or ""
+                new_name = getattr(new_photo, "name", "") or ""
+                if old_photo and old_name not in default_paths and old_name != new_name:
                     old_photo.delete(save=False)
             except Exception:
                 pass
