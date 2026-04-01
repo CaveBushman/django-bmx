@@ -327,7 +327,7 @@
     <div class="article-feature-card mb-8 rounded-[2rem] px-6 py-6 sm:px-8 sm:py-8">
       <div class="article-feature-grid">
         <div class="article-feature-image-shell">
-          <img src="{{ news.photo_01.url }}" alt="{{ news.title }}">
+          <img src="{{ news.photo_01_url }}" alt="{{ news.title }}">
         </div>
         <div class="article-feature-copy">
           <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
@@ -363,7 +363,7 @@
           </div>
         </div>
         <a
-          href="{{ news.audio_file.url }}"
+          href="{{ news.audio_file_url }}"
           class="inline-flex items-center justify-center rounded-xl border border-sky-300 bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-white dark:border-sky-500/30 dark:bg-slate-900/50 dark:text-sky-300 dark:hover:bg-slate-900"
         >
           Otevřít audio
@@ -371,7 +371,7 @@
       </div>
       <div class="mt-4">
         <audio class="article-audio-player" controls preload="none">
-          <source src="{{ news.audio_file.url }}" type="audio/mpeg">
+          <source src="{{ news.audio_file_url }}" type="audio/mpeg">
           Tvůj prohlížeč nepodporuje přehrávání audia.
         </audio>
       </div>

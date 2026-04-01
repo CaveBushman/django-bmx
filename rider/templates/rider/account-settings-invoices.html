@@ -385,7 +385,7 @@
           <div class="profile-info-card rounded-3xl p-5 sm:p-6">
             <div class="profile-info-stack">
               <div class="flex items-center gap-4">
-                <img src="{{ request.user.photo.url }}" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200 dark:ring-indigo-500/30">
+                <img src="{{ request.user.photo_url }}" alt="" class="h-20 w-20 rounded-full object-cover ring-2 ring-indigo-200 dark:ring-indigo-500/30">
                 <div class="min-w-0">
                   <h2 class="account-section-title">{{ request.user.first_name }} {{ request.user.last_name }}</h2>
                   <p class="mt-1 break-all text-sm text-slate-600 dark:text-slate-300">{{ request.user.email }}</p>
@@ -465,7 +465,7 @@
               <div class="profile-info-card rounded-3xl p-5">
                 <div class="profile-info-stack">
                   <div class="flex items-center gap-4">
-                    <img src="{{ rider.photo.url }}" alt="{{ rider.first_name }} {{ rider.last_name }}" class="h-16 w-16 rounded-full object-cover ring-2 ring-indigo-100 dark:ring-indigo-500/20">
+                    <img src="{{ rider.photo_url }}" alt="{{ rider.first_name }} {{ rider.last_name }}" class="h-16 w-16 rounded-full object-cover ring-2 ring-indigo-100 dark:ring-indigo-500/20">
                     <div class="min-w-0 flex-1">
                       <p class="truncate text-base font-semibold text-slate-900 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</p>
                       <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
@@ -642,7 +642,7 @@
                   <td class="hidden px-4 py-3 sm:table-cell">{{ invoice.total_price|floatformat:2 }} Kč</td>
                   <td class="px-4 py-3">
                     {% if invoice.pdf %}
-                    <a href="{{ invoice.pdf.url }}" target="_blank" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                    <a href="{{ invoice.pdf_url }}" target="_blank" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
                       PDF
                     </a>
                     {% else %}
@@ -728,12 +728,12 @@
                     <td class="px-4 py-3">
                       <div class="flex flex-wrap gap-2">
                         {% if invoice.pdf %}
-                        <a href="{{ invoice.pdf.url }}" target="_blank" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                        <a href="{{ invoice.pdf_url }}" target="_blank" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
                           PDF
                         </a>
                         {% endif %}
                         {% if invoice.xml_export %}
-                        <a href="{{ invoice.xml_export.url }}" download class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                        <a href="{{ invoice.xml_export_url }}" download class="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
                           XML
                         </a>
                         {% endif %}

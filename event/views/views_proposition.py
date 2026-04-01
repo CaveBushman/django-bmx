@@ -102,8 +102,8 @@ def proposition_detail_view(request, pk):
             },
         )
 
-    if event.proposition:
-        return redirect(event.proposition.url)
+    if event.proposition_url:
+        return redirect(event.proposition_url)
 
     messages.error(request, "Propozice pro tento závod zatím nejsou zveřejněné.")
     return redirect("event:event-detail", pk=pk)

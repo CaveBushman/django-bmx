@@ -50,8 +50,12 @@ def rem_expire_licence() -> str:
 
 def team_name_resolve(club) -> str:
     """Vrátí název týmu z objektu Club (nebo z názvu klubu jako řetězec)."""
-    club = Club.objects.get(team_name=club)
-    return club.team_name
+    if not club:
+        return ""
+    if hasattr(club, "team_name"):
+        return club.team_name or ""
+    resolved = Club.objects.filter(team_name=club).first()
+    return resolved.team_name if resolved else str(club)
 
 
 def date_of_birth_resolve(rider) -> str:
@@ -262,7 +266,7 @@ def _get_event_classes(event):
 
     event_classes = getattr(event, "classes_and_fees_like", None)
     if event_classes is None:
-        event_classes = EntryClasses.objects.get(event__id=event.id)
+        event_classes = EntryClasses.objects.filter(event__id=event.id).first()
 
     event._cached_entry_classes = event_classes
     return event_classes
@@ -650,6 +654,7 @@ def invalid_licence_in_event(event):
     """Vrátí množinu jezdců s neplatnou licencí přihlášených na daný závod.
 
     Používá se v komisařském přehledu před závodem.
+    Kontrolují se pouze čeští jezdci.
     """
     check_20_entries = Entry.objects.filter(
         event=event.id, is_20=True, payment_complete=True, checkout=False
@@ -661,11 +666,19 @@ def invalid_licence_in_event(event):
     invalid_licences = []
 
     for entry in check_20_entries:
-        if entry.rider and not entry.rider.valid_licence:
+        if (
+            entry.rider
+            and (entry.rider.nationality or "").upper() == "CZE"
+            and not entry.rider.valid_licence
+        ):
             invalid_licences.append(entry.rider)
 
     for entry in check_24_entries:
-        if entry.rider and not entry.rider.valid_licence:
+        if (
+            entry.rider
+            and (entry.rider.nationality or "").upper() == "CZE"
+            and not entry.rider.valid_licence
+        ):
             invalid_licences.append(entry.rider)
 
     # set() odstraní duplicitu jezdce, který startuje na 20" i 24"
@@ -678,7 +691,8 @@ def qualify_riders_to_cn(year, rider):
     Podmínka: min. počet startů na Českém poháru (dle SeasonSettings.qualify_to_cn).
     Vrátí jezdce s nastavenými atributy is_qualify_20 / is_qualify_24.
     """
-    settings = SeasonSettings.objects.get(year=datetime.today().year)
+    settings = SeasonSettings.objects.filter(year=datetime.today().year).first()
+    qualify_threshold = settings.qualify_to_cn if settings else 2
 
     qualify_20 = Entry.objects.filter(
         event__type_for_ranking="Český pohár",
@@ -701,8 +715,8 @@ def qualify_riders_to_cn(year, rider):
         rider=rider,
     ).count()
 
-    rider.is_qualify_20 = qualify_20 >= settings.qualify_to_cn
-    rider.is_qualify_24 = qualify_24 >= settings.qualify_to_cn
+    rider.is_qualify_20 = qualify_20 >= qualify_threshold
+    rider.is_qualify_24 = qualify_24 >= qualify_threshold
 
     return rider
 

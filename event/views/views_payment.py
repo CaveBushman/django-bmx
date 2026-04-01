@@ -11,9 +11,10 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from event.models import Entry, CreditTransaction, DebetTransaction
 from accounts.models import Account
@@ -62,8 +63,8 @@ def success_view(request, pk):
     if session_id:
         try:
             finalize_entry_checkout_session(session_id, event_id=pk)
-        except Exception as e:
-            logger.error(f"Chyba při zpracování transakce {session_id}: {e}")
+        except (stripe.error.StripeError, DatabaseError) as error:
+            logger.exception("Chyba při zpracování transakce %s: %s", session_id, error)
     else:
         transactions = get_recent_pending_entries(event_id=pk)
 
@@ -71,13 +72,12 @@ def success_view(request, pk):
             try:
                 confirm = stripe.checkout.Session.retrieve(t.transaction_id)
                 mark_entry_paid(t, confirm)
-            except Exception as e:
-                logger.error(f"Chyba při zpracování transakce: {e}")
+            except stripe.error.StripeError as error:
+                logger.exception("Stripe chyba při zpracování transakce %s: %s", t.transaction_id, error)
+            except DatabaseError as error:
+                logger.exception("Databázová chyba při zpracování transakce %s: %s", t.transaction_id, error)
 
-    try:
-        clear_checkout_session(request)
-    except Exception as e:
-        logger.error(f"Chyba při mazání session: {e}")
+    clear_checkout_session(request)
 
     return render(request, "event/success.html", {"event_id": pk})
 
@@ -156,7 +156,7 @@ def confirm_user_order(request):
         return redirect("event:order")
 
     if request.POST:
-        user = Account.objects.get(id=request.user.id)
+        user = request.user
         if not pay_orders_from_credit(user=user, orders=orders):
             audit_logger.warning(
                 "cart_credit_checkout_rejected user_id=%s items=%s total_amount=%s current_credit=%s",
@@ -167,7 +167,7 @@ def confirm_user_order(request):
             )
             messages.error(
                 request,
-                "Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku.",
+                _("Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo smažte některou z registrací v košíku."),
             )
             return redirect("event:order")
         audit_logger.info(
@@ -205,7 +205,7 @@ def check_order_payments(request):
                 logger.error(f"Chyba při ověřování transakce: {e}")
 
     update_cart(request)
-    messages.success(request, "Vaše přihláška byla úspěšně přijata.")
+    messages.success(request, _("Vaše přihláška byla úspěšně přijata."))
     return render(request, "event/success.html", {})
 
 
@@ -213,7 +213,7 @@ def check_order_payments(request):
 def checkout_view(request):
     """Přehled zaplacených přihlášek uživatele s možností stornování."""
     user_id = request.user.id
-    user = Account.objects.get(id=user_id)
+    user = request.user
     confirmed_events = Entry.objects.filter(
         user__id=user_id, payment_complete=True, event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
@@ -249,7 +249,7 @@ def credit_view(request):
     POST: Vytvoří Stripe Checkout session pro nákup kreditu (100–10 000 Kč).
     """
     user_id = request.user.id
-    user = Account.objects.get(id=user_id)
+    user = request.user
 
     if request.POST:
         try:
@@ -289,13 +289,13 @@ def credit_view(request):
                 checkout_session.id,
             )
             return redirect(checkout_session.url, code=303)
-        except Exception as e:
+        except stripe.error.StripeError as error:
             audit_logger.exception(
                 "credit_checkout_failed user_id=%s amount=%s",
                 user_id,
                 amount,
             )
-            return JsonResponse({'error': str(e)}, status=403)
+            return JsonResponse({'error': str(error)}, status=403)
 
     credits, debets = get_credit_history(user_id)
 
@@ -318,8 +318,8 @@ def success_credit_view(request):
                 request.user.id,
                 session_id,
             )
-        except Exception as error:
-            logger.error(f"Chyba při potvrzení kreditní platby {session_id}: {error}")
+        except (stripe.error.StripeError, DatabaseError) as error:
+            logger.exception("Chyba při potvrzení kreditní platby %s: %s", session_id, error)
             audit_logger.exception(
                 "credit_checkout_finalize_failed user_id=%s session_id=%s",
                 request.user.id,
@@ -351,10 +351,10 @@ def recalculate_balances_view(request):
         recalculate_all_balances()
         context["message"] = "Stavy kreditů byly úspěšně překontrolovány."
         context["detail"] = "Přepočet proběhl bez chyby a nové zůstatky jsou uložené."
-    except Exception as e:
-        logger.error(f"Chyba při přepočtu zůstatků: {e}")
+    except DatabaseError as error:
+        logger.exception("Databázová chyba při přepočtu zůstatků: %s", error)
         context["status"] = "error"
         context["message"] = "Při kontrole kreditů došlo k chybě."
-        context["detail"] = str(e)
+        context["detail"] = str(error)
 
     return render(request, "event/recalculate_balances.html", context)

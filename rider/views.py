@@ -1974,8 +1974,8 @@ def rider_licence_lookup_view(request):
             status=400,
         )
 
-    if Rider.objects.filter(uci_id=uci_id).exists():
-        existing = Rider.objects.get(uci_id=uci_id)
+    existing = Rider.objects.filter(uci_id=uci_id).first()
+    if existing:
         return JsonResponse(
             {
                 "ok": False,
@@ -2053,8 +2053,8 @@ def rider_new_view(request):
             messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
             return render(request, "rider/rider-request.html", context)
 
-        if Rider.objects.filter(uci_id=uci_id).exists():
-            existing = Rider.objects.get(uci_id=uci_id)
+        existing = Rider.objects.filter(uci_id=uci_id).first()
+        if existing:
             messages.error(
                 request,
                 _("Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo.") % {'name': f"{existing.first_name} {existing.last_name}", 'uci_id': uci_id}
@@ -2070,12 +2070,23 @@ def rider_new_view(request):
             messages.error(request, _('Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.'))
             return render(request, "rider/rider-request.html", context)
 
+        try:
+            date_of_birth = datetime.datetime.strptime(
+                request.POST["date_of_birth"], "%Y-%m-%d"
+            )
+        except (TypeError, ValueError):
+            messages.error(request, _("Datum narození není ve správném formátu."))
+            return render(request, "rider/rider-request.html", context)
+
+        club = Club.objects.filter(id=request.POST.get("club")).first()
+        if not club:
+            messages.error(request, _("Vybraný klub nebyl nalezen."))
+            return render(request, "rider/rider-request.html", context)
+
         Rider.objects.create(
             first_name=request.POST["first_name"].strip(),
             last_name=request.POST["last_name"].strip(),
-            date_of_birth=datetime.datetime.strptime(
-                request.POST["date_of_birth"], "%Y-%m-%d"
-            ),
+            date_of_birth=date_of_birth,
             gender=request.POST.get("gender", "Muž"),
             uci_id=uci_id,
             is_20="is20" in request.POST,
@@ -2083,7 +2094,7 @@ def rider_new_view(request):
             is_elite="elite" in request.POST,
             plate_text=normalize_plate_value(request.POST["plate"]),
             plate=legacy_plate_int(request.POST["plate"]),
-            club=Club.objects.get(id=request.POST["club"]),
+            club=club,
             is_active=True,
             is_approved=False,
             emergency_contact=request.POST["emergency-contact"],

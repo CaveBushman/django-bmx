@@ -113,7 +113,7 @@
   <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-xl dark:shadow-black/20">
     <a href="{{ article.get_absolute_url }}" class="block">
       <div class="relative overflow-hidden border-b border-slate-200 dark:!border-slate-700">
-        <img src="{{ article.photo_01.url|default_if_none:'' }}" alt="{{ article.title }}"
+        <img src="{{ article.photo_01_url|default_if_none:'' }}" alt="{{ article.title }}"
           onerror="this.onerror=null;this.src='{% static 'images/news/AKBMX.jpg' %}';"
           class="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-105">
       </div>
@@ -142,7 +142,7 @@
       <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:!border-slate-700">
         <div class="flex items-center gap-x-3">
           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200 dark:!ring-slate-500">
-            <img src="{% if article.created and article.created.photo %}{{ article.created.photo.url }}{% else %}{% static 'images/users/blank-avatar-200x200.jpg' %}{% endif %}" alt="{{ article.created }}"
+            <img src="{% if article.created and article.created.photo_url %}{{ article.created.photo_url }}{% else %}{% static 'images/users/blank-avatar-200x200.jpg' %}{% endif %}" alt="{{ article.created }}"
               onerror="this.onerror=null;this.src='{% static 'images/users/blank-avatar-200x200.jpg' %}';"
               class="h-full w-full object-cover">
           </div>

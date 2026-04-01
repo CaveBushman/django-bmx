@@ -3,16 +3,15 @@ from django.utils import timezone
 
 
 def navbar_context(request):
-    from accounts.models import Account
     from accounts.models import AvatarChangeRequest
     from rider.models import Rider
     from todo.models import CommissionTask
 
     if request.user.is_authenticated:
         try:
-            account = Account.objects.get(id=request.user.id)
+            account = request.user
             is_task_user = getattr(request.user, "is_commission", False)
-            navbar_data = {"user_credit": account.credit}
+            navbar_data = {"user_credit": getattr(account, "credit", 0)}
 
             if request.user.is_superuser:
                 pending_plate_count = Rider.objects.filter(is_approved=False).count()
@@ -56,7 +55,7 @@ def navbar_context(request):
                 )
 
             return navbar_data
-        except Account.DoesNotExist:
+        except AttributeError:
             return {"user_credit": 0}
     return {}
 

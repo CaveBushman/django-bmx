@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import stripe
 from django.conf import settings
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -200,8 +200,8 @@ def handle_credit_webhook(payload, sig_header):
                     [str(e) for e in entries]
                 )
                 return HttpResponse(status=200)
-    except Exception as error:
-        logger.error(f"[Webhook] Chyba při zpracování přihlášek: {error}")
+    except DatabaseError:
+        logger.exception("[Webhook] Databázová chyba při zpracování přihlášek.")
 
     # 3. Pokus o zpracování jako Zahraniční přihláška (EntryForeign)
     try:
@@ -218,8 +218,8 @@ def handle_credit_webhook(payload, sig_header):
                     [str(e) for e in entries]
                 )
                 return HttpResponse(status=200)
-    except Exception as error:
-        logger.error(f"[Webhook] Chyba při zpracování zahraničních přihlášek: {error}")
+    except DatabaseError:
+        logger.exception("[Webhook] Databázová chyba při zpracování zahraničních přihlášek.")
 
     return HttpResponse(status=200)
 
@@ -247,8 +247,7 @@ def build_pending_orders(user):
 
 
 def delete_order_from_cart(order_id, user):
-    order = Entry.objects.get(id=order_id, user=user)
-    order.delete()
+    Entry.objects.filter(id=order_id, user=user).delete()
 
 
 def pay_orders_from_credit(*, user, orders):
@@ -364,8 +363,8 @@ def finalize_pending_credit_transactions(user, *, session_id=""):
         except stripe.error.StripeError as error:
             logger.error(f"Stripe error v success_credit_view: {error}")
             return False
-        except Exception as error:
-            logger.error(f"Chyba v success_credit_view: {error}")
+        except DatabaseError:
+            logger.exception("Databázová chyba v success_credit_view pro session_id=%s", session_id)
             return False
 
     today = date.today()
@@ -391,8 +390,8 @@ def finalize_pending_credit_transactions(user, *, session_id=""):
             continue
         except stripe.error.StripeError as error:
             logger.error(f"Stripe error v success_credit_view: {error}")
-        except Exception as error:
-            logger.error(f"Chyba v success_credit_view: {error}")
+        except DatabaseError:
+            logger.exception("Databázová chyba v success_credit_view pro transaction_id=%s", ct.transaction_id)
 
 
 def build_recalculate_balances_context():

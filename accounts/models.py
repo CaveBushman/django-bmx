@@ -9,7 +9,7 @@ from club.models import Club
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFile, UnidentifiedImageError, features
 from io import BytesIO
 import uuid
 
@@ -110,6 +110,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+    @property
+    def photo_url(self):
+        try:
+            return self.photo.url if self.photo else ""
+        except (ValueError, OSError):
+            return ""
 
     def has_perm(self, perm, obj=None):
         return self.is_superuser
@@ -229,6 +236,13 @@ class AvatarChangeRequest(models.Model):
             return str(self.target_rider)
         return ""
 
+    @property
+    def image_url(self):
+        try:
+            return self.image.url if self.image else ""
+        except (ValueError, OSError):
+            return ""
+
     @classmethod
     def expiration_days(cls):
         return getattr(settings, "AVATAR_REQUEST_EXPIRATION_DAYS", 30)
@@ -256,24 +270,47 @@ class AvatarChangeRequest(models.Model):
     def _build_normalized_avatar(self):
         final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
         output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
+        preferred_format = "WEBP" if features.check("webp") else "JPEG"
+        extension = "webp" if preferred_format == "WEBP" else "jpg"
+        original_truncated_setting = ImageFile.LOAD_TRUNCATED_IMAGES
 
-        with self.image.open("rb") as image_file:
-            image = Image.open(image_file)
-            image = ImageOps.exif_transpose(image).convert("RGB")
-            image = ImageOps.fit(
-                image,
-                (final_size, final_size),
-                method=Image.Resampling.LANCZOS,
-                centering=(0.5, 0.5),
-            )
-            output = BytesIO()
-            image.save(output, format="WEBP", quality=output_quality, method=6)
+        try:
+            ImageFile.LOAD_TRUNCATED_IMAGES = True
+            with self.image.open("rb") as image_file:
+                image = Image.open(image_file)
+                image.load()
+                image = ImageOps.exif_transpose(image).convert("RGB")
+                image = ImageOps.fit(
+                    image,
+                    (final_size, final_size),
+                    method=Image.Resampling.LANCZOS,
+                    centering=(0.5, 0.5),
+                )
+                output = BytesIO()
+                try:
+                    if preferred_format == "WEBP":
+                        image.save(output, format="WEBP", quality=output_quality, method=6)
+                    else:
+                        image.save(output, format="JPEG", quality=90, optimize=True)
+                except (OSError, KeyError):
+                    output = BytesIO()
+                    image.save(output, format="JPEG", quality=90, optimize=True)
+                    preferred_format = "JPEG"
+                    extension = "jpg"
+        except FileNotFoundError as exc:
+            raise ValidationError("Nahraný avatar nebyl na serveru nalezen.") from exc
+        except UnidentifiedImageError as exc:
+            raise ValidationError("Nahraný soubor není platný obrázek.") from exc
+        except OSError as exc:
+            raise ValidationError(f"Nahraný avatar se nepodařilo zpracovat: {exc}") from exc
+        finally:
+            ImageFile.LOAD_TRUNCATED_IMAGES = original_truncated_setting
 
         output.seek(0)
         if self.target_account_id:
-            filename = f"account-avatar-{self.target_account_id}-{uuid.uuid4().hex[:12]}.webp"
+            filename = f"account-avatar-{self.target_account_id}-{uuid.uuid4().hex[:12]}.{extension}"
         else:
-            filename = f"rider-avatar-{self.target_rider_id}-{uuid.uuid4().hex[:12]}.webp"
+            filename = f"rider-avatar-{self.target_rider_id}-{uuid.uuid4().hex[:12]}.{extension}"
         return filename, ContentFile(output.read())
 
     def _cleanup_request_image(self):
@@ -298,6 +335,8 @@ class AvatarChangeRequest(models.Model):
         elif self.target_rider_id:
             self.target_rider.photo.save(filename, normalized_image, save=False)
             self.target_rider.save(update_fields=["photo"])
+        else:
+            raise ValidationError("Žádost o avatar nemá cílový profil.")
         self._finalize(status=self.STATUS_APPROVED, reviewer=reviewer, note=note)
 
     def reject(self, reviewer, note=""):
