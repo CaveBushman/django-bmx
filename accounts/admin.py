@@ -104,14 +104,12 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
             if status_changed and previous.status == AvatarChangeRequest.STATUS_PENDING:
                 previous.review_note = obj.review_note
                 try:
-                    if obj.status == AvatarChangeRequest.STATUS_APPROVED:
-                        previous.approve(request.user, note=obj.review_note)
-                        return
-                    if obj.status == AvatarChangeRequest.STATUS_REJECTED:
-                        previous.reject(request.user, note=obj.review_note)
-                        return
-                    if obj.status == AvatarChangeRequest.STATUS_EXPIRED:
-                        previous.expire(note=obj.review_note)
+                    if obj.status in {
+                        AvatarChangeRequest.STATUS_APPROVED,
+                        AvatarChangeRequest.STATUS_REJECTED,
+                        AvatarChangeRequest.STATUS_EXPIRED,
+                    }:
+                        previous.review(obj.status, request.user, note=obj.review_note)
                         return
                 except ValidationError as exc:
                     request._avatar_review_failed = True
@@ -153,21 +151,58 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
             return "-"
         return format_html('<img src="{}" style="max-height: 120px; border-radius: 12px;" />', obj.image_url)
 
+    def _process_bulk_action(self, request, queryset, processor, *, success_label):
+        updated = 0
+        failed = 0
+
+        for avatar_request in queryset.filter(status=AvatarChangeRequest.STATUS_PENDING):
+            try:
+                processor(avatar_request)
+                updated += 1
+            except ValidationError as exc:
+                failed += 1
+                self.message_user(
+                    request,
+                    f"{avatar_request.target_label}: {'; '.join(exc.messages)}",
+                    level=messages.ERROR,
+                )
+            except Exception as exc:
+                failed += 1
+                logger.exception(
+                    "Avatar bulk action failed for request pk=%s by user=%s",
+                    avatar_request.pk,
+                    getattr(request.user, "pk", None),
+                )
+                self.message_user(
+                    request,
+                    (
+                        f"{avatar_request.target_label}: žádost se nepodařilo zpracovat"
+                        + (f" ({exc})" if str(exc) else ".")
+                    ),
+                    level=messages.ERROR,
+                )
+
+        self.message_user(request, f"{success_label}: {updated} žádostí.")
+        if failed:
+            self.message_user(request, f"Selhalo: {failed} žádostí.", level=messages.WARNING)
+
     @admin.action(description="Schválit vybrané žádosti")
     def approve_selected(self, request, queryset):
-        updated = 0
-        for avatar_request in queryset.filter(status=AvatarChangeRequest.STATUS_PENDING):
-            avatar_request.approve(request.user)
-            updated += 1
-        self.message_user(request, f"Schváleno: {updated} žádostí.")
+        self._process_bulk_action(
+            request,
+            queryset,
+            lambda avatar_request: avatar_request.approve(request.user),
+            success_label="Schváleno",
+        )
 
     @admin.action(description="Zamítnout vybrané žádosti")
     def reject_selected(self, request, queryset):
-        updated = 0
-        for avatar_request in queryset.filter(status=AvatarChangeRequest.STATUS_PENDING):
-            avatar_request.reject(request.user)
-            updated += 1
-        self.message_user(request, f"Zamítnuto: {updated} žádostí.")
+        self._process_bulk_action(
+            request,
+            queryset,
+            lambda avatar_request: avatar_request.reject(request.user),
+            success_label="Zamítnuto",
+        )
 
 
 class PendingAvatarChangeRequestChangeList(ChangeList):

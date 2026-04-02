@@ -333,6 +333,15 @@ def _download_generated_file(file_path):
     return FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
 
 
+def _resolve_association_fee(sum_of_fees, commission_fee):
+    try:
+        normalized_fee = int(commission_fee or 0)
+    except (TypeError, ValueError):
+        logger.warning("Neplatná commission_fee=%r při výpočtu asociační odměny.", commission_fee)
+        normalized_fee = 0
+    return int(sum_of_fees * normalized_fee / 100)
+
+
 # ===========================================================================
 # PRIVÁTNÍ HELPERY — volány z event_admin_view
 # Každý helper zpracuje jeden btn-* blok a vrátí response nebo None.
@@ -678,7 +687,7 @@ def event_admin_view(request, pk):
     Pro Evropský pohár/ME vrátí okamžitě EC stránku.
     Pro ostatní závodní typy zpracuje POST akci (btn-*) nebo zobrazí shrnutí.
     """
-    event = get_object_or_404(Event, id=pk)
+    event = get_object_or_404(Event.objects.select_related("organizer"), id=pk)
 
     # Evropský pohár a Mistrovství Evropy mají vlastní admin stránku
     if event.type_for_ranking in ["Evropský pohár", "Mistrovství Evropy"]:
@@ -728,7 +737,7 @@ def event_admin_view(request, pk):
         "invalid_licences": invalid_licence_in_event(event),
         "sum_of_fees": sum_of_fees,
         "sum_of_riders": entries.count() + foreign_entries.count(),
-        "asociation_fee": int(sum_of_fees * event.commission_fee / 100),
+        "asociation_fee": _resolve_association_fee(sum_of_fees, event.commission_fee),
         "results_exist": Result.objects.filter(event=event).exists(),
         "moto_runs_exist": RaceRun.objects.filter(event=event, round_type="MOTO").exists(),
         "prize_money_amount_toggle": PrizeMoneyPdfService().allows_amount_toggle(event),

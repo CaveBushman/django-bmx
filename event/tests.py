@@ -1055,6 +1055,18 @@ class EventAdminViewTests(TestCase):
         self.assertContains(response, "800 CZK")
         self.assertContains(response, "40 CZK")
 
+    def test_event_admin_renders_when_legacy_event_has_missing_organizer_and_commission_fee(self):
+        self.client.force_login(self.staff_user)
+        self.event.organizer = None
+        self.event.commission_fee = None
+
+        with patch("event.views.views_admin.get_object_or_404", return_value=self.event):
+            response = self.client.get(reverse("event:event-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["asociation_fee"], 0)
+        self.assertContains(response, "Volný závod")
+
 
 class EntryForeignAdminTests(TestCase):
     def test_foreign_rider_link_handles_non_numeric_uci_id(self):

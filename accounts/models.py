@@ -345,6 +345,18 @@ class AvatarChangeRequest(models.Model):
     def expire(self, note=""):
         self._finalize(status=self.STATUS_EXPIRED, reviewer=None, note=note or "Žádost expirovala bez schválení.")
 
+    def review(self, action, reviewer, note=""):
+        if action in {"approve", self.STATUS_APPROVED}:
+            self.approve(reviewer, note=note)
+            return self.STATUS_APPROVED
+        if action in {"reject", self.STATUS_REJECTED}:
+            self.reject(reviewer, note=note)
+            return self.STATUS_REJECTED
+        if action in {"expire", self.STATUS_EXPIRED}:
+            self.expire(note=note)
+            return self.STATUS_EXPIRED
+        raise ValidationError("Neplatná akce moderace avataru.")
+
 
 class PendingAvatarChangeRequest(AvatarChangeRequest):
     class Meta:

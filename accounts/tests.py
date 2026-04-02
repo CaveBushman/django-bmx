@@ -1,15 +1,19 @@
+from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.sessions.middleware import SessionMiddleware
 import datetime
 from io import BytesIO
 
 from PIL import Image
 
+from accounts.admin import AvatarChangeRequestAdmin
 from accounts.models import AccountRiderLink, AvatarChangeRequest
 from club.models import Club
 from rider.models import Rider
@@ -136,6 +140,7 @@ class AccountRiderLinkTests(TestCase):
             AccountRiderLink.objects.create(account=self.user, rider=self.rider)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class AvatarChangeRequestTests(TestCase):
     def _build_test_image(self, *, name="avatar.png", color=(40, 120, 220)):
         buffer = BytesIO()
@@ -286,6 +291,33 @@ class AvatarChangeRequestTests(TestCase):
         self.assertIsNotNone(pending_request.reviewed_at)
         self.assertFalse(bool(pending_request.image))
         self.assertTrue(self.user.photo.name.endswith(".webp"))
+
+    def test_admin_bulk_approval_handles_invalid_image_without_server_error(self):
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_staff", "is_superuser"])
+
+        invalid_request = AvatarChangeRequest.objects.create(
+            uploaded_by=self.user,
+            target_account=self.user,
+            image=SimpleUploadedFile("broken.txt", b"not-an-image", content_type="text/plain"),
+        )
+
+        request = RequestFactory().post(reverse("admin:accounts_avatarchangerequest_changelist"))
+        request.user = self.user
+        SessionMiddleware(lambda req: None).process_request(request)
+        request.session.save()
+        setattr(request, "_messages", FallbackStorage(request))
+
+        admin_instance = AvatarChangeRequestAdmin(AvatarChangeRequest, admin.site)
+        admin_instance.approve_selected(request, AvatarChangeRequest.objects.filter(pk=invalid_request.pk))
+
+        invalid_request.refresh_from_db()
+        messages = [message.message for message in request._messages]
+
+        self.assertEqual(invalid_request.status, AvatarChangeRequest.STATUS_PENDING)
+        self.assertTrue(any("není platný obrázek" in message for message in messages))
+        self.assertTrue(any("Selhalo: 1 žádostí." in message for message in messages))
 
     def test_staff_avatar_dashboard_shows_pending_requests(self):
         self.user.is_staff = True

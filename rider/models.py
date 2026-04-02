@@ -1,8 +1,10 @@
 import logging
+import os
 from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from django.utils import timezone
+from django.conf import settings
 from club.models import Club
 from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
@@ -173,9 +175,31 @@ class Rider(models.Model):
     @property
     def photo_url(self):
         try:
-            return self.photo.url if self.photo else ""
+            if not self.photo:
+                return ""
+            if not self.photo.name:
+                return ""
+            if self.photo.storage.exists(self.photo.name):
+                return self.photo.url
+
+            static_name = self.photo.name.lstrip("/")
+            static_candidates = [
+                os.path.join(settings.BASE_DIR, "static", static_name),
+                os.path.join(settings.BASE_DIR, "staticfiles", static_name),
+            ]
+            if any(os.path.exists(path) for path in static_candidates):
+                static_prefix = settings.STATIC_URL.strip("/")
+                return f"/{static_prefix}/{static_name}"
+
+            return ""
         except (ValueError, OSError):
             return ""
+
+    @property
+    def initials(self):
+        parts = [self.first_name, self.last_name]
+        letters = [part.strip()[0].upper() for part in parts if part and part.strip()]
+        return "".join(letters[:2])
 
     @property
     def plate_display(self):
