@@ -1,6 +1,7 @@
 import logging
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login, logout, authenticate
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.cache import cache_control
@@ -135,14 +136,25 @@ def avatar_moderation_dashboard(request):
             pk=request_id,
             status=AvatarChangeRequest.STATUS_PENDING,
         )
-        if action == "approve":
-            avatar_request.approve(request.user)
-            messages.success(request, f"Avatar pro {avatar_request.target_label} byl schválen.")
-        elif action == "reject":
-            avatar_request.reject(request.user)
-            messages.success(request, f"Avatar pro {avatar_request.target_label} byl zamítnut.")
+        try:
+            result = avatar_request.review(action, request.user)
+        except ValidationError as exc:
+            messages.error(request, "; ".join(exc.messages))
+        except Exception:
+            logger.exception(
+                "Avatar dashboard action failed for request pk=%s by user=%s action=%s",
+                avatar_request.pk,
+                getattr(request.user, "pk", None),
+                action,
+            )
+            messages.error(request, "Žádost se nepodařilo zpracovat. Zkontroluj zdrojový obrázek a zkus to znovu.")
         else:
-            messages.error(request, "Neplatná akce moderace avataru.")
+            if result == AvatarChangeRequest.STATUS_APPROVED:
+                messages.success(request, f"Avatar pro {avatar_request.target_label} byl schválen.")
+            elif result == AvatarChangeRequest.STATUS_REJECTED:
+                messages.success(request, f"Avatar pro {avatar_request.target_label} byl zamítnut.")
+            elif result == AvatarChangeRequest.STATUS_EXPIRED:
+                messages.success(request, f"Žádost pro {avatar_request.target_label} byla expirována.")
         return redirect("accounts:avatar-moderation")
 
     pending_requests = list(

@@ -465,7 +465,23 @@
               <div class="profile-info-card rounded-3xl p-5">
                 <div class="profile-info-stack">
                   <div class="flex items-center gap-4">
-                    <img src="{{ rider.photo_url }}" alt="{{ rider.first_name }} {{ rider.last_name }}" class="h-16 w-16 rounded-full object-cover ring-2 ring-indigo-100 dark:ring-indigo-500/20">
+                    <div class="h-16 w-16 shrink-0">
+                      {% if rider.photo_url %}
+                        <img
+                          src="{{ rider.photo_url }}"
+                          alt="{{ rider.first_name }} {{ rider.last_name }}"
+                          class="h-16 w-16 rounded-full object-cover ring-2 ring-indigo-100 dark:ring-indigo-500/20"
+                          onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');"
+                        >
+                        <div class="hidden h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-base font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-indigo-100 dark:bg-slate-700 dark:text-white dark:ring-indigo-500/20">
+                          {{ rider.initials|default:"?" }}
+                        </div>
+                      {% else %}
+                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-base font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-indigo-100 dark:bg-slate-700 dark:text-white dark:ring-indigo-500/20">
+                          {{ rider.initials|default:"?" }}
+                        </div>
+                      {% endif %}
+                    </div>
                     <div class="min-w-0 flex-1">
                       <p class="truncate text-base font-semibold text-slate-900 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</p>
                       <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
