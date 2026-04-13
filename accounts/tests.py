@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import RequestFactory, TestCase, override_settings
@@ -14,7 +15,7 @@ from io import BytesIO
 from PIL import Image
 
 from accounts.admin import AvatarChangeRequestAdmin
-from accounts.models import AccountRiderLink, AvatarChangeRequest
+from accounts.models import Account, AccountRiderLink, AvatarChangeRequest
 from club.models import Club
 from rider.models import Rider
 
@@ -60,6 +61,75 @@ class RememberMeLoginTests(TestCase):
 
         self.assertRedirects(response, reverse("news:homepage"))
         self.assertTrue(self.client.session.get_expire_at_browser_close())
+
+    def test_login_is_case_insensitive_for_email(self):
+        response = self.client.post(
+            reverse("accounts:login"),
+            {
+                "username": "REMEMBER@EXAMPLE.COM",
+                "password": self.password,
+            },
+        )
+
+        self.assertRedirects(response, reverse("news:homepage"))
+
+    def test_login_rejects_ambiguous_historical_email_duplicates(self):
+        duplicate = User.objects.create_user(
+            first_name="Remember",
+            last_name="Duplicate",
+            username="remember_duplicate",
+            email="remember_duplicate@example.com",
+            password=self.password,
+        )
+        duplicate.is_active = True
+        duplicate.save(update_fields=["is_active"])
+        User.objects.filter(pk=duplicate.pk).update(email="Remember@example.com")
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {
+                "username": "remember@example.com",
+                "password": self.password,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(any("více historických účtů" in str(message) for message in messages))
+
+
+class AccountEmailNormalizationTests(TestCase):
+    def test_create_user_normalizes_email_to_lowercase(self):
+        user = User.objects.create_user(
+            first_name="Email",
+            last_name="Normalizer",
+            username="email_normalizer",
+            email="MixedCase@Example.COM",
+            password="StrongPass123!",
+        )
+
+        self.assertEqual(user.email, "mixedcase@example.com")
+
+    def test_clean_rejects_case_insensitive_duplicate_on_email_change(self):
+        first_user = User.objects.create_user(
+            first_name="First",
+            last_name="User",
+            username="first_user",
+            email="first@example.com",
+            password="StrongPass123!",
+        )
+        second_user = User.objects.create_user(
+            first_name="Second",
+            last_name="User",
+            username="second_user",
+            email="second@example.com",
+            password="StrongPass123!",
+        )
+
+        second_user.email = "FIRST@example.com"
+        with self.assertRaises(ValidationError):
+            second_user.clean()
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")

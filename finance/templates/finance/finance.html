@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %} Finance {% endblock title %}
 {% load static %}
+{% load i18n %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
@@ -266,6 +267,85 @@
         <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
           <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Trainer premium</p>
           <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ balance_components.trainer_charge_debit|floatformat:2 }}</p>
+        </div>
+      </div>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Dobití kreditu</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ credit_transaction_summary.topup_total|floatformat:2 }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ credit_transaction_summary.topup_count }} transakcí</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Checkout refundy</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ credit_transaction_summary.checkout_refund_total|floatformat:2 }}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ credit_transaction_summary.checkout_refund_count }} transakcí</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-panel mt-8 rounded-[1.75rem] border p-6 sm:p-8">
+      <div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+            {% translate "Checkout refundy" %}
+          </p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            {% translate "Posledních 100 vratek startovného" %}
+          </h2>
+          <p class="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            {% translate "Přehled automaticky vytvořených refundů po checkoutu českých registrací." %}
+          </p>
+        </div>
+        <div class="mt-4">
+          <a href="{% url 'finance:export_checkout_refunds_csv' %}" class="inline-flex items-center rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white">
+            {% translate "Export CSV refundů" %}
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+            <thead class="bg-slate-100 dark:bg-slate-950">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% translate "Datum" %}</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% translate "Typ" %}</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% translate "Uživatel" %}</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% translate "Částka" %}</th>
+                <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% translate "Detail" %}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+              {% for credit_transaction in checkout_refunds %}
+              <tr class="text-slate-700 dark:text-slate-200">
+                <td class="px-4 py-3 whitespace-nowrap">{{ credit_transaction.transaction_date|date:"d.m.Y H:i" }}</td>
+                <td class="px-4 py-3">{{ credit_transaction.get_kind_display }}</td>
+                <td class="px-4 py-3">
+                  {% if credit_transaction.user %}
+                  <div class="font-semibold">{{ credit_transaction.user }}</div>
+                  {% else %}
+                  <span class="text-slate-400">{% translate "Bez uživatele" %}</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 font-semibold">{{ credit_transaction.amount|floatformat:2 }} Kč</td>
+                <td class="px-4 py-3">
+                  <div>{{ credit_transaction.payment_intent|default:"-" }}</div>
+                  {% if credit_transaction.source_entry and credit_transaction.source_entry.event %}
+                  <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {{ credit_transaction.source_entry.event.name }}
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">
+                  {% translate "Zatím nejsou k dispozici žádné checkout refundy." %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

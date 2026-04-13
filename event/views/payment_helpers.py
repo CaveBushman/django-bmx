@@ -8,7 +8,6 @@ from django.conf import settings
 from django.db import DatabaseError, transaction
 from django.db.models import F
 from django.http import HttpResponse
-from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
 

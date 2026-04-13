@@ -11,14 +11,13 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from event.models import Entry, CreditTransaction, DebetTransaction
-from accounts.models import Account
-from event.func import update_cart, is_registration_open
+from event.func import get_unregistration_deadline, is_unregistration_open, update_cart
 from event.credit import calculate_user_balance, recalculate_all_balances
 from event.services.payments import (
     clear_checkout_session,
@@ -218,8 +217,12 @@ def checkout_view(request):
         user__id=user_id, payment_complete=True, event__date__gte=timezone.now(),
     ).order_by("event__date", "rider__last_name", "rider__first_name")
 
+    visible_count = 0
     for entry in confirmed_events:
-        entry.is_visible = is_registration_open(entry.event)
+        entry.is_visible = is_unregistration_open(entry.event)
+        entry.unregistration_deadline = get_unregistration_deadline(entry.event)
+        if entry.is_visible:
+            visible_count += 1
 
     if "btn-change" in request.POST:
         # Storno přihlášky — smaž Entry a příslušné debetní transakce
@@ -237,7 +240,12 @@ def checkout_view(request):
         user.save()
         return redirect("event:checkout")
 
-    data = {"confirmed_events": confirmed_events, "user": user}
+    data = {
+        "confirmed_events": confirmed_events,
+        "user": user,
+        "visible_count": visible_count,
+        "closed_count": max(confirmed_events.count() - visible_count, 0),
+    }
     return render(request, "event/event-checkout.html", data)
 
 
@@ -280,7 +288,10 @@ def credit_view(request):
                 cancel_url=settings.YOUR_DOMAIN + "/event/cancel?source=credit",
             )
             CreditTransaction(
-                transaction_id=checkout_session.id, amount=amount, user_id=user_id
+                transaction_id=checkout_session.id,
+                amount=amount,
+                user_id=user_id,
+                kind=CreditTransaction.Kind.TOPUP,
             ).save()
             audit_logger.info(
                 "credit_checkout_started user_id=%s amount=%s session_id=%s",

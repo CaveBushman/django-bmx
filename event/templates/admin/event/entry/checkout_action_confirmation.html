@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ action_name }}">
+    <input type="hidden" name="apply" value="yes">
+
+    {% for entry in entries %}
+      <input type="hidden" name="{{ action_checkbox_name }}" value="{{ entry.pk }}">
+    {% endfor %}
+
+    <div class="module aligned">
+      <h2>{{ title }}</h2>
+      <p>
+        {% if checkout_target %}
+          {% translate "Tato akce zapne checkout a vytvoří nebo aktualizuje vratku startovného v kreditu." %}
+        {% else %}
+          {% translate "Tato akce vypne checkout a smaže navázanou vratku startovného v kreditu." %}
+        {% endif %}
+      </p>
+      <p><strong>{% translate "Počet vybraných registrací:" %}</strong> {{ entries|length }}</p>
+      <p><strong>{% translate "Poznámka do auditu:" %}</strong> {{ note }}</p>
+    </div>
+
+    <div class="module">
+      <table id="result_list">
+        <thead>
+          <tr>
+            <th>{% translate "Jezdec" %}</th>
+            <th>{% translate "Závod" %}</th>
+            <th>{% translate "Uživatel" %}</th>
+            <th>{% translate "Zaplaceno" %}</th>
+            <th>{% translate "Checkout" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <td>{{ entry.rider }}</td>
+            <td>{{ entry.event }}</td>
+            <td>{{ entry.user|default:"-" }}</td>
+            <td>{% if entry.payment_complete %}{% translate "Ano" %}{% else %}{% translate "Ne" %}{% endif %}</td>
+            <td>{% if entry.checkout %}{% translate "Ano" %}{% else %}{% translate "Ne" %}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="submit-row">
+      <input type="submit" value="{% translate 'Potvrdit' %}" class="default">
+      <a href="" onclick="window.history.back(); return false;" class="button cancel-link">{% translate "Zrušit" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

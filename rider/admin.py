@@ -19,7 +19,7 @@ from .models import (
     RiderStatsSubscription,
     RiderTransponderChange,
 )
-from .plates import display_plate, normalize_plate_value
+from .plates import normalize_plate_value
 
 
 class RiderAccountLinkInline(admin.TabularInline):

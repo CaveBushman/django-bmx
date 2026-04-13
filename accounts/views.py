@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.cache import cache_control
 
-from .models import Account, AvatarChangeRequest
+from .models import Account, AvatarChangeRequest, normalize_account_email
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -17,12 +17,12 @@ def sign_up(request):
         first_name = request.POST.get('firstname', '').strip()
         last_name = request.POST.get('lastname', '').strip()
         submitted_identity = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip() or submitted_identity
-        username = submitted_identity or email
+        email = normalize_account_email(request.POST.get('email', '').strip() or submitted_identity)
+        username = normalize_account_email(submitted_identity or email)
         password = request.POST.get('password', '')
         password2 = request.POST.get('password2', '')
         if password == password2:
-            if Account.objects.filter(email=email).exists():
+            if Account.objects.filter(email__iexact=email).exists():
                 audit_logger.warning(
                     "signup_rejected_duplicate_email email=%s ip=%s",
                     email,
@@ -73,10 +73,22 @@ def sign_up(request):
 
 def sign_in(request):
     if request.method == "POST":
-        username = request.POST.get('username', '')
+        username = normalize_account_email(request.POST.get('username', ''))
         password = request.POST.get('password', '')
-        
-        user = authenticate(request, username=username, password=password)
+
+        matched_users = list(Account.objects.filter(email__iexact=username).only("id", "email"))
+        if len(matched_users) > 1:
+            audit_logger.warning(
+                "signin_rejected_ambiguous_email email=%s matches=%s ip=%s",
+                username,
+                len(matched_users),
+                request.META.get("REMOTE_ADDR", ""),
+            )
+            messages.error(request, "Pro tento e-mail existuje více historických účtů. Kontaktujte administrátora.")
+            return render(request, 'accounts/signin.html')
+
+        auth_identity = matched_users[0].email if matched_users else username
+        user = authenticate(request, username=auth_identity, password=password)
         if user is not None:
             login(request, user)
             
@@ -98,7 +110,7 @@ def sign_in(request):
         else:
             audit_logger.warning(
                 "signin_failed username=%s ip=%s",
-                username,
+                auth_identity,
                 request.META.get("REMOTE_ADDR", ""),
             )
             messages.error(request, "Neplatné uživatelské jméno nebo heslo.")

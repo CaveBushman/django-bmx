@@ -254,7 +254,7 @@
                 </div>
 
                 <div class="event-detail-actions items-start">
-                    {% if event.reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
+                    {% if reg_open and event.type_for_ranking == "Evropský pohár" and event.uec_link %}
                     <div class="w-full sm:w-auto">
                         <a href="{{ event.uec_link }}" target="_blank" rel="noopener noreferrer"
                             class="event-detail-action-chip event-detail-action-primary w-full sm:w-auto">
@@ -265,7 +265,7 @@
                             {% trans "Registrace na UEC" %}
                         </a>
                     </div>
-                    {% elif event.reg_open %}
+                    {% elif reg_open %}
                     <div class="w-full sm:w-auto">
                         <a href="{% url 'event:entry' event.id %}"
                             class="event-detail-action-chip event-detail-action-primary w-full sm:w-auto">
@@ -372,8 +372,21 @@
                     </svg>
                 </div>
                 <div>
-                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Konec registrace</dt>
-                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.reg_open_to }} hod.</dd>
+                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Konec přihlášení</dt>
+                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.reg_open_to|date:"j. F Y H:i" }}</dd>
+                </div>
+            </div>
+
+            <div
+                class="event-detail-info-card p-6 flex items-center space-x-4 transition-transform transform hover:scale-[1.01]">
+                <div class="p-3 bg-sky-100 dark:bg-sky-900 rounded-full">
+                    <svg class="w-8 h-8 text-sky-600 dark:text-sky-300" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 2v2H5a2 2 0 00-2 2v2h18V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm14 8H3v10a2 2 0 002 2h14a2 2 0 002-2V10zm-9 3h5v2h-5v-2zm-4 0h2v2H8v-2z" />
+                    </svg>
+                </div>
+                <div>
+                    <dt class="text-gray-500 dark:text-gray-300 text-lg">Konec odhlášení</dt>
+                    <dd class="text-3xl font-semibold text-gray-900 dark:text-white">{{ event.reg_cancel_deadline|date:"j. F Y H:i" }}</dd>
                 </div>
             </div>
 

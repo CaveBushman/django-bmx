@@ -2,13 +2,16 @@ from datetime import date, timedelta
 from io import BytesIO
 import os
 import tempfile
+from types import SimpleNamespace
 import zipfile
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
@@ -22,12 +25,13 @@ from reportlab.pdfgen import canvas
 
 from club.models import Club
 from event.forms import EventPropositionForm
-from event.admin import EntryForeignAdmin
-from event.models import CreditTransaction, Entry, EntryClasses, EntryForeign, Event, SeasonSettings, RaceRun, Result
+from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
+from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
 from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
+from event.services.checkout_refunds import apply_entry_checkout
 from event.services.payments import (
     enrich_cart_entries,
     get_recent_pending_entries,
@@ -442,6 +446,16 @@ class PaymentServiceTests(TestCase):
             reg_open_to=timezone.now() + timedelta(days=1),
             type_for_ranking="Volný závod",
         )
+        self.second_event = Event.objects.create(
+            name="Second payment race",
+            date=date.today() + timedelta(days=40),
+            organizer=self.club,
+            classes_and_fees_like=self.entry_classes,
+            reg_open=True,
+            reg_open_from=timezone.now() - timedelta(days=1),
+            reg_open_to=timezone.now() + timedelta(days=2),
+            type_for_ranking="Volný závod",
+        )
         self.rider = Rider.objects.create(
             uci_id=12345678999,
             first_name="Payment",
@@ -615,6 +629,297 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(credit_transaction.payment_intent, "pi_credit_exact")
         self.assertEqual(self.user.credit, 700)
 
+    def test_credit_view_shows_credit_transaction_types(self):
+        self.client.force_login(self.user)
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=700,
+            payment_complete=True,
+            payment_intent="pi_credit_history",
+            kind=CreditTransaction.Kind.TOPUP,
+        )
+        CreditTransaction.objects.create(
+            user=self.user,
+            source_entry=entry,
+            amount=300,
+            payment_complete=True,
+            payment_intent=f"Vrácení startovného za závod {self.event.name}",
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+        )
+
+        response = self.client.get(reverse("event:credit"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dobití kreditu")
+        self.assertContains(response, "Vrácení startovného po checkoutu")
+        self.assertContains(response, f"Vrácení startovného za závod {self.event.name}")
+
+    def test_entry_checkout_creates_refund_credit_transaction(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+
+        entry.checkout = True
+        entry.save(update_fields=["checkout"])
+
+        refund = CreditTransaction.objects.get(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry=entry,
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(refund.amount, 300)
+        self.assertTrue(refund.payment_complete)
+        self.assertEqual(refund.kind, CreditTransaction.Kind.CHECKOUT_REFUND)
+        self.assertEqual(refund.source_entry_id, entry.pk)
+        self.assertEqual(
+            refund.payment_intent,
+            f"Vrácení startovného za závod {self.event.name}",
+        )
+        self.assertEqual(self.user.credit, 300)
+
+    def test_entry_checkout_uncheck_deletes_refund_credit_transaction(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.checkout = False
+        entry.save(update_fields=["checkout"])
+
+        self.user.refresh_from_db()
+        self.assertFalse(
+            CreditTransaction.objects.filter(
+                kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+                source_entry=entry,
+            ).exists()
+        )
+        self.assertEqual(self.user.credit, 0)
+
+    def test_entry_checkout_raises_validation_error_for_unpaid_entry(self):
+        with self.assertRaises(ValidationError):
+            Entry.objects.create(
+                user=self.user,
+                event=self.event,
+                rider=self.rider,
+                payment_complete=False,
+                is_20=True,
+                class_20="Boys 6",
+                fee_20=300,
+                checkout=True,
+            )
+
+    def test_entry_checkout_updates_refund_when_fee_changes(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.fee_20 = 450
+        entry.save(update_fields=["fee_20"])
+
+        refund = CreditTransaction.objects.get(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry=entry,
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(refund.amount, 450)
+        self.assertEqual(self.user.credit, 450)
+
+    def test_entry_checkout_reassigns_refund_when_user_changes(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.user = self.other_user
+        entry.save(update_fields=["user"])
+
+        refund = CreditTransaction.objects.get(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry=entry,
+        )
+        self.user.refresh_from_db()
+        self.other_user.refresh_from_db()
+        self.assertEqual(refund.user_id, self.other_user.id)
+        self.assertEqual(self.user.credit, 0)
+        self.assertEqual(self.other_user.credit, 300)
+
+    def test_entry_checkout_updates_refund_when_event_changes(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.event = self.second_event
+        entry.save(update_fields=["event"])
+
+        refund = CreditTransaction.objects.get(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry=entry,
+        )
+        self.assertEqual(
+            refund.payment_intent,
+            f"Vrácení startovného za závod {self.second_event.name}",
+        )
+
+    def test_apply_entry_checkout_creates_persistent_audit_log(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+
+        changed = apply_entry_checkout(
+            entry,
+            checkout=True,
+            actor=self.other_user,
+            source="test_case",
+            note="test audit note",
+        )
+
+        audit = EntryAuditLog.objects.get(entry=entry)
+        self.assertTrue(changed)
+        self.assertEqual(audit.action, EntryAuditLog.Action.CHECKOUT_CHANGED)
+        self.assertEqual(audit.actor_id, self.other_user.id)
+        self.assertEqual(audit.source, "test_case")
+        self.assertEqual(audit.note, "test audit note")
+        self.assertFalse(audit.old_checkout)
+        self.assertTrue(audit.new_checkout)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_entry_checkout_sends_notification_emails(self):
+        self.other_user.is_admin = True
+        self.other_user.save(update_fields=["is_admin"])
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+
+        entry.checkout = True
+        entry.save(update_fields=["checkout"])
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Checkout refund vytvořen", mail.outbox[0].subject)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+        self.assertIn(self.other_user.email, mail.outbox[0].to)
+
+    def test_entry_checkout_logs_refund_amount_change(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.fee_20 = 450
+        entry.save(update_fields=["fee_20"])
+
+        self.assertTrue(
+            EntryAuditLog.objects.filter(
+                entry=entry,
+                action=EntryAuditLog.Action.REFUND_CONTEXT_CHANGED,
+                note="Změna částky refundu: 300 -> 450 Kč",
+            ).exists()
+        )
+
+    def test_entry_checkout_logs_refund_user_change(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.user = self.other_user
+        entry.save(update_fields=["user"])
+
+        self.assertTrue(
+            EntryAuditLog.objects.filter(
+                entry=entry,
+                action=EntryAuditLog.Action.REFUND_CONTEXT_CHANGED,
+                note=f"Změna uživatele refundu: {self.user.id} -> {self.other_user.id}",
+            ).exists()
+        )
+
+    def test_entry_checkout_logs_refund_event_change(self):
+        entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+            checkout=True,
+        )
+
+        entry.event = self.second_event
+        entry.save(update_fields=["event"])
+
+        self.assertTrue(
+            EntryAuditLog.objects.filter(
+                entry=entry,
+                action=EntryAuditLog.Action.REFUND_CONTEXT_CHANGED,
+                note=f"Změna závodu refundu: {self.event.id} -> {self.second_event.id}",
+            ).exists()
+        )
+
     def test_cancel_view_redirects_entry_checkout_back_to_confirm(self):
         self.client.force_login(self.user)
         session = self.client.session
@@ -627,6 +932,57 @@ class PaymentServiceTests(TestCase):
         response = self.client.get(reverse("event:cancel") + "?source=entries")
 
         self.assertRedirects(response, reverse("event:confirm"), fetch_redirect_response=False)
+
+    def test_checkout_allows_unregistration_after_registration_deadline_until_cancel_deadline(self):
+        self.client.force_login(self.user)
+        self.event.reg_open_to = timezone.now() - timedelta(hours=1)
+        self.event.reg_cancel_to = timezone.now() + timedelta(days=2)
+        self.event.save(update_fields=["reg_open_to", "reg_cancel_to"])
+        Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+
+        response = self.client.get(reverse("event:checkout"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Odhlásit")
+
+    def test_checkout_shows_closed_unregistration_state_after_cancel_deadline(self):
+        self.client.force_login(self.user)
+        self.event.reg_cancel_to = timezone.now() - timedelta(hours=1)
+        self.event.save(update_fields=["reg_cancel_to"])
+        Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            payment_complete=True,
+            is_20=True,
+            class_20="Boys 6",
+            fee_20=300,
+        )
+
+        response = self.client.get(reverse("event:checkout"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Odhlášení uzavřeno")
+        self.assertContains(response, self.rider.last_name)
+
+    def test_entry_page_closes_after_registration_deadline_even_if_cancel_deadline_is_later(self):
+        self.client.force_login(self.user)
+        self.event.reg_open_to = timezone.now() - timedelta(hours=1)
+        self.event.reg_cancel_to = timezone.now() + timedelta(days=2)
+        self.event.save(update_fields=["reg_open_to", "reg_cancel_to"])
+
+        response = self.client.get(reverse("event:entry", kwargs={"pk": self.event.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "event/reg-close.html")
 
     def test_confirm_view_renders_checkout_summary_from_session(self):
         self.client.force_login(self.user)
@@ -1123,6 +1479,248 @@ class EntryForeignAdminTests(TestCase):
         response.render()
 
         self.assertEqual(response.status_code, 200)
+
+
+class EntryAdminActionTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Checkout",
+            username="checkout_admin",
+            email="checkout_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Checkout Admin Club")
+        self.event = Event.objects.create(
+            name="Checkout Admin Race",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000012345,
+            first_name="Admin",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+        self.entry = Entry.objects.create(
+            user=self.staff_user,
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+    def test_admin_checkout_action_shows_confirmation_page(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            reverse("admin:event_entry_changelist"),
+            {
+                "action": "mark_checkout_with_refund",
+                ACTION_CHECKBOX_NAME: [str(self.entry.pk)],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Potvrzení vrácení startovného")
+        self.assertContains(response, self.rider.last_name)
+
+    def test_admin_checkout_action_confirmation_applies_refund(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.post(
+            reverse("admin:event_entry_changelist"),
+            {
+                "action": "mark_checkout_with_refund",
+                "apply": "yes",
+                ACTION_CHECKBOX_NAME: [str(self.entry.pk)],
+            },
+            follow=True,
+        )
+
+        self.entry.refresh_from_db()
+        refund = CreditTransaction.objects.get(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry=self.entry,
+        )
+        audit = EntryAuditLog.objects.filter(entry=self.entry).latest("created_at")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.entry.checkout)
+        self.assertEqual(refund.amount, 400)
+        self.assertEqual(audit.source, "admin_action")
+        self.assertEqual(audit.actor_id, self.staff_user.id)
+
+    def test_admin_unmark_checkout_action_confirmation_removes_refund(self):
+        self.client.force_login(self.staff_user)
+        self.entry.checkout = True
+        self.entry.save(update_fields=["checkout"])
+
+        response = self.client.post(
+            reverse("admin:event_entry_changelist"),
+            {
+                "action": "unmark_checkout_and_remove_refund",
+                "apply": "yes",
+                ACTION_CHECKBOX_NAME: [str(self.entry.pk)],
+            },
+            follow=True,
+        )
+
+        self.entry.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.entry.checkout)
+        self.assertFalse(
+            CreditTransaction.objects.filter(
+                kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+                source_entry=self.entry,
+            ).exists()
+        )
+
+    def test_admin_checkout_action_skips_invalid_entries_with_warning(self):
+        self.client.force_login(self.staff_user)
+        unpaid_entry = Entry.objects.create(
+            user=self.staff_user,
+            event=self.event,
+            rider=self.rider,
+            is_24=True,
+            class_24="Cruiser",
+            fee_24=250,
+            payment_complete=False,
+        )
+
+        response = self.client.post(
+            reverse("admin:event_entry_changelist"),
+            {
+                "action": "mark_checkout_with_refund",
+                "apply": "yes",
+                ACTION_CHECKBOX_NAME: [str(unpaid_entry.pk)],
+            },
+            follow=True,
+        )
+
+        unpaid_entry.refresh_from_db()
+        messages = [message.message for message in get_messages(response.wsgi_request)]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(unpaid_entry.checkout)
+        self.assertIn("Checkout byl zapnut u 0 registrací.", messages)
+        self.assertIn("1 registrací bylo přeskočeno kvůli nevalidnímu stavu.", messages)
+
+
+class FinanceAdminAuditTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Finance",
+            last_name="Auditor",
+            username="finance_auditor",
+            email="finance_auditor@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.user = User.objects.create_user(
+            first_name="Target",
+            last_name="User",
+            username="finance_target",
+            email="finance_target@example.com",
+            password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+        self.club = Club.objects.create(team_name="Finance Audit Club")
+        self.event = Event.objects.create(
+            name="Finance Audit Race",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000098765,
+            first_name="Finance",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+        self.entry = Entry.objects.create(
+            user=self.user,
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+    def test_credit_transaction_admin_writes_persistent_audit_log(self):
+        request = RequestFactory().post("/bmx-admin/event/credittransaction/")
+        request.user = self.staff_user
+        admin_instance = CreditTransactionAdmin(CreditTransaction, admin.site)
+
+        credit = CreditTransaction(
+            user=self.user,
+            amount=500,
+            payment_intent="manual topup",
+            kind=CreditTransaction.Kind.TOPUP,
+            payment_complete=True,
+        )
+        admin_instance.save_model(
+            request,
+            credit,
+            SimpleNamespace(changed_data=["amount", "payment_complete"]),
+            change=False,
+        )
+
+        audit = FinanceAuditLog.objects.get(target_model="CreditTransaction", target_object_id=credit.pk)
+        self.assertEqual(audit.action, FinanceAuditLog.Action.CREATED)
+        self.assertEqual(audit.actor_id, self.staff_user.id)
+        self.assertEqual(audit.target_user_id_snapshot, self.user.id)
+        self.assertEqual(audit.amount_snapshot, 500)
+        self.assertEqual(audit.transaction_kind_snapshot, CreditTransaction.Kind.TOPUP)
+
+    def test_debet_transaction_admin_delete_writes_persistent_audit_log(self):
+        request = RequestFactory().post("/bmx-admin/event/debettransaction/")
+        request.user = self.staff_user
+        admin_instance = DebetTransactionAdmin(DebetTransaction, admin.site)
+
+        debet = DebetTransaction.objects.create(
+            user=self.user,
+            entry=self.entry,
+            amount=400,
+            payment_valid=True,
+        )
+
+        admin_instance.delete_model(request, debet)
+
+        audit = FinanceAuditLog.objects.get(target_model="DebetTransaction", target_object_id=debet.pk)
+        self.assertEqual(audit.action, FinanceAuditLog.Action.DELETED)
+        self.assertEqual(audit.actor_id, self.staff_user.id)
+        self.assertEqual(audit.amount_snapshot, 400)
+        self.assertEqual(audit.payment_valid_snapshot, True)
 
 
 class RemResultsImportTests(TestCase):

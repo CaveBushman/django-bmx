@@ -9,6 +9,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from datetime import date
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from django.core.cache import cache
 from django.db.models import F, Q
 import datetime
@@ -226,6 +227,11 @@ class Event(models.Model):
 
     reg_open_from = models.DateTimeField(null=True, blank=True)
     reg_open_to = models.DateTimeField(null=True, blank=True)
+    reg_cancel_to = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Termín do kdy je možné odhlášení. Pokud není vyplněn, použije se konec registrace.",
+    )
     reg_open = models.BooleanField(default=True)
 
     system = models.CharField(choices=RACE_SYSTEM, default='3 základní rozjíždky a KO system', max_length=100,
@@ -610,11 +616,128 @@ class Entry(models.Model):
     def __str__(self):
         return f"{self.rider} - {self.event}"
 
+    def total_fee_amount(self):
+        return (
+            (self.fee_beginner or 0)
+            + (self.fee_20 or 0)
+            + (self.fee_24 or 0)
+        )
+
+    def clean(self):
+        super().clean()
+        if self.checkout and not self.payment_complete:
+            raise ValidationError({"checkout": _("Checkout lze zapnout jen u zaplacené registrace.")})
+        if self.checkout and not self.user_id:
+            raise ValidationError({"user": _("Checkout lze použít jen u registrace s přiřazeným uživatelem.")})
+        if self.checkout and self.total_fee_amount() <= 0:
+            raise ValidationError({"checkout": _("Checkout refund nelze vytvořit pro nulové nebo záporné startovné.")})
+
+
+@receiver(pre_save, sender=Entry)
+def remember_entry_checkout_state(sender, instance, **kwargs):
+    from event.services.checkout_refunds import capture_entry_state
+
+    capture_entry_state(instance)
+
+
+@receiver(pre_save, sender=Entry)
+def validate_entry_business_rules(sender, instance, **kwargs):
+    instance.clean()
+
 @receiver(post_save, sender=Entry)
 @receiver(post_delete, sender=Entry)
 def invalidate_cache_on_entry_change(sender, instance, **kwargs):
     # Invaliduje cache seznamu aktivních jezdců (sdílená data pro všechny eventy)
     cache.delete("active_riders")
+
+
+@receiver(post_save, sender=Entry)
+def sync_checkout_refund_credit(sender, instance, created, **kwargs):
+    from event.services.checkout_refunds import (
+        log_checkout_related_changes,
+        log_checkout_transition,
+        sync_checkout_refund_credit as sync_checkout_refund_credit_service,
+    )
+
+    sync_checkout_refund_credit_service(instance)
+    log_checkout_transition(instance, created=created)
+    if not created:
+        log_checkout_related_changes(instance)
+
+
+@receiver(post_delete, sender=Entry)
+def delete_checkout_refund_credit_on_entry_delete(sender, instance, **kwargs):
+    from event.services.checkout_refunds import delete_checkout_refund_credit
+
+    delete_checkout_refund_credit(instance)
+
+
+class EntryAuditLog(models.Model):
+    class Action(models.TextChoices):
+        CHECKOUT_CHANGED = "checkout_changed", "Změna checkout"
+        REFUND_CONTEXT_CHANGED = "refund_context_changed", "Změna refund kontextu"
+
+    entry = models.ForeignKey(Entry, on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs")
+    actor = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name="entry_audit_logs")
+    action = models.CharField(max_length=40, choices=Action.choices)
+    source = models.CharField(max_length=64, default="system")
+    old_checkout = models.BooleanField(default=False)
+    new_checkout = models.BooleanField(default=False)
+    payment_complete = models.BooleanField(default=False)
+    note = models.CharField(max_length=255, blank=True, default="")
+    entry_id_snapshot = models.IntegerField(null=True, blank=True)
+    entry_user_id_snapshot = models.IntegerField(null=True, blank=True)
+    event_name_snapshot = models.CharField(max_length=255, blank=True, default="")
+    rider_name_snapshot = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Audit registrace"
+        verbose_name_plural = "Audit registrací"
+        indexes = [
+            models.Index(fields=["action", "created_at"], name="event_entryaudit_action_date"),
+            models.Index(fields=["entry_id_snapshot", "created_at"], name="event_entryaudit_entry_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} #{self.entry_id_snapshot or self.entry_id or '-'}"
+
+
+class FinanceAuditLog(models.Model):
+    class Action(models.TextChoices):
+        CREATED = "created", "Vytvoření"
+        UPDATED = "updated", "Úprava"
+        DELETED = "deleted", "Smazání"
+
+    actor = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="finance_audit_logs",
+    )
+    action = models.CharField(max_length=20, choices=Action.choices)
+    source = models.CharField(max_length=64, default="admin")
+    target_model = models.CharField(max_length=64)
+    target_object_id = models.IntegerField(null=True, blank=True)
+    target_user_id_snapshot = models.IntegerField(null=True, blank=True)
+    amount_snapshot = models.IntegerField(default=0)
+    transaction_kind_snapshot = models.CharField(max_length=64, blank=True, default="")
+    payment_complete_snapshot = models.BooleanField(null=True, blank=True)
+    payment_valid_snapshot = models.BooleanField(null=True, blank=True)
+    note = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Audit financí"
+        verbose_name_plural = "Audit financí"
+        indexes = [
+            models.Index(fields=["target_model", "created_at"], name="event_finaudit_model_date"),
+            models.Index(fields=["target_object_id", "created_at"], name="event_finaudit_object_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} {self.target_model} #{self.target_object_id or '-'}"
 
 class EntryForeign(models.Model):
     """ Model for foreign riders entries """
@@ -685,10 +808,16 @@ class DebetTransaction (models.Model):
 
 class CreditTransaction (models.Model):
     """ Model for transactions """
+    class Kind(models.TextChoices):
+        TOPUP = "topup", "Dobití kreditu"
+        CHECKOUT_REFUND = "checkout_refund", "Vrácení startovného po checkoutu"
+
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    source_entry = models.ForeignKey(Entry, on_delete=models.CASCADE, null=True, blank=True, related_name="credit_transactions")
     amount = models.IntegerField(default=0)
     transaction_id = models.CharField(max_length=255, default="")
     payment_intent = models.CharField(max_length=255, default="")
+    kind = models.CharField(max_length=32, choices=Kind.choices, default=Kind.TOPUP)
     payment_complete = models.BooleanField(default=False)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)
     uuid = models.UUIDField(default=uuid.uuid4, unique=False, editable=False)
@@ -700,11 +829,25 @@ class CreditTransaction (models.Model):
         indexes = [
             models.Index(fields=["user", "payment_complete", "transaction_date"], name="event_credit_user_pay_date"),
             models.Index(fields=["transaction_id"], name="event_credit_tx_id"),
+            models.Index(fields=["source_entry", "kind"], name="event_credit_entry_kind"),
+            models.Index(fields=["kind", "payment_complete"], name="event_credit_kind_pay"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_entry", "kind"],
+                condition=Q(source_entry__isnull=False, kind="checkout_refund"),
+                name="event_credit_unique_checkout_refund_per_entry",
+            ),
         ]
     
     def __str__(self):
         user = self.user if self.user else "Neznámý uživatel"
         return f"{user} - {self.amount} Kč"
+
+    def clean(self):
+        super().clean()
+        if self.kind == self.Kind.CHECKOUT_REFUND and not self.source_entry_id:
+            raise ValidationError({"source_entry": "Refund checkout transakce musí být navázaná na registraci."})
     
 @receiver(post_save, sender=CreditTransaction)
 def update_user_balance(sender, instance, **kwargs):
