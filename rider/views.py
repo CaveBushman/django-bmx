@@ -2,7 +2,6 @@ import logging
 import os
 import re
 from collections import defaultdict
-from io import BytesIO
 from statistics import mean, median, pstdev
 from openpyxl import Workbook
 from PIL import Image, UnidentifiedImageError
@@ -32,7 +31,6 @@ from .rider import (
     first_line_riders_by_club_and_class,
     RiderQualifyToCNThread,
 )
-from rider.rider import set_all_riders_classes
 from club.models import Club
 from event.models import Event, RaceRun, Result
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
@@ -41,16 +39,12 @@ from datetime import date
 from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
-    cancel_trainer_club_subscription,
     get_active_rider_stats_subscription,
     get_active_trainer_club_subscription,
-    get_active_trainer_extended_subscription,
     get_current_season_settings,
     has_active_trainer_club_extended_access,
     has_active_trainer_club_stats_access,
-    purchase_trainer_club_subscription,
     purchase_rider_stats_subscription,
-    resume_trainer_club_subscription,
     resume_rider_stats_subscription,
 )
 from rider.models import RiderStatsSubscription, TrainerClubSubscription

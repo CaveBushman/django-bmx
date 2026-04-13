@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from io import BytesIO
-import uuid
 import xml.etree.ElementTree as ET
 
 from django.core.files.base import ContentFile

@@ -8,17 +8,15 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils import timezone
 
 from club.models import Club
 from event.func import (
     generate_stripe_line,
     is_beginner,
+    is_registration_open,
     resolve_event_classes,
     resolve_event_fee,
-    update_cart,
 )
 from event.models import Entry, EntryForeign, Event, SeasonSettings, normalize_uci_id
 from rider.models import ForeignRider, Rider
@@ -620,7 +618,7 @@ def get_active_riders():
 
 
 def is_event_open_for_entries(event):
-    return not event.canceled and event.reg_open and event.reg_open_to >= timezone.now()
+    return not event.canceled and is_registration_open(event)
 
 
 def resolve_event_beginner_support(event):

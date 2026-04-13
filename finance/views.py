@@ -2,11 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Count, Sum
+from django.http import HttpResponse
 from django.utils import timezone
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 import stripe
 import logging
+import csv
 from django.conf import settings
 from django.utils.translation import gettext as _
 from django.core.cache import cache
@@ -40,6 +42,28 @@ def finance_admin(request):
     stripe_fee = calculate_stripe_fee(current_year)
     credit = calculate_system_balance_total()
     balance_components = get_system_balance_components()
+    completed_credit_transactions = CreditTransaction.objects.filter(payment_complete=True)
+    credit_transaction_summary = {
+        "topup_total": completed_credit_transactions.filter(
+            kind=CreditTransaction.Kind.TOPUP
+        ).aggregate(total=Sum("amount"))["total"] or 0,
+        "topup_count": completed_credit_transactions.filter(
+            kind=CreditTransaction.Kind.TOPUP
+        ).aggregate(count=Count("id"))["count"] or 0,
+        "checkout_refund_total": completed_credit_transactions.filter(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND
+        ).aggregate(total=Sum("amount"))["total"] or 0,
+        "checkout_refund_count": completed_credit_transactions.filter(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND
+        ).aggregate(count=Count("id"))["count"] or 0,
+    }
+    checkout_refunds = completed_credit_transactions.filter(
+        kind=CreditTransaction.Kind.CHECKOUT_REFUND
+    ).select_related(
+        "user",
+        "source_entry__event",
+        "source_entry__rider",
+    ).order_by("-transaction_date")
 
     # Caching těžkých výpočtů na 15 minut (900 sekund)
     # Klíč obsahuje rok, aby se data nemíchala při přelomu roku
@@ -86,6 +110,8 @@ def finance_admin(request):
         "trainer_extended_revenue": cached_stats["trainer_extended_revenue"],
         "current_year": current_year,
         "subscription_invoices": SubscriptionInvoice.objects.select_related("user").order_by("-issue_date", "-created")[:100],
+        "checkout_refunds": checkout_refunds[:100],
+        "credit_transaction_summary": credit_transaction_summary,
     }
 
     if request.method == "POST" and "verify_payments" in request.POST:
@@ -148,3 +174,67 @@ def finance_admin(request):
         data["balance_components"] = get_system_balance_components()
 
     return render(request, "finance/finance.html", data)
+
+
+@login_required(login_url="/login/")
+@user_passes_test(_is_finance_admin, login_url="/login/")
+def export_checkout_refunds_csv(request):
+    refunds = (
+        CreditTransaction.objects.filter(
+            payment_complete=True,
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+        )
+        .select_related("user", "source_entry__event", "source_entry__rider")
+        .order_by("-transaction_date")
+    )
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="checkout-refunds.csv"'
+    response.write("\ufeff")
+
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            _("Datum"),
+            _("Uživatel"),
+            _("Email"),
+            _("Jezdec"),
+            _("Závod"),
+            _("Částka"),
+            _("Payment intent"),
+            _("Registrace ID"),
+            _("Transaction ID"),
+        ]
+    )
+
+    for refund in refunds:
+        rider_name = ""
+        event_name = ""
+        entry_id = ""
+        if refund.source_entry:
+            rider_name = str(refund.source_entry.rider) if refund.source_entry.rider else ""
+            event_name = refund.source_entry.event.name if refund.source_entry.event else ""
+            entry_id = refund.source_entry_id
+
+        writer.writerow(
+            [
+                timezone.localtime(refund.transaction_date).strftime("%d.%m.%Y %H:%M")
+                if refund.transaction_date
+                else "",
+                str(refund.user) if refund.user else "",
+                refund.user.email if refund.user and refund.user.email else "",
+                rider_name,
+                event_name,
+                refund.amount,
+                refund.payment_intent,
+                entry_id,
+                refund.transaction_id,
+            ]
+        )
+
+    audit_logger.info(
+        "finance_checkout_refunds_csv_exported admin_user_id=%s count=%s",
+        request.user.id,
+        refunds.count(),
+    )
+    return response

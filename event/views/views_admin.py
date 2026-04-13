@@ -52,13 +52,13 @@ from rider.models import Rider
 from club.models import Club
 from commissar.models import Commissar
 from event.func import (
-    invalid_licence_in_event, clean_classes_on_event,
+    invalid_licence_in_event,
     excel_first_line, expire_licence, gender_resolve,
     gender_resolve_small_letter, team_name_resolve, resolve_event_classes,
     foreign_club_resolve,
     SetResults,
 )
-from event.entry import NumberInEvent, REMRiders
+from event.entry import REMRiders
 from event.result import GetResult
 from ranking.ranking import schedule_ranking_recount
 from rider.rider import (
@@ -772,7 +772,11 @@ def ec_by_club_xls(request, pk):
     """Export přihlášených jezdců na Evropský pohár seřazených po klubech (XLS)."""
     event = get_object_or_404(Event, pk=pk)
     clubs = Club.objects.filter(is_active=True).order_by("team_name")
-    entries = Entry.objects.filter(event=pk, payment_complete=True).select_related("rider__club").order_by("rider")
+    entries = Entry.objects.filter(
+        event=pk,
+        payment_complete=True,
+        checkout=False,
+    ).select_related("rider__club").order_by("rider")
 
     file_name = f"media/ec-files/EC_RACE_ID_BY_CLUB-{event.id}-{event.name}.xlsx"
     response = HttpResponse(content_type="application/ms-excel")

@@ -10,7 +10,6 @@ from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
-from django.contrib.auth.models import User
 
 
 from datetime import date

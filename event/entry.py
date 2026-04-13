@@ -6,7 +6,6 @@ import event
 logger = logging.getLogger(__name__)
 from .models import Entry, Event, EntryForeign as EntryForeignModel
 from rider.models import Rider, ForeignRider
-from rider.plates import display_plate
 from datetime import datetime
 from django.utils import timezone
 import stripe

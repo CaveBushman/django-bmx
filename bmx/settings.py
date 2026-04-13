@@ -1,8 +1,5 @@
 from pathlib import Path
 import os
-import logging
-from logging.handlers import TimedRotatingFileHandler
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 try:

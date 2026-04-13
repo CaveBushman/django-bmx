@@ -4,7 +4,6 @@ import os
 import xml.etree.ElementTree as ET
 
 from django.core.files.base import ContentFile
-from django.db.models import Max
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from reportlab.lib import colors
@@ -16,8 +15,6 @@ from reportlab.pdfgen import canvas
 from event.models import Event
 from finance.invoices import (
     COST_CENTER_CODE,
-    FONT_BOLD_PATH,
-    FONT_REGULAR_PATH,
     LOGO_PATH,
     SUPPLIER_CITY,
     SUPPLIER_COUNTRY_EN,

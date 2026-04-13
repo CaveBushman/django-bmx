@@ -1,7 +1,6 @@
 from django_ical.views import ICalFeed
 from .models import Event
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
 class EventFeed(ICalFeed):
     """

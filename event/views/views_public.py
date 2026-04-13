@@ -7,11 +7,10 @@ Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg str�
 import logging
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
-from django.utils import timezone
 from django.utils.translation import gettext as _
-from event.models import Event, EventProposition, Result, SeasonSettings, Entry, EntryForeign
+from event.models import Event, EventProposition, Result, Entry, EntryForeign
 from event.views.views_proposition import can_manage_event_proposition
-from event.func import is_registration_open
+from event.func import get_unregistration_deadline, is_registration_open
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +167,7 @@ def event_detail_views(request, pk):
         pk=pk,
     )
     reg_open = is_registration_open(event)
+    event.reg_cancel_deadline = get_unregistration_deadline(event)
     proposition = _get_structured_proposition(event)
     riders_sum = Entry.objects.filter(event=pk, payment_complete=True, checkout=False).count()
     riders_sum += EntryForeign.objects.filter(event=pk, payment_complete=True, checkout=False).count()

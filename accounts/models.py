@@ -4,6 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from event.credit import calculate_user_balance
 from club.models import Club
 from django.conf import settings
@@ -16,6 +17,11 @@ import uuid
 
 # Create your models here.
 
+
+def normalize_account_email(email):
+    return (email or "").strip().lower()
+
+
 class MyAccountManager(BaseUserManager):
     def create_user(self, first_name, last_name, username, email, password=None):
         if not email:
@@ -23,7 +29,7 @@ class MyAccountManager(BaseUserManager):
 
         if not username:
             raise ValueError('Uživatel musí mít uživatelské jméno')
-        email = self.normalize_email(email)
+        email = normalize_account_email(email)
         user = self.model(
             email=email,
             username=username.strip(),
@@ -37,7 +43,7 @@ class MyAccountManager(BaseUserManager):
 
     def create_superuser(self, first_name, last_name, username, email, password):
         user = self.create_user(
-            email=self.normalize_email(email),
+            email=normalize_account_email(email),
             username=username,
             password=password,
             first_name=first_name,
@@ -110,6 +116,45 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+    def _get_persisted_email(self):
+        if not self.pk:
+            return None
+        return type(self).objects.filter(pk=self.pk).values_list("email", flat=True).first()
+
+    def _get_persisted_username(self):
+        if not self.pk:
+            return None
+        return type(self).objects.filter(pk=self.pk).values_list("username", flat=True).first()
+
+    def clean(self):
+        super().clean()
+        normalized_email = normalize_account_email(self.email)
+        previous_email = self._get_persisted_email()
+
+        if not normalized_email:
+            raise ValidationError({"email": _("Uživatel musí mít e-mailovou adresu.")})
+
+        # Historical case-sensitive duplicates may already exist in DB.
+        # Enforce case-insensitive uniqueness only for new records or email changes.
+        should_validate_uniqueness = self.pk is None or previous_email != self.email
+        if should_validate_uniqueness:
+            duplicate_qs = type(self).objects.filter(email__iexact=normalized_email)
+            if self.pk:
+                duplicate_qs = duplicate_qs.exclude(pk=self.pk)
+            if duplicate_qs.exists():
+                raise ValidationError(
+                    {"email": _("Uživatel s tímto e-mailem již existuje bez ohledu na velikost písmen.")}
+                )
+
+    def save(self, *args, **kwargs):
+        previous_email = self._get_persisted_email()
+        previous_username = self._get_persisted_username()
+        if self.pk is None or previous_email != self.email:
+            self.email = normalize_account_email(self.email)
+        if self.username and "@" in self.username and (self.pk is None or previous_username != self.username):
+            self.username = normalize_account_email(self.username)
+        super().save(*args, **kwargs)
 
     @property
     def photo_url(self):

@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import os
@@ -11,7 +10,6 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Max
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from reportlab.lib import colors

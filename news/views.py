@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.cache import cache
-from django.http import HttpResponseRedirect
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator
 from django.conf import settings
 from event.models import Event, SeasonSettings
 from event.func import update_cart

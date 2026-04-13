@@ -1,9 +1,7 @@
 import os
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import FileResponse, Http404
-from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.urls.base import reverse
 from django.db.models import Sum, Count, F
 from .models import Club
 from rider.models import Rider

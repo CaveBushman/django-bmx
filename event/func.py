@@ -23,6 +23,11 @@ from .entry import EntryClass
 from .result import GetResult
 from rider.models import Rider
 from django.utils import timezone
+from event.services.registration_status import (
+    can_register,
+    can_unregister,
+    get_unregistration_deadline as service_get_unregistration_deadline,
+)
 import threading
 import csv
 from django.db.models import Q
@@ -236,26 +241,19 @@ def excel_rem_first_line_online(ws):
 # Tyto funkce se používají při přihlašování jezdce na závod.
 # ===========================================================================
 
+def get_unregistration_deadline(event):
+    """Vrátí termín pro odhlášení, případně fallback na konec registrace."""
+    return service_get_unregistration_deadline(event)
+
+
 def is_registration_open(event) -> bool:
-    """Vrátí True pokud je nyní otevřena online registrace na daný závod.
+    """Vrátí True pokud je nyní otevřena online registrace na daný závod."""
+    return can_register(event)
 
-    Registrace je ZAVŘENA pokud:
-    - Jsou nahrány výsledky závodu (xls_results)
-    - reg_open je ručně vypnuto adminem
-    - Aktuální čas je mimo interval reg_open_from–reg_open_to
-    """
-    now = timezone.now()
 
-    if event.xls_results:
-        return False  # Po nahrání výsledků zavřít registraci
-
-    if not event.reg_open:
-        return False  # Admin ručně zavřel registraci
-
-    try:
-        return event.reg_open_from <= now <= event.reg_open_to
-    except (TypeError, AttributeError):
-        return False
+def is_unregistration_open(event) -> bool:
+    """Vrátí True pokud je stále možné rušit zaplacené registrace."""
+    return can_unregister(event)
 
 
 def _get_event_classes(event):

@@ -1,13 +1,38 @@
+import logging
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
 from django.core.exceptions import MultipleObjectsReturned
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls import NoReverseMatch
 from django.utils.html import format_html
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
+from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from rider.models import ForeignRider
 from django.utils.timezone import now
 from datetime import timedelta
+from django.contrib import messages
+
+from event.services.checkout_refunds import apply_entry_checkout
+
+audit_logger = logging.getLogger("audit")
+
+
+def create_finance_audit_log(*, actor, action, source, target_model, obj, note=""):
+    FinanceAuditLog.objects.create(
+        actor=actor,
+        action=action,
+        source=source,
+        target_model=target_model,
+        target_object_id=obj.pk,
+        target_user_id_snapshot=getattr(obj, "user_id", None),
+        amount_snapshot=getattr(obj, "amount", 0) or 0,
+        transaction_kind_snapshot=getattr(obj, "kind", "") or "",
+        payment_complete_snapshot=getattr(obj, "payment_complete", None),
+        payment_valid_snapshot=getattr(obj, "payment_valid", None),
+        note=note or "",
+    )
 
 # Base Admin Class for common fields
 class BaseAdmin(admin.ModelAdmin):
@@ -27,10 +52,25 @@ class ResultAdmin(BaseAdmin):
 
 
 class EventAdmin(BaseAdmin):
-    list_display = ('id', 'name', 'date', 'organizer', 'type_for_ranking', 'pcp', 'pcp_assist', 'start_commissar', 'classes_and_fees_like', 'xls_results',)
+    list_display = (
+        'id',
+        'name',
+        'date',
+        'organizer',
+        'type_for_ranking',
+        'reg_open',
+        'reg_open_from',
+        'reg_open_to',
+        'reg_cancel_to',
+        'pcp',
+        'pcp_assist',
+        'start_commissar',
+        'classes_and_fees_like',
+        'xls_results',
+    )
     list_display_links = ('name',)
     search_fields = ('name', 'organizer',)
-    list_filter = ('type_for_ranking',)
+    list_filter = ('type_for_ranking', 'reg_open', 'date')
 
 
 class EntryClassesAdmin(BaseAdmin):
@@ -74,13 +114,126 @@ class EntryClassesAdmin(BaseAdmin):
 
 
 class EntryAdmin(BaseAdmin):
-    list_display = ('rider', 'event', 'transaction_date', 'payment_complete', 'user', 'checkout',)
+    list_display = ('rider', 'event', 'transaction_date', 'payment_complete', 'user', 'checkout', 'checkout_refund_link')
     list_display_links = ('rider',)
     search_fields = ('rider__last_name', 'event__name', 'user__last_name',)
     list_filter = ('payment_complete', 'event',)
-    list_editable = ('checkout',)
     autocomplete_fields = ('rider', 'event', 'user')
     list_select_related = ('rider', 'event', 'user')
+    actions = ("mark_checkout_with_refund", "unmark_checkout_and_remove_refund")
+    action_confirmation_template = "admin/event/entry/checkout_action_confirmation.html"
+
+    def get_readonly_fields(self, request, obj=None):
+        return ("checkout",)
+
+    def save_model(self, request, obj, form, change):
+        previous_checkout = None
+        if change and obj.pk:
+            previous_checkout = Entry.objects.filter(pk=obj.pk).values_list("checkout", flat=True).first()
+
+        super().save_model(request, obj, form, change)
+
+        if previous_checkout is not None and previous_checkout != obj.checkout:
+            audit_logger.info(
+                "entry_checkout_changed_by_admin admin_user_id=%s entry_id=%s user_id=%s event_id=%s old_checkout=%s new_checkout=%s",
+                request.user.id,
+                obj.pk,
+                obj.user_id,
+                obj.event_id,
+                previous_checkout,
+                obj.checkout,
+            )
+
+    def _render_checkout_action_confirmation(self, request, queryset, *, checkout, action_name, title, note):
+        context = {
+            **self.admin_site.each_context(request),
+            "title": title,
+            "entries": queryset,
+            "action_name": action_name,
+            "action_checkbox_name": ACTION_CHECKBOX_NAME,
+            "checkout_target": checkout,
+            "note": note,
+            "opts": self.model._meta,
+        }
+        return TemplateResponse(request, self.action_confirmation_template, context)
+
+    def _apply_checkout_action(self, request, queryset, *, checkout, note):
+        updated = 0
+        skipped = 0
+        for entry in queryset.select_related("user", "event", "rider"):
+            try:
+                if apply_entry_checkout(
+                    entry,
+                    checkout=checkout,
+                    actor=request.user,
+                    source="admin_action",
+                    note=note,
+                ):
+                    updated += 1
+            except ValidationError:
+                skipped += 1
+        return updated, skipped
+
+    @admin.action(description=_("Zapnout checkout a vrátit startovné"))
+    def mark_checkout_with_refund(self, request, queryset):
+        note = "Bulk admin action: mark checkout with refund"
+        if request.POST.get("apply") != "yes":
+            return self._render_checkout_action_confirmation(
+                request,
+                queryset,
+                checkout=True,
+                action_name="mark_checkout_with_refund",
+                title=_("Potvrzení vrácení startovného"),
+                note=note,
+            )
+        updated, skipped = self._apply_checkout_action(request, queryset, checkout=True, note=note)
+        self.message_user(
+            request,
+            _("Checkout byl zapnut u %(count)s registrací.") % {"count": updated},
+            level=messages.SUCCESS,
+        )
+        if skipped:
+            self.message_user(
+                request,
+                _("%(count)s registrací bylo přeskočeno kvůli nevalidnímu stavu.") % {"count": skipped},
+                level=messages.WARNING,
+            )
+
+    @admin.action(description=_("Vypnout checkout a smazat vratku startovného"))
+    def unmark_checkout_and_remove_refund(self, request, queryset):
+        note = "Bulk admin action: unmark checkout and remove refund"
+        if request.POST.get("apply") != "yes":
+            return self._render_checkout_action_confirmation(
+                request,
+                queryset,
+                checkout=False,
+                action_name="unmark_checkout_and_remove_refund",
+                title=_("Potvrzení zrušení vratky startovného"),
+                note=note,
+            )
+        updated, skipped = self._apply_checkout_action(request, queryset, checkout=False, note=note)
+        self.message_user(
+            request,
+            _("Checkout byl vypnut u %(count)s registrací.") % {"count": updated},
+            level=messages.SUCCESS,
+        )
+        if skipped:
+            self.message_user(
+                request,
+                _("%(count)s registrací bylo přeskočeno kvůli nevalidnímu stavu.") % {"count": skipped},
+                level=messages.WARNING,
+            )
+
+    @admin.display(description=_("Vratka kreditu"))
+    def checkout_refund_link(self, obj):
+        refund = obj.credit_transactions.filter(kind=CreditTransaction.Kind.CHECKOUT_REFUND).first()
+        if not refund:
+            return "-"
+        try:
+            url = reverse("admin:event_credittransaction_change", args=[refund.pk])
+        except NoReverseMatch:
+            return refund.payment_intent or "Vratka"
+        return format_html('<a href="{}">{} Kč</a>', url, refund.amount)
 
 
 class EntryForeignAdmin(BaseAdmin):
@@ -176,10 +329,52 @@ class EntryForeignAdmin(BaseAdmin):
 
 
 class CreditTransactionAdmin(BaseAdmin):
-    list_display = ('user', 'amount', 'payment_intent', 'payment_complete', 'transaction_date',)
+    list_display = ('user', 'amount', 'kind', 'source_entry', 'payment_intent', 'payment_complete', 'transaction_date',)
     list_display_links = ('user',)
-    search_fields = ('user__last_name', 'transaction_date', 'payment_intent',)
-    list_filter = ('transaction_date',)
+    search_fields = ('user__last_name', 'transaction_date', 'payment_intent', 'source_entry__event__name', 'source_entry__rider__last_name')
+    list_filter = ('transaction_date', 'kind', 'payment_complete')
+
+    def save_model(self, request, obj, form, change):
+        note = ""
+        action = FinanceAuditLog.Action.CREATED
+        if change:
+            action = FinanceAuditLog.Action.UPDATED
+            note = ", ".join(form.changed_data) if getattr(form, "changed_data", None) else ""
+
+        super().save_model(request, obj, form, change)
+        create_finance_audit_log(
+            actor=request.user,
+            action=action,
+            source="admin_credit_transaction",
+            target_model="CreditTransaction",
+            obj=obj,
+            note=note,
+        )
+
+    def delete_model(self, request, obj):
+        create_finance_audit_log(
+            actor=request.user,
+            action=FinanceAuditLog.Action.DELETED,
+            source="admin_credit_transaction",
+            target_model="CreditTransaction",
+            obj=obj,
+            note=obj.payment_intent or "",
+        )
+        super().delete_model(request, obj)
+
+
+class EntryAuditLogAdmin(BaseAdmin):
+    list_display = ("created_at", "action", "source", "entry_id_snapshot", "event_name_snapshot", "rider_name_snapshot", "old_checkout", "new_checkout", "actor")
+    list_display_links = ("created_at",)
+    search_fields = ("event_name_snapshot", "rider_name_snapshot", "note", "source")
+    list_filter = ("action", "source", "new_checkout", "old_checkout")
+
+
+class FinanceAuditLogAdmin(BaseAdmin):
+    list_display = ("created_at", "action", "target_model", "target_object_id", "target_user_id_snapshot", "amount_snapshot", "transaction_kind_snapshot", "actor")
+    list_display_links = ("created_at",)
+    search_fields = ("target_model", "note", "transaction_kind_snapshot")
+    list_filter = ("action", "target_model", "source")
 
 
 
@@ -194,6 +389,34 @@ class DebetTransactionAdmin(BaseAdmin):
             two_months_ago = now().date() - timedelta(days=60)
             kwargs["queryset"] = Entry.objects.filter(created__gte=two_months_ago)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        note = ""
+        action = FinanceAuditLog.Action.CREATED
+        if change:
+            action = FinanceAuditLog.Action.UPDATED
+            note = ", ".join(form.changed_data) if getattr(form, "changed_data", None) else ""
+
+        super().save_model(request, obj, form, change)
+        create_finance_audit_log(
+            actor=request.user,
+            action=action,
+            source="admin_debet_transaction",
+            target_model="DebetTransaction",
+            obj=obj,
+            note=note,
+        )
+
+    def delete_model(self, request, obj):
+        create_finance_audit_log(
+            actor=request.user,
+            action=FinanceAuditLog.Action.DELETED,
+            source="admin_debet_transaction",
+            target_model="DebetTransaction",
+            obj=obj,
+            note=str(obj.entry) if obj.entry else "",
+        )
+        super().delete_model(request, obj)
 
 class StripeFeeAdmin(BaseAdmin):
     list_display = ('date', 'fee',)
@@ -217,6 +440,8 @@ admin.site.register(Entry, EntryAdmin)
 admin.site.register(EntryForeign, EntryForeignAdmin)
 admin.site.register(SeasonSettings)
 admin.site.register(CreditTransaction, CreditTransactionAdmin)
+admin.site.register(FinanceAuditLog, FinanceAuditLogAdmin)
 admin.site.register(DebetTransaction, DebetTransactionAdmin)
 admin.site.register(StripeFee, StripeFeeAdmin)
 admin.site.register(EventProposition, EventPropositionAdmin)
+admin.site.register(EntryAuditLog, EntryAuditLogAdmin)
