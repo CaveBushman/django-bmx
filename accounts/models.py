@@ -13,6 +13,7 @@ from django.dispatch import receiver
 from PIL import Image, ImageOps, ImageFile, UnidentifiedImageError, features
 from io import BytesIO
 import uuid
+from bmx.text_normalization import normalize_search_text
 
 
 # Create your models here.
@@ -62,6 +63,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=100, unique=True)
+    search_text_normalized = models.CharField(max_length=255, default="", blank=True, db_index=True)
     phone_number = models.CharField(max_length=50, default="", null=True, blank=True)
 
     # credit
@@ -154,6 +156,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
             self.email = normalize_account_email(self.email)
         if self.username and "@" in self.username and (self.pk is None or previous_username != self.username):
             self.username = normalize_account_email(self.username)
+        self.search_text_normalized = normalize_search_text(
+            " ".join(
+                part for part in [
+                    self.email,
+                    self.username,
+                    self.first_name,
+                    self.last_name,
+                ] if part
+            )
+        )
         super().save(*args, **kwargs)
 
     @property
@@ -168,6 +180,52 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, add_label):
         return self.is_superuser
+
+
+class PendingActivationAccount(Account):
+    class Meta:
+        proxy = True
+        verbose_name = "Čekající aktivace účtu"
+        verbose_name_plural = "Čekající aktivace účtů"
+
+
+class AccountActivationAuditLog(models.Model):
+    class Action(models.TextChoices):
+        SENT = "sent", "Odeslána aktivace"
+        RESENT = "resent", "Znovu odeslána aktivace"
+        ACTIVATED = "activated", "Účet aktivován"
+        CLEANED_UP = "cleaned_up", "Neaktivní účet odstraněn"
+
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="activation_audit_logs",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="performed_activation_audit_logs",
+    )
+    action = models.CharField(max_length=24, choices=Action.choices)
+    source = models.CharField(max_length=64, default="system")
+    email_snapshot = models.EmailField(max_length=100, blank=True, default="")
+    note = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Audit aktivace účtu"
+        verbose_name_plural = "Audit aktivací účtů"
+        indexes = [
+            models.Index(fields=["action", "created_at"], name="accounts_actaudit_action_date"),
+            models.Index(fields=["email_snapshot", "created_at"], name="accounts_actaudit_email_date"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} {self.email_snapshot or '-'}"
 
 
 class AccountRiderLink(models.Model):

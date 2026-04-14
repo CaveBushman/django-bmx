@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Finanční audit{% endblock title %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Audit</p>
+        <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Finanční audit</h1>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          Poslední ruční zásahy do kreditních a debetních transakcí.
+        </p>
+      </div>
+      <a href="{% url 'finance:finance' %}" class="inline-flex items-center rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white">
+        Zpět na finance
+      </a>
+    </div>
+
+    <form method="get" class="mt-6 grid gap-4 md:grid-cols-3">
+      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+        Akce
+        <select name="action" class="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+          <option value="">Vše</option>
+          {% for value, label in available_actions %}
+          <option value="{{ value }}" {% if action_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+        Model
+        <select name="target_model" class="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+          <option value="">Vše</option>
+          {% for model_name in available_models %}
+          <option value="{{ model_name }}" {% if model_filter == model_name %}selected{% endif %}>{{ model_name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+        Admin
+        <select name="actor" class="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+          <option value="">Všichni</option>
+          {% for actor in available_actors %}
+          <option value="{{ actor.id }}" {% if actor_filter == actor.id|stringformat:"s" %}selected{% endif %}>{{ actor }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="md:col-span-3 flex gap-3">
+        <button type="submit" class="inline-flex items-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">
+          Filtrovat
+        </button>
+        <a href="{% url 'finance:finance_audit' %}" class="inline-flex items-center rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+          Reset
+        </a>
+      </div>
+    </form>
+
+    <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+          <thead class="bg-slate-100 dark:bg-slate-950">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kdy</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Akce</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Model</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Objekt</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Částka</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Admin</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Poznámka</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
+            {% for log in audit_logs %}
+            <tr class="text-slate-700 dark:text-slate-200">
+              <td class="px-4 py-3 whitespace-nowrap">{{ log.created_at|date:"d.m.Y H:i" }}</td>
+              <td class="px-4 py-3">{{ log.get_action_display }}</td>
+              <td class="px-4 py-3">{{ log.target_model }}</td>
+              <td class="px-4 py-3">#{{ log.target_object_id|default:"-" }}</td>
+              <td class="px-4 py-3">{{ log.amount_snapshot|floatformat:2 }} Kč</td>
+              <td class="px-4 py-3">{{ log.actor|default:"-" }}</td>
+              <td class="px-4 py-3">{{ log.note|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">
+                Zatím nejsou k dispozici žádné finanční auditní záznamy.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

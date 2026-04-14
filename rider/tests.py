@@ -11,6 +11,7 @@ from openpyxl import load_workbook
 from PIL import Image
 
 from accounts.models import AccountRiderLink, AvatarChangeRequest
+from bmx.form_protection import build_flow_token
 from club.models import Club
 from event.models import CreditTransaction, Event, RaceRun, Result, SeasonSettings
 from rider.models import (
@@ -31,6 +32,79 @@ from rider.subscriptions import (
 
 
 User = get_user_model()
+
+
+class RiderAdminSearchTests(TestCase):
+    def test_rider_admin_search_ignores_case_and_diacritics(self):
+        club = Club.objects.create(team_name="Search Club")
+        rider = Rider.objects.create(
+            uci_id=12345679999,
+            first_name="Šimon",
+            last_name="Černý",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+
+        request = RequestFactory().get("/admin/rider/rider/")
+        request.user = User.objects.create_user(
+            first_name="Admin",
+            last_name="User",
+            username="rider_search_admin",
+            email="rider_search_admin@example.com",
+            password="StrongPass123!",
+        )
+        admin_instance = RiderAdmin(Rider, admin.site)
+
+        queryset, _ = admin_instance.get_search_results(
+            request,
+            Rider.objects.all(),
+            "CERNY",
+        )
+
+        self.assertIn(rider, list(queryset))
+
+
+class RiderRequestProtectionTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Request Club", is_active=True)
+
+    def rider_request_payload(self, **overrides):
+        payload = {
+            "lookup_confirmed": "1",
+            "uci_id": "12345678901",
+            "first_name": "Test",
+            "last_name": "Rider",
+            "date_of_birth": "2012-01-01",
+            "gender": "Muž",
+            "plate": "12",
+            "club": str(self.club.id),
+            "is20": "on",
+            "emergency-contact": "Parent",
+            "emergency-phone": "777123123",
+            "form_token": build_flow_token("rider_request", timezone.now() - timedelta(seconds=5)),
+            "website": "",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_rider_request_page_contains_form_protection_token(self):
+        response = self.client.get(reverse("rider:new"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="form_token"', html=False)
+
+    def test_rider_request_rejects_honeypot_submission(self):
+        response = self.client.post(
+            reverse("rider:new"),
+            self.rider_request_payload(website="bot"),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Rider.objects.filter(uci_id="12345678901").exists())
 
 
 class AccountSettingsLinkedRidersTests(TestCase):

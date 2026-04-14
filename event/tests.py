@@ -1621,6 +1621,109 @@ class EntryAdminActionTests(TestCase):
         self.assertIn("Checkout byl zapnut u 0 registrací.", messages)
         self.assertIn("1 registrací bylo přeskočeno kvůli nevalidnímu stavu.", messages)
 
+    def test_entry_admin_detail_shows_refund_summary(self):
+        self.entry.checkout = True
+        self.entry.save(update_fields=["checkout"])
+        admin_instance = admin.site._registry[Entry]
+
+        summary = admin_instance.checkout_refund_summary(self.entry)
+
+        self.assertIn("Částka:", str(summary))
+        self.assertIn("400", str(summary))
+        self.assertIn("Vrácení startovného za závod", str(summary))
+
+    def test_entry_admin_detail_shows_checkout_audit_timeline(self):
+        apply_entry_checkout(
+            self.entry,
+            checkout=True,
+            actor=self.staff_user,
+            source="admin_action",
+            note="bulk action test",
+        )
+        admin_instance = admin.site._registry[Entry]
+
+        timeline = admin_instance.checkout_audit_timeline(self.entry)
+
+        self.assertIn("Změna checkout", str(timeline))
+        self.assertIn("bulk action test", str(timeline))
+
+
+class EventAdminAuditPanelTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Event",
+            last_name="Admin",
+            username="event_audit_admin",
+            email="event_audit_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Event Audit Club")
+        self.event = Event.objects.create(
+            name="Event Audit Race",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000112345,
+            first_name="Audit",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+        self.entry = Entry.objects.create(
+            user=self.staff_user,
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+    def test_event_admin_refund_summary_counts_event_refunds(self):
+        apply_entry_checkout(
+            self.entry,
+            checkout=True,
+            actor=self.staff_user,
+            source="admin_action",
+            note="event audit",
+        )
+        admin_instance = admin.site._registry[Event]
+
+        summary = admin_instance.event_refund_summary(self.event)
+
+        self.assertIn("Počet refundů:", str(summary))
+        self.assertIn("1", str(summary))
+        self.assertIn("400", str(summary))
+
+    def test_event_admin_timeline_shows_event_checkout_audit(self):
+        apply_entry_checkout(
+            self.entry,
+            checkout=True,
+            actor=self.staff_user,
+            source="admin_action",
+            note="event audit timeline",
+        )
+        admin_instance = admin.site._registry[Event]
+
+        timeline = admin_instance.event_checkout_audit_timeline(self.event)
+
+        self.assertIn("Audit Rider", str(timeline))
+        self.assertIn("Změna checkout", str(timeline))
+        self.assertIn("event audit timeline", str(timeline))
+
 
 class FinanceAdminAuditTests(TestCase):
     def setUp(self):
@@ -1701,6 +1804,38 @@ class FinanceAdminAuditTests(TestCase):
         self.assertEqual(audit.target_user_id_snapshot, self.user.id)
         self.assertEqual(audit.amount_snapshot, 500)
         self.assertEqual(audit.transaction_kind_snapshot, CreditTransaction.Kind.TOPUP)
+
+    def test_credit_transaction_admin_marks_checkout_refund_as_readonly(self):
+        refund = CreditTransaction.objects.create(
+            user=self.user,
+            source_entry=self.entry,
+            amount=400,
+            payment_complete=True,
+            payment_intent=f"Vrácení startovného za závod {self.event.name}",
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+        )
+        admin_instance = CreditTransactionAdmin(CreditTransaction, admin.site)
+
+        readonly_fields = admin_instance.get_readonly_fields(None, refund)
+
+        self.assertIn("amount", readonly_fields)
+        self.assertIn("payment_intent", readonly_fields)
+        self.assertIn("source_entry", readonly_fields)
+
+    def test_credit_transaction_admin_disallows_deleting_checkout_refund(self):
+        refund = CreditTransaction.objects.create(
+            user=self.user,
+            source_entry=self.entry,
+            amount=400,
+            payment_complete=True,
+            payment_intent=f"Vrácení startovného za závod {self.event.name}",
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+        )
+        request = RequestFactory().post("/bmx-admin/event/credittransaction/")
+        request.user = self.staff_user
+        admin_instance = CreditTransactionAdmin(CreditTransaction, admin.site)
+
+        self.assertFalse(admin_instance.has_delete_permission(request, refund))
 
     def test_debet_transaction_admin_delete_writes_persistent_audit_log(self):
         request = RequestFactory().post("/bmx-admin/event/debettransaction/")

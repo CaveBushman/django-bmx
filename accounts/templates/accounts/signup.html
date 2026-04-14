@@ -21,16 +21,23 @@ Registrace uživatele
           Czech BMX
         </div>
         <h1 class="mt-4 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-          Přístup do interní části webu
+          {% trans "Přístup do interní části webu" %}
         </h1>
         <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Vyplňte své základní údaje pro vytvoření účtu. Pokud už účet máte,
-          <a href="{% url 'accounts:login' %}" class="font-semibold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">přihlaste se zde</a>.
+          {% blocktrans %}Vyplňte své základní údaje pro vytvoření účtu. Po odeslání formuláře vám pošleme aktivační e-mail a účet se zapne až po jeho potvrzení. Pokud už účet máte,{% endblocktrans %}
+          <a href="{% url 'accounts:login' %}" class="font-semibold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200">{% trans "přihlaste se zde" %}</a>.
         </p>
       </div>
 
       <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200">
         {% translate "Notice: user registration and credit purchases are intended for Czech riders only." %}
+      </div>
+
+      <div class="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50/80 px-4 py-4 text-sm text-indigo-900 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-100">
+        <p class="font-semibold">{% trans "Jak registrace funguje" %}</p>
+        <p class="mt-2 leading-6 text-indigo-800/90 dark:text-indigo-100/85">
+          {% trans "1. Vyplníte formulář. 2. Potvrdíte registraci v e-mailu. 3. Teprve potom se můžete přihlásit a pracovat s kredity nebo registracemi jezdců." %}
+        </p>
       </div>
 
       {% if form.errors %}
@@ -51,6 +58,11 @@ Registrace uživatele
 
       <form class="mt-6 space-y-5" action="#" method="POST">
         {% csrf_token %}
+        <input type="hidden" name="form_token" value="{{ form_token }}">
+        <div class="hidden" aria-hidden="true">
+          <label for="{{ honeypot_field_name }}">Website</label>
+          <input id="{{ honeypot_field_name }}" name="{{ honeypot_field_name }}" type="text" tabindex="-1" autocomplete="off">
+        </div>
 
         <div>
           <label for="firstname" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Křestní jméno</label>
@@ -81,6 +93,18 @@ Registrace uživatele
           <input id="password2" name="password2" type="password" autocomplete="new-password" required placeholder="Zadejte heslo znovu"
             class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
         </div>
+
+        {% if requires_human_check %}
+        <div>
+          <label for="human_check_answer" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Ověření</label>
+          <p class="mb-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+            {% trans "Po několika podezřelých pokusech chceme krátké potvrzení, že formulář vyplňuje člověk." %}
+          </p>
+          <input type="hidden" name="human_check_token" value="{{ human_check_token }}">
+          <input id="human_check_answer" name="human_check_answer" type="text" inputmode="numeric" required placeholder="Kolik je {{ human_check_question }}?"
+            class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:!bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20">
+        </div>
+        {% endif %}
 
         <button class="flex w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-500/20">
           Zaregistrovat

@@ -709,13 +709,7 @@ class FinanceAuditLog(models.Model):
         UPDATED = "updated", "Úprava"
         DELETED = "deleted", "Smazání"
 
-    actor = models.ForeignKey(
-        Account,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="finance_audit_logs",
-    )
+    actor = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name="finance_audit_logs")
     action = models.CharField(max_length=20, choices=Action.choices)
     source = models.CharField(max_length=64, default="admin")
     target_model = models.CharField(max_length=64)
@@ -738,6 +732,7 @@ class FinanceAuditLog(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} {self.target_model} #{self.target_object_id or '-'}"
+
 
 class EntryForeign(models.Model):
     """ Model for foreign riders entries """

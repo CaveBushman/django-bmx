@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
+from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
@@ -14,8 +15,9 @@ from io import BytesIO
 
 from PIL import Image
 
-from accounts.admin import AvatarChangeRequestAdmin
-from accounts.models import Account, AccountRiderLink, AvatarChangeRequest
+from accounts.admin import AccountAdmin, AvatarChangeRequestAdmin, PendingActivationAccountAdmin
+from accounts.models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount
+from bmx.form_protection import build_flow_token
 from club.models import Club
 from rider.models import Rider
 
@@ -26,6 +28,7 @@ User = get_user_model()
 class RememberMeLoginTests(TestCase):
     def setUp(self):
         self.password = "StrongPass123!"
+        self.factory = RequestFactory()
         self.user = User.objects.create_user(
             first_name="Remember",
             last_name="Tester",
@@ -36,14 +39,20 @@ class RememberMeLoginTests(TestCase):
         self.user.is_active = True
         self.user.save()
 
+    def login_payload(self, **overrides):
+        payload = {
+            "username": self.user.email,
+            "password": self.password,
+            "form_token": build_flow_token("signin", timezone.now() - datetime.timedelta(seconds=2)),
+            "website": "",
+        }
+        payload.update(overrides)
+        return payload
+
     def test_login_with_remember_me_sets_persistent_session(self):
         response = self.client.post(
             reverse("accounts:login"),
-            {
-                "username": self.user.email,
-                "password": self.password,
-                "remember-me": "on",
-            },
+            self.login_payload(**{"remember-me": "on"}),
         )
 
         self.assertRedirects(response, reverse("news:homepage"))
@@ -53,10 +62,7 @@ class RememberMeLoginTests(TestCase):
     def test_login_without_remember_me_expires_at_browser_close(self):
         response = self.client.post(
             reverse("accounts:login"),
-            {
-                "username": self.user.email,
-                "password": self.password,
-            },
+            self.login_payload(),
         )
 
         self.assertRedirects(response, reverse("news:homepage"))
@@ -65,10 +71,7 @@ class RememberMeLoginTests(TestCase):
     def test_login_is_case_insensitive_for_email(self):
         response = self.client.post(
             reverse("accounts:login"),
-            {
-                "username": "REMEMBER@EXAMPLE.COM",
-                "password": self.password,
-            },
+            self.login_payload(username="REMEMBER@EXAMPLE.COM"),
         )
 
         self.assertRedirects(response, reverse("news:homepage"))
@@ -87,16 +90,44 @@ class RememberMeLoginTests(TestCase):
 
         response = self.client.post(
             reverse("accounts:login"),
-            {
-                "username": "remember@example.com",
-                "password": self.password,
-            },
+            self.login_payload(username="remember@example.com"),
             follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
         messages = list(response.context["messages"])
         self.assertTrue(any("více historických účtů" in str(message) for message in messages))
+
+    def test_login_requires_human_check_after_repeated_failures(self):
+        url = reverse("accounts:login")
+        for _ in range(3):
+            response = self.client.post(
+                url,
+                self.login_payload(password="bad-password"),
+            )
+            self.assertEqual(response.status_code, 200)
+
+        challenge_response = self.client.post(
+            url,
+            self.login_payload(),
+        )
+
+        self.assertEqual(challenge_response.status_code, 400)
+        self.assertContains(challenge_response, "human_check_answer")
+
+    def test_login_inactive_account_shows_activation_message(self):
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            self.login_payload(),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(any("ještě není aktivovaný" in str(message) for message in messages))
 
 
 class AccountEmailNormalizationTests(TestCase):
@@ -131,6 +162,90 @@ class AccountEmailNormalizationTests(TestCase):
         with self.assertRaises(ValidationError):
             second_user.clean()
 
+    def test_account_admin_search_ignores_case_and_diacritics(self):
+        user = User.objects.create_user(
+            first_name="Jiří",
+            last_name="Novák",
+            username="jiri_novak",
+            email="jiri.novak@example.com",
+            password="StrongPass123!",
+        )
+
+        request = RequestFactory().get("/admin/accounts/account/")
+        request.user = user
+        admin_instance = AccountAdmin(User, admin.site)
+
+        queryset, _ = admin_instance.get_search_results(
+            request,
+            User.objects.all(),
+            "NOVAK",
+        )
+
+        self.assertIn(user, list(queryset))
+
+    def test_pending_activation_account_admin_filters_inactive_users(self):
+        inactive_user = User.objects.create_user(
+            first_name="Inactive",
+            last_name="User",
+            username="inactive_user",
+            email="inactive@example.com",
+            password="StrongPass123!",
+        )
+        active_user = User.objects.create_user(
+            first_name="Active",
+            last_name="User",
+            username="active_user",
+            email="active@example.com",
+            password="StrongPass123!",
+        )
+        active_user.is_active = True
+        active_user.save(update_fields=["is_active"])
+
+        request = RequestFactory().get("/admin/accounts/pendingactivationaccount/")
+        request.user = active_user
+        admin_instance = PendingActivationAccountAdmin(PendingActivationAccount, admin.site)
+
+        queryset = admin_instance.get_queryset(request)
+
+        self.assertIn(inactive_user, list(queryset))
+        self.assertNotIn(active_user, list(queryset))
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_account_admin_detail_resend_activation_view_sends_email(self):
+        inactive_user = User.objects.create_user(
+            first_name="Inactive",
+            last_name="Detail",
+            username="inactive_detail",
+            email="inactive-detail@example.com",
+            password="StrongPass123!",
+        )
+        admin_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Detail",
+            username="admin_detail",
+            email="admin-detail@example.com",
+            password="StrongPass123!",
+        )
+        admin_user.is_staff = True
+        admin_user.is_active = True
+        admin_user.save(update_fields=["is_staff", "is_active"])
+        self.client.force_login(admin_user)
+
+        response = self.client.get(
+            reverse("admin:accounts_account_resend_activation", args=[inactive_user.pk]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(
+            AccountActivationAuditLog.objects.filter(
+                account=inactive_user,
+                action=AccountActivationAuditLog.Action.RESENT,
+                source="admin_detail",
+            ).exists()
+        )
+
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class PasswordResetTests(TestCase):
@@ -146,10 +261,19 @@ class PasswordResetTests(TestCase):
         self.user.is_active = True
         self.user.save()
 
+    def reset_payload(self, **overrides):
+        payload = {
+            "email": self.user.email,
+            "form_token": build_flow_token("password_reset", timezone.now() - datetime.timedelta(seconds=2)),
+            "website": "",
+        }
+        payload.update(overrides)
+        return payload
+
     def test_password_reset_sends_email(self):
         response = self.client.post(
             reverse("accounts:password_reset"),
-            {"email": self.user.email},
+            self.reset_payload(),
         )
 
         self.assertRedirects(
@@ -160,6 +284,90 @@ class PasswordResetTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Reset hesla na Czech BMX", mail.outbox[0].subject)
         self.assertIn("/accounts/reset/", mail.outbox[0].body)
+
+    def test_password_reset_requires_human_check_after_robot_attempts(self):
+        url = reverse("accounts:password_reset")
+        for _ in range(2):
+            response = self.client.post(
+                url,
+                self.reset_payload(website="bot"),
+            )
+            self.assertEqual(response.status_code, 400)
+
+        blocked = self.client.post(url, self.reset_payload())
+
+        self.assertEqual(blocked.status_code, 400)
+        self.assertContains(blocked, "human_check_answer")
+
+
+class PendingActivationCleanupCommandTests(TestCase):
+    def test_cleanup_pending_accounts_deletes_old_inactive_accounts(self):
+        stale_user = User.objects.create_user(
+            first_name="Stale",
+            last_name="Pending",
+            username="stale_pending",
+            email="stale@example.com",
+            password="StrongPass123!",
+        )
+        User.objects.filter(pk=stale_user.pk).update(
+            is_active=False,
+            date_joined=timezone.now() - datetime.timedelta(days=30),
+        )
+
+        fresh_user = User.objects.create_user(
+            first_name="Fresh",
+            last_name="Pending",
+            username="fresh_pending",
+            email="fresh@example.com",
+            password="StrongPass123!",
+        )
+        User.objects.filter(pk=fresh_user.pk).update(
+            is_active=False,
+            date_joined=timezone.now() - datetime.timedelta(days=1),
+        )
+
+        call_command("cleanup_pending_accounts", days=7)
+
+        self.assertFalse(User.objects.filter(pk=stale_user.pk).exists())
+        self.assertTrue(User.objects.filter(pk=fresh_user.pk).exists())
+        self.assertTrue(
+            AccountActivationAuditLog.objects.filter(
+                email_snapshot="stale@example.com",
+                action=AccountActivationAuditLog.Action.CLEANED_UP,
+            ).exists()
+        )
+
+
+class OpsDashboardTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Ops",
+            last_name="Admin",
+            username="ops_admin",
+            email="ops-admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_staff = True
+        self.staff_user.is_active = True
+        self.staff_user.save(update_fields=["is_staff", "is_active"])
+
+    def test_ops_dashboard_requires_staff(self):
+        response = self.client.get(reverse("accounts:ops_dashboard"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_ops_dashboard_renders_for_staff(self):
+        AccountActivationAuditLog.objects.create(
+            action=AccountActivationAuditLog.Action.SENT,
+            source="signup",
+            email_snapshot="pending@example.com",
+        )
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("accounts:ops_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Provozní dashboard")
+        self.assertContains(response, "pending@example.com")
 
 
 class AccountRiderLinkTests(TestCase):

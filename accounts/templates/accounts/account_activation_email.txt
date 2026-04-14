@@ -1,0 +1,7 @@
+{% load i18n %}
+{% blocktrans with name=user.first_name|default:user.email %}Ahoj {{ name }},{% endblocktrans %}
+
+{% trans "dokončete registraci účtu na Czech BMX kliknutím na tento odkaz:" %}
+{{ protocol }}://{{ domain }}{{ activation_path }}
+
+{% trans "Pokud jste registraci nevytvářeli, tento e-mail můžete ignorovat." %}

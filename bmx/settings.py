@@ -342,6 +342,40 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@czechbmx.cz")
+ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS = config("ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS", default=7, cast=int)
+
+FORM_PROTECTION = {
+    "signup": {
+        "min_fill_seconds": config("SIGNUP_MIN_FILL_SECONDS", default=3, cast=int),
+        "rate_limit_window_seconds": config("SIGNUP_RATE_LIMIT_WINDOW_SECONDS", default=900, cast=int),
+        "rate_limit_max_attempts": config("SIGNUP_RATE_LIMIT_MAX_ATTEMPTS", default=5, cast=int),
+        "captcha_after_attempts": config("SIGNUP_CAPTCHA_AFTER_ATTEMPTS", default=2, cast=int),
+    },
+    "signin": {
+        "min_fill_seconds": config("SIGNIN_MIN_FILL_SECONDS", default=1, cast=int),
+        "rate_limit_window_seconds": config("SIGNIN_RATE_LIMIT_WINDOW_SECONDS", default=900, cast=int),
+        "rate_limit_max_attempts": config("SIGNIN_RATE_LIMIT_MAX_ATTEMPTS", default=10, cast=int),
+        "captcha_after_attempts": config("SIGNIN_CAPTCHA_AFTER_ATTEMPTS", default=3, cast=int),
+    },
+    "password_reset": {
+        "min_fill_seconds": config("PASSWORD_RESET_MIN_FILL_SECONDS", default=1, cast=int),
+        "rate_limit_window_seconds": config("PASSWORD_RESET_RATE_LIMIT_WINDOW_SECONDS", default=900, cast=int),
+        "rate_limit_max_attempts": config("PASSWORD_RESET_RATE_LIMIT_MAX_ATTEMPTS", default=5, cast=int),
+        "captcha_after_attempts": config("PASSWORD_RESET_CAPTCHA_AFTER_ATTEMPTS", default=2, cast=int),
+    },
+    "activation_resend": {
+        "min_fill_seconds": config("ACTIVATION_RESEND_MIN_FILL_SECONDS", default=1, cast=int),
+        "rate_limit_window_seconds": config("ACTIVATION_RESEND_RATE_LIMIT_WINDOW_SECONDS", default=900, cast=int),
+        "rate_limit_max_attempts": config("ACTIVATION_RESEND_RATE_LIMIT_MAX_ATTEMPTS", default=5, cast=int),
+        "captcha_after_attempts": config("ACTIVATION_RESEND_CAPTCHA_AFTER_ATTEMPTS", default=2, cast=int),
+    },
+    "rider_request": {
+        "min_fill_seconds": config("RIDER_REQUEST_MIN_FILL_SECONDS", default=3, cast=int),
+        "rate_limit_window_seconds": config("RIDER_REQUEST_RATE_LIMIT_WINDOW_SECONDS", default=900, cast=int),
+        "rate_limit_max_attempts": config("RIDER_REQUEST_RATE_LIMIT_MAX_ATTEMPTS", default=5, cast=int),
+        "captcha_after_attempts": config("RIDER_REQUEST_CAPTCHA_AFTER_ATTEMPTS", default=2, cast=int),
+    },
+}
 
 CKEDITOR_CONFIGS = {
     "default": {
