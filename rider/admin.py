@@ -8,6 +8,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
 from import_export import resources
+from bmx.admin_search import DiacriticsInsensitiveSearchAdminMixin
 from accounts.models import AccountRiderLink
 from event.models import EntryForeign
 from .models import (
@@ -97,7 +98,7 @@ class PlateAwareSearchAdminMixin:
         return queryset, use_distinct
 
 
-class RiderAdmin(PlateAwareSearchAdminMixin, ExportMixin, admin.ModelAdmin):
+class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMixin, ExportMixin, admin.ModelAdmin):
 
     resource_class = RiderResource
     change_list_template = "admin/rider/rider/change_list.html"

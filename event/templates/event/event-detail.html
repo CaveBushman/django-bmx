@@ -499,15 +499,31 @@
 
         <!-- UCI Race warning -->
         {% if event.is_uci_race %}
-        <div role="alert" class="mt-4">
-            <div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-                Upozornění
+        <section role="alert" class="mt-8 overflow-hidden rounded-[2rem] border border-rose-200/80 bg-[linear-gradient(135deg,rgba(255,241,242,0.96),rgba(255,255,255,0.98))] shadow-[0_20px_60px_rgba(244,63,94,0.10)] dark:border-rose-900/70 dark:bg-[linear-gradient(135deg,rgba(76,5,25,0.94),rgba(15,23,42,0.96))]">
+            <div class="grid gap-5 px-6 py-6 sm:px-7 sm:py-7 lg:grid-cols-[auto,1fr] lg:items-center">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 ring-1 ring-rose-200 shadow-lg shadow-rose-500/10 dark:bg-rose-500 dark:text-white dark:ring-rose-400/30 dark:shadow-rose-950/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-7.19 12.45A2 2 0 004.82 19h14.36a2 2 0 001.72-2.69L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="inline-flex items-center rounded-full bg-rose-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-rose-700 dark:bg-rose-400/10 dark:text-rose-200">
+                            UCI režim
+                        </span>
+                        <span class="text-sm font-medium text-rose-700/80 dark:text-rose-200/80">
+                            Důležitá informace pro championship kategorie
+                        </span>
+                    </div>
+                    <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        Tento závod se řídí pravidly UCI
+                    </h3>
+                    <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-700 dark:text-slate-200">
+                        Junior, Under 23 a Elite kategorie pojedou podle pravidel UCI, nikoliv podle platných prováděcích pokynů pro domácí závody.
+                    </p>
+                </div>
             </div>
-            <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-                <p>Tento závod je zapsán v kalendáři UCI, proto Junior, Under 23 a Elite kategorie pojedou podle
-                    pravidel UCI a nikoliv podle platných prováděcích pokynů!</p>
-            </div>
-        </div>
+        </section>
         {% endif %}
 
     </div>

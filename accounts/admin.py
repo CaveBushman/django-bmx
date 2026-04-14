@@ -4,9 +4,13 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin.views.main import ChangeList
 from django.http import HttpResponseRedirect
+from django.urls import path, reverse
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-from .models import Account, AccountRiderLink, AvatarChangeRequest, PendingAvatarChangeRequest
+from django.utils.translation import gettext_lazy as _
+from bmx.admin_search import DiacriticsInsensitiveSearchAdminMixin
+from .models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount, PendingAvatarChangeRequest
+from .views import send_activation_email
 
 
 logger = logging.getLogger(__name__)
@@ -21,10 +25,10 @@ class AccountRiderLinkInline(admin.TabularInline):
 
 # Register your models here.
 
-class AccountAdmin(UserAdmin):
+class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
     list_display = ('email', 'last_name', 'first_name', 'club', 'is_club_manager', 'is_trainer', 'last_login', 'date_joined', 'is_active')
     list_display_links = ('email',)
-    readonly_fields = ('last_login', 'date_joined')
+    readonly_fields = ('last_login', 'date_joined', 'activation_status_badge', 'activation_admin_actions', 'activation_audit_preview')
     ordering = ('-date_joined',)
     search_fields = ('email', 'first_name', 'last_name', 'username', 'club__team_name')
     list_filter = ('is_active', 'is_staff', 'is_admin', 'is_club_manager', 'is_trainer', 'club')
@@ -55,11 +59,121 @@ class AccountAdmin(UserAdmin):
         ('Finance a historie', {
             'fields': ('credit', 'last_login', 'date_joined'),
         }),
+        ('Aktivace účtu', {
+            'fields': ('activation_status_badge', 'activation_admin_actions', 'activation_audit_preview'),
+        }),
     )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:account_id>/resend-activation/",
+                self.admin_site.admin_view(self.resend_activation_email_view),
+                name="accounts_account_resend_activation",
+            ),
+        ]
+        return custom_urls + urls
+
+    @admin.action(description="Znovu poslat aktivační e-mail")
+    def resend_activation_email_action(self, request, queryset):
+        sent = 0
+        for user in queryset.filter(is_active=False):
+            send_activation_email(
+                request,
+                user,
+                action=AccountActivationAuditLog.Action.RESENT,
+                source="admin_bulk",
+            )
+            sent += 1
+        self.message_user(
+            request,
+            _("Aktivační e-mail znovu odeslán pro %(count)s účtů.") % {"count": sent},
+            level=messages.SUCCESS,
+        )
+
+    def resend_activation_email_view(self, request, account_id):
+        user = Account.objects.filter(pk=account_id).first()
+        if not user:
+            self.message_user(request, _("Uživatel nebyl nalezen."), level=messages.ERROR)
+            return HttpResponseRedirect(reverse("admin:accounts_account_changelist"))
+        if user.is_active:
+            self.message_user(request, _("Účet je už aktivní."), level=messages.WARNING)
+            return HttpResponseRedirect(reverse("admin:accounts_account_change", args=[user.pk]))
+
+        send_activation_email(
+            request,
+            user,
+            action=AccountActivationAuditLog.Action.RESENT,
+            source="admin_detail",
+        )
+        self.message_user(
+            request,
+            _("Aktivační e-mail byl znovu odeslán na %(email)s.") % {"email": user.email},
+            level=messages.SUCCESS,
+        )
+        return HttpResponseRedirect(reverse("admin:accounts_account_change", args=[user.pk]))
+
+    @admin.display(description="Stav aktivace")
+    def activation_status_badge(self, obj):
+        if obj.is_active:
+            return format_html(
+                '<span style="display:inline-flex;padding:6px 10px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:600;">{}</span>',
+                _("Aktivní"),
+            )
+        return format_html(
+            '<span style="display:inline-flex;padding:6px 10px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:600;">{}</span>',
+            _("Čeká na aktivaci"),
+        )
+
+    @admin.display(description="Akce aktivace")
+    def activation_admin_actions(self, obj):
+        if not obj or obj.is_active:
+            return "-"
+        url = reverse("admin:accounts_account_resend_activation", args=[obj.pk])
+        return format_html('<a class="button" href="{}">{}</a>', url, _("Znovu poslat aktivaci"))
+
+    @admin.display(description="Poslední aktivační audit")
+    def activation_audit_preview(self, obj):
+        if not obj:
+            return "-"
+        logs = obj.activation_audit_logs.select_related("actor").order_by("-created_at")[:5]
+        if not logs:
+            return _("Žádné záznamy")
+        items = []
+        for log in logs:
+            actor = log.actor.email if log.actor else _("systém")
+            items.append(f"{log.created_at:%d.%m.%Y %H:%M} • {log.get_action_display()} • {actor}")
+        return format_html("<br>".join(items))
 
 
 admin.site.register(Account, AccountAdmin)
 admin.site.register(AccountRiderLink)
+
+
+class PendingActivationAccountChangeList(ChangeList):
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(is_active=False)
+
+
+@admin.register(PendingActivationAccount)
+class PendingActivationAccountAdmin(AccountAdmin):
+    actions = ("resend_activation_email_action",)
+
+    def get_changelist(self, request, **kwargs):
+        return PendingActivationAccountChangeList
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_active=False)
+
+
+@admin.register(AccountActivationAuditLog)
+class AccountActivationAuditLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "action", "email_snapshot", "account", "actor", "source")
+    list_filter = ("action", "source", "created_at")
+    search_fields = ("email_snapshot", "account__email", "actor__email", "note")
+    readonly_fields = ("created_at",)
 
 
 @admin.register(AvatarChangeRequest)

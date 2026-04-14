@@ -1064,3 +1064,95 @@ msgstr "View notifications"
 #: theme/templates/includes/navbar.html:505
 msgid "Jazyk"
 msgstr "Language"
+
+#: accounts/views.py
+msgid "Uživatel s tímto e-mailem již existuje."
+msgstr "A user with this email already exists."
+
+#: accounts/views.py
+msgid "Uživatel s tímto uživatelským jménem již existuje."
+msgstr "A user with this username already exists."
+
+#: accounts/views.py
+msgid "Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu"
+msgstr "The password confirmation does not match. Please enter your registration details again."
+
+#: accounts/views.py
+msgid "Pro tento e-mail existuje více historických účtů. Kontaktujte administrátora."
+msgstr "There are multiple historical accounts for this email. Please contact an administrator."
+
+#: accounts/views.py
+msgid "Účet ještě není aktivovaný. Otevřete aktivační e-mail a potvrďte registraci. Pokud zprávu nevidíte, zkontrolujte i spam."
+msgstr "This account is not activated yet. Open the activation email and confirm your registration. If you cannot find it, check your spam folder."
+
+#: accounts/views.py
+msgid "Neplatné uživatelské jméno nebo heslo."
+msgstr "Invalid username or password."
+
+#: accounts/views.py
+msgid "Aktivační odkaz je neplatný."
+msgstr "The activation link is invalid."
+
+#: accounts/views.py
+msgid "Aktivační odkaz je neplatný nebo expiroval."
+msgstr "The activation link is invalid or has expired."
+
+#: accounts/views.py
+msgid "Aktivační odkaz expiroval. Zaregistrujte se prosím znovu."
+msgstr "The activation link has expired. Please register again."
+
+#: accounts/views.py
+msgid "Účet byl úspěšně aktivován. Teď se můžete přihlásit svým e-mailem a heslem."
+msgstr "Your account has been activated successfully. You can now sign in with your email and password."
+
+#: accounts/views.py
+msgid "Pokud pro tento e-mail existuje čekající registrace, poslali jsme nový aktivační odkaz."
+msgstr "If there is a pending registration for this email, we have sent a new activation link."
+
+#: accounts/views.py
+msgid "Na tento e-mail už čeká nedokončená registrace. Pošlete si nový aktivační odkaz."
+msgstr "There is already an unfinished registration for this email. Request a new activation link."
+
+#: accounts/templates/accounts/signin.html
+msgid "Poslat aktivační e-mail znovu"
+msgstr "Send the activation email again"
+
+#: accounts/templates/accounts/resend_activation.html
+msgid "Znovu poslat aktivaci"
+msgstr "Resend activation"
+
+#: accounts/templates/accounts/resend_activation.html
+msgid "Poslat nový aktivační odkaz"
+msgstr "Send a new activation link"
+
+#: accounts/templates/accounts/resend_activation.html
+msgid "Zadejte e-mail použitý při registraci. Pokud pro něj existuje čekající aktivace, pošleme vám nový odkaz."
+msgstr "Enter the email used during registration. If there is a pending activation for it, we will send you a new link."
+
+#: accounts/templates/accounts/account_activation_sent.html
+msgid "Otevřít formulář pro nové odeslání"
+msgstr "Open the resend form"
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Provozní dashboard"
+msgstr "Operations dashboard"
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Rychlý přehled čekajících aktivací, duplicitních e-mailů, refund konzistence a posledních administrativních zásahů."
+msgstr "A quick overview of pending activations, duplicate emails, refund consistency, and the latest administrative actions."
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Čekající aktivace"
+msgstr "Pending activations"
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Staré pending účty"
+msgstr "Old pending accounts"
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Duplicitní e-mailové skupiny"
+msgstr "Duplicate email groups"
+
+#: accounts/templates/accounts/ops-dashboard.html
+msgid "Refund nekonzistence"
+msgstr "Refund inconsistencies"

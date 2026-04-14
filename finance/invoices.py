@@ -630,6 +630,11 @@ class EventInvoiceService:
     def generate_for_event(self, event):
         club_lines = self.get_club_lines(event)
         generated = []
+        current_club_ids = {club.id for club in club_lines.keys()}
+
+        stale_invoices = EventInvoice.objects.filter(event=event).exclude(club_id__in=current_club_ids)
+        for stale_invoice in stale_invoices:
+            self.delete_invoice(stale_invoice)
 
         for club, lines in club_lines.items():
             total = _money(sum(line.total for line in lines))
@@ -688,9 +693,12 @@ class EventInvoiceService:
     @transaction.atomic
     def update_invoice_for_club(self, event, club):
         lines = self.get_club_lines(event).get(club, [])
-        if not lines:
-            return None
         invoice = EventInvoice.objects.filter(event=event, club=club).first()
+        if not lines:
+            if invoice:
+                self.delete_invoice(invoice)
+            self._rebuild_event_export(event)
+            return None
         if not invoice:
             return None
         invoice.issue_date = timezone.localdate()

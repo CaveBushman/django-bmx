@@ -8,6 +8,7 @@ from django.conf import settings
 from club.models import Club
 from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
+from bmx.text_normalization import normalize_search_text
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,7 @@ class Rider(models.Model):
     gender = models.CharField(choices=GENDER, max_length=10)
 
     email = models.EmailField(max_length=100, null=True, blank=True)
+    search_text_normalized = models.CharField(max_length=512, default="", blank=True, db_index=True)
     phone = models.CharField(max_length=100, null=True, blank=True)
 
     street = models.CharField(max_length=1000, blank=True, null=True, default="")
@@ -211,6 +213,20 @@ class Rider(models.Model):
 
         self.plate_text = normalized_plate
         self.plate = legacy_plate_int(normalized_plate)
+        self.search_text_normalized = normalize_search_text(
+            " ".join(
+                str(part) for part in [
+                    self.first_name,
+                    self.middle_name,
+                    self.last_name,
+                    self.email,
+                    self.uci_id,
+                    self.transponder_20,
+                    self.transponder_24,
+                    self.plate_text,
+                ] if part
+            )
+        )
         super().save(*args, **kwargs)
 
     class Meta:

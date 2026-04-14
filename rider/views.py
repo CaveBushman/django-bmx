@@ -20,6 +20,7 @@ from django.views.decorators.cache import cache_control
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from bmx import settings
+from bmx.form_protection import build_security_context, protect_public_flow
 from accounts.models import AvatarChangeRequest
 from .models import Rider, ForeignRider, RiderTransponderChange
 from .rider import (
@@ -1960,6 +1961,12 @@ def _rider_request_context(**extra):
     return context
 
 
+def _render_rider_request(request, context=None, status=200):
+    data = _rider_request_context(**(context or {}))
+    data.update(build_security_context("rider_request", request))
+    return render(request, "rider/rider-request.html", data, status=status)
+
+
 def rider_licence_lookup_view(request):
     uci_id = (request.GET.get("uci_id") or "").strip()
     if not uci_id.isdigit() or len(uci_id) != 11:
@@ -2007,7 +2014,7 @@ def rider_licence_lookup_view(request):
 
 def rider_new_view(request):
     if request.method == "POST":
-        context = _rider_request_context(
+        context = dict(
             first_name=request.POST.get("first_name", ""),
             last_name=request.POST.get("last_name", ""),
             date_of_birth=request.POST.get("date_of_birth", ""),
@@ -2023,6 +2030,16 @@ def rider_new_view(request):
             emergency_phone=request.POST.get("emergency-phone", ""),
         )
 
+        protection_error = protect_public_flow("rider_request", request)
+        if protection_error is not None:
+            logger.warning(
+                "rider_request_rejected_%s ip=%s",
+                protection_error["reason"],
+                request.META.get("REMOTE_ADDR", ""),
+            )
+            messages.error(request, protection_error["message"])
+            return _render_rider_request(request, context, status=protection_error["status"])
+
         required_fields = {
             "uci_id": "UCI ID",
             "first_name": "Jméno",
@@ -2036,16 +2053,16 @@ def rider_new_view(request):
         for field, label in required_fields.items():
             if not request.POST.get(field) or request.POST.get(field) in {"", "Vyber..."}:
                 messages.error(request, _("Pole %(label)s je povinné.") % {'label': label})
-                return render(request, "rider/rider-request.html", context)
+                return _render_rider_request(request, context)
 
         if request.POST.get("lookup_confirmed") != "1":
             messages.error(request, _("Nejprve ověř UCI ID proti licenci ČSC."))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         uci_id = request.POST["uci_id"].strip()
         if not uci_id.isdigit() or len(uci_id) != 11:
             messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         existing = Rider.objects.filter(uci_id=uci_id).first()
         if existing:
@@ -2053,16 +2070,16 @@ def rider_new_view(request):
                 request,
                 _("Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo.") % {'name': f"{existing.first_name} {existing.last_name}", 'uci_id': uci_id}
             )
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
             messages.error(request, error_msg or _("Licence UCI ID nebyla nalezena."))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         if "is20" not in request.POST and "is24" not in request.POST:
             messages.error(request, _('Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.'))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         try:
             date_of_birth = datetime.datetime.strptime(
@@ -2070,12 +2087,12 @@ def rider_new_view(request):
             )
         except (TypeError, ValueError):
             messages.error(request, _("Datum narození není ve správném formátu."))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         club = Club.objects.filter(id=request.POST.get("club")).first()
         if not club:
             messages.error(request, _("Vybraný klub nebyl nalezen."))
-            return render(request, "rider/rider-request.html", context)
+            return _render_rider_request(request, context)
 
         Rider.objects.create(
             first_name=request.POST["first_name"].strip(),
@@ -2096,7 +2113,7 @@ def rider_new_view(request):
         )
         return render(request, "rider/rider-request-success.html")
 
-    return render(request, "rider/rider-request.html", _rider_request_context())
+    return _render_rider_request(request)
 
 
 @login_required(login_url="/login/")

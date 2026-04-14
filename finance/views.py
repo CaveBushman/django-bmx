@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 
 from .func import calculate_stripe_fee, calculate_system_balance_total
-from event.models import CreditTransaction
+from event.models import CreditTransaction, FinanceAuditLog
 from event.credit import get_system_balance_components
 from accounts.models import Account
 from django.db.models import F
@@ -238,3 +238,33 @@ def export_checkout_refunds_csv(request):
         refunds.count(),
     )
     return response
+
+
+@login_required(login_url="/login/")
+@user_passes_test(_is_finance_admin, login_url="/login/")
+def finance_audit_dashboard(request):
+    action_filter = request.GET.get("action", "").strip()
+    model_filter = request.GET.get("target_model", "").strip()
+    actor_filter = request.GET.get("actor", "").strip()
+
+    audit_logs = FinanceAuditLog.objects.select_related("actor").order_by("-created_at")
+
+    if action_filter:
+        audit_logs = audit_logs.filter(action=action_filter)
+    if model_filter:
+        audit_logs = audit_logs.filter(target_model=model_filter)
+    if actor_filter.isdigit():
+        audit_logs = audit_logs.filter(actor_id=int(actor_filter))
+
+    context = {
+        "audit_logs": audit_logs[:200],
+        "action_filter": action_filter,
+        "model_filter": model_filter,
+        "actor_filter": actor_filter,
+        "available_actions": FinanceAuditLog.Action.choices,
+        "available_models": ["CreditTransaction", "DebetTransaction"],
+        "available_actors": Account.objects.filter(
+            id__in=FinanceAuditLog.objects.exclude(actor__isnull=True).values_list("actor_id", flat=True)
+        ).order_by("last_name", "first_name"),
+    }
+    return render(request, "finance/finance-audit.html", context)

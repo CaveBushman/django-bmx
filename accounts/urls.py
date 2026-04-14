@@ -7,19 +7,14 @@ app_name = "accounts"
 
 urlpatterns = [
     path('signup/', views.sign_up, name='signup'),
+    path('signup/activation-sent/', views.activation_sent, name='activation_sent'),
+    path('signup/resend-activation/', views.resend_activation_email, name='resend_activation'),
+    path('activate/<uidb64>/<token>/', views.activate_account, name='activate'),
     path('login/', views.sign_in, name='login'),
     path('logout/', views.sign_out, name='logout'),
+    path('ops/', views.ops_dashboard, name='ops_dashboard'),
     path('avatar-moderation/', views.avatar_moderation_dashboard, name='avatar-moderation'),
-    path(
-        'reset_password/',
-        auth_views.PasswordResetView.as_view(
-            template_name='registration/password_reset_form.html',
-            email_template_name='registration/password_reset_email.html',
-            subject_template_name='registration/password_reset_subject.txt',
-            success_url=reverse_lazy('accounts:password_reset_done'),
-        ),
-        name='password_reset',
-    ),
+    path('reset_password/', views.password_reset_request, name='password_reset'),
     path(
         'reset_password_sent/',
         auth_views.PasswordResetDoneView.as_view(

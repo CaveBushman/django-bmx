@@ -13,9 +13,9 @@ from django.utils import timezone
 
 from club.models import Club
 from event.credit import calculate_user_balance as calculate_account_balance
-from event.models import CreditTransaction, DebetTransaction, Entry, Event, SeasonSettings, StripeFee
+from event.models import CreditTransaction, DebetTransaction, Entry, Event, FinanceAuditLog, SeasonSettings, StripeFee
 from finance.func import calculate_user_balance as calculate_finance_balance
-from finance.invoices import delete_invoice_override, save_invoice_override
+from finance.invoices import EventInvoiceService, delete_invoice_override, save_invoice_override
 from finance.models import EventInvoice
 from rider.models import Rider, RiderStatsCharge, TrainerClubCharge
 
@@ -47,6 +47,13 @@ class FinanceAccessTests(TestCase):
         self.client.force_login(self.admin_user)
 
         response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_finance_audit_page_is_available_for_admin_user(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse("finance:finance_audit"))
 
         self.assertEqual(response.status_code, 200)
 
@@ -233,6 +240,66 @@ class FinanceCreditReportingTests(TestCase):
         self.assertNotIn("pi_topup_123", content)
 
 
+class FinanceAuditDashboardTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            first_name="Finance",
+            last_name="Auditor",
+            username="finance_audit_dashboard",
+            email="finance_audit_dashboard@example.com",
+            password="StrongPass123!",
+        )
+        self.admin_user.is_active = True
+        self.admin_user.is_admin = True
+        self.admin_user.save(update_fields=["is_active", "is_admin"])
+
+        FinanceAuditLog.objects.create(
+            actor=self.admin_user,
+            action=FinanceAuditLog.Action.UPDATED,
+            source="admin_credit_transaction",
+            target_model="CreditTransaction",
+            target_object_id=10,
+            target_user_id_snapshot=77,
+            amount_snapshot=550,
+            transaction_kind_snapshot="topup",
+            payment_complete_snapshot=True,
+            note="amount,payment_complete",
+        )
+
+    def test_finance_audit_dashboard_lists_finance_audit_logs(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse("finance:finance_audit"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Finanční audit")
+        self.assertContains(response, "CreditTransaction")
+        self.assertContains(response, "amount,payment_complete")
+
+    def test_finance_audit_dashboard_filters_by_target_model(self):
+        self.client.force_login(self.admin_user)
+        FinanceAuditLog.objects.create(
+            actor=self.admin_user,
+            action=FinanceAuditLog.Action.DELETED,
+            source="admin_debet_transaction",
+            target_model="DebetTransaction",
+            target_object_id=11,
+            amount_snapshot=300,
+            payment_valid_snapshot=True,
+            note="manual delete",
+        )
+
+        response = self.client.get(
+            reverse("finance:finance_audit"),
+            {"target_model": "DebetTransaction"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "DebetTransaction")
+        self.assertContains(response, "manual delete")
+        self.assertNotContains(response, "amount,payment_complete")
+
+
 class CheckoutRefundConsistencyCommandTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -415,3 +482,60 @@ class EventInvoiceGenerationTests(TestCase):
         finally:
             invoice.xml_export.close()
         self.assertIn("Jan Novak", reset_xml_content)
+
+    def test_generate_event_invoices_excludes_checkout_entries(self):
+        Entry.objects.create(
+            event=self.event,
+            rider=Rider.objects.create(
+                uci_id=100200301,
+                first_name="Petr",
+                last_name="Svoboda",
+                date_of_birth=date(2010, 1, 2),
+                gender="Muž",
+                club=self.customer_club,
+                is_20=True,
+                class_20="Boys 16",
+                is_active=True,
+                is_approved=True,
+            ),
+            is_20=True,
+            class_20="Boys 16",
+            fee_20=500,
+            payment_complete=True,
+            checkout=True,
+        )
+
+        result = EventInvoiceService().generate_for_event(self.event)
+
+        self.assertEqual(len(result["generated"]), 1)
+        invoice = EventInvoice.objects.get(event=self.event, club=self.customer_club)
+        self.assertEqual(float(invoice.total_price), 350.0)
+
+    def test_invoice_regeneration_removes_invoice_when_all_entries_checkout(self):
+        service = EventInvoiceService()
+        service.generate_for_event(self.event)
+        invoice = EventInvoice.objects.get(event=self.event, club=self.customer_club)
+        self.assertEqual(float(invoice.total_price), 350.0)
+
+        entry = Entry.objects.get(event=self.event, rider=self.rider)
+        entry.checkout = True
+        entry.save(update_fields=["checkout"])
+
+        result = service.generate_for_event(self.event)
+
+        self.assertEqual(result["generated"], [])
+        self.assertFalse(EventInvoice.objects.filter(event=self.event, club=self.customer_club).exists())
+
+    def test_update_invoice_for_club_removes_invoice_after_checkout_change(self):
+        service = EventInvoiceService()
+        service.generate_for_event(self.event)
+        self.assertTrue(EventInvoice.objects.filter(event=self.event, club=self.customer_club).exists())
+
+        entry = Entry.objects.get(event=self.event, rider=self.rider)
+        entry.checkout = True
+        entry.save(update_fields=["checkout"])
+
+        updated_invoice = service.update_invoice_for_club(self.event, self.customer_club)
+
+        self.assertIsNone(updated_invoice)
+        self.assertFalse(EventInvoice.objects.filter(event=self.event, club=self.customer_club).exists())

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Provozní dashboard" %}{% endblock title %}
+
+{% block content %}
+<section class="page-surface">
+  <div class="page-shell space-y-8">
+    <div class="page-content-card">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Ops" %}</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Provozní dashboard" %}</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+        {% trans "Rychlý přehled čekajících aktivací, duplicitních e-mailů, refund konzistence a posledních administrativních zásahů." %}
+      </p>
+
+      <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="page-stat-card">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Čekající aktivace" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ pending_accounts_count }}</p>
+        </div>
+        <div class="page-stat-card">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Staré pending účty" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ stale_pending_accounts_count }}</p>
+        </div>
+        <div class="page-stat-card">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Duplicitní e-mailové skupiny" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ duplicate_email_group_count }}</p>
+        </div>
+        <div class="page-stat-card">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Refund nekonzistence" %}</p>
+          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ checkout_entries_missing_refund_count|add:orphan_refunds_count|add:refunds_for_non_checkout_entries_count }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-8 xl:grid-cols-2">
+      <section class="page-content-card">
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Refund konzistence" %}</h2>
+        <div class="mt-6 space-y-4 text-sm">
+          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
+            <span>{% trans "Checkout registrace bez refundu" %}</span>
+            <strong>{{ checkout_entries_missing_refund_count }}</strong>
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
+            <span>{% trans "Refundy bez zdrojové registrace" %}</span>
+            <strong>{{ orphan_refunds_count }}</strong>
+          </div>
+          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
+            <span>{% trans "Refundy navázané na ne-checkout registraci" %}</span>
+            <strong>{{ refunds_for_non_checkout_entries_count }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-content-card">
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Duplicitní e-maily" %}</h2>
+        {% if duplicate_email_groups %}
+        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+            <thead class="bg-slate-50 dark:bg-slate-900">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "E-mail" %}</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Počet účtů" %}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
+              {% for group in duplicate_email_groups %}
+              <tr>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{{ group.email_lower }}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white">{{ group.total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">{% trans "Aktuálně nebyly nalezeny žádné duplicitní e-mailové skupiny." %}</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="grid gap-8 xl:grid-cols-2">
+      <section class="page-content-card">
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední aktivace" %}</h2>
+        <div class="mt-6 space-y-3">
+          {% for log in recent_activation_logs %}
+          <div class="rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ log.email_snapshot }}</p>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ log.get_action_display }} · {{ log.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ log.source }}</p>
+          </div>
+          {% empty %}
+          <p class="text-sm text-slate-600 dark:text-slate-300">{% trans "Zatím tu nejsou žádné aktivační záznamy." %}</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="page-content-card">
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední finanční zásahy" %}</h2>
+        <div class="mt-6 space-y-3">
+          {% for log in recent_finance_logs %}
+          <div class="rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ log.target_model }} #{{ log.target_object_id|default:"-" }}</p>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ log.get_action_display }} · {{ log.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ log.note|default:log.source }}</p>
+          </div>
+          {% empty %}
+          <p class="text-sm text-slate-600 dark:text-slate-300">{% trans "Zatím tu nejsou žádné finanční auditní záznamy." %}</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+{% endblock content %}

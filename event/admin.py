@@ -8,6 +8,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls import NoReverseMatch
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from rider.models import ForeignRider
 from django.utils.timezone import now
@@ -72,6 +73,102 @@ class EventAdmin(BaseAdmin):
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking', 'reg_open', 'date')
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ()
+        return ("event_refund_summary", "event_checkout_audit_timeline")
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = (
+            (_("Závod"), {
+                "fields": (
+                    "name",
+                    ("date", "organizer"),
+                    ("type_for_ranking", "reg_open"),
+                    ("reg_open_from", "reg_open_to", "reg_cancel_to"),
+                    ("pcp", "pcp_assist", "start_commissar"),
+                    "classes_and_fees_like",
+                    "xls_results",
+                ),
+            }),
+        )
+        if obj is not None:
+            fieldsets += (
+                (_("Audit registrací"), {
+                    "fields": ("event_refund_summary", "event_checkout_audit_timeline"),
+                }),
+            )
+        return fieldsets
+
+    @admin.display(description=_("Souhrn refundů"))
+    def event_refund_summary(self, obj):
+        refunds = CreditTransaction.objects.filter(
+            kind=CreditTransaction.Kind.CHECKOUT_REFUND,
+            source_entry__event=obj,
+        )
+        refund_count = refunds.count()
+        refund_total = sum(refund.amount for refund in refunds)
+        checkout_entries = Entry.objects.filter(event=obj, checkout=True).count()
+
+        return format_html(
+            "<div>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {} Kč</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "</div>",
+            _("Počet refundů:"),
+            refund_count,
+            _("Celkem vráceno:"),
+            refund_total,
+            _("Registrace s checkout:"),
+            checkout_entries,
+        )
+
+    @admin.display(description=_("Timeline checkoutu"))
+    def event_checkout_audit_timeline(self, obj):
+        audit_logs = list(
+            EntryAuditLog.objects.filter(entry__event=obj)
+            .select_related("actor")
+            .order_by("-created_at")[:20]
+        )
+        if not audit_logs:
+            return _("Zatím nejsou k dispozici žádné auditní záznamy pro tento závod.")
+
+        rows = []
+        for log in audit_logs:
+            actor = str(log.actor) if log.actor else "-"
+            rows.append(
+                f"<tr>"
+                f"<td style='padding:8px 12px;'>{log.created_at:%d.%m.%Y %H:%M}</td>"
+                f"<td style='padding:8px 12px;'>{log.rider_name_snapshot or '-'}</td>"
+                f"<td style='padding:8px 12px;'>{log.get_action_display()}</td>"
+                f"<td style='padding:8px 12px;'>{log.source}</td>"
+                f"<td style='padding:8px 12px;'>{'Ano' if log.old_checkout else 'Ne'} → {'Ano' if log.new_checkout else 'Ne'}</td>"
+                f"<td style='padding:8px 12px;'>{actor}</td>"
+                f"<td style='padding:8px 12px;'>{log.note or '-'}</td>"
+                f"</tr>"
+            )
+
+        table = (
+            "<table style='width:100%; border-collapse:collapse;'>"
+            "<thead>"
+            "<tr>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Kdy')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Jezdec')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Akce')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Zdroj')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Stav')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Uživatel')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Poznámka')}</th>"
+            "</tr>"
+            "</thead>"
+            "<tbody>"
+            + "".join(rows) +
+            "</tbody>"
+            "</table>"
+        )
+        return format_html("{}", mark_safe(table))
+
 
 class EntryClassesAdmin(BaseAdmin):
     fieldsets = (
@@ -124,7 +221,32 @@ class EntryAdmin(BaseAdmin):
     action_confirmation_template = "admin/event/entry/checkout_action_confirmation.html"
 
     def get_readonly_fields(self, request, obj=None):
-        return ("checkout",)
+        readonly_fields = ("checkout",)
+        if obj is not None:
+            readonly_fields += ("checkout_refund_summary", "checkout_audit_timeline")
+        return readonly_fields
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = (
+            (_("Registrace"), {
+                "fields": (
+                    ("event", "rider", "user"),
+                    ("payment_complete", "checkout"),
+                    ("is_beginner", "is_20", "is_24"),
+                    ("class_beginner", "class_20", "class_24"),
+                    ("fee_beginner", "fee_20", "fee_24"),
+                    ("transaction_id", "transaction_date"),
+                    ("customer_name", "customer_email"),
+                ),
+            }),
+        )
+        if obj is not None:
+            fieldsets += (
+                (_("Audit a refund"), {
+                    "fields": ("checkout_refund_summary", "checkout_audit_timeline"),
+                }),
+            )
+        return fieldsets
 
     def save_model(self, request, obj, form, change):
         previous_checkout = None
@@ -235,6 +357,80 @@ class EntryAdmin(BaseAdmin):
             return refund.payment_intent or "Vratka"
         return format_html('<a href="{}">{} Kč</a>', url, refund.amount)
 
+    @admin.display(description=_("Souhrn refundu"))
+    def checkout_refund_summary(self, obj):
+        refund = obj.credit_transactions.filter(kind=CreditTransaction.Kind.CHECKOUT_REFUND).first()
+        if not refund:
+            return _("Pro tuto registraci není vytvořená žádná refund transakce.")
+
+        try:
+            refund_url = reverse("admin:event_credittransaction_change", args=[refund.pk])
+            refund_link = format_html('<a href="{}">#{}</a>', refund_url, refund.pk)
+        except NoReverseMatch:
+            refund_link = f"#{refund.pk}"
+
+        event_name = obj.event.name if obj.event else "-"
+        return format_html(
+            "<div>"
+            "<p><strong>{}</strong> {} Kč</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "</div>",
+            _("Částka:"),
+            refund.amount,
+            _("Transakce:"),
+            refund_link,
+            _("Intent:"),
+            refund.payment_intent or "-",
+            _("Dokončeno:"),
+            _("Ano") if refund.payment_complete else _("Ne"),
+            _("Závod:"),
+            event_name,
+        )
+
+    @admin.display(description=_("Audit checkoutu"))
+    def checkout_audit_timeline(self, obj):
+        audit_logs = list(
+            obj.audit_logs.select_related("actor").order_by("-created_at")[:12]
+        )
+        if not audit_logs:
+            return _("Zatím nejsou k dispozici žádné auditní záznamy.")
+
+        rows = []
+        for log in audit_logs:
+            actor = str(log.actor) if log.actor else "-"
+            rows.append(
+                f"<tr>"
+                f"<td style='padding:8px 12px;'>{log.created_at:%d.%m.%Y %H:%M}</td>"
+                f"<td style='padding:8px 12px;'>{log.get_action_display()}</td>"
+                f"<td style='padding:8px 12px;'>{log.source}</td>"
+                f"<td style='padding:8px 12px;'>{'Ano' if log.old_checkout else 'Ne'} → {'Ano' if log.new_checkout else 'Ne'}</td>"
+                f"<td style='padding:8px 12px;'>{actor}</td>"
+                f"<td style='padding:8px 12px;'>{log.note or '-'}</td>"
+                f"</tr>"
+            )
+
+        table = (
+            "<table style='width:100%; border-collapse:collapse;'>"
+            "<thead>"
+            "<tr>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Kdy')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Akce')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Zdroj')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Stav')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Uživatel')}</th>"
+            f"<th style='text-align:left; padding:8px 12px;'>{_('Poznámka')}</th>"
+            "</tr>"
+            "</thead>"
+            "<tbody>"
+            + "".join(rows) +
+            "</tbody>"
+            "</table>"
+        )
+        return format_html("{}", mark_safe(table))
+
 
 class EntryForeignAdmin(BaseAdmin):
     list_display = (
@@ -333,6 +529,37 @@ class CreditTransactionAdmin(BaseAdmin):
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'transaction_date', 'payment_intent', 'source_entry__event__name', 'source_entry__rider__last_name')
     list_filter = ('transaction_date', 'kind', 'payment_complete')
+
+    def _is_automatic_checkout_refund(self, obj):
+        return bool(
+            obj
+            and obj.pk
+            and obj.kind == CreditTransaction.Kind.CHECKOUT_REFUND
+            and obj.source_entry_id
+        )
+
+    def get_readonly_fields(self, request, obj=None):
+        if self._is_automatic_checkout_refund(obj):
+            return tuple(field.name for field in self.model._meta.fields)
+        return ()
+
+    def has_delete_permission(self, request, obj=None):
+        if self._is_automatic_checkout_refund(obj):
+            return False
+        return super().has_delete_permission(request, obj=obj)
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        obj = None
+        if object_id:
+            obj = self.get_object(request, object_id)
+        if request.method == "POST" and self._is_automatic_checkout_refund(obj):
+            self.message_user(
+                request,
+                _("Automatickou checkout refund transakci nelze ručně upravovat."),
+                level=messages.WARNING,
+            )
+            return HttpResponseRedirect(request.path)
+        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def save_model(self, request, obj, form, change):
         note = ""
