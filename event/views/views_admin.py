@@ -67,7 +67,7 @@ from rider.rider import (
     resolve_api_category_code,
     trigger_cn_qualification_recount_if_needed,
 )
-from finance.invoices import generate_event_invoices
+from finance.invoices import generate_event_invoices, send_event_invoices
 from event.prize_money import PrizeMoneyPdfService
 from event.services.race_run_import import RaceRunImportService
 from event.services.uci_export import (
@@ -726,6 +726,30 @@ def event_admin_view(request, pk):
     elif "btn-txt-delete" in request.POST:
         _handle_delete_txt(request, event, pk)
 
+    elif "btn-generate-invoices" in request.POST:
+        result = generate_event_invoices(event.id)
+        if result["generated"]:
+            messages.success(
+                request,
+                f"Vygenerováno {len(result['generated'])} faktur. Teď je můžeš upravit a následně odeslat.",
+            )
+        else:
+            messages.warning(request, "Pro tento závod nebyly nalezeny žádné uhrazené registrace klubů k fakturaci.")
+
+    elif "btn-send-invoices" in request.POST:
+        generated = generate_event_invoices(event.id)
+        result = send_event_invoices(event.id)
+        if generated["generated"]:
+            messages.success(
+                request,
+                (
+                    f"Odesláno {len(result['sent'])} e-mailů, "
+                    f"bez e-mailu zůstalo {len(result['skipped'])} klubů."
+                ),
+            )
+        else:
+            messages.warning(request, "Pro tento závod nebyly nalezeny žádné uhrazené registrace klubů k fakturaci.")
+
     # Shrnutí pro šablonu event-admin.html (zobrazí se vždy po akci nebo při GET)
     entries = Entry.objects.filter(event=event.id, payment_complete=True, checkout=False)
     foreign_entries = EntryForeign.objects.filter(event=event.id, payment_complete=True, checkout=False)
@@ -1298,7 +1322,8 @@ def unpaid_moto_riders_report_pdf(request, pk):
 @staff_member_required
 def send_invoices(request, pk):
     """Rozesílání faktur klubům pro daný závod."""
-    result = generate_event_invoices(pk)
+    generated = generate_event_invoices(pk)
+    result = send_event_invoices(pk)
     audit_logger.info(
         "event_invoices_generated admin_user_id=%s event_id=%s sent_count=%s",
         request.user.id,
@@ -1309,10 +1334,10 @@ def send_invoices(request, pk):
         "event": get_object_or_404(Event, pk=pk),
         "sent_count": len(result["sent"]),
         "export_summary": {
-            "total_results": len(result["sent"]),
+            "total_results": len(generated["generated"]),
             "sent_count": len(result["sent"]),
-            "skipped_count": 0,
-            "sent_ratio": 100 if result["sent"] else 0,
+            "skipped_count": len(result["skipped"]),
+            "sent_ratio": round((len(result["sent"]) / len(generated["generated"])) * 100) if generated["generated"] else 0,
             "women_count": 0,
             "men_count": 0,
             "czech_count": 0,

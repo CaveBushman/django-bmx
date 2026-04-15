@@ -96,10 +96,10 @@ class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
         user = Account.objects.filter(pk=account_id).first()
         if not user:
             self.message_user(request, _("Uživatel nebyl nalezen."), level=messages.ERROR)
-            return HttpResponseRedirect(reverse("admin:accounts_account_changelist"))
+            return HttpResponseRedirect(reverse("admin:index"))
         if user.is_active:
             self.message_user(request, _("Účet je už aktivní."), level=messages.WARNING)
-            return HttpResponseRedirect(reverse("admin:accounts_account_change", args=[user.pk]))
+            return HttpResponseRedirect(reverse("admin:index"))
 
         send_activation_email(
             request,
@@ -112,7 +112,7 @@ class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
             _("Aktivační e-mail byl znovu odeslán na %(email)s.") % {"email": user.email},
             level=messages.SUCCESS,
         )
-        return HttpResponseRedirect(reverse("admin:accounts_account_change", args=[user.pk]))
+        return HttpResponseRedirect(reverse("admin:index"))
 
     @admin.display(description="Stav aktivace")
     def activation_status_badge(self, obj):

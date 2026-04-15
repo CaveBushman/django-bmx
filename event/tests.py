@@ -1540,6 +1540,14 @@ class EntryAdminActionTests(TestCase):
         self.assertContains(response, "Potvrzení vrácení startovného")
         self.assertContains(response, self.rider.last_name)
 
+    def test_admin_entry_change_page_loads_for_existing_entry(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("admin:event_entry_change", args=[self.entry.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "transaction_date")
+
     def test_admin_checkout_action_confirmation_applies_refund(self):
         self.client.force_login(self.staff_user)
 
