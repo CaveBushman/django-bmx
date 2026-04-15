@@ -312,6 +312,8 @@ def create_entry_audit_log(
 
 
 def log_checkout_transition(entry, *, created=False):
+    from event.models import EntryAuditLog
+
     previous = getattr(entry, "_previous_state", {}) or {}
     previous_checkout = bool(previous.get("checkout", False))
     current_checkout = bool(entry.checkout)

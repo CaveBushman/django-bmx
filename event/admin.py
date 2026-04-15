@@ -221,7 +221,7 @@ class EntryAdmin(BaseAdmin):
     action_confirmation_template = "admin/event/entry/checkout_action_confirmation.html"
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = ("checkout",)
+        readonly_fields = ("checkout", "transaction_date")
         if obj is not None:
             readonly_fields += ("checkout_refund_summary", "checkout_audit_timeline")
         return readonly_fields
