@@ -26,6 +26,7 @@ except ImportError:
     pikepdf = None
 
 from event.models import Entry, Event
+from bmx.observability import set_tag, start_span
 from finance.models import EventInvoice, EventInvoiceOverride
 
 
@@ -381,26 +382,51 @@ class EventInvoiceService:
         pdf.drawString(20 * mm, current_y, "Faktura byla vygenerována automaticky z uhrazených registrací závodu.")
 
     def _generate_pdf(self, invoice, lines):
-        buffer = BytesIO()
-        pdf = NumberedCanvas(buffer, pagesize=A4)
-        _, height = A4
-        generated_at = timezone.localtime().strftime("%d.%m.%Y %H:%M")
-        footer_left = f"Startovné | {invoice.event.name}"
-        footer_right = f"Generováno {generated_at}"
+        with start_span(
+            op="finance.invoice",
+            name="generate_invoice_pdf",
+            invoice_id=invoice.id,
+            event_id=invoice.event_id,
+            club_id=invoice.club_id,
+            line_count=len(lines),
+        ):
+            buffer = BytesIO()
+            pdf = NumberedCanvas(buffer, pagesize=A4)
+            _, height = A4
+            generated_at = timezone.localtime().strftime("%d.%m.%Y %H:%M")
+            footer_left = f"Startovné | {invoice.event.name}"
+            footer_right = f"Generováno {generated_at}"
 
-        subject_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=True)
-        table_top = subject_bottom_y - 16 * mm
-        self._draw_invoice_table_header(pdf, table_top)
+            subject_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=True)
+            table_top = subject_bottom_y - 16 * mm
+            self._draw_invoice_table_header(pdf, table_top)
 
-        current_y = table_top - 7 * mm
-        bottom_limit = 30 * mm
-        summary_reserved = 42 * mm
+            current_y = table_top - 7 * mm
+            bottom_limit = 30 * mm
+            summary_reserved = 42 * mm
 
-        for line in lines:
-            description_lines = simpleSplit(line.description, "DejaVuSans", 9, 116 * mm) or [line.description]
-            row_height = max(6 * mm, (len(description_lines) * 4.6 * mm) + 1.5 * mm)
+            for line in lines:
+                description_lines = simpleSplit(line.description, "DejaVuSans", 9, 116 * mm) or [line.description]
+                row_height = max(6 * mm, (len(description_lines) * 4.6 * mm) + 1.5 * mm)
 
-            if current_y - row_height < bottom_limit + summary_reserved:
+                if current_y - row_height < bottom_limit + summary_reserved:
+                    draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
+                    pdf.showPage()
+                    header_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=False)
+                    table_top = header_bottom_y - 10 * mm
+                    self._draw_invoice_table_header(pdf, table_top)
+                    current_y = table_top - 7 * mm
+
+                pdf.setFillColor(colors.black)
+                pdf.setFont("DejaVuSans", 9)
+                text_y = current_y
+                for description_line in description_lines:
+                    pdf.drawString(24 * mm, text_y, description_line)
+                    text_y -= 4.6 * mm
+                pdf.drawRightString(187 * mm, current_y, f"{line.unit_price:.2f} Kč")
+                current_y -= row_height
+
+            if current_y - summary_reserved < bottom_limit:
                 draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
                 pdf.showPage()
                 header_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=False)
@@ -408,28 +434,11 @@ class EventInvoiceService:
                 self._draw_invoice_table_header(pdf, table_top)
                 current_y = table_top - 7 * mm
 
-            pdf.setFillColor(colors.black)
-            pdf.setFont("DejaVuSans", 9)
-            text_y = current_y
-            for description_line in description_lines:
-                pdf.drawString(24 * mm, text_y, description_line)
-                text_y -= 4.6 * mm
-            pdf.drawRightString(187 * mm, current_y, f"{line.unit_price:.2f} Kč")
-            current_y -= row_height
-
-        if current_y - summary_reserved < bottom_limit:
+            self._draw_invoice_summary(pdf, invoice, current_y)
             draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
-            pdf.showPage()
-            header_bottom_y = self._draw_invoice_page_header(pdf, invoice, include_parties=False)
-            table_top = header_bottom_y - 10 * mm
-            self._draw_invoice_table_header(pdf, table_top)
-            current_y = table_top - 7 * mm
-
-        self._draw_invoice_summary(pdf, invoice, current_y)
-        draw_pdf_footer(pdf, left_text=footer_left, right_text=footer_right)
-        pdf.save()
-        buffer.seek(0)
-        return buffer.getvalue()
+            pdf.save()
+            buffer.seek(0)
+            return buffer.getvalue()
 
     def _isdoc_tag(self, name):
         return f"{{{ISDOC_NS}}}{name}"
@@ -582,14 +591,22 @@ class EventInvoiceService:
         return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
     def _save_invoice_files(self, invoice, lines):
-        file_base = self._invoice_filename_base(invoice)
-        pdf_bytes = self._generate_pdf(invoice, lines)
-        isdoc_bytes = self._build_isdoc_xml(invoice, lines)
-        pdf_bytes = self._embed_isdoc_into_pdf(pdf_bytes, isdoc_bytes)
-        xml_bytes = self._build_flexibee_xml([{"invoice": invoice, "lines": lines}])
+        with start_span(
+            op="finance.invoice",
+            name="save_invoice_files",
+            invoice_id=invoice.id,
+            event_id=invoice.event_id,
+            club_id=invoice.club_id,
+            line_count=len(lines),
+        ):
+            file_base = self._invoice_filename_base(invoice)
+            pdf_bytes = self._generate_pdf(invoice, lines)
+            isdoc_bytes = self._build_isdoc_xml(invoice, lines)
+            pdf_bytes = self._embed_isdoc_into_pdf(pdf_bytes, isdoc_bytes)
+            xml_bytes = self._build_flexibee_xml([{"invoice": invoice, "lines": lines}])
 
-        invoice.pdf.save(f"{file_base}.pdf", ContentFile(pdf_bytes), save=False)
-        invoice.xml_export.save(f"{file_base}.xml", ContentFile(xml_bytes), save=False)
+            invoice.pdf.save(f"{file_base}.pdf", ContentFile(pdf_bytes), save=False)
+            invoice.xml_export.save(f"{file_base}.xml", ContentFile(xml_bytes), save=False)
 
     def _send_invoice_email(self, invoice):
         recipient = invoice.club.billing_email or invoice.club.contact_email
@@ -628,67 +645,73 @@ class EventInvoiceService:
 
     @transaction.atomic
     def generate_for_event(self, event):
-        club_lines = self.get_club_lines(event)
-        generated = []
-        current_club_ids = {club.id for club in club_lines.keys()}
+        set_tag("event.id", event.id)
+        set_tag("event.name", event.name)
+        with start_span(op="finance.invoice", name="generate_invoices_for_event", event_id=event.id):
+            club_lines = self.get_club_lines(event)
+            generated = []
+            current_club_ids = {club.id for club in club_lines.keys()}
 
-        stale_invoices = EventInvoice.objects.filter(event=event).exclude(club_id__in=current_club_ids)
-        for stale_invoice in stale_invoices:
-            self.delete_invoice(stale_invoice)
+            stale_invoices = EventInvoice.objects.filter(event=event).exclude(club_id__in=current_club_ids)
+            for stale_invoice in stale_invoices:
+                self.delete_invoice(stale_invoice)
 
-        for club, lines in club_lines.items():
-            total = _money(sum(line.total for line in lines))
-            if total <= 0:
-                continue
+            for club, lines in club_lines.items():
+                total = _money(sum(line.total for line in lines))
+                if total <= 0:
+                    continue
 
-            issue_date = timezone.localdate()
-            due_date = issue_date
-            invoice, created = EventInvoice.objects.get_or_create(
-                event=event,
-                club=club,
-                defaults={
-                    "number": self._build_invoice_number(),
-                    "issue_date": issue_date,
-                    "due_date": due_date,
-                    "total_price": total,
-                },
-            )
-            invoice.issue_date = issue_date
-            invoice.due_date = due_date
-            invoice.total_price = total
-            if created and not invoice.number:
-                invoice.number = self._build_invoice_number()
-            self._save_invoice_files(invoice, lines)
-            invoice.save()
-            generated.append(invoice)
+                issue_date = timezone.localdate()
+                due_date = issue_date
+                invoice, created = EventInvoice.objects.get_or_create(
+                    event=event,
+                    club=club,
+                    defaults={
+                        "number": self._build_invoice_number(),
+                        "issue_date": issue_date,
+                        "due_date": due_date,
+                        "total_price": total,
+                    },
+                )
+                invoice.issue_date = issue_date
+                invoice.due_date = due_date
+                invoice.total_price = total
+                if created and not invoice.number:
+                    invoice.number = self._build_invoice_number()
+                self._save_invoice_files(invoice, lines)
+                invoice.save()
+                generated.append(invoice)
 
-        self._rebuild_event_export(event)
+            self._rebuild_event_export(event)
 
-        return {
-            "generated": generated,
-            "sent": [],
-            "skipped": [],
-            "xml_path": event.flexibee_export.name if event.flexibee_export else "",
-        }
+            return {
+                "generated": generated,
+                "sent": [],
+                "skipped": [],
+                "xml_path": event.flexibee_export.name if event.flexibee_export else "",
+            }
 
     @transaction.atomic
     def send_for_event(self, event):
-        invoices = list(EventInvoice.objects.filter(event=event).select_related("club").order_by("club__team_name"))
-        sent = []
-        skipped = []
-        for invoice in invoices:
-            delivered, recipient = self._send_invoice_email(invoice)
-            invoice.save(update_fields=["email_sent_at", "email_sent_to", "updated"])
-            if delivered:
-                sent.append((invoice, recipient))
-            else:
-                skipped.append((invoice, recipient))
-        return {
-            "generated": invoices,
-            "sent": sent,
-            "skipped": skipped,
-            "xml_path": event.flexibee_export.name if event.flexibee_export else "",
-        }
+        set_tag("event.id", event.id)
+        set_tag("event.name", event.name)
+        with start_span(op="finance.invoice", name="send_invoices_for_event", event_id=event.id):
+            invoices = list(EventInvoice.objects.filter(event=event).select_related("club").order_by("club__team_name"))
+            sent = []
+            skipped = []
+            for invoice in invoices:
+                delivered, recipient = self._send_invoice_email(invoice)
+                invoice.save(update_fields=["email_sent_at", "email_sent_to", "updated"])
+                if delivered:
+                    sent.append((invoice, recipient))
+                else:
+                    skipped.append((invoice, recipient))
+            return {
+                "generated": invoices,
+                "sent": sent,
+                "skipped": skipped,
+                "xml_path": event.flexibee_export.name if event.flexibee_export else "",
+            }
 
     @transaction.atomic
     def update_invoice_for_club(self, event, club):

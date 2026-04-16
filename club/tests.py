@@ -1,5 +1,6 @@
 import tempfile
 from datetime import date
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
@@ -81,3 +82,11 @@ class ClubExportTests(TestCase):
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
         self.assertIn("RIDERS_IN_EVENTS-", response["Content-Disposition"])
+
+    def test_club_export_view_source_does_not_use_direct_file_open(self):
+        source = (
+            Path(__file__).resolve().parent / "views.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("storage", source)
+        self.assertNotIn("open(file_path, \"rb\")", source)

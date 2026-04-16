@@ -1,6 +1,8 @@
 from datetime import date
+import tempfile
 from unittest.mock import patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django_ckeditor_5.widgets import CKEditor5Widget
@@ -152,6 +154,30 @@ class RichTextRenderSafetyTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "<script>alert(1)</script>", html=False)
         self.assertNotContains(response, "javascript:alert(1)", html=False)
+
+
+class DownloadsFileDownloadTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_media_dir.cleanup)
+        self.media_override = self.settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+
+    def test_download_file_view_serves_uploaded_document(self):
+        document = Downloads.objects.create(
+            title="Rulebook",
+            description="desc",
+            published=True,
+            path=SimpleUploadedFile("rulebook.pdf", b"%PDF-test", content_type="application/pdf"),
+        )
+
+        response = self.client.get(reverse("news:download_file", kwargs={"pk": document.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("rulebook.pdf", response["Content-Disposition"])
+        document.refresh_from_db()
+        self.assertEqual(document.downloads_count, 1)
 
     @patch('news.models._EXECUTOR.submit')
     def test_news_detail_view_sanitizes_historical_news_content(self, mock_submit):

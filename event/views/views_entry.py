@@ -52,6 +52,8 @@ from event.views.entry_helpers import (
 from event.views.payment_helpers import finalize_entry_checkout_session
 import stripe
 
+from bmx.observability import set_tag, start_span
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -71,6 +73,9 @@ def add_entries_view(request, pk):
     POST: Zpracuje výběr checkboxů, spočítá startovné a uloží přihlášky do košíku.
     """
     event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), id=pk)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
+    set_tag("user.id", getattr(request.user, "id", None))
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -162,17 +167,28 @@ def confirm_view(request):
     Po vytvoření Stripe session jsou Entry záznamy atomicky zapsány do DB.
     """
     event, riders_beginner, riders_20, riders_24 = load_checkout_session_payload(request)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
+    set_tag("user.id", getattr(request.user, "id", None))
 
     if request.method == "POST":
         total_selected = len(riders_beginner) + len(riders_20) + len(riders_24)
 
         try:
-            checkout_session = create_entry_checkout_session(
-                event=event,
-                riders_beginner=riders_beginner,
-                riders_20=riders_20,
-                riders_24=riders_24,
-            )
+            with start_span(
+                op="event.checkout",
+                name="create_entry_checkout_session",
+                event_id=event.id,
+                beginner_count=len(riders_beginner),
+                class20_count=len(riders_20),
+                class24_count=len(riders_24),
+            ):
+                checkout_session = create_entry_checkout_session(
+                    event=event,
+                    riders_beginner=riders_beginner,
+                    riders_20=riders_20,
+                    riders_24=riders_24,
+                )
 
             audit_logger.info(
                 "event_checkout_started user_id=%s event_id=%s beginner=%s class20=%s class24=%s total_entries=%s session_id=%s",
@@ -270,6 +286,8 @@ def entry_foreign_pay_view(request, pk):
         return redirect("event:entry-foreign", pk=pk)
 
     event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), pk=pk)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
@@ -285,11 +303,18 @@ def entry_foreign_pay_view(request, pk):
         return redirect("event:entry-foreign-summary", pk=pk)
 
     try:
-        checkout_session = create_foreign_entry_checkout_session(
-            event=event,
-            summary_rows=summary_rows,
-            customer_email=customer_email,
-        )
+        with start_span(
+            op="event.checkout",
+            name="create_foreign_entry_checkout_session",
+            event_id=event.id,
+            row_count=len(summary_rows),
+            total_fee=str(total_fee),
+        ):
+            checkout_session = create_foreign_entry_checkout_session(
+                event=event,
+                summary_rows=summary_rows,
+                customer_email=customer_email,
+            )
         audit_logger.info(
             "foreign_entry_checkout_started event_id=%s rows=%s total_fee=%s customer_email=%s session_id=%s",
             event.id,
@@ -345,10 +370,18 @@ def check_rider(request):
 def fees_on_event(request, pk):
     """Přehled startovného na závodě rozdělený po klubech."""
     event = get_object_or_404(Event, pk=pk)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
+    set_tag("user.id", getattr(request.user, "id", None))
 
     if request.method == "POST":
         if "btn-generate-invoices" in request.POST:
-            result = generate_event_invoices(event.id)
+            with start_span(
+                op="finance.invoice",
+                name="generate_event_invoices",
+                event_id=event.id,
+            ):
+                result = generate_event_invoices(event.id)
             if result["generated"]:
                 messages.success(request, f"Vygenerováno {len(result['generated'])} faktur. Teď je můžeš upravit a následně odeslat.")
             else:
@@ -356,7 +389,12 @@ def fees_on_event(request, pk):
             return redirect("event:fees-on-event", pk=pk)
 
         if "btn-send-invoices" in request.POST:
-            result = send_event_invoices(event.id)
+            with start_span(
+                op="finance.invoice",
+                name="send_event_invoices",
+                event_id=event.id,
+            ):
+                result = send_event_invoices(event.id)
             if result["generated"]:
                 messages.success(
                     request,
@@ -381,8 +419,18 @@ def fees_on_event(request, pk):
 @staff_member_required
 def invoice_edit_view(request, pk, club_id):
     event = get_object_or_404(Event, pk=pk)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
+    set_tag("club.id", club_id)
+    set_tag("user.id", getattr(request.user, "id", None))
     invoice_service = EventInvoiceService()
-    preview = next((item for item in invoice_service.get_club_previews(event) if item["club"].id == club_id), None)
+    with start_span(
+        op="finance.invoice",
+        name="invoice_preview_lookup",
+        event_id=event.id,
+        club_id=club_id,
+    ):
+        preview = next((item for item in invoice_service.get_club_previews(event) if item["club"].id == club_id), None)
     if not preview:
         messages.error(request, "Pro tento klub nejsou připravené položky faktury.")
         return redirect("event:fees-on-event", pk=pk)
@@ -414,12 +462,19 @@ def invoice_edit_view(request, pk, club_id):
             if not cleaned_rows:
                 messages.error(request, "Faktura musí obsahovat alespoň jednu položku.")
             else:
-                save_invoice_override(
-                    event,
-                    preview["club"],
-                    "\n".join(description for description, _ in cleaned_rows),
-                    "\n".join(amount for _, amount in cleaned_rows),
-                )
+                with start_span(
+                    op="finance.invoice",
+                    name="save_invoice_override",
+                    event_id=event.id,
+                    club_id=preview["club"].id,
+                    row_count=len(cleaned_rows),
+                ):
+                    save_invoice_override(
+                        event,
+                        preview["club"],
+                        "\n".join(description for description, _ in cleaned_rows),
+                        "\n".join(amount for _, amount in cleaned_rows),
+                    )
                 messages.success(request, f"Položky faktury pro klub {preview['club'].team_name} byly upraveny a PDF/XML byly přegenerovány.")
                 return redirect("event:fees-on-event", pk=pk)
 
@@ -499,7 +554,15 @@ def cash_receipts_on_event(request, pk):
 @staff_member_required
 def cash_receipts_export_view(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    xml_bytes = EventCashReceiptService().export_xml_for_event(event)
+    set_tag("event.id", event.id)
+    set_tag("event.name", event.name)
+    set_tag("user.id", getattr(request.user, "id", None))
+    with start_span(
+        op="finance.cash_receipt",
+        name="export_cash_receipts_xml",
+        event_id=event.id,
+    ):
+        xml_bytes = EventCashReceiptService().export_xml_for_event(event)
     if not xml_bytes:
         messages.warning(request, "Pro tento závod zatím nejsou žádné pokladní doklady k exportu.")
         return redirect("event:cash-receipts-on-event", pk=pk)
