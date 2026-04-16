@@ -383,7 +383,7 @@
                       </a>
                       <form method="post" action="{% url 'event:invoice-delete' event.id invoice.id %}" class="inline-flex">
                         {% csrf_token %}
-                        <button type="submit" class="invoice-link-chip invoice-link-danger" onclick="return confirm('Opravdu smazat tuto fakturu?');" title="Smazat fakturu" aria-label="Smazat fakturu">
+                        <button type="submit" class="invoice-link-chip invoice-link-danger" data-confirm-message="Opravdu smazat tuto fakturu?" title="Smazat fakturu" aria-label="Smazat fakturu">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18" />
                             <path d="M8 6V4h8v2" />

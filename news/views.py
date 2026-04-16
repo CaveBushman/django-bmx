@@ -14,8 +14,20 @@ from django.db.models import F, Q
 import mimetypes
 import os
 from theme.models import Sponsor
+from bmx.html_sanitizer import sanitize_rich_html
 
 # Create your views here.
+
+
+def _sanitize_news_for_render(article):
+    article.prefix = sanitize_rich_html(article.prefix)
+    article.content = sanitize_rich_html(article.content)
+    return article
+
+
+def _sanitize_download_for_render(document):
+    document.description = sanitize_rich_html(document.description)
+    return document
 
 def get_image_dimensions(image_field):
     image = Image.open(BytesIO(image_field.read()))
@@ -38,6 +50,7 @@ def homepage_view(request):
             .prefetch_related("tags")
             .order_by("-publish_date")
         )
+        homepage_news = [_sanitize_news_for_render(article) for article in homepage_news]
         sponsors = list(
             Sponsor.objects.filter(
                 is_published=True,
@@ -88,7 +101,7 @@ def news_list_view(request):
     ARTICLES_PER_PAGE = 10
     PAGINATION_WINDOW = 10
 
-    news = News.objects.filter(published=True).order_by('-publish_date')
+    news = [_sanitize_news_for_render(article) for article in News.objects.filter(published=True).order_by('-publish_date')]
     sum_of_news = News.sum_of_news()
 
     # Set up pagination
@@ -130,6 +143,7 @@ def news_detail_view(request, slug):
 
     # Přičti zhlédnutí
     news.increment_views()
+    news = _sanitize_news_for_render(news)
     queryset = {
         'news': news,
         "absolute_image_url": request.build_absolute_uri(news.photo_01_url) if news.photo_01_url else None,
@@ -138,7 +152,7 @@ def news_detail_view(request, slug):
 
 
 def downloads_view(request):
-    documents = Downloads.objects.filter(published=True)
+    documents = [_sanitize_download_for_render(document) for document in Downloads.objects.filter(published=True)]
     categories = ['Pro jezdce', 'Pro kluby', 'Pro rozhodčí']
     data = {'documents': documents, 'categories': categories}
     return render(request, 'downloads.html', data )

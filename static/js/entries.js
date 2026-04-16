@@ -64,6 +64,44 @@ function searchByName() {
     }
   }
 
+function initEntryListFilters() {
+  var nameInput = document.getElementById("inputName");
+  var clubInput = document.getElementById("inputClub");
+  var classInput = document.getElementById("inputClass");
+
+  if (nameInput) {
+    nameInput.addEventListener("input", searchByName);
+  }
+
+  if (clubInput) {
+    clubInput.addEventListener("input", searchByClub);
+  }
+
+  if (classInput) {
+    classInput.addEventListener("input", searchByClass);
+  }
+}
+
+function initEntryListRowNavigation() {
+  document.querySelectorAll("tr[data-detail-url]").forEach(function (row) {
+    row.setAttribute("tabindex", "0");
+
+    row.addEventListener("click", function (event) {
+      if (event.target.closest("a, button, input, select, textarea, label, form")) {
+        return;
+      }
+      window.location = row.dataset.detailUrl;
+    });
+
+    row.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        window.location = row.dataset.detailUrl;
+      }
+    });
+  });
+}
+
   function updateEntrySelectionSummary() {
     var submitButton = document.getElementById("entry-submit-btn");
     var selectionLabel = document.getElementById("entry-selection-label");
@@ -94,5 +132,9 @@ function searchByName() {
     }
   });
 
-  document.addEventListener("DOMContentLoaded", updateEntrySelectionSummary);
+  document.addEventListener("DOMContentLoaded", function () {
+    initEntryListFilters();
+    initEntryListRowNavigation();
+    updateEntrySelectionSummary();
+  });
   

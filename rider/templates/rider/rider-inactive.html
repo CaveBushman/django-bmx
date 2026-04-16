@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<script src="{% static 'js/rider_inactive.js' %}?v=1" defer></script>
 <style>
   .inactive-release-button {
     transition:
@@ -196,53 +197,4 @@
   </div>
 </div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("inactive-release-modal");
-    const riderLabel = document.getElementById("inactive-release-modal-rider");
-    const closeButton = document.getElementById("inactive-release-modal-close");
-    const cancelButton = document.getElementById("inactive-release-modal-cancel");
-    const confirmButton = document.getElementById("inactive-release-modal-confirm");
-    const triggers = document.querySelectorAll("[data-release-trigger]");
-    if (!modal || !riderLabel || !closeButton || !cancelButton || !confirmButton || !triggers.length) return;
-
-    let pendingForm = null;
-
-    const closeModal = () => {
-      modal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-      pendingForm = null;
-    };
-
-    triggers.forEach((trigger) => {
-      trigger.addEventListener("click", (event) => {
-        event.preventDefault();
-        pendingForm = trigger.closest("[data-release-form]");
-        if (!pendingForm) return;
-        riderLabel.textContent = pendingForm.dataset.riderName || "{% trans 'vybraný jezdec' %}";
-        modal.classList.remove("hidden");
-        document.body.classList.add("overflow-hidden");
-      });
-    });
-
-    confirmButton.addEventListener("click", () => {
-      if (!pendingForm) return;
-      pendingForm.submit();
-    });
-
-    closeButton.addEventListener("click", closeModal);
-    cancelButton.addEventListener("click", closeModal);
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal || event.target === modal.firstElementChild) {
-        closeModal();
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeModal();
-      }
-    });
-  });
-</script>
 {% endblock content %}

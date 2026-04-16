@@ -7,33 +7,7 @@
     {% load google_analytics_gtag %}
     {% google_analytics_gtag %}
 
-  <!-- Dark mode: aplikuj třídu před vykreslením stránky, aby nedošlo k blikání -->
-  <script>
-    (function () {
-      function getStoredTheme() {
-        try {
-          return window.localStorage.getItem("theme");
-        } catch (error) {
-          return null;
-        }
-      }
-
-      var stored = getStoredTheme();
-      var prefersDark = false;
-
-      try {
-        prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      } catch (error) {
-        prefersDark = false;
-      }
-
-      if (stored === "dark" || (!stored && prefersDark)) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    })();
-  </script>
+  <script src="{% static 'js/base-head.js' %}?v=1"></script>
 
   <meta http-equiv="Cache-Control" content="no-store" />
   <meta charset="UTF-8" />
@@ -41,6 +15,7 @@
   <meta name="viewport" content="initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.5/dist/flowbite.min.css" />
   <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}?v=6" />
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}?v=1" />
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"
     integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni" crossorigin="anonymous" />
@@ -113,26 +88,15 @@
   </div>
 
   <!-- Scripty -->
+  <!-- Note: These scripts are loaded in order for navbar and theme functionality.
+       jQuery is loaded without defer as it's a dependency for other scripts.
+       Other scripts use cache busting (?v=N) to prevent stale assets. -->
   <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
     crossorigin="anonymous"></script>
+  <script src="{% static 'js/base.js' %}?v=1"></script>
   <script src="{% static 'js/theme.js' %}?v=4"></script>
-  <script src="{% static 'js/navbar.js' %}"></script>
+  <script src="{% static 'js/navbar.js' %}?v=2"></script>
   <script src="https://unpkg.com/flowbite@1.4.5/dist/flowbite.js"></script>
-  <script>
-    (function () {
-      var flashMessages = document.querySelectorAll("[data-flash-message]");
-      if (!flashMessages.length) return;
-
-      window.setTimeout(function () {
-        flashMessages.forEach(function (message) {
-          message.classList.add("opacity-0");
-          window.setTimeout(function () {
-            message.remove();
-          }, 500);
-        });
-      }, 5000);
-    })();
-  </script>
 
 </body>
 

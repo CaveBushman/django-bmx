@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<script src="{% static 'js/rider_search_forms.js' %}?v=1" defer></script>
 <style>
   .plate-search-input {
     background: #ffffff;
@@ -68,7 +69,7 @@
     </header>
 
     <div class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
-      <form method="get" class="flex flex-col gap-4 md:flex-row md:items-end" onsubmit="return validatePlateSearch()">
+      <form method="get" class="flex flex-col gap-4 md:flex-row md:items-end" data-plate-search-form>
         <label class="block flex-1">
           <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             Zadej startovní číslo
@@ -81,7 +82,7 @@
             value="{{ plate_query }}"
             maxlength="4"
             spellcheck="false"
-            oninput="this.value=this.value.replace(/[^0-9]/g, '')"
+            data-plate-search-input
             placeholder="Zadej startovní číslo"
             class="plate-search-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-indigo-950"
           >
@@ -131,19 +132,4 @@
     {% endif %}
   </div>
 </section>
-<script>
-  function validatePlateSearch() {
-    const input = document.getElementById("plate-search-input");
-    const value = (input?.value || "").trim();
-
-    if (!/^\d+$/.test(value)) {
-      alert("Zadej startovní číslo pouze jako číslice.");
-      input?.focus();
-      return false;
-    }
-
-    input.value = value;
-    return true;
-  }
-</script>
 {% endblock %}

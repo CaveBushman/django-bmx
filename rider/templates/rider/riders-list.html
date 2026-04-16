@@ -2,6 +2,7 @@
 {% block title %} Jezdci {% endblock title %} 
 {% load static %} 
 {% block content %}
+<script src="{% static 'js/riders_list.js' %}?v=1" defer></script>
 
 <header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -134,7 +135,7 @@
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:!divide-slate-800 dark:!bg-slate-900">
           {% for rider in riders %}
-            <tr onclick="window.location='{% url 'rider:detail' rider.uci_id %}';" class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95" data-plate="{{ rider.plate_display|default:'' }}">
+            <tr class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95" data-plate="{{ rider.plate_display|default:'' }}" data-rider-detail-url="{% url 'rider:detail' rider.uci_id %}">
               <td class="relative whitespace-nowrap py-5 pl-10 pr-8 before:absolute before:bottom-4 before:left-0 before:top-4 before:w-1 before:rounded-full before:bg-[linear-gradient(180deg,rgba(99,102,241,0.95),rgba(14,165,233,0.9))] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100">
                 <div class="flex items-center">
                     <div class="relative h-12 w-12 shrink-0">
@@ -143,7 +144,7 @@
                           class="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
                           src="{{ rider.photo_url }}"
                           alt="{{ rider.first_name }} {{ rider.last_name }}"
-                          onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');"
+                          data-rider-photo
                         >
                         <div class="hidden h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
                           {{ rider.initials|default:"?" }}
@@ -266,18 +267,7 @@
     <a href="#" class="arrow" id="to-top">
         <i class="bi bi-arrow-up-square-fill"></i>
     </a>
-  <script>
-    const riderFiltersForm = document.getElementById("riderFiltersForm");
-    if (riderFiltersForm) {
-      riderFiltersForm.addEventListener("submit", () => {
-        const pageInput = riderFiltersForm.querySelector('input[name="page"]');
-        if (pageInput) {
-          pageInput.remove();
-        }
-      });
-    }
-  </script>
-  <script src="{% static 'js/arrow.js' %}"></script>
+  <script src="{% static 'js/arrow.js' %}?v=1"></script>
 </div>
 </section>
 

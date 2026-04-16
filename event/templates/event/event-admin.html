@@ -3,6 +3,7 @@
 {% load static i18n %} 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<script src="{% static 'js/event_admin.js' %}?v=1" defer></script>
 <style>
   .event-admin-page {
     min-height: calc(100vh - 4rem);
@@ -73,6 +74,11 @@
     border: 1px solid rgba(226, 232, 240, 0.92);
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  }
+
+  .event-admin-file-status[data-has-file="true"] {
+    color: rgb(79 70 229);
+    font-weight: 700;
   }
 
   .event-admin-file-icon {
@@ -440,7 +446,7 @@
     </div>
   </div>
 
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" data-event-admin-form>
     {% csrf_token %}
 
     <!-- REM SUPPORT -->
@@ -477,6 +483,7 @@
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-file"
+              data-loading-label="Generuji REM soubor..."
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -505,6 +512,7 @@
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-riders-list"
+              data-loading-label="Generuji seznam jezdců..."
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -514,6 +522,7 @@
         <!-- Výsledky závodu -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
+          data-file-field
         >
           <div>
             <div class="flex items-center gap-3">
@@ -532,14 +541,19 @@
               name="result-file-txt"
               accept=".txt"
               class="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-white focus:ring-2 focus:ring-blue-600 mt-2"
+              data-file-input
             />
             <p class="mt-1 text-xs text-gray-500">Pouze txt soubory</p>
+            <p class="event-admin-file-status mt-2 text-xs text-slate-500" data-file-selection>
+              Žádný soubor nevybrán
+            </p>
           </div>
           <div class="flex flex-wrap justify-between gap-3 mt-4">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-upload-txt"
               value="txt"
+              data-loading-label="Nahrávám TXT výsledky..."
               {%
               if
               event.rem_results
@@ -553,6 +567,8 @@
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-txt-delete"
               value="delete-txt"
+              data-loading-label="Mažu TXT výsledky..."
+              data-confirm-message="Opravdu smazat TXT výsledky závodu?"
               {%
               if
               not
@@ -601,6 +617,7 @@
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-bem-file"
+              data-loading-label="Generuji BEM soubor..."
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -629,6 +646,7 @@
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-riders-list"
+              data-loading-label="Generuji seznam jezdců..."
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -638,6 +656,7 @@
         <!-- Výsledky závodu -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
+          data-file-field
         >
           <div>
             <div class="flex items-center gap-3">
@@ -654,14 +673,19 @@
               name="result-file"
               accept=".xls, .xlsx"
               class="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-white focus:ring-2 focus:ring-blue-600 mt-2"
+              data-file-input
             />
             <p class="mt-1 text-xs text-gray-500">Pouze xls a xlsx soubory</p>
+            <p class="event-admin-file-status mt-2 text-xs text-slate-500" data-file-selection>
+              Žádný soubor nevybrán
+            </p>
           </div>
           <div class="flex flex-wrap justify-between gap-3 mt-4">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-upload-result"
               value="xls"
+              data-loading-label="Nahrávám XLS výsledky..."
               {%
               if
               event.xls_results
@@ -675,6 +699,8 @@
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-delete-xls"
               value="delete"
+              data-loading-label="Mažu XLS výsledky..."
+              data-confirm-message="Opravdu smazat XLS výsledky závodu?"
               {%
               if
               not

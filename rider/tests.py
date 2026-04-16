@@ -1,9 +1,11 @@
 from datetime import date, timedelta
 from io import BytesIO
+from pathlib import Path
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.conf import settings
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -105,6 +107,79 @@ class RiderRequestProtectionTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Rider.objects.filter(uci_id="12345678901").exists())
+
+
+class RiderListTemplateSafetyTests(TestCase):
+    def test_rider_list_uses_external_script_and_no_inline_handlers(self):
+        club = Club.objects.create(team_name="Template Club")
+        Rider.objects.create(
+            uci_id=12345678888,
+            first_name="Template",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+        )
+
+        response = self.client.get(reverse("rider:list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "js/riders_list.js")
+        self.assertNotContains(response, "onclick=")
+        self.assertNotContains(response, "onerror=")
+        self.assertContains(response, "data-rider-detail-url")
+        self.assertContains(response, "data-rider-photo")
+
+    def test_plate_search_uses_external_script_and_no_inline_handlers(self):
+        response = self.client.get(reverse("rider:plate-search"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "js/rider_search_forms.js")
+        self.assertNotContains(response, "onsubmit=")
+        self.assertNotContains(response, "oninput=")
+        self.assertContains(response, "data-plate-search-form")
+        self.assertContains(response, "data-plate-search-input")
+
+    def test_transponder_search_uses_external_script_and_no_inline_handlers(self):
+        response = self.client.get(reverse("rider:transponder-search"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "js/rider_search_forms.js")
+        self.assertNotContains(response, "onsubmit=")
+        self.assertNotContains(response, "oninput=")
+        self.assertContains(response, "data-transponder-search-form")
+        self.assertContains(response, "data-transponder-search-input")
+
+    def test_premium_templates_use_external_ui_script_and_no_inline_handlers(self):
+        compare_template = (
+            Path(settings.BASE_DIR) / "rider" / "templates" / "rider" / "rider-compare.html"
+        ).read_text(encoding="utf-8")
+        premium_template = (
+            Path(settings.BASE_DIR) / "rider" / "templates" / "rider" / "rider-premium-stats.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/rider_premium_ui.js", compare_template)
+        self.assertIn("js/rider_premium_ui.js", premium_template)
+        self.assertNotIn("onchange=", compare_template)
+        self.assertNotIn("<script>", compare_template)
+        self.assertNotIn("onchange=", premium_template)
+        self.assertNotIn("<script>", premium_template)
+        self.assertIn("data-auto-submit", compare_template)
+        self.assertIn("data-auto-submit", premium_template)
+
+    def test_rider_request_template_uses_external_script_and_no_inline_submit(self):
+        request_template = (
+            Path(settings.BASE_DIR) / "rider" / "templates" / "rider" / "rider-request.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/rider_request.js", request_template)
+        self.assertNotIn('onsubmit="', request_template)
+        self.assertNotIn("<script>", request_template)
+        self.assertIn('id="rider-request-form"', request_template)
+        self.assertIn("data-lookup-url=", request_template)
 
 
 class AccountSettingsLinkedRidersTests(TestCase):
@@ -1185,8 +1260,11 @@ class InactiveRiderActionsTests(TestCase):
         response = self.client.get(reverse("rider:inactive"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.rider.last_name)
-        self.assertNotContains(response, self.other_club_rider.last_name)
+        self.assertContains(response, f"{self.rider.first_name} {self.rider.last_name.upper()}")
+        self.assertNotContains(
+            response,
+            f"{self.other_club_rider.first_name} {self.other_club_rider.last_name.upper()}",
+        )
 
     def test_club_manager_can_deactivate_only_own_club_rider(self):
         self.client.force_login(self.club_manager)
@@ -1207,3 +1285,13 @@ class InactiveRiderActionsTests(TestCase):
         self.assertFalse(self.rider.is_active)
         self.assertTrue(self.other_club_rider.is_active)
         self.assertContains(blocked_response, "nelze deaktivovat")
+
+    def test_inactive_template_uses_external_script_and_no_inline_script(self):
+        template = (
+            Path(settings.BASE_DIR) / "rider" / "templates" / "rider" / "rider-inactive.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/rider_inactive.js", template)
+        self.assertIn("data-release-form", template)
+        self.assertIn("data-release-trigger", template)
+        self.assertNotIn("<script>", template)

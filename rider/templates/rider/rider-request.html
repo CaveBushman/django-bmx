@@ -285,7 +285,15 @@
 
     <div class="mt-8">
       <section class="rider-request-panel rounded-[2rem] p-6 sm:p-8">
-        <form method="POST" onsubmit="return validateForm()" class="space-y-6">
+        <form method="POST" class="space-y-6" id="rider-request-form"
+          data-lookup-url="{{ lookup_url|default:'/rider/new/licence-lookup' }}"
+          data-msg-uci-invalid="{% trans 'UCI ID musí obsahovat přesně 11 číslic.' %}"
+          data-msg-loading="{% trans 'Načítám...' %}"
+          data-msg-lookup-not-found="{% trans 'Licence nebyla nalezena.' %}"
+          data-msg-lookup-success="{% trans 'Licence byla úspěšně načtena. Pokračuj vyplněním žádosti.' %}"
+          data-msg-lookup-confirmed="{% trans 'Licence byla ověřena. Pokračuj vyplněním zbytku žádosti.' %}"
+          data-msg-lookup-required="{% trans 'Nejprve ověř UCI ID proti licenci ČSC.' %}"
+          data-msg-phone-invalid="{% trans 'Zadejte platné telefonní číslo (6–20 znaků).' %}">
           {% csrf_token %}
           <input type="hidden" name="form_token" value="{{ form_token }}">
           <div class="hidden" aria-hidden="true">
@@ -465,169 +473,6 @@
   </div>
 </section>
 
-<script>
-  const lookupUrl = "{{ lookup_url|default:'/rider/new/licence-lookup' }}";
-
-  function setLookupStatus(message, state = "default") {
-    const status = document.getElementById('lookup_status');
-    status.classList.remove('hidden');
-    status.classList.remove('is-success', 'is-error');
-    
-    let icon = '';
-    if (state === 'success') {
-        status.classList.add('is-success');
-        icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 shrink-0"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>';
-    } else if (state === 'error') {
-        status.classList.add('is-error');
-        icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 shrink-0"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>';
-    }
-    
-    status.innerHTML = `${icon}<span>${message}</span>`;
-  }
-
-  function setDetailsLocked(locked) {
-    const details = document.getElementById('request_details');
-    const licenceDetails = document.getElementById('licence_details');
-    
-    const updateEl = (el, isLocked) => {
-        if (isLocked) {
-            el.classList.add('rider-request-hidden', 'rider-request-step-locked', 'opacity-0', 'translate-y-4');
-        } else {
-            el.classList.remove('rider-request-hidden');
-            setTimeout(() => {
-                el.classList.remove('rider-request-step-locked', 'opacity-0', 'translate-y-4');
-            }, 50);
-        }
-    };
-
-    updateEl(details, locked);
-    updateEl(licenceDetails, locked);
-
-    details.querySelectorAll('input, select, button[type="submit"]').forEach(el => el.disabled = locked);
-  }
-
-  function fillRiderData(rider) {
-    document.getElementById('uci_id').value = rider.uci_id || '';
-    document.getElementById('first_name').value = rider.first_name || '';
-    document.getElementById('last_name').value = rider.last_name || '';
-    document.getElementById('date_of_birth').value = rider.date_of_birth || '';
-    document.getElementById('gender').value = rider.gender || '';
-
-    document.getElementById('first_name_preview').value = rider.first_name || '';
-    document.getElementById('last_name_preview').value = rider.last_name || '';
-    document.getElementById('date_of_birth_preview').value = rider.date_of_birth || '';
-    document.getElementById('gender_preview').value = rider.gender || '';
-    document.getElementById('uci_id_lookup').value = rider.uci_id || '';
-  }
-
-  async function lookupLicence() {
-    const lookupInput = document.getElementById('uci_id_lookup');
-    const button = document.getElementById('lookup_button');
-    const uciId = lookupInput.value.trim();
-
-    if (!/^\d{11}$/.test(uciId)) {
-      showError('{% trans "UCI ID musí obsahovat přesně 11 číslic." %}');
-      document.getElementById('lookup_confirmed').value = '';
-      setDetailsLocked(true);
-      lookupInput.focus();
-      return;
-    }
-
-    hideError();
-    button.disabled = true;
-    button.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>{% trans "Načítám..." %}';
-    // setLookupStatus('{% trans "Ověřuji licenci u ČSC..." %}'); // Optional: loading spinner on button is usually enough
-
-    try {
-      const response = await fetch(`${lookupUrl}?uci_id=${encodeURIComponent(uciId)}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      let data = null;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        data = null;
-      }
-
-      if (!response.ok || !data || !data.ok) {
-        throw new Error((data && data.message) || '{% trans "Licence nebyla nalezena." %}');
-      }
-
-      fillRiderData(data.rider);
-      document.getElementById('lookup_confirmed').value = '1';
-      setDetailsLocked(false);
-      setLookupStatus('{% trans "Licence byla úspěšně načtena. Pokračuj vyplněním žádosti." %}', 'success');
-    } catch (error) {
-      document.getElementById('lookup_confirmed').value = '';
-      setDetailsLocked(true);
-      showError(error.message || '{% trans "Licence nebyla nalezena." %}');
-      const status = document.getElementById('lookup_status');
-      if(status) status.classList.add('hidden');
-    } finally {
-      button.disabled = false;
-      button.textContent = '{% trans "Načíst licenci" %}';
-    }
-  }
-
-  function showError(msg) {
-    const container = document.getElementById('js-error-container');
-    const text = document.getElementById('js-error-text');
-    if (container && text) {
-        text.textContent = msg;
-        container.classList.remove('hidden');
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-        alert(msg);
-    }
-  }
-
-  function hideError() {
-    const container = document.getElementById('js-error-container');
-    if (container) container.classList.add('hidden');
-  }
-
-  function validateForm() {
-    hideError();
-    if (document.getElementById('lookup_confirmed').value !== '1') {
-      showError('{% trans "Nejprve ověř UCI ID proti licenci ČSC." %}');
-      document.getElementById('uci_id_lookup').focus();
-      return false;
-    }
-
-    const phone = document.getElementById('emergency-phone');
-    if (!/^[\d\+\-\s]{6,20}$/.test(phone.value)) {
-      showError('{% trans "Zadejte platné telefonní číslo (6–20 znaků)." %}');
-      phone.focus();
-      return false;
-    }
-    return true;
-  }
-
-  document.getElementById('lookup_button').addEventListener('click', lookupLicence);
-  document.getElementById('uci_id_lookup').addEventListener('input', (event) => {
-    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 11);
-    document.getElementById('lookup_confirmed').value = '';
-    if (document.getElementById('request_details').classList.contains('rider-request-hidden') === false) {
-        setDetailsLocked(true);
-        const status = document.getElementById('lookup_status');
-        if(status) status.classList.add('hidden');
-    }
-  });
-  
-  document.getElementById('uci_id_lookup').addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        lookupLicence();
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    setDetailsLocked(document.getElementById('lookup_confirmed').value !== '1');
-    if (document.getElementById('lookup_confirmed').value === '1') {
-      setLookupStatus('{% trans "Licence byla ověřena. Pokračuj vyplněním zbytku žádosti." %}', 'success');
-    }
-  });
-</script>
-
-<script src="{% static 'js/alert_timeout.js' %}"></script>
+<script src="{% static 'js/rider_request.js' %}?v=1"></script>
+<script src="{% static 'js/alert_timeout.js' %}?v=1"></script>
 {% endblock content %}

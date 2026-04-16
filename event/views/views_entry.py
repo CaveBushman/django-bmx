@@ -13,10 +13,14 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError
 from django.conf import settings
 from event.models import Event, Entry, EntryForeign
 from event.func import update_cart
+from event.services.checkout_sessions import (
+    create_entry_checkout_session,
+    create_foreign_entry_checkout_session,
+)
 from finance.cash_receipts import EventCashReceiptService, parse_receipt_amount
 from finance.invoices import (
     EventInvoiceService,
@@ -28,14 +32,11 @@ from finance.invoices import (
 from finance.models import EventCashReceipt, EventInvoice
 from event.views.entry_helpers import (
     annotate_riders_for_event,
-    build_checkout_line_items,
-    build_foreign_checkout_line_items,
     build_foreign_entry_summary,
     build_foreign_entry_summary_from_payload,
     build_public_entry_rows,
     calculate_selected_fee,
     collect_fees_by_club,
-    create_checkout_entries,
     enrich_foreign_summary_rows,
     get_active_riders,
     hydrate_checkout_riders,
@@ -43,7 +44,6 @@ from event.views.entry_helpers import (
     load_checkout_session_payload,
     load_foreign_rider_response,
     resolve_event_beginner_support,
-    save_foreign_entries,
     split_selected_riders,
     store_selected_entries,
     sync_paid_foreign_riders,
@@ -164,26 +164,15 @@ def confirm_view(request):
     event, riders_beginner, riders_20, riders_24 = load_checkout_session_payload(request)
 
     if request.method == "POST":
-        line_items = build_checkout_line_items(event, riders_beginner, riders_20, riders_24)
         total_selected = len(riders_beginner) + len(riders_20) + len(riders_24)
 
         try:
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                line_items=line_items,
-                mode="payment",
-                success_url=(
-                    settings.YOUR_DOMAIN
-                    + f"/event/success/{event.id}?session_id={{CHECKOUT_SESSION_ID}}"
-                ),
-                cancel_url=settings.YOUR_DOMAIN + "/event/cancel?source=entries",
+            checkout_session = create_entry_checkout_session(
+                event=event,
+                riders_beginner=riders_beginner,
+                riders_20=riders_20,
+                riders_24=riders_24,
             )
-
-            # Atomicky zapsat všechny přihlášky — zabrání nekonzistentnímu stavu
-            with transaction.atomic():
-                create_checkout_entries(event, checkout_session, riders_beginner, is_beginner=True)
-                create_checkout_entries(event, checkout_session, riders_20, is_20=True)
-                create_checkout_entries(event, checkout_session, riders_24, is_24=True)
 
             audit_logger.info(
                 "event_checkout_started user_id=%s event_id=%s beginner=%s class20=%s class24=%s total_entries=%s session_id=%s",
@@ -295,18 +284,12 @@ def entry_foreign_pay_view(request, pk):
     if not customer_email or total_fee <= 0:
         return redirect("event:entry-foreign-summary", pk=pk)
 
-    line_items = build_foreign_checkout_line_items(event, summary_rows)
-
     try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=line_items,
-            mode="payment",
+        checkout_session = create_foreign_entry_checkout_session(
+            event=event,
+            summary_rows=summary_rows,
             customer_email=customer_email,
-            success_url=settings.YOUR_DOMAIN + f"/event/entry-foreign-success/{event.id}?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=settings.YOUR_DOMAIN + f"/event/cancel?source=foreign&event_id={event.id}",
         )
-        save_foreign_entries(event, checkout_session, summary_rows, customer_email)
         audit_logger.info(
             "foreign_entry_checkout_started event_id=%s rows=%s total_fee=%s customer_email=%s session_id=%s",
             event.id,

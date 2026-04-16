@@ -2,6 +2,7 @@
 {% load static %}
 {% block title %}Administrace závodu{% endblock title %}
 {% block extra_head %}
+<script src="{% static 'js/event_admin_ec.js' %}?v=1" defer></script>
 <style>
   .ec-admin-page {
     min-height: calc(100vh - 4rem);
@@ -288,6 +289,8 @@
               <button
                 type="submit"
                 name="btn-upload-ec-results-pdf"
+                id="ec-results-submit"
+                data-loading-label="Nahrávám..."
                 class="event-admin-action-link inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg"
               >
                 Nahrát a sloučit PDF
@@ -308,81 +311,4 @@
   </div>
 </section>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const paymentEl = document.getElementById("payment-amount");
-    if (!paymentEl) {
-      return;
-    }
-    const value = parseInt(paymentEl.textContent.replace(/\D/g, ""), 10);
-    if (!Number.isNaN(value)) {
-      paymentEl.textContent = value.toLocaleString("cs-CZ") + " CZK";
-    }
-
-    const addButton = document.getElementById("ec-results-add-input");
-    const inputsWrapper = document.getElementById("ec-results-inputs");
-    if (!addButton || !inputsWrapper) {
-      return;
-    }
-
-    function createInputRow(index) {
-      const row = document.createElement("div");
-      row.className = "ec-results-input-row";
-      row.innerHTML = `
-        <div class="ec-results-input-header">
-          <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">PDF výsledků ${index}</label>
-          <button
-            type="button"
-            class="ec-results-remove"
-            aria-label="Odebrat PDF výsledků ${index}"
-            title="Odebrat toto pole"
-          >
-            −
-          </button>
-        </div>
-        <input
-          type="file"
-          name="results-pdf-files"
-          accept=".pdf,application/pdf"
-          class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-600"
-        />
-      `;
-      return row;
-    }
-
-    function renumberInputs() {
-      inputsWrapper.querySelectorAll(".ec-results-input-row").forEach(function (row, index) {
-        const label = row.querySelector("label");
-        if (label) {
-          label.textContent = `PDF výsledků ${index + 1}`;
-        }
-
-        const removeButton = row.querySelector(".ec-results-remove");
-        if (removeButton) {
-          removeButton.setAttribute("aria-label", `Odebrat PDF výsledků ${index + 1}`);
-        }
-      });
-    }
-
-    addButton.addEventListener("click", function () {
-      const nextIndex = inputsWrapper.querySelectorAll(".ec-results-input-row").length + 1;
-      inputsWrapper.appendChild(createInputRow(nextIndex));
-    });
-
-    inputsWrapper.addEventListener("click", function (event) {
-      const removeButton = event.target.closest(".ec-results-remove");
-      if (!removeButton) {
-        return;
-      }
-
-      const row = removeButton.closest(".ec-results-input-row");
-      if (!row) {
-        return;
-      }
-
-      row.remove();
-      renumberInputs();
-    });
-  });
-</script>
 {% endblock %}

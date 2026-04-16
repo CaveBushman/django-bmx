@@ -46,7 +46,7 @@ def format_uci_rank_suffix(rank):
 
 def resolve_uci_finish_time(event, result):
     runs = (
-        RaceRun.objects.filter(event=event, rider_id=result.rider_id, finish_time__isnull=False)
+        RaceRun.objects.filter(event=event, rider__uci_id=result.rider_id, finish_time__isnull=False)
         .order_by("-updated", "-created", "-id")
     )
     final_run = runs.filter(round_type="FINAL").first()

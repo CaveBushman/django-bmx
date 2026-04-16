@@ -56,7 +56,7 @@ def config_list(name, default=""):
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config_bool("DEBUG", default=True)
+DEBUG = config_bool("DEBUG", default=False)
 
 DEFAULT_ALLOWED_HOSTS = [
     "localhost",
@@ -246,7 +246,7 @@ REST_FRAMEWORK = {
     ]
 }
 
-SECURE_CSP_REPORT_ONLY = {
+BASE_CSP_POLICY = {
     "default-src": [CSP.SELF],
     "base-uri": [CSP.SELF],
     "object-src": [CSP.NONE],
@@ -308,6 +308,11 @@ SECURE_CSP_REPORT_ONLY = {
     "report-uri": ["/csp-report/"],
 }
 
+SECURE_CSP_REPORT_ONLY = BASE_CSP_POLICY
+
+if config_bool("CSP_ENFORCE", default=False):
+    SECURE_CSP = BASE_CSP_POLICY
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 LOGIN_REDIRECT_URL = "accounts:login"
@@ -343,6 +348,10 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@czechbmx.cz")
 ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS = config("ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS", default=7, cast=int)
+
+APP_LOG_LEVEL = str(config("APP_LOG_LEVEL", default="INFO")).upper()
+AUDIT_LOG_LEVEL = str(config("AUDIT_LOG_LEVEL", default="INFO")).upper()
+ROOT_LOG_LEVEL = str(config("ROOT_LOG_LEVEL", default="ERROR")).upper()
 
 FORM_PROTECTION = {
     "signup": {
@@ -522,43 +531,53 @@ LOGGING = {
     "loggers": {
         "audit": {
             "handlers": ["console", "audit_file"],
-            "level": "INFO",
+            "level": AUDIT_LOG_LEVEL,
             "propagate": False,
         },
         "api.views": {
             "handlers": ["console"],
-            "level": "INFO",
+            "level": APP_LOG_LEVEL,
+            "propagate": False,
+        },
+        "bmx": {
+            "handlers": ["console"],
+            "level": APP_LOG_LEVEL,
+            "propagate": False,
+        },
+        "ops.health": {
+            "handlers": ["console"],
+            "level": APP_LOG_LEVEL,
             "propagate": False,
         },
         "rider.views": {
             "handlers": ["console"],
-            "level": "INFO",
+            "level": APP_LOG_LEVEL,
             "propagate": False,
         },
         "security.csp": {
             "handlers": ["console"],
-            "level": "INFO",
+            "level": APP_LOG_LEVEL,
             "propagate": False,
         },
         "django.request": {
             "handlers": ["console", "error_file"],
-            "level": "ERROR",
+            "level": ROOT_LOG_LEVEL,
             "propagate": False,
         },
         "django.server": {
             "handlers": ["console", "error_file"],
-            "level": "ERROR",
+            "level": ROOT_LOG_LEVEL,
             "propagate": False,
         },
         "admin_stats.middleware": {
             "handlers": ["console", "error_file"],
-            "level": "ERROR",
+            "level": ROOT_LOG_LEVEL,
             "propagate": False,
         },
     },
     "root": {
         "handlers": ["console", "error_file"],
-        "level": "ERROR",
+        "level": ROOT_LOG_LEVEL,
     },
 }
 

@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<script src="{% static 'js/rider_search_forms.js' %}?v=1" defer></script>
 <style>
   .transponder-page {
     min-height: calc(100vh - 4rem);
@@ -184,7 +185,7 @@
 
   <div class="transponder-shell">
     <div class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
-      <form method="get" class="flex flex-col gap-4 md:flex-row md:items-end" onsubmit="return validateTransponderSearch()">
+      <form method="get" class="flex flex-col gap-4 md:flex-row md:items-end" data-transponder-search-form>
         <label class="block flex-1">
           <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             Zadej čip
@@ -197,7 +198,7 @@
             maxlength="8"
             autocapitalize="characters"
             spellcheck="false"
-            oninput="this.value=this.value.toUpperCase()"
+            data-transponder-search-input
             placeholder="XX-11111"
             pattern="[A-Z]{2}-\d{5}"
             title="Použij formát XX-11111"
@@ -262,20 +263,4 @@
     {% endif %}
   </div>
 </div>
-<script>
-  function validateTransponderSearch() {
-    const input = document.getElementById("transponder-search-input");
-    const value = (input?.value || "").trim().toUpperCase();
-    const pattern = /^[A-Z]{2}-\d{5}$/;
-
-    if (!pattern.test(value)) {
-      alert("Zadej čip v plném tvaru XX-11111.");
-      input?.focus();
-      return false;
-    }
-
-    input.value = value;
-    return true;
-  }
-</script>
 {% endblock %}
