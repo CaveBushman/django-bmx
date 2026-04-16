@@ -1,226 +1,156 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // This file initializes navbar interactivity after the page has loaded.
-  console.debug("navbar.js loaded");
-
-  // --- INITIALIZATION ---
-  var navbar = document.getElementById("navbar");
+function initNavbar(documentRef, windowRef) {
+  var navbar = documentRef.getElementById("navbar");
   if (!navbar) {
-    console.debug("navbar.js: No navbar element found");
-    return; // Nothing to do on pages without the navbar.
+    return;
   }
 
-  // Main navbar elements used by JavaScript.
-  var profileButton = document.getElementById("user-menu-button");
-  var profileDropdown = document.getElementById("profile-dropdown");
-  var mobileMenuButton = document.getElementById("show-mobile-nav-btn");
-  var mobileMenu = document.getElementById("mobile-menu");
-  var languageButton = document.getElementById("language-menu-button");
-  var languageMenu = document.getElementById("language-menu");
-  var themeButtons = document.querySelectorAll("[data-theme-toggle]");
+  var profileButton = documentRef.getElementById("user-menu-button");
+  var profileDropdown = documentRef.getElementById("profile-dropdown");
+  var mobileMenuButton = documentRef.getElementById("show-mobile-nav-btn");
+  var mobileMenu = documentRef.getElementById("mobile-menu");
+  var languageButton = documentRef.getElementById("language-menu-button");
+  var languageMenu = documentRef.getElementById("language-menu");
+  var themeButtons = documentRef.querySelectorAll("[data-theme-toggle]");
 
-  // --- HELPER FUNCTIONS ---
-  
-  // Helper to keep ARIA state in sync for toggle buttons.
   function setExpanded(button, expanded) {
-    try {
-      if (button) {
-        button.setAttribute("aria-expanded", expanded ? "true" : "false");
-      }
-    } catch (error) {
-      console.warn("Error setting aria-expanded:", error);
+    if (button) {
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
     }
   }
 
-  // Hide the profile dropdown and update the associated button state.
+  function setMenuVisibility(menu, button, isVisible) {
+    if (!menu) {
+      return;
+    }
+
+    if (isVisible) {
+      menu.classList.remove("hidden");
+    } else {
+      menu.classList.add("hidden");
+    }
+    setExpanded(button, isVisible);
+  }
+
+  function isMenuHidden(menu) {
+    return !menu || menu.classList.contains("hidden");
+  }
+
   function hideProfileDropdown() {
-    try {
-      if (profileDropdown) {
-        profileDropdown.classList.add("hidden");
-        setExpanded(profileButton, false);
-      }
-    } catch (error) {
-      console.warn("Error hiding profile dropdown:", error);
-    }
+    setMenuVisibility(profileDropdown, profileButton, false);
   }
 
-  // Hide the language selection menu and update the associated button state.
   function hideLanguageMenu() {
-    try {
-      if (languageMenu) {
-        languageMenu.classList.add("hidden");
-        setExpanded(languageButton, false);
-      }
-    } catch (error) {
-      console.warn("Error hiding language menu:", error);
-    }
+    setMenuVisibility(languageMenu, languageButton, false);
   }
 
-  // Hide the mobile navigation menu and restore page scrolling.
   function hideMobileMenu() {
-    try {
-      if (mobileMenu) {
-        mobileMenu.classList.add("hidden");
-        setExpanded(mobileMenuButton, false);
-        document.body.style.overflow = "";
-      }
-    } catch (error) {
-      console.warn("Error hiding mobile menu:", error);
+    setMenuVisibility(mobileMenu, mobileMenuButton, false);
+    if (documentRef.body && documentRef.body.style) {
+      documentRef.body.style.overflow = "";
     }
   }
 
-  // Show the mobile navigation menu and prevent page scroll behind it.
   function showMobileMenu() {
-    try {
-      if (mobileMenu) {
-        mobileMenu.classList.remove("hidden");
-        setExpanded(mobileMenuButton, true);
-        document.body.style.overflow = "hidden";
-      }
-    } catch (error) {
-      console.warn("Error showing mobile menu:", error);
+    setMenuVisibility(mobileMenu, mobileMenuButton, true);
+    if (documentRef.body && documentRef.body.style) {
+      documentRef.body.style.overflow = "hidden";
     }
   }
 
-  // Close all open dropdowns and the mobile menu.
+  function toggleDropdown(menu, button, hideSibling) {
+    if (!menu || !button) {
+      return;
+    }
+
+    hideSibling();
+    var shouldOpen = isMenuHidden(menu);
+    setMenuVisibility(menu, button, false);
+    if (shouldOpen) {
+      setMenuVisibility(menu, button, true);
+    }
+  }
+
   function closeAllMenus() {
     hideProfileDropdown();
     hideLanguageMenu();
     hideMobileMenu();
   }
 
-  // --- EVENT HANDLERS ---
-  
-  // Attach theme toggle behavior to all theme toggle buttons.
-  try {
-    themeButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        try {
-          if (typeof window.toggleTheme === "function") {
-            window.toggleTheme();
-          }
-        } catch (error) {
-          console.warn("Error toggling theme:", error);
-        }
-      });
+  themeButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (windowRef && typeof windowRef.toggleTheme === "function") {
+        windowRef.toggleTheme();
+      }
     });
-  } catch (error) {
-    console.warn("Error attaching theme toggle handlers:", error);
-  }
+  });
 
-  // Profile menu button toggle.
   if (profileButton && profileDropdown) {
-    try {
-      profileButton.addEventListener("click", function (event) {
-        try {
-          event.preventDefault();
-          event.stopPropagation();
-          hideLanguageMenu();
-          var shouldOpen = profileDropdown.classList.contains("hidden");
-          hideProfileDropdown();
-          if (shouldOpen) {
-            profileDropdown.classList.remove("hidden");
-            setExpanded(profileButton, true);
-          }
-        } catch (error) {
-          console.warn("Error in profile button click handler:", error);
-        }
-      });
-    } catch (error) {
-      console.warn("Error attaching profile button handler:", error);
-    }
+    profileButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleDropdown(profileDropdown, profileButton, hideLanguageMenu);
+    });
   }
 
-  // Language menu button toggle.
   if (languageButton && languageMenu) {
-    try {
-      console.debug("navbar.js: attaching language button handler", languageButton, languageMenu);
-      languageButton.addEventListener("click", function (event) {
-        try {
-          event.preventDefault();
-          event.stopPropagation();
-          hideProfileDropdown();
-          var shouldOpen = languageMenu.classList.contains("hidden");
-          hideLanguageMenu();
-          if (shouldOpen) {
-            languageMenu.classList.remove("hidden");
-            setExpanded(languageButton, true);
-          }
-        } catch (error) {
-          console.warn("Error in language button click handler:", error);
-        }
-      });
-    } catch (error) {
-      console.warn("Error attaching language button handler:", error);
-    }
+    languageButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleDropdown(languageMenu, languageButton, hideProfileDropdown);
+    });
   }
 
-  // Mobile menu button toggle.
   if (mobileMenuButton && mobileMenu) {
-    try {
-      mobileMenuButton.addEventListener("click", function () {
-        try {
-          if (mobileMenu.classList.contains("hidden")) {
-            showMobileMenu();
-          } else {
-            hideMobileMenu();
-          }
-        } catch (error) {
-          console.warn("Error in mobile menu button click handler:", error);
-        }
-      });
-    } catch (error) {
-      console.warn("Error attaching mobile menu button handler:", error);
-    }
-  }
-
-  // Close the mobile menu when any navbar link is clicked.
-  try {
-    navbar.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        try {
-          hideMobileMenu();
-        } catch (error) {
-          console.warn("Error hiding mobile menu on link click:", error);
-        }
-      });
-    });
-  } catch (error) {
-    console.warn("Error attaching link handlers:", error);
-  }
-
-  // Close opened dropdowns when clicking outside of them.
-  try {
-    document.addEventListener("click", function (event) {
-      try {
-        if (profileButton && profileDropdown && !profileDropdown.classList.contains("hidden")) {
-          if (!profileDropdown.contains(event.target) && !profileButton.contains(event.target)) {
-            hideProfileDropdown();
-          }
-    }
-
-    if (languageButton && languageMenu && !languageMenu.classList.contains("hidden")) {
-      if (!languageMenu.contains(event.target) && !languageButton.contains(event.target)) {
-        hideLanguageMenu();
-      }
-        }
-      });
-    } catch (error) {
-      console.warn("Error in document click handler:", error);
-    }
-  }
-
-  // Close menus on Escape key.
-  try {
-    document.addEventListener("keydown", function (event) {
-      try {
-        if (event.key === "Escape") {
-          closeAllMenus();
-        }
-      } catch (error) {
-        console.warn("Error in escape key handler:", error);
+    mobileMenuButton.addEventListener("click", function () {
+      if (isMenuHidden(mobileMenu)) {
+        showMobileMenu();
+      } else {
+        hideMobileMenu();
       }
     });
-  } catch (error) {
-    console.warn("Error attaching escape key handler:", error);
   }
-});
+
+  navbar.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      hideMobileMenu();
+    });
+  });
+
+  documentRef.addEventListener("click", function (event) {
+    if (
+      profileButton &&
+      profileDropdown &&
+      !isMenuHidden(profileDropdown) &&
+      !profileDropdown.contains(event.target) &&
+      !profileButton.contains(event.target)
+    ) {
+      hideProfileDropdown();
+    }
+
+    if (
+      languageButton &&
+      languageMenu &&
+      !isMenuHidden(languageMenu) &&
+      !languageMenu.contains(event.target) &&
+      !languageButton.contains(event.target)
+    ) {
+      hideLanguageMenu();
+    }
+  });
+
+  documentRef.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeAllMenus();
+    }
+  });
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initNavbar(document, typeof window !== "undefined" ? window : null);
+  });
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { initNavbar: initNavbar };
+}
