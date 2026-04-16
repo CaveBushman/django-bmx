@@ -1,6 +1,12 @@
 from pathlib import Path
 import os
 from django.utils.translation import gettext_lazy as _
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+except ImportError:  # pragma: no cover - optional until dependency is installed
+    sentry_sdk = None
+    DjangoIntegration = None
 
 try:
     from django.utils.csp import CSP
@@ -55,6 +61,18 @@ def config_list(name, default=""):
     return [item.strip() for item in str(raw_value).split(",") if item.strip()]
 
 
+def config_float(name, default=0.0):
+    return config(name, default=default, cast=float)
+
+
+def config_first(names, default=""):
+    for name in names:
+        value = config(name, default="")
+        if value not in ("", None):
+            return value
+    return default
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config_bool("DEBUG", default=False)
 
@@ -77,23 +95,31 @@ STRIPE_LIVE_MODE = config_bool("STRIPE_LIVE_MODE", default=not DEBUG)
 
 # STRIPE KEYS
 if STRIPE_LIVE_MODE:
-    STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
-    STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+    STRIPE_PUBLIC_KEY = config_first(["STRIPE_LIVE_PUBLIC_KEY", "STRIPE_PUBLIC_KEY"])
+    STRIPE_SECRET_KEY = config_first(["STRIPE_LIVE_SECRET_KEY", "STRIPE_SECRET_KEY"])
+    STRIPE_ENDPOINT_SECRET = config_first(
+        ["STRIPE_LIVE_ENDPOINT_SECRET", "STRIPE_ENDPOINT_SECRET_LIVE", "STRIPE_ENDPOINT_SECRET"]
+    )
+    STRIPE_ENDPOINT_SECRETS = config_list(
+        "STRIPE_LIVE_ENDPOINT_SECRETS",
+        default=config(
+            "STRIPE_ENDPOINT_SECRETS",
+            default=STRIPE_ENDPOINT_SECRET,
+        ),
+    )
 else:
-    STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY_TEST")
-    STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY_TEST")
-
-STRIPE_ENDPOINT_SECRET = config(
-    "STRIPE_ENDPOINT_SECRET",
-    default=config(
-        "STRIPE_ENDPOINT_SECRET_LIVE" if STRIPE_LIVE_MODE else "STRIPE_ENDPOINT_SECRET_TEST",
-        default="",
-    ),
-)
-STRIPE_ENDPOINT_SECRETS = config_list(
-    "STRIPE_ENDPOINT_SECRETS",
-    default=STRIPE_ENDPOINT_SECRET,
-)
+    STRIPE_PUBLIC_KEY = config_first(["STRIPE_TEST_PUBLIC_KEY", "STRIPE_PUBLIC_KEY_TEST"])
+    STRIPE_SECRET_KEY = config_first(["STRIPE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY_TEST"])
+    STRIPE_ENDPOINT_SECRET = config_first(
+        ["STRIPE_TEST_ENDPOINT_SECRET", "STRIPE_ENDPOINT_SECRET_TEST", "STRIPE_ENDPOINT_SECRET"]
+    )
+    STRIPE_ENDPOINT_SECRETS = config_list(
+        "STRIPE_TEST_ENDPOINT_SECRETS",
+        default=config(
+            "STRIPE_ENDPOINT_SECRETS",
+            default=STRIPE_ENDPOINT_SECRET,
+        ),
+    )
 
 # Application definition
 
@@ -308,10 +334,11 @@ BASE_CSP_POLICY = {
     "report-uri": ["/csp-report/"],
 }
 
-SECURE_CSP_REPORT_ONLY = BASE_CSP_POLICY
-
-if config_bool("CSP_ENFORCE", default=False):
+CSP_ENFORCE = config_bool("CSP_ENFORCE", default=False)
+if CSP_ENFORCE:
     SECURE_CSP = BASE_CSP_POLICY
+else:
+    SECURE_CSP_REPORT_ONLY = BASE_CSP_POLICY
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -327,17 +354,19 @@ else:
         default="https://czechbmx.cz" if STRIPE_LIVE_MODE else "http://localhost:8000",
     )
 
-if not DEBUG:
+ENABLE_HTTPS_SECURITY = config_bool("ENABLE_HTTPS_SECURITY", default=not DEBUG)
+
+if ENABLE_HTTPS_SECURITY:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=STRIPE_LIVE_MODE)
-    if SECURE_SSL_REDIRECT:
-        SECURE_HSTS_SECONDS = 31536000
-        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-        SECURE_HSTS_PRELOAD = True
-        SESSION_COOKIE_SECURE = True
-        SESSION_COOKIE_HTTPONLY = True
-        CSRF_COOKIE_SECURE = True
-        CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=not DEBUG)
+    if config_bool("SECURE_HSTS_ENABLE", default=not DEBUG):
+        SECURE_HSTS_SECONDS = config("SECURE_HSTS_SECONDS", default=31536000, cast=int)
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = config_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True)
+        SECURE_HSTS_PRELOAD = config_bool("SECURE_HSTS_PRELOAD", default=True)
 
 # email setting
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.seznam.cz")
@@ -352,6 +381,81 @@ ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS = config("ACCOUNT_PENDING_ACTIVATION_MAX
 APP_LOG_LEVEL = str(config("APP_LOG_LEVEL", default="INFO")).upper()
 AUDIT_LOG_LEVEL = str(config("AUDIT_LOG_LEVEL", default="INFO")).upper()
 ROOT_LOG_LEVEL = str(config("ROOT_LOG_LEVEL", default="ERROR")).upper()
+
+SENTRY_DSN = config("SENTRY_DSN", default="")
+SENTRY_ENABLED = config_bool("SENTRY_ENABLED", default=not DEBUG)
+SENTRY_ENVIRONMENT = config(
+    "SENTRY_ENVIRONMENT",
+    default="development" if DEBUG else "production",
+)
+SENTRY_RELEASE = config("SENTRY_RELEASE", default="")
+SENTRY_TRACES_SAMPLE_RATE = config_float("SENTRY_TRACES_SAMPLE_RATE", default=0.15)
+SENTRY_PROFILES_SAMPLE_RATE = config_float("SENTRY_PROFILES_SAMPLE_RATE", default=0.0)
+SENTRY_HEALTHCHECK_PATHS = {"/healthz", "/readyz", "/csp-report"}
+
+
+def _scrub_sentry_event(event, hint):
+    request_data = event.get("request") or {}
+    headers = request_data.get("headers") or {}
+    sanitized_headers = {}
+
+    for key, value in headers.items():
+        normalized = str(key).lower()
+        if normalized in {"authorization", "cookie", "x-csrftoken", "x-csr-token", "stripe-signature"}:
+            sanitized_headers[key] = "[Filtered]"
+        else:
+            sanitized_headers[key] = value
+
+    if sanitized_headers:
+        request_data["headers"] = sanitized_headers
+
+    if "data" in request_data:
+        request_data["data"] = "[Filtered]"
+    if "cookies" in request_data:
+        request_data["cookies"] = "[Filtered]"
+
+    event["request"] = request_data
+    return event
+
+
+def _sentry_traces_sampler(sampling_context):
+    transaction_context = sampling_context.get("transaction_context") or {}
+    transaction_name = str(transaction_context.get("name") or "").lower()
+    wsgi_environ = sampling_context.get("wsgi_environ") or {}
+    path = str(wsgi_environ.get("PATH_INFO") or "").rstrip("/").lower()
+
+    if path in SENTRY_HEALTHCHECK_PATHS:
+        return 0.0
+    if transaction_name in SENTRY_HEALTHCHECK_PATHS:
+        return 0.0
+    return SENTRY_TRACES_SAMPLE_RATE
+
+
+def _before_send_transaction(event, hint):
+    request_data = event.get("request") or {}
+    url = str(request_data.get("url") or "").lower()
+    transaction_name = str(event.get("transaction") or "").lower()
+    if any(path in url or transaction_name == path for path in SENTRY_HEALTHCHECK_PATHS):
+        return None
+    return event
+
+
+if SENTRY_DSN and SENTRY_ENABLED and sentry_sdk is not None:
+    sentry_init_kwargs = {
+        "dsn": SENTRY_DSN,
+        "environment": SENTRY_ENVIRONMENT,
+        "send_default_pii": False,
+        "max_request_body_size": "never",
+        "traces_sampler": _sentry_traces_sampler,
+        "profiles_sample_rate": SENTRY_PROFILES_SAMPLE_RATE,
+        "before_send": _scrub_sentry_event,
+        "before_send_transaction": _before_send_transaction,
+    }
+    if SENTRY_RELEASE:
+        sentry_init_kwargs["release"] = SENTRY_RELEASE
+    if DjangoIntegration is not None:
+        sentry_init_kwargs["integrations"] = [DjangoIntegration()]
+    sentry_sdk.init(**sentry_init_kwargs)
 
 FORM_PROTECTION = {
     "signup": {

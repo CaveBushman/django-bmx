@@ -166,14 +166,16 @@ def download_file_view(request, pk):
     # Atomické zvýšení počtu stažení, aby se předešlo race conditions
     Downloads.objects.filter(pk=pk).update(downloads_count=F("downloads_count") + 1)
 
-    # Cesta k souboru
-    file_path = document.path.path
-    file_name = os.path.basename(file_path)
+    try:
+        file_name = os.path.basename(document.path.name)
+        file_handle = document.path.open("rb")
+    except (ValueError, FileNotFoundError, OSError):
+        raise Http404("Soubor nebyl nalezen.")
 
     # Určení MIME typu
-    mime_type, _ = mimetypes.guess_type(file_path)
+    mime_type, _ = mimetypes.guess_type(file_name)
 
     # Odpověď se souborem
-    response = FileResponse(open(file_path, "rb"), content_type=mime_type or "application/octet-stream")
+    response = FileResponse(file_handle, content_type=mime_type or "application/octet-stream")
     response["Content-Disposition"] = f'attachment; filename="{file_name}"'
     return response

@@ -491,6 +491,43 @@
     border-color: rgba(251, 191, 36, 0.35);
     box-shadow: 0 20px 46px rgba(245, 158, 11, 0.1);
   }
+
+  .homepage-footer {
+    background: linear-gradient(180deg, #172033 0%, #111827 100%);
+    border-top: 1px solid rgba(148, 163, 184, 0.16);
+    color: #cbd5e1;
+  }
+
+  .homepage-footer-copy {
+    color: #cbd5e1;
+  }
+
+  .homepage-footer-social {
+    color: #e2e8f0;
+    transition: color 180ms ease, transform 180ms ease;
+  }
+
+  .homepage-footer-social:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  html.dark .homepage-footer {
+    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    border-top-color: rgba(148, 163, 184, 0.14);
+  }
+
+  html.dark .homepage-footer-copy {
+    color: #cbd5e1;
+  }
+
+  html.dark .homepage-footer-social {
+    color: #cbd5e1;
+  }
+
+  html.dark .homepage-footer-social:hover {
+    color: #ffffff;
+  }
 </style>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -803,14 +840,14 @@
 <!-- ==== FOOTER ====-->
 
 <div class="">
-    <footer class="homepage-dark-section bg-gray-100 dark:bg-slate-900 dark:text-gray-200">
+    <footer class="homepage-dark-section homepage-footer">
         <div
                 class="max-w-7xl mx-auto py-6 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
         >
             <div class="flex justify-center space-x-6 md:order-2">
                 <a
                         href="https://www.facebook.com/czechbmxcommission/"
-                        class="text-gray-400 hover:text-gray-500"
+                        class="homepage-footer-social"
                 >
                     <span class="sr-only">{% trans "Facebook" %}</span>
                     <svg
@@ -829,7 +866,7 @@
 
                 <a
                         href="https://www.instagram.com/czechbmxcommission/"
-                        class="text-gray-400 hover:text-gray-500"
+                        class="homepage-footer-social"
                 >
                     <span class="sr-only">{% trans "Instagram" %}</span>
                     <svg
@@ -847,7 +884,7 @@
                 </a>
             </div>
             <div class="mt-4 md:mt-0 md:order-1">
-                <p class="text-center text-base">
+                <p class="homepage-footer-copy text-center text-base">
                     &copy; {% now "Y" %} David Průša. {% trans "Všechna práva vyhrazena." %}
                 </p>
             </div>

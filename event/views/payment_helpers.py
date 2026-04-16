@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from accounts.models import Account
+from bmx.observability import set_tag, start_span
 from event.credit import calculate_user_balance
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryForeign
 from rider.models import RiderStatsCharge, TrainerClubCharge
@@ -94,7 +95,18 @@ def finalize_entry_checkout_session(session_id, *, event_id=None, is_foreign=Fal
     if not session_id:
         return False
 
-    confirm = stripe.checkout.Session.retrieve(session_id)
+    set_tag("stripe.session_id", session_id)
+    set_tag("event.id", event_id)
+    set_tag("entry.foreign", is_foreign)
+
+    with start_span(
+        op="stripe.checkout",
+        name="retrieve_checkout_session",
+        session_id=session_id,
+        event_id=event_id,
+        is_foreign=is_foreign,
+    ):
+        confirm = stripe.checkout.Session.retrieve(session_id)
     if confirm.get("payment_status") != "paid":
         return False
 
@@ -123,7 +135,16 @@ def finalize_credit_transaction_by_session_id(session_id, *, user=None):
     if not session_id:
         return False
 
-    confirm = stripe.checkout.Session.retrieve(session_id)
+    set_tag("stripe.session_id", session_id)
+    set_tag("user.id", getattr(user, "id", None))
+
+    with start_span(
+        op="stripe.credit",
+        name="retrieve_credit_checkout_session",
+        session_id=session_id,
+        user_id=getattr(user, "id", None),
+    ):
+        confirm = stripe.checkout.Session.retrieve(session_id)
     if confirm.get("payment_status") != "paid":
         return False
 
@@ -165,58 +186,66 @@ def handle_credit_webhook(payload, sig_header):
     payment_intent = session.get("payment_intent")
     payment_status = session.get("payment_status")
     customer_details = session.get("customer_details") or {}
+    set_tag("stripe.session_id", session_id)
+    set_tag("stripe.event_type", stripe_event["type"])
 
     # 1. Pokus o zpracování jako Kreditní transakce
     try:
-        with transaction.atomic():
-            credit_transaction = CreditTransaction.objects.select_for_update().get(
-                transaction_id=session_id
-            )
-            if payment_status == "paid" and _mark_credit_transaction_paid(
-                credit_transaction,
-                payment_intent=payment_intent,
-            ):
-                logger.info(
-                    "[Webhook] Kredit přičten uživateli %s: +%s Kč",
-                    credit_transaction.user.id,
-                    credit_transaction.amount,
+        with start_span(op="stripe.webhook", name="credit_webhook_credit_transaction_lookup", session_id=session_id):
+            with transaction.atomic():
+                credit_transaction = CreditTransaction.objects.select_for_update().get(
+                    transaction_id=session_id
                 )
+                set_tag("user.id", credit_transaction.user_id)
+                if payment_status == "paid" and _mark_credit_transaction_paid(
+                    credit_transaction,
+                    payment_intent=payment_intent,
+                ):
+                    logger.info(
+                        "[Webhook] Kredit přičten uživateli %s: +%s Kč",
+                        credit_transaction.user.id,
+                        credit_transaction.amount,
+                    )
         return HttpResponse(status=200)
     except CreditTransaction.DoesNotExist:
         pass  # Not a credit transaction, check for entries
 
     # 2. Pokus o zpracování jako Přihláška (Entry)
     try:
-        with transaction.atomic():
-            entries = Entry.objects.select_for_update().filter(
-                transaction_id=session_id, payment_complete=False
-            )
-            entries = list(entries)
-            if entries and payment_status == "paid":
-                _mark_entry_records_paid(entries, customer_details=customer_details)
-                logger.info(
-                    "[Webhook] Přihlášky označeny jako zaplacené: %s",
-                    [str(e) for e in entries]
+        with start_span(op="stripe.webhook", name="credit_webhook_entry_lookup", session_id=session_id):
+            with transaction.atomic():
+                entries = Entry.objects.select_for_update().filter(
+                    transaction_id=session_id, payment_complete=False
                 )
-                return HttpResponse(status=200)
+                entries = list(entries)
+                if entries and payment_status == "paid":
+                    set_tag("event.id", entries[0].event_id)
+                    _mark_entry_records_paid(entries, customer_details=customer_details)
+                    logger.info(
+                        "[Webhook] Přihlášky označeny jako zaplacené: %s",
+                        [str(e) for e in entries]
+                    )
+                    return HttpResponse(status=200)
     except DatabaseError:
         logger.exception("[Webhook] Databázová chyba při zpracování přihlášek.")
 
     # 3. Pokus o zpracování jako Zahraniční přihláška (EntryForeign)
     try:
-        with transaction.atomic():
-            entries = EntryForeign.objects.select_for_update().filter(
-                transaction_id=session_id, payment_complete=False
-            )
-            entries = list(entries)
-            if entries and payment_status == "paid":
-                _mark_entry_records_paid(entries, customer_details=customer_details)
-                sync_paid_foreign_riders(entries[0].event, session_id)
-                logger.info(
-                    "[Webhook] Zahraniční přihlášky označeny jako zaplacené: %s",
-                    [str(e) for e in entries]
+        with start_span(op="stripe.webhook", name="credit_webhook_foreign_entry_lookup", session_id=session_id):
+            with transaction.atomic():
+                entries = EntryForeign.objects.select_for_update().filter(
+                    transaction_id=session_id, payment_complete=False
                 )
-                return HttpResponse(status=200)
+                entries = list(entries)
+                if entries and payment_status == "paid":
+                    set_tag("event.id", entries[0].event_id)
+                    _mark_entry_records_paid(entries, customer_details=customer_details)
+                    sync_paid_foreign_riders(entries[0].event, session_id)
+                    logger.info(
+                        "[Webhook] Zahraniční přihlášky označeny jako zaplacené: %s",
+                        [str(e) for e in entries]
+                    )
+                    return HttpResponse(status=200)
     except DatabaseError:
         logger.exception("[Webhook] Databázová chyba při zpracování zahraničních přihlášek.")
 

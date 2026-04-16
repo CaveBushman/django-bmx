@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import FileResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Sum, Count, F
+from django.conf import settings
 from .models import Club
 from rider.models import Rider
 from event.models import Event, Entry
@@ -44,8 +46,10 @@ def riders_on_events_export_view(request, pk):
     if not file_path or not os.path.exists(file_path):
         raise Http404("Export účasti jezdců nebyl vygenerován.")
 
+    relative_path = Path(file_path).resolve().relative_to(Path(settings.MEDIA_ROOT).resolve())
+
     return FileResponse(
-        open(file_path, "rb"),
+        (club.riders_on_events.storage if club.riders_on_events else None or Club._meta.get_field("riders_on_events").storage).open(str(relative_path), "rb"),
         as_attachment=True,
         filename=os.path.basename(file_path),
     )
