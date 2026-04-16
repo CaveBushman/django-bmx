@@ -74,9 +74,28 @@ class EventAdmin(BaseAdmin):
     list_filter = ('type_for_ranking', 'reg_open', 'date')
 
     def get_readonly_fields(self, request, obj=None):
-        if obj is None:
-            return ()
-        return ("event_refund_summary", "event_checkout_audit_timeline")
+        readonly_fields = ()
+        if obj is not None:
+            readonly_fields += (
+                "proposition_created",
+                "series_created",
+                "bem_entries_created",
+                "bem_riders_created",
+                "bem_backup_uploaded",
+                "bem_backup_2_uploaded",
+                "full_results_uploaded",
+                "html_results_uploaded",
+                "fast_riders_uploaded",
+                "xls_results_uploaded",
+                "rem_entries_created",
+                "rem_riders_created",
+                "rem_results_uploaded",
+                "ec_file_created",
+                "ec_insurance_file_created",
+                "event_refund_summary",
+                "event_checkout_audit_timeline",
+            )
+        return readonly_fields
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = (
@@ -88,7 +107,26 @@ class EventAdmin(BaseAdmin):
                     ("reg_open_from", "reg_open_to", "reg_cancel_to"),
                     ("pcp", "pcp_assist", "start_commissar"),
                     "classes_and_fees_like",
-                    "xls_results",
+                ),
+            }),
+            (_("Soubory"), {
+                "fields": (
+                    ("proposition", "proposition_created"),
+                    ("series", "series_created"),
+                    ("bem_entries", "bem_entries_created"),
+                    ("bem_riders_list", "bem_riders_created"),
+                    ("bem_backup", "bem_backup_uploaded"),
+                    ("bem_backup_2", "bem_backup_2_uploaded"),
+                    ("full_results", "full_results_uploaded"),
+                    ("html_results", "html_results_uploaded"),
+                    ("fast_riders", "fast_riders_uploaded"),
+                    ("xls_results", "xls_results_uploaded"),
+                    ("rem_entries", "rem_entries_created"),
+                    ("rem_riders_list", "rem_riders_created"),
+                    ("rem_results", "rem_results_uploaded"),
+                    ("ec_file", "ec_file_created"),
+                    ("ec_insurance_file", "ec_insurance_file_created"),
+                    "flexibee_export",
                 ),
             }),
         )
