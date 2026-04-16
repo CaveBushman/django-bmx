@@ -2,6 +2,7 @@ import logging
 import os
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
@@ -11,11 +12,45 @@ from django.views.decorators.http import require_POST
 from django_ckeditor_5.exceptions import NoImageException
 from django_ckeditor_5.forms import UploadFileForm
 from django_ckeditor_5.storage_utils import image_verify
+from PIL import Image
 
+from bmx.rate_limit import get_rate_limit_subject, is_rate_limited
 from event.forms import EventPropositionForm
 from event.models import Event, EventProposition
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_MAX_EDITOR_IMAGE_WIDTH = 6000
+DEFAULT_MAX_EDITOR_IMAGE_HEIGHT = 6000
+
+
+def _validate_editor_upload_limits(uploaded_file):
+    allowed_types = {
+        extension.lower()
+        for extension in getattr(settings, "CKEDITOR_5_UPLOAD_FILE_TYPES", [])
+    }
+    file_ext = os.path.splitext(uploaded_file.name or "")[1].lower().lstrip(".")
+    if allowed_types and file_ext not in allowed_types:
+        raise ValueError("Nahraný soubor má nepovolený typ.")
+
+    content_type = (getattr(uploaded_file, "content_type", "") or "").lower()
+    if content_type and not content_type.startswith("image/"):
+        raise ValueError("Nahraný soubor musí být obrázek.")
+
+    max_file_size_mb = getattr(settings, "CKEDITOR_5_MAX_FILE_SIZE", 8)
+    max_file_size_bytes = int(max_file_size_mb * 1024 * 1024)
+    if uploaded_file.size and uploaded_file.size > max_file_size_bytes:
+        raise ValueError(f"Nahraný obrázek je příliš velký. Maximum je {max_file_size_mb} MB.")
+
+    uploaded_file.seek(0)
+    with Image.open(uploaded_file) as image:
+        max_width = getattr(settings, "CKEDITOR_5_MAX_IMAGE_WIDTH", DEFAULT_MAX_EDITOR_IMAGE_WIDTH)
+        max_height = getattr(settings, "CKEDITOR_5_MAX_IMAGE_HEIGHT", DEFAULT_MAX_EDITOR_IMAGE_HEIGHT)
+        if image.width > max_width or image.height > max_height:
+            raise ValueError(
+                f"Nahraný obrázek je příliš rozměrný. Maximum je {max_width}x{max_height} px."
+            )
+    uploaded_file.seek(0)
 
 
 def _get_structured_proposition(event):
@@ -58,6 +93,18 @@ def proposition_editor_upload_view(request):
             status=403,
         )
 
+    limited, _attempts = is_rate_limited(
+        "proposition-editor-upload",
+        get_rate_limit_subject(request, scope_to_user=True),
+        window_seconds=getattr(settings, "EDITOR_UPLOAD_RATE_LIMIT_WINDOW_SECONDS", 60 * 5),
+        max_attempts=getattr(settings, "EDITOR_UPLOAD_RATE_LIMIT_MAX_ATTEMPTS", 30),
+    )
+    if limited:
+        return JsonResponse(
+            {"error": {"message": "Nahrávání je dočasně omezené. Zkus to prosím za chvíli znovu."}},
+            status=429,
+        )
+
     form = UploadFileForm(request.POST, request.FILES)
     if not form.is_valid():
         message = form.errors.get("upload", ["Neplatný upload obrázku."])[0]
@@ -73,7 +120,11 @@ def proposition_editor_upload_view(request):
             status=400,
         )
 
-    uploaded_file.seek(0)
+    try:
+        _validate_editor_upload_limits(uploaded_file)
+    except (OSError, ValueError) as error:
+        return JsonResponse({"error": {"message": str(error)}}, status=400)
+
     file_ext = os.path.splitext(uploaded_file.name or "")[1].lower() or ".jpg"
     stored_name = default_storage.save(
         f"proposition_uploads/{uuid4().hex}{file_ext}",

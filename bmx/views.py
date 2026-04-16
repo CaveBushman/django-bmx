@@ -3,12 +3,14 @@ import logging
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from bmx.health import collect_readiness_checks
+from bmx.rate_limit import get_rate_limit_subject, is_rate_limited
 from club.models import Club
 from event.models import Event
 from news.models import News
@@ -24,7 +26,33 @@ def csp_report_view(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
 
-    body = request.body.decode("utf-8", errors="replace")
+    raw_body = request.body
+    max_body_bytes = getattr(settings, "CSP_REPORT_MAX_BODY_BYTES", 16 * 1024)
+    if len(raw_body) > max_body_bytes:
+        logger.warning(
+            "CSP report dropped because body is too large",
+            extra={
+                "content_type": request.headers.get("Content-Type", ""),
+                "body_size": len(raw_body),
+                "remote_addr": request.META.get("REMOTE_ADDR", ""),
+            },
+        )
+        return HttpResponse(status=204)
+
+    limited, _attempts = is_rate_limited(
+        "csp-report",
+        get_rate_limit_subject(request),
+        window_seconds=getattr(settings, "CSP_REPORT_RATE_LIMIT_WINDOW_SECONDS", 60),
+        max_attempts=getattr(settings, "CSP_REPORT_RATE_LIMIT_MAX_ATTEMPTS", 120),
+    )
+    if limited:
+        logger.warning(
+            "CSP report dropped because rate limit was exceeded",
+            extra={"remote_addr": request.META.get("REMOTE_ADDR", "")},
+        )
+        return HttpResponse(status=204)
+
+    body = raw_body.decode("utf-8", errors="replace")
     content_type = request.headers.get("Content-Type", "")
 
     try:
@@ -52,6 +80,16 @@ def csp_report_view(request):
 def error_404_view(request, exception):
     """Projektová 404 stránka s korektním HTTP statusem."""
     return render(request, "404.html", status=404)
+
+
+def healthz_view(request):
+    return JsonResponse({"status": "ok"})
+
+
+def readyz_view(request):
+    payload = collect_readiness_checks()
+    status_code = 200 if payload["status"] == "ok" else 503
+    return JsonResponse(payload, status=status_code)
 
 
 def sitemap_view(request):

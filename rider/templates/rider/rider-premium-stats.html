@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Prémiové statistiky jezdce" %}{% endblock title %}
 {% block extra_head %}
+<script src="{% static 'js/rider_premium_ui.js' %}?v=1" defer></script>
 <style>
   .premium-stats-page {
     min-height: calc(100vh - 4rem);
@@ -275,7 +276,7 @@
             <select
               id="track-select"
               name="track"
-              onchange="this.form.submit()"
+              data-auto-submit
               class="premium-stats-select block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
             >
               <option value="">{% trans "Vyber trať" %}</option>
@@ -313,7 +314,7 @@
               type="radio"
               name="years"
               value="{{ option.value }}"
-              onchange="this.form.submit()"
+              data-auto-submit
               class="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
               {% if kpi_period.value == option.value %}checked{% endif %}
             >
@@ -339,7 +340,7 @@
               type="radio"
               name="wheel"
               value="{{ wheel.value }}"
-              onchange="this.form.submit()"
+              data-auto-submit
               class="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
               {% if selected_wheel == wheel.value %}checked{% endif %}
             >
@@ -898,63 +899,4 @@
     </div>
   </div>
 </div>
-<script>
-  (() => {
-    const metricToggles = document.querySelectorAll(".metric-view-toggle");
-    const metricPanels = document.querySelectorAll(".metric-panel");
-    const syncMetricPanels = (selectedValue) => {
-      metricPanels.forEach((panel) => {
-        const isActive = panel.dataset.metricPanel === selectedValue;
-        panel.classList.toggle("hidden", !isActive);
-      });
-    };
-
-    metricToggles.forEach((toggle) => {
-      toggle.addEventListener("change", () => {
-        if (toggle.checked) {
-          syncMetricPanels(toggle.value);
-        }
-      });
-    });
-
-    const activeMetric = Array.from(metricToggles).find((toggle) => toggle.checked);
-    if (activeMetric) {
-      syncMetricPanels(activeMetric.value);
-    }
-
-    const modal = document.getElementById("help-modal");
-    const title = document.getElementById("help-modal-title");
-    const body = document.getElementById("help-modal-body");
-    const closeButton = document.getElementById("help-modal-close");
-    const actionButton = document.getElementById("help-modal-action");
-    if (!modal || !title || !body || !closeButton || !actionButton) return;
-
-    const closeModal = () => {
-      modal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-    };
-
-    document.querySelectorAll(".help-trigger").forEach((button) => {
-      button.addEventListener("click", () => {
-        title.textContent = button.dataset.helpTitle || "{% trans 'Nápověda' %}";
-        body.textContent = button.dataset.helpBody || "";
-        modal.classList.remove("hidden");
-        document.body.classList.add("overflow-hidden");
-      });
-    });
-
-    closeButton.addEventListener("click", closeModal);
-    actionButton.addEventListener("click", closeModal);
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal || event.target === modal.firstElementChild) {
-        closeModal();
-      }
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeModal();
-      }
-    });
-  })();
-</script>
 {% endblock content %}

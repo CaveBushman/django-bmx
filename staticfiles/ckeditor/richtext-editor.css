@@ -1,0 +1,126 @@
+.rt-editor {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 1rem;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.rt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  border-bottom: 1px solid rgb(226 232 240);
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.98));
+}
+
+.rt-toolbar__button {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 999px;
+  background: #fff;
+  color: rgb(15 23 42);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.rt-toolbar__button:hover,
+.rt-toolbar__button:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+  outline: none;
+}
+
+.rt-editor__surface {
+  min-height: 16rem;
+  padding: 1rem 1.125rem;
+  color: rgb(51 65 85);
+  line-height: 1.7;
+  outline: none;
+}
+
+.rt-editor__surface:empty::before {
+  content: attr(data-placeholder);
+  color: rgb(148 163 184);
+}
+
+.rt-editor__surface h2,
+.rt-editor__surface h3,
+.rt-editor__surface h4 {
+  color: rgb(15 23 42);
+  font-weight: 800;
+  margin: 1rem 0 0.75rem;
+}
+
+.rt-editor__surface h2 {
+  font-size: 1.5rem;
+}
+
+.rt-editor__surface h3 {
+  font-size: 1.25rem;
+}
+
+.rt-editor__surface p,
+.rt-editor__surface ul,
+.rt-editor__surface ol {
+  margin: 0 0 0.9rem;
+}
+
+.rt-editor__surface ul,
+.rt-editor__surface ol {
+  padding-left: 1.5rem;
+}
+
+.rt-editor__surface a {
+  color: rgb(79 70 229);
+  text-decoration: underline;
+}
+
+textarea.rt-source {
+  display: none;
+}
+
+.dark .rt-editor {
+  border-color: rgb(51 65 85);
+  background: rgb(2 6 23);
+}
+
+.dark .rt-toolbar {
+  border-bottom-color: rgb(51 65 85);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+}
+
+.dark .rt-toolbar__button {
+  border-color: rgb(71 85 105);
+  background: rgb(15 23 42);
+  color: rgb(226 232 240);
+}
+
+.dark .rt-toolbar__button:hover,
+.dark .rt-toolbar__button:focus {
+  border-color: rgb(129 140 248);
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18);
+}
+
+.dark .rt-editor__surface {
+  color: rgb(226 232 240);
+}
+
+.dark .rt-editor__surface:empty::before {
+  color: rgb(100 116 139);
+}
+
+.dark .rt-editor__surface h2,
+.dark .rt-editor__surface h3,
+.dark .rt-editor__surface h4 {
+  color: #fff;
+}
+
+.dark .rt-editor__surface a {
+  color: rgb(165 180 252);
+}

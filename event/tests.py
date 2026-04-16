@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from io import BytesIO
 import os
+from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import zipfile
@@ -14,6 +15,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import transaction
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -26,6 +28,7 @@ from reportlab.pdfgen import canvas
 from club.models import Club
 from event.forms import EventPropositionForm
 from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
+from event.credit import recalculate_all_balances
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.services.race_run_import import RaceRunImportService
@@ -998,6 +1001,131 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.event.name)
         self.assertContains(response, "Pokračovat k platbě")
+
+    def test_entry_list_template_uses_data_hooks_instead_of_inline_handlers(self):
+        template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "entry-list.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/entries.js", template)
+        self.assertNotIn("onclick=", template)
+        self.assertNotIn("onkeyup=", template)
+        self.assertIn("data-detail-url", template)
+
+    @patch("event.views.views_entry.create_entry_checkout_session")
+    def test_confirm_view_uses_checkout_session_service(self, create_checkout_session_mock):
+        self.client.force_login(self.user)
+        create_checkout_session_mock.return_value = SimpleNamespace(id="cs_test_entry")
+        session = self.client.session
+        session["event"] = '{"event": %d}' % self.event.id
+        session["riders_beginner"] = "[]"
+        session["riders_20"] = '[{"model":"rider.rider","pk":1,"fields":{"uci_id":12345678999}}]'
+        session["riders_24"] = "[]"
+        session.save()
+
+        response = self.client.post(reverse("event:confirm"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"id": "cs_test_entry"})
+        create_checkout_session_mock.assert_called_once()
+
+    @patch("event.views.views_entry.create_foreign_entry_checkout_session")
+    def test_foreign_pay_view_uses_checkout_session_service(self, create_checkout_session_mock):
+        create_checkout_session_mock.return_value = SimpleNamespace(
+            id="cs_test_foreign",
+            url="https://payments.example.test/checkout",
+        )
+        session = self.client.session
+        session["foreign_summary_payload"] = json.dumps(
+            {
+                "customer_email": "foreign@example.com",
+                "rows": [
+                    {
+                        "uci_id": "12345678901",
+                        "first_name": "Foreign",
+                        "last_name": "Rider",
+                        "date_of_birth": "2010-01-01",
+                        "sex": "Muž",
+                        "plate": "11",
+                        "nationality": "CZE",
+                        "transponder_20": "123",
+                        "transponder_24": "",
+                        "challenge": True,
+                        "championship": False,
+                        "cruiser": False,
+                    }
+                ],
+            }
+        )
+        session.save()
+
+        response = self.client.post(
+            reverse("event:entry-foreign-pay", kwargs={"pk": self.event.pk})
+        )
+
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response["Location"], "https://payments.example.test/checkout")
+        create_checkout_session_mock.assert_called_once()
+
+    def test_event_admin_templates_use_data_confirm_message(self):
+        fees_template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "fees-on-event.html"
+        ).read_text(encoding="utf-8")
+        receipts_template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "cash-receipts-on-event.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("data-confirm-message", fees_template)
+        self.assertNotIn("onclick=", fees_template)
+        self.assertIn("data-confirm-message", receipts_template)
+        self.assertNotIn("onclick=", receipts_template)
+
+    def test_import_stats_template_uses_external_script_and_no_inline_handlers(self):
+        template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "import-stats.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/import_stats.js", template)
+        self.assertIn("data-confirm-message", template)
+        self.assertNotIn("onclick=", template)
+        self.assertNotIn("<script>", template)
+
+    def test_event_admin_ec_template_uses_external_script_and_no_inline_script(self):
+        template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "event-admin-ec.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/event_admin_ec.js", template)
+        self.assertNotIn("<script>", template)
+        self.assertIn('id="ec-results-add-input"', template)
+        self.assertIn('id="ec-results-inputs"', template)
+
+    def test_event_admin_template_uses_external_script_and_confirm_hooks(self):
+        template = (
+            Path(settings.BASE_DIR) / "event" / "templates" / "event" / "event-admin.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("js/event_admin.js", template)
+        self.assertNotIn("<script>", template)
+        self.assertIn("data-event-admin-form", template)
+        self.assertIn("data-file-input", template)
+        self.assertIn("data-file-selection", template)
+        self.assertIn("data-confirm-message", template)
+
+    def test_foreign_entry_page_uses_external_script_and_no_inline_handlers(self):
+        response = self.client.get(
+            reverse("event:entry-foreign", kwargs={"pk": self.event.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "js/entry_foreign.js")
+        self.assertNotContains(response, "onsubmit=")
+        self.assertNotContains(response, "onclick=")
+        self.assertNotContains(response, "onchange=")
+        self.assertNotContains(response, "onblur=")
+        self.assertNotContains(response, "oninput=")
+        self.assertContains(response, "data-add-rider")
+        self.assertContains(response, "data-fetch-rider")
 
     def test_cancel_view_redirects_credit_checkout_back_to_credit(self):
         self.client.force_login(self.user)
@@ -2359,6 +2487,41 @@ class EventPropositionEditorUploadTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
 
+    @override_settings(CKEDITOR_5_MAX_FILE_SIZE=0)
+    def test_editor_upload_rejects_file_over_size_limit(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {"upload": self._make_image_upload()},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("příliš velký", response.json()["error"]["message"])
+
+    def test_editor_upload_rejects_disallowed_extension(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {"upload": self._make_image_upload(name="editor-image.bmp")},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("není povolena", response.json()["error"]["message"])
+
+    @override_settings(CKEDITOR_5_MAX_IMAGE_WIDTH=16, CKEDITOR_5_MAX_IMAGE_HEIGHT=16)
+    def test_editor_upload_rejects_image_over_dimension_limit(self):
+        self.client.force_login(self.club_manager)
+
+        response = self.client.post(
+            reverse("event:proposition-editor-upload"),
+            {"upload": self._make_image_upload()},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("příliš rozměrný", response.json()["error"]["message"])
+
 
 class EventPropositionSanitizationTests(TestCase):
     def setUp(self):
@@ -2793,3 +2956,95 @@ class RaceRunImportServiceTests(TestCase):
         self.assertFalse(moto_1.is_beginner)
         self.assertTrue(moto_1.is_20)
         self.assertEqual(moto_1.finish_time, 39.205)
+
+
+class EventFileReplacementSignalTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="Signal Club")
+        self.event = Event.objects.create(
+            name="Signal Race",
+            date=date.today(),
+            organizer=self.club,
+            type_for_ranking="Volný závod",
+            proposition=SimpleUploadedFile("old-proposition.pdf", b"old-file", content_type="application/pdf"),
+        )
+
+    def test_replaced_file_is_deleted_only_after_commit(self):
+        old_file_name = self.event.proposition.name
+        old_file_path = self.event.proposition.path
+
+        with self.captureOnCommitCallbacks(execute=True):
+            self.event.proposition = SimpleUploadedFile(
+                "new-proposition.pdf",
+                b"new-file",
+                content_type="application/pdf",
+            )
+            self.event.save(update_fields=["proposition"])
+
+        self.event.refresh_from_db()
+        self.assertNotEqual(self.event.proposition.name, old_file_name)
+        self.assertFalse(os.path.exists(old_file_path))
+
+    def test_replaced_file_survives_transaction_rollback(self):
+        old_file_name = self.event.proposition.name
+        old_file_path = self.event.proposition.path
+
+        with self.assertRaisesMessage(RuntimeError, "rollback"):
+            with transaction.atomic():
+                self.event.proposition = SimpleUploadedFile(
+                    "rolled-back-proposition.pdf",
+                    b"new-file",
+                    content_type="application/pdf",
+                )
+                self.event.save(update_fields=["proposition"])
+                raise RuntimeError("rollback")
+
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.proposition.name, old_file_name)
+        self.assertTrue(os.path.exists(old_file_path))
+
+
+class RecalculateAllBalancesTests(TestCase):
+    def setUp(self):
+        self.active_user = User.objects.create_user(
+            first_name="Active",
+            last_name="User",
+            username="active_user",
+            email="active@example.com",
+            password="StrongPass123!",
+        )
+        self.active_user.is_active = True
+        self.active_user.credit = 999
+        self.active_user.save(update_fields=["is_active", "credit"])
+
+        self.inactive_user = User.objects.create_user(
+            first_name="Inactive",
+            last_name="User",
+            username="inactive_user",
+            email="inactive@example.com",
+            password="StrongPass123!",
+        )
+        self.inactive_user.is_active = False
+        self.inactive_user.save(update_fields=["is_active"])
+
+        CreditTransaction.objects.create(user=self.active_user, amount=300, payment_complete=True)
+        DebetTransaction.objects.create(user=self.active_user, amount=120, payment_valid=True)
+        CreditTransaction.objects.create(user=self.inactive_user, amount=500, payment_complete=True)
+
+        User.objects.filter(pk=self.active_user.pk).update(credit=999)
+        User.objects.filter(pk=self.inactive_user.pk).update(credit=777)
+
+    def test_recalculate_all_balances_updates_only_active_users(self):
+        recalculate_all_balances()
+
+        self.active_user.refresh_from_db()
+        self.inactive_user.refresh_from_db()
+
+        self.assertEqual(self.active_user.credit, 180)
+        self.assertEqual(self.inactive_user.credit, 777)

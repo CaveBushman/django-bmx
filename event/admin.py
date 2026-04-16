@@ -579,6 +579,7 @@ class CreditTransactionAdmin(BaseAdmin):
         )
 
     def delete_model(self, request, obj):
+        deleted_pk = obj.pk
         create_finance_audit_log(
             actor=request.user,
             action=FinanceAuditLog.Action.DELETED,
@@ -588,6 +589,7 @@ class CreditTransactionAdmin(BaseAdmin):
             note=obj.payment_intent or "",
         )
         super().delete_model(request, obj)
+        obj.pk = deleted_pk
 
 
 class EntryAuditLogAdmin(BaseAdmin):
@@ -635,6 +637,7 @@ class DebetTransactionAdmin(BaseAdmin):
         )
 
     def delete_model(self, request, obj):
+        deleted_pk = obj.pk
         create_finance_audit_log(
             actor=request.user,
             action=FinanceAuditLog.Action.DELETED,
@@ -644,6 +647,7 @@ class DebetTransactionAdmin(BaseAdmin):
             note=str(obj.entry) if obj.entry else "",
         )
         super().delete_model(request, obj)
+        obj.pk = deleted_pk
 
 class StripeFeeAdmin(BaseAdmin):
     list_display = ('date', 'fee',)

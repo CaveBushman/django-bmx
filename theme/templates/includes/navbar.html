@@ -1,134 +1,5 @@
 {% load static i18n %}
 {% load l10n %}
-<style>
-  html.dark #profile-dropdown {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #e2e8f0 !important;
-  }
-
-  html.dark #profile-dropdown a,
-  html.dark #profile-dropdown button {
-    color: #e2e8f0 !important;
-  }
-
-  html.dark #profile-dropdown a:hover,
-  html.dark #profile-dropdown button:hover {
-    background: #1e293b !important;
-    color: #f8fafc !important;
-  }
-
-  html.dark #profile-dropdown .border-t {
-    border-color: #334155 !important;
-  }
-
-  .lang-flag {
-    display: inline-flex;
-    width: 1.35rem;
-    height: 1rem;
-    overflow: hidden;
-    border-radius: 0.25rem;
-    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
-    flex-shrink: 0;
-  }
-
-  .lang-flag svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .navbar-pill {
-    height: 2.875rem;
-    border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
-  }
-
-  .navbar-pill:hover {
-    background: rgba(255, 255, 255, 0.14);
-  }
-
-  html.dark .navbar-pill {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  html.dark .navbar-pill:hover {
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .navbar-desktop-links {
-    scrollbar-width: none;
-  }
-
-  .navbar-desktop-links::-webkit-scrollbar {
-    display: none;
-  }
-
-  .navbar-plate-alert {
-    height: 2.875rem;
-    border-radius: 9999px;
-    border: 1px solid rgba(251, 191, 36, 0.75);
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    box-shadow: 0 0 0 1px rgba(146, 64, 14, 0.18), 0 10px 24px rgba(245, 158, 11, 0.32);
-    color: #1f2937;
-  }
-
-  .navbar-plate-alert-count {
-    min-width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 9999px;
-    background: rgba(17, 24, 39, 0.84);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-  }
-
-  html.dark .navbar-plate-alert {
-    border-color: rgba(253, 224, 71, 0.72);
-    background: linear-gradient(135deg, #facc15 0%, #f59e0b 100%);
-    box-shadow: 0 0 0 1px rgba(120, 53, 15, 0.22), 0 10px 26px rgba(250, 204, 21, 0.28);
-    color: #111827;
-  }
-
-  html.dark .navbar-plate-alert-count {
-    background: rgba(17, 24, 39, 0.88);
-    color: #ffffff;
-  }
-
-  .navbar-avatar-alert {
-    height: 2.875rem;
-    border-radius: 9999px;
-    border: 1px solid rgba(251, 113, 133, 0.6);
-    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
-    box-shadow: 0 0 0 1px rgba(136, 19, 55, 0.2), 0 10px 24px rgba(225, 29, 72, 0.28);
-    color: #fff;
-  }
-
-  .navbar-avatar-alert-count {
-    min-width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 9999px;
-    background: rgba(15, 23, 42, 0.88);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    color: #fff;
-  }
-
-  html.dark .navbar-avatar-alert {
-    border-color: rgba(251, 113, 133, 0.66);
-    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
-    box-shadow: 0 0 0 1px rgba(136, 19, 55, 0.22), 0 10px 26px rgba(244, 63, 94, 0.24);
-  }
-
-  html.dark .navbar-avatar-alert-count {
-    background: rgba(15, 23, 42, 0.9);
-    color: #fff;
-  }
-</style>
 <nav class="bg-indigo-800 fixed top-0 left-0 right-0 z-20" id="navbar">
   <div class="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">
@@ -226,12 +97,7 @@
             {% if user.is_authenticated and request.session.orders %}
             <a href="{% url 'event:order' %}"
               class="relative inline-flex items-center p-3 text-sm font-medium text-center text-white bg-indigo-800 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-300 dark:bg-indigo-800 dark:hover:bg-indigo-600 dark:focus:ring-indigo-800">
-              <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><!-- Font Awesome icon -->
-                <style>
-                  svg {
-                    fill: #e5e7eb
-                  }
-                </style>
+              <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512" fill="currentColor" class="navbar-cart-icon text-gray-200"><!-- Font Awesome icon -->
                 <path
                   d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z" />
               </svg>
@@ -241,7 +107,7 @@
             </a>
             {% endif %}
 
-            <button id="theme-toggle" type="button" onclick="toggleTheme()"
+            <button id="theme-toggle" type="button" data-theme-toggle
               class="p-3 ml-3 bg-indigo-800 rounded-full flex items-center justify-center text-white hover:bg-indigo-700 transition-colors duration-200 ease-in-out"
               aria-label="{% trans 'Přepnout světlý/tmavý režim' %}">
               <!-- Slunce — zobrazuje se v dark modu -->
@@ -480,7 +346,7 @@
         </div>
       </div>
         <div class="-mr-2 flex items-center gap-2 md:hidden">
-          <button id="theme-toggle-mobile" type="button" onclick="toggleTheme()"
+          <button id="theme-toggle-mobile" type="button" data-theme-toggle
             class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
             aria-label="{% trans 'Přepnout světlý/tmavý režim' %}">
             <svg class="h-5 w-5 dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 24" aria-hidden="true">
@@ -540,12 +406,7 @@
       <a href="{% url 'event:order' %}"
         class="relative inline-flex items-center p-5 text-sm font-medium text-center text-white bg-gray-800 rounded-lg hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-gray-800 dark:hover:bg-gray-600 dark:focus:ring-gray-800">
         <svg xmlns="http://www.w3.org/2000/svg" height="1em"
-          viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-          <style>
-            svg {
-              fill: #e5e7eb
-            }
-          </style>
+          viewBox="0 0 576 512" fill="currentColor" class="navbar-cart-icon text-gray-200"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com/license -->
           <path
             d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z" />
         </svg>
@@ -690,63 +551,4 @@
       </div>
     </div>
 
-    <script>
-      function closeDropdown() {
-        const dropdown = document.getElementById("profile-dropdown");
-        if (dropdown && !dropdown.classList.contains('hidden')) {
-          dropdown.classList.add('hidden');
-        }
-
-        const languageMenu = document.getElementById("language-menu");
-        if (languageMenu && !languageMenu.classList.contains("hidden")) {
-          languageMenu.classList.add("hidden");
-        }
-
-        const mobileMenu = document.getElementById("mobile-menu");
-        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-          mobileMenu.classList.add('hidden');
-        }
-      }
-    </script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const languageButton = document.getElementById("language-menu-button");
-        const languageMenu = document.getElementById("language-menu");
-
-        if (languageButton && languageMenu) {
-          languageButton.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            languageMenu.classList.toggle("hidden");
-          });
-
-          document.addEventListener("click", function (event) {
-            if (!languageMenu.classList.contains("hidden") && !languageMenu.contains(event.target) && !languageButton.contains(event.target)) {
-              languageMenu.classList.add("hidden");
-            }
-          });
-        }
-      });
-    </script>
-    <script>
-      // Fix pro iOS scrolling: Sleduje viditelnost mobilního menu a zamyká scroll na body
-      document.addEventListener("DOMContentLoaded", function () {
-        const mobileMenu = document.getElementById("mobile-menu");
-        
-        if (mobileMenu) {
-          const observer = new MutationObserver(function (mutations) {
-            mutations.forEach(function (mutation) {
-              if (mutation.type === "attributes" && mutation.attributeName === "class") {
-                if (!mobileMenu.classList.contains("hidden")) {
-                  document.body.style.overflow = "hidden";
-                } else {
-                  document.body.style.overflow = "";
-                }
-              }
-            });
-          });
-          observer.observe(mobileMenu, { attributes: true });
-        }
-      });
-    </script>
 </nav>

@@ -168,7 +168,6 @@
           type="text"
           placeholder="{% trans 'Napiš příjmení' %}"
           aria-label="{% trans 'Filtrovat podle příjmení' %}"
-          onkeyup="searchByName()"
           id="inputName"/>
 
         <input
@@ -176,7 +175,6 @@
           type="text"
           placeholder="{% trans 'Napiš klub' %}"
           aria-label="{% trans 'Filtrovat podle klubu' %}"
-          onkeyup="searchByClub()"
           id="inputClub"/>
 
         <input
@@ -184,7 +182,6 @@
           type="text"
           placeholder="{% trans 'Napiš kategorii' %}"
           aria-label="{% trans 'Filtrovat podle kategorie' %}"
-          onkeyup="searchByClass()"
           id="inputClass"/>
       </div>
 
@@ -209,7 +206,7 @@
           </thead>
           <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
             {% for entry in entries %}
-            <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
+            <tr {% if entry.detail_url %}data-detail-url="{{ entry.detail_url }}"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
               <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                 <div class="flex items-center">
                   <div class="relative">
@@ -286,7 +283,7 @@
             </thead>
             <tbody class="entry-list-table-body bg-white divide-y divide-gray-200 dark:divide-slate-700">
               {% for entry in checkout %}
-              <tr {% if entry.detail_url %}onclick="window.location='{{ entry.detail_url }}';"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
+              <tr {% if entry.detail_url %}data-detail-url="{{ entry.detail_url }}"{% endif %} class="entry-list-table-row {% if entry.detail_url %}cursor-pointer{% endif %} transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/80">
                 <td class="px-4 py-3 whitespace-nowrap sm:px-6">
                   <div class="flex items-center">
                     <div class="relative">
@@ -339,6 +336,6 @@
     </div>
   </div>
 
-  <script src="{% static 'js/entries.js' %}"></script>
+  <script src="{% static 'js/entries.js' %}?v=1"></script>
 </section>
 {% endblock content %}

@@ -3,6 +3,7 @@
 {% load static %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/foreign-entry.css' %}">
+<script src="{% static 'js/entry_foreign.js' %}?v=1" defer></script>
 <style>
   .entry-foreign-hero {
     position: relative;
@@ -131,7 +132,7 @@
           </label>
         </div>
 
-        <form id="ridersForm" method="post" action="{% url 'event:entry-foreign-summary' event.id %}" onsubmit="return validateForm()">
+        <form id="ridersForm" method="post" action="{% url 'event:entry-foreign-summary' event.id %}" data-check-rider-url="{% url 'event:check-rider' %}">
           {% csrf_token %}
           <input type="hidden" name="summary_payload" id="summaryPayload">
           <div id="ridersTable" class="space-y-5">
@@ -142,7 +143,7 @@
                   <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Rider</p>
                   <p class="riderCardTitle mt-1 text-lg font-bold text-slate-900 dark:text-white">Rider {{ forloop.counter }}</p>
                 </div>
-                <button type="button" onclick="removeRow(this)"
+                <button type="button" data-remove-rider
                   class="foreign-entry-delete-button focus:outline-none focus:ring-2 focus:ring-rose-300"
                   title="Delete rider"
                   aria-label="Delete rider">
@@ -170,7 +171,7 @@
                         </div>
                         <input type="text" name="uci_id[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678" value="{{ row.uci_id }}">
+                          data-fetch-rider maxlength="11" inputmode="numeric" placeholder="10012345678" value="{{ row.uci_id }}">
                       </div>
                     </label>
                     <label class="block">
@@ -241,7 +242,7 @@
                         </div>
                         <input type="text" name="plate[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                          maxlength="10" autocapitalize="characters" spellcheck="false" data-uppercase
                           placeholder="Plate no." value="{{ row.plate }}">
                       </div>
                     </label>
@@ -253,7 +254,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
                           </svg>
                         </div>
-                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" data-uppercase
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                           placeholder="Country code" value="{{ row.nationality }}">
                       </div>
@@ -266,15 +267,15 @@
                   <div class="grid gap-4 md:grid-cols-3">
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Challenge</span>
-                      <input type="checkbox" name="challenge[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)" {% if row.challenge %}checked{% endif %}>
+                      <input type="checkbox" name="challenge[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle {% if row.challenge %}checked{% endif %}>
                     </label>
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Championship</span>
-                      <input type="checkbox" name="championship[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)" {% if row.championship %}checked{% endif %}>
+                      <input type="checkbox" name="championship[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle {% if row.championship %}checked{% endif %}>
                     </label>
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Cruiser</span>
-                      <input type="checkbox" name="cruiser[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)" {% if row.cruiser %}checked{% endif %}>
+                      <input type="checkbox" name="cruiser[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle {% if row.cruiser %}checked{% endif %}>
                     </label>
                   </div>
                   <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -291,7 +292,7 @@
                         </div>
                         <input type="text" name="transponder_20[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          oninput="this.value=this.value.toUpperCase()"
+                          data-uppercase
                           pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_20 }}">
                       </div>
                     </label>
@@ -305,7 +306,7 @@
                         </div>
                         <input type="text" name="transponder_24[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          oninput="this.value=this.value.toUpperCase()"
+                          data-uppercase
                           pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="" value="{{ row.transponder_24 }}">
                       </div>
                     </label>
@@ -323,7 +324,7 @@
                   <p class="text-xs font-semibold uppercase tracking-[0.26em] text-slate-400 dark:text-slate-500">Rider</p>
                   <p class="riderCardTitle mt-1 text-lg font-bold text-slate-900 dark:text-white">Rider 1</p>
                 </div>
-                <button type="button" onclick="removeRow(this)"
+                <button type="button" data-remove-rider
                   class="foreign-entry-delete-button focus:outline-none focus:ring-2 focus:ring-rose-300"
                   title="Delete rider"
                   aria-label="Delete rider">
@@ -351,7 +352,7 @@
                         </div>
                         <input type="text" name="uci_id[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 font-mono text-base tracking-[0.08em] text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          onblur="fetchRiderData(this)" maxlength="11" inputmode="numeric" placeholder="10012345678">
+                          data-fetch-rider maxlength="11" inputmode="numeric" placeholder="10012345678">
                       </div>
                     </label>
                     <label class="block">
@@ -422,7 +423,7 @@
                         </div>
                         <input type="text" name="plate[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          maxlength="10" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()" readonly placeholder="Plate no.">
+                          maxlength="10" autocapitalize="characters" spellcheck="false" data-uppercase readonly placeholder="Plate no.">
                       </div>
                     </label>
                     <label class="block">
@@ -433,7 +434,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
                           </svg>
                         </div>
-                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()"
+                        <input type="text" name="nationality[]" list="sport-country-codes" maxlength="3" autocapitalize="characters" spellcheck="false" data-uppercase
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                           readonly placeholder="Country code">
                       </div>
@@ -446,15 +447,15 @@
                   <div class="grid gap-4 md:grid-cols-3">
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Challenge</span>
-                      <input type="checkbox" name="challenge[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)">
+                      <input type="checkbox" name="challenge[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle>
                     </label>
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Championship</span>
-                      <input type="checkbox" name="championship[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)">
+                      <input type="checkbox" name="championship[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle>
                     </label>
                     <label class="foreign-entry-category-option rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                       <span class="foreign-entry-category-title">Cruiser</span>
-                      <input type="checkbox" name="cruiser[]" class="foreign-entry-checkbox h-4 w-4" onchange="syncCategoryRules(this)">
+                      <input type="checkbox" name="cruiser[]" class="foreign-entry-checkbox h-4 w-4" data-category-toggle>
                     </label>
                   </div>
                   <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -471,7 +472,7 @@
                         </div>
                         <input type="text" name="transponder_20[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          oninput="this.value=this.value.toUpperCase()"
+                          data-uppercase
                           pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
                       </div>
                     </label>
@@ -485,7 +486,7 @@
                         </div>
                         <input type="text" name="transponder_24[]"
                           class="foreign-entry-input w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-slate-700 shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                          oninput="this.value=this.value.toUpperCase()"
+                          data-uppercase
                           pattern="[A-Z]{2}-\d{5}" title="Transponder must be in format XX-11111" placeholder="">
                       </div>
                     </label>
@@ -505,7 +506,7 @@
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Add more rows or submit the registration when the list is complete.</p>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row">
-              <button type="button" onclick="addRow()"
+              <button type="button" data-add-rider
                 class="rounded-xl border border-indigo-700 bg-indigo-700 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-900/20 transition-colors hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-indigo-400 dark:bg-indigo-500 dark:text-white dark:hover:bg-indigo-400">
                 Add another rider
               </button>
@@ -759,266 +760,5 @@
   <option value="ZAM">
   <option value="ZIM">
 </datalist>
-
-<script>
-  function validateForm() {
-    const cards = document.querySelectorAll(".riderCard");
-    const customerEmail = document.getElementById("customerEmail").value.trim();
-    const errors = [];
-    const transponderPattern = /^[A-Z]{2}-\d{5}$/;
-    const rows = Array.from(cards).map(card => ({
-      uci_id: card.querySelector('[name="uci_id[]"]').value,
-      first_name: card.querySelector('[name="first_name[]"]').value,
-      last_name: card.querySelector('[name="last_name[]"]').value,
-      date_of_birth: card.querySelector('[name="dob[]"]').value,
-      sex: card.querySelector('[name="sex[]"]').value,
-      plate: card.querySelector('[name="plate[]"]').value,
-      nationality: card.querySelector('[name="nationality[]"]').value,
-      transponder_20: card.querySelector('[name="transponder_20[]"]').value,
-      transponder_24: card.querySelector('[name="transponder_24[]"]').value,
-      challenge: card.querySelector('[name="challenge[]"]').checked,
-      championship: card.querySelector('[name="championship[]"]').checked,
-      cruiser: card.querySelector('[name="cruiser[]"]').checked,
-    })).filter(row =>
-      row.uci_id || row.first_name || row.last_name || row.date_of_birth || row.plate ||
-      row.nationality || row.transponder_20 || row.transponder_24 ||
-      row.challenge || row.championship || row.cruiser
-    );
-
-    if (!customerEmail) {
-      errors.push("Contact e-mail is required.");
-    }
-
-    if (!rows.length) {
-      errors.push("Add at least one rider.");
-    }
-
-    rows.forEach((row, index) => {
-      const label = `Rider ${index + 1}`;
-      if (!row.first_name.trim()) {
-        errors.push(`${label}: first name is required.`);
-      }
-      if (!row.last_name.trim()) {
-        errors.push(`${label}: last name is required.`);
-      }
-      if (!row.uci_id.trim()) {
-        errors.push(`${label}: UCI ID is required.`);
-      }
-      if (!row.date_of_birth.trim()) {
-        errors.push(`${label}: date of birth is required.`);
-      }
-      if (!String(row.plate).trim()) {
-        errors.push(`${label}: plate is required.`);
-      }
-      if (!row.challenge && !row.championship && !row.cruiser) {
-        errors.push(`${label}: choose Challenge, Championship or Cruiser.`);
-      }
-      if (row.championship && (row.challenge || row.cruiser)) {
-        errors.push(`${label}: Championship must be selected alone.`);
-      }
-      if (row.transponder_20 && !transponderPattern.test(row.transponder_20.trim().toUpperCase())) {
-        errors.push(`${label}: transponder 20 must be in format XX-11111.`);
-      }
-      if (row.transponder_24 && !transponderPattern.test(row.transponder_24.trim().toUpperCase())) {
-        errors.push(`${label}: transponder 24 must be in format XX-11111.`);
-      }
-    });
-
-    if (errors.length) {
-      alert(errors.join("\n"));
-      return false;
-    }
-
-    document.getElementById("summaryPayload").value = JSON.stringify({
-      customer_email: customerEmail,
-      rows: rows,
-    });
-    return true;
-  }
-
-  function syncCategoryRules(inputOrCard) {
-    const card = inputOrCard?.classList?.contains("riderCard")
-      ? inputOrCard
-      : inputOrCard?.closest(".riderCard");
-    if (!card) {
-      return;
-    }
-
-    const challenge = card.querySelector('[name="challenge[]"]');
-    const championship = card.querySelector('[name="championship[]"]');
-    const cruiser = card.querySelector('[name="cruiser[]"]');
-
-    if (championship.checked) {
-      challenge.checked = false;
-      cruiser.checked = false;
-    }
-
-    if (challenge.checked || cruiser.checked) {
-      championship.checked = false;
-    }
-  }
-
-  function updateCardTitles() {
-    document.querySelectorAll(".riderCard").forEach((card, index) => {
-      const title = card.querySelector(".riderCardTitle");
-      if (title) {
-        title.textContent = `Rider ${index + 1}`;
-      }
-    });
-  }
-
-  function updateRiderCount() {
-    const count = document.getElementsByClassName("riderCard").length;
-    const counter = document.getElementById("riderCount");
-
-    if (!counter) {
-      return;
-    }
-
-    counter.textContent = `${count} ${count === 1 ? 'rider' : 'riders'} in form`;
-    updateCardTitles();
-  }
-
-  function addRow() {
-    const table = document.getElementById("ridersTable");
-    const cards = document.getElementsByClassName("riderCard");
-    const lastCard = cards[cards.length - 1];
-    const newCard = lastCard.cloneNode(true);
-
-    newCard.querySelectorAll("input").forEach(input => {
-      if (input.type === "checkbox") {
-        input.checked = false;
-      } else {
-        input.value = "";
-      }
-      input.readOnly = false;
-    });
-
-    newCard.querySelectorAll("select").forEach(select => {
-      select.value = "Muž";
-      select.disabled = false;
-    });
-
-    newCard.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
-      checkbox.checked = false;
-      checkbox.disabled = false;
-    });
-
-    table.appendChild(newCard);
-    syncCategoryRules(newCard);
-    updateRiderCount();
-  }
-
-  function removeRow(button) {
-    const card = button.closest(".riderCard");
-    const cards = document.getElementsByClassName("riderCard");
-
-    if (cards.length > 1) {
-      card.remove();
-      updateRiderCount();
-    } else {
-      alert("It must remain at least one line.");
-    }
-  }
-
-  function getCSRFToken() {
-    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
-    return csrfToken ? csrfToken[1] : '';
-  }
-
-  function enableManualEntry(card, resetFields = false) {
-    if (!card) {
-      return;
-    }
-
-    const fieldsToUnlock = [
-      '[name="first_name[]"]',
-      '[name="last_name[]"]',
-      '[name="dob[]"]',
-      '[name="plate[]"]',
-      '[name="nationality[]"]'
-    ];
-
-    fieldsToUnlock.forEach(selector => {
-      const field = card.querySelector(selector);
-      if (!field) {
-        return;
-      }
-      field.readOnly = false;
-      if (resetFields && selector !== '[name="nationality[]"]') {
-        field.value = "";
-      }
-    });
-
-    const sexField = card.querySelector('[name="sex[]"]');
-    if (sexField) {
-      sexField.disabled = false;
-      if (resetFields) {
-        sexField.value = "Muž";
-      }
-    }
-
-    if (resetFields) {
-      const nationalityField = card.querySelector('[name="nationality[]"]');
-      if (nationalityField) {
-        nationalityField.value = "";
-      }
-    }
-  }
-
-  function fetchRiderData(input) {
-    const uciId = input.value;
-    const csrfToken = getCSRFToken();
-
-    if (uciId) {
-      fetch(`/event/check-rider/?uci_id=${uciId}`, {
-        method: 'GET',
-        headers: {
-          'X-CSRFToken': csrfToken
-        }
-      })
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject('Server returned an error: ' + response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          const card = input.closest(".riderCard");
-
-          if (!data.error) {
-            card.querySelector('[name="first_name[]"]').value = data.first_name;
-            card.querySelector('[name="last_name[]"]').value = data.last_name;
-            card.querySelector('[name="dob[]"]').value = data.date_of_birth;
-            card.querySelector('[name="sex[]"]').value = data.sex;
-            card.querySelector('[name="plate[]"]').value = data.plate;
-            card.querySelector('[name="transponder_20[]"]').value = data.transponder_20;
-            card.querySelector('[name="transponder_24[]"]').value = data.transponder_24;
-            card.querySelector('[name="nationality[]"]').value = data.nationality;
-
-            card.querySelector('[name="first_name[]"]').readOnly = false;
-            card.querySelector('[name="last_name[]"]').readOnly = false;
-            card.querySelector('[name="dob[]"]').readOnly = false;
-            card.querySelector('[name="sex[]"]').disabled = false;
-            card.querySelector('[name="plate[]"]').readOnly = false;
-            card.querySelector('[name="nationality[]"]').readOnly = false;
-          } else {
-            enableManualEntry(card, true);
-          }
-
-          syncCategoryRules(card);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          const card = input.closest(".riderCard");
-          enableManualEntry(card, false);
-          alert('Error: ' + error);
-        });
-    }
-  }
-
-  updateRiderCount();
-  document.querySelectorAll(".riderCard").forEach(syncCategoryRules);
-</script>
 
 {% endblock %}

@@ -58,6 +58,14 @@ cover/
 
 # Django stuff:
 *.log
+logs/audit.log
+logs/audit.log.*
+logs/errors.log
+logs/errors.log.*
+logs/chatbot.log
+logs/chatbot.log.*
+.DS_Store
+.codex
 local_settings.py
 db.sqlite3
 db.sqlite3-journal

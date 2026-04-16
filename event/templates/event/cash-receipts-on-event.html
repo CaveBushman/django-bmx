@@ -280,7 +280,7 @@
                     <a href="{% url 'event:cash-receipt-edit' event.id receipt.id %}" class="invoice-link-chip">Upravit</a>
                     <form method="post" action="{% url 'event:cash-receipt-delete' event.id receipt.id %}" class="inline-flex">
                       {% csrf_token %}
-                      <button type="submit" class="invoice-link-chip invoice-link-danger" onclick="return confirm('Opravdu smazat tento pokladní doklad?');" title="Smazat pokladní doklad" aria-label="Smazat pokladní doklad">
+                      <button type="submit" class="invoice-link-chip invoice-link-danger" data-confirm-message="Opravdu smazat tento pokladní doklad?" title="Smazat pokladní doklad" aria-label="Smazat pokladní doklad">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M3 6h18" />
                           <path d="M8 6V4h8v2" />

@@ -131,3 +131,58 @@ class RichTextSanitizationTests(TestCase):
         self.assertIn('src="/media/proposition_uploads/test.png"', document.description)
         self.assertIn('alt="Poster"', document.description)
         self.assertNotIn("onerror", document.description)
+
+
+class RichTextRenderSafetyTests(TestCase):
+    @patch('news.models._EXECUTOR.submit')
+    def test_homepage_view_sanitizes_historical_news_prefix(self, mock_submit):
+        article = News.objects.create(
+            title="Unsafe homepage article",
+            prefix="<p>safe</p>",
+            content="<p>body</p>",
+            published=True,
+            on_homepage=True,
+        )
+        News.objects.filter(pk=article.pk).update(
+            prefix='<p>safe</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>'
+        )
+
+        response = self.client.get(reverse("news:homepage"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "<script>alert(1)</script>", html=False)
+        self.assertNotContains(response, "javascript:alert(1)", html=False)
+
+    @patch('news.models._EXECUTOR.submit')
+    def test_news_detail_view_sanitizes_historical_news_content(self, mock_submit):
+        article = News.objects.create(
+            title="Unsafe detail article",
+            prefix="<p>prefix</p>",
+            content="<p>body</p>",
+            published=True,
+        )
+        News.objects.filter(pk=article.pk).update(
+            content='<p>body</p><script>alert(1)</script><img src="/x" onerror="alert(1)">'
+        )
+
+        response = self.client.get(article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "<script>alert(1)</script>", html=False)
+        self.assertNotContains(response, "onerror", html=False)
+
+    def test_downloads_view_sanitizes_historical_document_description(self):
+        document = Downloads.objects.create(
+            title="Unsafe document",
+            description="<p>desc</p>",
+            published=True,
+        )
+        Downloads.objects.filter(pk=document.pk).update(
+            description='<p>desc</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>'
+        )
+
+        response = self.client.get(reverse("news:downloads"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "<script>alert(1)</script>", html=False)
+        self.assertNotContains(response, "javascript:alert(1)", html=False)
