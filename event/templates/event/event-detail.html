@@ -106,6 +106,49 @@
     box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
   }
 
+  .event-status-shell {
+    border: 1px solid rgba(129, 140, 248, 0.22);
+    border-radius: 2rem;
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 30%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(238, 242, 255, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .event-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.55rem 0.95rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .event-status-badge.is-open {
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+  }
+
+  .event-status-badge.is-closed {
+    background: rgba(245, 158, 11, 0.16);
+    color: #b45309;
+  }
+
+  .event-status-badge.is-cancelled {
+    background: rgba(244, 63, 94, 0.14);
+    color: #be123c;
+  }
+
+  .event-status-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 1.25rem;
+  }
+
   html.dark .event-detail-page {
     background: #0f172a;
   }
@@ -146,6 +189,31 @@
     background: rgba(15, 23, 42, 0.92);
     box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
   }
+
+  html.dark .event-status-shell {
+    border-color: rgba(79, 70, 229, 0.24);
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 30%),
+      linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.9));
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  html.dark .event-status-card {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: rgba(15, 23, 42, 0.82);
+  }
+
+  html.dark .event-status-badge.is-open {
+    color: #6ee7b7;
+  }
+
+  html.dark .event-status-badge.is-closed {
+    color: #fcd34d;
+  }
+
+  html.dark .event-status-badge.is-cancelled {
+    color: #fda4af;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -185,6 +253,72 @@
 
 <div class="mx-auto max-w-screen-xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-screen-xl space-y-8">
+        <section class="event-status-shell p-6 sm:p-8">
+            <div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        {% if event.canceled %}
+                        <span class="event-status-badge is-cancelled">{% trans "Závod zrušen" %}</span>
+                        {% elif reg_open %}
+                        <span class="event-status-badge is-open">{% trans "Registrace otevřená" %}</span>
+                        {% else %}
+                        <span class="event-status-badge is-closed">{% trans "Registrace uzavřená" %}</span>
+                        {% endif %}
+                        {% if event.is_uci_race %}
+                        <span class="event-status-badge is-closed">{% trans "UCI režim" %}</span>
+                        {% endif %}
+                    </div>
+                    <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                        {% trans "Co potřebuješ vědět před registrací" %}
+                    </h2>
+                    <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                        {% if event.canceled %}
+                        {% trans "Závod je označený jako zrušený. Sleduj propozice a oficiální komunikaci pořadatele kvůli náhradnímu termínu nebo dalším pokynům." %}
+                        {% elif reg_open %}
+                        {% trans "Registrace právě běží. Zkontroluj termíny, podmínky v propozicích a potom dokonči přihlášení jezdce." %}
+                        {% else %}
+                        {% trans "Registrace teď neběží. Ověř termíny, seznam přihlášených a zveřejněné propozice, ať víš, jestli čekat na otevření nebo už jen sledovat závod." %}
+                        {% endif %}
+                    </p>
+
+                    <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                        <article class="event-status-card">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Stav" %}</p>
+                            <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">
+                                {% if event.canceled %}
+                                {% trans "Závod se nejede" %}
+                                {% elif reg_open %}
+                                {% trans "Lze se přihlásit" %}
+                                {% else %}
+                                {% trans "Čeká se nebo je po termínu" %}
+                                {% endif %}
+                            </p>
+                        </article>
+                        <article class="event-status-card">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Konec přihlášení" %}</p>
+                            <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">{{ event.reg_open_to|date:"j. F Y H:i"|default:"-" }}</p>
+                        </article>
+                        <article class="event-status-card">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Konec odhlášení" %}</p>
+                            <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">{{ event.reg_cancel_deadline|date:"j. F Y H:i"|default:"-" }}</p>
+                        </article>
+                        <article class="event-status-card">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přihlášení jezdci" %}</p>
+                            <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">{{ riders_sum }}</p>
+                        </article>
+                        <article class="event-status-card">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Propozice" %}</p>
+                            <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">
+                                {% if has_public_proposition or event.proposition %}
+                                {% trans "K dispozici" %}
+                                {% else %}
+                                {% trans "Čeká na zveřejnění" %}
+                                {% endif %}
+                            </p>
+                        </article>
+                    </div>
+            </div>
+        </section>
+
         <section class="event-detail-panel p-6 sm:p-8">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">

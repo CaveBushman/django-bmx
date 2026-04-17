@@ -6,6 +6,7 @@ from unittest.mock import patch
 from pathlib import Path
 from decimal import Decimal
 import logging
+import json
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -137,6 +138,7 @@ class SettingsSecuritySourceTests(TestCase):
 
         self.assertIn('CSP_ENFORCE = config_bool("CSP_ENFORCE"', source)
         self.assertIn('ENABLE_HTTPS_SECURITY = config_bool("ENABLE_HTTPS_SECURITY"', source)
+        self.assertIn('CSRF_TRUSTED_ORIGINS = config_list(', source)
         self.assertIn('SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=not DEBUG)', source)
         self.assertNotIn('SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=STRIPE_LIVE_MODE)', source)
 
@@ -162,6 +164,7 @@ class SettingsSecuritySourceTests(TestCase):
         self.assertIn('SENTRY_ENABLED = config_bool("SENTRY_ENABLED", default=not DEBUG)', source)
         self.assertIn('SENTRY_SEND_DEFAULT_PII = config_bool("SENTRY_SEND_DEFAULT_PII", default=False)', source)
         self.assertIn('SENTRY_MAX_BREADCRUMBS = config("SENTRY_MAX_BREADCRUMBS", default=50, cast=int)', source)
+        self.assertIn('LOG_AS_JSON = config_bool("LOG_AS_JSON", default=not DEBUG)', source)
         self.assertIn('initialize_sentry(', source)
 
     def test_observability_helper_falls_back_without_sentry_sdk(self):
@@ -292,6 +295,36 @@ class SettingsSecuritySourceTests(TestCase):
         )
         self.assertEqual(configure_scope_calls[0].tags["app"], "django-bmx")
         self.assertTrue(configure_scope_calls[0].tags["stripe.live_mode"])
+
+    def test_json_formatter_includes_release_and_environment(self):
+        from bmx.logging_config import JsonFormatter
+
+        formatter = JsonFormatter(release="release-1", environment="production")
+        record = logging.LogRecord(
+            name="bmx.test",
+            level=logging.INFO,
+            pathname=__file__,
+            lineno=1,
+            msg="hello world",
+            args=(),
+            exc_info=None,
+        )
+
+        payload = json.loads(formatter.format(record))
+
+        self.assertEqual(payload["logger"], "bmx.test")
+        self.assertEqual(payload["message"], "hello world")
+        self.assertEqual(payload["release"], "release-1")
+        self.assertEqual(payload["environment"], "production")
+
+    def test_env_example_exists_with_sentry_and_logging_placeholders(self):
+        source = (
+            Path(settings.BASE_DIR) / "bmx" / ".env.example"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("SECRET_KEY=replace-with-strong-secret", source)
+        self.assertIn("SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0", source)
+        self.assertIn("LOG_AS_JSON=true", source)
 
     def test_entry_views_source_contains_custom_performance_spans(self):
         source = (

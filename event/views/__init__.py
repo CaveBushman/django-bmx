@@ -62,7 +62,6 @@ from event.views.views_admin import (
     event_admin_view,
     commissar_assignments_view,
     commissar_statistics_view,
-    find_payment_view,
     ec_by_club_xls,
     summary_riders_in_event,
     unpaid_moto_riders_report,

@@ -25,7 +25,6 @@ urlpatterns = [
     path('success/<int:pk>', views.success_view, name='success'),
     path('cancel', views.cancel_view, name='cancel'),
     path('event-admin/<int:pk>', views.event_admin_view, name='event-admin'),
-    path('find-payment', views.find_payment_view, name='find-payment'),
     path('commissar-assignments/', views.commissar_assignments_view, name='commissar-assignments'),
     path('commissar-statistics/', views.commissar_statistics_view, name='commissar-statistics'),
     path('ranking-table', views.ranking_table_view, name='ranking-table'),

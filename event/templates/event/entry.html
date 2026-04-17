@@ -80,6 +80,90 @@
         color: #94a3b8;
     }
 
+    @media (min-width: 768px) {
+        .entry-hero--compact {
+            padding-top: 1.75rem;
+            padding-bottom: 1.75rem;
+        }
+
+        .entry-hero-copy {
+            max-width: 30rem;
+        }
+
+        .entry-hero-copy p:first-child {
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+        }
+
+        .entry-hero-copy h1 {
+            margin-top: 0.45rem;
+            font-size: 2.6rem;
+            line-height: 0.98;
+        }
+
+        .entry-hero-copy p:last-child {
+            margin-top: 0.9rem;
+            font-size: 0.95rem;
+            line-height: 1.55;
+        }
+
+        .entry-hero-stats {
+            gap: 0.85rem;
+        }
+
+        .entry-hero-stat {
+            border-radius: 1.15rem;
+            padding: 0.9rem 1rem;
+        }
+
+        .entry-hero-stat p:first-child {
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+        }
+
+        .entry-hero-stat p:last-child {
+            margin-top: 0.45rem;
+            font-size: 1.7rem;
+            line-height: 1.05;
+        }
+
+        .entry-hero-action .entry-cta {
+            min-height: 3.35rem;
+        }
+
+        .entry-selection-meta {
+            margin-top: 0.45rem;
+            font-size: 0.78rem;
+        }
+
+        .entry-filters {
+            gap: 0.85rem;
+        }
+
+        .entry-filter-group span {
+            margin-bottom: 0.35rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+        }
+
+        .entry-filter-input {
+            border-radius: 1rem;
+            padding: 0.8rem 0.95rem;
+            font-size: 0.95rem;
+        }
+
+        .entry-choice {
+            min-height: 2.5rem;
+        }
+
+        .registered-entry,
+        .entry-status-muted {
+            min-height: 2.5rem;
+            padding-top: 0.45rem;
+            padding-bottom: 0.45rem;
+        }
+    }
+
     .entry-table {
         table-layout: auto;
         width: 100%;
@@ -117,6 +201,271 @@
 
     .entry-choice.selected span {
         color: #312e81;
+    }
+
+    .entry-category-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .entry-category-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.9rem;
+        height: 1.9rem;
+        border-radius: 9999px;
+        border: 1px solid #c7d2fe;
+        background: #eef2ff;
+        color: #3730a3;
+        font-size: 0.75rem;
+        font-weight: 800;
+        line-height: 1;
+        padding: 0 0.45rem;
+        transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+
+    .entry-category-trigger:hover,
+    .entry-category-trigger:focus-visible {
+        background: #e0e7ff;
+        border-color: #a5b4fc;
+        color: #312e81;
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .entry-category-popover {
+        position: fixed;
+        z-index: 80;
+        width: min(22rem, calc(100vw - 2rem));
+        border-radius: 1.25rem;
+        border: 1px solid rgba(199, 210, 254, 0.9);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 24px 54px rgba(15, 23, 42, 0.16);
+        padding: 1rem;
+    }
+
+    .entry-category-popover[hidden] {
+        display: none;
+    }
+
+    .entry-category-template {
+        display: none;
+    }
+
+    .entry-mobile-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+        .entry-mobile-list {
+            display: none !important;
+        }
+    }
+
+    .entry-mobile-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        background: #ffffff;
+        padding: 1rem;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .entry-mobile-card__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .entry-mobile-card__plate {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3rem;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #312e81;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .entry-mobile-categories {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .entry-mobile-category {
+        border-radius: 1.1rem;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 0.85rem;
+    }
+
+    .entry-mobile-category--full {
+        grid-column: 1 / -1;
+    }
+
+    .entry-mobile-category__label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.55rem;
+    }
+
+    .entry-mobile-stickybar {
+        position: sticky;
+        bottom: 0;
+        z-index: 40;
+        border-top: 1px solid rgba(165, 180, 252, 0.45);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(14px);
+        padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+        box-shadow: 0 -16px 36px rgba(15, 23, 42, 0.1);
+    }
+
+    .entry-mobile-stickybar__inner {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .entry-mobile-stickybar__summary {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .entry-mobile-stickybar__summary span {
+        display: block;
+    }
+
+    .entry-mobile-stickybar__summary .entry-selection-count {
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .entry-desktop-list {
+        display: none;
+    }
+
+    .entry-desktop-shell {
+        border: 1px solid #e2e8f0;
+        border-radius: 1.35rem;
+        background: rgba(248, 250, 252, 0.9);
+        padding: 0.8rem;
+    }
+
+    .entry-desktop-grid {
+        display: grid;
+        grid-template-columns: minmax(3.25rem, 0.45fr) minmax(8.5rem, 1.15fr) minmax(7.5rem, 0.95fr) minmax(8.5rem, 1fr) minmax(8.5rem, 1fr);
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .entry-desktop-grid--beginner {
+        grid-template-columns: minmax(3.25rem, 0.45fr) minmax(8rem, 1.1fr) minmax(7rem, 0.9fr) minmax(7.5rem, 0.95fr) minmax(7.5rem, 0.95fr) minmax(7.5rem, 0.95fr);
+    }
+
+    .entry-desktop-header {
+        padding: 0 0.35rem 0.5rem;
+    }
+
+    .entry-desktop-header span {
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .entry-desktop-row {
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        padding: 0.65rem 0.5rem;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms ease;
+    }
+
+    .entry-desktop-row + .entry-desktop-row {
+        margin-top: 0.45rem;
+    }
+
+    .entry-desktop-row:hover {
+        border-color: #c7d2fe;
+        background: #fcfcff;
+        box-shadow: 0 10px 22px rgba(79, 70, 229, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .entry-desktop-cell {
+        min-width: 0;
+    }
+
+    .entry-desktop-cell--category {
+        border-left: 1px solid rgba(226, 232, 240, 0.95);
+        padding-left: 0.9rem;
+    }
+
+    .entry-desktop-row:hover .entry-desktop-cell--category {
+        border-left-color: rgba(165, 180, 252, 0.9);
+    }
+
+    .entry-desktop-cell--category .entry-choice.selected {
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border-color: #818cf8;
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.16), 0 6px 16px rgba(99, 102, 241, 0.12);
+    }
+
+    .entry-desktop-name {
+        min-width: 0;
+    }
+
+    .entry-desktop-name strong,
+    .entry-desktop-club strong {
+        display: block;
+        font-size: 0.84rem;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+
+    .entry-desktop-name span,
+    .entry-desktop-club span {
+        display: block;
+        margin-top: 0.16rem;
+        font-size: 0.68rem;
+        color: #64748b;
+        line-height: 1.2;
+    }
+
+    .entry-desktop-plate {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.4rem;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #312e81;
+        padding: 0.32rem 0.5rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    @media (min-width: 768px) {
+        .entry-desktop-list {
+            display: block;
+        }
     }
 
     .registered-checkbox {
@@ -165,6 +514,39 @@
         white-space: nowrap;
     }
 
+    @media (min-width: 768px) {
+        .entry-desktop-row .entry-status-muted {
+            gap: 0.35rem;
+            padding: 0.38rem 0.58rem;
+            border-radius: 0.8rem;
+            font-size: 0.68rem;
+            line-height: 1.05;
+        }
+
+        .entry-desktop-row .entry-status-muted__icon {
+            width: 1rem;
+            height: 1rem;
+            font-size: 0.62rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .entry-mobile-category .entry-status-muted {
+            gap: 0.35rem;
+            padding: 0.42rem 0.65rem;
+            border-radius: 0.85rem;
+            font-size: 0.7rem;
+            line-height: 1.1;
+            white-space: normal;
+        }
+
+        .entry-mobile-category .entry-status-muted__icon {
+            width: 1rem;
+            height: 1rem;
+            font-size: 0.62rem;
+        }
+    }
+
     .entry-status-muted__icon {
         display: inline-flex;
         align-items: center;
@@ -191,32 +573,57 @@
         justify-content: center;
         gap: .5rem;
         border-radius: 1rem;
-        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        background: linear-gradient(135deg, #f8fbff, #e0e7ff);
         padding: 1rem 1.75rem;
         color: #312e81;
         font-size: .875rem;
-        font-weight: 700;
+        font-weight: 800;
         line-height: 1;
-        box-shadow: 0 18px 40px rgba(79, 70, 229, 0.16);
+        letter-spacing: 0.01em;
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.12);
         border: 1px solid #a5b4fc;
         flex-shrink: 0;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
     }
 
     .entry-cta:hover {
-        background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+        background: linear-gradient(135deg, #eef2ff, #c7d2fe);
         color: #312e81;
+        box-shadow: 0 14px 28px rgba(79, 70, 229, 0.16);
+        transform: translateY(-1px);
+    }
+
+    .entry-cta:focus-visible {
+        outline: 3px solid rgba(99, 102, 241, 0.24);
+        outline-offset: 2px;
+    }
+
+    .entry-cta:disabled {
+        background: linear-gradient(135deg, #eef2ff, #dbeafe);
+        border-color: #bfdbfe;
+        color: #64748b;
+        box-shadow: inset 0 0 0 1px rgba(191, 219, 254, 0.55);
+        transform: none;
+        opacity: 1;
     }
 
     html.dark .entry-cta {
-        background: linear-gradient(135deg, #c7d2fe, #818cf8);
-        color: #1e1b4b;
-        border-color: #818cf8;
-        box-shadow: 0 18px 40px rgba(79, 70, 229, 0.24);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(129, 140, 248, 0.24));
+        color: #e0e7ff;
+        border-color: rgba(129, 140, 248, 0.45);
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.18);
     }
 
     html.dark .entry-cta:hover {
-        background: linear-gradient(135deg, #a5b4fc, #6366f1);
-        color: #1e1b4b;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(129, 140, 248, 0.34));
+        color: #eef2ff;
+    }
+
+    html.dark .entry-cta:disabled {
+        background: linear-gradient(135deg, rgba(51, 65, 85, 0.9), rgba(71, 85, 105, 0.85));
+        border-color: rgba(100, 116, 139, 0.55);
+        color: #cbd5e1;
+        box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.22);
     }
 
     html.dark .entry-page {
@@ -306,6 +713,24 @@
         box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.18) !important;
     }
 
+    html.dark .entry-category-trigger {
+        background: rgba(79, 70, 229, 0.22) !important;
+        border-color: rgba(129, 140, 248, 0.34) !important;
+        color: #c7d2fe !important;
+    }
+
+    html.dark .entry-category-trigger:hover,
+    html.dark .entry-category-trigger:focus-visible {
+        background: rgba(99, 102, 241, 0.3) !important;
+        color: #eef2ff !important;
+    }
+
+    html.dark .entry-category-popover {
+        border-color: rgba(99, 102, 241, 0.28) !important;
+        background: rgba(15, 23, 42, 0.98) !important;
+        box-shadow: 0 24px 54px rgba(2, 6, 23, 0.42) !important;
+    }
+
     html.dark .entry-page .registered-entry {
         color: #f8fafc !important;
     }
@@ -334,6 +759,70 @@
         background: rgba(15, 23, 42, 0.92) !important;
         border-color: #334155 !important;
     }
+
+    html.dark .entry-mobile-card {
+        background: rgba(15, 23, 42, 0.92) !important;
+        border-color: #334155 !important;
+        box-shadow: 0 18px 40px rgba(2, 6, 23, 0.3) !important;
+    }
+
+    html.dark .entry-mobile-card__plate {
+        background: rgba(79, 70, 229, 0.24) !important;
+        color: #c7d2fe !important;
+    }
+
+    html.dark .entry-mobile-category {
+        background: rgba(15, 23, 42, 0.74) !important;
+        border-color: #334155 !important;
+    }
+
+    html.dark .entry-mobile-stickybar {
+        border-top-color: rgba(99, 102, 241, 0.24) !important;
+        background: rgba(2, 6, 23, 0.94) !important;
+        box-shadow: 0 -16px 36px rgba(2, 6, 23, 0.35) !important;
+    }
+
+    html.dark .entry-desktop-shell,
+    html.dark .entry-desktop-row {
+        background: rgba(15, 23, 42, 0.92) !important;
+        border-color: #334155 !important;
+    }
+
+    html.dark .entry-desktop-row:hover {
+        background: rgba(15, 23, 42, 0.98) !important;
+        border-color: rgba(129, 140, 248, 0.34) !important;
+        box-shadow: 0 12px 24px rgba(2, 6, 23, 0.34) !important;
+    }
+
+    html.dark .entry-desktop-header span,
+    html.dark .entry-desktop-name span,
+    html.dark .entry-desktop-club span {
+        color: #94a3b8 !important;
+    }
+
+    html.dark .entry-desktop-name strong,
+    html.dark .entry-desktop-club strong {
+        color: #f8fafc !important;
+    }
+
+    html.dark .entry-desktop-plate {
+        background: rgba(79, 70, 229, 0.24) !important;
+        color: #c7d2fe !important;
+    }
+
+    html.dark .entry-desktop-cell--category {
+        border-left-color: rgba(51, 65, 85, 0.95) !important;
+    }
+
+    html.dark .entry-desktop-row:hover .entry-desktop-cell--category {
+        border-left-color: rgba(99, 102, 241, 0.42) !important;
+    }
+
+    html.dark .entry-desktop-cell--category .entry-choice.selected {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.24), rgba(99, 102, 241, 0.18)) !important;
+        border-color: rgba(129, 140, 248, 0.55) !important;
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.14), 0 8px 18px rgba(79, 70, 229, 0.16) !important;
+    }
 </style>
 {% endblock extra_head %}
 
@@ -345,9 +834,9 @@
     {% csrf_token %}
 
     <header class="entry-hero">
-        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="entry-hero--compact mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(40rem,46rem)] lg:items-end">
-                <div>
+                <div class="entry-hero-copy">
                     <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
                         {% trans "Přihlášení jezdců" %}
                     </p>
@@ -368,7 +857,7 @@
                         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Konec registrace" %}</p>
                         <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.reg_open_to|date:"j. F Y H:i" }}</p>
                     </div>
-                    <div class="entry-hero-action">
+                    <div class="entry-hero-action hidden md:flex">
                         <div class="w-full">
                             <button
                                 type="submit"
@@ -376,13 +865,14 @@
                                 aria-label="{% trans 'Přidat do košíku' %}"
                                 class="entry-cta"
                                 id="entry-submit-btn"
+                                data-entry-submit
                             >
                                 <span>{% trans "Přidat do košíku" %}</span>
                                 <span aria-hidden="true" class="text-base leading-none">→</span>
                             </button>
                             <div class="entry-selection-meta">
-                                <span id="entry-selection-label">{% trans "Vybráno 0 registrací" %}</span>
-                                <span class="entry-selection-count" id="entry-selection-breakdown">20&quot; 0 | 24&quot; 0</span>
+                                <span id="entry-selection-label" data-entry-selection-label>{% trans "Vybráno 0 registrací" %}</span>
+                                <span class="entry-selection-count" id="entry-selection-breakdown" data-entry-selection-breakdown>20&quot; 0 | 24&quot; 0</span>
                             </div>
                         </div>
                     </div>
@@ -402,8 +892,8 @@
                         </p>
                     </div>
 
-                    <div class="grid gap-4 lg:grid-cols-2">
-                        <label class="block">
+                    <div class="entry-filters grid gap-4 lg:grid-cols-2">
+                        <label class="entry-filter-group block">
                             <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
                                 {% trans "Příjmení" %}
                             </span>
@@ -416,7 +906,7 @@
                             />
                         </label>
 
-                        <label class="block">
+                        <label class="entry-filter-group block">
                             <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
                                 {% trans "Klub" %}
                             </span>
@@ -430,130 +920,398 @@
                         </label>
                     </div>
 
-                    <div class="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/70">
-                        <div class="overflow-x-auto">
-                            <table class="entry-table min-w-full divide-y divide-slate-200 dark:divide-slate-800" id="myTable">
-                                <colgroup>
-                                    <col class="col-plate">
-                                    <col class="col-last-name">
-                                    <col class="col-first-name">
-                                    <col class="col-club">
-                                    <col class="col-class">
-                                    <col class="col-class">
-                                    {% if beginners_enabled %}
-                                    <col class="col-class">
-                                    {% endif %}
-                                </colgroup>
-                                <thead class="bg-slate-100/90 dark:bg-slate-900">
-                                    <tr>
-                                        <th scope="col" class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">{% trans "Start.č." %}</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300 sm:px-6">{% trans "Příjmení" %}</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Jméno" %}</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Klub" %}</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">20"</th>
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">24" (Cruiser)</th>
-                                        {% if beginners_enabled %}
-                                        <th scope="col" class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-300">{% trans "Příchozí" %}</th>
-                                        {% endif %}
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
-                                    {% for rider in riders %}
-                                    <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/80">
-                                        <td class="px-4 py-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 sm:px-6">{{ rider.plate_display }}</td>
-                                        <td class="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 sm:px-6 whitespace-nowrap">
-                                            {{ rider.last_name }}
-                                            <dl class="font-normal lg:hidden">
-                                                <dt class="sr-only">{% trans "Jméno" %}</dt>
-                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-300">{{ rider.first_name }}</dd>
-                                                <dt class="sr-only sm:hidden">{% trans "Klub" %}</dt>
-                                                <dd class="mt-1 truncate text-slate-500 dark:text-slate-400 sm:hidden">{{ rider.club|upper }}</dd>
-                                            </dl>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ rider.first_name }}</td>
-                                        <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{{ rider.club|upper }}</td>
+                    <div class="md:hidden entry-mobile-list">
+                        {% for rider in riders %}
+                        <article class="entry-mobile-card">
+                            <div class="entry-mobile-card__header">
+                                <div class="min-w-0">
+                                    <h3 class="text-lg font-black text-slate-950 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</h3>
+                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ rider.club|upper }}, UCI ID: {{ rider.uci_id }}</p>
+                                </div>
+                                <span class="entry-mobile-card__plate">{{ rider.plate_display }}</span>
+                            </div>
 
-                                        {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
-                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</td>
-                                        {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
-                                        <td class="px-4 py-4 text-sm">
-                                            <div class="entry-status-muted">
-                                                <span class="entry-status-muted__icon">✕</span>
-                                                <span>{{ rider.class_20 }}</span>
+                            <div class="entry-mobile-categories">
+                                <div class="entry-mobile-category">
+                                    <span class="entry-mobile-category__label">20"</span>
+                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
+                                    <span class="text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
+                                    {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_20 }}</span>
+                                            {% if rider.class_20_participant_count %}
+                                            <button
+                                                type="button"
+                                                class="entry-category-trigger"
+                                                data-category-name="{{ rider.class_20 }}"
+                                                data-category-count="{{ rider.class_20_participant_count }}"
+                                                aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}"
+                                            >{{ rider.class_20_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_20_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
                                             </div>
-                                        </td>
-                                        {% elif rider.is_registered_20 %}
-                                        <td class="px-4 py-4 text-sm">
-                                            <span class="registered-entry">
-                                                <span class="registered-entry__icon">✓</span>
-                                                <span>{{ rider.class_20 }}</span>
-                                            </span>
-                                        </td>
-                                        {% else %}
-                                        <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
-                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_20" name="checkbox_20">
-                                                <span>{{ rider.class_20 }}</span>
-                                            </label>
-                                        </td>
-                                        {% endif %}
-
-                                        {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
-                                        <td class="px-4 py-4 text-sm">
-                                            <div class="entry-status-muted">
-                                                <span class="entry-status-muted__icon">✕</span>
-                                                <span>{{ rider.class_24 }}</span>
-                                            </div>
-                                        </td>
-                                        {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
-                                        <td class="px-4 py-4 text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</td>
-                                        {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
-                                        <td class="px-4 py-4 text-sm">
-                                            <div class="entry-status-muted">
-                                                <span class="entry-status-muted__icon">✕</span>
-                                                <span>{{ rider.class_24 }}</span>
-                                            </div>
-                                        </td>
-                                        {% elif rider.is_registered_24 %}
-                                        <td class="px-4 py-4 text-sm">
-                                            <span class="registered-entry">
-                                                <span class="registered-entry__icon">✓</span>
-                                                <span>{{ rider.class_24 }}</span>
-                                            </span>
-                                        </td>
-                                        {% else %}
-                                        <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                            <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
-                                                <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_24" name="checkbox_24">
-                                                <span>{{ rider.class_24 }}</span>
-                                            </label>
-                                        </td>
-                                        {% endif %}
-
-                                        {% if beginners_enabled %}
-                                            {% if rider.is_registered_beginner %}
-                                            <td class="px-4 py-4 text-sm">
-                                                <span class="registered-entry">
-                                                    <span class="registered-entry__icon">✓</span>
-                                                    <span>{{ rider.class_beginner }}</span>
-                                                </span>
-                                            </td>
-                                            {% elif rider.is_beginner %}
-                                            <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                                <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
-                                                    <input type="checkbox" value="{{ rider.uci_id }}" id="checkbox_beginner" name="checkbox_beginner">
-                                                    <span>{{ rider.class_beginner }}</span>
-                                                </label>
-                                            </td>
-                                            {% else %}
-                                            <td class="px-4 py-4 text-sm"></td>
                                             {% endif %}
+                                        </span>
+                                    </div>
+                                    {% elif rider.is_registered_20 %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_20 }}</span>
+                                            {% if rider.class_20_participant_count %}
+                                            <button
+                                                type="button"
+                                                class="entry-category-trigger"
+                                                data-category-name="{{ rider.class_20 }}"
+                                                data-category-count="{{ rider.class_20_participant_count }}"
+                                                aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}"
+                                            >{{ rider.class_20_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_20_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% else %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_20">
+                                            <span>{{ rider.class_20 }}</span>
+                                        </label>
+                                        {% if rider.class_20_participant_count %}
+                                        <button
+                                            type="button"
+                                            class="entry-category-trigger"
+                                            data-category-name="{{ rider.class_20 }}"
+                                            data-category-count="{{ rider.class_20_participant_count }}"
+                                            aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}"
+                                        >{{ rider.class_20_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_20_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
                                         {% endif %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="entry-mobile-category">
+                                    <span class="entry-mobile-category__label">24" (Cruiser)</span>
+                                    {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span>{{ rider.class_24 }}</span>
+                                    </div>
+                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
+                                    <span class="text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
+                                    {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_24 }}</span>
+                                            {% if rider.class_24_participant_count %}
+                                            <button
+                                                type="button"
+                                                class="entry-category-trigger"
+                                                data-category-name="{{ rider.class_24 }}"
+                                                data-category-count="{{ rider.class_24_participant_count }}"
+                                                aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}"
+                                            >{{ rider.class_24_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_24_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% elif rider.is_registered_24 %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_24 }}</span>
+                                            {% if rider.class_24_participant_count %}
+                                            <button
+                                                type="button"
+                                                class="entry-category-trigger"
+                                                data-category-name="{{ rider.class_24 }}"
+                                                data-category-count="{{ rider.class_24_participant_count }}"
+                                                aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}"
+                                            >{{ rider.class_24_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_24_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% else %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_24">
+                                            <span>{{ rider.class_24 }}</span>
+                                        </label>
+                                        {% if rider.class_24_participant_count %}
+                                        <button
+                                            type="button"
+                                            class="entry-category-trigger"
+                                            data-category-name="{{ rider.class_24 }}"
+                                            data-category-count="{{ rider.class_24_participant_count }}"
+                                            aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}"
+                                        >{{ rider.class_24_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_24_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if beginners_enabled %}
+                                <div class="entry-mobile-category entry-mobile-category--full">
+                                    <span class="entry-mobile-category__label">{% trans "Příchozí" %}</span>
+                                    {% if rider.is_registered_beginner %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_beginner }}</span>
+                                            {% if rider.class_beginner_participant_count %}
+                                            <button
+                                                type="button"
+                                                class="entry-category-trigger"
+                                                data-category-name="{{ rider.class_beginner }}"
+                                                data-category-count="{{ rider.class_beginner_participant_count }}"
+                                                aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_beginner }}"
+                                            >{{ rider.class_beginner_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_beginner_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% elif rider.is_beginner %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_beginner">
+                                            <span>{{ rider.class_beginner }}</span>
+                                        </label>
+                                        {% if rider.class_beginner_participant_count %}
+                                        <button
+                                            type="button"
+                                            class="entry-category-trigger"
+                                            data-category-name="{{ rider.class_beginner }}"
+                                            data-category-count="{{ rider.class_beginner_participant_count }}"
+                                            aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_beginner }}"
+                                        >{{ rider.class_beginner_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_beginner_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-sm text-slate-400 dark:text-slate-500">-</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="entry-desktop-list">
+                        <div class="entry-desktop-shell">
+                            <div class="entry-desktop-header entry-desktop-grid{% if beginners_enabled %} entry-desktop-grid--beginner{% endif %}">
+                                <span>{% trans "Start.č." %}</span>
+                                <span>{% trans "Jezdec" %}</span>
+                                <span>{% trans "Klub" %}</span>
+                                <span>20"</span>
+                                <span>24" (Cruiser)</span>
+                                {% if beginners_enabled %}
+                                <span>{% trans "Příchozí" %}</span>
+                                {% endif %}
+                            </div>
+
+                            {% for rider in riders %}
+                            <article class="entry-desktop-row entry-desktop-grid{% if beginners_enabled %} entry-desktop-grid--beginner{% endif %}" data-last-name="{{ rider.last_name|upper }}" data-club="{{ rider.club|upper }}">
+                                <div class="entry-desktop-cell">
+                                    <span class="entry-desktop-plate">{{ rider.plate_display }}</span>
+                                </div>
+                                <div class="entry-desktop-cell entry-desktop-name">
+                                    <strong>{{ rider.first_name }} {{ rider.last_name }}</strong>
+                                    <span>UCI ID: {{ rider.uci_id }}</span>
+                                </div>
+                                <div class="entry-desktop-cell entry-desktop-club">
+                                    <strong>{{ rider.club|upper }}</strong>
+                                </div>
+
+                                <div class="entry-desktop-cell entry-desktop-cell--category text-sm text-slate-700 dark:text-slate-200">
+                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
+                                    <span class="font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
+                                    {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_20 }}</span>
+                                            {% if rider.class_20_participant_count %}
+                                            <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_20 }}" data-category-count="{{ rider.class_20_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}">{{ rider.class_20_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_20_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% elif rider.is_registered_20 %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_20 }}</span>
+                                            {% if rider.class_20_participant_count %}
+                                            <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_20 }}" data-category-count="{{ rider.class_20_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}">{{ rider.class_20_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_20_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% else %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_20">
+                                            <span>{{ rider.class_20 }}</span>
+                                        </label>
+                                        {% if rider.class_20_participant_count %}
+                                        <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_20 }}" data-category-count="{{ rider.class_20_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_20 }}">{{ rider.class_20_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_20_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="entry-desktop-cell entry-desktop-cell--category text-sm text-slate-700 dark:text-slate-200">
+                                    {% if rider.class_24 == "NELZE PŘIHLÁSIT" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span>{{ rider.class_24 }}</span>
+                                    </div>
+                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
+                                    <span class="font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
+                                    {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
+                                    <div class="entry-status-muted">
+                                        <span class="entry-status-muted__icon">✕</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_24 }}</span>
+                                            {% if rider.class_24_participant_count %}
+                                            <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_24 }}" data-category-count="{{ rider.class_24_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}">{{ rider.class_24_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_24_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% elif rider.is_registered_24 %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_24 }}</span>
+                                            {% if rider.class_24_participant_count %}
+                                            <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_24 }}" data-category-count="{{ rider.class_24_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}">{{ rider.class_24_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_24_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% else %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_24">
+                                            <span>{{ rider.class_24 }}</span>
+                                        </label>
+                                        {% if rider.class_24_participant_count %}
+                                        <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_24 }}" data-category-count="{{ rider.class_24_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_24 }}">{{ rider.class_24_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_24_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if beginners_enabled %}
+                                <div class="entry-desktop-cell entry-desktop-cell--category text-sm text-slate-700 dark:text-slate-200">
+                                    {% if rider.is_registered_beginner %}
+                                    <span class="registered-entry">
+                                        <span class="registered-entry__icon">✓</span>
+                                        <span class="entry-category-inline">
+                                            <span>{{ rider.class_beginner }}</span>
+                                            {% if rider.class_beginner_participant_count %}
+                                            <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_beginner }}" data-category-count="{{ rider.class_beginner_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_beginner }}">{{ rider.class_beginner_participant_count }}</button>
+                                            <div class="entry-category-template">
+                                                {% for participant in rider.class_beginner_participants %}
+                                                <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                    {% elif rider.is_beginner %}
+                                    <div class="entry-category-inline">
+                                        <label class="entry-choice inline-flex items-center gap-2 rounded-2xl px-3 py-2 transition hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                                            <input type="checkbox" value="{{ rider.uci_id }}" name="checkbox_beginner">
+                                            <span>{{ rider.class_beginner }}</span>
+                                        </label>
+                                        {% if rider.class_beginner_participant_count %}
+                                        <button type="button" class="entry-category-trigger" data-category-name="{{ rider.class_beginner }}" data-category-count="{{ rider.class_beginner_participant_count }}" aria-label="{% trans 'Zobrazit přihlášené v kategorii' %} {{ rider.class_beginner }}">{{ rider.class_beginner_participant_count }}</button>
+                                        <div class="entry-category-template">
+                                            {% for participant in rider.class_beginner_participants %}
+                                            <div class="entry-category-template-item" data-plate="{{ participant.plate }}" data-name="{{ participant.first_name }} {{ participant.last_name }}"></div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-sm text-slate-400 dark:text-slate-500">-</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </article>
+                            {% endfor %}
                         </div>
+                    </div>
+
+                    <div id="entry-empty-state" class="hidden rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-900/70">
+                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Žádný výsledek" %}</p>
+                        <p class="mt-3 text-base font-medium text-slate-700 dark:text-slate-200">
+                            {% trans "Nenašli jsme žádného jezdce pro zadané příjmení nebo klub." %}
+                        </p>
                     </div>
                 </div>
             </section>
@@ -561,8 +1319,34 @@
     </section>
 </form>
 
+<div class="entry-mobile-stickybar md:hidden">
+    <div class="entry-mobile-stickybar__inner">
+        <div class="entry-mobile-stickybar__summary">
+            <span class="text-sm font-semibold text-slate-900 dark:text-white" data-entry-selection-label>{% trans "Vybráno 0 registrací" %}</span>
+            <span class="entry-selection-count" data-entry-selection-breakdown>20&quot; 0 | 24&quot; 0</span>
+        </div>
+        <button
+            type="submit"
+            form="entry-form"
+            name="btn_add"
+            aria-label="{% trans 'Přidat do košíku' %}"
+            class="entry-cta px-5 py-3"
+            data-entry-submit
+        >
+            <span>{% trans "Do košíku" %}</span>
+            <span aria-hidden="true" class="text-base leading-none">→</span>
+        </button>
+    </div>
+</div>
+
+<div id="entry-category-popover" class="entry-category-popover" hidden>
+    <p id="entry-category-popover-title" class="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700 dark:text-indigo-300"></p>
+    <p id="entry-category-popover-count" class="mt-2 text-lg font-black text-slate-900 dark:text-white"></p>
+    <ul id="entry-category-popover-list" class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300"></ul>
+</div>
+
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
-<script src="{% static 'js/entry.js' %}?v=2"></script>
+<script src="{% static 'js/entry.js' %}?v=5"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     var form = document.getElementById("entry-form");
@@ -585,10 +1369,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        var selectionLabel = document.getElementById("entry-selection-label");
-        var selectionBreakdown = document.getElementById("entry-selection-breakdown");
-        var submitButton = document.getElementById("entry-submit-btn");
-        if (!selectionLabel || !selectionBreakdown || !submitButton) return;
+        var selectionLabels = document.querySelectorAll("[data-entry-selection-label]");
+        var selectionBreakdowns = document.querySelectorAll("[data-entry-selection-breakdown]");
+        var submitButtons = document.querySelectorAll("[data-entry-submit]");
+        if (!selectionLabels.length || !selectionBreakdowns.length || !submitButtons.length) return;
 
         var count20 = form.querySelectorAll('input[name="checkbox_20"]:checked').length;
         var count24 = form.querySelectorAll('input[name="checkbox_24"]:checked').length;
@@ -596,11 +1380,19 @@ document.addEventListener("DOMContentLoaded", function () {
         var total = count20 + count24 + countBeginner;
         var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
 
-        selectionLabel.textContent = (form.dataset.selectedLabel || "Vybráno") + " " + total + " " + (form.dataset.registrationsLabel || "registrací");
-        selectionBreakdown.textContent = '20" ' + count20 + ' | 24" ' + count24 + (beginnerInputs ? " | " + (form.dataset.beginnerLabel || "Příchozí") + " " + countBeginner : "");
-        submitButton.disabled = total === 0;
-        submitButton.classList.toggle("opacity-60", total === 0);
-        submitButton.classList.toggle("cursor-not-allowed", total === 0);
+        for (var i = 0; i < selectionLabels.length; i++) {
+            selectionLabels[i].textContent = (form.dataset.selectedLabel || "Vybráno") + " " + total + " " + (form.dataset.registrationsLabel || "registrací");
+        }
+
+        for (var j = 0; j < selectionBreakdowns.length; j++) {
+            selectionBreakdowns[j].textContent = '20" ' + count20 + ' | 24" ' + count24 + (beginnerInputs ? " | " + (form.dataset.beginnerLabel || "Příchozí") + " " + countBeginner : "");
+        }
+
+        for (var k = 0; k < submitButtons.length; k++) {
+            submitButtons[k].disabled = total === 0;
+            submitButtons[k].classList.toggle("opacity-60", total === 0);
+            submitButtons[k].classList.toggle("cursor-not-allowed", total === 0);
+        }
     };
 
     form.addEventListener("change", function (event) {

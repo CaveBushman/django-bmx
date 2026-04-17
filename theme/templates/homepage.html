@@ -443,6 +443,24 @@
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
 
+  .homepage-partner-link {
+    width: 100%;
+    min-height: 4rem;
+  }
+
+  .homepage-partner-fallback {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+  }
+
   .homepage-partner-logo:hover {
     transform: translateY(-3px);
     border-color: rgba(251, 191, 36, 0.55);
@@ -485,6 +503,10 @@
     border-color: rgba(51, 65, 85, 0.85);
     background: rgba(2, 6, 23, 0.78);
     box-shadow: 0 16px 38px rgba(2, 6, 23, 0.34);
+  }
+
+  html.dark .homepage-partner-fallback {
+    color: #cbd5e1;
   }
 
   html.dark .homepage-partner-logo:hover {
@@ -818,12 +840,31 @@
                 {% for sponsor in sponsors %}
                 <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
                     {% if sponsor.url %}
-                    <a href="{{ sponsor.url }}" target="_blank" rel="noopener noreferrer" class="flex w-full items-center justify-center">
+                    <a href="{{ sponsor.url }}" target="_blank" rel="noopener noreferrer" class="homepage-partner-link flex items-center justify-center">
+                    {% else %}
+                    <div class="homepage-partner-link flex items-center justify-center">
                     {% endif %}
-                        <img class="max-h-12 w-full object-contain dark:hidden" src="{{ sponsor.logo_light_url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
-                        <img class="hidden max-h-12 w-full object-contain dark:block" src="{{ sponsor.dark_logo_or_light_url }}" alt="{{ sponsor.alt_text }}" width="158" height="48">
+                        <img
+                            class="max-h-12 w-full object-contain dark:hidden"
+                            src="{{ sponsor.logo_light_url }}"
+                            alt="{{ sponsor.alt_text }}"
+                            width="158"
+                            height="48"
+                            onerror="this.style.display='none'; var fallback=this.parentElement.querySelector('.homepage-partner-fallback'); if (fallback) fallback.style.display='flex';"
+                        >
+                        <img
+                            class="hidden max-h-12 w-full object-contain dark:block"
+                            src="{{ sponsor.dark_logo_or_light_url }}"
+                            alt="{{ sponsor.alt_text }}"
+                            width="158"
+                            height="48"
+                            onerror="this.style.display='none'; var fallback=this.parentElement.querySelector('.homepage-partner-fallback'); if (fallback) fallback.style.display='flex';"
+                        >
+                        <span class="homepage-partner-fallback">{{ sponsor.name }}</span>
                     {% if sponsor.url %}
                     </a>
+                    {% else %}
+                    </div>
                     {% endif %}
                 </div>
                 {% empty %}
