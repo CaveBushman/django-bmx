@@ -1,12 +1,8 @@
 from pathlib import Path
 import os
+import logging
 from django.utils.translation import gettext_lazy as _
-try:
-    import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
-except ImportError:  # pragma: no cover - optional until dependency is installed
-    sentry_sdk = None
-    DjangoIntegration = None
+from bmx.observability import initialize_sentry
 
 try:
     from django.utils.csp import CSP
@@ -388,74 +384,44 @@ SENTRY_ENVIRONMENT = config(
     "SENTRY_ENVIRONMENT",
     default="development" if DEBUG else "production",
 )
-SENTRY_RELEASE = config("SENTRY_RELEASE", default="")
+SENTRY_RELEASE = config(
+    "SENTRY_RELEASE",
+    default=config_first(
+        [
+            "RENDER_GIT_COMMIT",
+            "RAILWAY_GIT_COMMIT_SHA",
+            "GITHUB_SHA",
+            "SOURCE_VERSION",
+            "COMMIT_SHA",
+            "GIT_COMMIT",
+        ]
+    ),
+)
 SENTRY_TRACES_SAMPLE_RATE = config_float("SENTRY_TRACES_SAMPLE_RATE", default=0.15)
 SENTRY_PROFILES_SAMPLE_RATE = config_float("SENTRY_PROFILES_SAMPLE_RATE", default=0.0)
-SENTRY_HEALTHCHECK_PATHS = {"/healthz", "/readyz", "/csp-report"}
+SENTRY_SEND_DEFAULT_PII = config_bool("SENTRY_SEND_DEFAULT_PII", default=False)
+SENTRY_MAX_BREADCRUMBS = config("SENTRY_MAX_BREADCRUMBS", default=50, cast=int)
+SENTRY_LOG_LEVEL = str(config("SENTRY_LOG_LEVEL", default="INFO")).upper()
+SENTRY_EVENT_LEVEL = str(config("SENTRY_EVENT_LEVEL", default="ERROR")).upper()
+SENTRY_HEALTHCHECK_PATHS = set(
+    config_list("SENTRY_HEALTHCHECK_PATHS", default="/healthz,/readyz,/csp-report")
+)
 
-
-def _scrub_sentry_event(event, hint):
-    request_data = event.get("request") or {}
-    headers = request_data.get("headers") or {}
-    sanitized_headers = {}
-
-    for key, value in headers.items():
-        normalized = str(key).lower()
-        if normalized in {"authorization", "cookie", "x-csrftoken", "x-csr-token", "stripe-signature"}:
-            sanitized_headers[key] = "[Filtered]"
-        else:
-            sanitized_headers[key] = value
-
-    if sanitized_headers:
-        request_data["headers"] = sanitized_headers
-
-    if "data" in request_data:
-        request_data["data"] = "[Filtered]"
-    if "cookies" in request_data:
-        request_data["cookies"] = "[Filtered]"
-
-    event["request"] = request_data
-    return event
-
-
-def _sentry_traces_sampler(sampling_context):
-    transaction_context = sampling_context.get("transaction_context") or {}
-    transaction_name = str(transaction_context.get("name") or "").lower()
-    wsgi_environ = sampling_context.get("wsgi_environ") or {}
-    path = str(wsgi_environ.get("PATH_INFO") or "").rstrip("/").lower()
-
-    if path in SENTRY_HEALTHCHECK_PATHS:
-        return 0.0
-    if transaction_name in SENTRY_HEALTHCHECK_PATHS:
-        return 0.0
-    return SENTRY_TRACES_SAMPLE_RATE
-
-
-def _before_send_transaction(event, hint):
-    request_data = event.get("request") or {}
-    url = str(request_data.get("url") or "").lower()
-    transaction_name = str(event.get("transaction") or "").lower()
-    if any(path in url or transaction_name == path for path in SENTRY_HEALTHCHECK_PATHS):
-        return None
-    return event
-
-
-if SENTRY_DSN and SENTRY_ENABLED and sentry_sdk is not None:
-    sentry_init_kwargs = {
-        "dsn": SENTRY_DSN,
-        "environment": SENTRY_ENVIRONMENT,
-        "send_default_pii": False,
-        "max_request_body_size": "never",
-        "traces_sampler": _sentry_traces_sampler,
-        "profiles_sample_rate": SENTRY_PROFILES_SAMPLE_RATE,
-        "before_send": _scrub_sentry_event,
-        "before_send_transaction": _before_send_transaction,
-    }
-    if SENTRY_RELEASE:
-        sentry_init_kwargs["release"] = SENTRY_RELEASE
-    if DjangoIntegration is not None:
-        sentry_init_kwargs["integrations"] = [DjangoIntegration()]
-    sentry_sdk.init(**sentry_init_kwargs)
+initialize_sentry(
+    dsn=SENTRY_DSN,
+    enabled=SENTRY_ENABLED,
+    environment=SENTRY_ENVIRONMENT,
+    release=SENTRY_RELEASE,
+    traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+    profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
+    send_default_pii=SENTRY_SEND_DEFAULT_PII,
+    max_breadcrumbs=SENTRY_MAX_BREADCRUMBS,
+    log_level=getattr(logging, SENTRY_LOG_LEVEL, logging.INFO),
+    event_level=getattr(logging, SENTRY_EVENT_LEVEL, logging.ERROR),
+    healthcheck_paths=SENTRY_HEALTHCHECK_PATHS,
+    debug=DEBUG,
+    stripe_live_mode=STRIPE_LIVE_MODE,
+)
 
 FORM_PROTECTION = {
     "signup": {

@@ -5,6 +5,7 @@ import tempfile
 from unittest.mock import patch
 from pathlib import Path
 from decimal import Decimal
+import logging
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -159,9 +160,9 @@ class SettingsSecuritySourceTests(TestCase):
 
         self.assertIn('SENTRY_DSN = config("SENTRY_DSN", default="")', source)
         self.assertIn('SENTRY_ENABLED = config_bool("SENTRY_ENABLED", default=not DEBUG)', source)
-        self.assertIn('"max_request_body_size": "never"', source)
-        self.assertIn('"before_send": _scrub_sentry_event', source)
-        self.assertIn('"traces_sampler": _sentry_traces_sampler', source)
+        self.assertIn('SENTRY_SEND_DEFAULT_PII = config_bool("SENTRY_SEND_DEFAULT_PII", default=False)', source)
+        self.assertIn('SENTRY_MAX_BREADCRUMBS = config("SENTRY_MAX_BREADCRUMBS", default=50, cast=int)', source)
+        self.assertIn('initialize_sentry(', source)
 
     def test_observability_helper_falls_back_without_sentry_sdk(self):
         from bmx.observability import start_span
@@ -169,6 +170,128 @@ class SettingsSecuritySourceTests(TestCase):
         with patch("bmx.observability.sentry_sdk", None):
             with start_span(op="test", name="fallback-span"):
                 pass
+
+    def test_scrub_sentry_event_filters_sensitive_request_values(self):
+        from bmx.observability import scrub_sentry_event
+
+        scrubbed = scrub_sentry_event(
+            {
+                "request": {
+                    "url": "https://example.com/checkout?token=secret&ok=1",
+                    "headers": {
+                        "Authorization": "Bearer secret",
+                        "X-Test": "value",
+                    },
+                    "data": {
+                        "password": "secret",
+                        "safe": "value",
+                    },
+                    "cookies": {"sessionid": "secret"},
+                },
+                "user": {
+                    "id": 1,
+                    "email": "user@example.com",
+                    "username": "tester",
+                },
+            }
+        )
+
+        self.assertEqual(scrubbed["request"]["headers"]["Authorization"], "[Filtered]")
+        self.assertEqual(scrubbed["request"]["headers"]["X-Test"], "value")
+        self.assertEqual(scrubbed["request"]["data"]["password"], "[Filtered]")
+        self.assertEqual(scrubbed["request"]["data"]["safe"], "value")
+        self.assertEqual(scrubbed["request"]["cookies"], "[Filtered]")
+        self.assertIn("token=%5BFiltered%5D", scrubbed["request"]["url"])
+        self.assertNotIn("email", scrubbed["user"])
+        self.assertNotIn("username", scrubbed["user"])
+
+    def test_sentry_traces_sampler_skips_healthchecks(self):
+        from bmx.observability import sentry_traces_sampler
+
+        sample_rate = sentry_traces_sampler(
+            {
+                "transaction_context": {"name": "/healthz"},
+                "wsgi_environ": {"PATH_INFO": "/healthz"},
+            },
+            traces_sample_rate=0.5,
+            healthcheck_paths={"/healthz"},
+        )
+
+        self.assertEqual(sample_rate, 0.0)
+
+    def test_initialize_sentry_passes_expected_options(self):
+        from bmx.observability import initialize_sentry
+
+        init_mock = SimpleNamespace()
+        configure_scope_calls = []
+
+        class Scope:
+            def __init__(self):
+                self.tags = {}
+
+            def set_tag(self, key, value):
+                self.tags[key] = value
+
+        class ScopeContext:
+            def __enter__(self_inner):
+                scope = Scope()
+                configure_scope_calls.append(scope)
+                return scope
+
+            def __exit__(self_inner, exc_type, exc, tb):
+                return False
+
+        def fake_logging_integration(*, level, event_level):
+            return {
+                "level": level,
+                "event_level": event_level,
+            }
+
+        def fake_init(**kwargs):
+            init_mock.kwargs = kwargs
+
+        fake_sdk = SimpleNamespace(
+            init=fake_init,
+            configure_scope=lambda: ScopeContext(),
+        )
+
+        with patch("bmx.observability.sentry_sdk", fake_sdk), patch(
+            "bmx.observability.DjangoIntegration",
+            side_effect=lambda: "django-integration",
+        ), patch(
+            "bmx.observability.LoggingIntegration",
+            side_effect=fake_logging_integration,
+        ):
+            initialized = initialize_sentry(
+                dsn="https://examplePublicKey@o0.ingest.sentry.io/0",
+                enabled=True,
+                environment="production",
+                release="abc123",
+                traces_sample_rate=0.25,
+                profiles_sample_rate=0.1,
+                send_default_pii=False,
+                max_breadcrumbs=75,
+                log_level=logging.INFO,
+                event_level=logging.ERROR,
+                healthcheck_paths={"/healthz"},
+                debug=False,
+                stripe_live_mode=True,
+            )
+
+        self.assertTrue(initialized)
+        self.assertEqual(init_mock.kwargs["dsn"], "https://examplePublicKey@o0.ingest.sentry.io/0")
+        self.assertEqual(init_mock.kwargs["environment"], "production")
+        self.assertEqual(init_mock.kwargs["release"], "abc123")
+        self.assertEqual(init_mock.kwargs["max_request_body_size"], "never")
+        self.assertEqual(init_mock.kwargs["max_breadcrumbs"], 75)
+        self.assertEqual(init_mock.kwargs["profiles_sample_rate"], 0.1)
+        self.assertIn("django-integration", init_mock.kwargs["integrations"])
+        self.assertIn(
+            {"level": logging.INFO, "event_level": logging.ERROR},
+            init_mock.kwargs["integrations"],
+        )
+        self.assertEqual(configure_scope_calls[0].tags["app"], "django-bmx")
+        self.assertTrue(configure_scope_calls[0].tags["stripe.live_mode"])
 
     def test_entry_views_source_contains_custom_performance_spans(self):
         source = (
