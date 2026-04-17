@@ -676,6 +676,65 @@ def calculate_selected_fee(event, riders_beginner, riders_20, riders_24):
     return total_fee
 
 
+def build_event_category_participants(event):
+    category_participants = {}
+
+    def append_participant(category_name, *, plate_value, first_name, last_name):
+        if not category_name:
+            return
+        participants = category_participants.setdefault(category_name, [])
+        participants.append(
+            {
+                "plate": plate_value,
+                "first_name": first_name or "",
+                "last_name": last_name or "",
+            }
+        )
+
+    paid_entries = (
+        Entry.objects.filter(event=event, payment_complete=True, checkout=False)
+        .select_related("rider")
+    )
+    for entry in paid_entries:
+        rider = getattr(entry, "rider", None)
+        if rider is None:
+            continue
+        participant_kwargs = {
+            "plate_value": display_plate(getattr(rider, "plate_text", ""), getattr(rider, "plate", None)),
+            "first_name": getattr(rider, "first_name", ""),
+            "last_name": getattr(rider, "last_name", ""),
+        }
+        if getattr(entry, "is_beginner", False):
+            append_participant(entry.class_beginner, **participant_kwargs)
+        if getattr(entry, "is_20", False):
+            append_participant(entry.class_20, **participant_kwargs)
+        if getattr(entry, "is_24", False):
+            append_participant(entry.class_24, **participant_kwargs)
+
+    foreign_entries = EntryForeign.objects.filter(event=event, payment_complete=True, checkout=False)
+    for entry in foreign_entries:
+        participant_kwargs = {
+            "plate_value": display_plate(getattr(entry, "plate", "")),
+            "first_name": getattr(entry, "first_name", ""),
+            "last_name": getattr(entry, "last_name", ""),
+        }
+        if getattr(entry, "is_20", False):
+            append_participant(entry.class_20, **participant_kwargs)
+        if getattr(entry, "is_24", False):
+            append_participant(entry.class_24, **participant_kwargs)
+
+    for category_name, participants in category_participants.items():
+        participants.sort(
+            key=lambda item: (
+                item["last_name"].upper(),
+                item["first_name"].upper(),
+                item["plate"],
+            )
+        )
+
+    return category_participants
+
+
 def store_selected_entries(request, event, riders_beginner, riders_20, riders_24):
     for rider in riders_beginner:
         rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=True)
@@ -737,6 +796,8 @@ def annotate_riders_for_event(event, riders, beginners_enabled):
         rider_flags["is_20"] = rider_flags["is_20"] or bool(entry.is_20)
         rider_flags["is_24"] = rider_flags["is_24"] or bool(entry.is_24)
 
+    category_participants = build_event_category_participants(event)
+
     for rider in riders:
         rider_data = _resolve_rider_event_data(event, rider, beginners_enabled=beginners_enabled)
         rider.is_beginner = rider_data["is_beginner"]
@@ -748,6 +809,12 @@ def annotate_riders_for_event(event, riders, beginners_enabled):
         rider.is_registered_beginner = bool(entry_flags.get("is_beginner"))
         rider.is_registered_20 = bool(entry_flags.get("is_20"))
         rider.is_registered_24 = bool(entry_flags.get("is_24"))
+
+        for field_name in ("class_beginner", "class_20", "class_24"):
+            category_name = getattr(rider, field_name, "")
+            participants = category_participants.get(category_name, [])
+            setattr(rider, f"{field_name}_participants", participants)
+            setattr(rider, f"{field_name}_participant_count", len(participants))
 
 
 def load_checkout_session_payload(request):

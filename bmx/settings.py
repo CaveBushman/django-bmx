@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import logging
 from django.utils.translation import gettext_lazy as _
+from bmx.logging_config import build_logging_config
 from bmx.observability import initialize_sentry
 
 try:
@@ -350,6 +351,12 @@ else:
         default="https://czechbmx.cz" if STRIPE_LIVE_MODE else "http://localhost:8000",
     )
 
+DEFAULT_CSRF_TRUSTED_ORIGINS = [YOUR_DOMAIN] if YOUR_DOMAIN.startswith(("http://", "https://")) else []
+CSRF_TRUSTED_ORIGINS = config_list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=",".join(DEFAULT_CSRF_TRUSTED_ORIGINS),
+)
+
 ENABLE_HTTPS_SECURITY = config_bool("ENABLE_HTTPS_SECURITY", default=not DEBUG)
 
 if ENABLE_HTTPS_SECURITY:
@@ -377,6 +384,7 @@ ACCOUNT_PENDING_ACTIVATION_MAX_AGE_DAYS = config("ACCOUNT_PENDING_ACTIVATION_MAX
 APP_LOG_LEVEL = str(config("APP_LOG_LEVEL", default="INFO")).upper()
 AUDIT_LOG_LEVEL = str(config("AUDIT_LOG_LEVEL", default="INFO")).upper()
 ROOT_LOG_LEVEL = str(config("ROOT_LOG_LEVEL", default="ERROR")).upper()
+LOG_AS_JSON = config_bool("LOG_AS_JSON", default=not DEBUG)
 
 SENTRY_DSN = config("SENTRY_DSN", default="")
 SENTRY_ENABLED = config_bool("SENTRY_ENABLED", default=not DEBUG)
@@ -568,88 +576,15 @@ CRONJOBS = [
     ("15 2 * * *", "bmx.cron.renew_trainer_club_subscriptions_scheduled"),
 ]
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "[{asctime}] {levelname} {name}: {message}",
-            "style": "{",
-        },
-    },
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "verbose",},
-        "audit_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "formatter": "verbose",
-            "filename": str(LOG_DIR / "audit.log"),
-            "when": "midnight",
-            "interval": 1,
-            "backupCount": 30,
-            "encoding": "utf-8",
-        },
-        "error_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "formatter": "verbose",
-            "filename": str(LOG_DIR / "errors.log"),
-            "when": "midnight",
-            "interval": 1,
-            "backupCount": 30,
-            "encoding": "utf-8",
-        },
-    },
-    "loggers": {
-        "audit": {
-            "handlers": ["console", "audit_file"],
-            "level": AUDIT_LOG_LEVEL,
-            "propagate": False,
-        },
-        "api.views": {
-            "handlers": ["console"],
-            "level": APP_LOG_LEVEL,
-            "propagate": False,
-        },
-        "bmx": {
-            "handlers": ["console"],
-            "level": APP_LOG_LEVEL,
-            "propagate": False,
-        },
-        "ops.health": {
-            "handlers": ["console"],
-            "level": APP_LOG_LEVEL,
-            "propagate": False,
-        },
-        "rider.views": {
-            "handlers": ["console"],
-            "level": APP_LOG_LEVEL,
-            "propagate": False,
-        },
-        "security.csp": {
-            "handlers": ["console"],
-            "level": APP_LOG_LEVEL,
-            "propagate": False,
-        },
-        "django.request": {
-            "handlers": ["console", "error_file"],
-            "level": ROOT_LOG_LEVEL,
-            "propagate": False,
-        },
-        "django.server": {
-            "handlers": ["console", "error_file"],
-            "level": ROOT_LOG_LEVEL,
-            "propagate": False,
-        },
-        "admin_stats.middleware": {
-            "handlers": ["console", "error_file"],
-            "level": ROOT_LOG_LEVEL,
-            "propagate": False,
-        },
-    },
-    "root": {
-        "handlers": ["console", "error_file"],
-        "level": ROOT_LOG_LEVEL,
-    },
-}
+LOGGING = build_logging_config(
+    log_dir=LOG_DIR,
+    app_log_level=APP_LOG_LEVEL,
+    audit_log_level=AUDIT_LOG_LEVEL,
+    root_log_level=ROOT_LOG_LEVEL,
+    log_as_json=LOG_AS_JSON,
+    release=SENTRY_RELEASE,
+    environment=SENTRY_ENVIRONMENT,
+)
 
 JAZZMIN_SETTINGS = {
     "site_title": "Django Czech BMX Admin",

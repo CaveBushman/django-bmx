@@ -4,7 +4,6 @@ event/views/views_admin.py — admin a komisařské operace
 Obsah:
   Veřejné view funkce (URL handlery):
     - event_admin_view       — hlavní admin panel závodu
-    - find_payment_view      — vyhledání platby
     - ec_by_club_xls         — export přihlášek EP po klubech
     - summary_riders_in_event — počty jezdců v kategoriích
     - export_event_results   — odeslání výsledků do API ČSC
@@ -48,7 +47,6 @@ from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from django.utils.translation import gettext as _
 from event.models import Event, Entry, EntryForeign, Result, RaceRun
-from rider.models import Rider
 from club.models import Club
 from commissar.models import Commissar
 from event.func import (
@@ -767,28 +765,6 @@ def event_admin_view(request, pk):
         "prize_money_amount_toggle": PrizeMoneyPdfService().allows_amount_toggle(event),
     }
     return render(request, "event/event-admin.html", data)
-
-
-@staff_member_required
-def find_payment_view(request):
-    """Vyhledá platební záznam k jezdci a závodu."""
-    events = Event.objects.all()
-
-    if "find-payment" in request.POST:
-        rider_uci = (request.POST.get("rider") or "").strip()
-        event_id = (request.POST.get("event") or "").strip()
-        entry = Entry.objects.filter(event=event_id, rider=rider_uci, payment_complete=True).first()
-        rider = Rider.objects.filter(uci_id=rider_uci).first()
-        event = Event.objects.filter(id=event_id).first()
-
-        if entry and rider and event:
-            return render(request, "event/find-payment.html", {
-                "event": event, "rider": rider, "entry": entry
-            })
-
-        messages.error(request, "Platbu pro vybraného jezdce a závod se nepodařilo najít.")
-
-    return render(request, "event/find-payment.html", {"events": events})
 
 
 @staff_member_required
