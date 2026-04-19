@@ -1,6 +1,69 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %}{% trans "Kluby" %}{% endblock title %}
+{% block extra_head %}
+{{ block.super }}
+<style>
+  .dark .clubs-directory-page {
+    background:
+      radial-gradient(circle at 16% 8%, rgba(79, 70, 229, 0.16), transparent 28rem),
+      linear-gradient(180deg, #0f172a 0%, #111827 42%, #0b1120 100%) !important;
+    color: #e5e7eb !important;
+  }
+
+  .dark .clubs-directory-filter,
+  .dark .clubs-directory-card {
+    border-color: rgba(51, 65, 85, 0.92) !important;
+    background: rgba(15, 23, 42, 0.94) !important;
+    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42) !important;
+  }
+
+  .dark .clubs-directory-filter input,
+  .dark .clubs-directory-filter select {
+    border-color: rgba(71, 85, 105, 0.96) !important;
+    background: rgba(2, 6, 23, 0.78) !important;
+    color: #f8fafc !important;
+  }
+
+  .dark .clubs-directory-filter input::placeholder {
+    color: #64748b !important;
+  }
+
+  .dark .clubs-directory-filter select option {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+  }
+
+  .dark .clubs-directory-submit {
+    border: 1px solid rgba(129, 140, 248, 0.34) !important;
+    background: linear-gradient(135deg, #4338ca, #312e81) !important;
+    color: #fff !important;
+    box-shadow: 0 14px 34px rgba(49, 46, 129, 0.36) !important;
+  }
+
+  .dark .clubs-directory-submit:hover {
+    background: linear-gradient(135deg, #4f46e5, #3730a3) !important;
+  }
+
+  .dark .clubs-directory-contact-badge {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #86efac !important;
+  }
+
+  .dark .clubs-directory-contact-link {
+    border: 1px solid rgba(51, 65, 85, 0.88) !important;
+    background: rgba(15, 23, 42, 0.88) !important;
+  }
+
+  .dark .clubs-directory-contact-link-email {
+    color: #93c5fd !important;
+  }
+
+  .dark .clubs-directory-contact-link-phone {
+    color: #6ee7b7 !important;
+  }
+</style>
+{% endblock extra_head %}
 {% block content %}
 
 <div class="clubs-directory-page">
