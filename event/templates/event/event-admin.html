@@ -3,7 +3,7 @@
 {% load static i18n %} 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
-<script src="{% static 'js/event_admin.js' %}?v=2" defer></script>
+<script src="{% static 'js/event_admin.js' %}?v=3" defer></script>
 <style>
   .event-admin-page {
     min-height: calc(100vh - 4rem);
@@ -644,16 +644,13 @@
                 Registrovaní jezdci
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4">
-              Aktualizováno:
-              <span class="font-medium">{{ event.rem_entries_created }}</span>
-            </p>
           </div>
           <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-file"
               data-loading-label="Generuji REM soubor..."
+              data-reset-after-download="true"
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -673,16 +670,13 @@
                 Všichni jezdci
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4">
-              Aktualizováno:
-              <span class="font-medium">{{ event.rem_riders_created }}</span>
-            </p>
           </div>
           <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-rem-riders-list"
               data-loading-label="Generuji seznam jezdců..."
+              data-reset-after-download="true"
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -781,16 +775,13 @@
                 Registrovaní jezdci
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4">
-              Aktualizováno:
-              <span class="font-medium">{{ event.bem_entries_created }}</span>
-            </p>
           </div>
           <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-bem-file"
               data-loading-label="Generuji BEM soubor..."
+              data-reset-after-download="true"
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
@@ -810,16 +801,13 @@
                 Všichni jezdci
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4">
-              Aktualizováno:
-              <span class="font-medium">{{ event.bem_riders_created }}</span>
-            </p>
           </div>
           <div class="flex justify-end">
             <button
               class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
               name="btn-riders-list"
               data-loading-label="Generuji seznam jezdců..."
+              data-reset-after-download="true"
             >
               ⬇️ Vygenerovat a stáhnout
             </button>
