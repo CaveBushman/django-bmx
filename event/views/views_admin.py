@@ -49,6 +49,7 @@ from django.utils.translation import gettext as _
 from event.models import Event, Entry, EntryForeign, Result, RaceRun
 from club.models import Club
 from commissar.models import Commissar
+from rider.models import Rider
 from event.func import (
     invalid_licence_in_event,
     excel_first_line, expire_licence, gender_resolve,

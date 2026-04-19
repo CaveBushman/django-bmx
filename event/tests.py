@@ -1106,12 +1106,17 @@ class PaymentServiceTests(TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("js/event_admin.js", template)
-        self.assertIn("js/event_admin.js' %}?v=2", template)
+        self.assertIn("js/event_admin.js' %}?v=3", template)
         self.assertNotIn("<script>", template)
         self.assertIn("data-event-admin-form", template)
         self.assertIn("data-file-input", template)
         self.assertIn("data-file-selection", template)
         self.assertIn("data-confirm-message", template)
+        self.assertIn("data-reset-after-download", template)
+        self.assertNotIn("event.rem_entries_created", template)
+        self.assertNotIn("event.rem_riders_created", template)
+        self.assertNotIn("event.bem_entries_created", template)
+        self.assertNotIn("event.bem_riders_created", template)
 
     def test_event_admin_script_preserves_submitter_action_before_disabling_button(self):
         script = (Path(settings.BASE_DIR) / "static" / "js" / "event_admin.js").read_text(
@@ -1122,9 +1127,14 @@ class PaymentServiceTests(TestCase):
         disabled_index = script.index("submitter.disabled = true")
 
         self.assertLess(hidden_input_index, disabled_index)
+        self.assertIn('input[data-event-admin-action]', script)
+        self.assertIn("input.remove()", script)
         self.assertIn("actionInput.name = submitter.name", script)
         self.assertIn('actionInput.value = submitter.value || "1"', script)
+        self.assertIn('actionInput.dataset.eventAdminAction = "true"', script)
         self.assertIn("form.appendChild(actionInput)", script)
+        self.assertIn('submitter.dataset.resetAfterDownload === "true"', script)
+        self.assertIn("window.setTimeout", script)
 
     def test_foreign_entry_page_uses_external_script_and_no_inline_handlers(self):
         response = self.client.get(
