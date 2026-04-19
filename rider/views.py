@@ -462,16 +462,28 @@ def riders_list_view(request):
 
 def rider_detail_view(request, pk):
     rider = get_object_or_404(Rider, uci_id=pk)
-    results = Result.objects.filter(
-        rider_id=rider.uci_id,
-        date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
-    ).order_by("date")
+    results = list(
+        Result.objects.select_related("event")
+        .filter(
+            rider_id=rider.uci_id,
+            date__gte=datetime.datetime.now() - datetime.timedelta(days=365),
+        )
+        .order_by("-date", "-id")
+    )
+    results_summary = {
+        "points_20": sum(result.points or 0 for result in results if result.marked_20),
+        "points_24": sum(result.points or 0 for result in results if result.marked_24),
+        "outside_ranking_count": sum(
+            1 for result in results if not result.marked_20 and not result.marked_24
+        ),
+    }
     season_settings = get_current_season_settings()
     premium_access_context = _get_premium_access_context(request.user, rider)
     premium_runs_count = RaceRun.objects.filter(rider=rider).count()
     data = {
         "rider": rider,
         "results": results,
+        "results_summary": results_summary,
         **premium_access_context,
         "premium_runs_count": premium_runs_count,
         "premium_price": season_settings.rider_stats_monthly_price if season_settings else None,

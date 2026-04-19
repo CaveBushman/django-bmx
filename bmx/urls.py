@@ -26,6 +26,7 @@ urlpatterns = [
     path('signup/', account_views.sign_up, name='signup'),
     path('bmx-admin/', admin.site.urls),
     path('finance/', include('finance.urls')),
+    path('eshop/', include('eshop.urls')),
     path('healthz', bmx_views.healthz_view, name='healthz'),
     path('readyz', bmx_views.readyz_view, name='readyz'),
     path('csp-report/', bmx_views.csp_report_view, name='csp-report'),

@@ -402,6 +402,48 @@ class RiderAdminSearchTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Plate")
 
+    def test_thumbnail_falls_back_to_initials_when_photo_is_missing(self):
+        rider = Rider.objects.create(
+            uci_id=12345670093,
+            first_name="Adam",
+            last_name="Benes",
+            gender="Muž",
+            date_of_birth=date(2012, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            photo="",
+        )
+
+        thumbnail = self.admin_instance.thumbnail(rider)
+
+        self.assertIn("AB", str(thumbnail))
+        self.assertNotIn("<img", str(thumbnail))
+
+    def test_rider_admin_data_quality_summary_shows_detected_issues(self):
+        rider = Rider.objects.create(
+            uci_id=12345670092,
+            first_name="Issue",
+            last_name="Finder",
+            gender="Muž",
+            date_of_birth=date(2012, 5, 1),
+            club=None,
+            is_active=True,
+            is_approved=False,
+            valid_licence=True,
+            is_20=True,
+            points_24=20,
+            photo="images/riders/uni.jpeg",
+        )
+
+        summary = self.admin_instance.data_quality_summary(rider)
+
+        self.assertIn("Chybí klub", str(summary))
+        self.assertIn("Chybí fotka", str(summary))
+        self.assertIn('Chybí čip 20"', str(summary))
+        self.assertIn('Body 24" bez aktivní disciplíny', str(summary))
+
 
 class RiderPremiumSubscriptionTests(TestCase):
     def setUp(self):
@@ -803,6 +845,80 @@ class RiderPremiumSubscriptionTests(TestCase):
         )
         self.assertRedirects(export_response, reverse("rider:premium-stats", kwargs={"pk": self.rider.uci_id}))
         self.assertContains(export_response, "trainer extended")
+
+
+class RiderDetailTemplateTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Detail Club")
+        self.rider = Rider.objects.create(
+            uci_id=12345670111,
+            first_name="Mobile",
+            last_name="Card",
+            gender="Muž",
+            date_of_birth=date(2010, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            is_20=True,
+            class_20="Boys 15/16",
+        )
+        self.event = Event.objects.create(
+            name="Spring Race",
+            date=date.today() - timedelta(days=14),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        Result.objects.create(
+            event=self.event,
+            rider=self.rider,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            category="Boys 15/16",
+            place=2,
+            points=45,
+            marked_20=True,
+        )
+        Result.objects.create(
+            event=self.event,
+            rider=self.rider,
+            date=self.event.date - timedelta(days=7),
+            event_type="Cruiser",
+            organizer=self.club.team_name,
+            category="Cruiser 15/16",
+            place=3,
+            points=18,
+            marked_24=True,
+        )
+        Result.objects.create(
+            event=self.event,
+            rider=self.rider,
+            date=self.event.date - timedelta(days=21),
+            event_type="Volný závod",
+            organizer=self.club.team_name,
+            category="Boys 15/16",
+            place=5,
+            points=0,
+            marked_20=False,
+            marked_24=False,
+        )
+
+    def test_rider_detail_renders_card_layout_for_last_year_results(self):
+        response = self.client.get(reverse("rider:detail", kwargs={"pk": self.rider.uci_id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "rider-results-grid")
+        self.assertContains(response, "Spring Race")
+        self.assertContains(response, "45 b.")
+        self.assertContains(response, "Umístění:")
+        self.assertContains(response, 'Body do 20"')
+        self.assertContains(response, 'Body do 24"')
+        self.assertContains(response, "Mimo ranking")
+        self.assertContains(response, ">45<", html=False)
+        self.assertContains(response, ">18<", html=False)
+        self.assertContains(response, ">1<", html=False)
 
 
 class TrainerClubSubscriptionTests(TestCase):

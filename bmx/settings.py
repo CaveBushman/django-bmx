@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     "admin_stats",
     'finance',
     "todo",
+    "eshop",
 ]
 
 

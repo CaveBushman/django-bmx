@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import path
@@ -8,9 +9,11 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
 from import_export import resources
+from urllib.parse import urlencode
 from bmx.admin_search import DiacriticsInsensitiveSearchAdminMixin
 from accounts.models import AccountRiderLink
 from event.models import EntryForeign
+from ranking.ranking import get_ranking_recount_status
 from .models import (
     ForeignRider,
     Rider,
@@ -98,29 +101,67 @@ class PlateAwareSearchAdminMixin:
         return queryset, use_distinct
 
 
+class RiderDataIssueFilter(admin.SimpleListFilter):
+    title = "datová kvalita"
+    parameter_name = "data_issue"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("missing_club", "Chybí klub"),
+            ("missing_photo", "Chybí fotka"),
+            ("missing_transponder", "Chybí transpondér"),
+            ("ranking_mismatch", "Body bez aktivní disciplíny"),
+            ("inactive_unapproved", "Aktivní, ale neschválený"),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == "missing_club":
+            return queryset.filter(club__isnull=True)
+        if value == "missing_photo":
+            return queryset.filter(Q(photo__isnull=True) | Q(photo="") | Q(photo="images/riders/uni.jpeg"))
+        if value == "missing_transponder":
+            return queryset.filter(
+                (Q(is_20=True) & (Q(transponder_20__isnull=True) | Q(transponder_20="")))
+                | (Q(is_24=True) & (Q(transponder_24__isnull=True) | Q(transponder_24="")))
+            )
+        if value == "ranking_mismatch":
+            return queryset.filter(Q(is_20=False, points_20__gt=0) | Q(is_24=False, points_24__gt=0))
+        if value == "inactive_unapproved":
+            return queryset.filter(is_active=True, is_approved=False)
+        return queryset
+
+
 class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMixin, ExportMixin, admin.ModelAdmin):
 
     resource_class = RiderResource
     change_list_template = "admin/rider/rider/change_list.html"
 
     def thumbnail(self, object):
-        if not object.photo:
-            return "-"
+        photo_url = object.photo_url
+        if photo_url:
+            return format_html(
+                '<img src="{}" width="30" height="30" style="border-radius: 999px; object-fit: cover;" alt="{}" />',
+                photo_url,
+                object.initials,
+            )
         return format_html(
-            '<img src="{}" width="30" style="border-radius: 50px;" />',
-            object.photo.url,
+            '<span style="display:inline-flex; width:30px; height:30px; align-items:center; justify-content:center; border-radius:999px; background:#e2e8f0; color:#334155; font-size:11px; font-weight:700;">{}</span>',
+            object.initials or "?",
         )
 
     thumbnail.short_description = 'Foto'
 
-    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate_value','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','is_active','is_approved')
+    list_display = ('thumbnail','last_name','first_name', 'uci_id', 'club', 'plate_value','transponder_20', 'transponder_24','is_20', 'is_24', 'is_elite','data_quality_badges','is_active','is_approved')
     list_display_links = ('last_name',)
     ordering = ('last_name','first_name',)
     list_editable = ('is_20', 'is_24','is_elite','is_active','is_approved')
     search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate_text')
-    list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club',)
-    readonly_fields = ('transponder_change_overview',)
+    list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club', RiderDataIssueFilter)
+    readonly_fields = ('public_links', 'transponder_change_overview', 'data_quality_summary',)
+    list_select_related = ('club',)
     inlines = (RiderAccountLinkInline,)
+    actions = ('approve_selected_riders', 'activate_selected_riders')
 
     @admin.display(description='Číslo')
     def plate_value(self, obj):
@@ -158,6 +199,12 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
                 ('is_qualify_to_cn_20', 'is_qualify_to_cn_24'),
                 ('is_in_talent_team', 'is_in_representation'),
             ),
+        }),
+        ('Kontrola dat', {
+            'fields': ('data_quality_summary',),
+        }),
+        ('Rychlé odkazy', {
+            'fields': ('public_links',),
         }),
         ('Kontakt', {
             'fields': (
@@ -241,6 +288,92 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
         )
         return format_html("{}", mark_safe(table))
 
+    def _collect_data_issues(self, obj):
+        issues = []
+        if obj.club_id is None:
+            issues.append(("Chybí klub", "#dc2626"))
+        photo_name = getattr(obj.photo, "name", "") if obj.photo else ""
+        if not photo_name or photo_name == "images/riders/uni.jpeg":
+            issues.append(("Chybí fotka", "#d97706"))
+        if obj.is_20 and not obj.transponder_20:
+            issues.append(('Chybí čip 20"', "#7c3aed"))
+        if obj.is_24 and not obj.transponder_24:
+            issues.append(('Chybí čip 24"', "#2563eb"))
+        if not obj.is_20 and obj.points_20 > 0:
+            issues.append(('Body 20" bez aktivní disciplíny', "#b91c1c"))
+        if not obj.is_24 and obj.points_24 > 0:
+            issues.append(('Body 24" bez aktivní disciplíny', "#1d4ed8"))
+        if obj.is_active and not obj.is_approved:
+            issues.append(("Aktivní, ale neschválený", "#b45309"))
+        return issues
+
+    @admin.display(description='Kontrola dat')
+    def data_quality_badges(self, obj):
+        issues = self._collect_data_issues(obj)
+        if not issues:
+            return mark_safe(
+                '<span style="display:inline-flex; padding:4px 8px; border-radius:999px; background:#dcfce7; color:#166534; font-weight:600;">OK</span>'
+            )
+        chips = [
+            format_html(
+                '<span style="display:inline-flex; padding:4px 8px; margin:0 6px 6px 0; border-radius:999px; background:{}15; color:{}; font-weight:600;">{}</span>',
+                color,
+                color,
+                label,
+            )
+            for label, color in issues[:3]
+        ]
+        if len(issues) > 3:
+            chips.append(
+                format_html(
+                    '<span style="display:inline-flex; padding:4px 8px; margin:0 6px 6px 0; border-radius:999px; background:#e2e8f0; color:#334155; font-weight:600;">+{} další</span>',
+                    len(issues) - 3,
+                )
+            )
+        return format_html("{}", mark_safe("".join(str(chip) for chip in chips)))
+
+    @admin.display(description='Souhrn kvality dat')
+    def data_quality_summary(self, obj):
+        if not obj.pk:
+            return "Kontrola bude dostupná po prvním uložení jezdce."
+        issues = self._collect_data_issues(obj)
+        if not issues:
+            return format_html(
+                '<div style="padding:12px 14px; border:1px solid #bbf7d0; border-radius:16px; background:#f0fdf4; color:#166534; font-weight:600;">Profil je konzistentní. Nenašel jsem žádný zjevný datový problém.</div>'
+            )
+        rows = "".join(f'<li style="margin:0 0 8px 0;">{label}</li>' for label, _ in issues)
+        return format_html(
+            '<div style="padding:14px 16px; border:1px solid #fed7aa; border-radius:16px; background:#fff7ed;">'
+            '<p style="margin:0 0 10px 0; font-weight:700; color:#9a3412;">Vyžaduje kontrolu</p>'
+            '<ul style="margin:0; padding-left:18px; color:#7c2d12;">{}</ul>'
+            '</div>',
+            mark_safe(rows),
+        )
+
+    @admin.display(description='Rychlé odkazy')
+    def public_links(self, obj):
+        if not obj.pk:
+            return "Odkazy budou dostupné po prvním uložení jezdce."
+
+        link_markup = [
+            format_html(
+                '<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;"><a href="{}" target="_blank" rel="noopener">Veřejný profil</a></span>',
+                reverse("rider:detail", args=[obj.uci_id]),
+            ),
+            format_html(
+                '<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;"><a href="{}" target="_blank" rel="noopener">Prémiové statistiky</a></span>',
+                reverse("rider:premium-stats", args=[obj.uci_id]),
+            ),
+        ]
+        if obj.class_20:
+            link_markup.append(
+                format_html(
+                    '<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;"><a href="{}" target="_blank" rel="noopener">Ranking 20"</a></span>',
+                    "{}?{}".format(reverse("ranking:ranking"), urlencode({"category": obj.class_20})),
+                )
+            )
+        return format_html('<div style="display:flex; gap:12px; flex-wrap:wrap;">{}{}</div>', mark_safe("".join(link_markup[:2])), mark_safe("".join(link_markup[2:])))
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -255,7 +388,18 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context["plate_migration_url"] = reverse("admin:rider_rider_migrate_plates")
+        extra_context["ranking_recount_status"] = get_ranking_recount_status()
         return super().changelist_view(request, extra_context=extra_context)
+
+    @admin.action(description="Schválit vybrané jezdce")
+    def approve_selected_riders(self, request, queryset):
+        updated = queryset.filter(is_approved=False).update(is_approved=True)
+        self.message_user(request, f"Schváleno jezdců: {updated}.", level=messages.SUCCESS)
+
+    @admin.action(description="Aktivovat vybrané jezdce")
+    def activate_selected_riders(self, request, queryset):
+        updated = queryset.filter(is_active=False).update(is_active=True)
+        self.message_user(request, f"Aktivováno jezdců: {updated}.", level=messages.SUCCESS)
 
     def _copy_plate_values(self, model):
         records = list(

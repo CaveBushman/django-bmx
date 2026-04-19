@@ -1,5 +1,6 @@
 import logging
 from django.contrib import admin
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
@@ -60,6 +61,7 @@ class EventAdmin(BaseAdmin):
         'organizer',
         'type_for_ranking',
         'reg_open',
+        'eshop_pickup_enabled',
         'reg_open_from',
         'reg_open_to',
         'reg_cancel_to',
@@ -71,12 +73,14 @@ class EventAdmin(BaseAdmin):
     )
     list_display_links = ('name',)
     search_fields = ('name', 'organizer',)
-    list_filter = ('type_for_ranking', 'reg_open', 'date')
+    list_filter = ('type_for_ranking', 'reg_open', 'eshop_pickup_enabled', 'date')
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = ()
         if obj is not None:
             readonly_fields += (
+                "public_links",
+                "results_quality_overview",
                 "proposition_created",
                 "series_created",
                 "bem_entries_created",
@@ -103,7 +107,9 @@ class EventAdmin(BaseAdmin):
                 "fields": (
                     "name",
                     ("date", "organizer"),
-                    ("type_for_ranking", "reg_open"),
+                    ("type_for_ranking", "reg_open", "eshop_pickup_enabled"),
+                    ("eshop_pickup_location", "eshop_pickup_time"),
+                    "eshop_pickup_note",
                     ("reg_open_from", "reg_open_to", "reg_cancel_to"),
                     ("pcp", "pcp_assist", "start_commissar"),
                     "classes_and_fees_like",
@@ -132,11 +138,72 @@ class EventAdmin(BaseAdmin):
         )
         if obj is not None:
             fieldsets += (
+                (_("Rychlé odkazy"), {
+                    "fields": ("public_links",),
+                }),
+                (_("Kvalita výsledků"), {
+                    "fields": ("results_quality_overview",),
+                }),
                 (_("Audit registrací"), {
                     "fields": ("event_refund_summary", "event_checkout_audit_timeline"),
                 }),
             )
         return fieldsets
+
+    @admin.display(description=_("Rychlé odkazy"))
+    def public_links(self, obj):
+        if not obj.pk:
+            return _("Odkazy budou dostupné po prvním uložení závodu.")
+        links = [
+            format_html('<a href="{}" target="_blank" rel="noopener">Veřejný detail</a>', reverse("event:event-detail", args=[obj.pk])),
+            format_html('<a href="{}" target="_blank" rel="noopener">Výsledky</a>', reverse("event:results", args=[obj.pk])),
+            format_html('<a href="{}" target="_blank" rel="noopener">Registrace</a>', reverse("event:entry", args=[obj.pk])),
+            format_html('<a href="{}?event__id__exact={}" target="_blank" rel="noopener">Admin výsledky</a>', reverse("admin:event_result_changelist"), obj.pk),
+        ]
+        return format_html(
+            '<div style="display:flex; gap:12px; flex-wrap:wrap;">{}</div>',
+            mark_safe(
+                "".join(
+                    f'<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;">{link}</span>'
+                    for link in links
+                )
+            ),
+        )
+
+    @admin.display(description=_("Kontrola výsledků"))
+    def results_quality_overview(self, obj):
+        results = Result.objects.filter(event=obj)
+        if not results.exists():
+            return _("Pro tento závod zatím nejsou nahrané žádné výsledky.")
+
+        missing_rider = results.filter(rider__isnull=True).count()
+        missing_category = results.filter(Q(category__isnull=True) | Q(category="")).count()
+        missing_event_type = results.filter(Q(event_type__isnull=True) | Q(event_type="")).count()
+        zero_points_ranking = results.filter(
+            points=0,
+            event_type__in=["Mistrovství ČR jednotlivců", "Český pohár", "Česká liga", "Moravská liga", "Volný závod"],
+        ).count()
+        marked_zero_points = results.filter(points=0).filter(Q(marked_20=True) | Q(marked_24=True)).count()
+
+        return format_html(
+            "<div>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "<p><strong>{}</strong> {}</p>"
+            "</div>",
+            _("Výsledků celkem:"),
+            results.count(),
+            _("Bez navázaného jezdce:"),
+            missing_rider,
+            _("Bez kategorie:"),
+            missing_category,
+            _("Bez typu závodu:"),
+            missing_event_type,
+            _("Bodovaných závodních řádků s 0 body:"),
+            zero_points_ranking + marked_zero_points,
+        )
 
     @admin.display(description=_("Souhrn refundů"))
     def event_refund_summary(self, obj):

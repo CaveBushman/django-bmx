@@ -1,9 +1,10 @@
 from datetime import timedelta
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from admin_stats.middleware import VisitMiddleware
 from admin_stats.models import Visit
 
 
@@ -44,3 +45,13 @@ class VisitStatsViewTests(TestCase):
         self.assertIn(("Germany", 1), response.context["top_locations"])
         self.assertIn(("Desktop", 1), response.context["device_stats"])
         self.assertIn(("Mobile", 1), response.context["device_stats"])
+
+
+class VisitMiddlewareTests(TestCase):
+    @override_settings(DEBUG=True)
+    def test_middleware_skips_visit_logging_in_debug_mode(self):
+        request = RequestFactory().get("/bmx-admin/")
+
+        VisitMiddleware(lambda req: None).process_request(request)
+
+        self.assertEqual(Visit.objects.count(), 0)

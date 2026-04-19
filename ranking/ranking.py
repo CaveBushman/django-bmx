@@ -3,6 +3,7 @@ import datetime
 from datetime import timedelta
 from django.core.cache import cache
 from django.db import transaction
+from django.utils import timezone
 from rider.models import Rider
 
 logger = logging.getLogger(__name__)
@@ -13,6 +14,21 @@ import threading
 RANKING_RECOUNT_PENDING_KEY = "ranking_recount_pending"
 RANKING_RECOUNT_RUNNING_KEY = "ranking_recount_running"
 RANKING_RECOUNT_LOCK_TIMEOUT = 60 * 60
+RANKING_RECOUNT_STATUS_KEY = "ranking_recount_status"
+
+
+def get_ranking_recount_status():
+    status = cache.get(RANKING_RECOUNT_STATUS_KEY, {}) or {}
+    return {
+        "is_pending": bool(cache.get(RANKING_RECOUNT_PENDING_KEY)),
+        "is_running": bool(cache.get(RANKING_RECOUNT_RUNNING_KEY)),
+        "last_started_at": status.get("last_started_at"),
+        "last_finished_at": status.get("last_finished_at"),
+        "last_duration_seconds": status.get("last_duration_seconds"),
+        "last_success": status.get("last_success"),
+        "last_message": status.get("last_message"),
+        "last_rider_count": status.get("last_rider_count"),
+    }
 
 def sort_20(self, classes):
     CLASS_ORDER20 = {
@@ -37,12 +53,48 @@ class SetRanking (threading.Thread):
     def run(self):
         while True:
             cache.delete(RANKING_RECOUNT_PENDING_KEY)
+            started_at = timezone.now()
+            cache.set(
+                RANKING_RECOUNT_STATUS_KEY,
+                {
+                    **(cache.get(RANKING_RECOUNT_STATUS_KEY, {}) or {}),
+                    "last_started_at": started_at,
+                    "last_message": "Přepočet rankingu právě běží.",
+                },
+                timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+            )
             try:
-                RankingCount.set_ranking_points()
+                rider_count = RankingCount.set_ranking_points()
                 RankPositionCount().count_ranking_position()
                 logger.info("Ranking přepočítán")
+                finished_at = timezone.now()
+                cache.set(
+                    RANKING_RECOUNT_STATUS_KEY,
+                    {
+                        "last_started_at": started_at,
+                        "last_finished_at": finished_at,
+                        "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
+                        "last_success": True,
+                        "last_message": "Poslední přepočet rankingu doběhl úspěšně.",
+                        "last_rider_count": rider_count,
+                    },
+                    timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+                )
             except Exception:
                 logger.exception("Přepočet rankingu selhal")
+                finished_at = timezone.now()
+                cache.set(
+                    RANKING_RECOUNT_STATUS_KEY,
+                    {
+                        "last_started_at": started_at,
+                        "last_finished_at": finished_at,
+                        "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
+                        "last_success": False,
+                        "last_message": "Poslední přepočet rankingu skončil chybou. Zkontroluj log.",
+                        "last_rider_count": None,
+                    },
+                    timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+                )
             finally:
                 if cache.get(RANKING_RECOUNT_PENDING_KEY):
                     logger.info("Během přepočtu přišla další změna, ranking se přepočítá znovu.")
@@ -59,6 +111,14 @@ class SetRanking (threading.Thread):
 def schedule_ranking_recount():
     """Naplánuje přepočet rankingu po dokončení aktuální DB transakce."""
     cache.set(RANKING_RECOUNT_PENDING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT)
+    cache.set(
+        RANKING_RECOUNT_STATUS_KEY,
+        {
+            **(cache.get(RANKING_RECOUNT_STATUS_KEY, {}) or {}),
+            "last_message": "Čeká naplánovaný přepočet rankingu.",
+        },
+        timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+    )
 
     def _start():
         if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
@@ -92,15 +152,19 @@ class RankingCount:
 
     def set_points(self, event_types, max_races, is_20):
         """ General method for setting points based on event type """
+        all_results = Result.objects.filter(
+            event_type__in=event_types,
+            is_20=is_20,
+            date__gte=datetime.datetime.now() - timedelta(days=365),
+            rider_id=self.uci_id,
+        )
         results = (
-            Result.objects.filter(event_type__in=event_types, is_20=is_20,
-                                  date__gte=datetime.datetime.now() - timedelta(days=365),
-                                  rider_id=self.uci_id)
+            all_results.filter(points__gt=0)
             .order_by('-points', '-date')
         )
 
         # Reset previous markings
-        results.update(marked_20=False) if is_20 else results.update(marked_24=False)
+        all_results.update(marked_20=False) if is_20 else all_results.update(marked_24=False)
 
         # Get top races
         num_race = min(results.count(), max_races)
@@ -131,6 +195,7 @@ class RankingCount:
     @staticmethod
     def set_ranking_points():
         """ Methods for setting ranking points for all riders """
+        rider_count = 0
         for rider in Rider.objects.filter(is_active=True, is_approved=True).iterator():
             ranking = RankingCount(rider.uci_id)
             ranking.count_points()
@@ -138,6 +203,8 @@ class RankingCount:
                 points_20=ranking.points_20,
                 points_24=ranking.points_24
             )
+            rider_count += 1
+        return rider_count
 
 class RankPositionCount:
     """ Class for counting ranking positions of riders"""

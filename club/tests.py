@@ -14,6 +14,51 @@ from rider.models import Rider
 User = get_user_model()
 
 
+class ClubListTests(TestCase):
+    def setUp(self):
+        self.matching_club = Club.objects.create(
+            team_name="BMX Praha",
+            is_active=True,
+            region="hlavní město Praha",
+            city="Praha",
+            contact_person="Jan Novak",
+            contact_email="praha@example.com",
+        )
+        self.other_club = Club.objects.create(
+            team_name="BMX Brno",
+            is_active=True,
+            region="Jihomoravský kraj",
+            city="Brno",
+            contact_person="Petr Svoboda",
+            contact_email="brno@example.com",
+        )
+        Club.objects.create(
+            team_name="Bez klubové příslušnosti",
+            is_active=True,
+            region="Středočeský kraj",
+        )
+
+    def test_club_list_filters_by_search_query(self):
+        response = self.client.get(reverse("club:clubs-list"), {"q": "Praha"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "BMX Praha")
+        self.assertNotContains(response, "BMX Brno")
+        self.assertEqual(response.context["filtered_count"], 1)
+
+    def test_club_list_filters_by_region(self):
+        response = self.client.get(
+            reverse("club:clubs-list"),
+            {"region": "Jihomoravský kraj"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "BMX Brno")
+        self.assertNotContains(response, "BMX Praha")
+        self.assertEqual(response.context["selected_region"], "Jihomoravský kraj")
+        self.assertTrue(response.context["has_active_filters"])
+
+
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class ClubExportTests(TestCase):
     def setUp(self):

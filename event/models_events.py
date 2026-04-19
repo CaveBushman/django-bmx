@@ -232,6 +232,14 @@ class Event(models.Model):
         help_text="Termín do kdy je možné odhlášení. Pokud není vyplněn, použije se konec registrace.",
     )
     reg_open = models.BooleanField(default=True)
+    eshop_pickup_enabled = models.BooleanField(
+        _("Výdej e-shop zboží"),
+        default=False,
+        help_text=_("Zaškrtněte pouze u závodů, kde bude možné předávat objednávky z e-shopu."),
+    )
+    eshop_pickup_location = models.CharField(_("Místo výdeje e-shopu"), max_length=160, blank=True)
+    eshop_pickup_time = models.CharField(_("Čas výdeje e-shopu"), max_length=120, blank=True)
+    eshop_pickup_note = models.TextField(_("Poznámka k výdeji e-shopu"), blank=True)
     system = models.CharField(
         choices=RACE_SYSTEM,
         default="3 základní rozjíždky a KO system",

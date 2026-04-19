@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Detail objednávky" %} — {{ order.invoice_number|default:order.pk }}{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-950">
+  <header class="page-hero">
+    <div class="page-shell">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            {% trans "Admin objednávky" %}
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            {{ order.invoice_number|default:order.pk }}
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            {{ order.first_name }} {{ order.last_name }} · {{ order.email }}
+            {% if order.event %} · {{ order.event.name }}{% endif %}
+          </p>
+        </div>
+        <div class="page-stats-grid">
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Stav" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ order.get_status_display }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celkem" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ order.total|floatformat:0 }} Kč</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kredit" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+              {% if order.credits_charged %}{{ order.credits_charged|floatformat:0 }} Kč{% else %}{% trans "Vráceno / bez úhrady" %}{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-surface">
+    <div class="page-shell">
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.9fr)]">
+        <div class="space-y-6">
+          <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Položky" %}</p>
+                <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Obsah objednávky" %}</h2>
+              </div>
+              <a href="{% url 'admin:eshop_order_change' order.pk %}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                {% trans "Otevřít v Django adminu" %}
+              </a>
+            </div>
+            <div class="mt-5 space-y-3">
+              {% for item in order.items.all %}
+              <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-slate-900">
+                  {% if item.variant and item.variant.product.image %}
+                  <img src="{{ item.variant.product.image.url }}" alt="{{ item.variant.product.name }}" class="h-full w-full object-cover">
+                  {% else %}
+                  <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">{% trans "Bez fotky" %}</span>
+                  {% endif %}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                    {% if item.variant and item.variant.product %}
+                      {{ item.variant.product.name }}
+                    {% else %}
+                      {% trans "Produkt" %}
+                    {% endif %}
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {% trans "Velikost" %}: {{ item.variant.label|default:"-" }} · {% trans "Počet kusů" %}: {{ item.quantity }} · {% trans "Cena za kus" %}: {{ item.unit_price|floatformat:0 }} Kč
+                  </p>
+                </div>
+                <div class="shrink-0 text-right">
+                  <p class="text-sm font-bold text-slate-900 dark:text-white">{{ item.total|floatformat:0 }} Kč</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Doklady a kontakty" %}</p>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/50">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Doklady" %}</p>
+                <div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Faktura" %}:</span> {{ order.invoice_number|default:"-" }}</p>
+                  {% if order.credit_note_number %}
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Dobropis" %}:</span> {{ order.credit_note_number }}</p>
+                  {% endif %}
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <a href="{% url 'eshop:download-invoice' order.pk %}" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                    {% trans "Stáhnout fakturu" %}
+                  </a>
+                  {% if order.credit_note_number %}
+                  <a href="{% url 'eshop:download-credit-note' order.pk %}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                    {% trans "Stáhnout dobropis" %}
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/50">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Kontakt a předání" %}</p>
+                <div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Zákazník" %}:</span> {{ order.first_name }} {{ order.last_name }}</p>
+                  <p><span class="font-semibold text-slate-900 dark:text-white">E-mail:</span> {{ order.email }}</p>
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Telefon" %}:</span> {{ order.phone|default:"-" }}</p>
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Závod" %}:</span> {{ order.event.name|default:"-" }}</p>
+                  {% if order.note %}
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Poznámka zákazníka" %}:</span> {{ order.note }}</p>
+                  {% endif %}
+                  {% if order.internal_note %}
+                  <p><span class="font-semibold text-slate-900 dark:text-white">{% trans "Interní poznámka" %}:</span> {{ order.internal_note }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="space-y-6">
+          <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Průběh" %}</p>
+            <div class="mt-4 space-y-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Vytvořeno" %}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ order.created|date:"j. n. Y H:i" }}</p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Uhrazeno kredity" %}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                  {% if order.credits_charged %}{{ order.credits_charged|floatformat:0 }} Kč{% else %}{% trans "Bez aktivní úhrady" %}{% endif %}
+                </p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Předání" %}</p>
+                {% if order.delivered_at %}
+                <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ order.delivered_at|date:"j. n. Y H:i" }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {% trans "Předal" %}: {{ order.delivered_by.get_full_name|default:order.delivered_by.username|default:"-" }}
+                </p>
+                {% else %}
+                <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{% trans "Zatím nepředáno" %}</p>
+                {% endif %}
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Kreditní transakce" %}</p>
+            <div class="mt-4 space-y-3">
+              {% for tx in credit_transactions %}
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <div class="flex items-center justify-between gap-4">
+                  <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ tx.get_kind_display }}</p>
+                  <p class="text-sm font-bold {% if tx.amount < 0 %}text-rose-600 dark:text-rose-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                    {{ tx.amount|floatformat:0 }} Kč
+                  </p>
+                </div>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ tx.transaction_date|date:"j. n. Y H:i" }}</p>
+              </div>
+              {% empty %}
+              <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "K této objednávce zatím nejsou dohledané kreditní transakce." %}</p>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Historie objednávky" %}</p>
+            <div class="mt-4 space-y-3">
+              {% for entry in history_entries %}
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ entry.get_action_display }}</p>
+                    {% if entry.note %}
+                    <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ entry.note }}</p>
+                    {% endif %}
+                  </div>
+                  <p class="shrink-0 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {{ entry.created|date:"j. n. Y H:i" }}
+                  </p>
+                </div>
+                {% if entry.actor %}
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  {% trans "Provedl" %}: {{ entry.actor.get_full_name|default:entry.actor.email|default:entry.actor.username }}
+                </p>
+                {% endif %}
+              </div>
+              {% empty %}
+              <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Historie objednávky zatím neobsahuje žádné záznamy." %}</p>
+              {% endfor %}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

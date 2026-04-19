@@ -2,114 +2,501 @@
 {% load i18n %}
 
 {% block title %}{% trans "Provozní dashboard" %}{% endblock title %}
+{% block extra_head %}
+<style>
+  .ops-dashboard-page {
+    min-height: calc(100vh - 4rem);
+    background:
+      radial-gradient(ellipse at top left, rgba(79, 70, 229, 0.08) 0%, transparent 40%),
+      radial-gradient(ellipse at bottom right, rgba(14, 165, 233, 0.06) 0%, transparent 40%),
+      #f8fafc;
+  }
+
+  /* ── Hero ──────────────────────────────────────────── */
+  .ops-hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    border-radius: 2rem;
+    background: linear-gradient(150deg, #ffffff 0%, #eef2ff 100%);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  .ops-hero::after {
+    content: "";
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .ops-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 9999px;
+    padding: 0.3rem 0.8rem;
+    background: rgba(79, 70, 229, 0.09);
+    color: #4338ca;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* ── Stat cards ─────────────────────────────────────── */
+  .ops-stat-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(226, 232, 240, 0.75);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .ops-stat-card:hover {
+    box-shadow: 0 10px 36px rgba(15, 23, 42, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .ops-accent-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    border-radius: 9999px 0 0 9999px;
+  }
+
+  .ops-stat-card.is-default .ops-accent-bar { background: linear-gradient(180deg, #4f46e5, #818cf8); }
+  .ops-stat-card.is-danger  .ops-accent-bar { background: linear-gradient(180deg, #dc2626, #f87171); }
+  .ops-stat-card.is-warning .ops-accent-bar { background: linear-gradient(180deg, #d97706, #fbbf24); }
+  .ops-stat-card.is-info    .ops-accent-bar { background: linear-gradient(180deg, #0ea5e9, #38bdf8); }
+
+  .ops-stat-icon {
+    width: 2.4rem; height: 2.4rem;
+    border-radius: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ops-stat-card.is-default .ops-stat-icon { background: rgba(99, 102, 241, 0.1);  color: #4f46e5; }
+  .ops-stat-card.is-danger  .ops-stat-icon { background: rgba(220, 38, 38, 0.1);   color: #dc2626; }
+  .ops-stat-card.is-warning .ops-stat-icon { background: rgba(217, 119, 6, 0.1);   color: #d97706; }
+  .ops-stat-card.is-info    .ops-stat-icon { background: rgba(14, 165, 233, 0.1);  color: #0ea5e9; }
+
+  .ops-stat-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #64748b;
+  }
+
+  .ops-stat-number {
+    font-size: 2.6rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+  }
+
+  /* ── Sections ───────────────────────────────────────── */
+  .ops-section {
+    border: 1px solid rgba(226, 232, 240, 0.75);
+    border-radius: 1.75rem;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.05);
+  }
+
+  .ops-section-kicker {
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #6366f1;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ── Item cards ─────────────────────────────────────── */
+  .ops-item-card {
+    border: 1px solid rgba(226, 232, 240, 0.65);
+    border-radius: 1rem;
+    background: rgba(248, 250, 252, 0.7);
+    transition: background 0.15s ease;
+  }
+
+  .ops-item-card:hover {
+    background: rgba(241, 245, 249, 1);
+  }
+
+  /* ── Key-value rows ─────────────────────────────────── */
+  .ops-keyvalue {
+    border: 1px solid rgba(226, 232, 240, 0.65);
+    border-radius: 0.875rem;
+    background: rgba(248, 250, 252, 0.65);
+  }
+
+  /* ── Badges ─────────────────────────────────────────── */
+  .ops-badge {
+    display: inline-flex; align-items: center;
+    border-radius: 9999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .ops-badge.ok   { background: rgba(16, 185, 129, 0.1); color: #059669; }
+  .ops-badge.warn { background: rgba(217, 119, 6, 0.1);  color: #b45309; }
+  .ops-badge.err  { background: rgba(220, 38, 38, 0.1);  color: #b91c1c; }
+
+  /* ── Dark mode ──────────────────────────────────────── */
+  html.dark .ops-dashboard-page {
+    background:
+      radial-gradient(ellipse at top left, rgba(79, 70, 229, 0.13) 0%, transparent 40%),
+      radial-gradient(ellipse at bottom right, rgba(14, 165, 233, 0.09) 0%, transparent 40%),
+      #0f172a;
+  }
+
+  html.dark .ops-hero {
+    background: linear-gradient(150deg, #1e293b 0%, #1a1f38 100%);
+    border-color: rgba(51, 65, 85, 0.75);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  html.dark .ops-eyebrow { background: rgba(99, 102, 241, 0.2); color: #c7d2fe; }
+
+  html.dark .ops-stat-card {
+    background: rgba(15, 23, 42, 0.92);
+    border-color: rgba(51, 65, 85, 0.65);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+
+  html.dark .ops-stat-card:hover { box-shadow: 0 10px 36px rgba(0, 0, 0, 0.42); }
+  html.dark .ops-stat-number { color: #f1f5f9; }
+  html.dark .ops-stat-label  { color: #94a3b8; }
+
+  html.dark .ops-stat-card.is-default .ops-stat-icon { background: rgba(99, 102, 241, 0.18); }
+  html.dark .ops-stat-card.is-danger  .ops-stat-icon { background: rgba(220, 38, 38, 0.18);  }
+  html.dark .ops-stat-card.is-warning .ops-stat-icon { background: rgba(217, 119, 6, 0.18);  }
+  html.dark .ops-stat-card.is-info    .ops-stat-icon { background: rgba(14, 165, 233, 0.18); }
+
+  html.dark .ops-section {
+    background: rgba(15, 23, 42, 0.92);
+    border-color: rgba(51, 65, 85, 0.65);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.28);
+  }
+
+  html.dark .ops-section-kicker { color: #a5b4fc; }
+
+  html.dark .ops-item-card {
+    background: rgba(30, 41, 59, 0.65);
+    border-color: rgba(51, 65, 85, 0.55);
+  }
+
+  html.dark .ops-item-card:hover { background: rgba(30, 41, 59, 1); }
+
+  html.dark .ops-keyvalue {
+    background: rgba(30, 41, 59, 0.55);
+    border-color: rgba(51, 65, 85, 0.55);
+  }
+
+  html.dark .ops-badge.ok   { background: rgba(16, 185, 129, 0.16); }
+  html.dark .ops-badge.warn { background: rgba(217, 119, 6, 0.16);  }
+  html.dark .ops-badge.err  { background: rgba(220, 38, 38, 0.16);  }
+</style>
+{% endblock %}
 
 {% block content %}
-<section class="page-surface">
+<section class="ops-dashboard-page page-surface pb-16 pt-8">
   <div class="page-shell space-y-8">
-    <div class="page-content-card">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Ops" %}</p>
-      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Provozní dashboard" %}</h1>
-      <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-        {% trans "Rychlý přehled čekajících aktivací, duplicitních e-mailů, refund konzistence a posledních administrativních zásahů." %}
+
+    {# ── Hero ────────────────────────────────────────────────────────── #}
+    <div class="ops-hero relative z-0 px-6 py-8 sm:px-8 lg:px-10">
+      <span class="ops-eyebrow">
+        <svg class="h-2.5 w-2.5 opacity-60" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="3"/></svg>
+        {% trans "Ops" %}
+      </span>
+      <h1 class="mt-4 text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">{% trans "Provozní dashboard" %}</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        {% trans "Přehled avatarů, importů, stavu rankingu a datových chyb." %}
       </p>
 
-      <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Čekající aktivace" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ pending_accounts_count }}</p>
+      <div class="mt-8 grid gap-4 sm:grid-cols-3">
+
+        <div class="ops-stat-card is-default px-5 py-5">
+          <div class="ops-accent-bar"></div>
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="ops-stat-label">{% trans "Čekající avatary" %}</p>
+              <p class="ops-stat-number mt-2">{{ pending_avatar_requests_count }}</p>
+            </div>
+            <div class="ops-stat-icon">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Staré pending účty" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ stale_pending_accounts_count }}</p>
+
+        <div class="ops-stat-card is-danger px-5 py-5">
+          <div class="ops-accent-bar"></div>
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="ops-stat-label">{% trans "Datové chyby" %}</p>
+              <p class="ops-stat-number mt-2">{{ rider_data_issues.missing_club_count|add:rider_data_issues.missing_transponder_count|add:rider_data_issues.ranking_mismatch_count|add:result_data_issues.missing_rider_count|add:result_data_issues.missing_category_count|add:result_data_issues.missing_event_type_count|add:result_data_issues.marked_zero_points_count }}</p>
+            </div>
+            <div class="ops-stat-icon">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Duplicitní e-mailové skupiny" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ duplicate_email_group_count }}</p>
+
+        <div class="ops-stat-card is-warning px-5 py-5">
+          <div class="ops-accent-bar"></div>
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="ops-stat-label">{% trans "Závody bez výsledků" %}</p>
+              <p class="ops-stat-number mt-2">{{ past_events_without_results_count }}</p>
+            </div>
+            <div class="ops-stat-icon">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Refund nekonzistence" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ checkout_entries_missing_refund_count|add:orphan_refunds_count|add:refunds_for_non_checkout_entries_count }}</p>
-        </div>
+
       </div>
     </div>
 
+    {# ── Co řešit hned + Importy ─────────────────────────────────────── #}
     <div class="grid gap-8 xl:grid-cols-2">
-      <section class="page-content-card">
-        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Refund konzistence" %}</h2>
-        <div class="mt-6 space-y-4 text-sm">
-          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
-            <span>{% trans "Checkout registrace bez refundu" %}</span>
-            <strong>{{ checkout_entries_missing_refund_count }}</strong>
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Pozornost teď" %}</p>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Co řešit hned" %}</h2>
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+
+          <div class="ops-item-card px-4 py-4">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Avatar requesty" %}</p>
+              {% if pending_avatar_requests_count > 0 %}
+              <span class="ops-badge err">{{ pending_avatar_requests_count }}</span>
+              {% else %}
+              <span class="ops-badge ok">✓</span>
+              {% endif %}
+            </div>
+            <div class="mt-4 space-y-2">
+              {% for req in pending_avatar_requests|slice:":3" %}
+              <p class="text-sm text-slate-700 dark:text-slate-200">
+                {{ req.target_label }} · <span class="text-slate-400 dark:text-slate-500">{{ req.created|date:"d.m. H:i" }}</span>
+              </p>
+              {% empty %}
+              <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Bez čekajících žádostí." %}</p>
+              {% endfor %}
+            </div>
           </div>
-          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
-            <span>{% trans "Refundy bez zdrojové registrace" %}</span>
-            <strong>{{ orphan_refunds_count }}</strong>
+
+          <div class="ops-item-card px-4 py-4">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Refund kontroly dnes" %}</p>
+              {% with total=checkout_entries_missing_refund_count|add:orphan_refunds_count|add:refunds_for_non_checkout_entries_count %}
+              {% if total > 0 %}
+              <span class="ops-badge err">{{ total }}</span>
+              {% else %}
+              <span class="ops-badge ok">✓</span>
+              {% endif %}
+              {% endwith %}
+            </div>
+            <div class="mt-4 space-y-2">
+              {% for entry in checkout_entries_missing_refund_preview %}
+              <p class="text-sm text-slate-700 dark:text-slate-200">
+                {{ entry.rider|default:"Bez jezdce" }} · <span class="text-slate-400 dark:text-slate-500">{{ entry.event.name|default:"—" }}</span>
+              </p>
+              {% empty %}
+              <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Žádné refund problémy dnes." %}</p>
+              {% endfor %}
+            </div>
           </div>
-          <div class="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
-            <span>{% trans "Refundy navázané na ne-checkout registraci" %}</span>
-            <strong>{{ refunds_for_non_checkout_entries_count }}</strong>
+
+        </div>
+      </section>
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Importy a ranking" %}</p>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední systémové změny" %}</h2>
+        <div class="mt-6 space-y-3 text-sm">
+          <div class="ops-keyvalue flex items-center justify-between gap-4 px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Přepočet rankingu" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ ranking_recount_status.last_message|default:"Bez záznamu" }}</strong>
+          </div>
+          {% if ranking_recount_status.last_finished_at %}
+          <div class="ops-keyvalue flex items-center justify-between gap-4 px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Naposledy dokončeno" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ ranking_recount_status.last_finished_at|date:"d.m.Y H:i:s" }}</strong>
+          </div>
+          {% endif %}
+          <div class="mt-1 space-y-2">
+            {% for item in recent_imports|slice:":4" %}
+            <div class="ops-item-card px-4 py-3">
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.label }} · {{ item.event.name }}</p>
+              <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ item.timestamp|date:"d.m.Y H:i" }}</p>
+            </div>
+            {% empty %}
+            <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Zatím nejsou evidované žádné importy." %}</p>
+            {% endfor %}
           </div>
         </div>
       </section>
 
-      <section class="page-content-card">
+    </div>
+
+    {# ── Datová kvalita + Kalendář ────────────────────────────────────── #}
+    <div class="grid gap-8 xl:grid-cols-2">
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Datová kvalita" %}</p>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Souhrn chyb" %}</h2>
+        <div class="mt-6 space-y-2 text-sm">
+          <div class="ops-keyvalue flex items-center justify-between px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Jezdci bez klubu / transpondéru" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ rider_data_issues.missing_club_count|add:rider_data_issues.missing_transponder_count }}</strong>
+          </div>
+          <div class="ops-keyvalue flex items-center justify-between px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Ranking mismatch" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ rider_data_issues.ranking_mismatch_count }}</strong>
+          </div>
+          <div class="ops-keyvalue flex items-center justify-between px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Výsledky bez ridera / kategorie / typu" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ result_data_issues.missing_rider_count|add:result_data_issues.missing_category_count|add:result_data_issues.missing_event_type_count }}</strong>
+          </div>
+          <div class="ops-keyvalue flex items-center justify-between px-4 py-3">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Označené výsledky s 0 body" %}</span>
+            <strong class="text-slate-900 dark:text-white">{{ result_data_issues.marked_zero_points_count }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Kalendář" %}</p>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Závody" %}</h2>
+
+        <div class="mt-5">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Bez výsledků (letošní rok)" %}</p>
+            {% if past_events_without_results_count > 0 %}
+            <span class="ops-badge err">{{ past_events_without_results_count }}</span>
+            {% else %}
+            <span class="ops-badge ok">✓</span>
+            {% endif %}
+          </div>
+          {% if past_events_without_results %}
+          <div class="space-y-2">
+            {% for event in past_events_without_results %}
+            <div class="ops-item-card px-4 py-3">
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ event.name }}</p>
+              <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ event.date|date:"d.m.Y" }} · {{ event.organizer|default:"Bez pořadatele" }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Všechny letošní závody mají výsledky." %}</p>
+          {% endif %}
+        </div>
+
+        <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Výsledky neodeslané na ČSC" %}</p>
+            {% if past_events_results_not_sent_ccf_count > 0 %}
+            <span class="ops-badge warn">{{ past_events_results_not_sent_ccf_count }}</span>
+            {% else %}
+            <span class="ops-badge ok">✓</span>
+            {% endif %}
+          </div>
+          {% if past_events_results_not_sent_ccf %}
+          <div class="space-y-2">
+            {% for event in past_events_results_not_sent_ccf %}
+            <div class="ops-item-card px-4 py-3">
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ event.name }}</p>
+              <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ event.date|date:"d.m.Y" }} · {{ event.organizer|default:"Bez pořadatele" }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-slate-500 dark:text-slate-400">{% trans "Všechny výsledky jsou odeslány na ČSC." %}</p>
+          {% endif %}
+        </div>
+
+      </section>
+
+    </div>
+
+    {# ── Sekundární kontroly + Duplicity ─────────────────────────────── #}
+    <div class="grid gap-8 xl:grid-cols-[1.4fr_0.9fr]">
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Sekundární kontroly" %}</p>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Rychlý souhrn" %}</h2>
+        <div class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4 text-sm">
+
+          <div class="ops-keyvalue px-4 py-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Aktivace účtů" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ recent_activation_logs|length }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "posledních" %}</p>
+          </div>
+
+          <div class="ops-keyvalue px-4 py-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Finanční audit" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ recent_finance_logs|length }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "posledních zásahů" %}</p>
+          </div>
+
+          <div class="ops-keyvalue px-4 py-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Refund dnes" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ checkout_entries_missing_refund_count|add:orphan_refunds_count|add:refunds_for_non_checkout_entries_count }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "otevřených" %}</p>
+          </div>
+
+          <div class="ops-keyvalue px-4 py-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Duplicitní e-maily" %}</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ duplicate_email_groups|length }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "skupin" %}</p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="ops-section p-6 sm:p-8">
+        <p class="ops-section-kicker">{% trans "Účty" %}</p>
         <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Duplicitní e-maily" %}</h2>
         {% if duplicate_email_groups %}
-        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-            <thead class="bg-slate-50 dark:bg-slate-900">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "E-mail" %}</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{% trans "Počet účtů" %}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
-              {% for group in duplicate_email_groups %}
-              <tr>
-                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{{ group.email_lower }}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white">{{ group.total }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="mt-4 space-y-2">
+          {% for group in duplicate_email_groups %}
+          <div class="ops-item-card px-4 py-3">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ group.email_lower }}</p>
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ group.total }}× {% trans "účet" %}</p>
+          </div>
+          {% endfor %}
         </div>
         {% else %}
-        <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">{% trans "Aktuálně nebyly nalezeny žádné duplicitní e-mailové skupiny." %}</p>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">{% trans "Žádné duplicitní e-mailové skupiny." %}</p>
         {% endif %}
       </section>
+
     </div>
 
-    <div class="grid gap-8 xl:grid-cols-2">
-      <section class="page-content-card">
-        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední aktivace" %}</h2>
-        <div class="mt-6 space-y-3">
-          {% for log in recent_activation_logs %}
-          <div class="rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
-            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ log.email_snapshot }}</p>
-            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ log.get_action_display }} · {{ log.created_at|date:"d.m.Y H:i" }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ log.source }}</p>
-          </div>
-          {% empty %}
-          <p class="text-sm text-slate-600 dark:text-slate-300">{% trans "Zatím tu nejsou žádné aktivační záznamy." %}</p>
-          {% endfor %}
-        </div>
-      </section>
-
-      <section class="page-content-card">
-        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední finanční zásahy" %}</h2>
-        <div class="mt-6 space-y-3">
-          {% for log in recent_finance_logs %}
-          <div class="rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
-            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ log.target_model }} #{{ log.target_object_id|default:"-" }}</p>
-            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ log.get_action_display }} · {{ log.created_at|date:"d.m.Y H:i" }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ log.note|default:log.source }}</p>
-          </div>
-          {% empty %}
-          <p class="text-sm text-slate-600 dark:text-slate-300">{% trans "Zatím tu nejsou žádné finanční auditní záznamy." %}</p>
-          {% endfor %}
-        </div>
-      </section>
-    </div>
   </div>
 </section>
 {% endblock content %}
