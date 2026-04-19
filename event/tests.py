@@ -31,6 +31,7 @@ from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryFore
 from event.credit import recalculate_all_balances
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
+from event.entry import REMRiders
 from event.services.race_run_import import RaceRunImportService
 from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
@@ -1574,6 +1575,65 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["asociation_fee"], 0)
         self.assertContains(response, "Volný závod")
+
+    def test_rem_exports_create_missing_media_directories(self):
+        Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                rem_riders = REMRiders()
+                rem_riders.event = self.event
+                rem_riders.create_all_riders_list()
+
+                all_riders_path = Path(media_root) / "rem_riders" / f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx"
+                self.assertTrue(all_riders_path.exists())
+
+                rem_entries = REMRiders()
+                rem_entries.event = self.event
+                rem_entries.create_entries_list()
+
+                entries_path = Path(media_root) / "rem_entries" / f"REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx"
+                self.assertTrue(entries_path.exists())
+
+    def test_bem_exports_create_missing_media_directories(self):
+        from event.views.views_admin import _handle_bem_entries, _handle_bem_riders
+
+        self.rider.is_20 = True
+        self.rider.save(update_fields=["is_20"])
+        Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+        )
+
+        with tempfile.TemporaryDirectory() as base_dir:
+            with override_settings(BASE_DIR=base_dir), patch(
+                "event.views.views_admin.resolve_event_classes",
+                return_value="Boys 15",
+            ):
+                bem_entries_path = Path(_handle_bem_entries(None, self.event))
+                self.assertEqual(
+                    bem_entries_path,
+                    Path(base_dir) / "media" / "bem-files" / f"BEM_FOR_RACE_ID-{self.event.id}-{self.event.name}.xlsx",
+                )
+                self.assertTrue(bem_entries_path.exists())
+
+                bem_riders_path = Path(_handle_bem_riders(None, self.event))
+                self.assertEqual(
+                    bem_riders_path,
+                    Path(base_dir) / "media" / "riders-list" / f"RIDERS_LIST_FOR_RACE_ID-{self.event.id}.xlsx",
+                )
+                self.assertTrue(bem_riders_path.exists())
 
 
 class EntryForeignAdminTests(TestCase):

@@ -332,6 +332,13 @@ def _download_generated_file(file_path):
     return FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
 
 
+def _save_workbook_to_project_path(workbook, relative_file_name):
+    file_path = os.path.join(settings.BASE_DIR, relative_file_name)
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    workbook.save(file_path)
+    return file_path
+
+
 def _resolve_association_fee(sum_of_fees, commission_fee):
     try:
         normalized_fee = int(commission_fee or 0)
@@ -564,12 +571,12 @@ def _handle_bem_entries(request, event):
             logger.error(f"Chyba BEM startovka cizinec řádek {x}: {e}")
         x += 1
 
-    wb.save(file_name)
+    file_path = _save_workbook_to_project_path(wb, file_name)
     event.bem_entries = file_name
     event.bem_entries_created = timezone.now()
     event.save()
     logger.info(f"BEM startovka vygenerována: {file_name}")
-    return os.path.join(settings.BASE_DIR, file_name)
+    return file_path
 
 
 def _handle_bem_riders(request, event):
@@ -593,12 +600,12 @@ def _handle_bem_riders(request, event):
             ws.cell(x, 25, rider.plate_champ_24 or rider.plate_display)
         x += 1
 
-    wb.save(file_name)
+    file_path = _save_workbook_to_project_path(wb, file_name)
     event.bem_riders_list = file_name
     event.bem_riders_created = timezone.now()
     event.save()
     logger.info(f"BEM seznam jezdců vygenerován: {file_name}")
-    return os.path.join(settings.BASE_DIR, file_name)
+    return file_path
 
 
 def _handle_rem_entries(request, event):
