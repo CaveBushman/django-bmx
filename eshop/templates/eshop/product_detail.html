@@ -47,17 +47,75 @@
     border-color: #4f46e5;
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
   }
+  .product-media-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.1), transparent 26%),
+      #f8fafc;
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.1);
+  }
+  .product-media-frame::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.25rem 1.25rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.45), transparent);
+  }
+  .product-purchase-panel {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 1.85rem;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent 32%),
+      rgba(255, 255, 255, 0.96);
+    box-shadow: 0 22px 64px rgba(15, 23, 42, 0.08);
+  }
+  .product-availability-card {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    border-radius: 1.35rem;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.84));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  .product-gallery-thumb {
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88));
+  }
   html.dark .product-gallery-thumb {
-    background-color: #0f172a;
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.82));
     border-color: #334155;
   }
   html.dark .product-gallery-thumb:hover {
     border-color: #6366f1;
   }
   html.dark .product-gallery-thumb[aria-pressed="true"] {
-    background-color: #111827;
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.22), transparent 44%),
+      rgba(15, 23, 42, 0.96);
     border-color: #6366f1;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.28);
+  }
+  html.dark .product-media-frame {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 28%),
+      #0f172a;
+    box-shadow: 0 26px 70px rgba(2, 6, 23, 0.42);
+  }
+  html.dark .product-purchase-panel {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 32%),
+      rgba(15, 23, 42, 0.96);
+    box-shadow: 0 24px 68px rgba(2, 6, 23, 0.36);
+  }
+  html.dark .product-availability-card {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.78));
   }
 
   html.dark .stock-alert-modal-card,
@@ -182,7 +240,7 @@
 
         {# ── Foto ── #}
         <div>
-          <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-50 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/60">
+          <div class="product-media-frame">
             {% if product.image %}
             <img id="product-main-image" src="{{ product.image.url }}" alt="{{ product.name }}"
                  class="w-full bg-slate-100 object-cover dark:bg-slate-800 lg:h-[540px]" />
@@ -201,7 +259,7 @@
             {% if product.image %}
             <button
               type="button"
-              class="product-gallery-thumb flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-900"
+              class="product-gallery-thumb flex items-center gap-3 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-indigo-400 dark:border-slate-700"
               data-gallery-src="{{ product.image.url }}"
               data-gallery-alt="{{ product.name }}"
               aria-pressed="true">
@@ -215,7 +273,7 @@
             {% if product.secondary_image %}
             <button
               type="button"
-              class="product-gallery-thumb flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-900"
+              class="product-gallery-thumb flex items-center gap-3 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-indigo-400 dark:border-slate-700"
               data-gallery-src="{{ product.secondary_image.url }}"
               data-gallery-alt="{{ product.name }} detail"
               aria-pressed="false">
@@ -253,11 +311,11 @@
           {# ── Varianty + košík ── #}
           {% with variants=product.variants.all %}
           {% if variants %}
-          <form method="post" action="{% url 'eshop:add-to-cart' %}">
+          <form method="post" action="{% url 'eshop:add-to-cart' %}" class="product-purchase-panel p-5 sm:p-6">
             {% csrf_token %}
             <input type="hidden" name="variant_id" id="variant-id" value="" />
 
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+            <div class="product-availability-card p-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">{% trans "Dostupnost" %}</p>
