@@ -72,99 +72,38 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
-<style>
-  .events-hero-clubs {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .events-hero-clubs::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
-  }
-
-  .events-hero-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .events-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .events-hero-stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 960px) {
-    .events-hero-stats {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  html.dark .events-hero-clubs {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
-  html.dark .events-hero-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<header class="events-hero-clubs">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-      <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            {% trans "Termíny a pořadatelé" %}
-          </p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            {% trans "ČESKÝ KALENDÁŘ BMX RACING" %}
-          </h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {{ hero_description }}
-          </p>
-      </div>
-
-      <div class="events-hero-stats">
-          <div class="events-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{{ upcoming_label }}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ events|length }}</p>
-          </div>
-          <div class="events-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{{ archive_label }}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ past_events|length }}</p>
-          </div>
-          <a href="{% url 'event:feed' %}" class="events-hero-stat group flex flex-col justify-center rounded-2xl px-5 py-4 transition hover:bg-white/90 dark:hover:bg-slate-900/80">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Odběr kalendáře" %}</p>
-            <div class="mt-2 flex items-center gap-3">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:group-hover:bg-indigo-500/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-                    <path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5Z" />
-                    <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-            </div>
-          </a>
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+      {% trans "Termíny a pořadatelé" %}
+    </p>
+    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+      {% trans "Český kalendář BMX Racing" %}
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+      {{ hero_description }}
+    </p>
+    <div class="mt-6 flex flex-wrap items-center gap-4">
+      <a href="{% url 'event:feed' %}"
+         class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 shrink-0 text-indigo-500">
+          <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
+        </svg>
+        {% trans "Přidat do kalendáře" %}
+      </a>
+      <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+        <span>
+          <strong class="font-black text-slate-900 dark:text-white">{{ events|length }}</strong>
+          <span class="ml-1">{% trans "nadcházejících závodů" %}</span>
+        </span>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <span>
+          <strong class="font-black text-slate-900 dark:text-white">{{ past_events|length }}</strong>
+          <span class="ml-1">{% trans "ukončených závodů" %}</span>
+        </span>
       </div>
     </div>
   </div>

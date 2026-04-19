@@ -6,127 +6,6 @@
 {% block extra_head %}
 {{ block.super }}
 <style>
-  .eshop-shop-page {
-    min-height: calc(100vh - 4rem);
-    background:
-      linear-gradient(180deg, #f8fafc 0%, #eef2f7 28rem, #ffffff 100%);
-    color: #0f172a;
-  }
-
-  .eshop-shop-shell {
-    width: min(100% - 2rem, 88rem);
-    margin: 0 auto;
-  }
-
-  .eshop-shop-hero {
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
-    background:
-      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.11), transparent 18rem),
-      linear-gradient(135deg, #ffffff 0%, #f8fafc 62%, #eef2ff 100%);
-  }
-
-  .eshop-shop-hero-grid {
-    display: grid;
-    gap: 1.5rem;
-    align-items: end;
-    padding: 2.25rem 0 2rem;
-  }
-
-  .eshop-shop-kicker {
-    color: #4f46e5;
-    font-size: 0.72rem;
-    font-weight: 900;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-  }
-
-  .eshop-shop-title {
-    max-width: 44rem;
-    color: #0f172a;
-    font-size: clamp(2rem, 4.2vw, 3.7rem);
-    font-weight: 950;
-    line-height: 1;
-  }
-
-  .eshop-shop-lead {
-    max-width: 40rem;
-    color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.65;
-  }
-
-  .eshop-shop-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-top: 1.15rem;
-  }
-
-  .eshop-shop-primary-cta,
-  .eshop-shop-secondary-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    border-radius: 0.8rem;
-    padding: 0.75rem 1rem;
-    font-size: 0.86rem;
-    font-weight: 850;
-    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
-  }
-
-  .eshop-shop-primary-cta {
-    background: #111827;
-    color: #fff;
-    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18);
-  }
-
-  .eshop-shop-primary-cta:hover,
-  .eshop-shop-secondary-cta:hover {
-    transform: translateY(-1px);
-  }
-
-  .eshop-shop-secondary-cta {
-    border: 1px solid rgba(148, 163, 184, 0.45);
-    background: rgba(255, 255, 255, 0.72);
-    color: #0f172a;
-  }
-
-  .eshop-shop-hero-metrics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1rem;
-  }
-
-  .eshop-shop-hero-metric {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.45rem;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.76);
-    padding: 0.45rem 0.75rem;
-    color: #475569;
-    font-size: 0.78rem;
-    font-weight: 750;
-  }
-
-  .eshop-shop-hero-metric strong {
-    color: #0f172a;
-    font-size: 1rem;
-    font-weight: 950;
-  }
-
-  .eshop-shop-feature {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 0.55rem;
-  }
-
   .eshop-shop-toolbar {
     border: 1px solid rgba(226, 232, 240, 0.95);
     border-radius: 1.25rem;
@@ -167,13 +46,16 @@
   }
 
   .eshop-shop-search {
-    display: grid;
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
     padding: 0.8rem;
   }
 
   .eshop-shop-search-field {
     position: relative;
+    flex: 1;
+    min-width: 0;
   }
 
   .eshop-shop-search-field i {
@@ -184,43 +66,9 @@
     transform: translateY(-50%);
   }
 
-  .dark .eshop-shop-page {
-    background:
-      radial-gradient(circle at 86% 8%, rgba(14, 165, 233, 0.1), transparent 22rem),
-      linear-gradient(180deg, #0f172a 0%, #111827 42%, #0b1120 100%) !important;
-    color: #e5e7eb !important;
-  }
-
-  .dark .eshop-shop-hero {
-    border-color: rgba(51, 65, 85, 0.9);
-    background:
-      radial-gradient(circle at 86% 10%, rgba(14, 165, 233, 0.1), transparent 22rem),
-      linear-gradient(135deg, #111827 0%, #0f172a 58%, #082f49 100%);
-  }
-
-  .dark .eshop-shop-kicker {
-    color: #a5b4fc;
-  }
-
-  .dark .eshop-shop-title,
-  .dark .eshop-shop-hero-metric strong {
-    color: #f8fafc;
-  }
-
-  .dark .eshop-shop-lead,
-  .dark .eshop-shop-hero-metric {
-    color: #cbd5e1;
-  }
-
-  .dark .eshop-shop-secondary-cta,
-  .dark .eshop-shop-hero-metric,
   .dark .eshop-shop-toolbar {
     border-color: rgba(51, 65, 85, 0.9);
     background: rgba(15, 23, 42, 0.82);
-  }
-
-  .dark .eshop-shop-secondary-cta {
-    color: #f8fafc;
   }
 
   .dark .eshop-shop-admin-bar {
@@ -323,12 +171,9 @@
 
   .eshop-shop-product-media {
     position: relative !important;
-    display: flex !important;
-    aspect-ratio: 16 / 9 !important;
-    min-height: 11.5rem !important;
+    display: block !important;
+    aspect-ratio: 1 / 1 !important;
     width: 100% !important;
-    align-items: center !important;
-    justify-content: center !important;
     overflow: hidden !important;
     border: 1px solid rgba(226, 232, 240, 0.88) !important;
     border-radius: 0.9rem !important;
@@ -339,15 +184,42 @@
     display: block !important;
     width: 100% !important;
     height: 100% !important;
-    min-height: 11.5rem !important;
-    object-fit: contain !important;
+    object-fit: cover !important;
     object-position: center !important;
     background: #f8fafc !important;
-    transition: transform 220ms ease, opacity 220ms ease !important;
+    transition: transform 320ms ease, opacity 320ms ease !important;
   }
 
   .eshop-shop-product-card:hover .eshop-shop-product-image {
-    transform: scale(1.025) !important;
+    transform: scale(1.06) !important;
+  }
+
+  .eshop-shop-product-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    padding: 0.85rem !important;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.72) 0%, transparent 55%) !important;
+    opacity: 0 !important;
+    transition: opacity 220ms ease !important;
+  }
+
+  .eshop-shop-product-card:hover .eshop-shop-product-overlay {
+    opacity: 1 !important;
+  }
+
+  .eshop-shop-product-overlay-cta {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    padding: 0.45rem 0.85rem !important;
+    color: #0f172a !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    backdrop-filter: blur(4px) !important;
   }
 
   .eshop-shop-product-placeholder {
@@ -413,26 +285,13 @@
     .eshop-shop-products-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
-
-    .eshop-shop-search {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
   }
 
   @media (min-width: 1024px) {
-    .eshop-shop-hero-grid {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
-
     .eshop-shop-products-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
       column-gap: 1.75rem !important;
       row-gap: 2rem !important;
-    }
-
-    .eshop-shop-product-media,
-    .eshop-shop-product-image {
-      min-height: 13.5rem !important;
     }
   }
 
@@ -445,58 +304,34 @@
 {% endblock extra_head %}
 
 {% block content %}
-<div class="eshop-shop-page">
-  <header class="eshop-shop-hero">
-    <div class="eshop-shop-shell">
-      <div class="eshop-shop-hero-grid">
-        <div>
-          <p class="eshop-shop-kicker">
-            {% trans "E-shop" %}
-          </p>
-          <h1 class="eshop-shop-title mt-3">
-            {% trans "BMX vybavení a doplňky" %}
-          </h1>
-          <p class="eshop-shop-lead mt-5">
-            {% trans "Vyber si z aktuální nabídky BMX doplňků, dresů a náhradních dílů pro vaše závody." %}
-          </p>
-          <div class="eshop-shop-hero-actions">
-            <a href="#produkty" class="eshop-shop-primary-cta">
-              {% trans "Prohlédnout nabídku" %}
-            </a>
-            <a href="{% url 'eshop:size-guide' %}" class="eshop-shop-secondary-cta">
-              {% trans "Tabulka velikostí" %}
-            </a>
-          </div>
-          {% if has_cart_items %}
-          <div class="mt-3">
-            <a href="{% url 'eshop:checkout' %}" class="eshop-shop-secondary-cta">
-              {% trans "Pokračovat k objednávce" %}
-              <span class="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{{ cart_count }}</span>
-            </a>
-          </div>
-          {% endif %}
-          <div class="eshop-shop-hero-metrics">
-            <span class="eshop-shop-hero-metric"><strong>{{ product_count }}</strong> {% trans "produktů" %}</span>
-            <span class="eshop-shop-hero-metric"><strong>{{ category_count }}</strong> {% trans "kategorií" %}</span>
-            <span class="eshop-shop-hero-metric"><strong>{{ variant_count }}</strong> {% trans "variant" %}</span>
-          </div>
-        </div>
-        <div class="eshop-shop-feature">
-          {% if featured_product %}
-          <span class="eshop-shop-hero-metric">
-            {% trans "Nově" %}: <strong>{{ featured_product.price_range }}</strong>
-          </span>
-          <a href="{% url 'eshop:product-detail' featured_product.slug %}" class="eshop-shop-secondary-cta">
-            {{ featured_product.name }}
-          </a>
-          {% endif %}
-        </div>
+<div class="bg-white dark:bg-slate-950">
+  <header class="page-hero">
+    <div class="page-shell">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+        {% trans "E-shop" %}
+      </p>
+      <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+        {% trans "BMX vybavení a doplňky" %}
+      </h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+        {% trans "Dresy, doplňky a náhradní díly pro vaše závody." %}
+      </p>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a href="{% url 'eshop:size-guide' %}" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+          {% trans "Tabulka velikostí" %}
+        </a>
+        {% if has_cart_items %}
+        <a href="{% url 'eshop:checkout' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-700">
+          {% trans "Dokončit objednávku" %}
+          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-black">{{ cart_count }}</span>
+        </a>
+        {% endif %}
       </div>
     </div>
   </header>
 
-  <section id="produkty" class="py-6 sm:py-8">
-    <div class="eshop-shop-shell">
+  <section class="page-surface">
+    <div class="page-shell">
       {% if user.is_admin %}
       <div class="eshop-shop-admin-bar mb-6 flex items-center justify-between rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 dark:border-indigo-700 dark:bg-indigo-950/50">
         <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">{% trans "Zobrazuješ e-shop jako admin." %}</p>
@@ -531,12 +366,12 @@
         </div>
         {% endif %}
 
-        <form method="get" class="eshop-shop-search">
+        <form method="get" class="eshop-shop-search flex items-center gap-3">
           {% if active_category %}
           <input type="hidden" name="kategorie" value="{{ active_category }}">
           {% endif %}
           <label class="sr-only" for="eshop-search">{% trans "Hledat produkt" %}</label>
-          <div class="eshop-shop-search-field">
+          <div class="eshop-shop-search-field relative min-w-0 flex-1">
             <i class="fas fa-search" aria-hidden="true"></i>
             <input
               id="eshop-search"
@@ -547,7 +382,7 @@
               class="w-full rounded-[0.9rem] border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-indigo-500 dark:focus:bg-slate-700 dark:focus:ring-indigo-500/20"
             >
           </div>
-          <button type="submit" class="eshop-shop-search-button inline-flex items-center justify-center rounded-[0.9rem] bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-indigo-500">
+          <button type="submit" class="eshop-shop-search-button shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-[0.9rem] bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400">
             {% trans "Hledat" %}
           </button>
         </form>
@@ -557,12 +392,12 @@
     <div class="eshop-shop-products-grid mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
       {% for product in products %}
       <div class="eshop-shop-product-card group relative flex h-full flex-col">
-        <a href="{% url 'eshop:product-detail' product.slug %}" class="eshop-shop-product-media block">
+        <a href="{% url 'eshop:product-detail' product.slug %}" class="eshop-shop-product-media">
           {% if product.image %}
           <img src="{{ product.image.url }}"
                alt="{{ product.name }}"
                onerror="this.hidden=true; this.nextElementSibling.classList.add('eshop-shop-product-placeholder--visible');"
-               class="eshop-shop-product-image aspect-square w-full rounded-2xl bg-gray-100 object-cover group-hover:opacity-80 transition lg:aspect-auto lg:h-80 dark:bg-slate-800" />
+               class="eshop-shop-product-image" />
           <div class="eshop-shop-product-placeholder">
             <div>
               <svg class="eshop-shop-product-placeholder-icon mx-auto h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -585,6 +420,12 @@
             </div>
           </div>
           {% endif %}
+          <div class="eshop-shop-product-overlay" aria-hidden="true">
+            <span class="eshop-shop-product-overlay-cta">
+              {% trans "Zobrazit detail" %}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </span>
+          </div>
         </a>
 
         <div class="mt-4 flex flex-1 flex-col">
@@ -609,11 +450,11 @@
           <p class="shrink-0 text-sm font-bold text-gray-900 dark:text-white">{{ product.price_range }}</p>
         </div>
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <span class="rounded-full px-3 py-1 text-xs font-bold {% if product.total_stock == 0 %}bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300{% elif product.total_stock <= 5 %}bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300{% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300{% endif %}">
-            {% if product.total_stock == 0 %}
+          <span class="rounded-full px-3 py-1 text-xs font-bold {% if product.available_stock == 0 %}bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300{% elif product.available_stock <= 5 %}bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300{% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300{% endif %}">
+            {% if product.available_stock == 0 %}
               {% trans "Vyprodáno" %}
             {% else %}
-              {% blocktrans with count=product.total_stock %}Skladem {{ count }} ks{% endblocktrans %}
+              {% blocktrans with count=product.available_stock %}Skladem {{ count }} ks{% endblocktrans %}
             {% endif %}
           </span>
           <a href="{% url 'eshop:product-detail' product.slug %}" class="eshop-shop-select-button relative z-10 rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white transition hover:bg-indigo-600">
@@ -621,21 +462,17 @@
           </a>
         </div>
         {# ── Dostupné varianty (velikosti) ── #}
-        {% with active_variants=product.variants.all %}
-        {% if active_variants %}
+        {% if product.active_variants %}
         <div class="mt-2 flex flex-wrap gap-1">
-          {% for v in active_variants %}
-          {% if v.active %}
+          {% for v in product.active_variants %}
           <span class="rounded-md border px-1.5 py-0.5 text-[10px] font-medium
-            {% if v.stock == 0 %}border-slate-200 text-slate-300 line-through dark:border-slate-700 dark:text-slate-600
+            {% if v.available_stock == 0 %}border-slate-200 text-slate-300 line-through dark:border-slate-700 dark:text-slate-600
             {% else %}border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300{% endif %}">
             {{ v.label }}
           </span>
-          {% endif %}
           {% endfor %}
         </div>
         {% endif %}
-        {% endwith %}
         {% if product.material or product.fit_note or product.pickup_note %}
         <div class="mt-3 flex flex-wrap gap-2 text-[10px] font-medium text-slate-500 dark:text-slate-400">
           {% if product.material %}<span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{% trans "Materiál" %}: {{ product.material }}</span>{% endif %}
@@ -651,6 +488,7 @@
       </div>
       {% endfor %}
     </div>
+    </div>{# /page-shell #}
   </section>
 </div>
 {% endblock %}

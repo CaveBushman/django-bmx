@@ -160,32 +160,17 @@
 <div class="eshop-orders-page pb-16">
   <header class="page-hero">
     <div class="page-shell">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            {% trans "E-shop" %}
-          </p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            {% trans "Moje objednávky" %}
-          </h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {% trans "Přehled objednávek, stažení faktury a storno do okamžiku, než je zboží označeno jako předané." %}
-          </p>
-        </div>
-        <div class="page-stats-grid">
-          <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Objednávky" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ order_count }}</p>
-          </div>
-          <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ cancelable_count }}</p>
-          </div>
-          <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Uhrazené" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ paid_count }}</p>
-          </div>
-        </div>
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "E-shop" %}</p>
+      <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Moje objednávky" %}</h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+        {% trans "Přehled objednávek, stažení faktury a storno do okamžiku, než je zboží označeno jako předané." %}
+      </p>
+      <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+        <span><strong class="font-black text-slate-900 dark:text-white">{{ order_count }}</strong> <span>{% trans "objednávek" %}</span></span>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <span><strong class="font-black text-slate-900 dark:text-white">{{ cancelable_count }}</strong> <span>{% trans "aktivních" %}</span></span>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <span><strong class="font-black text-slate-900 dark:text-white">{{ paid_count }}</strong> <span>{% trans "uhrazených" %}</span></span>
       </div>
     </div>
   </header>

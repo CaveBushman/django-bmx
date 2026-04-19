@@ -123,7 +123,7 @@ def index(request):
         "products": products,
         "product_count": products.count(),
         "order_count": orders.count(),
-        "pending_count": orders.filter(status=Order.Status.PENDING).count(),
+        "pending_count": orders.filter(status__in=[Order.Status.PENDING, Order.Status.CONFIRMED, Order.Status.SHIPPED]).count(),
         "recent_orders": orders.order_by("-created")[:10],
         "pickup_orders": pickup_orders[:12],
         "pickup_count": pickup_orders.count(),
@@ -507,10 +507,11 @@ def mark_pickup_order_delivered(request, order_id):
 
 
 def shop(request):
+    StockReservation.cleanup_expired()
     cart_obj = Cart(request)
     category_slug = request.GET.get("kategorie")
     query = (request.GET.get("q") or "").strip()
-    products = (
+    products_qs = (
         Product.objects
         .select_related("category")
         .prefetch_related("variants")
@@ -518,16 +519,27 @@ def shop(request):
         .order_by("category__sort_order", "name")
     )
     if category_slug:
-        products = products.filter(category__slug=category_slug)
+        products_qs = products_qs.filter(category__slug=category_slug)
     if query:
-        products = products.filter(
+        products_qs = products_qs.filter(
             Q(name__icontains=query)
             | Q(subtitle__icontains=query)
             | Q(collection__icontains=query)
             | Q(description__icontains=query)
             | Q(category__name__icontains=query)
         )
-    featured_product = products.first()
+
+    reserved_all = _reserved_quantities_by_variant()
+
+    products = list(products_qs)
+    for p in products:
+        active_variants = [v for v in p.variants.all() if v.active]
+        for v in active_variants:
+            v.available_stock = max(v.stock - reserved_all.get(v.pk, 0), 0)
+        p.active_variants = active_variants
+        p.available_stock = sum(v.available_stock for v in active_variants)
+
+    featured_product = products[0] if products else None
 
     from .models import Category
     categories = Category.objects.filter(products__active=True).distinct().order_by("sort_order", "name")
@@ -551,16 +563,24 @@ def shop(request):
 
 
 def product_detail(request, slug):
+    StockReservation.cleanup_expired()
     product = get_object_or_404(
         Product.objects.select_related("category").prefetch_related("variants"),
         slug=slug,
         active=True,
     )
+    reserved_all = _reserved_quantities_by_variant()
+    variants = list(product.variants.filter(active=True))
+    for v in variants:
+        v.available_stock = max(v.stock - reserved_all.get(v.pk, 0), 0)
+    total_available_stock = sum(v.available_stock for v in variants)
     stock_alert_form = StockAlertRequestForm(product=product, user=request.user)
     context = {
         "product": product,
+        "variants": variants,
+        "total_available_stock": total_available_stock,
         "stock_alert_form": stock_alert_form,
-        "has_sold_out_variants": product.variants.filter(active=True, stock=0).exists(),
+        "has_sold_out_variants": any(v.available_stock == 0 for v in variants),
     }
     return render(request, "eshop/product_detail.html", context)
 
@@ -662,6 +682,7 @@ def add_to_cart(request):
     if addable_quantity < quantity:
         messages.warning(request, "Do košíku jsme přidali jen aktuálně dostupný počet kusů.")
     cart_obj.add(variant.pk, addable_quantity)
+    _sync_stock_reservations(request, cart_obj)
     return redirect(f"{reverse('eshop:product-detail', args=[variant.product.slug])}?added=1")
 
 
@@ -688,6 +709,7 @@ def cart(request):
                     qty = available_stock
                     messages.warning(request, "Počet kusů byl upraven podle aktuální skladové zásoby.")
                 cart_obj.set(vid, qty)
+        _sync_stock_reservations(request, cart_obj)
         return redirect("eshop:cart")
 
     items, total, stock_warnings = _build_cart_items(
@@ -1023,16 +1045,23 @@ def _release_stock_reservations(request, *, variant_ids=None):
 
 def _sync_stock_reservations(request, cart_obj):
     session_key = _ensure_session_key(request)
-    expires_at = timezone.now() + timezone.timedelta(minutes=RESERVATION_MINUTES)
+    new_expires_at = timezone.now() + timezone.timedelta(minutes=RESERVATION_MINUTES)
     variant_ids = cart_obj.variant_ids()
     StockReservation.objects.filter(session_key=session_key).exclude(variant_id__in=variant_ids).delete()
     for variant_id, quantity in cart_obj.raw().items():
         StockReservation.objects.update_or_create(
             session_key=session_key,
             variant_id=int(variant_id),
-            defaults={"quantity": quantity, "expires_at": expires_at},
+            defaults={"quantity": quantity},
+            create_defaults={"expires_at": new_expires_at},
         )
-    return expires_at
+    earliest = (
+        StockReservation.objects.filter(session_key=session_key)
+        .order_by("expires_at")
+        .values_list("expires_at", flat=True)
+        .first()
+    )
+    return earliest or new_expires_at
 
 
 def _build_cart_items(cart_obj, *, normalize=False, session_key=None):
