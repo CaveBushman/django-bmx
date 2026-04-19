@@ -586,11 +586,24 @@
         transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
     }
 
+    .entry-cta--active {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+        color: #ffffff;
+        border-color: #4338ca;
+        box-shadow: 0 16px 34px rgba(79, 70, 229, 0.26);
+    }
+
     .entry-cta:hover {
         background: linear-gradient(135deg, #eef2ff, #c7d2fe);
         color: #312e81;
         box-shadow: 0 14px 28px rgba(79, 70, 229, 0.16);
         transform: translateY(-1px);
+    }
+
+    .entry-cta--active:hover {
+        background: linear-gradient(135deg, #4338ca, #3730a3);
+        color: #ffffff;
+        box-shadow: 0 20px 38px rgba(67, 56, 202, 0.3);
     }
 
     .entry-cta:focus-visible {
@@ -617,6 +630,18 @@
     html.dark .entry-cta:hover {
         background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(129, 140, 248, 0.34));
         color: #eef2ff;
+    }
+
+    html.dark .entry-cta--active {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #ffffff;
+        border-color: #6366f1;
+        box-shadow: 0 16px 34px rgba(79, 70, 229, 0.32);
+    }
+
+    html.dark .entry-cta--active:hover {
+        background: linear-gradient(135deg, #818cf8, #4f46e5);
+        color: #ffffff;
     }
 
     html.dark .entry-cta:disabled {
@@ -830,7 +855,12 @@
 <form method="POST" class="entry-page" id="entry-form"
       data-selected-label="{% trans 'Vybráno' %}"
       data-registrations-label="{% trans 'registrací' %}"
-      data-beginner-label="{% trans 'Příchozí' %}">
+      data-beginner-label="{% trans 'Příchozí' %}"
+      data-rider-singular="{% trans 'jezdec' %}"
+      data-rider-few="{% trans 'jezdci' %}"
+      data-rider-many="{% trans 'jezdců' %}"
+      data-button-idle="{% trans 'Přidat do košíku' %}"
+      data-button-active="{% trans 'Přidat vybrané do košíku' %}">
     {% csrf_token %}
 
     <header class="entry-hero">
@@ -867,12 +897,12 @@
                                 id="entry-submit-btn"
                                 data-entry-submit
                             >
-                                <span>{% trans "Přidat do košíku" %}</span>
+                                <span data-entry-submit-text>{% trans "Přidat do košíku" %}</span>
                                 <span aria-hidden="true" class="text-base leading-none">→</span>
                             </button>
                             <div class="entry-selection-meta">
-                                <span id="entry-selection-label" data-entry-selection-label>{% trans "Vybráno 0 registrací" %}</span>
-                                <span class="entry-selection-count" id="entry-selection-breakdown" data-entry-selection-breakdown>20&quot; 0 | 24&quot; 0</span>
+                                <span id="entry-selection-label" data-entry-selection-label>{% trans "Vybráno 0 jezdců" %}</span>
+                                <span class="entry-selection-count" id="entry-selection-breakdown" data-entry-selection-breakdown>20&quot;: 0 • 24&quot;: 0</span>
                             </div>
                         </div>
                     </div>
@@ -1333,7 +1363,7 @@
             class="entry-cta px-5 py-3"
             data-entry-submit
         >
-            <span>{% trans "Do košíku" %}</span>
+            <span data-entry-submit-text>{% trans "Do košíku" %}</span>
             <span aria-hidden="true" class="text-base leading-none">→</span>
         </button>
     </div>
@@ -1346,11 +1376,27 @@
 </div>
 
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
-<script src="{% static 'js/entry.js' %}?v=5"></script>
+<script src="{% static 'js/entry.js' %}?v=6"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     var form = document.getElementById("entry-form");
     if (!form) return;
+
+    var getRiderCountLabel = function (total) {
+        var singular = form.dataset.riderSingular || "jezdec";
+        var few = form.dataset.riderFew || "jezdci";
+        var many = form.dataset.riderMany || "jezdců";
+
+        if (total === 1) return singular;
+
+        var mod100 = total % 100;
+        if (mod100 >= 11 && mod100 <= 14) return many;
+
+        var mod10 = total % 10;
+        if (mod10 >= 2 && mod10 <= 4) return few;
+
+        return many;
+    };
 
     var refreshEntrySummary = function () {
         if (typeof window.syncEntryChoiceState === "function") {
@@ -1372,6 +1418,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var selectionLabels = document.querySelectorAll("[data-entry-selection-label]");
         var selectionBreakdowns = document.querySelectorAll("[data-entry-selection-breakdown]");
         var submitButtons = document.querySelectorAll("[data-entry-submit]");
+        var submitTexts = document.querySelectorAll("[data-entry-submit-text]");
         if (!selectionLabels.length || !selectionBreakdowns.length || !submitButtons.length) return;
 
         var count20 = form.querySelectorAll('input[name="checkbox_20"]:checked').length;
@@ -1379,19 +1426,27 @@ document.addEventListener("DOMContentLoaded", function () {
         var countBeginner = form.querySelectorAll('input[name="checkbox_beginner"]:checked').length;
         var total = count20 + count24 + countBeginner;
         var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
+        var riderCountLabel = getRiderCountLabel(total);
 
         for (var i = 0; i < selectionLabels.length; i++) {
-            selectionLabels[i].textContent = (form.dataset.selectedLabel || "Vybráno") + " " + total + " " + (form.dataset.registrationsLabel || "registrací");
+            selectionLabels[i].textContent = (form.dataset.selectedLabel || "Vybráno") + " " + total + " " + riderCountLabel;
         }
 
         for (var j = 0; j < selectionBreakdowns.length; j++) {
-            selectionBreakdowns[j].textContent = '20" ' + count20 + ' | 24" ' + count24 + (beginnerInputs ? " | " + (form.dataset.beginnerLabel || "Příchozí") + " " + countBeginner : "");
+            selectionBreakdowns[j].textContent = '20": ' + count20 + ' • 24": ' + count24 + (beginnerInputs ? " • " + (form.dataset.beginnerLabel || "Příchozí") + ": " + countBeginner : "");
         }
 
         for (var k = 0; k < submitButtons.length; k++) {
             submitButtons[k].disabled = total === 0;
             submitButtons[k].classList.toggle("opacity-60", total === 0);
             submitButtons[k].classList.toggle("cursor-not-allowed", total === 0);
+            submitButtons[k].classList.toggle("entry-cta--active", total > 0);
+        }
+
+        for (var l = 0; l < submitTexts.length; l++) {
+            submitTexts[l].textContent = total > 0
+                ? (form.dataset.buttonActive || "Přidat vybrané do košíku")
+                : (form.dataset.buttonIdle || "Přidat do košíku");
         }
     };
 

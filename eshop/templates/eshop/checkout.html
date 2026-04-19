@@ -278,6 +278,7 @@
 
         <form id="checkout-order-form" method="post" novalidate>
           {% csrf_token %}
+          <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
           <article class="eshop-checkout-card p-6 sm:p-7">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Kontakt a předání" %}</p>
@@ -369,8 +370,13 @@
                   <p class="font-semibold text-slate-900 dark:text-white">{% trans "Úhrada kredity" %}</p>
                   <p class="mt-1 text-xs leading-5">{% trans "Objednávka se po potvrzení uhradí z kreditu účtu." %}</p>
                   {% if reservation_expires_at %}
-                  <p class="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  <p
+                    class="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400"
+                    data-reservation-countdown
+                    data-expires-at="{{ reservation_expires_at|date:'c' }}"
+                  >
                     {% blocktrans with expires=reservation_expires_at|date:"H:i" %}Kusy v checkoutu držíme rezervované přibližně do {{ expires }}.{% endblocktrans %}
+                    <span class="mt-1 block font-bold text-amber-600 dark:text-amber-300" data-countdown-output></span>
                   </p>
                   {% endif %}
                 </div>
@@ -512,4 +518,32 @@
     </div>
   </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const countdown = document.querySelector('[data-reservation-countdown]');
+    if (!countdown) return;
+
+    const output = countdown.querySelector('[data-countdown-output]');
+    const expiresAt = new Date(countdown.dataset.expiresAt);
+    if (!output || Number.isNaN(expiresAt.getTime())) return;
+
+    function renderCountdown() {
+      const remainingMs = expiresAt.getTime() - Date.now();
+      if (remainingMs <= 0) {
+        output.textContent = 'Rezervace vypršela. Obnov stránku a zkontroluj dostupnost.';
+        output.classList.remove('text-amber-600', 'dark:text-amber-300');
+        output.classList.add('text-rose-600', 'dark:text-rose-300');
+        return;
+      }
+
+      const totalSeconds = Math.ceil(remainingMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      output.textContent = `Zbývá ${minutes}:${seconds} min.`;
+    }
+
+    renderCountdown();
+    window.setInterval(renderCountdown, 1000);
+  });
+</script>
 {% endblock %}
