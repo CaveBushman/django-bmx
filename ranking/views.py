@@ -8,28 +8,69 @@ import re
 # Create your views here.
 
 def ranking_view(request):
-    global results
-
     categories = Categories.get_categories()
-    category_input = request.POST.get("categoryInput", "").strip()
+    default_category = "Men Under 23"
+    category_input = request.GET.get("category", "").strip()
+    category_value = category_input if category_input in categories else default_category
+    invalid_category = bool(category_input and category_input not in categories)
 
-    if request.POST:
-        if re.search("Cruiser", category_input):
-            results = Rider.objects.filter(class_24=category_input[8:], is_active=1,
-                                           is_approved=1).order_by('-points_24').exclude(points_24=0)
-            cruiser = 1
-        else:
-            results = Rider.objects.filter(class_20=category_input, is_active=1, is_approved=1).order_by(
-                '-points_20').exclude(points_20=0)
-            cruiser = 0
-
-        data = {'categories': categories, 'results': results, 'category': category_input or "MEN UNDER 23",
-                'cruiser': cruiser}
+    if re.search("Cruiser", category_value):
+        results = (
+            Rider.objects.select_related("club")
+            .only(
+                "uci_id",
+                "first_name",
+                "last_name",
+                "club__team_name",
+                "photo",
+                "ranking_24",
+                "points_24",
+                "class_24",
+                "is_active",
+                "is_approved",
+            )
+            .filter(
+                class_24=category_value[8:],
+                is_active=1,
+                is_approved=1,
+            )
+            .order_by("-points_24", "last_name", "first_name")
+            .exclude(points_24=0)
+        )
+        cruiser = 1
     else:
-        results = Rider.objects.filter(class_20="Men Under 23", is_active=1, is_approved=1).order_by(
-            '-points_20').exclude(points_20=0)
+        results = (
+            Rider.objects.select_related("club")
+            .only(
+                "uci_id",
+                "first_name",
+                "last_name",
+                "club__team_name",
+                "photo",
+                "ranking_20",
+                "points_20",
+                "class_20",
+                "is_active",
+                "is_approved",
+            )
+            .filter(
+                class_20=category_value,
+                is_active=1,
+                is_approved=1,
+            )
+            .order_by("-points_20", "last_name", "first_name")
+            .exclude(points_20=0)
+        )
         cruiser = 0
-        data = {'categories': categories, 'results': results, 'category': "MEN UNDER 23", 'cruiser': cruiser}
+
+    data = {
+        "categories": categories,
+        "results": results,
+        "category": category_value.upper(),
+        "selected_category": category_value,
+        "cruiser": cruiser,
+        "invalid_category": invalid_category,
+    }
 
     leaderboard_size = results.count()
     if leaderboard_size:

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "E-shop" %}{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-950">
+  <header class="page-hero">
+    <div class="page-shell">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            {% trans "E-shop" %}
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            {% trans "BMX vybavení a doplňky" %}
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            {% trans "Vyber si z aktuální nabídky BMX doplňků, dresů a náhradních dílů pro vaše závody." %}
+          </p>
+          {% if has_cart_items %}
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a href="{% url 'eshop:checkout' %}" class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+              {% trans "Pokračovat k objednávce" %}
+              <span class="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white">{{ cart_count }}</span>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+        <div class="page-stats-grid">
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Produkty" %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ product_count }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kategorie" %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ category_count }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Varianty" %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ variant_count }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-surface">
+    <div class="page-shell">
+      {% if user.is_admin %}
+      <div class="mb-6 flex items-center justify-between rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 dark:border-indigo-900 dark:bg-indigo-950/50">
+        <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">{% trans "Zobrazuješ e-shop jako admin." %}</p>
+        <div class="flex gap-3">
+          <a href="{% url 'admin:eshop_product_add' %}"
+             class="rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900">
+            + {% trans "Přidat produkt" %}
+          </a>
+          <a href="{% url 'eshop:index' %}"
+             class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
+            {% trans "Admin přehled" %} →
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500">Czech BMX</p>
+          <h2 class="mt-1 text-3xl font-black tracking-tight text-gray-900 dark:text-white">{% trans "E-shop" %}</h2>
+        </div>
+        {# ── Filtrování kategorií ── #}
+        {% if categories %}
+        <div class="flex flex-wrap gap-2">
+        <a href="{% url 'eshop:shop' %}"
+           class="rounded-full px-4 py-1.5 text-xs font-semibold transition
+             {% if not active_category %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}">
+          {% trans "Vše" %}
+        </a>
+        {% for cat in categories %}
+        <a href="?kategorie={{ cat.slug }}"
+           class="rounded-full px-4 py-1.5 text-xs font-semibold transition
+             {% if active_category == cat.slug %}bg-indigo-600 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}">
+          {{ cat.name }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# ── Mřížka produktů ── #}
+    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+      {% for product in products %}
+      <div class="group relative">
+        <a href="{% url 'eshop:product-detail' product.slug %}">
+          {% if product.image %}
+          <img src="{{ product.image.url }}"
+               alt="{{ product.name }}"
+               class="aspect-square w-full rounded-2xl bg-gray-100 object-cover group-hover:opacity-80 transition lg:aspect-auto lg:h-80 dark:bg-slate-800" />
+          {% else %}
+          <div class="aspect-square w-full rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center lg:aspect-auto lg:h-80">
+            <svg class="h-16 w-16 text-slate-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="m21 15-5-5L5 21"/>
+            </svg>
+          </div>
+          {% endif %}
+        </a>
+
+        <div class="mt-4 flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            {% if product.collection %}
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-500">{{ product.collection }}</p>
+            {% endif %}
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+              <a href="{% url 'eshop:product-detail' product.slug %}">
+                <span aria-hidden="true" class="absolute inset-0"></span>
+                {{ product.name }}
+              </a>
+            </h3>
+            {% if product.subtitle %}
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ product.subtitle }}</p>
+            {% endif %}
+            {% if product.category %}
+            <p class="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{{ product.category }}</p>
+            {% endif %}
+          </div>
+          <p class="shrink-0 text-sm font-bold text-gray-900 dark:text-white">{{ product.price_range }}</p>
+        </div>
+        {% if product.subtitle %}
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ product.subtitle }}</p>
+        {% endif %}
+
+        {# ── Dostupné varianty (velikosti) ── #}
+        {% with active_variants=product.variants.all %}
+        {% if active_variants %}
+        <div class="mt-2 flex flex-wrap gap-1">
+          {% for v in active_variants %}
+          {% if v.active %}
+          <span class="rounded-md border px-1.5 py-0.5 text-[10px] font-medium
+            {% if v.stock == 0 %}border-slate-200 text-slate-300 line-through dark:border-slate-700 dark:text-slate-600
+            {% else %}border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300{% endif %}">
+            {{ v.label }}
+          </span>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% if product.material or product.fit_note or product.pickup_note %}
+        <div class="mt-3 flex flex-wrap gap-2 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+          {% if product.material %}<span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{% trans "Materiál" %}: {{ product.material }}</span>{% endif %}
+          {% if product.fit_note %}<span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{% trans "Střih" %}: {{ product.fit_note }}</span>{% endif %}
+          {% if product.pickup_note %}<span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{% trans "Předání" %}: {{ product.pickup_note }}</span>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="col-span-4 py-20 text-center">
+        <p class="text-slate-500 dark:text-slate-400">{% trans "Žádné produkty v této kategorii." %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 import logging
 
+from django.apps import apps
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_save
@@ -115,8 +116,7 @@ def update_user_balance(sender, instance, **kwargs):
         from event.credit import calculate_user_balance
 
         new_balance = calculate_user_balance(instance.user.id)
-        instance.user.credit = new_balance
-        instance.user.save()
+        apps.get_model("accounts", "Account").objects.filter(pk=instance.user_id).update(credit=new_balance)
 
 
 @receiver(post_delete, sender=CreditTransaction)
@@ -125,5 +125,4 @@ def update_user_balance_after_delete(sender, instance, **kwargs):
         from event.credit import calculate_user_balance
 
         new_balance = calculate_user_balance(instance.user.id)
-        instance.user.credit = new_balance
-        instance.user.save()
+        apps.get_model("accounts", "Account").objects.filter(pk=instance.user_id).update(credit=new_balance)

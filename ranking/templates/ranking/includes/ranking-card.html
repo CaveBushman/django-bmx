@@ -1,0 +1,34 @@
+<div class="ranking-card rounded-2xl p-4{% if rank_index == 1 %} is-top-1{% elif rank_index == 2 %} is-top-2{% elif rank_index == 3 %} is-top-3{% endif %}">
+  <div class="flex items-start gap-3">
+    {% if rank_index == 1 %}
+      <span class="ranking-position is-top-1 shrink-0">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
+    {% elif rank_index == 2 %}
+      <span class="ranking-position is-top-2 shrink-0">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
+    {% elif rank_index == 3 %}
+      <span class="ranking-position is-top-3 shrink-0">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
+    {% else %}
+      <span class="ranking-position is-default shrink-0">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
+    {% endif %}
+    {% if result.photo_url %}
+      <img class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" src="{{ result.photo_url }}" alt="{{ result.first_name }} {{ result.last_name }}">
+    {% else %}
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-700 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
+        {{ result.initials|default:"?" }}
+      </div>
+    {% endif %}
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <a href="{% url 'rider:detail' result.uci_id %}" class="font-black tracking-tight text-slate-900 transition hover:text-indigo-600 dark:text-white dark:hover:text-indigo-300">
+          {{ result.last_name|upper }} <span class="font-medium">{{ result.first_name }}</span>
+        </a>
+        <span class="shrink-0 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+          {% if cruiser %}{{ result.points_24 }}{% else %}{{ result.points_20 }}{% endif %} b.
+        </span>
+      </div>
+      <div class="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+        <div>UCI ID: {{ result.uci_id }}</div>
+        <div>{% firstof result.club|upper "BEZ KLUBOVÉ PŘÍSLUŠNOSTI" %}</div>
+      </div>
+    </div>
+  </div>
+</div>

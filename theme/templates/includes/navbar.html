@@ -67,6 +67,16 @@
             <a href="{% url 'news:downloads' %}"
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
             {% endif %}
+
+            {% if request.user.is_authenticated and request.user.is_admin %}
+            {% if 'eshop' in request.path %}
+            <a href="{% url 'eshop:shop' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
+              aria-current="page">{% trans "ESHOP" %}</a>
+            {% else %}
+            <a href="{% url 'eshop:shop' %}"
+              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}</a>
+            {% endif %}
+            {% endif %}
       </div>
       <div class="ml-auto hidden shrink-0 items-center md:flex">
         <div class="flex items-center">
@@ -317,6 +327,10 @@
                   role="menuitem" tabindex="-1" id="user-menu-item-commissars">{% trans "Nasazení rozhodčích" %}</a>
                 <a href="{% url 'admin_stats:visit_stats' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   role="menuitem" tabindex="-1" id="user-menu-item-stats">{% trans "Statistika webu" %}</a>
+                <a href="{% url 'accounts:ops_dashboard' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  role="menuitem" tabindex="-1" id="user-menu-item-ops-dashboard">{% trans "Provozní dashboard" %}</a>
+                <a href="{% url 'eshop:my-orders' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  role="menuitem" tabindex="-1" id="user-menu-item-eshop-orders">{% trans "Moje objednávky e-shopu" %}</a>
 
                 {% endif %}
                 {% if user.is_commission %}
@@ -521,6 +535,14 @@
           {% if user.is_trainer or user.is_admin or user.is_superuser or user.is_staff %}
           <a href="{% url 'rider:trainer-dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-trainer-dashboard-mobile">{% trans "Trenérský dashboard" %}</a>
+          {% endif %}
+          {% if user.is_admin %}
+          <a href="{% url 'accounts:ops_dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-ops-dashboard-mobile">{% trans "Provozní dashboard" %}</a>
+          <a href="{% url 'eshop:my-orders' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-eshop-orders-mobile">{% trans "Moje objednávky e-shopu" %}</a>
+          <a href="{% url 'eshop:shop' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-eshop-mobile">{% trans "E-shop" %}</a>
           {% endif %}
           {% if user.is_admin %}
           <a href="{% url 'admin:index' %}" target="_blank"

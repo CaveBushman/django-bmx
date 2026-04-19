@@ -1860,6 +1860,34 @@ class EventAdminAuditPanelTests(TestCase):
         self.assertIn("Změna checkout", str(timeline))
         self.assertIn("event audit timeline", str(timeline))
 
+    def test_event_admin_results_quality_overview_counts_data_issues(self):
+        Result.objects.create(
+            event=self.event,
+            rider=None,
+            date=self.event.date,
+            event_type="Volný závod",
+            organizer=self.club.team_name,
+            category="",
+            points=0,
+            marked_20=True,
+        )
+        admin_instance = admin.site._registry[Event]
+
+        overview = admin_instance.results_quality_overview(self.event)
+
+        self.assertIn("Bez navázaného jezdce:", str(overview))
+        self.assertIn("Bez kategorie:", str(overview))
+        self.assertIn("Bodovaných závodních řádků s 0 body:", str(overview))
+
+    def test_event_admin_public_links_include_results_and_admin_results(self):
+        admin_instance = admin.site._registry[Event]
+
+        links = admin_instance.public_links(self.event)
+
+        self.assertIn(reverse("event:event-detail", args=[self.event.pk]), str(links))
+        self.assertIn(reverse("event:results", args=[self.event.pk]), str(links))
+        self.assertIn(reverse("admin:event_result_changelist"), str(links))
+
 
 class FinanceAdminAuditTests(TestCase):
     def setUp(self):
@@ -1972,6 +2000,20 @@ class FinanceAdminAuditTests(TestCase):
         admin_instance = CreditTransactionAdmin(CreditTransaction, admin.site)
 
         self.assertFalse(admin_instance.has_delete_permission(request, refund))
+
+    def test_manual_credit_transaction_updates_user_credit_balance(self):
+        self.assertEqual(self.user.credit, 0)
+
+        CreditTransaction.objects.create(
+            user=self.user,
+            amount=500,
+            payment_intent="Manual topup",
+            kind=CreditTransaction.Kind.TOPUP,
+            payment_complete=True,
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.credit, 500)
 
     def test_debet_transaction_admin_delete_writes_persistent_audit_log(self):
         request = RequestFactory().post("/bmx-admin/event/debettransaction/")

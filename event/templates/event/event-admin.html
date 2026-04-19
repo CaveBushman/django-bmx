@@ -14,9 +14,9 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
   }
 
   .event-admin-hero::after {
@@ -31,6 +31,67 @@
     max-width: 88rem;
     margin: 0 auto;
     padding: 0 1.5rem 3rem;
+  }
+
+  .event-admin-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+
+  .event-admin-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
+  .event-admin-hero-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .event-admin-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.55rem 0.9rem;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4338ca;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .event-admin-event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .event-admin-event-meta-item {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.55rem 0.9rem;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    color: #334155;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
 
   .event-admin-stats-grid {
@@ -52,9 +113,20 @@
   }
 
   .event-admin-stat {
+    position: relative;
     border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+  }
+
+  .event-admin-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
   }
 
   .event-admin-section,
@@ -71,9 +143,29 @@
   }
 
   .event-admin-command-card {
+    position: relative;
+    overflow: hidden;
     border: 1px solid rgba(226, 232, 240, 0.92);
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 26%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .event-admin-command-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(79, 70, 229, 0.95), rgba(14, 165, 233, 0.82));
+    opacity: 0.88;
+  }
+
+  .event-admin-command-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(99, 102, 241, 0.24);
+    box-shadow: 0 24px 56px rgba(15, 23, 42, 0.1);
   }
 
   .event-admin-file-status[data-has-file="true"] {
@@ -111,21 +203,60 @@
 
   .event-admin-action-link,
   .event-admin-action-btn {
-    border: 1px solid rgba(99, 102, 241, 0.22);
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.96), rgba(99, 102, 241, 0.88));
+    border: 1px solid rgba(67, 56, 202, 0.16);
+    background: linear-gradient(135deg, #4338ca, #4f46e5 42%, #2563eb);
     color: #fff;
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    box-shadow: 0 18px 34px rgba(79, 70, 229, 0.22);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
   }
 
   .event-admin-action-link:hover,
   .event-admin-action-btn:hover {
     transform: translateY(-2px);
-    border-color: rgba(99, 102, 241, 0.38);
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    filter: saturate(1.05);
+    border-color: rgba(67, 56, 202, 0.28);
+    box-shadow: 0 26px 60px rgba(37, 99, 235, 0.2);
+  }
+
+  .event-admin-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+    text-align: center;
+  }
+
+  .event-admin-section-heading-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(14, 165, 233, 0.12));
+    color: #312e81;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .event-admin-section-title {
+    margin: 0;
+    font-size: clamp(1.65rem, 2vw, 2.4rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+  }
+
+  .event-admin-section-kicker {
+    margin-bottom: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #6366f1;
   }
   html.dark .event-admin-action-link,
   html.dark .event-admin-action-btn {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(79, 70, 229, 0.76)) !important;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.86), rgba(79, 70, 229, 0.82), rgba(15, 23, 42, 0.96)) !important;
     border-color: rgba(99, 102, 241, 0.3) !important;
     color: #fff !important;
   }
@@ -143,14 +274,33 @@
 
   html.dark .event-admin-hero {
     background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+
+  html.dark .event-admin-hero-frame {
+    border-color: rgba(148, 163, 184, 0.14);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  html.dark .event-admin-eyebrow {
+    background: rgba(79, 70, 229, 0.18);
+    color: #c7d2fe;
+  }
+
+  html.dark .event-admin-event-meta-item {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(71, 85, 105, 0.38);
+    color: #cbd5e1;
   }
 
   html.dark .event-admin-stat {
     border-color: rgba(99, 102, 241, 0.24) !important;
-    background: rgba(15, 23, 42, 0.72) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
     box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
   }
 
@@ -162,8 +312,24 @@
 
   html.dark .event-admin-command-card {
     border-color: rgba(71, 85, 105, 0.55);
-    background: rgba(15, 23, 42, 0.9);
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      rgba(15, 23, 42, 0.9);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  html.dark .event-admin-section-heading-badge {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.22), rgba(14, 165, 233, 0.18));
+    color: #c7d2fe;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  html.dark .event-admin-section-title {
+    color: #f8fafc;
+  }
+
+  html.dark .event-admin-section-kicker {
+    color: #a5b4fc;
   }
 </style>
 {% endblock %}
@@ -171,18 +337,18 @@
 
 <header class="event-admin-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          Event Admin
-        </p>
+    <div class="event-admin-hero-frame grid gap-8 px-6 py-7 lg:grid-cols-[minmax(0,1fr)_minmax(34rem,38rem)] lg:items-end lg:px-8 lg:py-8">
+      <div class="event-admin-hero-copy">
+        <span class="event-admin-eyebrow">Event Admin</span>
         <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{{ event.name }}</h1>
         <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
           Operační centrum závodu pro kontrolu registrací, exportů, výsledků a klíčových tiskových výstupů.
         </p>
-        <p class="mt-4 text-sm font-semibold text-slate-500 dark:text-slate-400">
-          {{ event.type_for_ranking }} • {{ event.date }} • {{ event.organizer }}
-        </p>
+        <div class="event-admin-event-meta">
+          <span class="event-admin-event-meta-item">{{ event.type_for_ranking }}</span>
+          <span class="event-admin-event-meta-item">{{ event.date }}</span>
+          <span class="event-admin-event-meta-item">{{ event.organizer }}</span>
+        </div>
       </div>
       <div class="event-admin-stats-grid">
         <div class="event-admin-stat rounded-2xl px-5 py-4">
@@ -210,7 +376,8 @@
 
   <div class="event-admin-command max-w-7xl mx-auto mt-4 rounded-[2rem] p-4 sm:p-8">
     <div class="mb-6 border-b border-slate-200 pb-6 text-center sm:text-left dark:border-white/10">
-      <h2 class="mb-3 text-center text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+      <p class="event-admin-section-kicker text-center">Race Control</p>
+      <h2 class="mb-3 text-center event-admin-section-title">
         Řídicí panel závodu
       </h2>
       <p class="text-center text-sm text-slate-600 dark:text-slate-300">
@@ -451,13 +618,16 @@
 
     <!-- REM SUPPORT -->
     <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-6">
-      <div class="mb-6 flex items-center justify-center gap-3 text-center">
-        <div class="event-admin-file-icon bg-slate-500/10 text-slate-600 dark:text-slate-200">
+      <div class="mb-6">
+        <p class="event-admin-section-kicker text-center">Timing Files</p>
+        <div class="event-admin-section-heading">
+        <div class="event-admin-section-heading-badge">
           <i class="fas fa-folder-open text-lg"></i>
         </div>
-        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h2 class="event-admin-section-title">
           SOUBORY PRO REM
         </h2>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -586,13 +756,16 @@
 
     <!-- BEM SUPPORT -->
     <div class="event-admin-section max-w-7xl mx-auto mt-8 mb-4 rounded-[2rem] p-6">
-      <div class="mb-6 flex items-center justify-center gap-3 text-center">
-        <div class="event-admin-file-icon bg-slate-500/10 text-slate-600 dark:text-slate-200">
+      <div class="mb-6">
+        <p class="event-admin-section-kicker text-center">Race Software</p>
+        <div class="event-admin-section-heading">
+        <div class="event-admin-section-heading-badge">
           <i class="fas fa-folder-open text-lg"></i>
         </div>
-        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h2 class="event-admin-section-title">
           SOUBORY PRO BEM
         </h2>
+        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Registrovaní jezdci online -->

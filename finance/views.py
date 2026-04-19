@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, ExpressionWrapper, DecimalField, F as DbF
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import date, timedelta
@@ -21,6 +21,7 @@ from django.db.models import F
 from rider.models import RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
 from finance.models import SubscriptionInvoice
 from finance.subscription_invoices import SubscriptionInvoiceService
+from eshop.models import ProductVariant, OrderItem, Order
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
@@ -101,8 +102,33 @@ def finance_admin(request):
         }
         cache.set(cache_key, cached_stats, 900)
 
+    _sold_qs = OrderItem.objects.filter(
+        order__status__in=[Order.Status.CONFIRMED, Order.Status.SHIPPED, Order.Status.DELIVERED],
+        order__created__year=current_year,
+    )
+    eshop_stock_total = (
+        ProductVariant.objects.filter(active=True)
+        .aggregate(total=Sum("stock"))["total"] or 0
+    )
+    eshop_stock_value = (
+        ProductVariant.objects.filter(active=True)
+        .aggregate(total=Sum(
+            ExpressionWrapper(DbF("price") * DbF("stock"), output_field=DecimalField(max_digits=12, decimal_places=2))
+        ))["total"] or 0
+    )
+    eshop_sold_this_year = _sold_qs.aggregate(total=Sum("quantity"))["total"] or 0
+    eshop_revenue_this_year = (
+        _sold_qs.aggregate(total=Sum(
+            ExpressionWrapper(DbF("unit_price") * DbF("quantity"), output_field=DecimalField(max_digits=12, decimal_places=2))
+        ))["total"] or 0
+    )
+
     data={
         "credit":credit,
+        "eshop_stock_total": eshop_stock_total,
+        "eshop_stock_value": eshop_stock_value,
+        "eshop_sold_this_year": eshop_sold_this_year,
+        "eshop_revenue_this_year": eshop_revenue_this_year,
         "balance_components": balance_components,
         "stripe_fee": stripe_fee,
         "rider_stats_revenue": cached_stats["rider_stats_revenue"],

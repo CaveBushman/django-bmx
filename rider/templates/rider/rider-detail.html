@@ -176,6 +176,119 @@
     color: #b45309;
   }
 
+  .rider-results-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .rider-result-card {
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .rider-result-card.is-marked-20 {
+    border-color: rgba(168, 85, 247, 0.38);
+    background:
+      linear-gradient(135deg, rgba(250, 245, 255, 0.98), rgba(255, 255, 255, 0.98));
+  }
+
+  .rider-result-card.is-marked-24 {
+    border-color: rgba(96, 165, 250, 0.34);
+    background:
+      linear-gradient(135deg, rgba(239, 246, 255, 0.98), rgba(255, 255, 255, 0.98));
+  }
+
+  .rider-result-points {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.2rem 0.65rem;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .rider-result-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .rider-result-status.is-marked-20 {
+    background: rgba(168, 85, 247, 0.14);
+    color: #7e22ce;
+  }
+
+  .rider-result-status.is-marked-24 {
+    background: rgba(59, 130, 246, 0.14);
+    color: #1d4ed8;
+  }
+
+  .rider-result-status.is-unmarked {
+    background: rgba(148, 163, 184, 0.16);
+    color: #475569;
+  }
+
+  .rider-result-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  .rider-results-summary {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  .rider-results-summary-card {
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 1rem;
+    background: rgba(248, 250, 252, 0.92);
+    padding: 1rem 1.1rem;
+  }
+
+  .rider-results-summary-card.is-marked-20 {
+    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(250, 245, 255, 0.96);
+  }
+
+  .rider-results-summary-card.is-marked-24 {
+    border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(239, 246, 255, 0.96);
+  }
+
+  .rider-results-summary-card.is-unmarked {
+    border-color: rgba(148, 163, 184, 0.22);
+    background: rgba(248, 250, 252, 0.96);
+  }
+
+  @media (min-width: 768px) {
+    .rider-results-summary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .rider-results-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .rider-results-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   html.dark .rider-premium-badge.is-active {
     background: rgba(16, 185, 129, 0.18);
     color: #6ee7b7;
@@ -184,6 +297,84 @@
   html.dark .rider-premium-badge.is-inactive {
     background: rgba(245, 158, 11, 0.18);
     color: #fcd34d;
+  }
+
+  html.dark .rider-result-card {
+    border-color: rgba(71, 85, 105, 0.7);
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow: 0 20px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .rider-result-card.is-marked-20 {
+    border-color: rgba(168, 85, 247, 0.42);
+    background:
+      linear-gradient(135deg, rgba(88, 28, 135, 0.42), rgba(15, 23, 42, 0.96));
+  }
+
+  html.dark .rider-result-card.is-marked-24 {
+    border-color: rgba(96, 165, 250, 0.38);
+    background:
+      linear-gradient(135deg, rgba(30, 64, 175, 0.32), rgba(15, 23, 42, 0.96));
+  }
+
+  html.dark .rider-result-card,
+  html.dark .rider-result-card p,
+  html.dark .rider-result-card div,
+  html.dark .rider-result-card span {
+    color: #cbd5e1 !important;
+  }
+
+  html.dark .rider-result-card .text-slate-900,
+  html.dark .rider-result-card .dark\:text-white,
+  html.dark .rider-result-card .font-semibold {
+    color: #f8fafc !important;
+  }
+
+  html.dark .rider-result-card .text-slate-500,
+  html.dark .rider-result-card .text-slate-400,
+  html.dark .rider-result-card .dark\:text-slate-400,
+  html.dark .rider-result-card .dark\:text-slate-500 {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .rider-result-points {
+    background: rgba(99, 102, 241, 0.22) !important;
+    color: #c7d2fe !important;
+  }
+
+  html.dark .rider-result-status.is-marked-20 {
+    background: rgba(168, 85, 247, 0.18) !important;
+    color: #e9d5ff !important;
+  }
+
+  html.dark .rider-result-status.is-marked-24 {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #bfdbfe !important;
+  }
+
+  html.dark .rider-result-status.is-unmarked {
+    background: rgba(71, 85, 105, 0.32) !important;
+    color: #cbd5e1 !important;
+  }
+
+  html.dark .rider-results-summary-card {
+    border-color: rgba(51, 65, 85, 0.95);
+    background: rgba(15, 23, 42, 0.78);
+  }
+
+  html.dark .rider-results-summary-card.is-marked-20 {
+    border-color: rgba(168, 85, 247, 0.46);
+    background: rgba(76, 29, 149, 0.22);
+  }
+
+  html.dark .rider-results-summary-card.is-marked-24 {
+    border-color: rgba(59, 130, 246, 0.42);
+    background: rgba(30, 64, 175, 0.2);
+  }
+
+  html.dark .rider-results-summary-card.is-unmarked {
+    border-color: rgba(71, 85, 105, 0.9);
+    background: rgba(15, 23, 42, 0.72);
   }
 </style>
 {% endblock %}
@@ -315,64 +506,6 @@
 
     <div class="mt-6">
       <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
-        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 class="rider-detail-heading text-2xl font-bold text-slate-900 dark:text-white">Umístění za poslední rok</h2>
-            <p class="rider-detail-muted mt-2 max-w-4xl text-sm text-slate-600 dark:text-slate-300">
-              Fialově jsou zvýrazněny bodované výsledky pro 20", modře bodované výsledky pro cruiser. Ostatní řádky se do rankingu nepočítají.
-              Tabulku pro výpočet bodů najdete <a href="{% url 'event:ranking-table' %}" class="rider-detail-link font-semibold text-indigo-700 hover:text-indigo-600 dark:text-indigo-300 dark:hover:text-indigo-200">zde</a>.
-            </p>
-          </div>
-        </div>
-
-        {% if results %}
-        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
-          <div class="overflow-x-auto">
-            <table class="rider-detail-table min-w-full bg-white dark:bg-slate-900">
-              <thead class="bg-slate-100 dark:bg-slate-950">
-                <tr>
-                  <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:px-4">Datum</th>
-                  <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:px-4">Závod</th>
-                  <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 lg:table-cell">Pořadatel</th>
-                  <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 xl:table-cell">Typ závodu</th>
-                  <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:table-cell">Kategorie</th>
-                  <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:px-4">Umístění</th>
-                  <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 sm:px-4">Počet bodů</th>
-                </tr>
-              </thead>
-              <tbody class="rider-detail-tbody bg-white dark:bg-slate-900">
-                {% for result in results %}
-                <tr class="border-t border-slate-200 text-sm text-slate-700 dark:border-slate-800 dark:text-slate-200 {% if result.marked_20 %}rider-result-20 bg-purple-100 text-slate-900 dark:bg-purple-700/60 dark:text-white{% elif result.marked_24 %}rider-result-24 bg-blue-100 text-slate-900 dark:bg-blue-800/60 dark:text-white{% else %}bg-white dark:bg-slate-900{% endif %}">
-                  <td class="whitespace-nowrap px-3 py-3 align-top sm:px-4">{{ result.date }}</td>
-                  <td class="px-3 py-3 align-top sm:px-4">
-                    <div class="font-medium">{{ result.event.name }}</div>
-                    <div class="mt-1 space-y-1 text-xs text-slate-500 dark:text-slate-300 lg:hidden">
-                      <div>{{ result.organizer|upper }}</div>
-                      <div class="sm:hidden">{{ result.category }}</div>
-                      <div class="xl:hidden">{{ result.event_type }}</div>
-                    </div>
-                  </td>
-                  <td class="hidden px-4 py-3 align-top lg:table-cell">{{ result.organizer|upper }}</td>
-                  <td class="hidden px-4 py-3 align-top xl:table-cell">{{ result.event_type }}</td>
-                  <td class="hidden px-4 py-3 align-top sm:table-cell">{{ result.category }}</td>
-                  <td class="px-3 py-3 align-top sm:px-4">{{ result.place }}</td>
-                  <td class="px-3 py-3 align-top font-semibold sm:px-4">{{ result.points }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        {% else %}
-        <div class="rider-empty-state mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
-          Za posledních 365 dní nejsou k dispozici žádné výsledky.
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="mt-6">
-      <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 class="rider-detail-heading text-2xl font-bold text-slate-900 dark:text-white">Prémiové časy z tratí</h2>
@@ -434,6 +567,52 @@
             {% endif %}
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="rider-detail-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 class="rider-detail-heading text-2xl font-bold text-slate-900 dark:text-white">Umístění za poslední rok</h2>
+            <p class="rider-detail-muted mt-2 max-w-4xl text-sm text-slate-600 dark:text-slate-300">
+              Karty ukazují, které výsledky se do rankingu započítávají pro 20", pro cruiser a které zůstávají mimo ranking.
+              Přehled bodování pro výpočet rankingu najdete <a href="{% url 'event:ranking-table' %}" class="rider-detail-link font-semibold text-indigo-700 hover:text-indigo-600 dark:text-indigo-300 dark:hover:text-indigo-200">zde</a>.
+            </p>
+            <div class="rider-result-legend">
+              <span class="rider-result-status is-marked-20">Započítáno 20"</span>
+              <span class="rider-result-status is-marked-24">Započítáno 24"</span>
+              <span class="rider-result-status is-unmarked">Mimo ranking</span>
+            </div>
+            <div class="rider-results-summary">
+              <div class="rider-results-summary-card is-marked-20">
+                <p class="rider-detail-muted text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Body do 20"</p>
+                <p class="rider-detail-heading mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results_summary.points_20 }}</p>
+              </div>
+              <div class="rider-results-summary-card is-marked-24">
+                <p class="rider-detail-muted text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Body do 24"</p>
+                <p class="rider-detail-heading mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results_summary.points_24 }}</p>
+              </div>
+              <div class="rider-results-summary-card is-unmarked">
+                <p class="rider-detail-muted text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">Mimo ranking</p>
+                <p class="rider-detail-heading mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results_summary.outside_ranking_count }}</p>
+                <p class="rider-detail-muted mt-1 text-xs text-slate-500 dark:text-slate-300">Počet výsledků za posledních 365 dní</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if results %}
+        <div class="rider-results-grid mt-6">
+          {% for result in results %}
+          {% include "rider/includes/rider-result-card.html" with result=result %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+          Za posledních 365 dní nejsou k dispozici žádné výsledky.
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>

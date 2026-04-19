@@ -7,6 +7,12 @@
     background: #f8fafc;
   }
 
+  .ranking-empty-state,
+  .ranking-notice {
+    border: 1px dashed rgba(148, 163, 184, 0.5);
+    background: rgba(248, 250, 252, 0.9);
+  }
+
   .ranking-hero {
     position: relative;
     overflow: hidden;
@@ -110,6 +116,47 @@
     color: #334155;
   }
 
+  .ranking-card.is-top-1 {
+    border-color: rgba(245, 158, 11, 0.45);
+    background:
+      linear-gradient(135deg, rgba(254, 249, 195, 0.95), rgba(255, 255, 255, 0.98));
+  }
+
+  .ranking-card.is-top-2 {
+    border-color: rgba(148, 163, 184, 0.5);
+    background:
+      linear-gradient(135deg, rgba(241, 245, 249, 0.98), rgba(255, 255, 255, 0.98));
+  }
+
+  .ranking-card.is-top-3 {
+    border-color: rgba(249, 115, 22, 0.4);
+    background:
+      linear-gradient(135deg, rgba(255, 237, 213, 0.96), rgba(255, 255, 255, 0.98));
+  }
+
+  .ranking-results-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ranking-card {
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  @media (min-width: 768px) {
+    .ranking-results-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .ranking-results-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   html.dark .ranking-page {
     background: #0f172a;
   }
@@ -146,6 +193,36 @@
   html.dark .ranking-position.is-default {
     background: #334155;
     color: #e2e8f0;
+  }
+
+  html.dark .ranking-card.is-top-1 {
+    border-color: rgba(245, 158, 11, 0.48);
+    background:
+      linear-gradient(135deg, rgba(120, 53, 15, 0.7), rgba(30, 41, 59, 0.96));
+  }
+
+  html.dark .ranking-card.is-top-2 {
+    border-color: rgba(148, 163, 184, 0.55);
+    background:
+      linear-gradient(135deg, rgba(71, 85, 105, 0.72), rgba(15, 23, 42, 0.96));
+  }
+
+  html.dark .ranking-card.is-top-3 {
+    border-color: rgba(249, 115, 22, 0.45);
+    background:
+      linear-gradient(135deg, rgba(124, 45, 18, 0.72), rgba(30, 41, 59, 0.96));
+  }
+
+  html.dark .ranking-card {
+    border-color: rgba(71, 85, 105, 0.7);
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow: 0 20px 36px rgba(2, 6, 23, 0.35);
+  }
+
+  html.dark .ranking-empty-state,
+  html.dark .ranking-notice {
+    border-color: rgba(71, 85, 105, 0.7);
+    background: rgba(2, 6, 23, 0.72);
   }
 </style>
 {% endblock %}
@@ -198,18 +275,23 @@
       <div class="ranking-panel rounded-[2rem] p-5 sm:p-6">
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
         <h2 class="mt-2 text-xl font-black tracking-tight text-slate-900 dark:text-white">{{ category|upper }}</h2>
-        <form method="POST" id="rankingForm" class="mt-5">
-          {% csrf_token %}
-          <select id="categoryInput" name="categoryInput" class="block w-full rounded-2xl border border-gray-300 bg-white py-3 pl-4 pr-10 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white">
-            <option selected>Vyber kategorii</option>
+        <form method="GET" id="rankingForm" class="mt-5">
+          <select id="categoryInput" name="category" class="block w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-10 text-base text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:border-indigo-500 dark:focus:ring-indigo-500/20">
+            <option value="">Vyber kategorii</option>
             {% for category in categories %}
-            <option value="{{category}}">{{category}}</option>
+            <option value="{{ category }}"{% if category == selected_category %} selected{% endif %}>{{ category }}</option>
             {% endfor %}
           </select>
         </form>
         <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Po změně výběru se tabulka automaticky přenačte.</p>
       </div>
     </div>
+
+    {% if invalid_category %}
+    <div class="ranking-notice mt-6 rounded-2xl px-5 py-4 text-sm text-slate-600 dark:text-slate-300">
+      Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard pro <span class="font-semibold text-slate-900 dark:text-white">{{ category }}</span>.
+    </div>
+    {% endif %}
 
     <div class="ranking-panel mt-8 rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -222,55 +304,16 @@
         </div>
       </div>
 
-      <div class="ranking-table-wrap mt-8 rounded-[1.75rem]">
-        <div class="overflow-x-auto">
-        <table class="ranking-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-          <thead class="bg-slate-50 dark:bg-slate-900">
-            <tr>
-              <th scope="col" class="px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:px-6">Pořadí</th>
-              <th scope="col" class="hidden py-4 pr-3 sm:table-cell"></th>
-              <th scope="col" class="px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:px-6">Jezdec</th>
-              <th scope="col" class="hidden px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 lg:table-cell">UCI ID</th>
-              <th scope="col" class="hidden px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:table-cell">Klub</th>
-              <th scope="col" class="px-3 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400 sm:px-6">Body</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
-            {% for result in results %}
-            <tr class="dark:bg-slate-900">
-              <td class="px-3 py-5 align-top sm:px-6">
-                {% if forloop.counter == 1 %}
-                  <span class="ranking-position is-top-1">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
-                {% elif forloop.counter == 2 %}
-                  <span class="ranking-position is-top-2">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
-                {% elif forloop.counter == 3 %}
-                  <span class="ranking-position is-top-3">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
-                {% else %}
-                  <span class="ranking-position is-default">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
-                {% endif %}
-              </td>
-              <td class="hidden py-5 pr-3 align-top sm:table-cell">
-                <img class="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" src="{{ result.photo_url }}" alt="">
-              </td>
-              <td class="px-3 py-5 align-middle sm:px-6">
-                <a href="{% url 'rider:detail' result.uci_id %}" class="text-base font-black tracking-tight text-slate-900 transition hover:text-indigo-600 dark:text-white dark:hover:text-indigo-300">
-                  {{ result.last_name|upper }} <span class="font-medium">{{ result.first_name }}</span>
-                </a>
-                <div class="mt-1 text-sm text-slate-500 dark:text-slate-300 lg:hidden">{{ result.uci_id }}</div>
-                <div class="mt-1 text-sm text-slate-500 dark:text-slate-300 sm:hidden">{{ result.club|upper }}</div>
-              </td>
-              <td class="hidden px-6 py-5 align-top text-sm text-slate-500 dark:text-slate-300 lg:table-cell">{{ result.uci_id }}</td>
-              <td class="hidden px-6 py-5 align-top text-sm text-slate-500 dark:text-slate-300 sm:table-cell">{{ result.club|upper }}</td>
-              <td class="px-3 py-5 align-middle sm:px-6">
-                <span class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-                  {% if cruiser %}{{ result.points_24 }}{% else %}{{ result.points_20 }}{% endif %} bodů
-                </span>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="ranking-results-grid mt-8">
+        {% for result in results %}
+        {% include "ranking/includes/ranking-card.html" with result=result cruiser=cruiser rank_index=forloop.counter %}
+        {% empty %}
+        <div class="ranking-empty-state rounded-2xl px-6 py-12 text-center">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Žádná data</p>
+          <p class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">Pro tuto kategorii nejsou k dispozici žádní jezdci</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Vyber jinou kategorii nebo zkontroluj, zda už byl ranking pro tuto skupinu přepočítán.</p>
         </div>
+        {% endfor %}
       </div>
     </div>
   </div>

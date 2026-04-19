@@ -127,6 +127,20 @@
     background: linear-gradient(135deg, #10b981, #14b8a6) !important;
     color: #06281f !important;
   }
+
+  /* Table bodies: Tailwind dark: loses to bg-white in compiled order */
+  html.dark table tbody {
+    background-color: #0f172a;
+  }
+  html.dark table tbody tr {
+    color: #e2e8f0;
+  }
+  html.dark table tbody td {
+    border-color: #1e293b;
+  }
+  html.dark table thead {
+    background-color: #020617;
+  }
 </style>
 {% endblock %}
 
@@ -279,6 +293,34 @@
           <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Checkout refundy</p>
           <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ credit_transaction_summary.checkout_refund_total|floatformat:2 }}</p>
           <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ credit_transaction_summary.checkout_refund_count }} transakcí</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-panel mt-8 rounded-[1.75rem] border p-6 sm:p-8">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">E-shop</p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Přehled e-shopu</h2>
+        </div>
+        <a href="{% url 'eshop:index' %}" class="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400">Přejít na e-shop →</a>
+      </div>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Skladem</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ eshop_stock_total }}&nbsp;<span class="text-sm font-semibold">ks</span></p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Hodnota skladu</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ eshop_stock_value|floatformat:0 }}&nbsp;<span class="text-sm font-semibold">Kč</span></p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Prodáno {{ current_year }}</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ eshop_sold_this_year }}&nbsp;<span class="text-sm font-semibold">ks</span></p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 px-5 py-4 dark:border-slate-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Tržby {{ current_year }}</p>
+          <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ eshop_revenue_this_year|floatformat:0 }}&nbsp;<span class="text-sm font-semibold">Kč</span></p>
         </div>
       </div>
     </section>

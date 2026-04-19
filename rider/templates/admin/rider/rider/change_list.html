@@ -6,3 +6,32 @@
   </li>
   {{ block.super }}
 {% endblock %}
+
+{% block content_title %}
+  {{ block.super }}
+  {% if ranking_recount_status %}
+    <div style="margin-top:16px; padding:14px 16px; border:1px solid #dbeafe; border-radius:16px; background:#eff6ff; max-width:980px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <strong>Stav přepočtu rankingu</strong>
+        {% if ranking_recount_status.is_running %}
+          <span style="display:inline-flex; padding:4px 8px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-weight:600;">Běží</span>
+        {% elif ranking_recount_status.is_pending %}
+          <span style="display:inline-flex; padding:4px 8px; border-radius:999px; background:#fef3c7; color:#b45309; font-weight:600;">Čeká ve frontě</span>
+        {% elif ranking_recount_status.last_success %}
+          <span style="display:inline-flex; padding:4px 8px; border-radius:999px; background:#dcfce7; color:#166534; font-weight:600;">Poslední běh OK</span>
+        {% elif ranking_recount_status.last_success is not None %}
+          <span style="display:inline-flex; padding:4px 8px; border-radius:999px; background:#fee2e2; color:#b91c1c; font-weight:600;">Poslední běh selhal</span>
+        {% endif %}
+      </div>
+      {% if ranking_recount_status.last_message %}
+        <p style="margin:10px 0 0 0;">{{ ranking_recount_status.last_message }}</p>
+      {% endif %}
+      <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; color:#334155;">
+        {% if ranking_recount_status.last_started_at %}<span>Start: {{ ranking_recount_status.last_started_at|date:"d.m.Y H:i:s" }}</span>{% endif %}
+        {% if ranking_recount_status.last_finished_at %}<span>Konec: {{ ranking_recount_status.last_finished_at|date:"d.m.Y H:i:s" }}</span>{% endif %}
+        {% if ranking_recount_status.last_duration_seconds %}<span>Trvání: {{ ranking_recount_status.last_duration_seconds }} s</span>{% endif %}
+        {% if ranking_recount_status.last_rider_count %}<span>Jezdců: {{ ranking_recount_status.last_rider_count }}</span>{% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

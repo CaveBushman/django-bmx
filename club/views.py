@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
+from datetime import date
+
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Sum, Count, F, Q
+from django.conf import settings
 from django.http import FileResponse, Http404
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Sum, Count, F
-from django.conf import settings
+
 from .models import Club
 from rider.models import Rider
 from event.models import Event, Entry
-from datetime import date
 from .func import riders_on_events
 # import folium
 
@@ -16,15 +18,61 @@ from .func import riders_on_events
 # Create your views here.
 
 def clubs_list_view(request):
-    clubs = Club.objects.filter(is_active=True).order_by('team_name')
+    base_clubs = (
+        Club.objects.filter(is_active=True)
+        .exclude(team_name="Bez klubové příslušnosti")
+        .order_by("team_name")
+    )
+    query = (request.GET.get("q") or "").strip()
+    selected_region = (request.GET.get("region") or "").strip()
+
+    clubs = base_clubs
+    if query:
+        clubs = clubs.filter(
+            Q(team_name__icontains=query)
+            | Q(contact_person__icontains=query)
+            | Q(contact_email__icontains=query)
+            | Q(city__icontains=query)
+        )
+    if selected_region:
+        clubs = clubs.filter(region=selected_region)
+
+    cleaned_clubs = []
+    for club in clubs:
+        contact_person = "" if club.contact_person in {"", "nan"} else club.contact_person
+        contact_email = "" if club.contact_email in {"", "nan"} else club.contact_email
+        contact_phone = "" if club.contact_phone in {"", "nan"} else club.contact_phone
+        city = "" if club.city in {"", "nan"} else club.city
+        cleaned_clubs.append(
+            {
+                "id": club.id,
+                "team_name": club.team_name,
+                "region": club.region or "",
+                "city": city,
+                "contact_person": contact_person,
+                "contact_email": contact_email,
+                "contact_phone": contact_phone,
+                "has_contact": any([contact_person, contact_email, contact_phone]),
+            }
+        )
+
     data = {
-        'clubs': clubs,
-        'clubs_count': clubs.exclude(team_name="Bez klubové příslušnosti").count(),
-        'regions_count': clubs.exclude(team_name="Bez klubové příslušnosti").values('region').distinct().count(),
-        'contact_clubs_count': clubs.exclude(team_name="Bez klubové příslušnosti").exclude(contact_email="").count(),
+        "clubs": cleaned_clubs,
+        "clubs_count": base_clubs.count(),
+        "regions_count": base_clubs.values("region").distinct().count(),
+        "contact_clubs_count": base_clubs.filter(
+            (Q(contact_person__gt="") & ~Q(contact_person="nan"))
+            | (Q(contact_email__gt="") & ~Q(contact_email="nan"))
+            | (Q(contact_phone__gt="") & ~Q(contact_phone="nan"))
+        ).count(),
+        "filtered_count": len(cleaned_clubs),
+        "regions": list(base_clubs.values_list("region", flat=True).distinct()),
+        "query": query,
+        "selected_region": selected_region,
+        "has_active_filters": bool(query or selected_region),
     }
 
-    return render(request, 'club/clubs-list.html', data)
+    return render(request, "club/clubs-list.html", data)
 
 
 def club_detail_view(request, pk):

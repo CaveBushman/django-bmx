@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib import messages
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Lower
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
@@ -368,9 +368,10 @@ def sign_out(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def ops_dashboard(request):
-    from event.models import CreditTransaction, Entry, FinanceAuditLog
+    from event.models import CreditTransaction, Entry, EntryForeign, Event, FinanceAuditLog, Result
+    from ranking.ranking import get_ranking_recount_status
+    from rider.models import Rider
 
-    pending_accounts = Account.objects.filter(is_active=False).order_by("-date_joined")
     duplicate_email_groups = (
         Account.objects.annotate(email_lower=Lower("email"))
         .values("email_lower")
@@ -378,31 +379,140 @@ def ops_dashboard(request):
         .filter(total__gt=1)
         .order_by("-total", "email_lower")
     )
-    checkout_entries_missing_refund = Entry.objects.filter(
-        checkout=True,
-        payment_complete=True,
-    ).exclude(credit_transactions__kind=CreditTransaction.Kind.CHECKOUT_REFUND)
+    today = timezone.localdate()
+    suspicious_entry_q = (
+        Q(payment_complete=False, transaction_date__lt=timezone.now() - timedelta(days=2))
+        | Q(checkout=True, payment_complete=False)
+        | Q(payment_complete=True, rider__isnull=True)
+    )
+    checkout_entries_missing_refund = (
+        Entry.objects.filter(
+            checkout=True,
+            payment_complete=True,
+            transaction_date__date=today,
+        )
+        .exclude(credit_transactions__kind=CreditTransaction.Kind.CHECKOUT_REFUND)
+        .exclude(suspicious_entry_q)
+    )
     orphan_refunds = CreditTransaction.objects.filter(
         kind=CreditTransaction.Kind.CHECKOUT_REFUND,
         source_entry__isnull=True,
+        transaction_date__date=today,
     )
     refunds_for_non_checkout_entries = CreditTransaction.objects.filter(
         kind=CreditTransaction.Kind.CHECKOUT_REFUND,
         source_entry__checkout=False,
+        transaction_date__date=today,
+    )
+    pending_avatar_requests = (
+        AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_PENDING)
+        .select_related("uploaded_by", "target_account", "target_rider")
+        .order_by("-created")[:8]
+    )
+
+    import_candidates = []
+    import_fields = (
+        ("xls_results_uploaded", "BEM výsledky", "xls_results"),
+        ("rem_results_uploaded", "REM výsledky", "rem_results"),
+        ("full_results_uploaded", "PDF výsledky", "full_results"),
+        ("html_results_uploaded", "HTML výsledky", "html_results"),
+        ("bem_entries_created", "BEM registrace", "bem_entries"),
+        ("rem_entries_created", "REM registrace", "rem_entries"),
+    )
+    for event in Event.objects.select_related("organizer").only(
+        "id",
+        "name",
+        "date",
+        "organizer__team_name",
+        *(field for field, _, _ in import_fields),
+    ):
+        for timestamp_field, label, file_field in import_fields:
+            timestamp = getattr(event, timestamp_field, None)
+            if not timestamp:
+                continue
+            import_candidates.append(
+                {
+                    "event": event,
+                    "label": label,
+                    "timestamp": timestamp,
+                    "has_file": bool(getattr(event, file_field, None)),
+                }
+            )
+    recent_imports = sorted(import_candidates, key=lambda item: item["timestamp"], reverse=True)[:10]
+
+    _current_year = timezone.localdate().year
+
+    rider_data_issues = {
+        "missing_club_count": Rider.objects.filter(is_active=True, club__isnull=True).count(),
+        "missing_transponder_count": Rider.objects.filter(
+            Q(is_20=True) & (Q(transponder_20__isnull=True) | Q(transponder_20=""))
+            | Q(is_24=True) & (Q(transponder_24__isnull=True) | Q(transponder_24=""))
+        ).count(),
+        "ranking_mismatch_count": Rider.objects.filter(
+            Q(is_20=False, points_20__gt=0) | Q(is_24=False, points_24__gt=0)
+        ).count(),
+    }
+    _results_this_year = Result.objects.filter(event__date__year=_current_year)
+    result_data_issues = {
+        "missing_rider_count": _results_this_year.filter(rider__isnull=True).count(),
+        "missing_category_count": _results_this_year.filter(Q(category__isnull=True) | Q(category="")).count(),
+        "missing_event_type_count": _results_this_year.filter(Q(event_type__isnull=True) | Q(event_type="")).count(),
+        "marked_zero_points_count": _results_this_year.filter(points=0).filter(
+            Q(marked_20=True) | Q(marked_24=True)
+        ).count(),
+    }
+
+    _excluded_event_types = [
+        "Světový pohár", "Evropský pohár",
+        "Mistrovství Evropy", "Mistrovství světa",
+        "Mistrovství ČR družstev",
+    ]
+
+    past_events_without_results = (
+        Event.objects.select_related("organizer")
+        .filter(date__lt=timezone.localdate(), date__year=_current_year, canceled=False)
+        .exclude(type_for_ranking__in=_excluded_event_types)
+        .annotate(results_count=Count("result"))
+        .filter(results_count=0)
+        .only("id", "name", "date", "organizer__team_name")
+        .order_by("-date")[:10]
+    )
+
+    past_events_results_not_sent_ccf = (
+        Event.objects.select_related("organizer")
+        .filter(date__lt=timezone.localdate(), date__year=_current_year, canceled=False, ccf_uploaded=False)
+        .exclude(type_for_ranking__in=_excluded_event_types)
+        .annotate(results_count=Count("result"))
+        .filter(results_count__gt=0)
+        .only("id", "name", "date", "organizer__team_name")
+        .order_by("-date")
+    )
+
+    checkout_entries_missing_refund_preview = (
+        checkout_entries_missing_refund
+        .select_related("event", "rider")
+        .order_by("-transaction_date")[:3]
     )
 
     context = {
-        "pending_accounts_count": pending_accounts.count(),
-        "stale_pending_accounts_count": pending_accounts.filter(
-            date_joined__lt=timezone.now() - ACTIVATION_TOKEN_MAX_AGE
-        ).count(),
-        "duplicate_email_groups": list(duplicate_email_groups[:20]),
-        "duplicate_email_group_count": duplicate_email_groups.count(),
+        "duplicate_email_groups": list(duplicate_email_groups),
+
         "recent_activation_logs": AccountActivationAuditLog.objects.select_related("account", "actor").order_by("-created_at")[:20],
         "recent_finance_logs": FinanceAuditLog.objects.select_related("actor").order_by("-created_at")[:10],
         "checkout_entries_missing_refund_count": checkout_entries_missing_refund.count(),
         "orphan_refunds_count": orphan_refunds.count(),
         "refunds_for_non_checkout_entries_count": refunds_for_non_checkout_entries.count(),
+        "pending_avatar_requests": pending_avatar_requests,
+        "pending_avatar_requests_count": AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_PENDING).count(),
+        "recent_imports": recent_imports,
+        "ranking_recount_status": get_ranking_recount_status(),
+        "rider_data_issues": rider_data_issues,
+        "result_data_issues": result_data_issues,
+        "past_events_without_results": past_events_without_results,
+        "past_events_without_results_count": past_events_without_results.count(),
+        "past_events_results_not_sent_ccf": past_events_results_not_sent_ccf,
+        "past_events_results_not_sent_ccf_count": past_events_results_not_sent_ccf.count(),
+        "checkout_entries_missing_refund_preview": checkout_entries_missing_refund_preview,
     }
     return render(request, "accounts/ops-dashboard.html", context)
 

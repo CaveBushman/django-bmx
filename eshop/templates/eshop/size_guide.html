@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Tabulka velikostí" %} — {% trans "E-shop" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+  html.dark .size-card {
+    background-color: #0f172a;
+    border-color: #1e293b;
+  }
+  html.dark .size-card table thead tr {
+    background-color: #1e293b;
+    border-color: #334155;
+  }
+  html.dark .size-card table thead th {
+    color: #cbd5e1;
+    border-color: #334155;
+  }
+  html.dark .size-card table tbody tr {
+    background-color: #0f172a;
+  }
+  html.dark .size-card table tbody td {
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-950">
+  <header class="page-hero">
+    <div class="page-shell">
+      <nav aria-label="Breadcrumb" class="mb-6 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <a href="{% url 'eshop:shop' %}" class="hover:text-indigo-600 dark:hover:text-indigo-400">{% trans "E-shop" %}</a>
+        <svg viewBox="0 0 6 20" aria-hidden="true" class="h-3.5 w-auto text-slate-300 dark:text-slate-600">
+          <path d="M4.878 4.34H3.551L.27 16.532h1.327l3.281-12.19z" fill="currentColor"/>
+        </svg>
+        <span class="text-slate-800 dark:text-slate-200">{% trans "Tabulka velikostí" %}</span>
+      </nav>
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          {% trans "E-shop" %}
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {% trans "Tabulka velikostí" %}
+        </h1>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          {% trans "Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost. V případě pochybností nás kontaktujte." %}
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <section class="page-surface">
+    <div class="page-shell space-y-8">
+
+      {# ── Pánské – horní díly ── #}
+      <div class="size-card rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="mb-6 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 dark:bg-indigo-900/40">
+            <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M9 7V5a2 2 0 0 1 4 0v2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              {% trans "Pánské – horní díly" %}
+            </h2>
+            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{% trans "dresy, bundy, vesty, apod." %} &nbsp;·&nbsp; {% trans "Podle obvodu hrudníku" %}</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">{% trans "Obvod hrudi (cm)" %}</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">84–88</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">88–92</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">92–96</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">96–100</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">100–104</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">104–112</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">112–120</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">120–128</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-white dark:bg-slate-900">
+                <td class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">{% trans "Vaše velikost" %}</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">1/XS</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">2/S</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">3/M</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">4/L</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">5/XL</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">6/XXL</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">7/3XL</td>
+                <td class="px-4 py-3 text-center font-black text-indigo-600 dark:text-indigo-400">8/4XL</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          {% trans "Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost. V případě pochybností nás kontaktujte." %}
+        </p>
+      </div>
+
+      {# ── Dětské – horní a spodní díly ── #}
+      <div class="size-card rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="mb-6 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/40">
+            <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M19 3h-4"/><path d="M12 3v18"/><path d="M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><path d="M19 3a2 2 0 0 1 2 2v4"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              {% trans "Dětské – horní a spodní díly" %}
+            </h2>
+            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{% trans "Podle výšky postavy" %}</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">{% trans "Výška postavy (cm)" %}</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">104–116</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">116–124</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">124–130</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">130–138</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">138–142</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">142–148</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">148–154</th>
+                <th class="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">154–160</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="bg-white dark:bg-slate-900">
+                <td class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">{% trans "Vaše velikost" %}</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">110</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">122</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">128</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">134</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">140</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">146</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">152</td>
+                <td class="px-4 py-3 text-center font-black text-emerald-600 dark:text-emerald-400">158</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          {% trans "Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost. V případě pochybností nás kontaktujte." %}
+        </p>
+      </div>
+
+    </div>
+  </section>
+</div>
+{% endblock %}

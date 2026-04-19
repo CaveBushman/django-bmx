@@ -36,17 +36,22 @@
   }
 
   .event-detail-kpi {
-    min-height: 7.75rem;
+    min-height: 6.4rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
   .event-detail-kpi-value {
-    font-size: clamp(1.75rem, 2vw, 2.6rem);
+    font-size: clamp(1.55rem, 1.7vw, 2.2rem);
     line-height: 1.04;
     letter-spacing: -0.03em;
     text-wrap: balance;
+  }
+
+  .event-detail-kpi-value--date {
+    font-size: clamp(1.2rem, 1.3vw, 1.85rem);
+    line-height: 1.08;
   }
 
   .event-detail-kpi-value--compact {
@@ -236,7 +241,7 @@
             <div class="page-stats-grid">
                 <div class="page-stat-card event-detail-kpi px-5 py-4">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</p>
-                    <p class="event-detail-kpi-value font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
+                    <p class="event-detail-kpi-value event-detail-kpi-value--date font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
                 </div>
                 <div class="page-stat-card event-detail-kpi px-5 py-4">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pořadatel" %}</p>

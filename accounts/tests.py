@@ -19,6 +19,7 @@ from accounts.admin import AccountAdmin, AvatarChangeRequestAdmin, PendingActiva
 from accounts.models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount
 from bmx.form_protection import build_flow_token
 from club.models import Club
+from event.models import Entry, Event
 from rider.models import Rider
 
 
@@ -356,10 +357,48 @@ class OpsDashboardTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_ops_dashboard_renders_for_staff(self):
+        club = Club.objects.create(team_name="Ops Club")
         AccountActivationAuditLog.objects.create(
             action=AccountActivationAuditLog.Action.SENT,
             source="signup",
             email_snapshot="pending@example.com",
+        )
+        avatar_target = User.objects.create_user(
+            first_name="Avatar",
+            last_name="Target",
+            username="avatar_target",
+            email="avatar-target@example.com",
+            password="StrongPass123!",
+        )
+        AvatarChangeRequest.objects.create(
+            uploaded_by=self.staff_user,
+            target_account=avatar_target,
+            image=SimpleUploadedFile("ops.png", b"fake-image", content_type="image/png"),
+        )
+        event = Event.objects.create(
+            name="Ops Race",
+            date=timezone.localdate() - datetime.timedelta(days=5),
+            organizer=club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        Rider.objects.create(
+            uci_id=10101010101,
+            first_name="Ops",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=timezone.localdate() - datetime.timedelta(days=3650),
+            club=None,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            photo="",
+        )
+        Entry.objects.create(
+            user=self.staff_user,
+            event=event,
+            rider=None,
+            payment_complete=False,
         )
         self.client.force_login(self.staff_user)
 
@@ -367,7 +406,12 @@ class OpsDashboardTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Provozní dashboard")
-        self.assertContains(response, "pending@example.com")
+        self.assertContains(response, "Co řešit hned")
+        self.assertContains(response, "Avatar requesty")
+        self.assertContains(response, "Poslední systémové změny")
+        self.assertContains(response, "Souhrn chyb")
+        self.assertContains(response, "Závody bez výsledků")
+        self.assertContains(response, "Rychlý souhrn")
 
 
 class AccountRiderLinkTests(TestCase):
