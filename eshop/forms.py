@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from event.models_events import Event
-from .models import Order
+from .models import Order, ProductVariant, StockAlertRequest
 
 _INPUT = (
     "block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 "
@@ -55,3 +55,43 @@ class CheckoutForm(forms.ModelForm):
             first_event = self.fields["event"].queryset.first()
             if first_event:
                 self.initial["event"] = first_event.pk
+
+
+class StockAlertRequestForm(forms.ModelForm):
+    variant = forms.ModelChoiceField(
+        queryset=ProductVariant.objects.none(),
+        label=_("Varianta"),
+        widget=forms.Select(attrs={"class": _INPUT}),
+        empty_label=None,
+    )
+
+    class Meta:
+        model = StockAlertRequest
+        fields = ["variant", "email", "note"]
+        widgets = {
+            "email": forms.EmailInput(
+                attrs={
+                    "class": _INPUT,
+                    "placeholder": "jan@example.com",
+                    "autocomplete": "email",
+                }
+            ),
+            "note": forms.Textarea(
+                attrs={
+                    "class": _TEXTAREA,
+                    "rows": 2,
+                    "placeholder": "Volitelně doplň poznámku k velikosti nebo počtu kusů…",
+                }
+            ),
+        }
+
+    def __init__(self, *args, product=None, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = ProductVariant.objects.none()
+        if product is not None:
+            qs = product.variants.filter(active=True, stock=0).order_by("sort_order", "label")
+        self.fields["variant"].queryset = qs
+        if user is not None and getattr(user, "is_authenticated", False) and not self.is_bound:
+            email = getattr(user, "email", "")
+            if email:
+                self.initial["email"] = email

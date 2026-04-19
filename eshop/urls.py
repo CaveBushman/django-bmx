@@ -15,6 +15,7 @@ urlpatterns = [
     path("pickup/<int:order_id>/delivered/", views.mark_pickup_order_delivered, name="pickup-delivered"),
     path("shop/", views.shop, name="shop"),
     path("shop/<slug:slug>/", views.product_detail, name="product-detail"),
+    path("shop/<slug:slug>/hlidat-dostupnost/", views.request_stock_alert, name="request-stock-alert"),
     path("cart/", views.cart, name="cart"),
     path("cart/add/", views.add_to_cart, name="add-to-cart"),
     path("checkout/", views.checkout, name="checkout"),

@@ -20,6 +20,7 @@ from eshop.models import (
     OrderHistory,
     Product,
     ProductVariant,
+    StockAlertRequest,
     StockMovement,
     StockReservation,
 )
@@ -409,8 +410,92 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertContains(response, f'data-variant-id="{self.variant.pk}"', html=False)
         self.assertContains(response, 'data-stock="5"', html=False)
         self.assertContains(response, f'data-variant-id="{sold_out_variant.pk}"', html=False)
-        self.assertContains(response, 'disabled aria-disabled="true"', html=False)
+        self.assertContains(response, 'data-variant-label="XL"', html=False)
         self.assertContains(response, "Vyprodáno")
+
+    def test_product_detail_shows_stock_alert_form_for_sold_out_variant(self):
+        ProductVariant.objects.create(
+            product=self.product,
+            label="XL",
+            price=1190,
+            stock=0,
+            active=True,
+            sort_order=2,
+        )
+
+        response = self.client.get(reverse("eshop:product-detail", args=[self.product.slug]))
+
+        self.assertContains(response, "Hlídat dostupnost")
+        self.assertContains(response, "stock-alert-modal")
+        self.assertNotContains(response, "Hlídat vyprodanou velikost")
+        self.assertContains(response, "Uložit požadavek")
+        self.assertContains(response, "XL")
+
+    def test_user_can_request_stock_alert_for_sold_out_variant(self):
+        sold_out_variant = ProductVariant.objects.create(
+            product=self.product,
+            label="XL",
+            price=1190,
+            stock=0,
+            active=True,
+            sort_order=2,
+        )
+        user = self.user_model.objects.create_user(
+            username="stock-alert-user",
+            email="stock-alert@example.com",
+            password="StrongPass123!",
+            first_name="Stock",
+            last_name="Alert",
+        )
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("eshop:request-stock-alert", args=[self.product.slug]),
+            {
+                "variant": sold_out_variant.pk,
+                "email": "Stock-Alert@Example.com",
+                "note": "Zajem o dva kusy",
+            },
+            follow=True,
+        )
+
+        request_obj = StockAlertRequest.objects.get()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(request_obj.variant, sold_out_variant)
+        self.assertEqual(request_obj.user, user)
+        self.assertEqual(request_obj.email, "stock-alert@example.com")
+        self.assertEqual(request_obj.note, "Zajem o dva kusy")
+        self.assertContains(response, "Požadavek na naskladnění je uložený")
+
+    def test_stock_alert_request_does_not_duplicate_open_request(self):
+        sold_out_variant = ProductVariant.objects.create(
+            product=self.product,
+            label="XL",
+            price=1190,
+            stock=0,
+            active=True,
+            sort_order=2,
+        )
+        StockAlertRequest.objects.create(
+            variant=sold_out_variant,
+            email="duplicate@example.com",
+        )
+
+        response = self.client.post(
+            reverse("eshop:request-stock-alert", args=[self.product.slug]),
+            {
+                "variant": sold_out_variant.pk,
+                "email": "DUPLICATE@example.com",
+                "note": "",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(StockAlertRequest.objects.count(), 1)
+        self.assertContains(response, "Tento požadavek už evidujeme")
 
     def test_checkout_can_update_item_quantity(self):
         session = self.client.session
@@ -675,6 +760,36 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(order.status, Order.Status.DELIVERED)
         self.assertEqual(user.credit, 100)
         self.assertContains(response, "už nelze stornovat")
+
+    def test_my_orders_uses_custom_cancel_modal_instead_of_browser_confirm(self):
+        user = self.user_model.objects.create_user(
+            username="modal-cancel-user",
+            email="modal-cancel@example.com",
+            password="StrongPass123!",
+            first_name="Modal",
+            last_name="Cancel",
+        )
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        order = Order.objects.create(
+            user=user,
+            first_name="Modal",
+            last_name="Cancel",
+            email=user.email,
+            event=self.event,
+            credits_charged=1190,
+            status=Order.Status.CONFIRMED,
+        )
+        order.items.create(variant=self.variant, quantity=1, unit_price=self.variant.price)
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("eshop:my-orders"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "cancel-order-modal")
+        self.assertContains(response, "data-cancel-order-open", html=False)
+        self.assertContains(response, "Ano, stornovat")
+        self.assertNotContains(response, "confirm(")
 
     def test_staff_can_export_pickup_orders_csv(self):
         staff = self.user_model.objects.create_user(
@@ -1087,6 +1202,74 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertContains(response, "Race Jersey")
         self.assertContains(response, "Velikost: L")
         self.assertContains(response, "…ion-1234")
+
+    def test_eshop_admin_index_shows_open_stock_alert_requests(self):
+        staff = self.user_model.objects.create_user(
+            username="staff-stock-alerts",
+            email="staff-stock-alerts@example.com",
+            password="StrongPass123!",
+            first_name="Staff",
+            last_name="Alerts",
+        )
+        staff.is_staff = True
+        staff.is_active = True
+        staff.save(update_fields=["is_staff", "is_active"])
+        sold_out_variant = ProductVariant.objects.create(
+            product=self.product,
+            label="XL",
+            price=1190,
+            stock=0,
+            active=True,
+            sort_order=2,
+        )
+        StockAlertRequest.objects.create(
+            variant=sold_out_variant,
+            email="rider@example.com",
+            note="Chci jeden kus na zavod.",
+        )
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse("eshop:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Poptávka po naskladnění")
+        self.assertContains(response, "Nejžádanější varianty")
+        self.assertContains(response, "Race Jersey")
+        self.assertContains(response, "Velikost: XL")
+        self.assertContains(response, "rider@example.com")
+        self.assertContains(response, "Chci jeden kus na zavod.")
+
+    def test_django_admin_stock_alert_request_changelist_renders(self):
+        staff = self.user_model.objects.create_user(
+            username="stock-alert-admin",
+            email="stock-alert-admin@example.com",
+            password="StrongPass123!",
+            first_name="Stock",
+            last_name="Admin",
+        )
+        staff.is_staff = True
+        staff.is_superuser = True
+        staff.is_active = True
+        staff.save(update_fields=["is_staff", "is_superuser", "is_active"])
+        sold_out_variant = ProductVariant.objects.create(
+            product=self.product,
+            label="XL",
+            price=1190,
+            stock=0,
+            active=True,
+            sort_order=2,
+        )
+        StockAlertRequest.objects.create(
+            variant=sold_out_variant,
+            email="rider@example.com",
+        )
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse("admin:eshop_stockalertrequest_changelist"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Otevřeno")
+        self.assertContains(response, "rider@example.com")
 
     def test_eshop_admin_index_cleans_expired_stock_reservations(self):
         staff = self.user_model.objects.create_user(
