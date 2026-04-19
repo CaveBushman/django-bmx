@@ -61,6 +61,17 @@
   .dark .eshop-shop-search-button:hover {
     background: linear-gradient(135deg, #4f46e5, #3730a3) !important;
   }
+
+  .dark .eshop-shop-select-button {
+    border: 1px solid rgba(129, 140, 248, 0.34) !important;
+    background: linear-gradient(135deg, #4338ca, #312e81) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 26px rgba(49, 46, 129, 0.34) !important;
+  }
+
+  .dark .eshop-shop-select-button:hover {
+    background: linear-gradient(135deg, #4f46e5, #3730a3) !important;
+  }
 </style>
 {% endblock extra_head %}
 
@@ -167,7 +178,7 @@
     </form>
 
     {# ── Mřížka produktů ── #}
-    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-16 xl:gap-x-8">
       {% for product in products %}
       <div class="group relative">
         <a href="{% url 'eshop:product-detail' product.slug %}">
@@ -214,7 +225,7 @@
               {% blocktrans with count=product.total_stock %}Skladem {{ count }} ks{% endblocktrans %}
             {% endif %}
           </span>
-          <a href="{% url 'eshop:product-detail' product.slug %}" class="relative z-10 rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-slate-950 dark:hover:bg-indigo-200">
+          <a href="{% url 'eshop:product-detail' product.slug %}" class="eshop-shop-select-button relative z-10 rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white transition hover:bg-indigo-600">
             {% trans "Vybrat" %}
           </a>
         </div>
