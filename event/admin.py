@@ -1,14 +1,14 @@
 import logging
 from django.contrib import admin
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.translation import gettext_lazy as _
+from django.utils.safestring import mark_safe
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
 from django.core.exceptions import MultipleObjectsReturned
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls import NoReverseMatch
-from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from rider.models import ForeignRider
@@ -59,21 +59,57 @@ class EventAdmin(BaseAdmin):
         'name',
         'date',
         'organizer',
-        'type_for_ranking',
-        'reg_open',
+        'reg_status_colored',
+        'entry_count',
+        'days_to_event',
         'eshop_pickup_enabled',
-        'reg_open_from',
-        'reg_open_to',
-        'reg_cancel_to',
-        'pcp',
-        'pcp_assist',
-        'start_commissar',
-        'classes_and_fees_like',
-        'xls_results',
     )
-    list_display_links = ('name',)
+    list_display_links = ('id', 'name',)
+    list_editable = ('eshop_pickup_enabled',)
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking', 'reg_open', 'eshop_pickup_enabled', 'date')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            _entry_count=Count("entry", distinct=True)
+        )
+
+    @admin.display(description=_("Přihlášeno"), ordering="_entry_count")
+    def entry_count(self, obj):
+        return obj._entry_count
+
+    @admin.display(description=_("Status reg."), ordering="reg_open")
+    def reg_status_colored(self, obj):
+        if not obj.reg_open:
+            return mark_safe('<span style="color: #666;">🔘 Vypnuto</span>')
+        
+        t = now()
+        if obj.reg_open_from and t < obj.reg_open_from:
+            return mark_safe('<span style="color: #d97706;">⏳ Budoucí</span>')
+        if obj.reg_open_to and t > obj.reg_open_to:
+            return mark_safe('<span style="color: #dc2626;">🏁 Uzavřeno</span>')
+        
+        return mark_safe('<span style="color: #16a34a; font-weight: bold;">✔ Aktivní</span>')
+
+    @admin.display(description=_("Zbývá dní"))
+    def days_to_event(self, obj):
+        if not obj.date:
+            return "-"
+        diff = (obj.date - now().date()).days
+        if diff < 0:
+            return mark_safe('<span style="color: #94a3b8;">{}</span>'.format(diff))
+        if diff <= 7:
+            return mark_safe('<span style="color: #dc2626; font-weight: bold;">{} d.</span>'.format(diff))
+        return f"{diff} d."
+
+    @admin.display(description=_("Výsledky"))
+    def has_results_indicator(self, obj):
+        if obj.xls_results:
+            return mark_safe('<span title="XLS výsledky nahrány">📊</span>')
+        if obj.full_results:
+            return mark_safe('<span title="Výsledky nahrány">✅</span>')
+        return mark_safe('<span style="color: #cbd5e1;">-</span>')
+
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = ()
@@ -155,16 +191,15 @@ class EventAdmin(BaseAdmin):
         if not obj.pk:
             return _("Odkazy budou dostupné po prvním uložení závodu.")
         links = [
-            format_html('<a href="{}" target="_blank" rel="noopener">Veřejný detail</a>', reverse("event:event-detail", args=[obj.pk])),
-            format_html('<a href="{}" target="_blank" rel="noopener">Výsledky</a>', reverse("event:results", args=[obj.pk])),
-            format_html('<a href="{}" target="_blank" rel="noopener">Registrace</a>', reverse("event:entry", args=[obj.pk])),
-            format_html('<a href="{}?event__id__exact={}" target="_blank" rel="noopener">Admin výsledky</a>', reverse("admin:event_result_changelist"), obj.pk),
+            mark_safe('<a href="{}" target="_blank" rel="noopener">Veřejný detail</a>'.format(reverse("event:event-detail", args=[obj.pk]))),
+            mark_safe('<a href="{}" target="_blank" rel="noopener">Výsledky</a>'.format(reverse("event:results", args=[obj.pk]))),
+            mark_safe('<a href="{}" target="_blank" rel="noopener">Registrace</a>'.format(reverse("event:entry", args=[obj.pk]))),
+            mark_safe('<a href="{}?event__id__exact={}" target="_blank" rel="noopener">Admin výsledky</a>'.format(reverse("admin:event_result_changelist"), obj.pk)),
         ]
-        return format_html(
-            '<div style="display:flex; gap:12px; flex-wrap:wrap;">{}</div>',
-            mark_safe(
+        return mark_safe(
+            '<div style="display:flex; gap:12px; flex-wrap:wrap;">{}</div>'.format(
                 "".join(
-                    f'<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;">{link}</span>'
+                    '<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;">{}</span>'.format(link)
                     for link in links
                 )
             ),
@@ -185,24 +220,27 @@ class EventAdmin(BaseAdmin):
         ).count()
         marked_zero_points = results.filter(points=0).filter(Q(marked_20=True) | Q(marked_24=True)).count()
 
-        return format_html(
-            "<div>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "</div>",
-            _("Výsledků celkem:"),
-            results.count(),
-            _("Bez navázaného jezdce:"),
-            missing_rider,
-            _("Bez kategorie:"),
-            missing_category,
-            _("Bez typu závodu:"),
-            missing_event_type,
-            _("Bodovaných závodních řádků s 0 body:"),
-            zero_points_ranking + marked_zero_points,
+        return mark_safe(
+            (
+                "<div>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "</div>"
+            ).format(
+                _("Výsledků celkem:"),
+                results.count(),
+                _("Bez navázaného jezdce:"),
+                missing_rider,
+                _("Bez kategorie:"),
+                missing_category,
+                _("Bez typu závodu:"),
+                missing_event_type,
+                _("Bodovaných závodních řádků s 0 body:"),
+                zero_points_ranking + marked_zero_points,
+            )
         )
 
     @admin.display(description=_("Souhrn refundů"))
@@ -215,18 +253,21 @@ class EventAdmin(BaseAdmin):
         refund_total = sum(refund.amount for refund in refunds)
         checkout_entries = Entry.objects.filter(event=obj, checkout=True).count()
 
-        return format_html(
-            "<div>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {} Kč</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "</div>",
-            _("Počet refundů:"),
-            refund_count,
-            _("Celkem vráceno:"),
-            refund_total,
-            _("Registrace s checkout:"),
-            checkout_entries,
+        return mark_safe(
+            (
+                "<div>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {} Kč</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "</div>"
+            ).format(
+                _("Počet refundů:"),
+                refund_count,
+                _("Celkem vráceno:"),
+                refund_total,
+                _("Registrace s checkout:"),
+                checkout_entries,
+            )
         )
 
     @admin.display(description=_("Timeline checkoutu"))
@@ -272,7 +313,7 @@ class EventAdmin(BaseAdmin):
             "</tbody>"
             "</table>"
         )
-        return format_html("{}", mark_safe(table))
+        return mark_safe(table)
 
 
 class EntryClassesAdmin(BaseAdmin):
@@ -460,7 +501,7 @@ class EntryAdmin(BaseAdmin):
             url = reverse("admin:event_credittransaction_change", args=[refund.pk])
         except NoReverseMatch:
             return refund.payment_intent or "Vratka"
-        return format_html('<a href="{}">{} Kč</a>', url, refund.amount)
+        return mark_safe('<a href="{}">{} Kč</a>'.format(url, refund.amount))
 
     @admin.display(description=_("Souhrn refundu"))
     def checkout_refund_summary(self, obj):
@@ -470,29 +511,30 @@ class EntryAdmin(BaseAdmin):
 
         try:
             refund_url = reverse("admin:event_credittransaction_change", args=[refund.pk])
-            refund_link = format_html('<a href="{}">#{}</a>', refund_url, refund.pk)
+            refund_link = mark_safe('<a href="{}">#{}</a>'.format(refund_url, refund.pk))
         except NoReverseMatch:
             refund_link = f"#{refund.pk}"
 
         event_name = obj.event.name if obj.event else "-"
-        return format_html(
-            "<div>"
-            "<p><strong>{}</strong> {} Kč</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "<p><strong>{}</strong> {}</p>"
-            "</div>",
-            _("Částka:"),
-            refund.amount,
-            _("Transakce:"),
-            refund_link,
-            _("Intent:"),
-            refund.payment_intent or "-",
-            _("Dokončeno:"),
-            _("Ano") if refund.payment_complete else _("Ne"),
-            _("Závod:"),
-            event_name,
+        return mark_safe(
+            (
+                "<div>"
+                "<p><strong>{}</strong> {} Kč</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "<p><strong>{}</strong> {}</p>"
+                "</div>"
+            ).format(
+                _("Částka:"),
+                refund.amount,
+                _("Transakce:"),
+                refund_link,
+                _("Intent:"),
+                refund.payment_intent or "-",
+                _("Dokončeno:"),
+                _("Ano") if refund.payment_complete else _("Ne"),
+            )
         )
 
     @admin.display(description=_("Audit checkoutu"))
@@ -534,7 +576,7 @@ class EntryAdmin(BaseAdmin):
             "</tbody>"
             "</table>"
         )
-        return format_html("{}", mark_safe(table))
+        return mark_safe(table)
 
 
 class EntryForeignAdmin(BaseAdmin):
@@ -626,7 +668,7 @@ class EntryForeignAdmin(BaseAdmin):
             url = reverse('admin:rider_foreignrider_change', args=[foreign_rider.pk])
         except NoReverseMatch:
             return "Detail nedostupný"
-        return format_html('<a href="{}">Otevřít jezdce</a>', url)
+        return mark_safe('<a href="{}">Otevřít jezdce</a>'.format(url))
 
 
 class CreditTransactionAdmin(BaseAdmin):
