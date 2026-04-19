@@ -156,6 +156,114 @@
     color: #64748b;
   }
 
+  .dark .clubs-directory-page {
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  }
+
+  .dark .clubs-directory-filter,
+  .dark .clubs-directory-card {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+  }
+
+  .dark .clubs-directory-filter input,
+  .dark .clubs-directory-filter select {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+
+  .dark .clubs-directory-filter input::placeholder {
+    color: #64748b;
+  }
+
+  .dark .clubs-directory-filter select option {
+    background: #0f172a;
+    color: #f8fafc;
+  }
+
+  .dark .clubs-directory-submit,
+  .dark .eshop-shop-search-button {
+    border: 1px solid rgba(99, 102, 241, 0.5);
+    background: linear-gradient(135deg, #4f46e5, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.24);
+  }
+
+  .dark .clubs-directory-submit:hover,
+  .dark .eshop-shop-search-button:hover {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+  }
+
+  .dark .clubs-directory-contact-badge {
+    background: rgba(16, 185, 129, 0.12);
+    color: #86efac;
+  }
+
+  .dark .clubs-directory-contact-link {
+    border: 1px solid rgba(51, 65, 85, 0.88);
+    background: rgba(15, 23, 42, 0.88);
+  }
+
+  .dark .clubs-directory-contact-link-email {
+    color: #93c5fd;
+  }
+
+  .dark .clubs-directory-contact-link-email:hover {
+    border-color: rgba(59, 130, 246, 0.56);
+    background: rgba(30, 64, 175, 0.22);
+  }
+
+  .dark .clubs-directory-contact-link-phone {
+    color: #6ee7b7;
+  }
+
+  .dark .clubs-directory-contact-link-phone:hover {
+    border-color: rgba(16, 185, 129, 0.52);
+    background: rgba(6, 95, 70, 0.24);
+  }
+
+  .dark .eshop-shop-admin-bar {
+    border-color: rgba(99, 102, 241, 0.28);
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.3);
+  }
+
+  .dark .eshop-shop-admin-link {
+    border-color: rgba(99, 102, 241, 0.38);
+    background: rgba(49, 46, 129, 0.34);
+    color: #c7d2fe;
+  }
+
+  .dark .eshop-shop-admin-link:hover {
+    border-color: rgba(129, 140, 248, 0.7);
+    background: rgba(67, 56, 202, 0.42);
+    color: #ffffff;
+  }
+
+  .dark .eshop-shop-search {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.24);
+  }
+
+  .dark .eshop-shop-search input {
+    border-color: rgba(71, 85, 105, 0.96);
+    background: rgba(2, 6, 23, 0.78);
+    color: #f8fafc;
+  }
+
+  .dark .eshop-shop-search input::placeholder {
+    color: #64748b;
+  }
+
+  .dark .eshop-shop-search input:focus {
+    border-color: rgba(99, 102, 241, 0.9);
+    background: rgba(15, 23, 42, 0.98);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  }
+
   .article-richtext-dark {
     color: inherit;
   }

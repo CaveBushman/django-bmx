@@ -233,6 +233,23 @@
         {# ── Info + formulář ── #}
         <div class="flex flex-col gap-8">
 
+          {% if request.GET.added %}
+          <div class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm dark:border-emerald-500/30 dark:bg-emerald-500/10">
+            <p class="text-sm font-black text-emerald-800 dark:text-emerald-200">{% trans "Přidáno do košíku" %}</p>
+            <p class="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
+              {% trans "Můžeš pokračovat v nákupu, nebo přejít do košíku a zkontrolovat objednávku před checkoutem." %}
+            </p>
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+              <a href="{% url 'eshop:shop' %}" class="inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-900">
+                {% trans "Pokračovat v nákupu" %}
+              </a>
+              <a href="{% url 'eshop:cart' %}" class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                {% trans "Přejít do košíku" %}
+              </a>
+            </div>
+          </div>
+          {% endif %}
+
           {# ── Varianty + košík ── #}
           {% with variants=product.variants.all %}
           {% if variants %}

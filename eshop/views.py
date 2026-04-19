@@ -1,13 +1,17 @@
 import csv
+import hashlib
+import logging
+import uuid
 from decimal import Decimal
 from xml.etree import ElementTree as ET
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.db import transaction as db_tx
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -15,6 +19,7 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST
 
+from bmx.rate_limit import get_rate_limit_subject, is_rate_limited
 from .cart import Cart
 from .forms import CheckoutForm, StockAlertRequestForm
 from .invoice import generate_credit_note, generate_invoice
@@ -31,6 +36,34 @@ from .models import (
 
 
 RESERVATION_MINUTES = 10
+logger = logging.getLogger(__name__)
+
+
+def _csv_safe(value):
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        return value
+    text = value
+    if text and text[0] in {"=", "+", "-", "@", "\t", "\r"}:
+        return f"'{text}"
+    return text
+
+
+def _checkout_token(request):
+    token = request.session.get("eshop_checkout_token")
+    if not token:
+        token = uuid.uuid4().hex
+        request.session["eshop_checkout_token"] = token
+        request.session.modified = True
+    return token
+
+
+def _checkout_submit_lock_key(request, token, cart_obj):
+    session_key = _ensure_session_key(request)
+    cart_signature = ",".join(f"{key}:{value}" for key, value in sorted(cart_obj.raw().items()))
+    digest = hashlib.sha256(cart_signature.encode("utf-8")).hexdigest()[:16]
+    return f"eshop-checkout-submit:{session_key}:{token}:{digest}"
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -159,7 +192,7 @@ def export_pickup_orders_csv(request):
             for item in order.items.all()
         )
         writer.writerow(
-            [
+            [_csv_safe(value) for value in [
                 order.invoice_number or order.pk,
                 f"{order.first_name} {order.last_name}".strip(),
                 order.email,
@@ -170,7 +203,7 @@ def export_pickup_orders_csv(request):
                 items_text,
                 int(order.total),
                 order.note,
-            ]
+            ]]
         )
     return response
 
@@ -211,7 +244,7 @@ def export_accounting_orders_csv(request):
         charged = int(order.total) if order.status != Order.Status.CANCELED else 0
         refunded = int(order.total) if order.credit_note_number else 0
         writer.writerow(
-            [
+            [_csv_safe(value) for value in [
                 "Faktura",
                 order.invoice_number,
                 timezone.localtime(order.created).strftime("%d.%m.%Y %H:%M"),
@@ -223,11 +256,11 @@ def export_accounting_orders_csv(request):
                 int(order.total),
                 charged,
                 0,
-            ]
+            ]]
         )
         if order.credit_note_number:
             writer.writerow(
-                [
+                [_csv_safe(value) for value in [
                     "Dobropis",
                     order.credit_note_number,
                     timezone.localtime(order.updated).strftime("%d.%m.%Y %H:%M"),
@@ -239,7 +272,7 @@ def export_accounting_orders_csv(request):
                     -int(order.total),
                     0,
                     refunded,
-                ]
+                ]]
             )
     return response
 
@@ -476,6 +509,7 @@ def mark_pickup_order_delivered(request, order_id):
 def shop(request):
     cart_obj = Cart(request)
     category_slug = request.GET.get("kategorie")
+    query = (request.GET.get("q") or "").strip()
     products = (
         Product.objects
         .select_related("category")
@@ -485,6 +519,14 @@ def shop(request):
     )
     if category_slug:
         products = products.filter(category__slug=category_slug)
+    if query:
+        products = products.filter(
+            Q(name__icontains=query)
+            | Q(subtitle__icontains=query)
+            | Q(collection__icontains=query)
+            | Q(description__icontains=query)
+            | Q(category__name__icontains=query)
+        )
 
     from .models import Category
     categories = Category.objects.filter(products__active=True).distinct().order_by("sort_order", "name")
@@ -496,6 +538,7 @@ def shop(request):
         "products": products,
         "categories": categories,
         "active_category": category_slug,
+        "query": query,
         "product_count": product_count,
         "category_count": categories.count(),
         "variant_count": variant_count,
@@ -527,6 +570,16 @@ def request_stock_alert(request, slug):
         slug=slug,
         active=True,
     )
+    limited, _attempts = is_rate_limited(
+        "eshop-stock-alert",
+        get_rate_limit_subject(request, scope_to_user=True),
+        window_seconds=60 * 15,
+        max_attempts=8,
+    )
+    if limited:
+        messages.error(request, "Požadavků je příliš mnoho. Zkus to prosím znovu za několik minut.")
+        return redirect("eshop:product-detail", slug=product.slug)
+
     form = StockAlertRequestForm(request.POST, product=product, user=request.user)
     if not form.is_valid():
         messages.error(request, "Požadavek na hlídání dostupnosti se nepodařilo uložit. Zkontroluj e-mail a variantu.")
@@ -587,28 +640,65 @@ def add_to_cart(request):
     StockReservation.cleanup_expired()
     variant_id = request.POST.get("variant_id")
     try:
+        quantity = max(1, int(request.POST.get("quantity", 1)))
+    except (TypeError, ValueError):
+        quantity = 1
+    try:
         variant = get_object_or_404(ProductVariant, pk=int(variant_id), active=True)
     except (TypeError, ValueError):
         return redirect("eshop:shop")
     cart_obj = Cart(request)
     available_stock = _available_stock_for_variant(variant.pk, session_key=_ensure_session_key(request))
+    current_quantity = cart_obj.get_quantity(variant.pk)
+    addable_quantity = min(quantity, max(available_stock - current_quantity, 0))
     if available_stock <= 0:
         messages.warning(request, "Vybraná varianta už není skladem.")
         return redirect("eshop:product-detail", slug=variant.product.slug)
-    if cart_obj.get_quantity(variant.pk) >= available_stock:
+    if addable_quantity <= 0:
         messages.warning(request, "V košíku už máš maximální počet kusů, které jsou skladem.")
-        return redirect("eshop:checkout")
-    cart_obj.add(variant.pk)
-    return redirect("eshop:checkout")
+        return redirect("eshop:product-detail", slug=variant.product.slug)
+    if addable_quantity < quantity:
+        messages.warning(request, "Do košíku jsme přidali jen aktuálně dostupný počet kusů.")
+    cart_obj.add(variant.pk, addable_quantity)
+    return redirect(f"{reverse('eshop:product-detail', args=[variant.product.slug])}?added=1")
 
 
 def cart(request):
     StockReservation.cleanup_expired()
     cart_obj = Cart(request)
-    if cart_obj:
-        return redirect("eshop:checkout")
-    _release_stock_reservations(request)
-    return redirect("eshop:shop")
+    if request.method == "POST" and request.POST.get("action") in {"remove", "update"}:
+        action = request.POST.get("action")
+        vid = request.POST.get("variant_id")
+        if action == "remove" and vid:
+            cart_obj.remove(vid)
+        elif action == "update" and vid:
+            try:
+                qty = int(request.POST.get("quantity", 1))
+            except ValueError:
+                qty = 1
+            variant = ProductVariant.objects.filter(pk=vid, active=True).first()
+            available_stock = _available_stock_for_variant(vid, session_key=_ensure_session_key(request))
+            if not variant or available_stock <= 0:
+                cart_obj.remove(vid)
+                messages.warning(request, "Položka už není skladem a byla z košíku odebrána.")
+            else:
+                if qty > available_stock:
+                    qty = available_stock
+                    messages.warning(request, "Počet kusů byl upraven podle aktuální skladové zásoby.")
+                cart_obj.set(vid, qty)
+        return redirect("eshop:cart")
+
+    items, total, stock_warnings = _build_cart_items(
+        cart_obj,
+        normalize=True,
+        session_key=_ensure_session_key(request) if cart_obj else None,
+    )
+    for warning in stock_warnings:
+        messages.warning(request, warning)
+    if not items:
+        _release_stock_reservations(request)
+
+    return render(request, "eshop/cart.html", {"items": items, "total": total})
 
 
 def checkout(request):
@@ -689,6 +779,15 @@ def checkout(request):
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         if form.is_valid() and can_submit_order:
+            submitted_token = request.POST.get("checkout_token", "")
+            expected_token = request.session.get("eshop_checkout_token", "")
+            if not submitted_token or submitted_token != expected_token:
+                messages.error(request, "Platnost checkout formuláře vypršela. Zkontroluj košík a odešli objednávku znovu.")
+                return redirect("eshop:checkout")
+            submit_lock_key = _checkout_submit_lock_key(request, submitted_token, cart_obj)
+            if not cache.add(submit_lock_key, True, 120):
+                messages.warning(request, "Objednávku už zpracováváme. Neodesílej formulář znovu.")
+                return redirect("eshop:checkout")
             try:
                 with db_tx.atomic():
                     order = form.save(commit=False)
@@ -710,10 +809,12 @@ def checkout(request):
                     order.charge_credits(actor=request.user)
                     order.ensure_invoice_number(actor=request.user)
             except ValueError as exc:
+                cache.delete(submit_lock_key)
                 messages.error(request, str(exc))
             else:
                 _release_stock_reservations(request)
                 cart_obj.clear()
+                request.session.pop("eshop_checkout_token", None)
                 request.session["last_order_id"] = order.pk
                 return redirect("eshop:order-confirmation", order_id=order.pk)
         if form.is_valid() and not can_submit_order:
@@ -739,6 +840,7 @@ def checkout(request):
             "pickup_unavailable_warning": pickup_unavailable_warning,
             "selected_pickup_event": selected_pickup_event,
             "reservation_expires_at": reservation_expires_at,
+            "checkout_token": _checkout_token(request),
         },
     )
 
@@ -868,7 +970,7 @@ def _save_invoice(order, *, actor=None):
         buf = generate_invoice(order)
         order.invoice_pdf.save(f"faktura-{invoice_number}.pdf", ContentFile(buf.read()), save=True)
     except Exception:
-        pass  # Invoice generation must never break the checkout flow
+        logger.exception("Invoice PDF generation failed for e-shop order %s", order.pk)
 
 
 def _save_credit_note(order, *, actor=None):
@@ -878,7 +980,7 @@ def _save_credit_note(order, *, actor=None):
         buf = generate_credit_note(order)
         order.credit_note_pdf.save(f"dobropis-{credit_note_number}.pdf", ContentFile(buf.read()), save=True)
     except Exception:
-        pass
+        logger.exception("Credit note PDF generation failed for e-shop order %s", order.pk)
 
 
 def _ensure_session_key(request):

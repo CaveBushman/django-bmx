@@ -270,18 +270,23 @@ class Order(models.Model):
 
         if not self.user_id:
             raise ValueError("Objednávka nemá přiřazeného zákazníka.")
-        if self.is_paid:
-            raise ValueError("Objednávka již byla zaplacena.")
-
-        needed = int(self.total)
-        user = self.user
-        if user.credit < needed:
-            raise ValueError(
-                f"Nedostatek kreditů — zákazník má {user.credit} Kč, objednávka stojí {needed} Kč."
-            )
 
         with db_tx.atomic():
-            items = list(self.items.select_related("variant__product").all())
+            locked_order = Order.objects.select_for_update().get(pk=self.pk)
+            if locked_order.is_paid:
+                raise ValueError("Objednávka již byla zaplacena.")
+            if not locked_order.user_id:
+                raise ValueError("Objednávka nemá přiřazeného zákazníka.")
+
+            user_model = locked_order.user.__class__
+            user = user_model.objects.select_for_update().get(pk=locked_order.user_id)
+            needed = int(locked_order.total)
+            if user.credit < needed:
+                raise ValueError(
+                    f"Nedostatek kreditů — zákazník má {user.credit} Kč, objednávka stojí {needed} Kč."
+                )
+
+            items = list(locked_order.items.select_related("variant__product").all())
             variant_ids = [item.variant_id for item in items if item.variant_id]
             locked_variants = {
                 variant.pk: variant
@@ -297,46 +302,45 @@ class Order(models.Model):
                         f"Varianta {variant.product.name} / {variant.label} už nemá dostatek kusů skladem."
                     )
 
-            user.credit -= needed
-            user.save(update_fields=["credit"])
-
             for item in items:
                 ProductVariant.objects.filter(pk=item.variant_id).update(stock=F("stock") - item.quantity)
                 variant = locked_variants[item.variant_id]
                 variant.refresh_from_db(fields=["stock"])
                 StockMovement.record(
                     variant=variant,
-                    order=self,
+                    order=locked_order,
                     movement_type=StockMovement.MovementType.ORDER_DECREMENT,
                     quantity_delta=-item.quantity,
                     stock_after=variant.stock,
                     actor=actor,
-                    note=f"Objednávka #{self.pk}",
+                    note=f"Objednávka #{locked_order.pk}",
                 )
 
-            self.credits_charged = needed
-            self.status = Order.Status.CONFIRMED
-            self.save(update_fields=["credits_charged", "status", "updated"])
+            locked_order.credits_charged = needed
+            locked_order.status = Order.Status.CONFIRMED
+            locked_order.save(update_fields=["credits_charged", "status", "updated"])
             CreditTransaction.objects.create(
                 user=user,
                 amount=-needed,
                 kind=CreditTransaction.Kind.ESHOP_PURCHASE,
                 payment_complete=True,
-                transaction_id=f"eshop-order-{self.pk}",
-                payment_intent=f"Nákup v e-shopu č. {self.pk}",
+                transaction_id=f"eshop-order-{locked_order.pk}",
+                payment_intent=f"Nákup v e-shopu č. {locked_order.pk}",
             )
             OrderHistory.record(
-                order=self,
+                order=locked_order,
                 action=OrderHistory.Action.CREDIT_CHARGED,
                 actor=actor,
                 note=f"Odečteno {needed} kreditů.",
             )
             OrderHistory.record(
-                order=self,
+                order=locked_order,
                 action=OrderHistory.Action.CONFIRMED,
                 actor=actor,
                 note="Objednávka potvrzena.",
             )
+            self.credits_charged = locked_order.credits_charged
+            self.status = locked_order.status
 
     def cancel_by_user(self, *, actor=None):
         from django.db import transaction as db_tx

@@ -66,6 +66,10 @@ class EshopCheckoutTemplateTests(TestCase):
             eshop_pickup_enabled=True,
         )
 
+    def checkout_token(self):
+        self.client.get(reverse("eshop:checkout"))
+        return self.client.session["eshop_checkout_token"]
+
     def test_checkout_warns_when_credit_is_insufficient(self):
         user = self.user_model.objects.create_user(
             first_name="Low",
@@ -113,6 +117,7 @@ class EshopCheckoutTemplateTests(TestCase):
                 "phone": "+420123456789",
                 "event": self.event.pk,
                 "note": "",
+                "checkout_token": self.checkout_token(),
             },
         )
 
@@ -150,6 +155,7 @@ class EshopCheckoutTemplateTests(TestCase):
                 "phone": "+420123456789",
                 "event": self.event.pk,
                 "note": "Predani na zavode",
+                "checkout_token": self.checkout_token(),
             },
         )
 
@@ -178,6 +184,86 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(movement.movement_type, StockMovement.MovementType.ORDER_DECREMENT)
         self.assertEqual(movement.quantity_delta, -2)
         self.assertEqual(movement.stock_after, 3)
+
+    def test_checkout_rejects_stale_submit_token_after_success(self):
+        user = self.user_model.objects.create_user(
+            username="double-submit-user",
+            email="double-submit@example.com",
+            password="StrongPass123!",
+            first_name="Double",
+            last_name="Submit",
+        )
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        CreditTransaction.objects.create(
+            user=user,
+            amount=5000,
+            kind=CreditTransaction.Kind.TOPUP,
+            payment_complete=True,
+        )
+        self.client.force_login(user)
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 1}
+        session.save()
+        token = self.checkout_token()
+        payload = {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": "+420123456789",
+            "event": self.event.pk,
+            "note": "",
+            "checkout_token": token,
+        }
+
+        first = self.client.post(reverse("eshop:checkout"), payload)
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 1}
+        session.save()
+        second = self.client.post(reverse("eshop:checkout"), payload)
+
+        order = Order.objects.get()
+        self.assertRedirects(first, reverse("eshop:order-confirmation", args=[order.pk]))
+        self.assertRedirects(second, reverse("eshop:checkout"))
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(CreditTransaction.objects.filter(kind=CreditTransaction.Kind.ESHOP_PURCHASE).count(), 1)
+
+    def test_charge_credits_is_idempotent_after_successful_charge(self):
+        user = self.user_model.objects.create_user(
+            username="charge-once-user",
+            email="charge-once@example.com",
+            password="StrongPass123!",
+            first_name="Charge",
+            last_name="Once",
+        )
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        CreditTransaction.objects.create(
+            user=user,
+            amount=3000,
+            kind=CreditTransaction.Kind.TOPUP,
+            payment_complete=True,
+        )
+        order = Order.objects.create(
+            user=user,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            event=self.event,
+        )
+        order.items.create(variant=self.variant, quantity=1, unit_price=self.variant.price)
+
+        order.charge_credits(actor=user)
+        with self.assertRaisesMessage(ValueError, "Objednávka již byla zaplacena."):
+            order.charge_credits(actor=user)
+
+        self.variant.refresh_from_db()
+        user.refresh_from_db()
+        order.refresh_from_db()
+        self.assertEqual(order.credits_charged, 1190)
+        self.assertEqual(self.variant.stock, 4)
+        self.assertEqual(user.credit, 1810)
+        self.assertEqual(CreditTransaction.objects.filter(kind=CreditTransaction.Kind.ESHOP_PURCHASE).count(), 1)
 
     def test_order_confirmation_is_final_confirmation_without_credit_payment_cta(self):
         user = self.user_model.objects.create_user(
@@ -531,13 +617,16 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(response.url, reverse("eshop:checkout"))
         self.assertNotIn(str(self.variant.pk), self.client.session[CART_SESSION_KEY])
 
-    def test_add_to_cart_redirects_directly_to_checkout(self):
+    def test_add_to_cart_returns_to_product_with_cart_actions(self):
         response = self.client.post(
             reverse("eshop:add-to-cart"),
             {"variant_id": self.variant.pk},
+            follow=True,
         )
 
-        self.assertRedirects(response, reverse("eshop:checkout"))
+        self.assertRedirects(response, f"{reverse('eshop:product-detail', args=[self.product.slug])}?added=1")
+        self.assertContains(response, "Přidáno do košíku")
+        self.assertContains(response, "Přejít do košíku")
 
     def test_add_to_cart_does_not_exceed_available_stock(self):
         self.variant.stock = 1
@@ -546,18 +635,20 @@ class EshopCheckoutTemplateTests(TestCase):
         first = self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk})
         second = self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk})
 
-        self.assertRedirects(first, reverse("eshop:checkout"))
-        self.assertRedirects(second, reverse("eshop:checkout"))
+        self.assertRedirects(first, f"{reverse('eshop:product-detail', args=[self.product.slug])}?added=1")
+        self.assertRedirects(second, reverse("eshop:product-detail", args=[self.product.slug]))
         self.assertEqual(self.client.session[CART_SESSION_KEY][str(self.variant.pk)], 1)
 
-    def test_cart_route_redirects_to_checkout_when_items_exist(self):
+    def test_cart_route_renders_cart_when_items_exist(self):
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 1}
         session.save()
 
         response = self.client.get(reverse("eshop:cart"))
 
-        self.assertRedirects(response, reverse("eshop:checkout"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Race Jersey")
+        self.assertContains(response, "Objednat")
 
     def test_checkout_adjusts_quantity_when_stock_drops(self):
         session = self.client.session
@@ -583,6 +674,8 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(reservation.quantity, 2)
         self.assertGreater(reservation.expires_at, timezone.now())
         self.assertContains(response, "Kusy v checkoutu držíme rezervované")
+        self.assertContains(response, "data-reservation-countdown", html=False)
+        self.assertContains(response, "data-countdown-output", html=False)
 
     def test_checkout_respects_stock_reservation_from_another_session(self):
         other_client = Client()
@@ -635,6 +728,7 @@ class EshopCheckoutTemplateTests(TestCase):
                 "phone": "+420123456789",
                 "event": self.event.pk,
                 "note": "",
+                "checkout_token": self.checkout_token(),
             },
         )
 
@@ -821,6 +915,37 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(response["Content-Type"], "text/csv; charset=utf-8")
         self.assertIn("003202604001", response.content.decode("utf-8"))
         self.assertIn("Race Jersey / L x 2", response.content.decode("utf-8"))
+
+    def test_pickup_csv_export_escapes_spreadsheet_formulas(self):
+        staff = self.user_model.objects.create_user(
+            username="staff-export-safe",
+            email="staff-export-safe@example.com",
+            password="StrongPass123!",
+            first_name="Staff",
+            last_name="ExportSafe",
+        )
+        staff.is_staff = True
+        staff.is_active = True
+        staff.save(update_fields=["is_staff", "is_active"])
+        order = Order.objects.create(
+            user=staff,
+            first_name="=IMPORTXML(\"https://example.com\")",
+            last_name="Buyer",
+            email="safe@example.com",
+            event=self.event,
+            invoice_number="003202604021",
+            credits_charged=1190,
+            status=Order.Status.CONFIRMED,
+            note="+cmd",
+        )
+        order.items.create(variant=self.variant, quantity=1, unit_price=self.variant.price)
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse("eshop:pickup-export"))
+
+        content = response.content.decode("utf-8")
+        self.assertIn("'=IMPORTXML", content)
+        self.assertIn("'+cmd", content)
 
     def test_staff_can_export_accounting_orders_csv(self):
         staff = self.user_model.objects.create_user(

@@ -89,9 +89,26 @@ function getEntrySelectionCounts(form) {
   };
 }
 
+function getRiderCountLabel(total, form) {
+  var singular = (form && form.dataset.riderSingular) || "jezdec";
+  var few = (form && form.dataset.riderFew) || "jezdci";
+  var many = (form && form.dataset.riderMany) || "jezdců";
+
+  if (total === 1) return singular;
+
+  var mod100 = total % 100;
+  if (mod100 >= 11 && mod100 <= 14) return many;
+
+  var mod10 = total % 10;
+  if (mod10 >= 2 && mod10 <= 4) return few;
+
+  return many;
+}
+
 function updateEntrySelectionSummary() {
   var form = document.getElementById("entry-form");
   var submitButtons = document.querySelectorAll("[data-entry-submit]");
+  var submitTexts = document.querySelectorAll("[data-entry-submit-text]");
   var selectionLabels = document.querySelectorAll("[data-entry-selection-label]");
   var selectionBreakdowns = document.querySelectorAll("[data-entry-selection-breakdown]");
 
@@ -101,15 +118,15 @@ function updateEntrySelectionSummary() {
 
   var counts = getEntrySelectionCounts(form);
   var selectedLabel = form.dataset.selectedLabel || "Vybráno";
-  var registrationsLabel = form.dataset.registrationsLabel || "registrací";
   var beginnerLabel = form.dataset.beginnerLabel || "Příchozí";
   var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
+  var riderCountLabel = getRiderCountLabel(counts.total, form);
   var breakdown =
-    '20" ' + counts.count20 + ' | 24" ' + counts.count24 +
-    (beginnerInputs ? " | " + beginnerLabel + " " + counts.countBeginner : "");
+    '20": ' + counts.count20 + " • 24\": " + counts.count24 +
+    (beginnerInputs ? " • " + beginnerLabel + ": " + counts.countBeginner : "");
 
   for (var i = 0; i < selectionLabels.length; i++) {
-    selectionLabels[i].textContent = selectedLabel + " " + counts.total + " " + registrationsLabel;
+    selectionLabels[i].textContent = selectedLabel + " " + counts.total + " " + riderCountLabel;
   }
 
   for (var j = 0; j < selectionBreakdowns.length; j++) {
@@ -120,6 +137,14 @@ function updateEntrySelectionSummary() {
     submitButtons[k].disabled = counts.total === 0;
     submitButtons[k].classList.toggle("opacity-60", counts.total === 0);
     submitButtons[k].classList.toggle("cursor-not-allowed", counts.total === 0);
+    submitButtons[k].classList.toggle("entry-cta--active", counts.total > 0);
+  }
+
+  for (var l = 0; l < submitTexts.length; l++) {
+    submitTexts[l].textContent =
+      counts.total > 0
+        ? (form.dataset.buttonActive || "Přidat vybrané do košíku")
+        : (form.dataset.buttonIdle || "Přidat do košíku");
   }
 }
 
