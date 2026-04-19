@@ -72,6 +72,101 @@
   .dark .eshop-shop-select-button:hover {
     background: linear-gradient(135deg, #4f46e5, #3730a3) !important;
   }
+
+  .eshop-shop-products-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    column-gap: 1.5rem !important;
+    row-gap: 2.75rem !important;
+  }
+
+  .eshop-shop-product-card {
+    min-width: 0 !important;
+  }
+
+  .eshop-shop-product-media {
+    position: relative !important;
+    display: flex !important;
+    aspect-ratio: 16 / 9 !important;
+    min-height: 14rem !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    border-radius: 1rem !important;
+    background: #f8fafc !important;
+  }
+
+  .eshop-shop-product-image {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 14rem !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    background: #f8fafc !important;
+  }
+
+  .eshop-shop-product-placeholder {
+    position: absolute !important;
+    inset: 0 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5rem !important;
+    text-align: center !important;
+    background:
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.84)),
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 35%) !important;
+    color: #f8fafc !important;
+  }
+
+  .eshop-shop-product-placeholder--visible {
+    display: flex !important;
+  }
+
+  .eshop-shop-product-placeholder-title {
+    font-size: 1.05rem !important;
+    line-height: 1.25 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .eshop-shop-product-placeholder-icon {
+    margin-bottom: 0.85rem !important;
+    color: #94a3b8 !important;
+  }
+
+  .dark .eshop-shop-product-media,
+  .dark .eshop-shop-product-image {
+    background: #1e293b !important;
+  }
+
+  .dark .eshop-shop-product-placeholder {
+    color: #f8fafc !important;
+  }
+
+  .dark .eshop-shop-product-placeholder-icon {
+    color: #64748b !important;
+  }
+
+  @media (min-width: 640px) {
+    .eshop-shop-products-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .eshop-shop-products-grid {
+      column-gap: 1.75rem !important;
+      row-gap: 3.25rem !important;
+    }
+
+    .eshop-shop-product-media,
+    .eshop-shop-product-image {
+      min-height: 18rem !important;
+    }
+  }
 </style>
 {% endblock extra_head %}
 
@@ -178,21 +273,35 @@
     </form>
 
     {# ── Mřížka produktů ── #}
-    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+    <div class="eshop-shop-products-grid mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
       {% for product in products %}
-      <div class="group relative flex h-full flex-col">
-        <a href="{% url 'eshop:product-detail' product.slug %}" class="block">
+      <div class="eshop-shop-product-card group relative flex h-full flex-col">
+        <a href="{% url 'eshop:product-detail' product.slug %}" class="eshop-shop-product-media block">
           {% if product.image %}
           <img src="{{ product.image.url }}"
                alt="{{ product.name }}"
-               class="aspect-square w-full rounded-2xl bg-gray-100 object-cover group-hover:opacity-80 transition lg:aspect-auto lg:h-80 dark:bg-slate-800" />
+               onerror="this.hidden=true; this.nextElementSibling.classList.add('eshop-shop-product-placeholder--visible');"
+               class="eshop-shop-product-image aspect-square w-full rounded-2xl bg-gray-100 object-cover group-hover:opacity-80 transition lg:aspect-auto lg:h-80 dark:bg-slate-800" />
+          <div class="eshop-shop-product-placeholder">
+            <div>
+              <svg class="eshop-shop-product-placeholder-icon mx-auto h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="m21 15-5-5L5 21"/>
+              </svg>
+              <span class="eshop-shop-product-placeholder-title">{{ product.name }}</span>
+            </div>
+          </div>
           {% else %}
-          <div class="aspect-square w-full rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center lg:aspect-auto lg:h-80">
-            <svg class="h-16 w-16 text-slate-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <rect x="3" y="3" width="18" height="18" rx="3"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <path d="m21 15-5-5L5 21"/>
-            </svg>
+          <div class="eshop-shop-product-placeholder eshop-shop-product-placeholder--visible">
+            <div>
+              <svg class="eshop-shop-product-placeholder-icon mx-auto h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="m21 15-5-5L5 21"/>
+              </svg>
+              <span class="eshop-shop-product-placeholder-title">{{ product.name }}</span>
+            </div>
           </div>
           {% endif %}
         </a>
