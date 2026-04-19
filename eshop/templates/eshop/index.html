@@ -7,21 +7,22 @@
 <style>
   .eshop-admin-page {
     background:
-      radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 22%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 20%),
+      radial-gradient(circle at 8% 4%, rgba(79, 70, 229, 0.11), transparent 24%),
+      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.1), transparent 22%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%),
       #f8fafc;
   }
 
   .eshop-admin-panel {
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(203, 213, 225, 0.72);
-    border-radius: 1.65rem;
+    border: 1px solid rgba(203, 213, 225, 0.78);
+    border-radius: 1.85rem;
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.9)),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 34%);
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.11), transparent 36%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88));
     box-shadow:
-      0 22px 70px rgba(15, 23, 42, 0.09),
+      0 26px 74px rgba(15, 23, 42, 0.09),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
@@ -29,9 +30,9 @@
     content: "";
     position: absolute;
     inset: 0 0 auto;
-    height: 4px;
-    background: linear-gradient(90deg, #4f46e5, #06b6d4, #10b981);
-    opacity: 0.82;
+    height: 5px;
+    background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 46%, #10b981 100%);
+    opacity: 0.88;
   }
 
   .eshop-admin-panel > * {
@@ -41,15 +42,19 @@
 
   .eshop-admin-subcard {
     border: 1px solid rgba(226, 232, 240, 0.82);
-    border-radius: 1.1rem;
+    border-radius: 1.15rem;
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.82));
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 30px rgba(15, 23, 42, 0.04);
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.86));
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9),
+      0 14px 34px rgba(15, 23, 42, 0.045);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
   }
 
   .eshop-admin-subcard:hover {
     border-color: rgba(99, 102, 241, 0.32);
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
   }
 
   .eshop-admin-actionbar {
@@ -66,19 +71,21 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.1rem;
-    min-height: 3.25rem;
-    min-width: 5.6rem;
-    padding: 0.65rem 0.9rem;
-    border-radius: 1rem;
+    gap: 0.22rem;
+    min-height: 4.15rem;
+    min-width: 6.7rem;
+    padding: 0.9rem 1.05rem;
+    border-radius: 1.2rem;
     border: 1px solid rgba(226, 232, 240, 0.9);
-    background: rgba(248, 250, 252, 0.92);
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 45%),
+      rgba(248, 250, 252, 0.92);
     color: #334155;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .eshop-admin-metric-value {
-    font-size: 1rem;
+    font-size: 1.25rem;
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -91,6 +98,43 @@
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: #64748b;
+  }
+
+  .eshop-admin-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .eshop-admin-panel-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6366f1;
+  }
+
+  .eshop-admin-kpi-stack {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.55rem;
+  }
+
+  @media (max-width: 640px) {
+    .eshop-admin-panel-heading {
+      flex-direction: column;
+    }
+
+    .eshop-admin-kpi-stack {
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .eshop-admin-metric {
+      min-width: calc(50% - 0.3rem);
+    }
   }
 
   .eshop-admin-empty {
@@ -161,16 +205,17 @@
 
   html.dark .eshop-admin-page {
     background:
-      radial-gradient(circle at top left, rgba(79, 70, 229, 0.14), transparent 22%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 20%),
+      radial-gradient(circle at 8% 4%, rgba(79, 70, 229, 0.18), transparent 24%),
+      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(180deg, #0f172a 0%, #111827 48%, #0f172a 100%),
       #0f172a;
   }
 
   html.dark .eshop-admin-panel {
     border-color: rgba(71, 85, 105, 0.76);
     background:
-      linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.78)),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 34%);
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.17), transparent 36%),
+      linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.78));
     box-shadow:
       0 26px 80px rgba(2, 6, 23, 0.42),
       inset 0 1px 0 rgba(148, 163, 184, 0.12);
@@ -197,13 +242,19 @@
 
   html.dark .eshop-admin-metric {
     border-color: rgba(71, 85, 105, 0.9);
-    background: rgba(15, 23, 42, 0.82);
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 45%),
+      rgba(15, 23, 42, 0.82);
     color: #e2e8f0;
     box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.1);
   }
 
   html.dark .eshop-admin-metric-label {
     color: #94a3b8;
+  }
+
+  html.dark .eshop-admin-panel-eyebrow {
+    color: #a5b4fc;
   }
 
   html.dark .eshop-admin-empty {
@@ -344,14 +395,15 @@
 
     <div class="grid gap-8 xl:grid-cols-2">
       <section class="eshop-admin-panel p-6">
-        <div class="flex items-center justify-between gap-4">
+        <div class="eshop-admin-panel-heading">
           <div>
+            <p class="eshop-admin-panel-eyebrow">{% trans "Logistika" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Výdej na závodě" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% trans "Objednávky připravené k předání na konkrétním závodě." %}
             </p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="eshop-admin-kpi-stack">
             <span class="eshop-admin-metric">
               <span class="eshop-admin-metric-value">{{ pickup_count }}</span>
               <span class="eshop-admin-metric-label">{% trans "objednávek" %}</span>
@@ -443,8 +495,9 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="flex items-center justify-between gap-4">
+        <div class="eshop-admin-panel-heading">
           <div>
+            <p class="eshop-admin-panel-eyebrow">{% trans "Dnes" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Předané dnes" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% blocktrans with day=today|date:"j. n. Y" %}Objednávky uzavřené během dne {{ day }}.{% endblocktrans %}
@@ -487,14 +540,15 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="flex items-center justify-between gap-4">
+        <div class="eshop-admin-panel-heading">
           <div>
+            <p class="eshop-admin-panel-eyebrow">{% trans "Rezervace" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Aktivní rezervace skladu" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% trans "Dočasně blokované kusy v checkoutu. Pomáhá odhalit, proč varianta není aktuálně dostupná." %}
             </p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="eshop-admin-kpi-stack">
             <span class="eshop-admin-metric">
               <span class="eshop-admin-metric-value">{{ reservation_count }}</span>
               <span class="eshop-admin-metric-label">{% trans "relací" %}</span>
@@ -569,14 +623,15 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="flex items-center justify-between gap-4">
+        <div class="eshop-admin-panel-heading">
           <div>
+            <p class="eshop-admin-panel-eyebrow">{% trans "Poptávka" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poptávka po naskladnění" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% trans "Otevřené požadavky od uživatelů na vyprodané varianty." %}
             </p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="eshop-admin-kpi-stack">
             <span class="eshop-admin-metric text-amber-700 dark:text-amber-300">
               <span class="eshop-admin-metric-value">{{ open_stock_alert_count }}</span>
               <span class="eshop-admin-metric-label">{% trans "požadavků" %}</span>

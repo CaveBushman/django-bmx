@@ -414,6 +414,16 @@
 
         <a href="{% url 'news:downloads' %}"
           class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "KE STAŽENÍ" %}</a>
+
+        {% if request.user.is_authenticated and request.user.is_admin %}
+        {% if 'eshop' in request.path %}
+        <a href="{% url 'eshop:shop' %}"
+          class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">{% trans "ESHOP" %}</a>
+        {% else %}
+        <a href="{% url 'eshop:shop' %}"
+          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}</a>
+        {% endif %}
+        {% endif %}
       </div>
 
       {% if user.is_authenticated and request.session.orders %}
