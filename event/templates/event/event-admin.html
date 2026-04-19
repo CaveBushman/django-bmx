@@ -254,6 +254,131 @@
     text-transform: uppercase;
     color: #6366f1;
   }
+
+  .event-admin-mode-switch {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(241, 245, 249, 0.86);
+    padding: 0.25rem;
+  }
+
+  .event-admin-mode-switch button {
+    min-width: 5.5rem;
+    border-radius: 0.75rem;
+    padding: 0.7rem 1rem;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 800;
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .event-admin-mode-switch button[aria-pressed="true"] {
+    background: #fff;
+    color: #312e81;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+  }
+
+  .event-admin-mode-note {
+    color: #64748b;
+  }
+
+  .event-admin-upload-dropzone {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-height: 4.75rem;
+    border: 1.5px dashed rgba(148, 163, 184, 0.72);
+    border-radius: 1.1rem;
+    background: rgba(248, 250, 252, 0.86);
+    padding: 1rem;
+    color: #475569;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .event-admin-upload-dropzone:hover,
+  .event-admin-upload-dropzone[data-drag-active="true"] {
+    border-color: rgba(79, 70, 229, 0.58);
+    background: rgba(238, 242, 255, 0.88);
+    box-shadow: 0 16px 34px rgba(79, 70, 229, 0.1);
+  }
+
+  .event-admin-upload-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.95rem;
+    background: rgba(79, 70, 229, 0.1);
+    color: #4338ca;
+    flex: 0 0 auto;
+  }
+
+  .event-admin-upload-title {
+    display: block;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+
+  .event-admin-upload-subtitle {
+    display: block;
+    margin-top: 0.15rem;
+    color: #64748b;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .event-admin-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .event-admin-timing-header {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+    text-align: left;
+  }
+
+  .event-admin-timing-copy {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .event-admin-timing-copy .event-admin-section-kicker {
+    text-align: left;
+  }
+
+  .event-admin-timing-copy .event-admin-section-heading {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .event-admin-timing-copy .event-admin-mode-note {
+    max-width: 64rem;
+  }
+
+  @media (min-width: 1024px) {
+    .event-admin-timing-header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+
+    .event-admin-timing-header .event-admin-mode-switch {
+      margin-top: 1.8rem;
+    }
+  }
+
   html.dark .event-admin-action-link,
   html.dark .event-admin-action-btn {
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.86), rgba(79, 70, 229, 0.82), rgba(15, 23, 42, 0.96)) !important;
@@ -330,6 +455,51 @@
 
   html.dark .event-admin-section-kicker {
     color: #a5b4fc;
+  }
+
+  html.dark .event-admin-mode-switch {
+    border-color: rgba(71, 85, 105, 0.88);
+    background: rgba(15, 23, 42, 0.76);
+  }
+
+  html.dark .event-admin-mode-switch button {
+    color: #cbd5e1;
+  }
+
+  html.dark .event-admin-mode-switch button[aria-pressed="true"] {
+    background: rgba(30, 41, 59, 0.95);
+    color: #c7d2fe;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+  }
+
+  html.dark .event-admin-mode-note {
+    color: #cbd5e1;
+  }
+
+  html.dark .event-admin-upload-dropzone {
+    border-color: rgba(71, 85, 105, 0.9);
+    background: rgba(15, 23, 42, 0.62);
+    color: #cbd5e1;
+  }
+
+  html.dark .event-admin-upload-dropzone:hover,
+  html.dark .event-admin-upload-dropzone[data-drag-active="true"] {
+    border-color: rgba(129, 140, 248, 0.62);
+    background: rgba(30, 41, 59, 0.82);
+    box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
+  }
+
+  html.dark .event-admin-upload-icon {
+    background: rgba(129, 140, 248, 0.16);
+    color: #c7d2fe;
+  }
+
+  html.dark .event-admin-upload-title {
+    color: #f8fafc;
+  }
+
+  html.dark .event-admin-upload-subtitle {
+    color: #cbd5e1;
   }
 </style>
 {% endblock %}
@@ -616,22 +786,34 @@
   <form method="post" enctype="multipart/form-data" data-event-admin-form>
     {% csrf_token %}
 
-    <!-- REM SUPPORT -->
-    <div class="event-admin-section max-w-7xl mx-auto mt-8 rounded-[2rem] p-6">
-      <div class="mb-6">
-        <p class="event-admin-section-kicker text-center">Timing Files</p>
-        <div class="event-admin-section-heading">
-        <div class="event-admin-section-heading-badge">
-          <i class="fas fa-folder-open text-lg"></i>
+    <!-- TIMING SOFTWARE SUPPORT -->
+    <div
+      class="event-admin-section max-w-7xl mx-auto mt-8 mb-4 rounded-[2rem] p-6"
+      data-timing-section
+      data-default-mode="rem"
+    >
+      <div class="event-admin-timing-header mb-6">
+        <div class="event-admin-timing-copy">
+          <p class="event-admin-section-kicker">Timing software</p>
+          <div class="event-admin-section-heading">
+            <div class="event-admin-section-heading-badge">
+              <i class="fas fa-folder-open text-lg"></i>
+            </div>
+            <h2 class="event-admin-section-title" data-timing-heading>
+              Soubory pro REM
+            </h2>
+          </div>
+          <p class="event-admin-mode-note mt-3 max-w-2xl text-sm leading-6" data-timing-note>
+            Výchozí režim pro běžné závody. Přepni na BEM jen při práci s XLS exporty a importem výsledků z BEM.
+          </p>
         </div>
-        <h2 class="event-admin-section-title">
-          SOUBORY PRO REM
-        </h2>
+        <div class="event-admin-mode-switch" role="group" aria-label="Vybrat timing software">
+          <button type="button" data-timing-mode="rem" aria-pressed="true">REM</button>
+          <button type="button" data-timing-mode="bem" aria-pressed="false">BEM</button>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Registrovaní jezdci online -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
@@ -647,17 +829,22 @@
           </div>
           <div class="flex justify-end">
             <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
               name="btn-rem-file"
+              data-rem-name="btn-rem-file"
+              data-bem-name="btn-bem-file"
+              data-rem-loading-label="Generuji REM soubor..."
+              data-bem-loading-label="Generuji BEM soubor..."
               data-loading-label="Generuji REM soubor..."
               data-reset-after-download="true"
+              data-timing-action="entries"
             >
-              ⬇️ Vygenerovat a stáhnout
+              <i class="fas fa-download" aria-hidden="true"></i>
+              <span>Vygenerovat a stáhnout</span>
             </button>
           </div>
         </div>
 
-        <!-- Všichni jezdci -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
         >
@@ -673,17 +860,22 @@
           </div>
           <div class="flex justify-end">
             <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
               name="btn-rem-riders-list"
-              data-loading-label="Generuji seznam jezdců..."
+              data-rem-name="btn-rem-riders-list"
+              data-bem-name="btn-riders-list"
+              data-rem-loading-label="Generuji REM seznam jezdců..."
+              data-bem-loading-label="Generuji BEM seznam jezdců..."
+              data-loading-label="Generuji REM seznam jezdců..."
               data-reset-after-download="true"
+              data-timing-action="riders"
             >
-              ⬇️ Vygenerovat a stáhnout
+              <i class="fas fa-download" aria-hidden="true"></i>
+              <span>Vygenerovat a stáhnout</span>
             </button>
           </div>
         </div>
 
-        <!-- Výsledky závodu -->
         <div
           class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
           data-file-field
@@ -697,180 +889,76 @@
                 Výsledky závodu
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4">
-              Nahrání souboru s výsledky závodu
+            <p class="text-gray-600 text-sm mb-4 dark:text-slate-300" data-results-help>
+              Nahrání TXT souboru s výsledky z REM.
             </p>
             <input
+              id="timing-results-file"
               type="file"
               name="result-file-txt"
               accept=".txt"
-              class="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-white focus:ring-2 focus:ring-blue-600 mt-2"
+              class="event-admin-file-input"
               data-file-input
+              data-rem-name="result-file-txt"
+              data-bem-name="result-file"
+              data-rem-accept=".txt"
+              data-bem-accept=".xls,.xlsx"
             />
-            <p class="mt-1 text-xs text-gray-500">Pouze txt soubory</p>
+            <label class="event-admin-upload-dropzone" for="timing-results-file" data-file-dropzone>
+              <span class="event-admin-upload-icon">
+                <i class="fas fa-upload" aria-hidden="true"></i>
+              </span>
+              <span>
+                <span class="event-admin-upload-title" data-upload-title>Vybrat nebo přetáhnout soubor</span>
+                <span class="event-admin-upload-subtitle" data-upload-subtitle>Soubor se nahraje až po potvrzení tlačítkem Nahrát.</span>
+              </span>
+            </label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-slate-400" data-file-type-help>Pouze txt soubory</p>
             <p class="event-admin-file-status mt-2 text-xs text-slate-500" data-file-selection>
               Žádný soubor nevybrán
             </p>
           </div>
           <div class="flex flex-wrap justify-between gap-3 mt-4">
             <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
               name="btn-upload-txt"
               value="txt"
+              data-rem-name="btn-upload-txt"
+              data-bem-name="btn-upload-result"
+              data-rem-value="txt"
+              data-bem-value="xls"
+              data-rem-loading-label="Nahrávám TXT výsledky..."
+              data-bem-loading-label="Nahrávám XLS výsledky..."
               data-loading-label="Nahrávám TXT výsledky..."
-              {%
-              if
-              event.rem_results
-              %}disabled{%
-              endif
-              %}
+              data-timing-action="upload"
+              data-rem-has-results="{% if event.rem_results %}true{% else %}false{% endif %}"
+              data-bem-has-results="{% if event.xls_results %}true{% else %}false{% endif %}"
+              {% if event.rem_results %}disabled{% endif %}
             >
-              📤 Nahrát
+              <i class="fas fa-upload" aria-hidden="true"></i>
+              <span>Nahrát</span>
             </button>
             <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
               name="btn-txt-delete"
               value="delete-txt"
+              data-rem-name="btn-txt-delete"
+              data-bem-name="btn-delete-xls"
+              data-rem-value="delete-txt"
+              data-bem-value="delete"
+              data-rem-loading-label="Mažu TXT výsledky..."
+              data-bem-loading-label="Mažu XLS výsledky..."
               data-loading-label="Mažu TXT výsledky..."
+              data-rem-confirm-message="Opravdu smazat TXT výsledky závodu?"
+              data-bem-confirm-message="Opravdu smazat XLS výsledky závodu?"
               data-confirm-message="Opravdu smazat TXT výsledky závodu?"
-              {%
-              if
-              not
-              event.rem_results
-              %}disabled{%
-              endif
-              %}
+              data-timing-action="delete"
+              data-rem-has-results="{% if event.rem_results %}true{% else %}false{% endif %}"
+              data-bem-has-results="{% if event.xls_results %}true{% else %}false{% endif %}"
+              {% if not event.rem_results %}disabled{% endif %}
             >
-              🗑️ Smazat
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BEM SUPPORT -->
-    <div class="event-admin-section max-w-7xl mx-auto mt-8 mb-4 rounded-[2rem] p-6">
-      <div class="mb-6">
-        <p class="event-admin-section-kicker text-center">Race Software</p>
-        <div class="event-admin-section-heading">
-        <div class="event-admin-section-heading-badge">
-          <i class="fas fa-folder-open text-lg"></i>
-        </div>
-        <h2 class="event-admin-section-title">
-          SOUBORY PRO BEM
-        </h2>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Registrovaní jezdci online -->
-        <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="event-admin-file-icon bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
-                <i class="fas fa-flag-checkered text-lg"></i>
-              </div>
-              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
-                Registrovaní jezdci
-              </h3>
-            </div>
-          </div>
-          <div class="flex justify-end">
-            <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
-              name="btn-bem-file"
-              data-loading-label="Generuji BEM soubor..."
-              data-reset-after-download="true"
-            >
-              ⬇️ Vygenerovat a stáhnout
-            </button>
-          </div>
-        </div>
-
-        <!-- Všichni jezdci -->
-        <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="event-admin-file-icon bg-sky-500/10 text-sky-600 dark:text-sky-200">
-                <i class="fas fa-bicycle text-lg"></i>
-              </div>
-              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
-                Všichni jezdci
-              </h3>
-            </div>
-          </div>
-          <div class="flex justify-end">
-            <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
-              name="btn-riders-list"
-              data-loading-label="Generuji seznam jezdců..."
-              data-reset-after-download="true"
-            >
-              ⬇️ Vygenerovat a stáhnout
-            </button>
-          </div>
-        </div>
-
-        <!-- Výsledky závodu -->
-        <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
-          data-file-field
-        >
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="event-admin-file-icon bg-rose-500/10 text-rose-600 dark:text-rose-200">
-                <i class="fas fa-file-lines text-lg"></i>
-              </div>
-              <h3 class="font-semibold text-gray-800 text-lg dark:text-white">
-                Výsledky závodu
-              </h3>
-            </div>
-            <p class="text-gray-600 text-sm mb-4">Nahrání souboru s výsledky</p>
-            <input
-              type="file"
-              name="result-file"
-              accept=".xls, .xlsx"
-              class="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-white focus:ring-2 focus:ring-blue-600 mt-2"
-              data-file-input
-            />
-            <p class="mt-1 text-xs text-gray-500">Pouze xls a xlsx soubory</p>
-            <p class="event-admin-file-status mt-2 text-xs text-slate-500" data-file-selection>
-              Žádný soubor nevybrán
-            </p>
-          </div>
-          <div class="flex flex-wrap justify-between gap-3 mt-4">
-            <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
-              name="btn-upload-result"
-              value="xls"
-              data-loading-label="Nahrávám XLS výsledky..."
-              {%
-              if
-              event.xls_results
-              %}disabled{%
-              endif
-              %}
-            >
-              📤 Nahrát
-            </button>
-            <button
-              class="event-admin-action-btn flex items-center py-3 px-6 rounded-[1rem]"
-              name="btn-delete-xls"
-              value="delete"
-              data-loading-label="Mažu XLS výsledky..."
-              data-confirm-message="Opravdu smazat XLS výsledky závodu?"
-              {%
-              if
-              not
-              event.xls_results
-              %}disabled{%
-              endif
-              %}
-            >
-              🗑️ Smazat
+              <i class="fas fa-trash-alt" aria-hidden="true"></i>
+              <span>Smazat</span>
             </button>
           </div>
         </div>

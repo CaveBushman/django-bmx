@@ -527,6 +527,7 @@ def shop(request):
             | Q(description__icontains=query)
             | Q(category__name__icontains=query)
         )
+    featured_product = products.first()
 
     from .models import Category
     categories = Category.objects.filter(products__active=True).distinct().order_by("sort_order", "name")
@@ -536,6 +537,7 @@ def shop(request):
 
     context = {
         "products": products,
+        "featured_product": featured_product,
         "categories": categories,
         "active_category": category_slug,
         "query": query,

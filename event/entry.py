@@ -6,7 +6,6 @@ import event
 logger = logging.getLogger(__name__)
 from .models import Entry, Event, EntryForeign as EntryForeignModel
 from rider.models import Rider, ForeignRider
-from datetime import datetime
 from django.utils import timezone
 import stripe
 import json
@@ -217,6 +216,10 @@ class REMRiders:
         self.riders = Rider.objects.filter(is_active=True, is_approved=True)
         self.foreign_riders = ForeignRider.objects.filter()
 
+    def _save_workbook(self, file_name):
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
+        self.wb.save(file_name)
+
     def first_line(self):
         """ set first line in REM online entries excel file """
         self.ws.cell(1, 1, "Event")
@@ -308,10 +311,10 @@ class REMRiders:
             self.ws.cell(row, 23, )
             row += 1
 
-        self.wb.save(self.file_name)
+        self._save_workbook(self.file_name)
 
         self.event.rem_riders_list = self.file_name
-        self.event.rem_riders_created = datetime.now()
+        self.event.rem_riders_created = timezone.now()
         self.event.save()
 
         # self.remove_temp_file()
@@ -418,7 +421,7 @@ class REMRiders:
             row += 1
         del foreign_entries
 
-        self.wb.save(file_name)
+        self._save_workbook(file_name)
         self.event.rem_entries = file_name
         self.event.rem_entries_created = timezone.now()
         self.event.save()
