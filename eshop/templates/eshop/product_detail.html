@@ -6,10 +6,19 @@
 {% block extra_head %}
 <style>
   /* Variant buttons – dark mode (JS adds/removes bg-white via classList so Tailwind dark: loses) */
-  html.dark .variant-button:not([disabled]):not([aria-pressed="true"]) {
+  html.dark .variant-button:not([data-stock="0"]):not([aria-pressed="true"]) {
     background-color: #020617;
     border-color: #334155;
     color: #f1f5f9;
+  }
+  html.dark .variant-button[data-stock="0"] {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
+  }
+  html.dark .variant-button[data-stock="0"]:hover {
+    border-color: #fbbf24;
+    background-color: rgba(245, 158, 11, 0.16);
   }
   html.dark .variant-button[aria-pressed="true"] {
     background-color: #4f46e5;
@@ -49,6 +58,49 @@
     background-color: #111827;
     border-color: #6366f1;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.28);
+  }
+
+  html.dark .stock-alert-modal-card,
+  .dark .stock-alert-modal-card {
+    border-color: rgba(245, 158, 11, 0.34) !important;
+    background:
+      radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+      rgba(15, 23, 42, 0.98) !important;
+    color: #e2e8f0 !important;
+  }
+
+  html.dark .stock-alert-modal-card input,
+  html.dark .stock-alert-modal-card select,
+  html.dark .stock-alert-modal-card textarea,
+  .dark .stock-alert-modal-card input,
+  .dark .stock-alert-modal-card select,
+  .dark .stock-alert-modal-card textarea {
+    border-color: rgba(71, 85, 105, 0.96) !important;
+    background-color: rgba(2, 6, 23, 0.82) !important;
+    color: #f8fafc !important;
+  }
+
+  html.dark .stock-alert-modal-card input::placeholder,
+  html.dark .stock-alert-modal-card textarea::placeholder,
+  .dark .stock-alert-modal-card input::placeholder,
+  .dark .stock-alert-modal-card textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  html.dark .stock-alert-modal-card input:focus,
+  html.dark .stock-alert-modal-card select:focus,
+  html.dark .stock-alert-modal-card textarea:focus,
+  .dark .stock-alert-modal-card input:focus,
+  .dark .stock-alert-modal-card select:focus,
+  .dark .stock-alert-modal-card textarea:focus {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18) !important;
+  }
+
+  html.dark .stock-alert-variant-pill,
+  .dark .stock-alert-variant-pill {
+    background-color: rgba(245, 158, 11, 0.13) !important;
+    color: #fde68a !important;
   }
 </style>
 {% endblock %}
@@ -206,10 +258,12 @@
                   </p>
                 </div>
                 {% if product.category and product.category.slug == "obleceni" %}
-                <a href="{% url 'eshop:size-guide' %}"
-                   class="inline-flex items-center justify-center rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-900/60 dark:bg-slate-950 dark:text-indigo-300 dark:hover:bg-slate-800">
-                  {% trans "Otevřít tabulku velikostí" %}
-                </a>
+                <div class="flex flex-wrap gap-2">
+                  <a href="{% url 'eshop:size-guide' %}"
+                     class="inline-flex items-center justify-center rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-900/60 dark:bg-slate-950 dark:text-indigo-300 dark:hover:bg-slate-800">
+                    {% trans "Otevřít tabulku velikostí" %}
+                  </a>
+                </div>
                 {% endif %}
               </div>
             </div>
@@ -224,18 +278,19 @@
               <button
                 type="button"
                 data-variant-id="{{ v.pk }}"
+                data-variant-label="{{ v.label }}"
                 data-price="{{ v.price|floatformat:0 }}"
                 data-stock="{{ v.stock }}"
                 class="variant-button group relative flex min-h-[4.5rem] flex-col items-center justify-center rounded-2xl border-2 px-3 py-3.5 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                  {% if v.stock == 0 %}cursor-not-allowed border-slate-200 bg-slate-50 text-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-600
+                  {% if v.stock == 0 %}cursor-pointer border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400
                   {% else %}border-slate-200 bg-white text-slate-800 hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-indigo-600{% endif %}"
-                {% if v.stock == 0 %}disabled aria-disabled="true"{% endif %}>
+                {% if v.stock == 0 %}aria-describedby="stock-alert-help"{% endif %}>
                 <span class="text-sm font-bold leading-tight">{{ v.label }}</span>
                 <span class="mt-1 text-[10px] leading-tight
-                  {% if v.stock == 0 %}text-slate-300 dark:text-slate-600
+                  {% if v.stock == 0 %}text-amber-700 dark:text-amber-300
                   {% elif v.stock <= 3 %}text-amber-500 font-semibold
                   {% else %}text-slate-400 dark:text-slate-500{% endif %}">
-                  {% if v.stock == 0 %}{% trans "Vyprodáno" %}{% else %}{{ v.stock }}&nbsp;ks{% endif %}
+                  {% if v.stock == 0 %}{% trans "Vyprodáno · hlídat" %}{% else %}{{ v.stock }}&nbsp;ks{% endif %}
                 </span>
               </button>
               {% endif %}
@@ -290,8 +345,9 @@
           </form>
 
           <script>
-            (function () {
-              const buttons = document.querySelectorAll('button.variant-button:not([disabled])');
+            document.addEventListener('DOMContentLoaded', function () {
+              const buttons = Array.from(document.querySelectorAll('button.variant-button'));
+              const availableButtons = buttons.filter(btn => parseInt(btn.dataset.stock, 10) > 0);
               const hiddenInput = document.getElementById('variant-id');
               const submitBtn = document.getElementById('add-to-cart-btn');
               const priceEl = document.getElementById('price-display');
@@ -303,6 +359,11 @@
               const qtyDisplay = document.getElementById('quantity-display');
               const qtyMinus = document.getElementById('qty-minus');
               const qtyPlus = document.getElementById('qty-plus');
+              const alertModal = document.getElementById('stock-alert-modal');
+              const alertVariantSelect = document.getElementById('id_variant');
+              const alertVariantLabel = document.getElementById('stock-alert-variant-label');
+              const alertOpeners = document.querySelectorAll('[data-stock-alert-open]');
+              const alertClosers = document.querySelectorAll('[data-stock-alert-close]');
 
               function syncQtyDisplay() {
                 if (qtyDisplay) {
@@ -358,6 +419,28 @@
                 syncQtyDisplay();
               }
 
+              function openStockAlertModal(variantId, variantLabel) {
+                if (!alertModal) return;
+                if (alertVariantSelect && variantId) {
+                  alertVariantSelect.value = variantId;
+                }
+                if (alertVariantLabel) {
+                  alertVariantLabel.textContent = variantLabel ? `Vybraná varianta: ${variantLabel}` : 'Vyber vyprodanou variantu.';
+                }
+                alertModal.classList.remove('hidden');
+                alertModal.classList.add('flex');
+                document.documentElement.classList.add('overflow-hidden');
+                const emailInput = alertModal.querySelector('input[type="email"]');
+                if (emailInput) emailInput.focus();
+              }
+
+              function closeStockAlertModal() {
+                if (!alertModal) return;
+                alertModal.classList.add('hidden');
+                alertModal.classList.remove('flex');
+                document.documentElement.classList.remove('overflow-hidden');
+              }
+
               qtyMinus.addEventListener('click', () => {
                 const val = parseInt(qtyInput.value, 10);
                 if (val > 1) { qtyInput.value = val - 1; updateQtyButtons(); }
@@ -369,7 +452,7 @@
               });
 
               function select(btn) {
-                buttons.forEach(b => {
+                availableButtons.forEach(b => {
                   b.classList.remove('border-indigo-600', 'bg-indigo-600', 'text-white',
                                      'dark:border-indigo-500', 'dark:bg-indigo-600');
                   b.classList.add('border-slate-200', 'bg-white', 'text-slate-800',
@@ -412,10 +495,30 @@
                 }
               }
 
-              buttons.forEach(btn => btn.addEventListener('click', () => select(btn)));
+              buttons.forEach(btn => btn.addEventListener('click', () => {
+                const stock = parseInt(btn.dataset.stock, 10);
+                if (stock <= 0) {
+                  openStockAlertModal(btn.dataset.variantId, btn.dataset.variantLabel);
+                  return;
+                }
+                select(btn);
+              }));
+
+              alertOpeners.forEach(opener => opener.addEventListener('click', () => openStockAlertModal()));
+              alertClosers.forEach(closer => closer.addEventListener('click', closeStockAlertModal));
+              if (alertModal) {
+                alertModal.addEventListener('click', (event) => {
+                  if (event.target === alertModal) closeStockAlertModal();
+                });
+                document.addEventListener('keydown', (event) => {
+                  if (event.key === 'Escape' && !alertModal.classList.contains('hidden')) {
+                    closeStockAlertModal();
+                  }
+                });
+              }
 
               // Auto-select first available
-              const first = buttons[0];
+              const first = availableButtons[0];
               if (first) {
                 select(first);
               } else {
@@ -431,7 +534,7 @@
                   stockInfo.textContent = 'Produkt je aktuálně vyprodaný.';
                 }
               }
-            })();
+            });
           </script>
 
           <script>
@@ -452,6 +555,12 @@
           </script>
           {% endif %}
           {% endwith %}
+
+          {% if has_sold_out_variants %}
+          <p id="stock-alert-help" class="sr-only">
+            {% trans "Kliknutím na vyprodanou variantu otevřeš formulář pro hlídání dostupnosti." %}
+          </p>
+          {% endif %}
 
           {% if product.material or product.fit_note or product.pickup_note %}
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -502,4 +611,74 @@
   </section>
 
 </div>
+
+{% if has_sold_out_variants %}
+<div id="stock-alert-modal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="stock-alert-title">
+  <form id="stock-alert-form" method="post" action="{% url 'eshop:request-stock-alert' product.slug %}"
+        class="stock-alert-modal-card w-full max-w-xl rounded-[2rem] border border-amber-200 bg-white p-6 shadow-2xl shadow-slate-950/30 dark:border-amber-500/30 dark:bg-slate-900">
+    {% csrf_token %}
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700 dark:text-amber-300">
+          {% trans "Není skladem" %}
+        </p>
+        <h2 id="stock-alert-title" class="mt-1 text-2xl font-black text-slate-900 dark:text-white">
+          {% trans "Hlídat dostupnost" %}
+        </h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          {% trans "Pošli požadavek na naskladnění. V administraci uvidíme, o jaký produkt a velikost je zájem." %}
+        </p>
+        <p id="stock-alert-variant-label" class="stock-alert-variant-pill mt-3 rounded-2xl bg-amber-50 px-4 py-2 text-sm font-bold text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+          {% trans "Vyber vyprodanou variantu." %}
+        </p>
+      </div>
+      <button type="button"
+              data-stock-alert-close
+              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+              aria-label="{% trans 'Zavřít' %}">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+      <div>
+        <label for="{{ stock_alert_form.variant.id_for_label }}" class="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-200">
+          {% trans "Varianta" %}
+        </label>
+        {{ stock_alert_form.variant }}
+      </div>
+      <div>
+        <label for="{{ stock_alert_form.email.id_for_label }}" class="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-200">
+          {% trans "E-mail" %}
+        </label>
+        {{ stock_alert_form.email }}
+      </div>
+      <div class="sm:col-span-2">
+        <label for="{{ stock_alert_form.note.id_for_label }}" class="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-200">
+          {% trans "Poznámka" %}
+        </label>
+        {{ stock_alert_form.note }}
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      <button type="button"
+              data-stock-alert-close
+              class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+        {% trans "Zrušit" %}
+      </button>
+      <button type="submit"
+              class="inline-flex items-center justify-center rounded-2xl bg-amber-500 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+        {% trans "Uložit požadavek" %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endif %}
 {% endblock %}

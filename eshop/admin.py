@@ -10,6 +10,7 @@ from .models import (
     OrderItem,
     Product,
     ProductVariant,
+    StockAlertRequest,
     StockMovement,
     StockReservation,
 )
@@ -270,8 +271,8 @@ class StockReservationAdmin(admin.ModelAdmin):
 
     def active_badge(self, obj):
         if obj.expires_at > timezone.now():
-            return format_html('<span style="color:#16a34a;font-weight:700">Aktivní</span>')
-        return format_html('<span style="color:#94a3b8;font-weight:700">Expirovaná</span>')
+            return mark_safe('<span style="color:#16a34a;font-weight:700">Aktivní</span>')
+        return mark_safe('<span style="color:#94a3b8;font-weight:700">Expirovaná</span>')
     active_badge.short_description = "Stav"
 
 
@@ -317,6 +318,40 @@ class StockMovementAdmin(admin.ModelAdmin):
         sign = "+" if obj.quantity_delta > 0 else ""
         return format_html('<span style="color:{};font-weight:700">{}{}</span>', color, sign, obj.quantity_delta)
     quantity_delta_display.short_description = "Změna"
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.action(description="Označit požadavky jako vyřízené")
+def mark_stock_alerts_fulfilled_action(modeladmin, request, queryset):
+    updated = queryset.filter(fulfilled_at__isnull=True).update(fulfilled_at=timezone.now())
+    if updated:
+        messages.success(request, f"Označeno jako vyřízené: {updated} požadavků.")
+
+
+@admin.register(StockAlertRequest)
+class StockAlertRequestAdmin(admin.ModelAdmin):
+    list_display = ("created", "product_name", "variant_label", "email", "status_badge", "user")
+    list_filter = ("fulfilled_at", "created", "variant__product")
+    search_fields = ("email", "note", "variant__product__name", "variant__label", "user__email", "user__username")
+    readonly_fields = ("variant", "user", "email", "note", "created", "updated")
+    actions = [mark_stock_alerts_fulfilled_action]
+    ordering = ("fulfilled_at", "-created")
+
+    def product_name(self, obj):
+        return obj.variant.product.name
+    product_name.short_description = "Produkt"
+
+    def variant_label(self, obj):
+        return obj.variant.label
+    variant_label.short_description = "Varianta"
+
+    def status_badge(self, obj):
+        if obj.fulfilled_at:
+            return mark_safe('<span style="color:#64748b;font-weight:700">Vyřízeno</span>')
+        return mark_safe('<span style="color:#d97706;font-weight:700">Otevřeno</span>')
+    status_badge.short_description = "Stav"
 
     def has_add_permission(self, request):
         return False

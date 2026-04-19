@@ -499,6 +499,40 @@ class StockMovement(models.Model):
         )
 
 
+class StockAlertRequest(models.Model):
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        related_name="stock_alert_requests",
+        verbose_name="Varianta",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="eshop_stock_alert_requests",
+        verbose_name="Uživatel",
+    )
+    email = models.EmailField("E-mail")
+    note = models.TextField("Poznámka", blank=True)
+    fulfilled_at = models.DateTimeField("Vyřízeno dne", null=True, blank=True)
+    created = models.DateTimeField("Vytvořeno", auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Požadavek na naskladnění"
+        verbose_name_plural = "Požadavky na naskladnění"
+        ordering = ["fulfilled_at", "-created"]
+
+    def __str__(self):
+        return f"{self.variant} · {self.email}"
+
+    @property
+    def is_open(self):
+        return self.fulfilled_at is None
+
+
 class OrderHistory(models.Model):
     class Action(models.TextChoices):
         CREATED = "created", "Vytvořeno"

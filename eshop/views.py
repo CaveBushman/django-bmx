@@ -7,7 +7,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.db import transaction as db_tx
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -16,9 +16,18 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST
 
 from .cart import Cart
-from .forms import CheckoutForm
+from .forms import CheckoutForm, StockAlertRequestForm
 from .invoice import generate_credit_note, generate_invoice
-from .models import FlexiExportSettings, Order, OrderHistory, OrderItem, Product, ProductVariant, StockReservation
+from .models import (
+    FlexiExportSettings,
+    Order,
+    OrderHistory,
+    OrderItem,
+    Product,
+    ProductVariant,
+    StockAlertRequest,
+    StockReservation,
+)
 
 
 RESERVATION_MINUTES = 10
@@ -66,6 +75,16 @@ def index(request):
         .annotate(total_reserved=Sum("quantity"))
         .order_by("-total_reserved", "variant__product__name", "variant__label")[:6]
     )
+    open_stock_alerts = (
+        StockAlertRequest.objects.select_related("variant__product", "user")
+        .filter(fulfilled_at__isnull=True)
+        .order_by("-created")
+    )
+    stock_alert_variant_rows = (
+        open_stock_alerts.values("variant__product__name", "variant__label", "variant__stock")
+        .annotate(request_count=Count("id"))
+        .order_by("-request_count", "variant__product__name", "variant__label")[:6]
+    )
 
     context = {
         "products": products,
@@ -87,6 +106,9 @@ def index(request):
         "reserved_piece_count": active_reservations.aggregate(total_quantity=Sum("quantity")).get("total_quantity") or 0,
         "reservation_variant_rows": reservation_variant_rows,
         "cleaned_reservation_count": cleaned_reservation_count,
+        "open_stock_alerts": open_stock_alerts[:8],
+        "open_stock_alert_count": open_stock_alerts.count(),
+        "stock_alert_variant_rows": stock_alert_variant_rows,
     }
     return render(request, "eshop/index.html", context)
 
@@ -489,8 +511,50 @@ def product_detail(request, slug):
         slug=slug,
         active=True,
     )
-    context = {"product": product}
+    stock_alert_form = StockAlertRequestForm(product=product, user=request.user)
+    context = {
+        "product": product,
+        "stock_alert_form": stock_alert_form,
+        "has_sold_out_variants": product.variants.filter(active=True, stock=0).exists(),
+    }
     return render(request, "eshop/product_detail.html", context)
+
+
+@require_POST
+def request_stock_alert(request, slug):
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants"),
+        slug=slug,
+        active=True,
+    )
+    form = StockAlertRequestForm(request.POST, product=product, user=request.user)
+    if not form.is_valid():
+        messages.error(request, "Požadavek na hlídání dostupnosti se nepodařilo uložit. Zkontroluj e-mail a variantu.")
+        return redirect("eshop:product-detail", slug=product.slug)
+
+    variant = form.cleaned_data["variant"]
+    if variant.product_id != product.pk or variant.stock > 0:
+        messages.error(request, "Vybraná varianta už není vyprodaná nebo nepatří k produktu.")
+        return redirect("eshop:product-detail", slug=product.slug)
+
+    email = form.cleaned_data["email"].strip().lower()
+    existing = StockAlertRequest.objects.filter(
+        variant=variant,
+        email__iexact=email,
+        fulfilled_at__isnull=True,
+    ).first()
+    if existing:
+        messages.info(request, "Tento požadavek už evidujeme. Jakmile budeme naskladňovat, uvidíme ho v poptávce.")
+        return redirect("eshop:product-detail", slug=product.slug)
+
+    StockAlertRequest.objects.create(
+        variant=variant,
+        user=request.user if request.user.is_authenticated else None,
+        email=email,
+        note=form.cleaned_data.get("note", ""),
+    )
+    messages.success(request, "Požadavek na naskladnění je uložený. Pomůže nám rozhodnout, co doplnit na sklad.")
+    return redirect("eshop:product-detail", slug=product.slug)
 
 
 @staff_member_required
