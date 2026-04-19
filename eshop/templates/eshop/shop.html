@@ -178,10 +178,10 @@
     </form>
 
     {# ── Mřížka produktů ── #}
-    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-16 xl:gap-x-8">
+    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
       {% for product in products %}
-      <div class="group relative">
-        <a href="{% url 'eshop:product-detail' product.slug %}">
+      <div class="group relative flex h-full flex-col">
+        <a href="{% url 'eshop:product-detail' product.slug %}" class="block">
           {% if product.image %}
           <img src="{{ product.image.url }}"
                alt="{{ product.name }}"
@@ -197,7 +197,8 @@
           {% endif %}
         </a>
 
-        <div class="mt-4 flex items-start justify-between gap-2">
+        <div class="mt-4 flex flex-1 flex-col">
+        <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             {% if product.collection %}
             <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-500">{{ product.collection }}</p>
@@ -256,6 +257,7 @@
           {% if product.pickup_note %}<span class="rounded-full bg-slate-100 px-2 py-1 dark:bg-slate-800">{% trans "Předání" %}: {{ product.pickup_note }}</span>{% endif %}
         </div>
         {% endif %}
+        </div>
       </div>
       {% empty %}
       <div class="col-span-4 py-20 text-center">
