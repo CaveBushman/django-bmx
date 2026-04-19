@@ -113,9 +113,18 @@
   <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:!border-slate-700 dark:!bg-slate-900 dark:shadow-xl dark:shadow-black/20">
     <a href="{{ article.get_absolute_url }}" class="block">
       <div class="relative overflow-hidden border-b border-slate-200 dark:!border-slate-700">
-        <img src="{{ article.photo_01_url|default_if_none:'' }}" alt="{{ article.title }}"
-          onerror="this.onerror=null;this.src='{% static 'images/news/AKBMX.jpg' %}';"
+        {% if article.photo_01_url %}
+        <img src="{{ article.photo_01_url }}" alt="{{ article.title }}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
           class="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+        <div class="aspect-[16/9] w-full items-center justify-center" style="display:none;background:radial-gradient(circle at 30% 40%,rgba(99,102,241,0.18),transparent 60%),linear-gradient(135deg,#e0e7ff 0%,#f0f9ff 100%);">
+          <svg class="h-12 w-12 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        {% else %}
+        <div class="aspect-[16/9] w-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105" style="background:radial-gradient(circle at 30% 40%,rgba(99,102,241,0.18),transparent 60%),linear-gradient(135deg,#e0e7ff 0%,#f0f9ff 100%);">
+          <svg class="h-12 w-12 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        {% endif %}
       </div>
     </a>
 

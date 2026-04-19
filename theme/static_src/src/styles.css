@@ -34,7 +34,7 @@
   }
 
   .page-shell {
-    @apply mx-auto max-w-[88rem] px-4 py-8 pb-12 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-[88rem] px-4 py-5 pb-8 sm:px-6 lg:px-8;
   }
 
   .page-stats-grid {

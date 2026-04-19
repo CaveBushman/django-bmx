@@ -5,14 +5,6 @@
 
 {% block extra_head %}
 <style>
-  .eshop-admin-page {
-    background:
-      radial-gradient(circle at 8% 4%, rgba(79, 70, 229, 0.11), transparent 24%),
-      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.1), transparent 22%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 46%, #f8fafc 100%),
-      #f8fafc;
-  }
-
   .eshop-admin-panel {
     position: relative;
     overflow: hidden;
@@ -48,7 +40,7 @@
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.9),
       0 14px 34px rgba(15, 23, 42, 0.045);
-    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
   }
 
   .eshop-admin-subcard:hover {
@@ -84,59 +76,6 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
-  .eshop-admin-metric-value {
-    font-size: 1.25rem;
-    line-height: 1;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-  }
-
-  .eshop-admin-metric-label {
-    font-size: 0.62rem;
-    line-height: 1;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #64748b;
-  }
-
-  .eshop-admin-panel-heading {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .eshop-admin-panel-eyebrow {
-    font-size: 0.68rem;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #6366f1;
-  }
-
-  .eshop-admin-kpi-stack {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.55rem;
-  }
-
-  @media (max-width: 640px) {
-    .eshop-admin-panel-heading {
-      flex-direction: column;
-    }
-
-    .eshop-admin-kpi-stack {
-      justify-content: flex-start;
-      width: 100%;
-    }
-
-    .eshop-admin-metric {
-      min-width: calc(50% - 0.3rem);
-    }
-  }
-
   .eshop-admin-empty {
     border: 1px dashed rgba(148, 163, 184, 0.55);
     border-radius: 1.15rem;
@@ -145,70 +84,8 @@
     color: #64748b;
   }
 
-  .eshop-admin-secondary-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.25rem;
-    border: 1px solid rgba(203, 213, 225, 0.92);
-    background: rgba(255, 255, 255, 0.96) !important;
-    color: #334155 !important;
-  }
-
-  .eshop-admin-secondary-btn:hover {
-    background: rgba(248, 250, 252, 1) !important;
-    border-color: rgba(148, 163, 184, 0.92) !important;
-    color: #0f172a !important;
-  }
-
-  .eshop-admin-primary-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.25rem;
-    border: 1px solid rgba(79, 70, 229, 0.96) !important;
-    background: #4f46e5 !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.22);
-  }
-
-  .eshop-admin-primary-btn:hover {
-    background: #4338ca !important;
-    border-color: rgba(67, 56, 202, 0.98) !important;
-    color: #ffffff !important;
-  }
-
-  .eshop-admin-link {
-    color: #4f46e5 !important;
-  }
-
-  .eshop-admin-link:hover {
-    color: #4338ca !important;
-  }
-
-  .eshop-admin-success-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.25rem;
-    border: 1px solid rgba(5, 150, 105, 0.9) !important;
-    background: #059669 !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 24px rgba(5, 150, 105, 0.22);
-  }
-
-  .eshop-admin-success-btn:hover {
-    background: #047857 !important;
-    border-color: rgba(4, 120, 87, 0.98) !important;
-    color: #ffffff !important;
-  }
-
-  html.dark .eshop-admin-page {
-    background:
-      radial-gradient(circle at 8% 4%, rgba(79, 70, 229, 0.18), transparent 24%),
-      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.14), transparent 22%),
-      linear-gradient(180deg, #0f172a 0%, #111827 48%, #0f172a 100%),
-      #0f172a;
+  @media (max-width: 640px) {
+    .eshop-admin-metric { min-width: calc(50% - 0.3rem); }
   }
 
   html.dark .eshop-admin-panel {
@@ -249,14 +126,6 @@
     box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.1);
   }
 
-  html.dark .eshop-admin-metric-label {
-    color: #94a3b8;
-  }
-
-  html.dark .eshop-admin-panel-eyebrow {
-    color: #a5b4fc;
-  }
-
   html.dark .eshop-admin-empty {
     border-color: rgba(71, 85, 105, 0.82);
     background:
@@ -264,105 +133,100 @@
     color: #94a3b8;
   }
 
-  html.dark .eshop-admin-secondary-btn {
+  .eshop-admin-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(203, 213, 225, 0.92);
+    background: #ffffff;
+    color: #334155;
+  }
+
+  .eshop-admin-btn-secondary:hover {
+    background: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.92);
+    color: #0f172a;
+  }
+
+  .eshop-admin-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #4f46e5;
+    background: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.22);
+  }
+
+  .eshop-admin-btn-primary:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+  }
+
+  .eshop-admin-btn-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(5, 150, 105, 0.9);
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(5, 150, 105, 0.22);
+  }
+
+  .eshop-admin-btn-success:hover {
+    background: #047857;
+    border-color: rgba(4, 120, 87, 0.98);
+  }
+
+  html.dark .eshop-admin-btn-secondary {
     border-color: rgba(71, 85, 105, 0.96);
-    background: rgba(15, 23, 42, 0.94) !important;
-    color: #e2e8f0 !important;
+    background: rgba(15, 23, 42, 0.94);
+    color: #e2e8f0;
   }
 
-  html.dark .eshop-admin-secondary-btn:hover {
-    border-color: rgba(99, 102, 241, 0.66) !important;
-    background: rgba(30, 41, 59, 0.98) !important;
-    color: #ffffff !important;
+  html.dark .eshop-admin-btn-secondary:hover {
+    border-color: rgba(99, 102, 241, 0.66);
+    background: rgba(30, 41, 59, 0.98);
+    color: #ffffff;
   }
 
-  html.dark .eshop-admin-primary-btn {
-    border-color: rgba(99, 102, 241, 0.96) !important;
-    background: #4f46e5 !important;
-    color: #ffffff !important;
+  html.dark .eshop-admin-btn-primary {
+    background: #4f46e5;
     box-shadow: 0 12px 28px rgba(79, 70, 229, 0.28);
   }
 
-  html.dark .eshop-admin-primary-btn:hover {
-    background: #6366f1 !important;
-    border-color: rgba(129, 140, 248, 0.98) !important;
-    color: #ffffff !important;
+  html.dark .eshop-admin-btn-primary:hover {
+    background: #6366f1;
+    border-color: rgba(129, 140, 248, 0.98);
   }
 
-  html.dark .eshop-admin-success-btn {
-    border-color: rgba(16, 185, 129, 0.9) !important;
-    background: #059669 !important;
-    color: #ffffff !important;
+  html.dark .eshop-admin-btn-success {
+    background: #059669;
     box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
   }
 
-  html.dark .eshop-admin-success-btn:hover {
-    background: #10b981 !important;
-    border-color: rgba(52, 211, 153, 0.98) !important;
-    color: #ffffff !important;
-  }
-
-  html.dark .eshop-admin-link {
-    color: #818cf8 !important;
-  }
-
-  html.dark .eshop-admin-link:hover {
-    color: #a5b4fc !important;
-  }
-
-  html.dark .eshop-admin-alert-box,
-  .dark .eshop-admin-alert-box {
-    border-color: rgba(71, 85, 105, 0.88) !important;
-    background: rgba(15, 23, 42, 0.62) !important;
-  }
-
-  html.dark .eshop-admin-alert-row,
-  .dark .eshop-admin-alert-row {
-    border-color: rgba(71, 85, 105, 0.88) !important;
-    background: rgba(15, 23, 42, 0.86) !important;
-    color: #e2e8f0 !important;
-    box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08);
-  }
-
-  html.dark .eshop-admin-alert-row p,
-  .dark .eshop-admin-alert-row p {
-    color: inherit;
+  html.dark .eshop-admin-btn-success:hover {
+    background: #10b981;
+    border-color: rgba(52, 211, 153, 0.98);
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="eshop-admin-page">
+<div class="bg-white dark:bg-slate-950">
 <header class="page-hero">
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          {% trans "Admin" %}
-        </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          E-shop
-        </h1>
-        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          {% trans "Přehled produktů, objednávek a skladu. Spravuj zboží přímo z administrace Django." %}
-        </p>
-      </div>
-      <div class="page-stats-grid">
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Produkty" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ product_count }}</p>
-        </div>
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Objednávky" %}</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ order_count }}</p>
-        </div>
-        <div class="page-stat-card">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Čeká na zpracování" %}</p>
-          <p class="mt-2 text-3xl font-black {% if pending_count %}text-amber-600 dark:text-amber-400{% else %}text-slate-900 dark:text-white{% endif %}">
-            {{ pending_count }}
-          </p>
-        </div>
-      </div>
+  <div class="page-shell">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Admin" %}</p>
+    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">E-shop</h1>
+    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+      {% trans "Přehled produktů, objednávek a skladu. Spravuj zboží přímo z administrace Django." %}
+    </p>
+    <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+      <span><strong class="font-black text-slate-900 dark:text-white">{{ product_count }}</strong> <span>{% trans "produktů" %}</span></span>
+      <span class="text-slate-300 dark:text-slate-600">·</span>
+      <span><strong class="font-black text-slate-900 dark:text-white">{{ order_count }}</strong> <span>{% trans "objednávek" %}</span></span>
+      <span class="text-slate-300 dark:text-slate-600">·</span>
+      <span><strong class="font-black {% if pending_count %}text-amber-600 dark:text-amber-400{% else %}text-slate-900 dark:text-white{% endif %}">{{ pending_count }}</strong> <span>{% trans "aktivních" %}</span></span>
     </div>
   </div>
 </header>
@@ -372,50 +236,50 @@
 
     <div class="eshop-admin-actionbar flex flex-wrap items-center justify-end gap-3 px-4 py-3">
       <a href="{% url 'eshop:pickup-export' %}"
-         class="eshop-admin-secondary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+         class="eshop-admin-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition">
         {% trans "Export výdeje CSV" %}
       </a>
       <a href="{% url 'eshop:accounting-export' %}"
-         class="eshop-admin-secondary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+         class="eshop-admin-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition">
         {% trans "Účetní export CSV" %}
       </a>
       <a href="{% url 'eshop:flexi-export' %}"
-         class="eshop-admin-secondary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+         class="eshop-admin-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition">
         {% trans "ABRA Flexi XML" %}
       </a>
       <a href="{% url 'admin:eshop_order_changelist' %}"
-         class="eshop-admin-secondary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+         class="eshop-admin-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition">
         {% trans "Všechny objednávky" %} →
       </a>
       <a href="{% url 'admin:eshop_product_changelist' %}"
-         class="eshop-admin-primary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+         class="eshop-admin-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition">
         {% trans "Správa produktů" %}
       </a>
     </div>
 
     <div class="grid gap-8 xl:grid-cols-2">
       <section class="eshop-admin-panel p-6">
-        <div class="eshop-admin-panel-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="eshop-admin-panel-eyebrow">{% trans "Logistika" %}</p>
+            <p class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">{% trans "Logistika" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Výdej na závodě" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% trans "Objednávky připravené k předání na konkrétním závodě." %}
             </p>
           </div>
-          <div class="eshop-admin-kpi-stack">
+          <div class="flex flex-wrap justify-end gap-2">
             <span class="eshop-admin-metric">
-              <span class="eshop-admin-metric-value">{{ pickup_count }}</span>
-              <span class="eshop-admin-metric-label">{% trans "objednávek" %}</span>
+              <span class="text-xl font-black leading-none tracking-tight">{{ pickup_count }}</span>
+              <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "objednávek" %}</span>
             </span>
             <span class="eshop-admin-metric text-indigo-700 dark:text-indigo-300">
-              <span class="eshop-admin-metric-value">{{ pickup_item_count }}</span>
-              <span class="eshop-admin-metric-label">{% trans "kusů k výdeji" %}</span>
+              <span class="text-xl font-black leading-none tracking-tight">{{ pickup_item_count }}</span>
+              <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "kusů k výdeji" %}</span>
             </span>
-            <a href="{% url 'eshop:pickup-export' %}" class="eshop-admin-link text-xs font-semibold hover:underline">
+            <a href="{% url 'eshop:pickup-export' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
               {% trans "Exportovat →" %}
             </a>
-            <a href="{% url 'eshop:pickup-print' %}{% if selected_pickup_event %}?event={{ selected_pickup_event }}{% endif %}" class="eshop-admin-link text-xs font-semibold hover:underline">
+            <a href="{% url 'eshop:pickup-print' %}{% if selected_pickup_event %}?event={{ selected_pickup_event }}{% endif %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
               {% trans "Tisknout list →" %}
             </a>
           </div>
@@ -426,7 +290,7 @@
           </label>
           <select id="pickup-event"
                   name="pickup_event"
-                  class="eshop-admin-secondary-btn rounded-xl px-3 py-2 text-sm">
+                  class="eshop-admin-btn-secondary rounded-xl px-3 py-2 text-sm">
             <option value="">{% trans "Všechny závody" %}</option>
             {% for event_id, event_name, event_date in pickup_events %}
               <option value="{{ event_id }}"{% if selected_pickup_event == event_id|stringformat:'s' %} selected{% endif %}>
@@ -435,11 +299,11 @@
             {% endfor %}
           </select>
           <button type="submit"
-                  class="eshop-admin-secondary-btn rounded-xl px-4 py-2 text-sm font-semibold transition">
+                  class="eshop-admin-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition">
             {% trans "Použít filtr" %}
           </button>
           {% if selected_pickup_event %}
-            <a href="{% url 'eshop:index' %}" class="eshop-admin-link text-sm font-semibold hover:underline">
+            <a href="{% url 'eshop:index' %}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
               {% trans "Zrušit filtr" %}
             </a>
           {% endif %}
@@ -473,7 +337,7 @@
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-3">
                 <a href="{% url 'eshop:admin-order-detail' order.pk %}"
-                   class="eshop-admin-link text-xs font-semibold hover:underline">
+                   class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
                   {% trans "Detail objednávky" %} →
                 </a>
                 <form method="post" action="{% url 'eshop:pickup-delivered' order.pk %}">
@@ -482,7 +346,7 @@
                     <input type="hidden" name="pickup_event" value="{{ selected_pickup_event }}">
                   {% endif %}
                   <button type="submit"
-                          class="eshop-admin-success-btn rounded-xl px-3 py-2 text-xs font-semibold transition">
+                          class="eshop-admin-btn-success rounded-xl px-3 py-2 text-xs font-semibold transition">
                     {% trans "Označit jako předáno" %}
                   </button>
                 </form>
@@ -495,17 +359,17 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="eshop-admin-panel-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="eshop-admin-panel-eyebrow">{% trans "Dnes" %}</p>
+            <p class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">{% trans "Dnes" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Předané dnes" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% blocktrans with day=today|date:"j. n. Y" %}Objednávky uzavřené během dne {{ day }}.{% endblocktrans %}
             </p>
           </div>
           <span class="eshop-admin-metric text-emerald-700 dark:text-emerald-300">
-            <span class="eshop-admin-metric-value">{{ delivered_today_count }}</span>
-            <span class="eshop-admin-metric-label">{% trans "předáno dnes" %}</span>
+            <span class="text-xl font-black leading-none tracking-tight">{{ delivered_today_count }}</span>
+            <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "předáno dnes" %}</span>
           </span>
         </div>
         <div class="mt-4 space-y-2">
@@ -540,24 +404,24 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="eshop-admin-panel-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="eshop-admin-panel-eyebrow">{% trans "Rezervace" %}</p>
+            <p class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">{% trans "Rezervace" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Aktivní rezervace skladu" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              {% trans "Dočasně blokované kusy v checkoutu. Pomáhá odhalit, proč varianta není aktuálně dostupná." %}
+              {% trans "Dočasně blokované kusy v košíku. Pomáhá odhalit, proč varianta není aktuálně dostupná." %}
             </p>
           </div>
-          <div class="eshop-admin-kpi-stack">
+          <div class="flex flex-wrap justify-end gap-2">
             <span class="eshop-admin-metric">
-              <span class="eshop-admin-metric-value">{{ reservation_count }}</span>
-              <span class="eshop-admin-metric-label">{% trans "relací" %}</span>
+              <span class="text-xl font-black leading-none tracking-tight">{{ reservation_count }}</span>
+              <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "relací" %}</span>
             </span>
             <span class="eshop-admin-metric text-amber-700 dark:text-amber-300">
-              <span class="eshop-admin-metric-value">{{ reserved_piece_count }}</span>
-              <span class="eshop-admin-metric-label">{% trans "blokovaných kusů" %}</span>
+              <span class="text-xl font-black leading-none tracking-tight">{{ reserved_piece_count }}</span>
+              <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "blokovaných kusů" %}</span>
             </span>
-            <a href="{% url 'admin:eshop_stockreservation_changelist' %}" class="eshop-admin-link text-xs font-semibold hover:underline">
+            <a href="{% url 'admin:eshop_stockreservation_changelist' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
               {% trans "Otevřít v adminu →" %}
             </a>
           </div>
@@ -579,10 +443,9 @@
                   <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
                       {{ reservation.variant.product.name }}
-                      <span class="font-normal text-slate-500 dark:text-slate-400">· {% trans "Velikost" %}: {{ reservation.variant.label }}</span>
                     </p>
                     <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                      {% trans "Session" %}: …{{ reservation.session_key|slice:"-8:" }}
+                      {% trans "Velikost" %}: {{ reservation.variant.label }} · {% trans "Session" %}: …{{ reservation.session_key|slice:"-8:" }}
                     </p>
                   </div>
                   <div class="shrink-0 text-right">
@@ -598,13 +461,13 @@
             {% endfor %}
           </div>
           <div class="space-y-2">
-            <div class="eshop-admin-alert-box rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/80 dark:bg-slate-900/40">
+            <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/80 dark:bg-slate-900/40">
               <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 {% trans "Blokované varianty" %}
               </p>
               <div class="mt-3 space-y-2">
                 {% for row in reservation_variant_rows %}
-                  <div class="eshop-admin-alert-row flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2 dark:border-slate-700/80 dark:bg-slate-800/80">
+                  <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2 dark:border-slate-700/80 dark:bg-slate-800/80">
                     <div class="min-w-0">
                       <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">{{ row.variant__product__name }}</p>
                       <p class="text-xs text-slate-500 dark:text-slate-400">{% trans "Velikost" %}: {{ row.variant__label }}</p>
@@ -623,20 +486,20 @@
       </section>
 
       <section class="eshop-admin-panel p-6">
-        <div class="eshop-admin-panel-heading">
+        <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="eshop-admin-panel-eyebrow">{% trans "Poptávka" %}</p>
+            <p class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">{% trans "Poptávka" %}</p>
             <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poptávka po naskladnění" %}</h2>
             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {% trans "Otevřené požadavky od uživatelů na vyprodané varianty." %}
             </p>
           </div>
-          <div class="eshop-admin-kpi-stack">
+          <div class="flex flex-wrap justify-end gap-2">
             <span class="eshop-admin-metric text-amber-700 dark:text-amber-300">
-              <span class="eshop-admin-metric-value">{{ open_stock_alert_count }}</span>
-              <span class="eshop-admin-metric-label">{% trans "požadavků" %}</span>
+              <span class="text-xl font-black leading-none tracking-tight">{{ open_stock_alert_count }}</span>
+              <span class="text-[0.62rem] font-extrabold uppercase leading-none tracking-[0.12em] text-slate-500 dark:text-slate-400">{% trans "požadavků" %}</span>
             </span>
-            <a href="{% url 'admin:eshop_stockalertrequest_changelist' %}" class="eshop-admin-link text-xs font-semibold hover:underline">
+            <a href="{% url 'admin:eshop_stockalertrequest_changelist' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">
               {% trans "Otevřít v adminu →" %}
             </a>
           </div>
@@ -694,11 +557,10 @@
         </div>
       </section>
 
-      {# ── Poslední objednávky ── #}
       <section class="eshop-admin-panel p-6">
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Poslední objednávky" %}</h2>
-          <a href="{% url 'admin:eshop_order_changelist' %}" class="eshop-admin-link text-xs font-semibold hover:underline">{% trans "Zobrazit vše →" %}</a>
+          <a href="{% url 'admin:eshop_order_changelist' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">{% trans "Zobrazit vše →" %}</a>
         </div>
         <div class="mt-4 space-y-2">
           {% for order in recent_orders %}
@@ -726,7 +588,6 @@
         </div>
       </section>
 
-      {# ── Nízký stav skladu ── #}
       <section class="eshop-admin-panel p-6">
         <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Nízký stav skladu" %}</h2>
         <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{% trans "Varianty se skladem ≤ 5 ks" %}</p>
@@ -735,7 +596,7 @@
           <div class="eshop-admin-subcard flex items-center justify-between px-4 py-3">
             <div>
               <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ variant.product.name }}</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">{{ variant.label }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{% trans "Velikost" %}: {{ variant.label }}</p>
             </div>
             <span class="text-sm font-bold {% if variant.stock == 0 %}text-rose-600 dark:text-rose-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">
               {% if variant.stock == 0 %}{% trans "Vyprodáno" %}{% else %}{{ variant.stock }}&nbsp;ks{% endif %}
@@ -749,11 +610,10 @@
 
     </div>
 
-    {# ── Produkty ── #}
     <section class="eshop-admin-panel p-6">
-      <div class="flex items-center justify-between mb-4">
+      <div class="mb-4 flex items-center justify-between">
         <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Produkty" %}</h2>
-        <a href="{% url 'admin:eshop_product_add' %}" class="eshop-admin-link text-xs font-semibold hover:underline">+ {% trans "Přidat produkt" %}</a>
+        <a href="{% url 'admin:eshop_product_add' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline">+ {% trans "Přidat produkt" %}</a>
       </div>
       <div class="divide-y divide-slate-100 dark:divide-slate-800">
         {% for product in products %}

@@ -1,132 +1,44 @@
 {% extends 'base.html' %} {% block title %} Pravidla BMX {% endblock title %}
 {% block extra_head %}
 <style>
-  html.dark body {
-    background: #0f172a !important;
-  }
-
-  .rules-page-surface {
-    background: #f8fafc;
-  }
-
-  .rules-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 24%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .rules-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
-  }
-
-  .rules-shell {
-    max-width: 88rem;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-  }
-
+  html.dark body { background: #0f172a !important; }
+  .rules-page-surface { background: #f8fafc; }
+  html.dark .rules-page-surface { background: #0f172a !important; }
+  .rules-shell { max-width: 88rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
   .rules-panel {
     border: 1px solid rgba(148, 163, 184, 0.24);
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
     box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
   }
-
-  .rules-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .rules-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .rules-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 960px) {
-    .rules-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .rules-prose p {
-    text-align: justify;
-  }
-
-  html.dark .rules-page-surface {
-    background: #0f172a !important;
-  }
-
-  html.dark .rules-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
   html.dark .rules-panel {
     border-color: rgba(71, 85, 105, 0.55);
-    background:
-      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
     box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
   }
-
-  html.dark .rules-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
+  .rules-prose p { text-align: justify; }
 </style>
 {% endblock %}
 {% block content %}
 
-<header class="rules-hero">
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-      <div>
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-      Soutěžní řád
-    </p>
-    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-      PRAVIDLA BMX
-    </h1>
-    <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+<header class="page-hero">
+  <div class="page-shell">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Soutěžní řád</p>
+    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Pravidla BMX</h1>
+    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
       Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing.
     </p>
-      </div>
-      <div class="rules-stats-grid">
-        <div class="rules-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pravidla UCI</p>
-          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Part VI: BMX</p>
-        </div>
-        <div class="rules-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální dokument</p>
-          {% if bmx_rules_link %}
-          <a href="{{ bmx_rules_link }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center text-lg font-black text-indigo-700 transition hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200">
-            Otevřít PDF pravidla
-          </a>
-          {% else %}
-          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Není vloženo</p>
-          {% endif %}
-        </div>
-        <div class="rules-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Klíčový prvek</p>
-          <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Tabulky a čipy</p>
-        </div>
+    <div class="mt-6 flex flex-wrap items-center gap-4">
+      {% if bmx_rules_link %}
+      <a href="{{ bmx_rules_link }}" target="_blank" rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        Otevřít PDF pravidla UCI
+      </a>
+      {% endif %}
+      <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+        <span><strong class="font-black text-slate-900 dark:text-white">Part VI</strong> <span>UCI BMX</span></span>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <span>Tabulky a čipy</span>
       </div>
     </div>
   </div>

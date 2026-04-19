@@ -218,8 +218,8 @@
           </div>
           <div class="page-stat-card">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Skladem" %}</p>
-            <p id="hero-stock-display" class="mt-2 text-3xl font-black {% if product.total_stock == 0 %}text-rose-500{% elif product.total_stock <= 5 %}text-amber-500{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
-              {{ product.total_stock }}&nbsp;<span class="text-lg font-semibold">ks</span>
+            <p id="hero-stock-display" class="mt-2 text-3xl font-black {% if total_available_stock == 0 %}text-rose-500{% elif total_available_stock <= 5 %}text-amber-500{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+              {{ total_available_stock }}&nbsp;<span class="text-lg font-semibold">ks</span>
             </p>
           </div>
           {% if product.category %}
@@ -309,7 +309,6 @@
           {% endif %}
 
           {# ── Varianty + košík ── #}
-          {% with variants=product.variants.all %}
           {% if variants %}
           <form method="post" action="{% url 'eshop:add-to-cart' %}" class="product-purchase-panel p-5 sm:p-6">
             {% csrf_token %}
@@ -319,17 +318,17 @@
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">{% trans "Dostupnost" %}</p>
-                  <p id="availability-title" class="mt-1 text-base font-bold {% if product.total_stock == 0 %}text-rose-600 dark:text-rose-400{% elif product.total_stock <= 5 %}text-amber-600 dark:text-amber-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
-                    {% if product.total_stock == 0 %}
+                  <p id="availability-title" class="mt-1 text-base font-bold {% if total_available_stock == 0 %}text-rose-600 dark:text-rose-400{% elif total_available_stock <= 5 %}text-amber-600 dark:text-amber-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                    {% if total_available_stock == 0 %}
                       {% trans "Vyprodáno" %}
-                    {% elif product.total_stock <= 5 %}
+                    {% elif total_available_stock <= 5 %}
                       {% trans "Poslední kusy skladem" %}
                     {% else %}
                       {% trans "Skladem ihned k rezervaci" %}
                     {% endif %}
                   </p>
                   <p id="availability-count" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    {% blocktrans with count=product.total_stock %}Aktuálně dostupné kusy: {{ count }}{% endblocktrans %}
+                    {% blocktrans with count=total_available_stock %}Aktuálně dostupné kusy: {{ count }}{% endblocktrans %}
                   </p>
                 </div>
                 {% if product.category and product.category.slug == "obleceni" %}
@@ -349,26 +348,24 @@
             <div class="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4"
                  role="radiogroup" aria-label="{{ product.get_variant_type_display }}">
               {% for v in variants %}
-              {% if v.active %}
               <button
                 type="button"
                 data-variant-id="{{ v.pk }}"
                 data-variant-label="{{ v.label }}"
                 data-price="{{ v.price|floatformat:0 }}"
-                data-stock="{{ v.stock }}"
+                data-stock="{{ v.available_stock }}"
                 class="variant-button group relative flex min-h-[4.5rem] flex-col items-center justify-center rounded-2xl border-2 px-3 py-3.5 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-500
-                  {% if v.stock == 0 %}cursor-pointer border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400
+                  {% if v.available_stock == 0 %}cursor-pointer border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400
                   {% else %}border-slate-200 bg-white text-slate-800 hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-indigo-600{% endif %}"
-                {% if v.stock == 0 %}aria-describedby="stock-alert-help"{% endif %}>
+                {% if v.available_stock == 0 %}aria-describedby="stock-alert-help"{% endif %}>
                 <span class="text-sm font-bold leading-tight">{{ v.label }}</span>
                 <span class="mt-1 text-[10px] leading-tight
-                  {% if v.stock == 0 %}text-amber-700 dark:text-amber-300
-                  {% elif v.stock <= 3 %}text-amber-500 font-semibold
+                  {% if v.available_stock == 0 %}text-amber-700 dark:text-amber-300
+                  {% elif v.available_stock <= 3 %}text-amber-500 font-semibold
                   {% else %}text-slate-400 dark:text-slate-500{% endif %}">
-                  {% if v.stock == 0 %}{% trans "Vyprodáno · hlídat" %}{% else %}{{ v.stock }}&nbsp;ks{% endif %}
+                  {% if v.available_stock == 0 %}{% trans "Vyprodáno · hlídat" %}{% else %}{{ v.available_stock }}&nbsp;ks{% endif %}
                 </span>
               </button>
-              {% endif %}
               {% endfor %}
             </div>
 
@@ -629,7 +626,6 @@
             })();
           </script>
           {% endif %}
-          {% endwith %}
 
           {% if has_sold_out_variants %}
           <p id="stock-alert-help" class="sr-only">
