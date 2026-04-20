@@ -77,33 +77,38 @@
 {% block content %}
 <header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-      {% trans "Termíny a pořadatelé" %}
-    </p>
-    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-      {% trans "Český kalendář BMX Racing" %}
-    </h1>
-    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-      {{ hero_description }}
-    </p>
-    <div class="mt-6 flex flex-wrap items-center gap-4">
-      <a href="{% url 'event:feed' %}"
-         class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 shrink-0 text-indigo-500">
-          <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
-        </svg>
-        {% trans "Přidat do kalendáře" %}
-      </a>
-      <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-        <span>
-          <strong class="font-black text-slate-900 dark:text-white">{{ events|length }}</strong>
-          <span class="ml-1">{% trans "nadcházejících závodů" %}</span>
-        </span>
-        <span class="text-slate-300 dark:text-slate-600">·</span>
-        <span>
-          <strong class="font-black text-slate-900 dark:text-white">{{ past_events|length }}</strong>
-          <span class="ml-1">{% trans "ukončených závodů" %}</span>
-        </span>
+    <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(30rem,36rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            {% trans "Termíny a pořadatelé" %}
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            {% trans "Český kalendář BMX Racing" %}
+          </h1>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            {{ hero_description }}
+          </p>
+          <div class="mt-5">
+            <a href="{% url 'event:feed' %}"
+               class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 shrink-0 text-indigo-500">
+                <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
+              </svg>
+              {% trans "Přidat do kalendáře" %}
+            </a>
+          </div>
+        </div>
+        <div class="page-stats-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Nadcházející závody" %}</p>
+            <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ events|length }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Ukončených závodů" %}</p>
+            <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ past_events|length }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

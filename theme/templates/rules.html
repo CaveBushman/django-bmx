@@ -1,86 +1,182 @@
-{% extends 'base.html' %} {% block title %} Pravidla BMX {% endblock title %}
+{% extends 'base.html' %}
+{% block title %} Pravidla BMX {% endblock title %}
+{% load static %}
 {% block extra_head %}
 <style>
-  html.dark body { background: #0f172a !important; }
-  .rules-page-surface { background: #f8fafc; }
-  html.dark .rules-page-surface { background: #0f172a !important; }
-  .rules-shell { max-width: 88rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-  .rules-panel {
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
-    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  .ranking-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
   }
-  html.dark .rules-panel {
-    border-color: rgba(71, 85, 105, 0.55);
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(23, 37, 84, 0.82));
-    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
+
+  .ranking-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
-  .rules-prose p { text-align: justify; }
+
+  .ranking-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+
+  .ranking-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
+  .ranking-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .ranking-stat {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .ranking-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
+  }
+
+  html.dark .ranking-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+
+  html.dark .ranking-hero-frame {
+    border-color: rgba(148, 163, 184, 0.14);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  html.dark .ranking-stat {
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
+  }
 </style>
 {% endblock %}
 {% block content %}
 
-<header class="page-hero">
-  <div class="page-shell">
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Soutěžní řád</p>
-    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Pravidla BMX</h1>
-    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-      Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing.
-    </p>
-    <div class="mt-6 flex flex-wrap items-center gap-4">
-      {% if bmx_rules_link %}
-      <a href="{{ bmx_rules_link }}" target="_blank" rel="noopener noreferrer"
-        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-        Otevřít PDF pravidla UCI
-      </a>
-      {% endif %}
-      <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-        <span><strong class="font-black text-slate-900 dark:text-white">Part VI</strong> <span>UCI BMX</span></span>
-        <span class="text-slate-300 dark:text-slate-600">·</span>
-        <span>Tabulky a čipy</span>
+<header class="ranking-hero">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Soutěžní řád
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Pravidla BMX
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing.
+          </p>
+        </div>
+        <div class="ranking-stats-grid">
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Part VI</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">UCI</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pravidla
+            </p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">BMX</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Kategorie</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">Racing</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </header>
 
 <section class="rules-page-surface min-h-screen bg-slate-50 pb-8 dark:bg-slate-900">
-<div class="rules-shell dark:text-slate-200">
-  <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-    <div class="rules-panel rules-prose rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
-    <p class="dark:text-slate-200">Pravidla BMX RACING jsou stanovena mezinárodní cyklistickou unií UCI, která je
-        pravidelně aktualizované
-        zveřejňuje na svých webových stránkách www.uci.ch v sekci BMX RACING -> Rules and regulation v části Part. VI:
-        BMX. Tato pravidla je nutno striktně dodržovat při závodech kategorie Championships, pokud je závod zapsán v
-        kalendáři UCI. U ostatních závodů a u kategorie Challenge se může národní svaz od těchto pravidel odchýlit. Je
-        tedy časté, že se zejména v postupových pravidlech v závodě liší klíče kategorie Challenge a pravidla kategorie
-        Championships.
-    </p>
-    <p class="pt-4 dark:text-slate-200">
-        Komise BMX Českého svazu cyklistiky se snaží své závody k pravidlům UCI co nejblíže přiblížit, neboť mnoho
-        českých jezdců pravidelně jezdí na závodech Evropského poháru, Mistrovství Evropy či světa a je třeba, aby tato
-        pravidla měli zažity.
-    </p>
-    </div>
-    <div class="rules-panel rounded-[2rem] p-6 sm:p-7">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Rychlá orientace</p>
-      <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-        <li>Při UCI závodech závodí kategorie Championships výhradně podle pravidel UCI bez odchylek.</li>
-        <li>Challenge kategorie mohou mít národní úpravy, hlavně v postupových klíčích.</li>
-        <li>Tabulka barev tabulek níže zůstává závazná pro přední čísla na řídítkách.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="rules-panel rules-prose mt-8 rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <h5 class="text-2xl font-black tracking-tight text-gray-800 dark:!text-slate-100">Základní pravidla</h5>
-      <span class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-        Licence, tabulky, čipy
-      </span>
+  <div class="rules-shell dark:text-slate-200">
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="rules-panel rules-prose rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
+        <p class="dark:text-slate-200">Pravidla BMX RACING jsou stanovena mezinárodní cyklistickou unií UCI, která je
+          pravidelně aktualizované
+          zveřejňuje na svých webových stránkách www.uci.ch v sekci BMX RACING -> Rules and regulation v části Part. VI:
+          BMX. Tato pravidla je nutno striktně dodržovat při závodech kategorie Championships, pokud je závod zapsán v
+          kalendáři UCI. U ostatních závodů a u kategorie Challenge se může národní svaz od těchto pravidel odchýlit. Je
+          tedy časté, že se zejména v postupových pravidlech v závodě liší klíče kategorie Challenge a pravidla
+          kategorie
+          Championships.
+        </p>
+        <p class="pt-4 dark:text-slate-200">
+          Komise BMX Českého svazu cyklistiky se snaží své závody k pravidlům UCI co nejblíže přiblížit, neboť mnoho
+          českých jezdců pravidelně jezdí na závodech Evropského poháru, Mistrovství Evropy či světa a je třeba, aby
+          tato
+          pravidla měli zažity.
+        </p>
+      </div>
+      <div class="rules-panel rounded-[2rem] p-6 sm:p-7">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Rychlá
+          orientace</p>
+        <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <li>Při UCI závodech závodí kategorie Championships výhradně podle pravidel UCI bez odchylek.</li>
+          <li>Challenge kategorie mohou mít národní úpravy, hlavně v postupových klíčích.</li>
+          <li>Tabulka barev tabulek níže zůstává závazná pro přední čísla na řídítkách.</li>
+        </ul>
+      </div>
     </div>
 
-    <p class = "mt-4 dark:text-slate-200">Předně je třeba uvést, že tento výčet pravidel je toliko informativní a při jejich
+    <div class="rules-panel rules-prose mt-8 rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <h5 class="text-2xl font-black tracking-tight text-gray-800 dark:!text-slate-100">Základní pravidla</h5>
+        <span
+          class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+          Licence, tabulky, čipy
+        </span>
+      </div>
+
+      <p class="mt-4 dark:text-slate-200">Předně je třeba uvést, že tento výčet pravidel je toliko informativní a při
+        jejich
         výkladu má vždy přednost anglická verze zveřejněná v dokumentu UCI Part VI: BMX. Současně uvádíme, že výčet není
         úplný, obsahuje pouze nejdůležitější či nejčastěji využívaná pravidla.
         Jezdec BMX RACING musí být držitelem licence Českého svazu cyklistiky či licence vydané jiným členským státem
@@ -91,82 +187,101 @@
         registraci do závodu uvést, pod jakým startovním číslem závod pojedou. Toto číslo jsou jezdci též povinni mít na
         přední tabulce umístěné na řídítkách, a to v barevném provedené podle následující tabulky (článek 6.1.091
         pravidel UCI):
-    </p>
-<div class="mt-8 flex flex-col">
-    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg dark:ring-slate-700">
-          <table class="min-w-full divide-y divide-gray-300 dark:divide-slate-700">
-            <thead class="bg-gray-50 dark:bg-slate-950">
-              <tr>
-                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-slate-100 sm:pl-6">Kategorie</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-slate-100">Barevné rozlišení</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
-              <tr>
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:!text-black sm:pl-6">ELITE MEN/WOMEN</td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-black dark:!text-black">bílý podklad, černé číslo</td>
-              </tr>
-              <tr class="bg-gray-500 text-white">
-                <td class="whitespace-nowrap bg-gray-500 py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">UNDER 23 MEN/WOMEN</td>
-                <td class="whitespace-nowrap bg-gray-500 px-3 py-4 text-sm text-white">šedý podklad, bílé číslo</td>
-              </tr>
-              <tr class="bg-black text-white">
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">JUNIOR MEN/WOMEN</td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-white">černý podklad, bílé číslo</td>
-              </tr>
-              <tr class="bg-red-700 text-white">
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">CRUISER</td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-white">červený podklad, bílé číslo</td>
-              </tr>
-              <tr class="bg-blue-800 text-white">
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">GIRL</td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-white">modrý podklad, bílé číslo</td>
-              </tr>
-              <tr class="bg-yellow-300 text-black">
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-black sm:pl-6">CHALLENGE</td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-black">žlutý podklad, černé číslo</td>
-              </tr>
+      </p>
+      <div class="mt-8 flex flex-col">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg dark:ring-slate-700">
+              <table class="min-w-full divide-y divide-gray-300 dark:divide-slate-700">
+                <thead class="bg-gray-50 dark:bg-slate-950">
+                  <tr>
+                    <th scope="col"
+                      class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-slate-100 sm:pl-6">
+                      Kategorie</th>
+                    <th scope="col"
+                      class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-slate-100">Barevné
+                      rozlišení</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
+                  <tr>
+                    <td
+                      class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:!text-black sm:pl-6">
+                      ELITE MEN/WOMEN</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-black dark:!text-black">bílý podklad, černé
+                      číslo</td>
+                  </tr>
+                  <tr class="bg-gray-500 text-white">
+                    <td class="whitespace-nowrap bg-gray-500 py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">
+                      UNDER 23 MEN/WOMEN</td>
+                    <td class="whitespace-nowrap bg-gray-500 px-3 py-4 text-sm text-white">šedý podklad, bílé číslo</td>
+                  </tr>
+                  <tr class="bg-black text-white">
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">JUNIOR MEN/WOMEN
+                    </td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-white">černý podklad, bílé číslo</td>
+                  </tr>
+                  <tr class="bg-red-700 text-white">
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">CRUISER</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-white">červený podklad, bílé číslo</td>
+                  </tr>
+                  <tr class="bg-blue-800 text-white">
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">GIRL</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-white">modrý podklad, bílé číslo</td>
+                  </tr>
+                  <tr class="bg-yellow-300 text-black">
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-black sm:pl-6">CHALLENGE</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-black">žlutý podklad, černé číslo</td>
+                  </tr>
 
-            </tbody>
-          </table>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
- 
-    <p class="mt-8 dark:text-slate-200">Přední tabulka musí mít rozměr dle pravidel UCI, tj. minimální výšku čísla 8 cm a
+
+      <p class="mt-8 dark:text-slate-200">Přední tabulka musí mít rozměr dle pravidel UCI, tj. minimální výšku čísla 8
+        cm a
         šířku 1 cm.
         Pokud jezdec nemá přiděleno startovní číslo, je povinen si o číslo zažádat v online systému permanentních
         startovních čísel na tomto webu. Jezdec si vybere startovní číslo dle možností z volných čísel od 10 do
         999 s tím, že přednost při výběru čísel má jezdec s permanentním číslem UCI. Pokud v budoucnu dojde ke shodě
         čísel mezi jezdci UCI a jezdci z ČR, musí si jezdec ČR vybrat jiné číslo a původní číslo přenechat jezdci s
         permanentním číslem UCI. Vyplnění formuláře je zdarma.</p>
-        <p class = "mt-4 dark:text-slate-200">Každý jezdec je povinen při závodech, kde je použit ke zpracování výsledků systém MyLaps a BMX Event Manager či
-        obdobný systém, startovat s čipem. Start bez čipu není možný. Poplatek za přidělení a aktivaci čipu je {{ transponder_price }} Kč, přičemž životnost jeho baterie je garantována po dobu nejméně 3 roky. Zapůjčení čipu pro cizince je za 250,-Kč/závod. Každý
+      <p class="mt-4 dark:text-slate-200">Každý jezdec je povinen při závodech, kde je použit ke zpracování výsledků
+        systém MyLaps a BMX Event Manager či
+        obdobný systém, startovat s čipem. Start bez čipu není možný. Poplatek za přidělení a aktivaci čipu je {{
+        transponder_price }} Kč, přičemž životnost jeho baterie je garantována po dobu nejméně 3 roky. Zapůjčení čipu
+        pro cizince je za 250,-Kč/závod. Každý
         licencovaný jezdec je povinen vlastnit permanentní čip. Částka se hradí Asociaci klubů BMX a ta mu čip vydá před
-        startem závodu.  Bez platného a aktivního čipu bude jezdci v jízdě uložen trest DNF (článek 6.1.039 pravidel UCI). Čip nesmí být umístěn před osou
+        startem závodu. Bez platného a aktivního čipu bude jezdci v jízdě uložen trest DNF (článek 6.1.039 pravidel
+        UCI). Čip nesmí být umístěn před osou
         předního kola a musí být umístěn na přední vidlici. Pokud bude zjištěno při závodě jiné umístění čipu, bude
         jezdci uložen trest DNS za jízdu, v níž jiné umístění čipu bylo zjištěno.</p>
 
-        <p class = "mt-4 dark:text-slate-200">Jezdec musí být vybaven integrální přilbou, dresem s dlouhým rukávem, kalhotami s dlouhými nohavicemi,
+      <p class="mt-4 dark:text-slate-200">Jezdec musí být vybaven integrální přilbou, dresem s dlouhým rukávem,
+        kalhotami s dlouhými nohavicemi,
         dlouhoprstými rukavicemi a uzavřenou obuví. Krátké kalhoty nejsou povoleny ani v případě, kdy má pod nimi jezdec
         chrániče zakrývající nohy. Od závodní kategorie Boys 13 může jezdec používat systém tzv. SPD pedálů. Užití
         těchto pedálů jezdci nižších věkových kategorií je zakázáno, a to i v případě, že jsou mladší jezdci sloučení s
         kategorií Boys 13. Vyjma kategorie Championship nesmí mít jezdec na dresu číslo, pokud bude při závodě
         zjištěno porušení tohoto ustanovení, bude jezdci udělen trest <span class="text-red-500">RELEGATION</span>.</p>
-        <p class = "mt-4 dark:text-slate-200">Individuální reklama jezdce je povolena na pravém rukávu dresu jezdce.</p>
-        <p class = "mt-4 dark:text-slate-200">Na vyhlášení výsledků musí být jezdec oblečen kompletním závodním oblečení, tj. v dresu, dlouhých kalhotách a
-        závodní či sportovní obuv. Při porušení tohoto pravidla bude jezdci uložen trest <span class="text-red-500">DISQUALIFICATION</span>.</p>
-        <p class = "mt-4 dark:text-slate-200">Použití kamery jezdcem při závodě je zakázáno.
+      <p class="mt-4 dark:text-slate-200">Individuální reklama jezdce je povolena na pravém rukávu dresu jezdce.</p>
+      <p class="mt-4 dark:text-slate-200">Na vyhlášení výsledků musí být jezdec oblečen kompletním závodním oblečení,
+        tj. v dresu, dlouhých kalhotách a
+        závodní či sportovní obuv. Při porušení tohoto pravidla bude jezdci uložen trest <span
+          class="text-red-500">DISQUALIFICATION</span>.</p>
+      <p class="mt-4 dark:text-slate-200">Použití kamery jezdcem při závodě je zakázáno.
         Použití kotoučových brzd je povoleno.</p>
-        <p class = "mt-4 mb-4 dark:text-slate-200">Pokud je k administraci závodu využit čipový systém, je pořadí výběru startovní dráhy založeno na čase poslední
-        jízdy, vyjma základních rozjížděk, kde je pořádí dráhy náhodně rozlosováno (Scramle system). Může se tedy stát, že
+      <p class="mt-4 mb-4 dark:text-slate-200">Pokud je k administraci závodu využit čipový systém, je pořadí výběru
+        startovní dráhy založeno na čase poslední
+        jízdy, vyjma základních rozjížděk, kde je pořádí dráhy náhodně rozlosováno (Scramle system). Může se tedy stát,
+        že
         první si např. ve čtvrtfinále bude startovní dráhu vybírat ten, kdo se umístil na posledním postupovém místě
         (článek 6.1.029bis pravidel UCI).
-    </p>
+      </p>
+    </div>
   </div>
-</div>
 </section>
 {% endblock content %}
