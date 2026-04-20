@@ -1,22 +1,18 @@
 {% extends 'base.html' %}
 {% block title %} Detail jezdce {% endblock title %}
+{% load static %}
 {% block extra_head %}
 <style>
-  .rider-profile-page {
-    min-height: calc(100vh - 4rem);
-    background: #f8fafc;
-  }
-
-  .rider-profile-hero {
+  .ranking-hero {
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
   }
 
-  .rider-profile-hero::after {
+  .ranking-hero::after {
     content: "";
     position: absolute;
     inset: auto 0 0;
@@ -24,35 +20,83 @@
     background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
-  .rider-profile-shell {
-    max-width: 88rem;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 1rem;
+  .ranking-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
   }
 
-  .rider-profile-stats-grid {
+  .ranking-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
+  .ranking-stats-grid {
     display: grid;
     grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: 1.25rem;
   }
 
   @media (min-width: 640px) {
-    .rider-profile-stats-grid {
+    .ranking-stats-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (min-width: 960px) {
-    .rider-profile-stats-grid {
+    .ranking-stats-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  .rider-profile-stat {
+  .ranking-stat {
+    position: relative;
+    overflow: hidden;
     border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
   }
+
+  .ranking-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
+  }
+
+  html.dark .ranking-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+
+  html.dark .ranking-hero-frame {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.62), rgba(30, 41, 59, 0.50));
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  html.dark .ranking-stat {
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
+  }
+
 
   html.dark .rider-detail-surface {
     background-color: #0f172a !important;
@@ -129,18 +173,6 @@
     background: #0f172a;
   }
 
-  html.dark .rider-profile-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
-  html.dark .rider-profile-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
 
   .rider-premium-panel {
     width: 100%;
@@ -380,36 +412,38 @@
 {% endblock %}
 {% block content %}
 
-<header class="rider-profile-hero">
+<header class="ranking-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          Profil jezdce
-        </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          {{ rider.first_name|upper }} {{ rider.last_name|upper }}
-        </h1>
-        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Přehled registračních údajů, kategorií a výsledků za posledních 365 dní.
-        </p>
-      </div>
-      <div class="rider-profile-stats-grid">
-        <div class="rider-profile-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Startovní číslo</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ rider.plate_display|default:"-" }}</p>
-        </div>
-        <div class="rider-profile-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 20"</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
-            {% if rider.is_20 %}{{ rider.class_20 }}{% else %}Nejezdí{% endif %}
+    <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Profil jezdce
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            {{ rider.first_name|upper }} {{ rider.last_name|upper }}
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Přehled registračních údajů, kategorií a výsledků za posledních 365 dní.
           </p>
         </div>
-        <div class="rider-profile-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 24"</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
-            {% if rider.is_24 %}{{ rider.class_24 }}{% else %}Nejezdí{% endif %}
-          </p>
+        <div class="ranking-stats-grid">
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Startovní číslo</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ rider.plate_display|default:"-" }}</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 20"</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {% if rider.is_20 %}{{ rider.class_20 }}{% else %}Nejezdí{% endif %}
+            </p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie 24"</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {% if rider.is_24 %}{{ rider.class_24 }}{% else %}Nejezdí{% endif %}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -417,7 +451,7 @@
 </header>
 
 <section class="rider-profile-page rider-detail-surface pb-10">
-  <div class="rider-profile-shell">
+  <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:items-stretch">
       <div class="rider-detail-card flex h-full min-h-[20rem] flex-col justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-xl dark:shadow-slate-950/30">
         <div class="flex flex-col items-center text-center">
