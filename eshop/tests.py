@@ -499,6 +499,43 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertContains(response, 'data-variant-label="XL"', html=False)
         self.assertContains(response, "Vyprodáno")
 
+    def test_product_detail_exposes_addable_and_cart_qty_attributes(self):
+        # stock=5, cart=3 → addable=2, cart_qty=3 must appear as data attributes
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 3}
+        session.save()
+
+        response = self.client.get(reverse("eshop:product-detail", args=[self.product.slug]))
+
+        self.assertContains(response, 'data-addable="2"', html=False)
+        self.assertContains(response, 'data-cart-qty="3"', html=False)
+
+    def test_product_detail_addable_is_zero_when_cart_at_max(self):
+        # stock=5, cart=5 → addable=0, button shows "Maximum v košíku"
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 5}
+        session.save()
+
+        response = self.client.get(reverse("eshop:product-detail", args=[self.product.slug]))
+
+        self.assertContains(response, 'data-addable="0"', html=False)
+        self.assertContains(response, 'data-cart-qty="5"', html=False)
+        self.assertContains(response, "Maximum v košíku", html=False)
+
+    def test_add_to_cart_adds_correct_remaining_quantity(self):
+        # stock=5, already have 3 in cart, adding 2 should bring cart to 5
+        self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 3})
+        self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 2})
+
+        self.assertEqual(self.client.session[CART_SESSION_KEY][str(self.variant.pk)], 5)
+
+    def test_add_to_cart_cannot_exceed_stock(self):
+        # stock=5, adding 6 total should cap at 5
+        self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 3})
+        self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 3})
+
+        self.assertEqual(self.client.session[CART_SESSION_KEY][str(self.variant.pk)], 5)
+
     def test_product_detail_shows_stock_alert_form_for_sold_out_variant(self):
         ProductVariant.objects.create(
             product=self.product,
@@ -648,7 +685,7 @@ class EshopCheckoutTemplateTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Race Jersey")
-        self.assertContains(response, "Objednat")
+        self.assertContains(response, "Pokračovat k objednávce")
 
     def test_checkout_adjusts_quantity_when_stock_drops(self):
         session = self.client.session
@@ -673,7 +710,7 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reservation.quantity, 2)
         self.assertGreater(reservation.expires_at, timezone.now())
-        self.assertContains(response, "Kusy v checkoutu držíme rezervované")
+        self.assertContains(response, "Kusy jsou rezervované od vložení do košíku")
         self.assertContains(response, "data-reservation-countdown", html=False)
         self.assertContains(response, "data-countdown-output", html=False)
 
