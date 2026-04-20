@@ -569,10 +569,14 @@ def product_detail(request, slug):
         slug=slug,
         active=True,
     )
-    reserved_all = _reserved_quantities_by_variant()
+    session_key = request.session.session_key
+    reserved_by_others = _reserved_quantities_by_variant(exclude_session_key=session_key)
+    cart_obj = Cart(request)
     variants = list(product.variants.filter(active=True))
     for v in variants:
-        v.available_stock = max(v.stock - reserved_all.get(v.pk, 0), 0)
+        v.available_stock = max(v.stock - reserved_by_others.get(v.pk, 0), 0)
+        v.cart_quantity = cart_obj.get_quantity(v.pk)
+        v.addable_stock = max(v.available_stock - v.cart_quantity, 0)
     total_available_stock = sum(v.available_stock for v in variants)
     stock_alert_form = StockAlertRequestForm(product=product, user=request.user)
     context = {
@@ -1053,7 +1057,7 @@ def _sync_stock_reservations(request, cart_obj):
             session_key=session_key,
             variant_id=int(variant_id),
             defaults={"quantity": quantity},
-            create_defaults={"expires_at": new_expires_at},
+            create_defaults={"quantity": quantity, "expires_at": new_expires_at},
         )
     earliest = (
         StockReservation.objects.filter(session_key=session_key)

@@ -160,6 +160,15 @@
     background-color: rgba(245, 158, 11, 0.13) !important;
     color: #fde68a !important;
   }
+
+  html.dark .continue-shopping-btn {
+    background-color: #020617;
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+  html.dark .continue-shopping-btn:hover {
+    background-color: #0f172a;
+  }
 </style>
 {% endblock %}
 
@@ -298,7 +307,7 @@
               {% trans "Můžeš pokračovat v nákupu, nebo přejít do košíku a zkontrolovat objednávku před checkoutem." %}
             </p>
             <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-              <a href="{% url 'eshop:shop' %}" class="inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-slate-900">
+              <a href="{% url 'eshop:shop' %}" class="continue-shopping-btn inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
                 {% trans "Pokračovat v nákupu" %}
               </a>
               <a href="{% url 'eshop:cart' %}" class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
@@ -354,16 +363,22 @@
                 data-variant-label="{{ v.label }}"
                 data-price="{{ v.price|floatformat:0 }}"
                 data-stock="{{ v.available_stock }}"
+                data-addable="{{ v.addable_stock }}"
+                data-cart-qty="{{ v.cart_quantity }}"
                 class="variant-button group relative flex min-h-[4.5rem] flex-col items-center justify-center rounded-2xl border-2 px-3 py-3.5 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-500
                   {% if v.available_stock == 0 %}cursor-pointer border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400
+                  {% elif v.addable_stock == 0 %}border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400
                   {% else %}border-slate-200 bg-white text-slate-800 hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-indigo-600{% endif %}"
                 {% if v.available_stock == 0 %}aria-describedby="stock-alert-help"{% endif %}>
                 <span class="text-sm font-bold leading-tight">{{ v.label }}</span>
                 <span class="mt-1 text-[10px] leading-tight
                   {% if v.available_stock == 0 %}text-amber-700 dark:text-amber-300
-                  {% elif v.available_stock <= 3 %}text-amber-500 font-semibold
+                  {% elif v.addable_stock == 0 %}text-slate-400 dark:text-slate-500
+                  {% elif v.addable_stock <= 3 %}text-amber-500 font-semibold
                   {% else %}text-slate-400 dark:text-slate-500{% endif %}">
-                  {% if v.available_stock == 0 %}{% trans "Vyprodáno · hlídat" %}{% else %}{{ v.available_stock }}&nbsp;ks{% endif %}
+                  {% if v.available_stock == 0 %}{% trans "Vyprodáno · hlídat" %}
+                  {% elif v.addable_stock == 0 %}{% trans "Maximum v košíku" %}
+                  {% else %}{{ v.addable_stock }}&nbsp;ks{% endif %}
                 </span>
               </button>
               {% endfor %}
@@ -419,7 +434,7 @@
           <script>
             document.addEventListener('DOMContentLoaded', function () {
               const buttons = Array.from(document.querySelectorAll('button.variant-button'));
-              const availableButtons = buttons.filter(btn => parseInt(btn.dataset.stock, 10) > 0);
+              const availableButtons = buttons.filter(btn => parseInt(btn.dataset.addable ?? btn.dataset.stock, 10) > 0);
               const hiddenInput = document.getElementById('variant-id');
               const submitBtn = document.getElementById('add-to-cart-btn');
               const priceEl = document.getElementById('price-display');
@@ -486,8 +501,8 @@
               function updateQtyButtons() {
                 const val = parseInt(qtyInput.value, 10);
                 const max = parseInt(qtyInput.max, 10);
-                qtyMinus.disabled = val <= 1;
-                qtyPlus.disabled = val >= max;
+                qtyMinus.disabled = val <= 1 || max <= 0;
+                qtyPlus.disabled = val >= max || max <= 0;
                 syncQtyDisplay();
               }
 
@@ -550,15 +565,25 @@
                 }
 
                 const stock = parseInt(btn.dataset.stock, 10);
-                updateAvailability(stock);
-                qtyInput.max = stock;
-                qtyInput.value = Math.max(1, Math.min(parseInt(qtyInput.value, 10) || 1, stock));
+                const addable = parseInt(btn.dataset.addable ?? btn.dataset.stock, 10);
+                const cartQty = parseInt(btn.dataset.cartQty || '0', 10);
+                updateAvailability(addable);
+                qtyInput.max = Math.max(addable, 1);
+                qtyInput.value = addable > 0
+                  ? (cartQty > 0 ? addable : Math.max(1, Math.min(parseInt(qtyInput.value, 10) || 1, addable)))
+                  : 0;
                 updateQtyButtons();
 
                 if (stockInfo) {
                   stockInfo.classList.remove('hidden', 'text-amber-500', 'text-emerald-600', 'dark:text-emerald-400', 'text-rose-500', 'dark:text-rose-400');
-                  if (stock <= 3) {
-                    stockInfo.textContent = `Zbývají poslední ${stock} ks`;
+                  if (cartQty > 0 && addable > 0) {
+                    stockInfo.textContent = `V košíku máš ${cartQty} ks. Přidat můžeš ještě ${addable} ks.`;
+                    stockInfo.classList.add('text-emerald-600', 'dark:text-emerald-400');
+                  } else if (cartQty > 0 && addable <= 0) {
+                    stockInfo.textContent = `V košíku máš ${cartQty} ks — to je maximum pro tuto variantu.`;
+                    stockInfo.classList.add('text-amber-500');
+                  } else if (addable <= 3) {
+                    stockInfo.textContent = `Zbývají poslední ${addable} ks`;
                     stockInfo.classList.add('text-amber-500');
                   } else {
                     stockInfo.textContent = `Skladem: ${stock} ks`;
@@ -569,8 +594,14 @@
 
               buttons.forEach(btn => btn.addEventListener('click', () => {
                 const stock = parseInt(btn.dataset.stock, 10);
+                const addable = parseInt(btn.dataset.addable ?? btn.dataset.stock, 10);
                 if (stock <= 0) {
                   openStockAlertModal(btn.dataset.variantId, btn.dataset.variantLabel);
+                  return;
+                }
+                if (addable <= 0) {
+                  select(btn);
+                  submitBtn.disabled = true;
                   return;
                 }
                 select(btn);
@@ -590,9 +621,17 @@
               }
 
               // Auto-select first available
+              const inCartButtons = buttons.filter(btn =>
+                parseInt(btn.dataset.stock, 10) > 0 &&
+                parseInt(btn.dataset.addable ?? btn.dataset.stock, 10) <= 0
+              );
+
               const first = availableButtons[0];
               if (first) {
                 select(first);
+              } else if (inCartButtons[0]) {
+                select(inCartButtons[0]);
+                submitBtn.disabled = true;
               } else {
                 hiddenInput.value = '';
                 submitBtn.disabled = true;

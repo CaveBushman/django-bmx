@@ -300,6 +300,15 @@
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     }
   }
+  html.dark .size-guide-btn {
+    background-color: #0f172a;
+    border-color: rgba(100, 116, 139, 0.6);
+    color: #cbd5e1;
+  }
+  html.dark .size-guide-btn:hover {
+    background-color: #1e293b;
+    border-color: rgba(148, 163, 184, 0.7);
+  }
 </style>
 {% endblock extra_head %}
 
@@ -317,7 +326,7 @@
         {% trans "Dresy, doplňky a náhradní díly pro vaše závody." %}
       </p>
       <div class="mt-6 flex flex-wrap items-center gap-3">
-        <a href="{% url 'eshop:size-guide' %}" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+        <a href="{% url 'eshop:size-guide' %}" class="size-guide-btn inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">
           {% trans "Tabulka velikostí" %}
         </a>
         {% if has_cart_items %}
