@@ -72,13 +72,120 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
+<style>
+  .ranking-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
+  }
+
+  .ranking-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .ranking-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+
+  .ranking-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
+  .ranking-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .ranking-stat {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .ranking-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
+  }
+
+  html.dark .ranking-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+
+  html.dark .ranking-hero-frame {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.62), rgba(30, 41, 59, 0.50));
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  html.dark .ranking-stat {
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
+  }
+
+  html.dark .events-cal-btn {
+    background-color: rgba(15, 23, 42, 0.88);
+    border-color: #475569;
+    color: #e2e8f0;
+  }
+
+  html.dark .events-cal-btn:hover {
+    background-color: rgba(30, 41, 59, 0.96);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #c7d2fe;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<header class="page-hero">
+<header class="ranking-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
-      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(30rem,36rem)] lg:items-end">
+    <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
             {% trans "Termíny a pořadatelé" %}
@@ -91,7 +198,7 @@
           </p>
           <div class="mt-5">
             <a href="{% url 'event:feed' %}"
-               class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300">
+               class="events-cal-btn inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 shrink-0 text-indigo-500">
                 <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
               </svg>
@@ -99,14 +206,18 @@
             </a>
           </div>
         </div>
-        <div class="page-stats-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-          <div class="page-stat-card">
+        <div class="ranking-stats-grid">
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Nadcházející závody" %}</p>
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ events|length }}</p>
           </div>
-          <div class="page-stat-card">
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Ukončených závodů" %}</p>
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ past_events|length }}</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Sezóna" %}</p>
+            <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ year }}</p>
           </div>
         </div>
       </div>
