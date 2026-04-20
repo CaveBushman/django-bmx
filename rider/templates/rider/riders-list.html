@@ -1,259 +1,382 @@
-{% extends 'base.html' %} 
-{% block title %} Jezdci {% endblock title %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% block title %} Jezdci {% endblock title %}
+{% load static %}
+{% block extra_head %}
+<style>
+  .ranking-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
+  }
+
+  .ranking-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+
+  .ranking-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+
+  .ranking-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
+  .ranking-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .ranking-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .ranking-stat {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .ranking-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
+  }
+
+  html.dark .ranking-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+
+  html.dark .ranking-hero-frame {
+    border-color: rgba(148, 163, 184, 0.14);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  html.dark .ranking-stat {
+    border-color: rgba(99, 102, 241, 0.24) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
+  }
+</style>
+{% endblock %}
 {% block content %}
 <script src="{% static 'js/riders_list.js' %}?v=1" defer></script>
 
-<header class="page-hero">
+<header class="ranking-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Evidence jezdců</p>
-    <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Seznam jezdců</h1>
-    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-      Vyhledávání registrovaných jezdců podle jména, klubu a základních údajů. Rychlý přehled aktivních licencí, klubů a startovních čísel na jednom místě.
-    </p>
-    <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-      <span><strong class="font-black text-slate-900 dark:text-white">{{ total_riders }}</strong> <span>aktivních jezdců</span></span>
-      <span class="text-slate-300 dark:text-slate-600">·</span>
-      <span><strong class="font-black text-slate-900 dark:text-white">{{ valid_licence_riders }}</strong> <span>platných licencí</span></span>
-      <span class="text-slate-300 dark:text-slate-600">·</span>
-      <span><strong class="font-black text-slate-900 dark:text-white">{{ clubs_count }}</strong> <span>klubů</span></span>
+    <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Evidence
+            jezdců</p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Seznam jezdců
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Vyhledávání registrovaných jezdců podle jména, klubu a základních údajů. Rychlý přehled aktivních licencí,
+            klubů a startovních čísel na jednom místě.
+          </p>
+        </div>
+        <div class="ranking-stats-grid">
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Aktivních jezdců</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_riders }}</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Platných
+              licencí</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ valid_licence_riders }}</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Klubů
+            </p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ clubs_count }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
 <section class="page-surface pb-10">
-<div class="page-shell">
-  <div class="page-content-card">
-    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-      <div class="max-w-2xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vyhledávání a akce</p>
-        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Rychlá práce s evidencí</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-          Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle máš přístup k žádosti o nové číslo.
-        </p>
+  <div class="page-shell">
+    <div class="page-content-card">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-2xl">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            Vyhledávání a akce</p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Rychlá práce s evidencí
+          </h2>
+          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle máš přístup k žádosti o nové
+            číslo.
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
+          <a href="{% url 'rider:new' %}"
+            class="btn-primary self-start border border-indigo-300/30 bg-[linear-gradient(135deg,#312e81,#4338ca_45%,#2563eb)] text-white shadow-[0_22px_44px_rgba(79,70,229,0.30)] hover:bg-[linear-gradient(135deg,#27246b,#3730a3_45%,#1d4ed8)] hover:text-white hover:shadow-[0_26px_54px_rgba(79,70,229,0.38)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-indigo-400/20 dark:bg-[linear-gradient(135deg,#4338ca,#4f46e5_45%,#2563eb)] dark:text-white">
+            <i class="fas fa-id-card mr-2"></i> Požádat o startovní číslo
+          </a>
+          {% if request.user.is_admin %}
+          <a href="{% url 'rider:admin' %}"
+            class="btn-secondary self-start border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700">
+            <i class="fas fa-cogs mr-2"></i> Administrace jezdců
+          </a>
+          {% endif %}
+        </div>
       </div>
-      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
-        <a
-          href="{% url 'rider:new' %}"
-          class="btn-primary self-start border border-indigo-300/30 bg-[linear-gradient(135deg,#312e81,#4338ca_45%,#2563eb)] text-white shadow-[0_22px_44px_rgba(79,70,229,0.30)] hover:bg-[linear-gradient(135deg,#27246b,#3730a3_45%,#1d4ed8)] hover:text-white hover:shadow-[0_26px_54px_rgba(79,70,229,0.38)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-indigo-400/20 dark:bg-[linear-gradient(135deg,#4338ca,#4f46e5_45%,#2563eb)] dark:text-white"
-        >
-          <i class="fas fa-id-card mr-2"></i> Požádat o startovní číslo
-        </a>
-        {% if request.user.is_admin %}
-        <a
-          href="{% url 'rider:admin' %}"
-          class="btn-secondary self-start border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700"
-        >
-          <i class="fas fa-cogs mr-2"></i> Administrace jezdců
-        </a>
-        {% endif %}
-      </div>
+
+      <form method="get" id="riderFiltersForm" class="mt-6 grid gap-4 lg:grid-cols-4">
+        <div>
+          <input
+            class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
+            type="text" placeholder="Napiš příjmení jezdce" aria-label="default input example"
+            value="{{ last_name_query }}" id="inputLastName" name="last_name" />
+        </div>
+        <div>
+          <input
+            class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
+            type="text" placeholder="Napiš jméno klubu" aria-label="default input example" value="{{ club_query }}"
+            id="inputClub" name="club" />
+        </div>
+        <div>
+          <input
+            class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
+            type="text" placeholder="Napiš startovní číslo" aria-label="search plate" value="{{ plate_query }}"
+            id="inputPlate" name="plate" />
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+          <button type="submit"
+            class="btn-secondary w-full sm:w-[8.75rem] border-slate-300 !bg-slate-50/95 !text-slate-800 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:!bg-indigo-50 hover:!text-indigo-700 hover:shadow-[0_16px_30px_rgba(99,102,241,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:!bg-slate-800/90 dark:!text-slate-100 dark:hover:border-indigo-400 dark:hover:!bg-slate-700 dark:hover:shadow-[0_16px_30px_rgba(15,23,42,0.32)]">
+            Hledat
+          </button>
+          <a href="{% url 'rider:list' %}"
+            class="btn-secondary w-full sm:w-[8.75rem] border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-[0_16px_30px_rgba(99,102,241,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700 dark:hover:shadow-[0_16px_30px_rgba(15,23,42,0.32)]">
+            Vyčistit
+          </a>
+        </div>
+      </form>
     </div>
 
-    <form method="get" id="riderFiltersForm" class="mt-6 grid gap-4 lg:grid-cols-4">
-      <div>
-        <input
-          class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
-          type="text"
-          placeholder="Napiš příjmení jezdce"
-          aria-label="default input example"
-          value="{{ last_name_query }}"
-          id="inputLastName"
-          name="last_name"/>
-      </div>
-      <div>
-        <input
-          class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
-          type="text"
-          placeholder="Napiš jméno klubu"
-          aria-label="default input example"
-          value="{{ club_query }}"
-          id="inputClub"
-          name="club"/>
-      </div>
-      <div>
-        <input
-          class="block min-h-[3.75rem] w-full rounded-2xl border border-gray-300 bg-white px-5 py-3 text-base text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:placeholder:!text-slate-400"
-          type="text"
-          placeholder="Napiš startovní číslo"
-          aria-label="search plate"
-          value="{{ plate_query }}"
-          id="inputPlate"
-          name="plate"/>
-      </div>
-      <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-        <button
-          type="submit"
-          class="btn-secondary w-full sm:w-[8.75rem] border-slate-300 !bg-slate-50/95 !text-slate-800 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:!bg-indigo-50 hover:!text-indigo-700 hover:shadow-[0_16px_30px_rgba(99,102,241,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:!bg-slate-800/90 dark:!text-slate-100 dark:hover:border-indigo-400 dark:hover:!bg-slate-700 dark:hover:shadow-[0_16px_30px_rgba(15,23,42,0.32)]"
-        >
-          Hledat
-        </button>
-        <a
-          href="{% url 'rider:list' %}"
-          class="btn-secondary w-full sm:w-[8.75rem] border-slate-300 bg-slate-50/95 text-slate-800 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-[0_16px_30px_rgba(99,102,241,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:border-indigo-400 dark:hover:bg-slate-700 dark:hover:shadow-[0_16px_30px_rgba(15,23,42,0.32)]"
-        >
-          Vyčistit
-        </a>
-      </div>
-    </form>
-  </div>
-
-  <div class="mt-8 flex flex-col">
-    <div class="overflow-x-auto">
-      <div class="page-table-wrap rounded-[2rem] border-slate-300/25 dark:border-slate-700/85 dark:bg-slate-900/90 dark:shadow-[0_28px_55px_rgba(2,6,23,0.4)]">
-        <table class="page-table min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
-          <thead class="bg-gray-50 dark:!bg-slate-900 dark:text-slate-200">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-                Jméno
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-                Klub, UCI ID
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-                Kategorie
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-                Startovní číslo
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:!divide-slate-800 dark:!bg-slate-900">
-          {% for rider in riders %}
-            <tr class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95" data-plate="{{ rider.plate_display|default:'' }}" data-rider-detail-url="{% url 'rider:detail' rider.uci_id %}">
-              <td class="relative whitespace-nowrap py-5 pl-10 pr-8 before:absolute before:bottom-4 before:left-0 before:top-4 before:w-1 before:rounded-full before:bg-[linear-gradient(180deg,rgba(99,102,241,0.95),rgba(14,165,233,0.9))] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100">
-                <div class="flex items-center">
+    <div class="mt-8 flex flex-col">
+      <div class="overflow-x-auto">
+        <div
+          class="page-table-wrap rounded-[2rem] border-slate-300/25 dark:border-slate-700/85 dark:bg-slate-900/90 dark:shadow-[0_28px_55px_rgba(2,6,23,0.4)]">
+          <table class="page-table min-w-full divide-y divide-gray-200 dark:divide-slate-700" id="myTable">
+            <thead class="bg-gray-50 dark:!bg-slate-900 dark:text-slate-200">
+              <tr>
+                <th scope="col"
+                  class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
+                  Jméno
+                </th>
+                <th scope="col"
+                  class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
+                  Klub, UCI ID
+                </th>
+                <th scope="col"
+                  class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
+                  Kategorie
+                </th>
+                <th scope="col"
+                  class="px-6 py-3 text-left text-[0.72rem] font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
+                  Startovní číslo
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:!divide-slate-800 dark:!bg-slate-900">
+              {% for rider in riders %}
+              <tr
+                class="cursor-pointer bg-white transition-[background-color,transform,box-shadow] duration-150 hover:bg-indigo-50/70 dark:!bg-slate-900 dark:hover:bg-slate-800/95"
+                data-plate="{{ rider.plate_display|default:'' }}"
+                data-rider-detail-url="{% url 'rider:detail' rider.uci_id %}">
+                <td
+                  class="relative whitespace-nowrap py-5 pl-10 pr-8 before:absolute before:bottom-4 before:left-0 before:top-4 before:w-1 before:rounded-full before:bg-[linear-gradient(180deg,rgba(99,102,241,0.95),rgba(14,165,233,0.9))] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100">
+                  <div class="flex items-center">
                     <div class="relative h-12 w-12 shrink-0">
                       {% if rider.photo_url %}
-                        <img
-                          class="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
-                          src="{{ rider.photo_url }}"
-                          alt="{{ rider.first_name }} {{ rider.last_name }}"
-                          data-rider-photo
-                        >
-                        <div class="hidden h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
-                          {{ rider.initials|default:"?" }}
-                        </div>
+                      <img class="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
+                        src="{{ rider.photo_url }}" alt="{{ rider.first_name }} {{ rider.last_name }}" data-rider-photo>
+                      <div
+                        class="hidden h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
+                        {{ rider.initials|default:"?" }}
+                      </div>
                       {% else %}
-                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
-                          {{ rider.initials|default:"?" }}
-                        </div>
+                      <div
+                        class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-800 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
+                        {{ rider.initials|default:"?" }}
+                      </div>
                       {% endif %}
                     </div>
-                  <div class="ml-4">
-                    <div class="mt-1 text-[1.1rem] leading-[1.2] tracking-tight text-slate-900 dark:text-white">
-                      <span class="font-black">{{ rider.last_name|upper }}</span>
-                      <span class="ml-2 font-normal">{{ rider.first_name }}</span>
-                    </div>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                      {% if rider.valid_licence %}
-                        <span class="inline-flex items-center rounded-md bg-green-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-green-600/30">
+                    <div class="ml-4">
+                      <div class="mt-1 text-[1.1rem] leading-[1.2] tracking-tight text-slate-900 dark:text-white">
+                        <span class="font-black">{{ rider.last_name|upper }}</span>
+                        <span class="ml-2 font-normal">{{ rider.first_name }}</span>
+                      </div>
+                      <div class="mt-2 flex flex-wrap items-center gap-2">
+                        {% if rider.valid_licence %}
+                        <span
+                          class="inline-flex items-center rounded-md bg-green-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-green-600/30">
                           Platná licence
                         </span>
-                      {% else %}
-                        <span class="inline-flex items-center rounded-md bg-red-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-red-600/30">
+                        {% else %}
+                        <span
+                          class="inline-flex items-center rounded-md bg-red-500 px-2 py-1 text-xs font-medium text-white inset-ring inset-ring-red-600/30">
                           Neplatná licence
                         </span>
-                      {% endif %}
-                      {% if rider.is_qualify_to_cn_20 or rider.is_qualify_to_cn_24 %}
-                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 inset-ring inset-ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:inset-ring-blue-400/30">
+                        {% endif %}
+                        {% if rider.is_qualify_to_cn_20 or rider.is_qualify_to_cn_24 %}
+                        <span
+                          class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 inset-ring inset-ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:inset-ring-blue-400/30">
                           {% if rider.is_qualify_to_cn_20 and rider.is_qualify_to_cn_24 %}
-                            CN_20,24
+                          CN_20,24
                           {% elif rider.is_qualify_to_cn_20 %}
-                            CN_20
+                          CN_20
                           {% else %}
-                            CN_24
+                          CN_24
                           {% endif %}
                         </span>
-                      {% endif %}
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-slate-200 sr-only">
-                      {{rider.first_name}}
+                        {% endif %}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-slate-200 sr-only">
+                        {{rider.first_name}}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-5">
-                <div class="text-sm font-semibold text-gray-900 dark:text-white">{{rider.club|upper}}</div>
-                <div class="mt-1 text-sm text-gray-500 dark:text-slate-300">{{rider.uci_id}}</div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-5">
-                <div class="flex items-center">
-                  <div class="">
-                    <div class="text-sm font-medium text-gray-500 dark:text-slate-300">20": 
-                      {% if rider.is_20%}
+                </td>
+                <td class="whitespace-nowrap px-6 py-5">
+                  <div class="text-sm font-semibold text-gray-900 dark:text-white">{{rider.club|upper}}</div>
+                  <div class="mt-1 text-sm text-gray-500 dark:text-slate-300">{{rider.uci_id}}</div>
+                </td>
+                <td class="whitespace-nowrap px-6 py-5">
+                  <div class="flex items-center">
+                    <div class="">
+                      <div class="text-sm font-medium text-gray-500 dark:text-slate-300">20":
+                        {% if rider.is_20%}
                         {{rider.class_20}}
-                      {% else %}
-                       nejezdí
-                      {% endif %}
-                    </div>
-                    <div class="text-sm font-medium text-gray-500 dark:text-slate-300">24": 
-                      {% if rider.is_24%}
-                        {{rider.class_24}}
-                      {% else %}
+                        {% else %}
                         nejezdí
-                      {% endif %}
+                        {% endif %}
+                      </div>
+                      <div class="text-sm font-medium text-gray-500 dark:text-slate-300">24":
+                        {% if rider.is_24%}
+                        {{rider.class_24}}
+                        {% else %}
+                        nejezdí
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-5">
-              <div class="flex flex-row space-x-4">
-              {%if rider.is_20%}
-                {% if rider.plate_color_20 == "blue" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-800 text-lg font-bold text-white">{{ rider.plate_display }}</div>
-                {% elif rider.plate_color_20 == "gray" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-500 text-lg font-bold text-white">{{ rider.plate_display }}</div>
-                {% elif rider.plate_color_20 == "yellow" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-lg font-bold text-black">{{ rider.plate_display }}</div>
-                {% elif rider.plate_color_20 == "white" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-solid border-gray-400 bg-white text-lg font-bold text-black">{{ rider.plate_display }}</div>
-                {% elif rider.plate_color_20 == "black" %}
-                  <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">{{ rider.plate_display }}</div>
-                {% endif %}
-              {% endif %} 
-              {%if rider.is_24%}
-                <div class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white">{{ rider.plate_display }}</div>
-              {% endif %}  
-              </div>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="4" class="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
-                Pro zadaný filtr nebyl nalezen žádný jezdec.
-              </td>
-            </tr>
-            {% endfor%}
-          </tbody>
-        </table>
+                </td>
+                <td class="px-6 py-5">
+                  <div class="flex flex-row space-x-4">
+                    {%if rider.is_20%}
+                    {% if rider.plate_color_20 == "blue" %}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-800 text-lg font-bold text-white">
+                      {{ rider.plate_display }}</div>
+                    {% elif rider.plate_color_20 == "gray" %}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-500 text-lg font-bold text-white">
+                      {{ rider.plate_display }}</div>
+                    {% elif rider.plate_color_20 == "yellow" %}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-lg font-bold text-black">
+                      {{ rider.plate_display }}</div>
+                    {% elif rider.plate_color_20 == "white" %}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-solid border-gray-400 bg-white text-lg font-bold text-black">
+                      {{ rider.plate_display }}</div>
+                    {% elif rider.plate_color_20 == "black" %}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-lg font-bold text-white">
+                      {{ rider.plate_display }}</div>
+                    {% endif %}
+                    {% endif %}
+                    {%if rider.is_24%}
+                    <div
+                      class="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white">
+                      {{ rider.plate_display }}</div>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
+                  Pro zadaný filtr nebyl nalezen žádný jezdec.
+                </td>
+              </tr>
+              {% endfor%}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-  {% if page_obj.paginator.num_pages > 1 %}
-  <div class="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-    <p class="text-sm text-slate-500 dark:text-slate-300">
-      Stránka {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
-    </p>
-    <nav class="flex items-center gap-2" aria-label="Stránkování jezdců">
-      {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
-        Předchozí
-      </a>
-      {% endif %}
-      {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
-        Další
-      </a>
-      {% endif %}
-    </nav>
-  </div>
-  {% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <p class="text-sm text-slate-500 dark:text-slate-300">
+        Stránka {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
+      </p>
+      <nav class="flex items-center gap-2" aria-label="Stránkování jezdců">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}"
+          class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+          Předchozí
+        </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}"
+          class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
+          Další
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
     <a href="#" class="arrow" id="to-top">
-        <i class="bi bi-arrow-up-square-fill"></i>
+      <i class="bi bi-arrow-up-square-fill"></i>
     </a>
-  <script src="{% static 'js/arrow.js' %}?v=1"></script>
-</div>
+    <script src="{% static 'js/arrow.js' %}?v=1"></script>
+  </div>
 </section>
 
 {% endblock content %}
