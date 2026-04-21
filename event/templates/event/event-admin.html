@@ -813,11 +813,11 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
-        >
-          <div>
+      <div class="flex flex-col lg:flex-row gap-4 lg:items-start">
+
+        <!-- Levý sloupec: dvě kompaktní karty -->
+        <div class="flex flex-col gap-4 lg:flex-1">
+          <div class="event-admin-file-card rounded-[1.5rem] px-5 py-4 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <div class="event-admin-file-icon bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
                 <i class="fas fa-flag-checkered text-lg"></i>
@@ -826,10 +826,8 @@
                 Registrovaní jezdci
               </h3>
             </div>
-          </div>
-          <div class="flex justify-end">
             <button
-              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem] shrink-0"
               name="btn-rem-file"
               data-rem-name="btn-rem-file"
               data-bem-name="btn-bem-file"
@@ -843,12 +841,8 @@
               <span>Vygenerovat a stáhnout</span>
             </button>
           </div>
-        </div>
 
-        <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
-        >
-          <div>
+          <div class="event-admin-file-card rounded-[1.5rem] px-5 py-4 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <div class="event-admin-file-icon bg-sky-500/10 text-sky-600 dark:text-sky-200">
                 <i class="fas fa-bicycle text-lg"></i>
@@ -857,10 +851,8 @@
                 Všichni jezdci
               </h3>
             </div>
-          </div>
-          <div class="flex justify-end">
             <button
-              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem] shrink-0"
               name="btn-rem-riders-list"
               data-rem-name="btn-rem-riders-list"
               data-bem-name="btn-riders-list"
@@ -876,8 +868,9 @@
           </div>
         </div>
 
+        <!-- Pravý sloupec: upload karta -->
         <div
-          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between"
+          class="event-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between lg:w-96"
           data-file-field
         >
           <div>

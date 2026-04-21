@@ -810,33 +810,64 @@ def ec_by_club_xls(request, pk):
     return response
 
 
+@login_required(login_url="/login/")
 def summary_riders_in_event(request, pk):
     """Přehled počtu jezdců v každé třídě na závodě."""
+    import json
+    from collections import defaultdict
     event = get_object_or_404(Event, id=pk)
     category_counts = Counter()
+    category_riders = defaultdict(list)
 
-    czech_entries = Entry.objects.filter(event=pk, payment_complete=True, checkout=False)
+    czech_entries = Entry.objects.filter(event=pk, payment_complete=True, checkout=False).select_related("rider__club")
     foreign_entries = EntryForeign.objects.filter(event=pk, payment_complete=True, checkout=False)
 
     for entry in czech_entries:
+        if entry.rider:
+            name = f"{entry.rider.last_name} {entry.rider.first_name}"
+            plate = entry.rider.plate_display or "—"
+            club = entry.rider.club.team_name if entry.rider.club else "—"
+        else:
+            name = "—"
+            plate = "—"
+            club = "—"
+        rider_item = {"plate": plate, "name": name, "club": club, "foreign": False}
         if entry.is_beginner and entry.class_beginner:
             category_counts[entry.class_beginner] += 1
+            category_riders[entry.class_beginner].append(rider_item)
         if entry.is_20 and entry.class_20:
             category_counts[entry.class_20] += 1
+            category_riders[entry.class_20].append(rider_item)
         if entry.is_24 and entry.class_24:
             category_counts[entry.class_24] += 1
+            category_riders[entry.class_24].append(rider_item)
 
     for entry in foreign_entries:
+        name = f"{entry.last_name} {entry.first_name}"
+        plate = entry.plate or "—"
+        club = entry.club or "—"
+        rider_item = {"plate": plate, "name": name, "club": club, "foreign": True}
         if entry.is_20 and entry.class_20:
             category_counts[entry.class_20] += 1
+            category_riders[entry.class_20].append(rider_item)
         if entry.is_24 and entry.class_24:
             category_counts[entry.class_24] += 1
+            category_riders[entry.class_24].append(rider_item)
 
     count_20_24 = [
-        SimpleNamespace(category_name=category_name, riders_in_category=riders_in_category)
+        SimpleNamespace(
+            category_name=category_name,
+            riders_in_category=riders_in_category,
+        )
         for category_name, riders_in_category in sorted(category_counts.items())
         if category_name and "NENÍ VYPSÁNO" not in category_name and "není vypsáno" not in category_name
     ]
+
+    riders_data = {
+        cat: sorted(riders, key=lambda r: r["name"])
+        for cat, riders in category_riders.items()
+        if cat and "NENÍ VYPSÁNO" not in cat and "není vypsáno" not in cat
+    }
 
     total_riders = sum(class_counter.riders_in_category for class_counter in count_20_24)
     return render(
@@ -846,6 +877,7 @@ def summary_riders_in_event(request, pk):
             "event": event,
             "count_riders": count_20_24,
             "total_riders": total_riders,
+            "riders_data_json": json.dumps(riders_data, ensure_ascii=False),
         },
     )
 

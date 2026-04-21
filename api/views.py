@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rider.models import Rider, ForeignRider
 from event.models import Event, Entry
 from news.models import News
@@ -58,12 +58,12 @@ class EventList(generics.ListAPIView):
     """API for list of all events"""
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class ClubList(generics.ListAPIView):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class EventDetail(generics.RetrieveUpdateDestroyAPIView):

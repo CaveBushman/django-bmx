@@ -13,9 +13,9 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
   }
 
   .riders-sum-hero::after {
@@ -26,28 +26,42 @@
     background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
+  .riders-sum-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow:
+      0 36px 90px rgba(15, 23, 42, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+
+  .riders-sum-hero-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+
   .riders-sum-stat {
+    position: relative;
+    overflow: hidden;
     border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
   }
 
-  .riders-sum-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .riders-sum-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 960px) {
-    .riders-sum-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  .riders-sum-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
   }
 
   .riders-sum-card {
@@ -58,6 +72,75 @@
       transform 180ms ease,
       box-shadow 180ms ease,
       border-color 180ms ease;
+  }
+
+  .riders-sum-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+  }
+
+  @keyframes modal-backdrop-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes modal-panel-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
+  }
+  #riders-list-modal.is-open {
+    animation: modal-backdrop-in 160ms ease forwards;
+  }
+  #riders-list-modal.is-open > * + * {
+    animation: modal-panel-in 200ms ease forwards;
+  }
+
+  /* Dark mode — modal panel */
+  html.dark #riders-list-modal .riders-modal-panel {
+    background: #0f172a !important;
+    border-color: rgba(51, 65, 85, 0.95) !important;
+  }
+  html.dark #riders-list-modal .riders-modal-header {
+    border-color: rgba(51, 65, 85, 0.8) !important;
+  }
+  html.dark #riders-list-modal .riders-modal-footer {
+    border-color: rgba(51, 65, 85, 0.8) !important;
+  }
+  html.dark #riders-list-modal .riders-modal-label {
+    color: #818cf8 !important;
+  }
+  html.dark #riders-list-modal .riders-modal-title {
+    color: #f8fafc !important;
+  }
+  html.dark #riders-list-modal .riders-modal-close {
+    color: #94a3b8 !important;
+  }
+  html.dark #riders-list-modal .riders-modal-close:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+    color: #e2e8f0 !important;
+  }
+  html.dark #riders-list-modal .riders-modal-count {
+    color: #94a3b8 !important;
+  }
+  html.dark #riders-list-modal .riders-modal-row:hover {
+    background: rgba(30, 41, 59, 0.7) !important;
+  }
+  html.dark #riders-list-modal .riders-modal-plate {
+    background: rgba(67, 56, 202, 0.35) !important;
+    color: #a5b4fc !important;
+  }
+  html.dark #riders-list-modal .riders-modal-name {
+    color: #f1f5f9 !important;
+  }
+  html.dark #riders-list-modal .riders-modal-club {
+    color: #64748b !important;
+  }
+  html.dark #riders-list-modal .riders-badge-cz {
+    background: rgba(14, 116, 144, 0.3) !important;
+    color: #7dd3fc !important;
+  }
+  html.dark #riders-list-modal .riders-badge-int {
+    background: rgba(120, 53, 15, 0.35) !important;
+    color: #fcd34d !important;
   }
 
   .riders-sum-card-count {
@@ -75,14 +158,22 @@
 
   html.dark .riders-sum-hero {
     background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%) !important;
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%) !important;
+  }
+
+  html.dark .riders-sum-hero-frame {
+    border-color: rgba(148, 163, 184, 0.32) !important;
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.62), rgba(30, 41, 59, 0.50)) !important;
+    box-shadow:
+      0 36px 90px rgba(2, 6, 23, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   }
 
   html.dark .riders-sum-stat {
     border-color: rgba(99, 102, 241, 0.24) !important;
-    background: rgba(15, 23, 42, 0.72) !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72)) !important;
     box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35) !important;
   }
 
@@ -106,23 +197,25 @@
 <section class="riders-sum-surface min-h-screen pb-24">
   <header class="riders-sum-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            {% trans "Počty kategorií" %}
-          </p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            {{ event.name }}
-          </h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {% trans "Přehled počtu přihlášených jezdců v jednotlivých kategoriích včetně zahraničních registrací." %}
-          </p>
-        </div>
-        <div class="riders-sum-stats-grid">
-          <div class="riders-sum-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celkem" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_riders }}</p>
-            <p class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">{% trans "přihlášených jezdců" %}</p>
+      <div class="riders-sum-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700">
+              {% trans "Počty kategorií" %}
+            </p>
+            <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+              {{ event.name }}
+            </h1>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600">
+              {% trans "Přehled počtu přihlášených jezdců v jednotlivých kategoriích včetně zahraničních registrací." %}
+            </p>
+          </div>
+          <div>
+            <div class="riders-sum-stat rounded-2xl px-5 py-4 pl-7">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">{% trans "Celkem přihlášených" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900">{{ total_riders }}</p>
+              <p class="mt-1 text-sm font-medium text-slate-600">{% trans "jezdců" %}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -132,7 +225,11 @@
   <div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
     <div class="mt-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
       {% for class_rider in count_riders %}
-      <article class="riders-sum-card rounded-[1.75rem] p-6 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)] dark:hover:border-indigo-500/40 dark:hover:shadow-[0_30px_80px_rgba(2,6,23,0.46)]">
+      <article
+        class="riders-sum-card rounded-[1.75rem] p-6 cursor-pointer hover:-translate-y-1 hover:border-indigo-200 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)] dark:hover:border-indigo-500/40 dark:hover:shadow-[0_30px_80px_rgba(2,6,23,0.46)]"
+        data-riders-trigger
+        data-category="{{ class_rider.category_name }}"
+      >
         <div class="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div class="min-w-0 flex-1">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
@@ -141,12 +238,19 @@
             <h2 class="mt-3 break-words text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               {{ class_rider.category_name }}
             </h2>
+            <p class="mt-3 text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+              </svg>
+              {% trans "Zobrazit jezdce" %}
+            </p>
           </div>
 
-            <div class="riders-sum-card-count rounded-[1.5rem] px-6 py-4 text-left shrink-0 sm:text-right">
-              <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">
+          <div class="riders-sum-card-count rounded-[1.5rem] px-6 py-4 text-left shrink-0 sm:text-right">
+            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">
               {% trans "Jezdců" %}
-              </div>
+            </div>
             <div class="mt-2 text-4xl font-black leading-none">
               {{ class_rider.riders_in_category }}
             </div>
@@ -157,4 +261,99 @@
     </div>
   </div>
 </section>
+
+<!-- Modal se jmény jezdců -->
+<div id="riders-list-modal" class="fixed inset-0 z-[120] hidden">
+  <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
+  <div class="relative flex min-h-full items-center justify-center px-4 py-8">
+    <div class="riders-modal-panel w-full max-w-lg rounded-[1.75rem] border border-slate-200 bg-white shadow-2xl">
+      <!-- Header -->
+      <div class="riders-modal-header flex items-center justify-between border-b border-slate-100 px-6 py-5">
+        <div>
+          <p class="riders-modal-label text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-600">{% trans "Kategorie" %}</p>
+          <h3 id="riders-modal-category" class="riders-modal-title mt-1 text-xl font-black text-slate-900"></h3>
+        </div>
+        <button id="riders-modal-close" type="button"
+          class="riders-modal-close rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+          aria-label="{% trans 'Zavřít' %}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Seznam jezdců -->
+      <div class="max-h-[60vh] overflow-y-auto px-6 py-4">
+        <ol id="riders-modal-list" class="space-y-1">
+        </ol>
+      </div>
+      <!-- Footer -->
+      <div class="riders-modal-footer border-t border-slate-100 px-6 py-4">
+        <p id="riders-modal-count" class="riders-modal-count text-sm font-medium text-slate-500"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var ridersData = {{ riders_data_json|safe }};
+  var modalEl = document.getElementById("riders-list-modal");
+  var categoryEl = document.getElementById("riders-modal-category");
+  var listEl = document.getElementById("riders-modal-list");
+  var countEl = document.getElementById("riders-modal-count");
+  var closeBtn = document.getElementById("riders-modal-close");
+
+  function openModal(categoryName, riders) {
+    categoryEl.textContent = categoryName;
+    listEl.innerHTML = "";
+    riders.forEach(function (rider) {
+      var li = document.createElement("li");
+      li.className = "riders-modal-row flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50";
+      var badge = rider.foreign
+        ? "<span class=\"riders-badge-int shrink-0 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700\">INT</span>"
+        : "<span class=\"riders-badge-cz shrink-0 rounded-md bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700\">CZ</span>";
+      li.innerHTML =
+        "<span class=\"riders-modal-plate flex h-7 min-w-[1.75rem] shrink-0 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-[11px] font-black text-indigo-700\">" +
+        rider.plate +
+        "</span>" +
+        "<div class=\"min-w-0 flex-1\">" +
+        "<p class=\"riders-modal-name truncate text-sm font-semibold text-slate-800\">" + rider.name + "</p>" +
+        "<p class=\"riders-modal-club truncate text-xs text-slate-500\">" + rider.club + "</p>" +
+        "</div>" +
+        badge;
+      listEl.appendChild(li);
+    });
+    countEl.textContent = riders.length + " {% trans 'přihlášených jezdců' %}";
+    modalEl.classList.remove("hidden");
+    modalEl.classList.add("is-open");
+    document.body.classList.add("overflow-hidden");
+  }
+
+  function closeModal() {
+    modalEl.classList.add("hidden");
+    modalEl.classList.remove("is-open");
+    document.body.classList.remove("overflow-hidden");
+  }
+
+  document.querySelectorAll("[data-riders-trigger]").forEach(function (card) {
+    card.addEventListener("click", function () {
+      var category = card.dataset.category || "";
+      var riders = ridersData[category] || [];
+      openModal(category, riders);
+    });
+  });
+
+  closeBtn.addEventListener("click", closeModal);
+  modalEl.addEventListener("click", function (e) {
+    if (e.target === modalEl || e.target === modalEl.firstElementChild) {
+      closeModal();
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !modalEl.classList.contains("hidden")) {
+      closeModal();
+    }
+  });
+})();
+</script>
 {% endblock content %}

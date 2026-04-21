@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -53,6 +53,7 @@ def _sum_order_amount(orders):
     )
 
 
+@login_required(login_url="/login/")
 def success_view(request, pk):
     """Stripe success redirect — označí zaplacené přihlášky jako dokončené.
 
@@ -215,7 +216,7 @@ def checkout_view(request):
     user = request.user
     confirmed_events = Entry.objects.filter(
         user__id=user_id, payment_complete=True, event__date__gte=timezone.now(),
-    ).order_by("event__date", "rider__last_name", "rider__first_name")
+    ).select_related("event", "rider").order_by("event__date", "rider__last_name", "rider__first_name")
 
     visible_count = 0
     for entry in confirmed_events:
@@ -226,18 +227,21 @@ def checkout_view(request):
 
     if "btn-change" in request.POST:
         # Storno přihlášky — smaž Entry a příslušné debetní transakce
-        entry = Entry.objects.filter(id=request.POST["btn-change"], user=user).first()
-        if entry:
-            audit_logger.info(
-                "confirmed_entry_deleted user_id=%s entry_id=%s event_id=%s",
-                user.id,
-                entry.id,
-                entry.event_id,
-            )
-            DebetTransaction.objects.filter(user=user, entry=entry).delete()
-            entry.delete()
-        user.credit = calculate_user_balance(user.id)
-        user.save()
+        with transaction.atomic():
+            entry = Entry.objects.select_for_update().filter(
+                id=request.POST["btn-change"], user=user
+            ).first()
+            if entry:
+                audit_logger.info(
+                    "confirmed_entry_deleted user_id=%s entry_id=%s event_id=%s",
+                    user.id,
+                    entry.id,
+                    entry.event_id,
+                )
+                DebetTransaction.objects.filter(user=user, entry=entry).delete()
+                entry.delete()
+            user.credit = calculate_user_balance(user.id)
+            user.save()
         return redirect("event:checkout")
 
     data = {
