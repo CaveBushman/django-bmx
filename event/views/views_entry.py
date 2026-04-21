@@ -125,7 +125,7 @@ def add_entries_view(request, pk):
 
 def entry_riders_view(request, pk):
     """Přehled přihlášených jezdců na závod (veřejný, bez přihlášení)."""
-    event = Event.objects.select_related("classes_and_fees_like").get(id=pk)
+    event = get_object_or_404(Event.objects.select_related("classes_and_fees_like"), id=pk)
     czech_entries = (
         Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
         .select_related("rider", "rider__club")

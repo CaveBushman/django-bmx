@@ -316,25 +316,27 @@
 <div class="bg-white dark:bg-slate-950">
   <header class="page-hero">
     <div class="page-shell">
-      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-        {% trans "E-shop" %}
-      </p>
-      <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-        {% trans "BMX vybavení a doplňky" %}
-      </h1>
-      <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-        {% trans "Dresy, doplňky a náhradní díly pro vaše závody." %}
-      </p>
-      <div class="mt-6 flex flex-wrap items-center gap-3">
-        <a href="{% url 'eshop:size-guide' %}" class="size-guide-btn inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">
-          {% trans "Tabulka velikostí" %}
-        </a>
-        {% if has_cart_items %}
-        <a href="{% url 'eshop:checkout' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-700">
-          {% trans "Dokončit objednávku" %}
-          <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-black">{{ cart_count }}</span>
-        </a>
-        {% endif %}
+      <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+          {% trans "E-shop" %}
+        </p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          {% trans "BMX vybavení a doplňky" %}
+        </h1>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          {% trans "Dresy, doplňky a náhradní díly pro vaše závody." %}
+        </p>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <a href="{% url 'eshop:size-guide' %}" class="size-guide-btn inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">
+            {% trans "Tabulka velikostí" %}
+          </a>
+          {% if has_cart_items %}
+          <a href="{% url 'eshop:checkout' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-700">
+            {% trans "Dokončit objednávku" %}
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs font-black">{{ cart_count }}</span>
+          </a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </header>
