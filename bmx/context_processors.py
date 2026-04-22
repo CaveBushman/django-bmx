@@ -4,6 +4,7 @@ from django.utils import timezone
 
 def navbar_context(request):
     from accounts.models import AvatarChangeRequest
+    from eshop.models import Order
     from rider.models import Rider
     from todo.models import CommissionTask
 
@@ -33,6 +34,12 @@ def navbar_context(request):
                         "navbar_avatar_pending": pending_avatar_count > 0,
                     }
                 )
+
+            if getattr(request.user, "is_admin", False):
+                eshop_pending = Order.objects.exclude(
+                    status__in=[Order.Status.DELIVERED, Order.Status.CANCELED]
+                ).count()
+                navbar_data["navbar_eshop_pending_count"] = eshop_pending
 
             if is_task_user:
                 open_statuses = [

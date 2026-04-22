@@ -169,47 +169,32 @@
 
 {% block content %}
 <div class="credit-page min-h-screen">
-  <header class="credit-hero">
+  <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="credit-hero-grid">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Credit Top-up
-          </p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            Kredit
-          </h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
-          </p>
-        </div>
-        <div class="credit-hero-stats">
-          <div class="credit-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-              Aktuální zůstatek
+      <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Credit Top-up</p>
+            <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Kredit</h1>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              Dobití uživatelského kreditu a přehled kreditních i debetních transakcí za poslední období.
             </p>
-            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
-              {{ user.credit|default:0|floatformat:0 }}
-            </p>
-            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">CZK</p>
           </div>
-          <div class="credit-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-              Kreditní transakce
-            </p>
-            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
-              {{ credits|length }}
-            </p>
-            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">za poslední rok</p>
-          </div>
-          <div class="credit-hero-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-              Debetní transakce
-            </p>
-            <p class="credit-hero-value mt-2 text-3xl font-black text-slate-900 dark:text-white">
-              {{ debets|length }}
-            </p>
-            <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">za poslední rok</p>
+          <div class="page-stats-grid">
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální zůstatek</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ user.credit|default:0|floatformat:0 }}&nbsp;<span class="text-lg font-semibold">CZK</span></p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kreditní transakce</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ credits|length }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">za poslední rok</p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Debetní transakce</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ debets|length }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">za poslední rok</p>
+            </div>
           </div>
         </div>
       </div>

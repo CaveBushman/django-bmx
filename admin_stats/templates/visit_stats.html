@@ -91,33 +91,35 @@
 {% endblock %}
 
 {% block content %}
-<header class="analytics-hero">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          Analytics
-        </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          Statistiky návštěvnosti
-        </h1>
-        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Přehled návštěv za posledních {{ last_days }} dní včetně unikátních přístupů, lokací a zařízení.
-        </p>
-      </div>
-      <div class="analytics-stats-grid">
-        <div class="analytics-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Visits</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_visits }}</p>
+    <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            Analytics
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            Statistiky návštěvnosti
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Přehled návštěv za posledních {{ last_days }} dní včetně unikátních přístupů, lokací a zařízení.
+          </p>
         </div>
-        <div class="analytics-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Unique</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ unique_visits }}</p>
-        </div>
-        <div class="analytics-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Období</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ last_days }}</p>
-          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">dní</p>
+        <div class="page-stats-grid">
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Návštěvy ({{ last_days }}d)</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_visits }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Unikátní IP</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ unique_visits }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Dnes</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ visits_today }}</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">včera: {{ visits_yesterday }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -126,6 +128,43 @@
 
 <section class="analytics-page pt-8 pb-4">
   <div class="analytics-shell">
+
+    {% if daily_stats %}
+    <div class="analytics-card mb-6 rounded-[1.75rem] p-6">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Trend</p>
+      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Návštěvy po dnech</h2>
+      <div class="mt-6 flex items-end gap-2 overflow-x-auto pb-2" style="height:10rem">
+        {% for day in daily_stats %}
+        <div class="group flex min-w-0 flex-1 flex-col items-center gap-1" title="{{ day.date|date:'d.m.' }}: {{ day.count }}">
+          <span class="hidden text-[10px] font-semibold text-slate-500 group-hover:block dark:text-slate-400">{{ day.count }}</span>
+          <div class="w-full min-w-[2rem] rounded-t-lg bg-indigo-500 dark:bg-indigo-400 transition-all" style="height:{{ day.pct }}%"></div>
+          <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">{{ day.date|date:"d.m." }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if top_pages %}
+    <div class="analytics-card mb-6 rounded-[1.75rem] p-6">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-600 dark:text-emerald-300">Pages</p>
+      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Nejnavštěvovanější stránky</h2>
+      <div class="mt-6 space-y-2">
+        {% with top_pages.0.count as page_max %}
+        {% for page in top_pages %}
+        <div class="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/60">
+          <div class="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-400/10" style="width:{% widthratio page.count page_max 100 %}%"></div>
+          <div class="relative flex items-center justify-between gap-4">
+            <span class="min-w-0 truncate font-mono text-sm text-slate-700 dark:text-slate-200">{{ page.path }}</span>
+            <span class="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ page.count }}</span>
+          </div>
+        </div>
+        {% endfor %}
+        {% endwith %}
+      </div>
+    </div>
+    {% endif %}
+
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <section class="analytics-card rounded-[1.75rem] p-6">
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-amber-600 dark:text-amber-300">
@@ -159,13 +198,7 @@
           {% if device_stats %}
             {% for device, count in device_stats %}
             <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/60">
-              <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                {% if device == "unknown" or not device %}
-                  Neznámé zařízení
-                {% else %}
-                  {{ device }}
-                {% endif %}
-              </span>
+              <span class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ device }}</span>
               <span class="text-sm font-semibold text-violet-600 dark:text-violet-300">{{ count }} návštěv</span>
             </div>
             {% endfor %}

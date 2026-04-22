@@ -62,33 +62,34 @@
 {% endblock %}
 {% block content %}
 
-<header class="entry-foreign-hero">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          International BMX Registration
-        </p>
-        <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          Entry form for {{ event.name|upper }}
-        </h1>
-        <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Clean, fast registration for foreign riders. Enter the UCI ID first and complete categories for the selected event.
-        </p>
-      </div>
-
-      <div class="entry-foreign-stats">
-        <div class="entry-foreign-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Race date</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
+    <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            International BMX Registration
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            Entry form for {{ event.name|upper }}
+          </h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Clean, fast registration for foreign riders. Enter the UCI ID first and complete categories for the selected event.
+          </p>
         </div>
-        <div class="entry-foreign-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Registration mode</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">Foreign riders</p>
-        </div>
-        <div class="entry-foreign-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Category choice</p>
-          <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">20" / 24"</p>
+        <div class="page-stats-grid">
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Race date</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. F Y" }}</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Registration mode</p>
+            <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">Foreign riders</p>
+          </div>
+          <div class="page-stat-card">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Category choice</p>
+            <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">20" / 24"</p>
+          </div>
         </div>
       </div>
     </div>
