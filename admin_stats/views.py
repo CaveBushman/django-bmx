@@ -38,23 +38,21 @@ def visit_stats(request):
         qs.exclude(path__isnull=True).exclude(path='')
         .values('path')
         .annotate(count=Count('id'))
-        .order_by('-count')[:15]
+        .order_by('-count')[:10]
     )
 
-    daily_raw = list(
-        qs.annotate(date=TruncDate('timestamp'))
+    daily_raw = {
+        entry['date']: entry['count']
+        for entry in qs.annotate(date=TruncDate('timestamp'))
         .values('date')
         .annotate(count=Count('id'))
-        .order_by('date')
-    )
-    daily_max = max((d['count'] for d in daily_raw), default=1)
+    }
+    today = localdate()
+    all_dates = [today - timedelta(days=i) for i in range(last_days - 1, -1, -1)]
+    daily_max = max(daily_raw.values(), default=1)
     daily_stats = [
-        {
-            'date': entry['date'],
-            'count': entry['count'],
-            'pct': round(entry['count'] / daily_max * 100),
-        }
-        for entry in daily_raw
+        {'date': d, 'count': daily_raw.get(d, 0)}
+        for d in all_dates
     ]
 
     top_locations = [
