@@ -341,36 +341,38 @@
 
 {% block content %}
 <div class="account-page pb-20">
-  <header class="account-hero">
+  <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Účet uživatele" %}</p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Moje nastavení a faktury" %}</h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {% trans "Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn avatarů." %}
-          </p>
-          <div class="mt-5">
-            <a href="{% url 'rider:premium-subscriptions' %}" class="inline-flex w-auto items-center gap-x-2 whitespace-nowrap rounded-md bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500">
-              {% trans "Správa individuálních předplatných" %}
-              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-mr-0.5 size-5">
-                <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" fill-rule="evenodd" />
-              </svg>
-            </a>
+      <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Účet uživatele" %}</p>
+            <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Moje nastavení a faktury" %}</h1>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              {% trans "Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn avatarů." %}
+            </p>
+            <div class="mt-5">
+              <a href="{% url 'rider:premium-subscriptions' %}" class="inline-flex w-auto items-center gap-x-2 whitespace-nowrap rounded-md bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500">
+                {% trans "Správa individuálních předplatných" %}
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-mr-0.5 size-5">
+                  <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+                </svg>
+              </a>
+            </div>
           </div>
-        </div>
-        <div class="account-stats-grid">
-          <div class="account-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Navázaní jezdci" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ linked_riders_count }}</p>
-          </div>
-          <div class="account-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Faktury" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ invoices_count }}</p>
-          </div>
-          <div class="account-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Předplatná" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ subscriptions_summary_count }}</p>
+          <div class="page-stats-grid">
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Navázaní jezdci" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ linked_riders_count }}</p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Faktury" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ invoices_count }}</p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Předplatná" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ subscriptions_summary_count }}</p>
+            </div>
           </div>
         </div>
       </div>

@@ -80,31 +80,33 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 
 <div class="trainer-dashboard-page">
-  <header class="trainer-dashboard-hero">
+  <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">{% trans "Trenérská sekce" %}</p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "TRENÉRSKÝ DASHBOARD" %}</h1>
-          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {% trans "Přehled klubů, které máš přiřazené jako trenér, a stav měsíčních předplatných pro klubové prémiové statistiky a rozšířené funkce." %}
-          </p>
-        </div>
-        <div class="trainer-dashboard-hero-stats">
-          <article class="trainer-dashboard-hero-stat rounded-[1.5rem] p-6">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kluby" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ trainer_clubs_count }}</p>
-          </article>
-          <article class="trainer-dashboard-hero-stat rounded-[1.5rem] p-6">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní stats" %}</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ active_stats_count }}</p>
-          </article>
-          <article class="trainer-dashboard-hero-stat rounded-[1.5rem] p-6">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Extended</p>
-            <p class="mt-2 text-3xl font-black {% if global_extended_info.is_active %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-900 dark:text-white{% endif %}">
-              {{ global_extended_info.is_active|yesno:"ACTIVE,INACTIVE" }}
+      <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">{% trans "Trenérská sekce" %}</p>
+            <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "TRENÉRSKÝ DASHBOARD" %}</h1>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              {% trans "Přehled klubů, které máš přiřazené jako trenér, a stav měsíčních předplatných pro klubové prémiové statistiky a rozšířené funkce." %}
             </p>
-          </article>
+          </div>
+          <div class="page-stats-grid">
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kluby" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ trainer_clubs_count }}</p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní stats" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ active_stats_count }}</p>
+            </div>
+            <div class="page-stat-card">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Extended</p>
+              <p class="mt-2 text-lg font-black {% if global_extended_info.is_active %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-900 dark:text-white{% endif %}">
+                {{ global_extended_info.is_active|yesno:"ACTIVE,INACTIVE" }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

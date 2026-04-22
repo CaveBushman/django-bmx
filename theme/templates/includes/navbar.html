@@ -70,11 +70,11 @@
 
             {% if request.user.is_authenticated and request.user.is_admin %}
             {% if 'eshop' in request.path %}
-            <a href="{% url 'eshop:shop' %}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-              aria-current="page">{% trans "ESHOP" %}</a>
+            <a href="{% url 'eshop:shop' %}" class="inline-flex items-center gap-1.5 rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
+              aria-current="page">{% trans "ESHOP" %}{% if navbar_eshop_pending_count %}<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
             {% else %}
             <a href="{% url 'eshop:shop' %}"
-              class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}</a>
+              class="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}{% if navbar_eshop_pending_count %}<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
             {% endif %}
             {% endif %}
       </div>
@@ -418,10 +418,10 @@
         {% if request.user.is_authenticated and request.user.is_admin %}
         {% if 'eshop' in request.path %}
         <a href="{% url 'eshop:shop' %}"
-          class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">{% trans "ESHOP" %}</a>
+          class="flex items-center justify-between rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">{% trans "ESHOP" %}{% if navbar_eshop_pending_count %}<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
         {% else %}
         <a href="{% url 'eshop:shop' %}"
-          class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}</a>
+          class="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">{% trans "ESHOP" %}{% if navbar_eshop_pending_count %}<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
         {% endif %}
         {% endif %}
       </div>
@@ -549,8 +549,8 @@
           {% if user.is_admin %}
           <a href="{% url 'accounts:ops_dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-ops-dashboard-mobile">{% trans "Provozní dashboard" %}</a>
-          <a href="{% url 'eshop:my-orders' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
-            tabindex="-1" id="user-menu-item-eshop-orders-mobile">{% trans "Moje objednávky e-shopu" %}</a>
+          <a href="{% url 'eshop:my-orders' %}" class="flex items-center justify-between px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-eshop-orders-mobile">{% trans "Moje objednávky e-shopu" %}{% if navbar_eshop_pending_count %}<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
           <a href="{% url 'eshop:shop' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-eshop-mobile">{% trans "E-shop" %}</a>
           {% endif %}
