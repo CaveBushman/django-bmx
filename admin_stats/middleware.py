@@ -14,7 +14,7 @@ _IGNORED_EXTENSIONS = ('.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '
 
 class VisitMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if settings.DEBUG or request.path.startswith("/csp-report/"):
+        if request.path.startswith("/csp-report/"):
             return
         if request.path.endswith(_IGNORED_EXTENSIONS):
             return
@@ -31,9 +31,12 @@ class VisitMiddleware(MiddlewareMixin):
         try:
             Visit.objects.create(ip_address=ip, user_agent=ua[:512], device_type=device_type, path=path)
         except OperationalError:
-            logger.warning("Visit logging skipped because database is locked for ip=%s path=%s", ip, request.path)
+            logger.warning("Visit logging skipped — db locked: ip=%s path=%s", ip, request.path)
         except Exception:
-            logger.exception("Visit logging failed for ip=%s path=%s", ip, request.path)
+            try:
+                Visit.objects.create(ip_address=ip)
+            except Exception:
+                logger.exception("Visit logging failed for ip=%s path=%s", ip, request.path)
 
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
