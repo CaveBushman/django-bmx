@@ -133,14 +133,24 @@
     <div class="analytics-card mb-6 rounded-[1.75rem] p-6">
       <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Trend</p>
       <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Návštěvy po dnech</h2>
-      <div class="mt-6 flex items-end gap-2 overflow-x-auto pb-2" style="height:10rem">
-        {% for day in daily_stats %}
-        <div class="group flex min-w-0 flex-1 flex-col items-center gap-1" title="{{ day.date|date:'d.m.' }}: {{ day.count }}">
-          <span class="hidden text-[10px] font-semibold text-slate-500 group-hover:block dark:text-slate-400">{{ day.count }}</span>
-          <div class="w-full min-w-[2rem] rounded-t-lg bg-indigo-500 dark:bg-indigo-400 transition-all" style="height:{{ day.pct }}%"></div>
-          <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">{{ day.date|date:"d.m." }}</span>
+      <div class="mt-6 overflow-x-auto">
+        <div class="flex items-end gap-1.5 border-b border-slate-100 dark:border-slate-700" style="height:7rem">
+          {% for day in daily_stats %}
+          <div class="group relative flex flex-1 flex-col items-center justify-end" style="min-width:2rem;height:100%"
+               title="{{ day.date|date:'d.m.' }}: {{ day.count }}">
+            {% if day.count %}
+            <span class="absolute -top-5 hidden text-[10px] font-semibold text-slate-500 group-hover:block dark:text-slate-400">{{ day.count }}</span>
+            {% endif %}
+            <div class="w-full rounded-t-md bg-indigo-500 transition-all hover:bg-indigo-600 dark:bg-indigo-400 dark:hover:bg-indigo-300"
+                 style="height:{% widthratio day.count daily_max 112 %}px{% if day.count %};min-height:3px{% endif %}"></div>
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
+        <div class="mt-1.5 flex gap-1.5">
+          {% for day in daily_stats %}
+          <span class="flex-1 text-center text-[10px] font-medium text-slate-400 dark:text-slate-500" style="min-width:2rem">{{ day.date|date:"d.m." }}</span>
+          {% endfor %}
+        </div>
       </div>
     </div>
     {% endif %}
