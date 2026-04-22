@@ -6,7 +6,10 @@ from accounts import views as account_views
 from bmx import views as bmx_views
 
 app_name = "bmx"
+handler400 = "bmx.views.error_400_view"
+handler403 = "bmx.views.error_403_view"
 handler404 = "bmx.views.error_404_view"
+handler500 = "bmx.views.error_500_view"
 
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),

@@ -2,6 +2,8 @@ import json
 import logging
 from datetime import datetime, timezone
 
+from bmx.request_context import get_request_id
+
 
 class JsonFormatter(logging.Formatter):
     def __init__(self, *, release="", environment=""):
@@ -20,6 +22,7 @@ class JsonFormatter(logging.Formatter):
             payload["release"] = self.release
         if self.environment:
             payload["environment"] = self.environment
+        payload["request_id"] = getattr(record, "request_id", get_request_id())
 
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
@@ -27,6 +30,12 @@ class JsonFormatter(logging.Formatter):
             payload["stack"] = self.formatStack(record.stack_info)
 
         return json.dumps(payload, ensure_ascii=True)
+
+
+class RequestIDFilter(logging.Filter):
+    def filter(self, record):
+        record.request_id = getattr(record, "request_id", get_request_id())
+        return True
 
 
 def build_logging_config(
@@ -44,9 +53,14 @@ def build_logging_config(
     return {
         "version": 1,
         "disable_existing_loggers": False,
+        "filters": {
+            "request_id": {
+                "()": "bmx.logging_config.RequestIDFilter",
+            },
+        },
         "formatters": {
             "verbose": {
-                "format": "[{asctime}] {levelname} {name}: {message}",
+                "format": "[{asctime}] {levelname} {name} [{request_id}]: {message}",
                 "style": "{",
             },
             "json": {
@@ -59,10 +73,12 @@ def build_logging_config(
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": formatter_name,
+                "filters": ["request_id"],
             },
             "audit_file": {
                 "class": "logging.handlers.TimedRotatingFileHandler",
                 "formatter": "verbose",
+                "filters": ["request_id"],
                 "filename": str(log_dir / "audit.log"),
                 "when": "midnight",
                 "interval": 1,
@@ -72,6 +88,7 @@ def build_logging_config(
             "error_file": {
                 "class": "logging.handlers.TimedRotatingFileHandler",
                 "formatter": "verbose",
+                "filters": ["request_id"],
                 "filename": str(log_dir / "errors.log"),
                 "when": "midnight",
                 "interval": 1,

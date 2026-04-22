@@ -4,7 +4,7 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
-from django.shortcuts import render
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -18,6 +18,11 @@ from rider.models import Rider
 
 
 logger = logging.getLogger("security.csp")
+
+
+def _render_plain_error_template(template_name, status_code, context=None):
+    template = get_template(template_name)
+    return HttpResponse(template.render(context or {}), status=status_code)
 
 
 @csrf_exempt
@@ -77,9 +82,29 @@ def csp_report_view(request):
     return HttpResponse(status=204)
 
 
+def error_400_view(request, exception):
+    """Projektová 400 stránka bez závislosti na base template."""
+    return _render_plain_error_template("400.html", 400)
+
+
+def error_403_view(request, exception):
+    """Projektová 403 stránka bez závislosti na base template."""
+    return _render_plain_error_template("403.html", 403)
+
+
+def csrf_failure_view(request, reason="", template_name=None):
+    """Projektová CSRF failure stránka bez závislosti na base template."""
+    return _render_plain_error_template("403.html", 403, {"csrf_reason": reason})
+
+
 def error_404_view(request, exception):
-    """Projektová 404 stránka s korektním HTTP statusem."""
-    return render(request, "404.html", status=404)
+    """Projektová 404 stránka bez závislosti na base template."""
+    return _render_plain_error_template("404.html", 404)
+
+
+def error_500_view(request):
+    """Projektová 500 stránka bez závislosti na base template."""
+    return _render_plain_error_template("500.html", 500)
 
 
 def healthz_view(request):

@@ -95,6 +95,15 @@ COMMISSAR_EXCLUDED_EVENT_TYPES = [
 COMMISSAR_PLACEHOLDER_LAST_NAME = "Bude upřesněno"
 
 UCI_EXPORT_TEMPLATE = os.path.join(settings.MEDIA_ROOT, "uci-templates", "uci-results-template.xlsx")
+
+
+def _render_error_page(request, message, *, detail=None, status=400):
+    context = {"message": message}
+    if detail:
+        context["detail"] = detail
+    return render(request, "error.html", context, status=status)
+
+
 def _get_event_year_options():
     return (
         Event.objects.exclude(date__isnull=True)
@@ -1078,18 +1087,24 @@ def export_event_results(request, event_id):
     try:
         event = Event.objects.get(id=event_id)
     except Event.DoesNotExist:
-        return render(request, "error.html", {"message": "Závod nebyl nalezen."})
+        return _render_error_page(request, "Závod nebyl nalezen.", status=404)
 
     if event.ccf_uploaded:
         sent_at = event.ccf_created.strftime("%d.%m.%Y %H:%M:%S") if event.ccf_created else "v minulosti"
-        return render(request, "error.html", {
-            "message": "Výsledky už byly odeslány.",
-            "detail": f"Závod {event.name} byl již odeslán {sent_at}.",
-        })
+        return _render_error_page(
+            request,
+            "Výsledky už byly odeslány.",
+            detail=f"Závod {event.name} byl již odeslán {sent_at}.",
+            status=409,
+        )
 
     token = get_api_token()
     if not token:
-        return render(request, "error.html", {"message": "Nepodařilo se získat token pro přihlášení k API ČSC."})
+        return _render_error_page(
+            request,
+            "Nepodařilo se získat token pro přihlášení k API ČSC.",
+            status=502,
+        )
 
     results = list(Result.objects.filter(event=event).select_related("rider__club"))
     payload = []
@@ -1156,15 +1171,20 @@ def export_event_results(request, event_id):
         logger.info("Výsledky úspěšně odeslány do API ČSC pro event_id=%s", event.id)
     except requests.Timeout:
         logger.exception("Timeout při odesílání výsledků do API ČSC pro event_id=%s", event.id)
-        return render(request, "error.html", {
-            "message": "Nepodařilo se odeslat výsledky na API.",
-            "detail": "API ČSC neodpovědělo včas.",
-        })
+        return _render_error_page(
+            request,
+            "Nepodařilo se odeslat výsledky na API.",
+            detail="API ČSC neodpovědělo včas.",
+            status=504,
+        )
     except requests.RequestException as e:
         logger.exception("Chyba při odesílání výsledků do API ČSC pro event_id=%s", event.id)
-        return render(request, "error.html", {
-            "message": "Nepodařilo se odeslat výsledky na API.", "detail": str(e)
-        })
+        return _render_error_page(
+            request,
+            "Nepodařilo se odeslat výsledky na API.",
+            detail=str(e),
+            status=502,
+        )
 
     event.ccf_created = now()
     event.ccf_uploaded = True

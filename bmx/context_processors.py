@@ -1,5 +1,11 @@
+import logging
+
 from django.conf import settings
+from django.db import DatabaseError
 from django.utils import timezone
+
+
+logger = logging.getLogger("bmx.context")
 
 
 def navbar_context(request):
@@ -64,6 +70,13 @@ def navbar_context(request):
             return navbar_data
         except AttributeError:
             return {"user_credit": 0}
+        except DatabaseError as error:
+            logger.warning(
+                "Navbar context fallback due to database error for user_id=%s: %s",
+                getattr(request.user, "id", None),
+                error,
+            )
+            return {"user_credit": getattr(request.user, "credit", 0)}
     return {}
 
 
