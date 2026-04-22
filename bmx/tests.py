@@ -10,12 +10,15 @@ import json
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.db import DatabaseError
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 import pandas as pd
 
+from bmx.context_processors import navbar_context
+from bmx import views as bmx_views
 from club.models import Club
 from accounts.models import AvatarChangeRequest
 from event.models import EntryClasses, Event, EventProposition
@@ -114,6 +117,170 @@ class SecurityEndpointTests(TestCase):
 
         self.assertNotIn("<style>", template)
         self.assertIn("navbar-cart-icon", template)
+
+    def test_request_id_header_is_preserved_in_response(self):
+        response = self.client.get(
+            reverse("news:homepage"),
+            HTTP_X_REQUEST_ID="req-123",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["X-Request-ID"], "req-123")
+
+
+class ErrorPageTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_page_is_rendered_for_unknown_route(self):
+        response = self.client.get("/this-page-does-not-exist/")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Stránka nebyla nalezena", status_code=404)
+
+    def test_error_handlers_render_standalone_templates_without_base_dependencies(self):
+        request = self.factory.get("/error-page-test/")
+        responses = (
+            bmx_views.error_400_view(request, Exception("bad request")),
+            bmx_views.error_403_view(request, Exception("forbidden")),
+            bmx_views.error_404_view(request, Exception("not found")),
+            bmx_views.error_500_view(request),
+        )
+
+        for response, expected_status in zip(responses, (400, 403, 404, 500)):
+            with self.subTest(status=expected_status):
+                content = response.content.decode("utf-8")
+                self.assertEqual(response.status_code, expected_status)
+                self.assertIn("<!DOCTYPE html>", content)
+                self.assertNotIn("includes/navbar.html", content)
+                self.assertNotIn("js/base.js", content)
+                self.assertNotIn("css/navbar.css", content)
+
+    @override_settings(DEBUG=False, ROOT_URLCONF="bmx.test_urls")
+    def test_permission_denied_uses_custom_403_page(self):
+        response = self.client.get("/__test__/permission-denied/")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Přístup byl zamítnut", status_code=403)
+
+    @override_settings(DEBUG=False, ROOT_URLCONF="bmx.test_urls")
+    def test_runtime_exception_uses_custom_500_page(self):
+        self.client.raise_request_exception = False
+
+        response = self.client.get("/__test__/runtime-error/")
+
+        self.assertEqual(response.status_code, 500)
+        self.assertContains(response, "Na serveru došlo k chybě", status_code=500)
+
+    @override_settings(DEBUG=False, ROOT_URLCONF="bmx.test_urls")
+    def test_csrf_failure_uses_custom_403_page(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+
+        response = csrf_client.post("/__test__/csrf-protected/", {})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Přístup byl zamítnut", status_code=403)
+        self.assertContains(response, "bezpečnostní kontroly", status_code=403)
+
+
+class ContextProcessorResilienceTests(TestCase):
+    @patch("accounts.models.AvatarChangeRequest.expire_stale_requests", side_effect=DatabaseError("db down"))
+    def test_navbar_context_falls_back_when_database_query_fails(self, _expire_mock):
+        request = RequestFactory().get("/")
+        user = User.objects.create_user(
+            first_name="Context",
+            last_name="User",
+            username="context_user",
+            email="context@example.com",
+            password="StrongPass123!",
+        )
+        user.is_active = True
+        user.is_staff = True
+        user.save()
+        request.user = user
+        request.user.credit = 125
+
+        context = navbar_context(request)
+
+        self.assertEqual(context, {"user_credit": 125})
+
+
+class SecurityFlowTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Security Club", is_active=True)
+        self.event = Event.objects.create(
+            name="Security Event",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            type_for_ranking="Volný závod",
+        )
+        self.user = User.objects.create_user(
+            first_name="Security",
+            last_name="User",
+            username="security_user",
+            email="security_user@example.com",
+            password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save()
+        self.staff_user = User.objects.create_user(
+            first_name="Security",
+            last_name="Staff",
+            username="security_staff",
+            email="security_staff@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+
+    def test_anonymous_access_to_protected_pages_redirects_instead_of_failing(self):
+        responses = (
+            self.client.get(reverse("event:credit")),
+            self.client.get(reverse("event:event-admin", kwargs={"pk": self.event.pk})),
+        )
+
+        for response in responses:
+            self.assertEqual(response.status_code, 302)
+
+    def test_invalid_credit_post_returns_form_feedback_without_500(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("event:credit"),
+            {"price": "invalid"},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Neplatná částka.")
+
+    def test_nonexistent_public_detail_returns_404(self):
+        response = self.client.get(reverse("event:event-detail", kwargs={"pk": 999999}))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_export_results_missing_event_returns_404_error_page(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("event:export_event_results", kwargs={"event_id": 999999}))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Závod nebyl nalezen.", status_code=404)
+
+    @patch("event.views.views_admin.get_api_token", return_value=None)
+    def test_export_results_missing_api_token_returns_502_error_page(self, _token_mock):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("event:export_event_results", kwargs={"event_id": self.event.pk}))
+
+        self.assertEqual(response.status_code, 502)
+        self.assertContains(
+            response,
+            "Nepodařilo se získat token pro přihlášení k API ČSC.",
+            status_code=502,
+        )
 
 
 class LanguageSelectorTests(TestCase):
@@ -316,6 +483,7 @@ class SettingsSecuritySourceTests(TestCase):
         self.assertEqual(payload["message"], "hello world")
         self.assertEqual(payload["release"], "release-1")
         self.assertEqual(payload["environment"], "production")
+        self.assertEqual(payload["request_id"], "-")
 
     def test_env_example_exists_with_sentry_and_logging_placeholders(self):
         source = (

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>404 | Czech BMX</title>
+  <title>403 | Czech BMX</title>
   <meta name="robots" content="noindex,nofollow">
   <style>
     :root {
@@ -12,8 +12,8 @@
       --panel: rgba(255, 255, 255, 0.94);
       --text: #0f172a;
       --muted: #475569;
-      --accent: #4f46e5;
-      --accent-strong: #4338ca;
+      --accent: #0891b2;
+      --accent-strong: #0e7490;
       --border: rgba(148, 163, 184, 0.28);
       --shadow: 0 30px 80px rgba(15, 23, 42, 0.14);
     }
@@ -24,16 +24,14 @@
         --panel: rgba(15, 23, 42, 0.92);
         --text: #e2e8f0;
         --muted: #cbd5e1;
-        --accent: #818cf8;
-        --accent-strong: #6366f1;
+        --accent: #22d3ee;
+        --accent-strong: #06b6d4;
         --border: rgba(71, 85, 105, 0.55);
         --shadow: 0 30px 80px rgba(2, 6, 23, 0.5);
       }
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -44,8 +42,8 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.14), transparent 24%),
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(14, 116, 144, 0.14), transparent 24%),
         var(--bg);
     }
 
@@ -98,28 +96,21 @@
       border-radius: 999px;
       font-weight: 700;
       text-decoration: none;
-    }
-
-    .primary {
       color: #fff;
       background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    }
-
-    .secondary {
-      color: var(--text);
-      border: 1px solid var(--border);
-      background: transparent;
     }
   </style>
 </head>
 <body>
   <main>
-    <p class="code">404</p>
-    <h1>Stránka nebyla nalezena</h1>
-    <p>Požadovaná adresa na webu Czech BMX neexistuje nebo už byla přesunuta. Zkontrolujte URL, případně pokračujte zpět na úvodní stránku.</p>
+    <p class="code">403</p>
+    <h1>Přístup byl zamítnut</h1>
+    <p>Požadovaná akce není pro tento účet nebo tento požadavek povolena.</p>
+    {% if csrf_reason %}
+      <p>Důvod zamítnutí bezpečnostní kontroly: {{ csrf_reason }}</p>
+    {% endif %}
     <div class="actions">
-      <a class="primary" href="/">Zpět na úvodní stránku</a>
-      <a class="secondary" href="javascript:history.back()">Zpět na předchozí stránku</a>
+      <a href="/">Zpět na úvodní stránku</a>
     </div>
   </main>
 </body>

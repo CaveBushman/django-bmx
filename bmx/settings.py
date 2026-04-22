@@ -160,6 +160,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "bmx.middleware.RequestIDMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -173,6 +174,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "bmx.urls"
+CSRF_FAILURE_VIEW = "bmx.views.csrf_failure_view"
 
 TEMPLATES = [
     {
