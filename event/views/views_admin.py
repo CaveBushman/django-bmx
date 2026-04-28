@@ -68,7 +68,7 @@ from rider.rider import (
 )
 from finance.invoices import generate_event_invoices, send_event_invoices
 from event.prize_money import PrizeMoneyPdfService
-from event.services.race_run_import import RaceRunImportService
+from event.services.race_run_import import RaceRunImportService, START_KEYS, RESULT_KEYS
 from event.services.uci_export import (
     generate_uci_export_zip,
     get_missing_uci_competition_codes,
@@ -1420,6 +1420,165 @@ def price_money_pdf(request, pk):
     return response
 
 
+_VALID_STATS_KEYS = START_KEYS | RESULT_KEYS | {"overall_results"}
+
+_STATS_SECTION_LABELS = {
+    "motos": "Motos – listina",
+    "motos_results": "Motos – výsledky",
+    "1_16": "1/16 – listina",
+    "1_16_results": "1/16 – výsledky",
+    "1_8": "1/8 – listina",
+    "1_8_results": "1/8 – výsledky",
+    "1_4": "1/4 – listina",
+    "1_4_results": "1/4 – výsledky",
+    "1_2": "1/2 – listina",
+    "1_2_results": "1/2 – výsledky",
+    "final": "Finále – listina",
+    "final_results": "Finále – výsledky",
+    "overall_results": "Celkové výsledky",
+}
+
+_ROUND_TYPE_LABELS = {
+    "MOTO": "Motos",
+    "F16": "1/16",
+    "F8": "1/8",
+    "F4": "1/4",
+    "F2": "1/2",
+    "FINAL": "Finále",
+}
+_ROUND_TYPE_ORDER = ["MOTO", "F16", "F8", "F4", "F2", "FINAL"]
+_MAX_STATS_FILE_SIZE = 2 * 1024 * 1024  # 2 MB
+
+
+def _format_import_message(import_result):
+    total = import_result["created"]
+    counts = import_result.get("counts_by_round", {})
+    parts = [
+        f"{_ROUND_TYPE_LABELS.get(rt, rt)}: {counts[rt]}"
+        for rt in _ROUND_TYPE_ORDER
+        if rt in counts
+    ]
+    msg = _("RaceRun aktualizován, zapsáno {count} jízd").format(count=total)
+    if parts:
+        msg += " (" + ", ".join(parts) + ")"
+    return msg + "."
+
+
+def _warn_unmatched_riders(request, unmatched):
+    if not unmatched:
+        return
+    MAX_SHOWN = 10
+    shown = unmatched[:MAX_SHOWN]
+    rest = len(unmatched) - MAX_SHOWN
+    parts = [
+        f"{item['category']} — {item['plate']} {item['name']}".strip(" —")
+        for item in shown
+    ]
+    msg = _("Tito závodníci nebyli nalezeni v databázi: ") + "; ".join(parts)
+    if rest > 0:
+        msg += _(" (a {n} dalších)").format(n=rest)
+    messages.warning(request, msg)
+
+
+def _handle_stats_delete_key(request, event, pk):
+    delete_key = request.POST.get("delete_key", "").strip()
+    if delete_key not in _VALID_STATS_KEYS:
+        messages.error(request, _("Neplatný klíč pro smazání."))
+        return redirect("event:import-stats", pk=pk)
+
+    deleted_count = _delete_uploaded_files_by_prefix("event_stats", str(pk), prefix=delete_key)
+    import_result = RaceRunImportService().import_event_runs(event)
+    audit_logger.info(
+        "event_stats_file_deleted admin_user_id=%s event_id=%s delete_key=%s deleted_files=%s imported_runs=%s",
+        request.user.id, event.id, delete_key, deleted_count, import_result["created"],
+    )
+    if deleted_count > 0:
+        messages.success(request, _("Soubor pro vybranou sekci byl smazán."))
+        messages.info(request, _format_import_message(import_result))
+        _warn_unmatched_riders(request, import_result["unmatched"])
+    else:
+        messages.info(request, _("Pro vybranou sekci nebyl nalezen žádný soubor."))
+    return redirect("event:import-stats", pk=pk)
+
+
+def _handle_stats_delete_all(request, event, pk):
+    stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(pk))
+    deleted_count = 0
+    if os.path.exists(stats_dir):
+        for f in os.listdir(stats_dir):
+            file_path = os.path.join(stats_dir, f)
+            if os.path.isfile(file_path):
+                try:
+                    os.remove(file_path)
+                    deleted_count += 1
+                except Exception as e:
+                    logger.error("Nepodařilo se smazat soubor %s: %s", file_path, e)
+    RaceRun.objects.filter(event=event).delete()
+    audit_logger.info(
+        "event_stats_deleted admin_user_id=%s event_id=%s deleted_files=%s",
+        request.user.id, event.id, deleted_count,
+    )
+    if deleted_count > 0:
+        messages.success(request, _("Všechny statistiky byly smazány."))
+    else:
+        messages.info(request, _("Žádné soubory k smazání."))
+    return redirect("event:import-stats", pk=pk)
+
+
+def _handle_stats_file_upload(request, event, pk):
+    count = 0
+    uploaded_labels = []
+    for key in request.FILES:
+        file = request.FILES[key]
+        if not file.name.lower().endswith(".html"):
+            continue
+        if file.size > _MAX_STATS_FILE_SIZE:
+            messages.warning(
+                request,
+                _("Soubor {name} je příliš velký ({size} kB), maximum je 2 MB.").format(
+                    name=file.name, size=file.size // 1024
+                ),
+            )
+            continue
+        _delete_uploaded_files_by_prefix("event_stats", str(pk), prefix=key)
+        original_name = os.path.basename(file.name)
+        file.name = f"{key}__{original_name}"
+        _save_uploaded_file(file, "event_stats", str(pk))
+        count += 1
+        uploaded_labels.append(_STATS_SECTION_LABELS.get(key, key))
+
+    if count > 0:
+        results_count = Result.objects.filter(event=event).count()
+        import_result = RaceRunImportService().import_event_runs(event)
+        audit_logger.info(
+            "event_stats_imported admin_user_id=%s event_id=%s uploaded_files=%s imported_runs=%s results_count=%s",
+            request.user.id, event.id, count, import_result["created"], results_count,
+        )
+        messages.success(
+            request,
+            _("Nahráno ({count}): {names}.").format(count=count, names=", ".join(uploaded_labels)),
+        )
+        messages.info(request, _format_import_message(import_result))
+        if results_count == 0:
+            messages.warning(
+                request,
+                _(
+                    "Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a potom spusť import statistik znovu."
+                ),
+            )
+        elif import_result["created"] == 0:
+            messages.warning(
+                request,
+                _(
+                    "Statistické soubory se nahrály, ale nevznikl žádný RaceRun. Zkontroluj, že kategorie, jména a čísla v HTML odpovídají výsledkům uloženým v Result."
+                ),
+            )
+        _warn_unmatched_riders(request, import_result["unmatched"])
+    else:
+        messages.warning(request, _("Nebyly nahrány žádné soubory (povoleny jsou pouze .html)."))
+    return redirect("event:import-stats", pk=pk)
+
+
 @login_required(login_url="/login/")
 @staff_member_required
 def import_event_stats(request, pk):
@@ -1427,97 +1586,77 @@ def import_event_stats(request, pk):
     event = get_object_or_404(Event, pk=pk)
 
     if request.method == "POST":
-        # Smazání všech souborů
+        if "delete_key" in request.POST:
+            return _handle_stats_delete_key(request, event, pk)
         if "delete_all" in request.POST:
-            stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(pk))
-            deleted_count = 0
-            if os.path.exists(stats_dir):
-                for f in os.listdir(stats_dir):
-                    file_path = os.path.join(stats_dir, f)
-                    if os.path.isfile(file_path):
-                        try:
-                            os.remove(file_path)
-                            deleted_count += 1
-                        except Exception as e:
-                            logger.error(f"Nepodařilo se smazat soubor {file_path}: {e}")
-            
-            RaceRun.objects.filter(event=event).delete()
-            audit_logger.info(
-                "event_stats_deleted admin_user_id=%s event_id=%s deleted_files=%s",
-                request.user.id,
-                event.id,
-                deleted_count,
-            )
-
-            if deleted_count > 0:
-                messages.success(request, _("Všechny statistiky byly smazány."))
-            else:
-                messages.info(request, _("Žádné soubory k smazání."))
-            return redirect("event:import-stats", pk=pk)
-        
-        # Nahrávání souborů
+            return _handle_stats_delete_all(request, event, pk)
         if request.FILES:
-            count = 0
-            for key in request.FILES:
-                file = request.FILES[key]
-                if file.name.lower().endswith(".html"):
-                    _delete_uploaded_files_by_prefix("event_stats", str(pk), prefix=key)
-                    # Prefix filename with key to identify category
-                    original_name = os.path.basename(file.name)
-                    file.name = f"{key}__{original_name}"
-                    _save_uploaded_file(file, "event_stats", str(pk))
-                    count += 1
-            
-            if count > 0:
-                results_count = Result.objects.filter(event=event).count()
-                imported_runs = RaceRunImportService().import_event_runs(event)
-                audit_logger.info(
-                    "event_stats_imported admin_user_id=%s event_id=%s uploaded_files=%s imported_runs=%s results_count=%s",
-                    request.user.id,
-                    event.id,
-                    count,
-                    imported_runs,
-                    results_count,
-                )
-                messages.success(request, _("Úspěšně nahráno {count} souborů se statistikami.").format(count=count))
-                messages.info(request, _("RaceRun aktualizován, zapsáno {count} jízd.").format(count=imported_runs))
-                if results_count == 0:
-                    messages.warning(
-                        request,
-                        _(
-                            "Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a potom spusť import statistik znovu."
-                        ),
-                    )
-                elif imported_runs == 0:
-                    messages.warning(
-                        request,
-                        _(
-                            "Statistické soubory se nahrály, ale nevznikl žádný RaceRun. Zkontroluj, že kategorie, jména a čísla v HTML odpovídají výsledkům uloženým v Result."
-                        ),
-                    )
-            else:
-                messages.warning(request, _("Nebyly nahrány žádné soubory (povoleny jsou pouze .html)."))
-                
-            return redirect("event:import-stats", pk=pk)
+            return _handle_stats_file_upload(request, event, pk)
+        return redirect("event:import-stats", pk=pk)
 
     # Načtení existujících souborů
     uploaded_files = []
+    uploaded_files_by_key = {}
     stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(pk))
-    
-    category_map = {
-        "motos": _("Motos - Startovní listina"),
-        "motos_results": _("Motos - Výsledky"),
-        "1_16": _("1/16 - Startovní listina"),
-        "1_16_results": _("1/16 - Výsledky"),
-        "1_8": _("1/8 - Startovní listina"),
-        "1_8_results": _("1/8 - Výsledky"),
-        "1_4": _("1/4 - Startovní listina"),
-        "1_4_results": _("1/4 - Výsledky"),
-        "1_2": _("1/2 - Startovní listina"),
-        "1_2_results": _("1/2 - Výsledky"),
-        "final": _("Finále - Startovní listina"),
-        "final_results": _("Finále - Výsledky"),
+
+    upload_sections = [
+        {
+            "title": _("Motos (Rozjížďky)"),
+            "fields": [
+                {"name": "motos", "label": _("Startovní listina")},
+                {"name": "motos_results", "label": _("Výsledky")},
+            ],
+        },
+        {
+            "title": _("1/16 Finále"),
+            "fields": [
+                {"name": "1_16", "label": _("Startovní listina")},
+                {"name": "1_16_results", "label": _("Výsledky")},
+            ],
+        },
+        {
+            "title": _("1/8 Finále"),
+            "fields": [
+                {"name": "1_8", "label": _("Startovní listina")},
+                {"name": "1_8_results", "label": _("Výsledky")},
+            ],
+        },
+        {
+            "title": _("1/4 Finále"),
+            "fields": [
+                {"name": "1_4", "label": _("Startovní listina")},
+                {"name": "1_4_results", "label": _("Výsledky")},
+            ],
+        },
+        {
+            "title": _("1/2 Finále"),
+            "fields": [
+                {"name": "1_2", "label": _("Startovní listina")},
+                {"name": "1_2_results", "label": _("Výsledky")},
+            ],
+        },
+        {
+            "title": _("Finále"),
+            "fields": [
+                {"name": "final", "label": _("Startovní listina")},
+                {"name": "final_results", "label": _("Výsledky")},
+            ],
+        },
+    ]
+    overall_results_field = {
+        "name": "overall_results",
+        "section_title": _("Celkové výsledky"),
+        "label": _("Soubor s celkovými výsledky"),
     }
+
+    category_map = {}
+    for section in upload_sections:
+        for field in section["fields"]:
+            category_map[field["name"]] = _("%(section)s - %(label)s") % {
+                "section": section["title"],
+                "label": field["label"],
+            }
+    category_map["overall_results"] = _("Celkové výsledky")
 
     if os.path.exists(stats_dir):
         for f in os.listdir(stats_dir):
@@ -1526,14 +1665,46 @@ def import_event_stats(request, pk):
                 key = parts[0]
                 original_name = parts[1] if len(parts) > 1 else f
                 
-                uploaded_files.append({
+                file_info = {
+                    "key": key,
                     "filename": f,
                     "original_name": original_name,
                     "label": category_map.get(key, _("Neznámá kategorie")),
                     "url": f"{settings.MEDIA_URL}event_stats/{pk}/{f}",
-                    "created": datetime.datetime.fromtimestamp(os.path.getctime(os.path.join(stats_dir, f)))
-                })
+                    "created": datetime.datetime.fromtimestamp(os.path.getctime(os.path.join(stats_dir, f))),
+                }
+                uploaded_files.append(file_info)
+                uploaded_files_by_key[key] = file_info
     
     uploaded_files.sort(key=lambda x: x['label'])
 
-    return render(request, "event/import-stats.html", {"event": event, "uploaded_files": uploaded_files})
+    for section in upload_sections:
+        for field in section["fields"]:
+            field["uploaded_file"] = uploaded_files_by_key.get(field["name"])
+    overall_results_field["uploaded_file"] = uploaded_files_by_key.get(overall_results_field["name"])
+
+    phase_warnings = []
+    for section in upload_sections:
+        keys = [field["name"] for field in section["fields"]]
+        has_start = keys[0] in uploaded_files_by_key
+        has_results = keys[1] in uploaded_files_by_key
+        if has_start and not has_results:
+            phase_warnings.append(
+                _("{section}: nahrána startovní listina, chybí výsledky").format(section=section["title"])
+            )
+        elif has_results and not has_start:
+            phase_warnings.append(
+                _("{section}: nahrány výsledky, chybí startovní listina").format(section=section["title"])
+            )
+
+    return render(
+        request,
+        "event/import-stats.html",
+        {
+            "event": event,
+            "uploaded_files": uploaded_files,
+            "upload_sections": upload_sections,
+            "overall_results_field": overall_results_field,
+            "phase_warnings": phase_warnings,
+        },
+    )

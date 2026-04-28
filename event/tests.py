@@ -32,7 +32,7 @@ from event.credit import recalculate_all_balances
 from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.entry import REMRiders
-from event.services.race_run_import import RaceRunImportService
+from event.services.race_run_import import RaceRunImportService, _extract_tables
 from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
 from event.services.checkout_refunds import apply_entry_checkout
@@ -1087,6 +1087,13 @@ class PaymentServiceTests(TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("js/import_stats.js", template)
+        self.assertIn('name="{{ overall_results_field.name }}"', template)
+        self.assertIn("upload_sections", template)
+        self.assertIn("Nenahráno", template)
+        self.assertIn("Nahráno:", template)
+        self.assertIn('name="delete_key"', template)
+        self.assertIn("Zobrazit", template)
+        self.assertIn("Smazat", template)
         self.assertIn("data-confirm-message", template)
         self.assertNotIn("onclick=", template)
         self.assertNotIn("<script>", template)
@@ -2946,7 +2953,7 @@ class RaceRunImportServiceTests(TestCase):
 
         imported_runs = RaceRunImportService().import_event_runs(self.event)
 
-        self.assertEqual(imported_runs, 3)
+        self.assertEqual(imported_runs["created"], 3)
         moto_1 = RaceRun.objects.get(result=self.result, round_type="MOTO", round_number=1)
         self.assertEqual(moto_1.heat_code, "40")
         self.assertEqual(moto_1.lane, 1)
@@ -2999,7 +3006,7 @@ class RaceRunImportServiceTests(TestCase):
 
         imported_runs = RaceRunImportService().import_event_runs(self.event)
 
-        self.assertEqual(imported_runs, 1)
+        self.assertEqual(imported_runs["created"], 1)
         moto_1 = RaceRun.objects.get(result=self.result, round_type="MOTO", round_number=1)
         self.assertEqual(moto_1.place, "3rd")
         self.assertEqual(moto_1.hill_time, 1.753)
@@ -3037,7 +3044,7 @@ class RaceRunImportServiceTests(TestCase):
 
         imported_runs = RaceRunImportService().import_event_runs(self.event)
 
-        self.assertEqual(imported_runs, 1)
+        self.assertEqual(imported_runs["created"], 1)
         final_run = RaceRun.objects.get(result=self.result, round_type="FINAL")
         self.assertEqual(final_run.heat_code, "F1 (A)")
         self.assertEqual(final_run.lane, 3)
@@ -3076,7 +3083,7 @@ class RaceRunImportServiceTests(TestCase):
 
         imported_runs = RaceRunImportService().import_event_runs(self.event)
 
-        self.assertEqual(imported_runs, 1)
+        self.assertEqual(imported_runs["created"], 1)
         moto_1 = RaceRun.objects.get(event=self.event, rider=self.rider, round_type="MOTO", round_number=1)
         self.assertIsNone(moto_1.result)
         self.assertFalse(moto_1.is_beginner)
@@ -3174,3 +3181,187 @@ class RecalculateAllBalancesTests(TestCase):
 
         self.assertEqual(self.active_user.credit, 180)
         self.assertEqual(self.inactive_user.credit, 777)
+
+
+class RaceRunImportEncodingTests(TestCase):
+    """Tests for encoding fallback and counts_by_round in import service."""
+
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="Encoding Club")
+        self.event = Event.objects.create(
+            name="Encoding Race",
+            date=date(2025, 6, 1),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10199900001,
+            first_name="Tomáš",
+            last_name="Dvořák",
+            gender="Muž",
+            date_of_birth=date(2005, 3, 15),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 19",
+            plate_text="99",
+        )
+
+    def _write_file(self, path, content, encoding="utf-8"):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding=encoding) as f:
+            f.write(content)
+
+    def _motos_html(self, name="Tomáš Dvořák"):
+        return f"""<html><body>
+        <table><caption>Boys 19 (1 Riders)</caption>
+        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th></tr>
+        <tr><td>99</td><td>Encoding Club</td><td>{name}</td><td>10 / 1</td></tr>
+        </table></body></html>"""
+
+    def test_extract_tables_reads_cp1250_file(self):
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            tmp_path = f.name
+        try:
+            with open(tmp_path, "w", encoding="cp1250") as f:
+                f.write(self._motos_html("Tomáš Dvořák"))
+            tables = _extract_tables(tmp_path)
+            self.assertEqual(len(tables), 1)
+            self.assertEqual(tables[0]["category"], "Boys 19")
+            self.assertIn("Tomáš Dvořák", tables[0]["rows"][0][2]["text"])
+        finally:
+            os.unlink(tmp_path)
+
+    def test_extract_tables_returns_empty_on_unreadable_file(self):
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            f.write(b"\xff\xfe" + "Garbage".encode("utf-32"))
+            tmp_path = f.name
+        try:
+            tables = _extract_tables(tmp_path)
+            self.assertEqual(tables, [])
+        finally:
+            os.unlink(tmp_path)
+
+    def test_import_returns_counts_by_round(self):
+        Result.objects.create(
+            event=self.event, date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name, rider=self.rider,
+            first_name=self.rider.first_name, last_name=self.rider.last_name,
+            club=self.club.team_name, category="Boys 19",
+            place=1, points=100, is_beginner=False, is_20=True,
+        )
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        os.makedirs(stats_dir, exist_ok=True)
+        final_html = """<html><body>
+        <table><caption>Boys 19 (1 Riders)</caption>
+        <tr><th>Final</th><th>Lane</th><th>Plate</th><th>Name</th><th>Club</th></tr>
+        <tr><td>F1 (A)</td><td>1</td><td>99</td><td>Tomáš Dvořák</td><td>Encoding Club</td></tr>
+        </table></body></html>"""
+        self._write_file(os.path.join(stats_dir, "final__r.html"), final_html)
+        self._write_file(os.path.join(stats_dir, "motos__r.html"), self._motos_html())
+
+        result = RaceRunImportService().import_event_runs(self.event)
+
+        self.assertIn("counts_by_round", result)
+        self.assertEqual(result["counts_by_round"].get("FINAL", 0), 1)
+        self.assertEqual(result["counts_by_round"].get("MOTO", 0), 1)
+        self.assertEqual(result["created"], 2)
+
+    def test_import_deduplicates_unmatched(self):
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        os.makedirs(stats_dir, exist_ok=True)
+        unknown_html = """<html><body>
+        <table><caption>Boys 19 (1 Riders)</caption>
+        <tr><th>Plate</th><th>Club</th><th>Name</th><th>Moto 1</th></tr>
+        <tr><td>999</td><td>X</td><td>Nobody Known</td><td>10 / 1</td></tr>
+        </table></body></html>"""
+        unknown_results_html = """<html><body>
+        <table><caption>Boys 19 (1 Riders)</caption>
+        <tr><th>Ranking</th><th>Plate</th><th>Club</th><th>Name</th><th>Moto-Points</th><th>Moto 1</th></tr>
+        <tr><td>1</td><td>999</td><td>X</td><td>Nobody Known</td><td>1</td><td>1st 30.0</td></tr>
+        </table></body></html>"""
+        self._write_file(os.path.join(stats_dir, "motos__r.html"), unknown_html)
+        self._write_file(os.path.join(stats_dir, "motos_results__r.html"), unknown_results_html)
+
+        result = RaceRunImportService().import_event_runs(self.event)
+
+        unmatched = result["unmatched"]
+        keys = [(u["category"], u["plate"], u["name"]) for u in unmatched]
+        self.assertEqual(len(keys), len(set(keys)), "unmatched contains duplicates")
+        self.assertEqual(len(unmatched), 1)
+
+
+class ImportStatsViewTests(TestCase):
+    """Tests for the import_event_stats view (upload, delete, phase warnings)."""
+
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.staff_user = User.objects.create_user(
+            first_name="Stats", last_name="Admin",
+            username="stats_admin", email="stats_admin@example.com", password="Pass123!",
+        )
+        self.staff_user.is_staff = True
+        self.staff_user.is_active = True
+        self.staff_user.save()
+        self.club = Club.objects.create(team_name="Stats Club")
+        self.event = Event.objects.create(
+            name="Stats Race", date=date(2025, 9, 1),
+            organizer=self.club, reg_open=False,
+            type_for_ranking="Český pohár",
+        )
+        self.url = reverse("event:import-stats", kwargs={"pk": self.event.pk})
+        self.client.force_login(self.staff_user)
+
+    def _html_file(self, name="test.html", size=100):
+        content = b"<html><body><table></table></body></html>" + b"x" * size
+        return SimpleUploadedFile(name, content, content_type="text/html")
+
+    def test_upload_rejects_file_over_size_limit(self):
+        big_content = b"x" * (2 * 1024 * 1024 + 1)
+        big_file = SimpleUploadedFile("big.html", big_content, content_type="text/html")
+        response = self.client.post(self.url, {"motos": big_file}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("příliš velký" in m for m in msgs))
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        saved = os.listdir(stats_dir) if os.path.isdir(stats_dir) else []
+        self.assertEqual(saved, [])
+
+    def test_get_shows_phase_warning_on_mismatch(self):
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        os.makedirs(stats_dir, exist_ok=True)
+        with open(os.path.join(stats_dir, "motos__start.html"), "w") as f:
+            f.write("<html></html>")
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        phase_warnings = response.context["phase_warnings"]
+        self.assertTrue(any("Motos" in w for w in phase_warnings))
+
+    def test_delete_key_rejects_unknown_key(self):
+        response = self.client.post(self.url, {"delete_key": "../etc/passwd"}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("Neplatný klíč" in m for m in msgs))
+
+    def test_upload_success_message_lists_section_names(self):
+        response = self.client.post(
+            self.url, {"motos": self._html_file("motos.html")}, follow=True
+        )
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("Motos" in m for m in msgs))
