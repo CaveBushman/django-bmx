@@ -62,12 +62,14 @@ class EventAdmin(BaseAdmin):
         'reg_status_colored',
         'entry_count',
         'days_to_event',
+        'is_uci_race',
+        'canceled',
         'eshop_pickup_enabled',
     )
     list_display_links = ('id', 'name',)
     list_editable = ('eshop_pickup_enabled',)
     search_fields = ('name', 'organizer',)
-    list_filter = ('type_for_ranking', 'reg_open', 'eshop_pickup_enabled', 'date')
+    list_filter = ('type_for_ranking', 'reg_open', 'is_uci_race', 'canceled', 'eshop_pickup_enabled', 'date')
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -132,6 +134,7 @@ class EventAdmin(BaseAdmin):
                 "rem_results_uploaded",
                 "ec_file_created",
                 "ec_insurance_file_created",
+                "ccf_created",
                 "event_refund_summary",
                 "event_checkout_audit_timeline",
             )
@@ -142,14 +145,30 @@ class EventAdmin(BaseAdmin):
             (_("Závod"), {
                 "fields": (
                     "name",
-                    ("date", "organizer"),
-                    ("type_for_ranking", "reg_open", "eshop_pickup_enabled"),
+                    ("date", "double_race"),
+                    ("organizer", "director"),
+                    ("type_for_ranking", "system"),
+                    ("reg_open", "eshop_pickup_enabled"),
                     ("eshop_pickup_location", "eshop_pickup_time"),
                     "eshop_pickup_note",
                     ("reg_open_from", "reg_open_to", "reg_cancel_to"),
                     ("pcp", "pcp_assist", "start_commissar"),
                     "classes_and_fees_like",
+                    ("commission_fee", "price_of_insurance"),
+                    "youtube_link",
+                    "canceled",
                 ),
+            }),
+            (_("UCI / ČSC"), {
+                "fields": (
+                    ("is_uci_race", "uec_link"),
+                    "uci_event_code",
+                    ("uci_code_men_elite", "uci_code_women_elite"),
+                    ("uci_code_men_under_23", "uci_code_women_under_23"),
+                    ("uci_code_men_junior", "uci_code_women_junior"),
+                    ("ccf_id", "ccf_uploaded", "ccf_created"),
+                ),
+                "classes": ("collapse",),
             }),
             (_("Soubory"), {
                 "fields": (
@@ -591,6 +610,7 @@ class EntryForeignAdmin(BaseAdmin):
         'payment_complete',
         'checkout',
         'transaction_date',
+        'czech_rider_link',
         'foreign_rider_link',
     )
     list_display_links = ('last_name', 'first_name')
@@ -604,12 +624,14 @@ class EntryForeignAdmin(BaseAdmin):
         'customer_email',
         'transponder_20',
         'transponder_24',
+        'rider__last_name',
+        'rider__first_name',
     )
     list_filter = ('payment_complete', 'checkout', 'event', 'nationality', 'is_20', 'is_24', 'is_elite')
     list_editable = ('checkout',)
-    autocomplete_fields = ('event',)
-    list_select_related = ('event',)
-    readonly_fields = ('transaction_id', 'transaction_date', 'date_of_payment', 'foreign_rider_link')
+    autocomplete_fields = ('event', 'rider')
+    list_select_related = ('event', 'rider')
+    readonly_fields = ('transaction_id', 'transaction_date', 'date_of_payment', 'foreign_rider_link', 'czech_rider_link')
     ordering = ('-transaction_date', 'last_name', 'first_name')
 
     fieldsets = (
@@ -629,6 +651,8 @@ class EntryForeignAdmin(BaseAdmin):
                 ('uci_id', 'date_of_birth'),
                 ('gender', 'nationality'),
                 ('plate', 'club'),
+                'rider',
+                'czech_rider_link',
                 'foreign_rider_link',
             ),
         }),
@@ -649,6 +673,16 @@ class EntryForeignAdmin(BaseAdmin):
         if obj.is_24:
             return obj.class_24 or '24"'
         return '-'
+
+    @admin.display(description='Český jezdec')
+    def czech_rider_link(self, obj):
+        if not obj.rider_id:
+            return mark_safe('<span style="color:#94a3b8;">—</span>')
+        try:
+            url = reverse('admin:rider_rider_change', args=[obj.rider_id])
+        except NoReverseMatch:
+            return str(obj.rider)
+        return mark_safe('<a href="{}" style="color:#16a34a; font-weight:bold;">✔ {}</a>'.format(url, obj.rider))
 
     @admin.display(description='Zahraniční jezdec')
     def foreign_rider_link(self, obj):

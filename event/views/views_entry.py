@@ -130,13 +130,13 @@ def entry_riders_view(request, pk):
         Entry.objects.filter(event=pk, payment_complete=1, checkout=0)
         .select_related("rider", "rider__club")
     )
-    foreign_entries = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=0)
+    foreign_entries = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=0).select_related("rider")
 
     czech_checkout = (
         Entry.objects.filter(event=pk, payment_complete=1, checkout=1)
         .select_related("rider", "rider__club")
     )
-    foreign_checkout = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=1)
+    foreign_checkout = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=1).select_related("rider")
 
     entries = build_public_entry_rows(czech_entries) + build_public_entry_rows(
         foreign_entries,

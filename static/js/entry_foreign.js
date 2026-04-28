@@ -111,6 +111,11 @@ document.addEventListener("DOMContentLoaded", function () {
       select.disabled = false;
     });
 
+    var clonedNotice = newCard.querySelector('.czech-rider-notice');
+    if (clonedNotice) {
+      clonedNotice.classList.add('hidden');
+    }
+
     riderTable.appendChild(newCard);
     syncCategoryRules(newCard);
     updateRiderCount();
@@ -156,6 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
+        var notice = card.querySelector('.czech-rider-notice');
         if (!data.error) {
           card.querySelector('[name="first_name[]"]').value = data.first_name;
           card.querySelector('[name="last_name[]"]').value = data.last_name;
@@ -166,8 +172,18 @@ document.addEventListener("DOMContentLoaded", function () {
           card.querySelector('[name="transponder_24[]"]').value = data.transponder_24;
           card.querySelector('[name="nationality[]"]').value = data.nationality;
           enableManualEntry(card, false);
+          if (notice) {
+            if (data.is_czech_rider) {
+              notice.classList.remove('hidden');
+            } else {
+              notice.classList.add('hidden');
+            }
+          }
         } else {
           enableManualEntry(card, true);
+          if (notice) {
+            notice.classList.add('hidden');
+          }
         }
 
         syncCategoryRules(card);

@@ -115,6 +115,14 @@ class EntryForeign(models.Model):
     date_of_payment = models.DateField(auto_now_add=True, null=True)
     customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
+    rider = models.ForeignKey(
+        Rider,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="foreign_entries",
+        help_text="Propojení s českým jezdcem (pokud jezdec závodí pod zahraniční licencí)",
+    )
 
     def save(self, *args, **kwargs):
         self.uci_id = normalize_uci_id(self.uci_id)

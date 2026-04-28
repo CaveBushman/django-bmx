@@ -1,10 +1,11 @@
 import os
+import re
 import tempfile
 import zipfile
 
 from openpyxl import load_workbook
 
-from event.models import RaceRun, Result
+from event.models import RaceRun
 from rider.plates import display_plate
 
 
@@ -44,43 +45,77 @@ def format_uci_rank_suffix(rank):
     return f"{rank_int}{suffix}"
 
 
-def resolve_uci_finish_time(event, result):
-    runs = (
-        RaceRun.objects.filter(event=event, rider__uci_id=result.rider_id, finish_time__isnull=False)
-        .order_by("-updated", "-created", "-id")
-    )
-    final_run = runs.filter(round_type="FINAL").first()
-    if final_run and final_run.finish_time is not None:
-        return final_run.finish_time
-    fallback_run = runs.first()
-    return fallback_run.finish_time if fallback_run else None
+def _parse_place_int(place_str):
+    """Převede "1st", "2nd", "DNS" apod. na číslo pro řazení. Nečíselné hodnoty jdou na konec."""
+    match = re.match(r"(\d+)", str(place_str or ""))
+    return (0, int(match.group(1))) if match else (1, 0)
 
 
 def build_uci_export_rows(event, rider_class_name):
-    rows = []
-    results = (
-        Result.objects.filter(event=event, rider__class_20=rider_class_name)
-        .select_related("rider__club")
-        .order_by("place", "last_name", "first_name")
+    """Sestaví řádky UCI exportu výhradně z RaceRun dat (Import statistik).
+
+    Zdroj je záměrně RaceRun, nikoli Result — v *.txt souboru nejsou oddělovány
+    sloučené kategorie (např. Elite + U23 v jednom závodě), zatímco HTML soubory
+    z BEMu mají každou kategorii ve vlastní tabulce s přesným názvem.
+    """
+    final_runs = (
+        RaceRun.objects.filter(
+            event=event,
+            category__iexact=rider_class_name,
+            round_type="FINAL",
+        )
+        .select_related("rider__club", "result")
+        .exclude(place__isnull=True)
+        .exclude(place="")
     )
 
+    sorted_runs = sorted(final_runs, key=lambda run: _parse_place_int(run.place))
+
+    rows = []
     subgroup_rank = 0
-    for result in results:
-        rider = result.rider
-        if not rider:
+    for run in sorted_runs:
+        rider = run.rider
+        result = run.result
+
+        if not rider and not result:
             continue
+
         subgroup_rank += 1
 
-        finish_time = resolve_uci_finish_time(event, result)
+        uci_id = ""
+        if rider:
+            uci_id = rider.uci_id
+        elif result and result.rider_id:
+            uci_id = result.rider_id  # to_field="uci_id" — rider_id IS the UCI ID
+
+        last_name = (result.last_name if result else None) or (rider.last_name if rider else "") or ""
+        first_name = (result.first_name if result else None) or (rider.first_name if rider else "") or ""
+        country = (result.country if result else None) or (rider.nationality if rider else "") or "CZE"
+
+        if rider and rider.club:
+            team = rider.club.team_name
+        elif result and result.club:
+            team = result.club
+        else:
+            team = ""
+
+        gender = "W" if (rider and rider.gender == "Žena") else "M"
+
+        # Tabulka: primárně z RaceRun.plate (přesné, z BEM HTML), fallback z jezdce
+        bib = display_plate(run.plate) if run.plate else (
+            display_plate(rider.plate_text, rider.plate) if rider else ""
+        )
+
+        finish_time = run.finish_time
         rows.append({
             "rank": subgroup_rank,
-            "bib": display_plate(rider) or "",
-            "uci_id": rider.uci_id,
-            "last_name": result.last_name or rider.last_name or "",
-            "first_name": result.first_name or rider.first_name or "",
-            "country": result.country or "CZE",
-            "team": rider.club.team_name if rider.club else (result.club or ""),
-            "gender": "W" if rider.gender == "Žena" else "M",
+            "bib": bib,
+            "uci_id": uci_id,
+            "last_name": last_name,
+            "first_name": first_name,
+            "country": country,
+            "team": team,
+            "gender": gender,
             "phase": "Final",
             "heat": 1,
             "result": (

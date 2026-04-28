@@ -423,6 +423,26 @@ def sync_paid_foreign_riders(event, session_id):
         normalized_uci_id = normalize_uci_id(paid_entry.uci_id)
         if not normalized_uci_id:
             continue
+
+        # Zkusit provázat s českým jezdcem (Čech se zahraniční licencí)
+        try:
+            uci_id_int = int(normalized_uci_id)
+        except (TypeError, ValueError):
+            uci_id_int = None
+
+        if uci_id_int is not None and paid_entry.rider_id is None:
+            czech_rider = Rider.objects.filter(uci_id=uci_id_int).first()
+            if czech_rider is not None:
+                EntryForeign.objects.filter(pk=paid_entry.pk).update(rider=czech_rider)
+                paid_entry.rider = czech_rider
+                logger.info(
+                    "sync_paid_foreign_riders: EntryForeign pk=%s provázána s českým jezdcem pk=%s (%s %s)",
+                    paid_entry.pk,
+                    czech_rider.pk,
+                    czech_rider.first_name,
+                    czech_rider.last_name,
+                )
+
         try:
             foreign_rider = ForeignRider.objects.get(uci_id=int(normalized_uci_id))
         except (ForeignRider.DoesNotExist, ValueError):
@@ -525,12 +545,25 @@ def build_public_entry_rows(entries, is_foreign=False):
             continue
 
         if is_foreign:
+            czech_rider = getattr(entry, "rider", None)
+            photo_url = ""
+            detail_url = ""
+            if czech_rider and getattr(czech_rider, "photo", None):
+                try:
+                    photo_url = czech_rider.photo.url
+                except Exception:
+                    photo_url = ""
+            if czech_rider and getattr(czech_rider, "uci_id", ""):
+                try:
+                    detail_url = reverse("rider:detail", args=[czech_rider.uci_id])
+                except Exception:
+                    detail_url = ""
             for category in categories:
                 rows.append(
                     SimpleNamespace(
                         is_foreign=True,
-                        detail_url="",
-                        photo_url="",
+                        detail_url=detail_url,
+                        photo_url=photo_url,
                         valid_licence=True,
                         last_name=(entry.last_name or "").upper(),
                         first_name=entry.first_name or "",
@@ -905,6 +938,27 @@ def load_foreign_rider_response(request):
                 status=200,
             )
         uci_id = int(digits)
+        # Česká evidence má přednost — přesnější data (čip, tabulka, foto)
+        try:
+            czech_rider = Rider.objects.get(uci_id=uci_id)
+            return JsonResponse(
+                {
+                    "first_name": czech_rider.first_name,
+                    "last_name": czech_rider.last_name,
+                    "date_of_birth": czech_rider.date_of_birth,
+                    "sex": czech_rider.gender,
+                    "plate": czech_rider.plate_display,
+                    "transponder_20": czech_rider.transponder_20 or "",
+                    "transponder_24": czech_rider.transponder_24 or "",
+                    "nationality": czech_rider.nationality or "CZE",
+                    "manual_entry": False,
+                    "is_czech_rider": True,
+                }
+            )
+        except Rider.DoesNotExist:
+            pass
+
+        # Fallback: zahraniční evidence
         try:
             rider = ForeignRider.objects.get(uci_id=uci_id)
             nationality_code = rider.nationality or rider.state or ""
@@ -915,17 +969,20 @@ def load_foreign_rider_response(request):
                     "date_of_birth": rider.date_of_birth,
                     "sex": rider.gender,
                     "plate": rider.plate_display,
-                    "transponder_20": rider.transponder_20,
-                    "transponder_24": rider.transponder_24,
+                    "transponder_20": rider.transponder_20 or "",
+                    "transponder_24": rider.transponder_24 or "",
                     "nationality": nationality_code,
                     "manual_entry": False,
+                    "is_czech_rider": False,
                 }
             )
         except ForeignRider.DoesNotExist:
-            return JsonResponse(
-                {"error": "Rider not found", "manual_entry": True},
-                status=200,
-            )
+            pass
+
+        return JsonResponse(
+            {"error": "Rider not found", "manual_entry": True},
+            status=200,
+        )
     return JsonResponse({"error": "UCI ID is required"}, status=400)
 
 
