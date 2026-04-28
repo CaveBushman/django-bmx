@@ -4,6 +4,29 @@
 
 {% block extra_head %}
 <script src="{% static 'js/import_stats.js' %}?v=1" defer></script>
+<style>
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.35s ease both; }
+.stat-row {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.stat-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -24,6 +47,17 @@
             </p>
         </div>
 
+        {% if phase_warnings %}
+        <div class="mb-6 space-y-2 fade-up">
+            {% for warning in phase_warnings %}
+            <div class="flex items-center gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:ring-amber-800/40">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                {{ warning }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Card -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden">
             <div class="px-6 py-8 sm:p-10">
@@ -31,106 +65,59 @@
                     {% csrf_token %}
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        
-                        <!-- Motos -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "Motos (Rozjížďky)" %}</h3>
+                        {% for section in upload_sections %}
+                        <div class="space-y-4 fade-up" style="animation-delay: {{ forloop.counter0 }}00ms">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{{ section.title }}</h3>
                             <div class="space-y-3">
+                                {% for field in section.fields %}
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="motos" type="file" accept=".html">
+                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ field.label }}</label>
+                                    <div class="stat-row mb-1.5">
+                                        {% if field.uploaded_file %}
+                                        <span class="flex-1 min-w-0 truncate text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                            {% trans "Nahráno:" %} {{ field.uploaded_file.original_name }}
+                                        </span>
+                                        <a href="{{ field.uploaded_file.url }}" target="_blank" class="stat-btn transition-all duration-150 active:scale-95 text-slate-500 ring-1 ring-inset ring-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:ring-slate-700 dark:hover:bg-slate-800" title="{% trans "Zobrazit" %}" aria-label="{% trans "Zobrazit" %}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </a>
+                                        <button type="submit" name="delete_key" value="{{ field.name }}" data-confirm-message="{% trans "Opravdu chcete smazat nahraný soubor pro tuto sekci?" %}" class="stat-btn transition-all duration-150 active:scale-95 text-red-500 ring-1 ring-inset ring-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:ring-red-900/60 dark:hover:bg-red-950/40" title="{% trans "Smazat" %}" aria-label="{% trans "Smazat" %}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                        </button>
+                                        {% else %}
+                                        <span class="text-[11px] text-slate-400 dark:text-slate-500">{% trans "Nenahráno" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white"
+                                           name="{{ field.name }}" type="file" accept=".html">
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="motos_results" type="file" accept=".html">
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
+                        {% endfor %}
+                    </div>
 
-                        <!-- 1/16 -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "1/16 Finále" %}</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_16" type="file" accept=".html">
+                    <div class="mt-8 mb-3 border-t border-slate-200 pt-8 dark:border-slate-800">
+                        <div class="max-w-xl space-y-3 fade-up" style="animation-delay: 600ms">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{{ overall_results_field.section_title }}</h3>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ overall_results_field.label }}</label>
+                                <div class="stat-row mb-1.5">
+                                    {% if overall_results_field.uploaded_file %}
+                                    <span class="flex-1 min-w-0 truncate text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                        {% trans "Nahráno:" %} {{ overall_results_field.uploaded_file.original_name }}
+                                    </span>
+                                    <a href="{{ overall_results_field.uploaded_file.url }}" target="_blank" class="stat-btn transition-all duration-150 active:scale-95 text-slate-500 ring-1 ring-inset ring-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:ring-slate-700 dark:hover:bg-slate-800" title="{% trans "Zobrazit" %}" aria-label="{% trans "Zobrazit" %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </a>
+                                    <button type="submit" name="delete_key" value="{{ overall_results_field.name }}" data-confirm-message="{% trans "Opravdu chcete smazat nahraný soubor pro tuto sekci?" %}" class="stat-btn transition-all duration-150 active:scale-95 text-red-500 ring-1 ring-inset ring-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:ring-red-900/60 dark:hover:bg-red-950/40" title="{% trans "Smazat" %}" aria-label="{% trans "Smazat" %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                    {% else %}
+                                    <span class="text-[11px] text-slate-400 dark:text-slate-500">{% trans "Nenahráno" %}</span>
+                                    {% endif %}
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_16_results" type="file" accept=".html">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 1/8 -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "1/8 Finále" %}</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_8" type="file" accept=".html">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_8_results" type="file" accept=".html">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 1/4 -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "1/4 Finále" %}</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_4" type="file" accept=".html">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_4_results" type="file" accept=".html">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 1/2 -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "1/2 Finále" %}</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_2" type="file" accept=".html">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="1_2_results" type="file" accept=".html">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Finals -->
-                        <div class="space-y-4">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{% trans "Finále" %}</h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Startovní listina" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="final" type="file" accept=".html">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{% trans "Výsledky" %}</label>
-                                    <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white" 
-                                           name="final_results" type="file" accept=".html">
-                                </div>
+                                <input class="block w-full text-xs text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-slate-50 focus:outline-none dark:text-slate-400 dark:bg-slate-800 dark:border-slate-600 dark:placeholder-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-l-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-700 dark:file:text-white"
+                                       name="{{ overall_results_field.name }}" type="file" accept=".html">
                             </div>
                         </div>
                     </div>

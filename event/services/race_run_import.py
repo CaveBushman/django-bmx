@@ -126,8 +126,22 @@ def _is_20_category(category):
 
 
 def _extract_tables(path):
-    with open(path, encoding="utf-8") as handle:
-        document = lxml.html.fromstring(handle.read())
+    content = None
+    for encoding in ("utf-8", "cp1250", "latin-1"):
+        try:
+            with open(path, encoding=encoding) as handle:
+                content = handle.read()
+            break
+        except UnicodeDecodeError:
+            continue
+    if content is None:
+        logger.warning("RaceRun import: nelze přečíst soubor %s – neznámé kódování", path)
+        return []
+    try:
+        document = lxml.html.fromstring(content)
+    except Exception as exc:
+        logger.warning("RaceRun import: nelze parsovat HTML v %s: %s", path, exc)
+        return []
 
     tables = []
     for table in document.xpath("//table"):
@@ -164,6 +178,7 @@ class RaceRunImportService:
 
         entity_index = self._build_entity_index(event)
         records = {}
+        unmatched = []
 
         for filename in sorted(os.listdir(stats_dir)):
             file_path = os.path.join(stats_dir, filename)
@@ -171,10 +186,11 @@ class RaceRunImportService:
                 continue
             upload_key = filename.split("__", 1)[0]
             if upload_key in START_KEYS:
-                self._consume_start_file(file_path, upload_key, entity_index, records)
+                self._consume_start_file(file_path, upload_key, entity_index, records, unmatched)
             elif upload_key in RESULT_KEYS:
-                self._consume_result_file(file_path, upload_key, entity_index, records)
+                self._consume_result_file(file_path, upload_key, entity_index, records, unmatched)
 
+        counts_by_round = {}
         with transaction.atomic():
             RaceRun.objects.filter(event=event).delete()
             created = 0
@@ -201,8 +217,18 @@ class RaceRunImportService:
                     split_1=record.get("split_1"),
                 )
                 created += 1
+                rt = record["round_type"]
+                counts_by_round[rt] = counts_by_round.get(rt, 0) + 1
 
-        return created
+        seen = set()
+        unique_unmatched = []
+        for item in unmatched:
+            key = (item["category"], item["plate"], item["name"])
+            if key not in seen:
+                seen.add(key)
+                unique_unmatched.append(item)
+
+        return {"created": created, "unmatched": unique_unmatched, "counts_by_round": counts_by_round}
 
     def _build_entity_index(self, event):
         results = Result.objects.filter(event=event).select_related("rider")
@@ -290,7 +316,7 @@ class RaceRunImportService:
         )
         return records[key]
 
-    def _consume_start_file(self, path, upload_key, entity_index, records):
+    def _consume_start_file(self, path, upload_key, entity_index, records, unmatched):
         round_type = ROUND_TYPE_BY_UPLOAD_KEY[upload_key]
         for table in _extract_tables(path):
             category = table["category"]
@@ -307,6 +333,7 @@ class RaceRunImportService:
                     payload = self._match_entities(entity_index, category, plate, full_name)
                     if not payload:
                         logger.warning("RaceRun import: chybí Rider/Result pro %s / %s / %s", category, plate, full_name)
+                        unmatched.append({"category": category, "plate": plate, "name": full_name})
                         continue
                     for column_index, moto_number in moto_columns:
                         heat_code, lane = _parse_heat_lane(row[column_index]["text"])
@@ -331,6 +358,7 @@ class RaceRunImportService:
                 payload = self._match_entities(entity_index, category, plate, full_name)
                 if not payload:
                     logger.warning("RaceRun import: chybí Rider/Result pro %s / %s / %s", category, plate, full_name)
+                    unmatched.append({"category": category, "plate": plate, "name": full_name})
                     continue
                 heat_code = row[0]["text"]
                 lane = _parse_lane(row[1]["text"])
@@ -346,7 +374,7 @@ class RaceRunImportService:
                 )
                 record["lane"] = lane
 
-    def _consume_result_file(self, path, upload_key, entity_index, records):
+    def _consume_result_file(self, path, upload_key, entity_index, records, unmatched):
         round_type = ROUND_TYPE_BY_UPLOAD_KEY[upload_key]
         for table in _extract_tables(path):
             category = table["category"]
@@ -364,6 +392,7 @@ class RaceRunImportService:
                     payload = self._match_entities(entity_index, category, plate, full_name)
                     if not payload:
                         logger.warning("RaceRun import: chybí Rider/Result pro %s / %s / %s", category, plate, full_name)
+                        unmatched.append({"category": category, "plate": plate, "name": full_name})
                         continue
                     total_moto_points = _parse_int(row[4]["text"])
                     for column_index, moto_number in moto_columns:
@@ -417,6 +446,7 @@ class RaceRunImportService:
                 payload = self._match_entities(entity_index, category, plate, full_name)
                 if not payload:
                     logger.warning("RaceRun import: chybí Rider/Result pro %s / %s / %s", category, plate, full_name)
+                    unmatched.append({"category": category, "plate": plate, "name": full_name})
                     continue
 
                 record = self._ensure_record(
