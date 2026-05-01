@@ -4,16 +4,20 @@ function initFlashMessages(documentRef, windowRef) {
     return;
   }
 
-  windowRef.setTimeout(function () {
-    flashMessages.forEach(function (message) {
+  flashMessages.forEach(function (message) {
+    if (message.hasAttribute("data-flash-persist")) {
+      return;
+    }
+    var timeout = parseInt(message.dataset.flashTimeout, 10) || 5000;
+    windowRef.setTimeout(function () {
       message.classList.add("opacity-0");
       windowRef.setTimeout(function () {
         if (typeof message.remove === "function") {
           message.remove();
         }
       }, 500);
-    });
-  }, 5000);
+    }, timeout);
+  });
 }
 
 function initConfirmButtons(documentRef, windowRef) {

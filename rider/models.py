@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 from datetime import date
 import re
 from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
+from event.utils import normalize_uci_id
 
 
 # Create your models here.
@@ -770,6 +771,7 @@ class ForeignRider(models.Model):
         return display_plate(self.plate_text, self.plate)
 
     def save(self, *args, **kwargs):
+        self.uci_id = normalize_uci_id(self.uci_id)
         normalized_plate = normalize_plate_value(self.plate_text)
         if not normalized_plate:
             normalized_plate = normalize_plate_value(self.plate)
