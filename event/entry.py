@@ -328,6 +328,12 @@ class REMRiders:
             payment_complete=True,
             checkout=False,
         )
+
+        uci_ids = list(foreign_entries.values_list('uci_id', flat=True))
+        foreign_rider_clubs = dict(
+            ForeignRider.objects.filter(uci_id__in=uci_ids, club__gt='').values_list('uci_id', 'club')
+        )
+
         row: int = 2
         for entry in czech_entries:
             try:
@@ -387,7 +393,8 @@ class REMRiders:
                 self.ws.cell(row, 2, entry.first_name)
                 self.ws.cell(row, 3, entry.last_name)
                 self.ws.cell(row, 4, entry.customer_email)
-                self.ws.cell(row, 5, entry.club or event.func.foreign_club_resolve(entry.nationality or ""))
+                club = foreign_rider_clubs.get(entry.uci_id) or entry.club or event.func.foreign_club_resolve(entry.nationality or "")
+                self.ws.cell(row, 5, club)
                 self.ws.cell(row, 6, )
                 self.ws.cell(row, 7, entry.nationality)
                 self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(entry.date_of_birth))
