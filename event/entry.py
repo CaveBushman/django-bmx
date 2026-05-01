@@ -330,9 +330,10 @@ class REMRiders:
         )
 
         uci_ids = list(foreign_entries.values_list('uci_id', flat=True))
-        foreign_rider_clubs = dict(
-            ForeignRider.objects.filter(uci_id__in=uci_ids, club__gt='').values_list('uci_id', 'club')
-        )
+        foreign_rider_clubs = {
+            str(fr_uci_id): club
+            for fr_uci_id, club in ForeignRider.objects.filter(uci_id__in=uci_ids, club__gt='').values_list('uci_id', 'club')
+        }
 
         row: int = 2
         for entry in czech_entries:
