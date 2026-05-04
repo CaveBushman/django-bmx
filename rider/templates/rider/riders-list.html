@@ -106,30 +106,44 @@
     <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
       <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Evidence
-            jezdců</p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Seznam jezdců
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
+            {% if mcr_query == "qualified" %}Kvalifikace na MČR{% else %}Evidence jezdců{% endif %}
+          </p>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+            {% if mcr_query == "qualified" %}Seznam kvalifikovaných{% else %}Seznam jezdců{% endif %}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            {% if mcr_query == "qualified" %}
+            Přehled jezdců, kteří jsou aktuálně kvalifikovaní na MČR. Můžeš je dál filtrovat podle příjmení, klubu a startovního čísla.
+            {% else %}
             Vyhledávání registrovaných jezdců podle jména, klubu a základních údajů. Rychlý přehled aktivních licencí,
             klubů a startovních čísel na jednom místě.
+            {% endif %}
           </p>
         </div>
         <div class="ranking-stats-grid">
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-              Aktivních jezdců</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_riders }}</p>
-          </div>
-          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Platných
-              licencí</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ valid_licence_riders }}</p>
-          </div>
-          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Klubů
+              {% if mcr_query == "qualified" %}Celkem kvalifikováno{% else %}Aktivních jezdců{% endif %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {% if mcr_query == "qualified" %}{{ qualified_to_mcr_total }}{% else %}{{ total_riders }}{% endif %}
             </p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ clubs_count }}</p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              {% if mcr_query == "qualified" %}Kvalifikováno ve 20{% else %}Platných licencí{% endif %}
+            </p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {% if mcr_query == "qualified" %}{{ qualified_to_mcr_20 }}{% else %}{{ valid_licence_riders }}{% endif %}
+            </p>
+          </div>
+          <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              {% if mcr_query == "qualified" %}Kvalifikováno ve 24{% else %}Klubů{% endif %}
+            </p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+              {% if mcr_query == "qualified" %}{{ qualified_to_mcr_24 }}{% else %}{{ clubs_count }}{% endif %}
+            </p>
           </div>
         </div>
       </div>
@@ -150,6 +164,11 @@
             Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle máš přístup k žádosti o nové
             číslo.
           </p>
+          {% if mcr_query == "qualified" %}
+          <p class="mt-3 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
+            Filtr: kvalifikovaní na MČR
+          </p>
+          {% endif %}
         </div>
         <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start lg:justify-end">
           <a href="{% url 'rider:new' %}"
@@ -358,13 +377,13 @@
       </p>
       <nav class="flex items-center gap-2" aria-label="Stránkování jezdců">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}"
+        <a href="?page={{ page_obj.previous_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}&mcr={{ mcr_query|urlencode }}"
           class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
           Předchozí
         </a>
         {% endif %}
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}"
+        <a href="?page={{ page_obj.next_page_number }}&last_name={{ last_name_query|urlencode }}&club={{ club_query|urlencode }}&plate={{ plate_query|urlencode }}&mcr={{ mcr_query|urlencode }}"
           class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300">
           Další
         </a>

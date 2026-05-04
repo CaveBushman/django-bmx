@@ -144,6 +144,33 @@ class EventEntryWorkflowTests(TestCase):
             Entry.objects.filter(event=self.event, rider=self.rider, is_24=True).exists()
         )
 
+    def test_mcr_entry_allows_rider_with_wild_card_for_20_and_24(self):
+        self.client.force_login(self.user)
+        SeasonSettings.objects.create(year=date.today().year, qualify_to_cn=2)
+        self.event.type_for_ranking = "Mistrovství ČR jednotlivců"
+        self.event.save(update_fields=["type_for_ranking"])
+        self.rider.mcr_wild_card_20 = True
+        self.rider.mcr_wild_card_24 = True
+        self.rider.save(update_fields=["mcr_wild_card_20", "mcr_wild_card_24"])
+
+        response = self.client.post(
+            reverse("event:entry", kwargs={"pk": self.event.pk}),
+            {
+                "btn_add": "1",
+                "checkbox_20": str(self.rider.uci_id),
+                "checkbox_24": str(self.rider.uci_id),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("event:events"))
+        self.assertTrue(
+            Entry.objects.filter(event=self.event, rider=self.rider, is_20=True).exists()
+        )
+        self.assertTrue(
+            Entry.objects.filter(event=self.event, rider=self.rider, is_24=True).exists()
+        )
+
     def test_entry_rejects_elite_rider_for_24_category(self):
         self.client.force_login(self.user)
         self.rider.is_elite = True
@@ -188,6 +215,49 @@ class EventEntryWorkflowTests(TestCase):
 
         RiderQualifyToCNThread(year=previous_year).run()
 
+        self.rider.refresh_from_db()
+        self.assertTrue(self.rider.is_qualify_to_cn_20)
+        self.assertFalse(self.rider.is_qualify_to_cn_24)
+
+    def test_qualify_to_cn_based_on_results_not_entries(self):
+        """Jezdec bez online přihlášek (Entry) se kvalifikuje na MČR přes výsledky (Result)."""
+        current_year = date.today().year
+        SeasonSettings.objects.create(year=current_year, qualify_to_cn=2)
+
+        championship = Event.objects.create(
+            name="MČR",
+            date=date(current_year, 9, 1),
+            organizer=self.club,
+            type_for_ranking="Mistrovství ČR jednotlivců",
+        )
+        cup1 = Event.objects.create(
+            name="ČP 1",
+            date=date(current_year, 4, 1),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+        cup2 = Event.objects.create(
+            name="ČP 2",
+            date=date(current_year, 5, 1),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+
+        Result.objects.create(
+            event=cup1, date=cup1.date, rider=self.rider,
+            first_name=self.rider.first_name, last_name=self.rider.last_name,
+            category="Boys 6", place=1, points=100,
+            is_beginner=False, marked_20=True, marked_24=False,
+        )
+        Result.objects.create(
+            event=cup2, date=cup2.date, rider=self.rider,
+            first_name=self.rider.first_name, last_name=self.rider.last_name,
+            category="Boys 6", place=2, points=90,
+            is_beginner=False, marked_20=True, marked_24=False,
+        )
+
+        self.assertFalse(self.rider.is_qualify_to_cn_20)
+        RiderQualifyToCNThread().run()
         self.rider.refresh_from_db()
         self.assertTrue(self.rider.is_qualify_to_cn_20)
         self.assertFalse(self.rider.is_qualify_to_cn_24)

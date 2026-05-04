@@ -134,6 +134,8 @@ class Rider(models.Model):
 
     is_qualify_to_cn_20 = models.BooleanField(default=False)
     is_qualify_to_cn_24 = models.BooleanField(default=False)
+    mcr_wild_card_20 = models.BooleanField(default=False)
+    mcr_wild_card_24 = models.BooleanField(default=False)
 
     class_20 = models.CharField(
         max_length=50, choices=CLASS_20, default="Boys 6", null=True

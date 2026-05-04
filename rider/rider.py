@@ -529,26 +529,22 @@ class RiderQualifyToCNThread(threading.Thread):
         logger.info(f"Přepočítávám kvalifikaci na MČR pro rok {year}")
 
         for rider in riders:
-            entries_20 = Entry.objects.filter(
+            results_20 = Result.objects.filter(
                 event__type_for_ranking="Český pohár",
                 event__date__year=year,
-                checkout=False,
-                payment_complete=True,
                 rider=rider,
-                is_20=True,
+                marked_20=True,
                 is_beginner=False,
             ).count()
-            entries_24 = Entry.objects.filter(
+            results_24 = Result.objects.filter(
                 event__type_for_ranking="Český pohár",
                 event__date__year=year,
-                checkout=False,
-                payment_complete=True,
                 rider=rider,
-                is_24=True,
+                marked_24=True,
             ).count()
 
-            rider.is_qualify_to_cn_20 = entries_20 >= settings.qualify_to_cn
-            rider.is_qualify_to_cn_24 = entries_24 >= settings.qualify_to_cn
+            rider.is_qualify_to_cn_20 = results_20 >= settings.qualify_to_cn
+            rider.is_qualify_to_cn_24 = results_24 >= settings.qualify_to_cn
             rider.save(update_fields=["is_qualify_to_cn_20", "is_qualify_to_cn_24"])
 
 

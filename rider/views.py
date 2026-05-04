@@ -430,6 +430,7 @@ def riders_list_view(request):
     last_name_query = (request.GET.get("last_name") or "").strip()
     club_query = (request.GET.get("club") or "").strip()
     plate_query = (request.GET.get("plate") or "").strip()
+    mcr_query = (request.GET.get("mcr") or "").strip()
 
     if last_name_query:
         riders = riders.filter(last_name__icontains=last_name_query)
@@ -441,20 +442,29 @@ def riders_list_view(request):
         if normalized_plate_query.isdigit():
             plate_filter |= Q(plate=legacy_plate_int(normalized_plate_query))
         riders = riders.filter(plate_filter)
+    if mcr_query == "qualified":
+        riders = riders.filter(Q(is_qualify_to_cn_20=True) | Q(is_qualify_to_cn_24=True))
 
     paginator = Paginator(riders, 100)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     metrics_queryset = Rider.objects.filter(is_active=True, is_approved=True)
+    qualified_metrics_queryset = metrics_queryset.filter(
+        Q(is_qualify_to_cn_20=True) | Q(is_qualify_to_cn_24=True)
+    )
     data = {
         "riders": page_obj.object_list,
         "page_obj": page_obj,
         "total_riders": metrics_queryset.count(),
         "valid_licence_riders": metrics_queryset.filter(valid_licence=True).count(),
         "clubs_count": metrics_queryset.exclude(club__isnull=True).values("club").distinct().count(),
+        "qualified_to_mcr_total": qualified_metrics_queryset.count(),
+        "qualified_to_mcr_20": metrics_queryset.filter(is_qualify_to_cn_20=True).count(),
+        "qualified_to_mcr_24": metrics_queryset.filter(is_qualify_to_cn_24=True).count(),
         "last_name_query": last_name_query,
         "club_query": club_query,
         "plate_query": plate_query,
+        "mcr_query": mcr_query,
     }
 
     return render(request, "rider/riders-list.html", data)
@@ -1929,12 +1939,19 @@ def rider_admin(request):
     AvatarChangeRequest.expire_stale_requests()
     total_riders = Rider.objects.filter().count()
     active_riders = Rider.objects.filter(is_active=True).count()
+    qualified_to_mcr_count = Rider.objects.filter(
+        is_active=True,
+        is_approved=True,
+    ).filter(
+        Q(is_qualify_to_cn_20=True) | Q(is_qualify_to_cn_24=True)
+    ).count()
     pending_avatar_count = AvatarChangeRequest.objects.filter(
         status=AvatarChangeRequest.STATUS_PENDING
     ).count()
     data = {
         "total_riders": total_riders,
         "active_riders": active_riders,
+        "qualified_to_mcr_count": qualified_to_mcr_count,
         "pending_avatar_count": pending_avatar_count,
     }
     return render(request, "rider/rider-admin.html", data)
