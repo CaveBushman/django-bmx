@@ -93,7 +93,7 @@ def _resolve_rider_event_data(event, rider, *, beginners_enabled=False):
     data["allow_20"] = (
         not (
             event.type_for_ranking == "Mistrovství ČR jednotlivců"
-            and not rider.is_qualify_to_cn_20
+            and not (rider.is_qualify_to_cn_20 or rider.mcr_wild_card_20)
         )
         and data["class_20"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
     )
@@ -101,7 +101,7 @@ def _resolve_rider_event_data(event, rider, *, beginners_enabled=False):
         not rider.is_elite
         and not (
             event.type_for_ranking == "Mistrovství ČR jednotlivců"
-            and not rider.is_qualify_to_cn_24
+            and not (rider.is_qualify_to_cn_24 or rider.mcr_wild_card_24)
         )
         and data["class_24"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
     )

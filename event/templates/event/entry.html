@@ -1008,7 +1008,7 @@
                             <div class="entry-mobile-categories">
                                 <div class="entry-mobile-category">
                                     <span class="entry-mobile-category__label">20"</span>
-                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
+                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 and not rider.mcr_wild_card_20 %}
                                     <span class="text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
                                     {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
                                     <div class="entry-status-muted">
@@ -1083,7 +1083,7 @@
                                         <span class="entry-status-muted__icon">✕</span>
                                         <span>{{ rider.class_24 }}</span>
                                     </div>
-                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
+                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 and not rider.mcr_wild_card_24 %}
                                     <span class="text-sm font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
                                     {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
                                     <div class="entry-status-muted">
@@ -1233,7 +1233,7 @@
                                 </div>
 
                                 <div class="entry-desktop-cell entry-desktop-cell--category text-sm text-slate-700 dark:text-slate-200">
-                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 %}
+                                    {% if event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_20 and not rider.mcr_wild_card_20 %}
                                     <span class="font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
                                     {% elif rider.class_20 and rider.class_20 == "NENÍ VYPSÁNO" %}
                                     <div class="entry-status-muted">
@@ -1289,7 +1289,7 @@
                                         <span class="entry-status-muted__icon">✕</span>
                                         <span>{{ rider.class_24 }}</span>
                                     </div>
-                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 %}
+                                    {% elif event.type_for_ranking == "Mistrovství ČR jednotlivců" and not rider.is_qualify_to_cn_24 and not rider.mcr_wild_card_24 %}
                                     <span class="font-semibold text-red-500">{% trans "Nekvalifikoval se" %}</span>
                                     {% elif rider.class_24 and rider.class_24 == "NENÍ VYPSÁNO" %}
                                     <div class="entry-status-muted">
