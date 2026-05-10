@@ -155,6 +155,7 @@ INSTALLED_APPS = [
     'finance',
     "todo",
     "eshop",
+    "ai_agent",
 ]
 
 
@@ -202,6 +203,32 @@ INTERNAL_IPS = [
 ]
 
 WSGI_APPLICATION = "bmx.wsgi.application"
+
+# ---------------------------------------------------------------------------
+# Cache
+# Lokálně: LocMemCache (výchozí, bez konfigurace).
+# Na serveru nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
+# a CACHE_LOCATION=redis://127.0.0.1:6379/1
+# ---------------------------------------------------------------------------
+_cache_backend  = config("CACHE_BACKEND",  default="django.core.cache.backends.locmem.LocMemCache")
+_cache_location = config("CACHE_LOCATION", default="")
+_cache_options: dict = {}
+if "redis" in _cache_backend.lower() and not _cache_location:
+    _cache_location = "redis://127.0.0.1:6379/1"
+
+CACHES = {
+    "default": {
+        "BACKEND":  _cache_backend,
+        **({"LOCATION": _cache_location} if _cache_location else {}),
+        "OPTIONS":  _cache_options,
+        "TIMEOUT":  300,
+        "KEY_PREFIX": "bmx",
+    }
+}
+
+CACHE_TTL_SHORT  = 60        # 1 min  – dynamická data (přihlášky, výsledky)
+CACHE_TTL_MEDIUM = 5 * 60   # 5 min  – žebříček, výsledky
+CACHE_TTL_LONG   = 30 * 60  # 30 min – seznam závodů, zprávy, klub
 
 AUTH_USER_MODEL = "accounts.Account"
 
@@ -579,7 +606,22 @@ CRONJOBS = [
     ("0 */6 * * *", "bmx.cron.valid_licence_scheduled"),
     ("0 2 * * *", "bmx.cron.renew_rider_stats_subscriptions_scheduled"),
     ("15 2 * * *", "bmx.cron.renew_trainer_club_subscriptions_scheduled"),
+    # AI agent – zpracuje čekající úkoly každý den ve 3:00
+    ("0 3 * * *", "django.core.management.call_command", ["run_ai_agent"]),
 ]
+
+# ---------------------------------------------------------------------------
+# AI Agent – LLM integrace (Ollama / OpenAI-compatible API)
+# ---------------------------------------------------------------------------
+# Ollama lokálně: AI_AGENT_BASE_URL=http://localhost:11434/v1, API_KEY prázdný
+# OpenAI cloud:   AI_AGENT_BASE_URL=https://api.openai.com/v1, API_KEY=sk-...
+AI_AGENT_ENABLED = config_bool("AI_AGENT_ENABLED", default=False)
+AI_AGENT_BASE_URL = config("AI_AGENT_BASE_URL", default="http://localhost:11434/v1")
+AI_AGENT_MODEL = config("AI_AGENT_MODEL", default="llama3.2")
+AI_AGENT_API_KEY = config("AI_AGENT_API_KEY", default="")
+AI_AGENT_TIMEOUT = config("AI_AGENT_TIMEOUT", default=120, cast=int)
+# E-mailová oznámení – čárkou oddělený seznam adres superuserů
+AI_AGENT_NOTIFY_EMAILS = config_list("AI_AGENT_NOTIFY_EMAILS", default="david@black-ops.eu")
 
 LOGGING = build_logging_config(
     log_dir=LOG_DIR,

@@ -101,28 +101,29 @@ def news_list_view(request):
     ARTICLES_PER_PAGE = 10
     PAGINATION_WINDOW = 10
 
-    news = [_sanitize_news_for_render(article) for article in News.objects.filter(published=True).order_by('-publish_date')]
-    sum_of_news = News.sum_of_news()
+    page_number = request.GET.get('page', 1)
+    cache_key = f"news_list_page_{page_number}"
+    data = cache.get(cache_key)
 
-    # Set up pagination
-    paginator = Paginator(news, ARTICLES_PER_PAGE)  # Show 10 news per page
-    page_number = request.GET.get('page')  # Get the current page number from query params
-    news_page = paginator.get_page(page_number)
+    if data is None:
+        # Stránkujeme v DB, sanitizujeme jen aktuální stránku (ne celý seznam)
+        qs = News.objects.filter(published=True).order_by('-publish_date')
+        paginator = Paginator(qs, ARTICLES_PER_PAGE)
+        news_page = paginator.get_page(page_number)
+        news_page.object_list = [_sanitize_news_for_render(a) for a in news_page.object_list]
 
-    total_pages = news_page.paginator.num_pages
-    start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
-    end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
+        total_pages = news_page.paginator.num_pages
+        start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
+        end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
+        if (end_page - start_page + 1) < PAGINATION_WINDOW:
+            start_page = max(1, end_page - PAGINATION_WINDOW + 1)
 
-    if (end_page - start_page + 1) < PAGINATION_WINDOW:
-        start_page = max(1, end_page - PAGINATION_WINDOW + 1)
-
-    page_numbers = range(start_page, end_page + 1)
-
-    data = {
-        'news': news_page,
-        'sum_of_news': sum_of_news,
-        'page_numbers': page_numbers,
-    }
+        data = {
+            'news': news_page,
+            'sum_of_news': News.sum_of_news(),
+            'page_numbers': range(start_page, end_page + 1),
+        }
+        cache.set(cache_key, data, getattr(settings, "CACHE_TTL_LONG", 30 * 60))
 
     return render(request, 'news/news-list.html', data)
 

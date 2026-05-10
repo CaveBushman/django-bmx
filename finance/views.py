@@ -9,13 +9,14 @@ from datetime import date, timedelta
 import stripe
 import logging
 import csv
+from types import SimpleNamespace
 from django.conf import settings
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 
 from .func import calculate_stripe_fee, calculate_system_balance_total
-from event.models import CreditTransaction, FinanceAuditLog
-from event.credit import get_system_balance_components
+from event.models import CreditTransaction, DebetTransaction, FinanceAuditLog
+from event.credit import get_system_balance_components, _build_balance_components
 from accounts.models import Account
 from django.db.models import F
 from rider.models import RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
@@ -294,3 +295,82 @@ def finance_audit_dashboard(request):
         ).order_by("last_name", "first_name"),
     }
     return render(request, "finance/finance-audit.html", context)
+
+
+@login_required(login_url="/login/")
+@user_passes_test(_is_finance_admin, login_url="/login/")
+def finance_user_credit_detail(request):
+    query = (request.GET.get("q") or "").strip()
+    target_user = None
+    credits = []
+    debets = []
+    balance_components = None
+
+    if query:
+        target_user = (
+            Account.objects.filter(email__iexact=query).first()
+            or Account.objects.filter(email__icontains=query).first()
+        )
+
+        if target_user:
+            credits = (
+                CreditTransaction.objects.filter(user=target_user, payment_complete=True)
+                .order_by("-transaction_date")
+            )
+
+            event_debets = (
+                DebetTransaction.objects.filter(user=target_user)
+                .select_related("entry__event", "entry__rider")
+                .order_by("-transaction_date")
+            )
+            subscription_debets = (
+                RiderStatsCharge.objects.filter(user=target_user)
+                .select_related("rider", "season", "subscription")
+                .order_by("-transaction_date")
+            )
+            trainer_debets = (
+                TrainerClubCharge.objects.filter(user=target_user)
+                .select_related("club", "season", "subscription")
+                .order_by("-transaction_date")
+            )
+
+            for d in event_debets:
+                debets.append(SimpleNamespace(
+                    transaction_date=d.transaction_date,
+                    amount=d.amount,
+                    payment_valid=d.payment_valid,
+                    description=str(d.entry) if d.entry else "Registrace na závod",
+                    debit_type="event_entry",
+                ))
+            for d in subscription_debets:
+                debets.append(SimpleNamespace(
+                    transaction_date=d.transaction_date,
+                    amount=d.amount,
+                    payment_valid=d.payment_valid,
+                    description=(
+                        f"Prémiové statistiky: {d.rider.first_name} {d.rider.last_name}"
+                        if d.rider else "Prémiové statistiky jezdce"
+                    ),
+                    debit_type="rider_stats_subscription",
+                ))
+            for d in trainer_debets:
+                debets.append(SimpleNamespace(
+                    transaction_date=d.transaction_date,
+                    amount=d.amount,
+                    payment_valid=d.payment_valid,
+                    description=f"Trenérské statistiky: {d.club}" if d.club else "Trenérské statistiky",
+                    debit_type="trainer_subscription",
+                ))
+
+            debets.sort(key=lambda x: x.transaction_date, reverse=True)
+            balance_components = _build_balance_components(user_id=target_user.id)
+
+    context = {
+        "query": query,
+        "target_user": target_user,
+        "credits": credits,
+        "debets": debets,
+        "balance_components": balance_components,
+        "not_found": bool(query and not target_user),
+    }
+    return render(request, "finance/user-credit.html", context)

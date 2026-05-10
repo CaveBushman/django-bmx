@@ -81,11 +81,27 @@ def navbar_context(request):
 
 
 def seo_context(request):
+    domain = settings.YOUR_DOMAIN.rstrip("/")
+    canonical = f"{domain}{request.path}"
+
+    # hreflang — pro každý aktivní jazyk sestavíme URL s prefixem /cs/, /en/ atd.
+    # Výchozí (bez prefixu) je čeština — ta dostane x-default v šabloně.
+    hreflang_urls = []
+    for lang_code, _ in settings.LANGUAGES:
+        if lang_code == settings.LANGUAGE_CODE:
+            lang_url = canonical  # cs je výchozí, nemá prefix
+        else:
+            lang_url = f"{domain}/{lang_code}{request.path}"
+        hreflang_urls.append((lang_code, lang_url))
+
     return {
-        "seo_canonical_url": f"{settings.YOUR_DOMAIN.rstrip('/')}{request.path}",
+        "seo_canonical_url": canonical,
         "seo_default_description": (
-            "Oficialni web Czech BMX. Aktuality, kalendar zavodu, vysledky, "
-            "propozice a informace pro jezdce, kluby a rozhodci."
+            "Oficiální web Czech BMX. Aktuality, kalendář závodů, výsledky, "
+            "propozice a informace pro jezdce, kluby a rozhodčí."
         ),
         "seo_site_name": "Czech BMX",
+        "seo_domain": domain,
+        "seo_og_image_url": f"{domain}/static/images/homepage/bmx.png",
+        "seo_hreflang_urls": hreflang_urls,
     }

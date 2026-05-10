@@ -7,27 +7,37 @@
 {% block og_type %}article{% endblock %}
 {% block og_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
 {% block twitter_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block og_title %}{{ news.title }} | Czech BMX{% endblock %}
+{% block og_image %}{% if absolute_image_url %}{{ absolute_image_url }}{% else %}{{ seo_og_image_url }}{% endif %}{% endblock %}
+{% block twitter_title %}{{ news.title }} | Czech BMX{% endblock %}
+{% block twitter_image %}{% if absolute_image_url %}{{ absolute_image_url }}{% else %}{{ seo_og_image_url }}{% endif %}{% endblock %}
 {% block meta_tags %}
-<meta property="og:title" content="{{ news.title }}">
-<meta property="og:description" content="{{ news.prefix|striptags|truncatechars:155 }}">
-{% if absolute_image_url %}<meta property="og:image" content="{{ absolute_image_url }}">{% endif %}
 <meta property="og:url" content="{{ seo_canonical_url }}">
-<meta name="twitter:title" content="{{ news.title }}">
-<meta name="twitter:description" content="{{ news.prefix|striptags|truncatechars:155 }}">
-{% if absolute_image_url %}<meta name="twitter:image" content="{{ absolute_image_url }}">{% endif %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "NewsArticle",
-  "headline": "{{ news.title|escapejs }}",
-  "datePublished": "{{ news.publish_date|date:'Y-m-d' }}",
-  "dateModified": "{{ news.created_date|date:'c' }}",
-  "mainEntityOfPage": "{{ seo_canonical_url }}",
-  "publisher": {
-    "@type": "Organization",
-    "name": "Czech BMX"
-  }{% if absolute_image_url %},
-  "image": ["{{ absolute_image_url }}"]{% endif %}
+  "@graph": [
+    {
+      "@type": "NewsArticle",
+      "headline": "{{ news.title|escapejs }}",
+      "datePublished": "{{ news.publish_date|date:'Y-m-d' }}",
+      "dateModified": "{{ news.created_date|date:'c' }}",
+      "mainEntityOfPage": "{{ seo_canonical_url }}",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Czech BMX"
+      }{% if absolute_image_url %},
+      "image": ["{{ absolute_image_url }}"]{% endif %}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
+        {"@type": "ListItem", "position": 2, "name": "Aktuality", "item": "{{ seo_domain }}{% url 'news:news-list' %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ news.title|escapejs }}", "item": "{{ seo_canonical_url }}"}
+      ]
+    }
+  ]
 }
 </script>
 {% endblock %}

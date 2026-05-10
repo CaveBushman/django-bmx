@@ -1,11 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Výsledky závodu{% endblock title %}
 {% block meta_description %}Vysledky zavodu {{ event.name }}. Kompletní prehled kategorii, umisteni a klubu na Czech BMX.{% endblock %}
+{% block og_title %}Výsledky – {{ event.name }} | Czech BMX{% endblock %}
+{% block og_description %}Kompletní výsledky závodu {{ event.name }} na Czech BMX. Přehled kategorií, umístění a klubů.{% endblock %}
+{% block twitter_title %}Výsledky – {{ event.name }} | Czech BMX{% endblock %}
+{% block twitter_description %}Kompletní výsledky závodu {{ event.name }} na Czech BMX.{% endblock %}
 {% block meta_tags %}
-<meta property="og:title" content="Vysledky - {{ event.name }}">
-<meta property="og:description" content="Kompletni vysledky zavodu {{ event.name }} na Czech BMX.">
-<meta name="twitter:title" content="Vysledky - {{ event.name }}">
-<meta name="twitter:description" content="Kompletni vysledky zavodu {{ event.name }} na Czech BMX.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SportsEvent",
+      "name": "{{ event.name|escapejs }}",
+      "startDate": "{{ event.date|date:'Y-m-d' }}",
+      "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
+      "organizer": {
+        "@type": "SportsOrganization",
+        "name": "{{ event.organizer|default:''|escapejs }}"
+      },
+      "url": "{{ seo_domain }}{% url 'event:event-detail' event.id %}"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
+        {"@type": "ListItem", "position": 2, "name": "Závody", "item": "{{ seo_domain }}{% url 'event:events-list' %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ event.name|escapejs }}", "item": "{{ seo_domain }}{% url 'event:event-detail' event.id %}"},
+        {"@type": "ListItem", "position": 4, "name": "Výsledky", "item": "{{ seo_canonical_url }}"}
+      ]
+    }
+  ]
+}
+</script>
 {% endblock %}
 
 {% block extra_head %}

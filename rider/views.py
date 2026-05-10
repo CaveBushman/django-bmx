@@ -21,6 +21,7 @@ from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from bmx import settings
 from bmx.form_protection import build_security_context, protect_public_flow
+from bmx.text_normalization import normalize_search_text
 from accounts.models import AvatarChangeRequest
 from .models import Rider, ForeignRider, RiderTransponderChange
 from .rider import (
@@ -433,7 +434,7 @@ def riders_list_view(request):
     mcr_query = (request.GET.get("mcr") or "").strip()
 
     if last_name_query:
-        riders = riders.filter(last_name__icontains=last_name_query)
+        riders = riders.filter(search_text_normalized__icontains=normalize_search_text(last_name_query))
     if club_query:
         riders = riders.filter(club__team_name__icontains=club_query)
     if plate_query:
@@ -2253,6 +2254,79 @@ def participation_riders_on_event(request):
                 file_path
             )
             return response
+
+
+@staff_member_required
+def participation_stats_view(request):
+    """Statistika účasti jezdců na závodech – grafy vývoje po letech."""
+    import json
+    from collections import defaultdict
+    from django.db.models import Count
+    from event.models import Event, Result
+
+    EVENT_GROUPS = {
+        "MČR":          ["Mistrovství ČR jednotlivců"],
+        "Český pohár":  ["Český pohár"],
+        "Česká liga":   ["Česká liga"],
+        "Moravská liga": ["Moravská liga"],
+        "Volné závody": ["Volný závod"],
+    }
+    COLORS = {
+        "MČR":          "#6366f1",
+        "Český pohár":  "#0ea5e9",
+        "Česká liga":   "#10b981",
+        "Moravská liga": "#f59e0b",
+        "Volné závody": "#e879f9",
+    }
+
+    all_types = [t for types in EVENT_GROUPS.values() for t in types]
+
+    # Unique riders per event (one row = one event)
+    per_event = (
+        Result.objects
+        .filter(event__type_for_ranking__in=all_types, event__date__isnull=False)
+        .values("event_id", "event__type_for_ranking", "event__date", "event__name")
+        .annotate(rider_count=Count("rider_id", distinct=True))
+        .filter(rider_count__gt=0)
+        .order_by("event__date")
+    )
+
+    # Per group: collect individual events AND yearly aggregates
+    events_by_group: dict[str, list] = {label: [] for label in EVENT_GROUPS}
+    raw: dict[str, dict[int, list]] = {label: defaultdict(list) for label in EVENT_GROUPS}
+
+    for row in per_event:
+        year = row["event__date"].year
+        date_str = row["event__date"].strftime("%d.%m.%Y")
+        for label, types in EVENT_GROUPS.items():
+            if row["event__type_for_ranking"] in types:
+                events_by_group[label].append({
+                    "date":  date_str,
+                    "name":  row["event__name"] or "",
+                    "count": row["rider_count"],
+                })
+                raw[label][year].append(row["rider_count"])
+                break
+
+    charts = {}
+    for label, year_dict in raw.items():
+        years = sorted(year_dict.keys())
+        charts[label] = {
+            "color":        COLORS[label],
+            # yearly aggregates (pro 5 let a celou historii)
+            "years":        years,
+            "avg":          [round(sum(year_dict[y]) / len(year_dict[y])) for y in years],
+            "max":          [max(year_dict[y]) for y in years],
+            "event_count":  [len(year_dict[y]) for y in years],
+            "total_unique": [sum(year_dict[y]) for y in years],
+            # individual events (pro 1 rok a 2 roky)
+            "events":       events_by_group[label],
+        }
+
+    return render(request, "rider/rider-participation-stats.html", {
+        "charts_json": json.dumps(charts),
+        "chart_labels": list(EVENT_GROUPS.keys()),
+    })
 
 
 @staff_member_required

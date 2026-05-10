@@ -79,7 +79,33 @@ def success_view(request, pk):
 
     clear_checkout_session(request)
 
-    return render(request, "event/success.html", {"event_id": pk})
+    # GA4 purchase data – přibližná hodnota ze zaplacených přihlášek
+    ga4_value = None
+    ga4_transaction_id = session_id or ""
+    try:
+        from event.services.payments import get_entry_amount
+        qs = Entry.objects.filter(event=pk, payment_complete=True)
+        if session_id:
+            qs = qs.filter(transaction_id=session_id)
+        elif request.user.is_authenticated:
+            qs = qs.filter(user=request.user)
+        ga4_value = sum(get_entry_amount(e) for e in qs[:50])
+    except Exception:
+        pass
+
+    event_name = ""
+    try:
+        ev = Event.objects.filter(pk=pk).values_list("name", flat=True).first()
+        event_name = ev or ""
+    except Exception:
+        pass
+
+    return render(request, "event/success.html", {
+        "event_id": pk,
+        "ga4_value": ga4_value,
+        "ga4_transaction_id": ga4_transaction_id,
+        "ga4_event_name": event_name,
+    })
 
 
 def cancel_view(request):
@@ -346,6 +372,22 @@ def success_credit_view(request):
             "credit_checkout_finalize_pending user_id=%s",
             request.user.id,
         )
+
+    # Uložit GA4 data do session pro potvrzovací stránku
+    try:
+        from event.models import CreditTransaction
+        ct = (
+            CreditTransaction.objects
+            .filter(user=request.user, transaction_id=session_id, payment_complete=True)
+            .values_list("amount", flat=True)
+            .first()
+        ) if session_id else None
+        if ct:
+            request.session["ga4_credit_amount"] = int(ct)
+            request.session["ga4_credit_session"] = session_id
+    except Exception:
+        pass
+
     return redirect("event:success-credit-update")
 
 
@@ -353,7 +395,12 @@ def success_credit_view(request):
 def success_credit_update_view(request):
     """Potvrzovací stránka po úspěšném nákupu kreditu."""
     messages.success(request, "Váš kredit byl úspěšně navýšen.")
-    return render(request, "event/success_credit.html", {})
+    ga4_value = request.session.pop("ga4_credit_amount", None)
+    ga4_transaction_id = request.session.pop("ga4_credit_session", "")
+    return render(request, "event/success_credit.html", {
+        "ga4_value": ga4_value,
+        "ga4_transaction_id": ga4_transaction_id,
+    })
 
 
 @login_required(login_url="/login")
