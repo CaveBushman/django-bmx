@@ -2,23 +2,35 @@
 {% load i18n %}
 {% block title %} Detail závodu {% endblock title %}
 {% block meta_description %}{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}. Datum {{ event.date|date:"j. n. Y" }}. Detail zavodu, registrace, propozice a vysledky na Czech BMX.{% endblock %}
+{% block og_title %}Czech BMX – {{ event.name }}{% endblock %}
+{% block og_description %}{{ event.name }}{% if event.organizer %} – {{ event.organizer }}{% endif %}. Datum {{ event.date|date:"j. n. Y" }}.{% endblock %}
+{% block twitter_title %}Czech BMX – {{ event.name }}{% endblock %}
+{% block twitter_description %}{{ event.name }}{% if event.organizer %} – {{ event.organizer }}{% endif %}. Datum {{ event.date|date:"j. n. Y" }}.{% endblock %}
 {% block meta_tags %}
-<meta property="og:title" content="{{ event.name }}">
-<meta property="og:description" content="{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}.">
-<meta name="twitter:title" content="{{ event.name }}">
-<meta name="twitter:description" content="{{ event.name }}{% if event.organizer %} - {{ event.organizer }}{% endif %}.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "SportsEvent",
-  "name": "{{ event.name|escapejs }}",
-  "startDate": "{{ event.date|date:'Y-m-d' }}",
-  "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
-  "organizer": {
-    "@type": "SportsOrganization",
-    "name": "{{ event.organizer|default:''|escapejs }}"
-  },
-  "url": "{{ seo_canonical_url }}"
+  "@graph": [
+    {
+      "@type": "SportsEvent",
+      "name": "{{ event.name|escapejs }}",
+      "startDate": "{{ event.date|date:'Y-m-d' }}",
+      "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
+      "organizer": {
+        "@type": "SportsOrganization",
+        "name": "{{ event.organizer|default:''|escapejs }}"
+      },
+      "url": "{{ seo_canonical_url }}"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
+        {"@type": "ListItem", "position": 2, "name": "Závody", "item": "{{ seo_domain }}{% url 'event:events-list' %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ event.name|escapejs }}", "item": "{{ seo_canonical_url }}"}
+      ]
+    }
+  ]
 }
 </script>
 {% endblock %}

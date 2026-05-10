@@ -1,11 +1,12 @@
 from django.shortcuts import render
+from django.core.cache import cache
+from django.conf import settings as django_settings
 from rider.models import Rider
 from .ranking import Categories
 import re
 
+_CACHE_MEDIUM = getattr(django_settings, "CACHE_TTL_MEDIUM", 5 * 60)
 
-
-# Create your views here.
 
 def ranking_view(request):
     categories = Categories.get_categories()
@@ -84,4 +85,14 @@ def ranking_view(request):
         'leader_points': leader_points,
         'categories_count': len(categories),
     })
+
+    cache_key = f"ranking_{category_value}"
+    cached = cache.get(cache_key)
+    if cached is None:
+        # Materializujeme queryset před uložením do cache
+        data['results'] = list(data['results'])
+        cache.set(cache_key, data, _CACHE_MEDIUM)
+    else:
+        data = cached
+
     return render(request, 'ranking/ranking.html', data)

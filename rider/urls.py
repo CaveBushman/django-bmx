@@ -25,6 +25,7 @@ urlpatterns = [
     path('licence', views.licence_check_views, name='licence'),
     path('rank', views.ranking_count_views, name='ranking'),
     path('participation', views.participation_riders_on_event, name='participation'),
+    path('participation-stats', views.participation_stats_view, name='participation-stats'),
     path('recalculate-riders-class', views.recalculate_riders_classes, name='recalculate-classes'),
     path('cruiser', views.calculate_cruiser_median, name='cruiser'),
     path('riders-by-class', views.riders_by_class_and_club, name='riders-by-class'),

@@ -1,6 +1,26 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %}{% trans "Potvrzení" %}{% endblock title %}
+{% block extra_head %}
+{% if not request.user.is_staff and ga4_value %}
+<script>
+window.addEventListener('load', function() {
+  if (typeof gtag === 'undefined') return;
+  gtag('event', 'purchase', {
+    transaction_id: '{{ ga4_transaction_id|escapejs }}',
+    value: {{ ga4_value }},
+    currency: 'CZK',
+    items: [{
+      item_name: '{{ ga4_event_name|escapejs }}',
+      item_category: 'Přihláška na závod',
+      price: {{ ga4_value }},
+      quantity: 1
+    }]
+  });
+});
+</script>
+{% endif %}
+{% endblock %}
 {% block content %}
 
 <div class="flex flex-col h-screen justify-center items-center">

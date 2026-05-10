@@ -5,11 +5,9 @@
 {% block meta_description %}{{ hero_description }}{% endblock %}
 {% block og_description %}{{ hero_description }}{% endblock %}
 {% block twitter_description %}{{ hero_description }}{% endblock %}
+{% block og_title %}{% trans "Kalendář závodů Czech BMX" %}{% endblock %}
+{% block twitter_title %}{% trans "Kalendář závodů Czech BMX" %}{% endblock %}
 {% block meta_tags %}
-<meta property="og:title" content="{% trans 'Kalendář závodů Czech BMX' %}">
-<meta property="og:description" content="{{ hero_description }}">
-<meta name="twitter:title" content="{% trans 'Kalendář závodů Czech BMX' %}">
-<meta name="twitter:description" content="{{ hero_description }}">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -63,6 +61,13 @@
           }
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
+        {"@type": "ListItem", "position": 2, "name": "Závody", "item": "{{ seo_canonical_url }}"}
       ]
     }
   ]

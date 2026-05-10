@@ -6,5 +6,6 @@ app_name = 'finance'
 urlpatterns = [
     path('', views.finance_admin, name='finance' ),
     path('audit/', views.finance_audit_dashboard, name='finance_audit'),
+    path('user-credit/', views.finance_user_credit_detail, name='user_credit_detail'),
     path('checkout-refunds.csv', views.export_checkout_refunds_csv, name='export_checkout_refunds_csv'),
 ]

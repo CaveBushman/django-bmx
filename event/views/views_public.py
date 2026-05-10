@@ -8,9 +8,14 @@ import logging
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.translation import gettext as _
+from django.core.cache import cache
+from django.conf import settings as django_settings
 from event.models import Event, EventProposition, Result, Entry, EntryForeign
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import get_unregistration_deadline, is_registration_open
+
+_CACHE_LONG   = getattr(django_settings, "CACHE_TTL_LONG",   30 * 60)
+_CACHE_MEDIUM = getattr(django_settings, "CACHE_TTL_MEDIUM",  5 * 60)
 
 logger = logging.getLogger(__name__)
 
@@ -91,28 +96,29 @@ def events_list_view(request):
     """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
     year = date.today().year
     today = date.today()
-    all_events = list(_events_for_year(year))
-    upcomming_events = _decorate_events(
-        [event for event in all_events if event.date and event.date >= today]
-    )
-    past_events = _decorate_events(
-        [event for event in all_events if event.date and event.date < today]
-    )
-
-    data = {
-        "events": upcomming_events,
-        "past_events": past_events,
-        "year": year,
-        "next_year": int(year) + 1,
-        "last_year": int(year) - 1,
-        "show_title": True,
-        "hero_description": _("Přehled plánovaných závodů, otevřených registrací a archivních termínů pro sezonu %(year)s.") % {"year": year},
-        "upcoming_label": _("Následující závody"),
-        "archive_label": _("Ukončené závody"),
-        "season_label": _("Nejbližší závody"),
-        "archive_heading": _("Ukončené závody"),
-        "season_context": _("Archiv"),
-    }
+    cache_key = f"events_list_{year}_{today}"
+    data = cache.get(cache_key)
+    if data is None:
+        all_events = list(_events_for_year(year))
+        data = {
+            "events": _decorate_events(
+                [e for e in all_events if e.date and e.date >= today]
+            ),
+            "past_events": _decorate_events(
+                [e for e in all_events if e.date and e.date < today]
+            ),
+            "year": year,
+            "next_year": int(year) + 1,
+            "last_year": int(year) - 1,
+            "show_title": True,
+            "hero_description": _("Přehled plánovaných závodů, otevřených registrací a archivních termínů pro sezonu %(year)s.") % {"year": year},
+            "upcoming_label": _("Následující závody"),
+            "archive_label": _("Ukončené závody"),
+            "season_label": _("Nejbližší závody"),
+            "archive_heading": _("Ukončené závody"),
+            "season_context": _("Archiv"),
+        }
+        cache.set(cache_key, data, _CACHE_LONG)
     return render(request, "event/events-list_new.html", data)
 
 
@@ -186,9 +192,18 @@ def event_detail_views(request, pk):
 
 def results_view(request, pk):
     """Výsledky závodu — tabulka s pořadím jezdců."""
-    event = get_object_or_404(Event, pk=pk)
-    results = Result.objects.filter(event=pk).order_by("category", "place")
-    data = {"results": results, "event": event}
+    cache_key = f"results_{pk}"
+    data = cache.get(cache_key)
+    if data is None:
+        event = get_object_or_404(Event, pk=pk)
+        results = list(
+            Result.objects
+            .filter(event=pk)
+            .select_related("event")
+            .order_by("category", "place")
+        )
+        data = {"results": results, "event": event}
+        cache.set(cache_key, data, _CACHE_MEDIUM)
     return render(request, "event/results.html", data)
 
 
