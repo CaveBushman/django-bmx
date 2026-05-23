@@ -569,6 +569,48 @@
 
 <!-- ==== VIDEO ==== -->
 
+{% if request.user.is_staff %}
+<a href="{% url 'news:prvi-zavod' %}" style="
+    position: fixed;
+    top: 4.75rem;
+    right: 1.25rem;
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.1rem 0.5rem 0.85rem;
+    background: rgba(67,56,202,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(129,140,248,0.35);
+    border-radius: 9999px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(67,56,202,0.35), 0 2px 6px rgba(0,0,0,0.18);
+    transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+" onmouseover="this.style.background='rgba(79,70,229,0.95)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 12px 32px rgba(67,56,202,0.45),0 2px 8px rgba(0,0,0,0.22)';" onmouseout="this.style.background='rgba(67,56,202,0.88)';this.style.transform='';this.style.boxShadow='0 8px 24px rgba(67,56,202,0.35),0 2px 6px rgba(0,0,0,0.18)';">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" style="width:1.1rem;height:1.1rem;flex-shrink:0;">
+        <!-- rim -->
+        <circle cx="10" cy="10" r="8.5" stroke="rgba(199,210,254,0.9)" stroke-width="1.5"/>
+        <!-- hub -->
+        <circle cx="10" cy="10" r="1.8" fill="rgba(199,210,254,0.9)"/>
+        <!-- spokes (8×) -->
+        <line x1="10" y1="10" x2="10"   y2="1.5"  stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="16"   y2="4"    stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="18.5" y2="10"   stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="16"   y2="16"   stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="10"   y2="18.5" stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="4"    y2="16"   stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="1.5"  y2="10"   stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+        <line x1="10" y1="10" x2="4"    y2="4"    stroke="rgba(199,210,254,0.9)" stroke-width="1"/>
+    </svg>
+    První závod
+</a>
+{% endif %}
+
 <div class="homepage-hero-mobile relative w-full overflow-hidden">
     <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">

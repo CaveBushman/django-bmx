@@ -135,6 +135,11 @@ INSTALLED_APPS = [
 
     # 3rd party
     "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
+    "django_filters",
+    "drf_spectacular",
     "ckeditor",
     "django_ckeditor_5",
     "tailwind",
@@ -160,6 +165,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "bmx.middleware.RequestIDMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
@@ -294,12 +300,54 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 GEOIP_PATH = BASE_DIR / "geoip"
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 25,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/minute",
+        "user": "300/minute",
+    },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Czech BMX API",
+    "DESCRIPTION": "API pro mobilní aplikaci Czech BMX",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
+DEFAULT_CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:8081"]
+CORS_ALLOWED_ORIGINS = config_list(
+    "CORS_ALLOWED_ORIGINS",
+    default=",".join(DEFAULT_CORS_ALLOWED_ORIGINS),
+)
+CORS_ALLOW_CREDENTIALS = True
 
 BASE_CSP_POLICY = {
     "default-src": [CSP.SELF],

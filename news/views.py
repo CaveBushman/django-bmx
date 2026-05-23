@@ -83,6 +83,10 @@ def homepage_view(request):
     return render(request, "homepage.html", content)
 
 
+def prvi_zavod_view(request):
+    return render(request, 'prvni_zavod.html')
+
+
 def rules_view(request):
     current_year = date.today().year
     season_settings = (

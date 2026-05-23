@@ -1,5 +1,5 @@
 from django.urls import path
-from news.views import homepage_view, news_list_view, news_detail_view, downloads_view, download_file_view, rules_view
+from news.views import homepage_view, news_list_view, news_detail_view, downloads_view, download_file_view, rules_view, prvi_zavod_view
 
 
 app_name = "news"
@@ -11,4 +11,5 @@ urlpatterns = [
     path("downloads/", downloads_view, name="downloads"),
     path('downloads/<int:pk>/', download_file_view, name='download_file'),
     path("rules/", rules_view, name="rules"),
+    path("prvni-zavod/", prvi_zavod_view, name="prvi-zavod"),
 ]

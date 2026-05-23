@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+{% block title %}První závod — jak začít s BMX{% endblock %}
+
+{% block extra_head %}
+<style>
+  .prvni-zavod-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.2), transparent 28%),
+      radial-gradient(circle at 88% 10%, rgba(239, 68, 68, 0.14), transparent 24%),
+      linear-gradient(135deg, #fefce8 0%, #fff7ed 46%, #fef2f2 100%);
+  }
+
+  html.dark .prvni-zavod-hero {
+    background:
+      radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.16), transparent 28%),
+      radial-gradient(circle at 88% 10%, rgba(239, 68, 68, 0.12), transparent 24%),
+      linear-gradient(135deg, #1c1917 0%, #111827 46%, #1a0a00 100%);
+  }
+
+  .prvni-zavod-card {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark .prvni-zavod-card {
+    border-color: rgba(51, 65, 85, 0.9);
+    background: rgba(15, 23, 42, 0.88);
+    box-shadow: 0 22px 52px rgba(2, 6, 23, 0.32);
+  }
+
+  .prvni-zavod-step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .cost-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.875rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prvni-zavod-hero py-14 sm:py-20 px-6">
+  <div class="mx-auto max-w-3xl text-center">
+    <span class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+        <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+      </svg>
+      Průvodce pro začátečníky
+    </span>
+    <h1 class="mt-5 text-4xl font-black tracking-tight text-slate-950 dark:text-white sm:text-5xl">
+      Váš první BMX závod
+    </h1>
+    <p class="mt-5 text-lg leading-7 text-slate-600 dark:text-slate-300">
+      Vše, co potřebujete vědět, než poprvé nastoupíte na startovní rampou — od výběru vybavení po první jízdu v moto.
+    </p>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-slate-900 py-10 sm:py-14 px-6">
+  <div class="mx-auto max-w-3xl space-y-8">
+
+    <!-- Co je BMX Racing -->
+    <section class="prvni-zavod-card rounded-[1.75rem] p-7 sm:p-8">
+      <div class="flex items-start gap-4">
+        <span class="prvni-zavod-step-number bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path d="M15.98 1.804a1 1 0 0 0-1.96 0l-.24 1.192a1 1 0 0 1-.784.785l-1.192.238a1 1 0 0 0 0 1.962l1.192.238a1 1 0 0 1 .785.785l.238 1.192a1 1 0 0 0 1.962 0l.238-1.192a1 1 0 0 1 .785-.785l1.192-.238a1 1 0 0 0 0-1.962l-1.192-.238a1 1 0 0 1-.785-.785l-.238-1.192ZM6.949 5.684a1 1 0 0 0-1.898 0l-.683 2.051a1 1 0 0 1-.633.633l-2.051.683a1 1 0 0 0 0 1.898l2.051.684a1 1 0 0 1 .633.632l.683 2.051a1 1 0 0 0 1.898 0l.683-2.051a1 1 0 0 1 .633-.633l2.051-.683a1 1 0 0 0 0-1.898l-2.051-.683a1 1 0 0 1-.633-.633L6.95 5.684ZM13.949 13.684a1 1 0 0 0-1.898 0l-.184.551a1 1 0 0 1-.632.633l-.551.183a1 1 0 0 0 0 1.898l.551.183a1 1 0 0 1 .633.633l.183.551a1 1 0 0 0 1.898 0l.184-.551a1 1 0 0 1 .632-.633l.551-.183a1 1 0 0 0 0-1.898l-.551-.184a1 1 0 0 1-.633-.632l-.183-.551Z" />
+          </svg>
+        </span>
+        <div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Co je BMX Racing?</h2>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            BMX Racing je olympijský sport, při kterém jezdci startují z vysoké rampy a závodí na krátkém okruhu plném skoků a zatáček. Závod trvá přibližně 30–45 sekund. Soutěží se ve věkových kategoriích od 5 let, takže si pro vás vždy najdeme tu správnou skupinu.
+          </p>
+          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            V České republice se závodí v rámci <strong class="text-slate-900 dark:text-white">České ligy</strong>, <strong class="text-slate-900 dark:text-white">Moravské ligy</strong> a vrcholného <strong class="text-slate-900 dark:text-white">Českého poháru</strong> (SAZKA Cup). Každý závod je přístupný i naprostým začátečníkům — stačí kolo a přilba.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vybavení -->
+    <section class="prvni-zavod-card rounded-[1.75rem] p-7 sm:p-8">
+      <div class="flex items-start gap-4">
+        <span class="prvni-zavod-step-number bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path fill-rule="evenodd" d="M4.5 2A2.5 2.5 0 0 0 2 4.5v3.879a2.5 2.5 0 0 0 .732 1.767l7.5 7.5a2.5 2.5 0 0 0 3.536 0l3.878-3.878a2.5 2.5 0 0 0 0-3.536l-7.5-7.5A2.5 2.5 0 0 0 8.38 2H4.5ZM5 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+          </svg>
+        </span>
+        <div class="flex-1">
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Co budete potřebovat</h2>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Minimum pro start na závodě. Kvalita vybavení roste s ambicemi — na začátku stačí základy.</p>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <div class="flex items-start gap-3 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mt-0.5 size-5 shrink-0 text-emerald-500">
+                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">BMX kolo (20")</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Jakékoli BMX kolo s 20" kolem. Na začátek stačí bazarové, postupem času investujete do závodního.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mt-0.5 size-5 shrink-0 text-emerald-500">
+                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Přilba s plným krytem obličeje</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Povinná a nesmlouvavá podmínka startu. Musí splňovat normu CE EN 1078 nebo vyšší.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mt-0.5 size-5 shrink-0 text-emerald-500">
+                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Chránič hrudníku</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Doporučujeme od prvního závodu. Chrání záda, hrudník a ramena.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mt-0.5 size-5 shrink-0 text-emerald-500">
+                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7 7.06a1 1 0 0 1-1.42 0l-3-3.024a1 1 0 0 1 1.42-1.408L9 11.61l6.296-6.314a1 1 0 0 1 1.408-.006Z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Rukavice + chrániče kolen a loktů</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Nepovinné, ale silně doporučené. V pádu zachrání hodně nepříjemností.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kolik to stojí -->
+    <section class="prvni-zavod-card rounded-[1.75rem] p-7 sm:p-8">
+      <div class="flex items-start gap-4">
+        <span class="prvni-zavod-step-number bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.18.159A3.13 3.13 0 0 0 9.75 9.214V6.972a3.13 3.13 0 0 0-1.138.432c-.481.315-.612.648-.612.875 0 .127.038.317.33.341Z" />
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM4.5 9a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Z" clip-rule="evenodd" />
+            <path d="M10.75 8.714a3.13 3.13 0 0 0-1.138-.432V6.16c.457.073.88.24 1.293.527a1 1 0 0 0 1.11-1.664C11.478 4.48 10.63 4.15 9.75 4.027V3.5a1 1 0 0 0-2 0v.527c-.88.123-1.729.453-2.263.975C4.987 5.48 4.5 6.25 4.5 7.125c0 .875.487 1.645.987 2.123.535.522 1.383.852 2.263.975v2.642c-.542-.082-1.031-.268-1.558-.672a1 1 0 0 0-1.184 1.613c.782.573 1.637.89 2.742.973V15.5a1 1 0 0 0 2 0v-.72c.88-.082 1.74-.38 2.332-.862.645-.523 1.168-1.316 1.168-2.294 0-.978-.523-1.771-1.168-2.294a4.9 4.9 0 0 0-.332-.316Z" />
+          </svg>
+        </span>
+        <div class="flex-1">
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Kolik to stojí?</h2>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Přehled nákladů za sezonu. Licence je povinná pro opakovaný start; na první závod ji někdy není nutná.</p>
+
+          <div class="mt-5 space-y-3">
+            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-3.5 dark:border-slate-700/70 dark:bg-slate-800/50">
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Roční licence ČSC</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Povinná pro závodění na všech kolech ČSC, platí celou sezonu</p>
+              </div>
+              <span class="cost-badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">cca 1 500 Kč</span>
+            </div>
+            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-3.5 dark:border-slate-700/70 dark:bg-slate-800/50">
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Startovné na závod</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Cena se liší podle typu závodu a pořadatele</p>
+              </div>
+              <span class="cost-badge bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">200–600 Kč</span>
+            </div>
+            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-3.5 dark:border-slate-700/70 dark:bg-slate-800/50">
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Transponder (čip)</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Jednorázový poplatek za časomírový čip, používá se na všech závodech</p>
+              </div>
+              <span class="cost-badge bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">cca 1 900 Kč</span>
+            </div>
+            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-3.5 dark:border-slate-700/70 dark:bg-slate-800/50">
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Závodní vybavení</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Kolo + přilba + chránič hrudníku — jednorázová investice, kolo vydrží roky</p>
+              </div>
+              <span class="cost-badge bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">od 5 000 Kč</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jak se přihlásit -->
+    <section class="prvni-zavod-card rounded-[1.75rem] p-7 sm:p-8">
+      <div class="flex items-start gap-4">
+        <span class="prvni-zavod-step-number bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+          </svg>
+        </span>
+        <div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Jak se přihlásit na závod?</h2>
+          <div class="mt-4 space-y-4">
+            <div class="flex gap-3">
+              <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">1</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Zaregistrujte se na tomto webu</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Vytvořte účet a doplňte jezdecký profil — jméno, datum narození, UCI ID (pokud ho máte).</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">2</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Vyberte závod v Kalendáři</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">V sekci Kalendář najdete všechny plánované závody. Klikněte na ten, který vás zajímá, a zkontrolujte datum uzávěrky přihlášek.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">3</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Přihlaste se a zaplaťte startovné online</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Přihlášku podáte přímo na webu a startovné zaplatíte kartou. Po uzávěrce přihlášení na závodě zpravidla také možné, ale za příplatek.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">4</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">Dostavte se včas a závoďte!</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Na závodě proběhne prezentace a tréninkové jízdy. Pak začnou kvalifikace (moto) a nejlepší postoupí do finálových kol.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kde najít trénink -->
+    <section class="prvni-zavod-card rounded-[1.75rem] p-7 sm:p-8">
+      <div class="flex items-start gap-4">
+        <span class="prvni-zavod-step-number bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" />
+          </svg>
+        </span>
+        <div>
+          <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Kde trénovat a najít klub?</h2>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            V České republice je přes 20 aktivních BMX drah. Nejlepší start je přes místní klub — trenér vás naučí základy práce s rampou a bezpečné jízdní techniky. Přehled všech klubů najdete v sekci <a href="{% url 'club:clubs-list' %}" class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Kluby</a> na tomto webu.
+          </p>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Většina klubů pořádá <strong class="text-slate-900 dark:text-white">otevřené tréninky</strong>, kam můžete přijít bez závazku a sport si vyzkoušet. Kontaktujte klub předem nebo se podívejte na jejich stránky.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="rounded-[1.75rem] bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-center text-white shadow-2xl dark:from-indigo-700 dark:to-indigo-900">
+      <h2 class="text-2xl font-black tracking-tight">Máte otázky?</h2>
+      <p class="mt-3 text-sm leading-6 text-indigo-100">
+        Neváhejte kontaktovat BMX komisi — rádi poradí s registrací, licencí nebo výběrem prvního kola.
+      </p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <a href="mailto:bmx@ceskysvazcyklistiky.cz"
+           class="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-indigo-700 shadow transition hover:bg-indigo-50">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+            <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
+            <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
+          </svg>
+          Napsat email
+        </a>
+        <a href="{% url 'event:events' %}"
+           class="inline-flex items-center gap-2 rounded-full bg-indigo-500/30 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-500/50">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+            <path d="M5.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V12ZM6 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H6ZM7.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H8a.75.75 0 0 1-.75-.75V12ZM8 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H8ZM9.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V10ZM10 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H10ZM9.25 14a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V14ZM12 9.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V10a.75.75 0 0 0-.75-.75H12ZM11.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H12a.75.75 0 0 1-.75-.75V12ZM12 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H12ZM13.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H14a.75.75 0 0 1-.75-.75V10ZM14 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H14Z" />
+            <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
+          </svg>
+          Prohlédnout kalendář závodů
+        </a>
+      </div>
+    </div>
+
+    <p class="pb-4 text-center text-xs text-slate-400 dark:text-slate-500">
+      Tato stránka je interní průvodce pro správce webu — připravena pro budoucí zveřejnění.
+    </p>
+
+  </div>
+</div>
+{% endblock content %}

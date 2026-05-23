@@ -28,6 +28,7 @@ from event.models import Result, Event, Entry, SeasonSettings
 import threading
 from django.db.models import Q, Exists, OuterRef
 from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta
 from concurrent.futures import ThreadPoolExecutor
 from openpyxl import Workbook
 
@@ -295,9 +296,11 @@ def refresh_valid_licences(riders=None):
 # ===========================================================================
 
 def two_years_inactive():
-    """Vrátí jezdce bez výsledku v předchozím kalendářním roce se startovním číslem starším než 2 roky."""
-    previous_year = timezone.localdate().year - 1
-    two_years_ago = timezone.now() - timedelta(days=365 * 2)
+    """Vrátí jezdce bez výsledku v předchozím nebo aktuálním kalendářním roce se startovním číslem starším než 2 roky."""
+    today = timezone.localdate()
+    previous_year = today.year - 1
+    current_year = today.year
+    two_years_ago = timezone.now() - relativedelta(years=2)
 
     # Filtrovat aktivní jezdce s přiděleným číslem a profilem starším než 2 roky.
     # Do doby, než se všechna ostrá data překlopí do plate_text, držíme fallback i na legacy plate.
@@ -314,15 +317,15 @@ def two_years_inactive():
         Q(created__lte=two_years_ago) | Q(created__isnull=True)
     )
 
-    # Subdotaz na kontrolu existence výsledků v předchozím kalendářním roce
-    previous_year_results = Result.objects.filter(
+    # Subdotaz na kontrolu existence výsledků v předchozím nebo aktuálním kalendářním roce
+    recent_results = Result.objects.filter(
         rider_id=OuterRef('uci_id'),
-        event__date__year=previous_year
+        event__date__year__in=[previous_year, current_year]
     )
 
-    # Vrátí pouze jezdce, kteří nemají žádný výsledek v předchozím roce
+    # Vrátí pouze jezdce, kteří nemají žádný výsledek v předchozím ani aktuálním roce
     inactive_riders = riders.annotate(
-        has_results=Exists(previous_year_results)
+        has_results=Exists(recent_results)
     ).filter(has_results=False).order_by('club')
 
     return list(inactive_riders)
