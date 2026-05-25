@@ -9,7 +9,8 @@ from accounts.models import Account
 import datetime
 import io
 from django.core.files.base import ContentFile
-from gtts import gTTS
+import asyncio
+import edge_tts
 import logging
 from concurrent.futures import ThreadPoolExecutor
 import atexit
@@ -187,19 +188,43 @@ def _article_text_plain(article) -> str:
     text = " ".join(p for p in ("NADPIS:     ",title, "TEXT:      ", prefix, content) if p)
     return text.strip()
 
-def _gtts_chunk(text: str, lang: str, max_retries: int = 4) -> io.BytesIO:
-    """Calls gTTS with exponential backoff on 429 / network errors."""
+# Neural voice mapping for edge-tts (Microsoft Azure voices via Edge endpoint).
+# Higher quality than gTTS and not subject to the same IP rate-limiting.
+_EDGE_VOICES = {
+    "cs": "cs-CZ-VlastaNeural",
+    "en": "en-US-AriaNeural",
+    "de": "de-DE-KatjaNeural",
+    "sk": "sk-SK-ViktoriaNeural",
+    "es": "es-ES-ElviraNeural",
+    "it": "it-IT-ElsaNeural",
+    "fr": "fr-FR-DeniseNeural",
+}
+
+
+async def _edge_tts_bytes(text: str, voice: str) -> bytes:
+    """Streams edge-tts audio and returns raw MP3 bytes."""
+    communicate = edge_tts.Communicate(text, voice)
+    chunks = []
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            chunks.append(chunk["data"])
+    return b"".join(chunks)
+
+
+def _tts_chunk(text: str, lang: str, max_retries: int = 4) -> io.BytesIO:
+    """Generates a single MP3 chunk via edge-tts with retry on network errors."""
+    voice = _EDGE_VOICES.get(lang, "en-US-AriaNeural")
     for attempt in range(max_retries):
         try:
-            buf = io.BytesIO()
-            gTTS(text=text, lang=lang).write_to_fp(buf)
+            data = asyncio.run(_edge_tts_bytes(text, voice))
+            buf = io.BytesIO(data)
             return buf
         except Exception as exc:
             if attempt == max_retries - 1:
                 raise
-            wait = 2 ** (attempt + 2)  # 4, 8, 16 s
+            wait = 2 ** (attempt + 1)  # 2, 4, 8 s
             logger.warning(
-                "[TTS] gTTS pokus %d/%d selhal (lang=%s), čekám %ds: %s",
+                "[TTS] edge-tts pokus %d/%d selhal (lang=%s), čekám %ds: %s",
                 attempt + 1, max_retries, lang, wait, exc,
             )
             time.sleep(wait)
@@ -244,13 +269,11 @@ def _generate_audio(article_id: int, lang: str = "cs"):
 
         if title_plain:
             for chunk in _split_text(f"{section_title} {title_plain}"):
-                out.write(_gtts_chunk(chunk, lang).getvalue())
-                time.sleep(1.5)
+                out.write(_tts_chunk(chunk, lang).getvalue())
 
         if body_plain:
             for chunk in _split_text(f"{section_body} {body_plain}"):
-                out.write(_gtts_chunk(chunk, lang).getvalue())
-                time.sleep(1.5)
+                out.write(_tts_chunk(chunk, lang).getvalue())
 
         out.seek(0)
         filename = f"article_{article.pk}_{lang}.mp3"

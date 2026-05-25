@@ -123,6 +123,14 @@ class EntryForeign(models.Model):
         related_name="foreign_entries",
         help_text="Propojení s českým jezdcem (pokud jezdec závodí pod zahraniční licencí)",
     )
+    user = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="foreign_entries_created",
+        help_text="Uživatel, který přihlášku vytvořil přes app (kreditní platba)",
+    )
 
     def save(self, *args, **kwargs):
         self.uci_id = normalize_uci_id(self.uci_id)

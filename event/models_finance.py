@@ -43,6 +43,13 @@ class FinanceAuditLog(models.Model):
 class DebetTransaction(models.Model):
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     entry = models.ForeignKey(Entry, on_delete=models.SET_NULL, null=True, blank=True)
+    foreign_entry = models.ForeignKey(
+        "event.EntryForeign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="debet_transactions",
+    )
     amount = models.IntegerField(default=0)
     payment_valid = models.BooleanField(default=True)
     transaction_date = models.DateTimeField(auto_now_add=True, null=True)

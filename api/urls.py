@@ -46,6 +46,11 @@ urlpatterns = [
     path("entries/my/", views.MyEntriesAPIView.as_view(), name="my-entries"),
     path("entries/<int:pk>/cancel/", views.EntryCancelAPIView.as_view(), name="entry-cancel"),
 
+    # Foreign rider entries
+    path("events/<int:pk>/foreign-entry-info/", views.ForeignEventEntryInfoAPIView.as_view(), name="foreign-entry-info"),
+    path("events/<int:pk>/foreign-enter/", views.ForeignEventEnterAPIView.as_view(), name="foreign-enter"),
+    path("entries/foreign/<int:pk>/cancel/", views.ForeignEntryCancelAPIView.as_view(), name="foreign-entry-cancel"),
+
     # Entries (admin)
     path("entry/<str:transaction_id>/", views.EntryAdminAPIView.as_view(), name="entry-admin"),
 

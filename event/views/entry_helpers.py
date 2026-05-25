@@ -526,6 +526,23 @@ def _update_foreign_rider_from_entry(foreign_rider, paid_entry):
         setattr(foreign_rider, field_name, field_value)
 
 
+def sync_entry_to_foreign_rider_registry(entry):
+    """Vytvoří nebo aktualizuje záznam ForeignRider z EntryForeign vytvořeného přes kredit."""
+    from rider.models import ForeignRider
+    from event.func import normalize_uci_id
+
+    try:
+        uci_id_value = int(normalize_uci_id(entry.uci_id))
+    except (TypeError, ValueError):
+        return
+
+    try:
+        foreign_rider = ForeignRider.objects.get(uci_id=uci_id_value)
+        _update_foreign_rider_from_entry(foreign_rider, entry)
+    except ForeignRider.DoesNotExist:
+        _create_foreign_rider_from_entry(entry)
+
+
 def resolve_public_entry_categories(entry):
     categories = []
     if getattr(entry, "is_beginner", False) and getattr(entry, "class_beginner", ""):

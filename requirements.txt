@@ -27,7 +27,7 @@ django-cors-headers==4.9.0
 django-filter==25.2
 drf-spectacular==0.29.0
 et_xmlfile==2.0.0
-gTTS==2.5.4
+edge-tts==7.2.8
 gunicorn==23.0.0
 icalendar==7.0.3
 idna==3.11
