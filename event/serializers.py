@@ -4,7 +4,7 @@ from event.models_events import EventPhoto
 from event.services.registration_status import can_register, can_unregister
 
 
-class OrganizerCoordinatesMixin:
+class OrganizerCoordinatesMixin(serializers.Serializer):
     organizer_lat = serializers.SerializerMethodField()
     organizer_lon = serializers.SerializerMethodField()
 
@@ -57,7 +57,10 @@ class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializ
             "reg_open", "reg_open_from", "reg_open_to", "reg_cancel_to",
             "registration_open", "unregistration_open",
             "organizer", "organizer_name", "organizer_lat", "organizer_lon",
-            "eshop_pickup_enabled", "photos",
+            "eshop_pickup_enabled", "eshop_pickup_location", "eshop_pickup_time", "eshop_pickup_note",
+            "proposition", "series", "bem_riders_list", "full_results", "html_results",
+            "fast_riders", "xls_results", "uec_link", "uci_event_code",
+            "photos",
         ]
 
     def get_registration_open(self, obj) -> bool:
