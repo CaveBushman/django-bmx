@@ -16,6 +16,7 @@ import atexit
 import hashlib
 
 import re
+import time
 import html as html_stdlib
 import requests as _requests
 from django.utils.html import strip_tags
@@ -138,6 +139,25 @@ def _article_text_plain(article) -> str:
     text = " ".join(p for p in ("NADPIS:     ",title, "TEXT:      ", prefix, content) if p)
     return text.strip()
 
+def _gtts_chunk(text: str, lang: str, max_retries: int = 4) -> io.BytesIO:
+    """Calls gTTS with exponential backoff on 429 / network errors."""
+    for attempt in range(max_retries):
+        try:
+            buf = io.BytesIO()
+            gTTS(text=text, lang=lang).write_to_fp(buf)
+            return buf
+        except Exception as exc:
+            if attempt == max_retries - 1:
+                raise
+            wait = 2 ** (attempt + 2)  # 4, 8, 16 s
+            logger.warning(
+                "[TTS] gTTS pokus %d/%d selhal (lang=%s), čekám %ds: %s",
+                attempt + 1, max_retries, lang, wait, exc,
+            )
+            time.sleep(wait)
+    raise RuntimeError("unreachable")
+
+
 def _generate_audio(article_id: int, lang: str = "cs"):
     """
     Běží v samostatném vlákně. Generuje MP3 pomocí Google TTS API.
@@ -176,15 +196,13 @@ def _generate_audio(article_id: int, lang: str = "cs"):
 
         if title_plain:
             for chunk in _split_text(f"{section_title} {title_plain}"):
-                buf = io.BytesIO()
-                gTTS(text=chunk, lang=lang).write_to_fp(buf)
-                out.write(buf.getvalue())
+                out.write(_gtts_chunk(chunk, lang).getvalue())
+                time.sleep(1.5)
 
         if body_plain:
             for chunk in _split_text(f"{section_body} {body_plain}"):
-                buf = io.BytesIO()
-                gTTS(text=chunk, lang=lang).write_to_fp(buf)
-                out.write(buf.getvalue())
+                out.write(_gtts_chunk(chunk, lang).getvalue())
+                time.sleep(1.5)
 
         out.seek(0)
         filename = f"article_{article.pk}_{lang}.mp3"
