@@ -17,6 +17,7 @@ urlpatterns = [
     path("auth/activation/resend/", views.ActivationResendAPIView.as_view(), name="activation-resend"),
     path("auth/password/reset/", views.PasswordResetRequestAPIView.as_view(), name="password-reset"),
     path("auth/password/reset/confirm/", views.PasswordResetConfirmAPIView.as_view(), name="password-reset-confirm"),
+    path("credit/topup/", views.CreditTopUpAPIView.as_view(), name="credit-topup"),
 
     # Riders
     path("riders/", views.RiderList.as_view(), name="rider-list"),

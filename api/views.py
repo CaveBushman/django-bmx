@@ -1,9 +1,14 @@
 import logging
 import re
+import uuid
+from io import BytesIO
 from datetime import timedelta
 
+import stripe
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files.base import ContentFile
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.db import transaction as db_tx
@@ -13,7 +18,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django_filters.rest_framework import DjangoFilterBackend
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError, features
 from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -22,7 +27,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 from rider.models import Rider, ForeignRider
-from event.models import Event, Entry
+from event.models import CreditTransaction, Event, Entry
 from event.models_events import Event as EventModel
 from news.models import News
 from club.models import Club
@@ -39,6 +44,7 @@ from eshop.serializers import (
     OrderSerializer,
 )
 from eshop.cart import Cart
+from event.views.payment_helpers import build_credit_checkout_line_item
 from ranking.ranking import Categories
 
 _AVATAR_MAX_BYTES = 5 * 1024 * 1024
@@ -66,6 +72,44 @@ def _validate_avatar_image(uploaded_file):
         raise ValueError("Avatar musí mít alespoň 120 × 120 px.")
     if width > 6000 or height > 6000:
         raise ValueError("Avatar je příliš velký.")
+
+
+def _build_normalized_account_avatar(user, uploaded_file):
+    final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
+    output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
+    preferred_format = "WEBP" if features.check("webp") else "JPEG"
+    extension = "webp" if preferred_format == "WEBP" else "jpg"
+    original_truncated_setting = ImageFile.LOAD_TRUNCATED_IMAGES
+
+    try:
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
+        uploaded_file.seek(0)
+        image = Image.open(uploaded_file)
+        image.load()
+        image = ImageOps.exif_transpose(image).convert("RGB")
+        image = ImageOps.fit(
+            image,
+            (final_size, final_size),
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+        output = BytesIO()
+        try:
+            if preferred_format == "WEBP":
+                image.save(output, format="WEBP", quality=output_quality, method=6)
+            else:
+                image.save(output, format="JPEG", quality=90, optimize=True)
+        except (OSError, KeyError):
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=90, optimize=True)
+            extension = "jpg"
+    finally:
+        ImageFile.LOAD_TRUNCATED_IMAGES = original_truncated_setting
+        uploaded_file.seek(0)
+
+    output.seek(0)
+    filename = f"account-avatar-{user.pk}-{uuid.uuid4().hex[:12]}.{extension}"
+    return filename, ContentFile(output.read())
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -288,8 +332,87 @@ class MeAPIView(APIView):
         data = {k: v for k, v in request.data.items() if k in allowed}
         for field, value in data.items():
             setattr(user, field, value)
-        user.save(update_fields=list(data.keys()))
+
+        update_fields = list(data.keys())
+        uploaded_photo = request.FILES.get("photo")
+        if uploaded_photo:
+            try:
+                _validate_avatar_image(uploaded_photo)
+                filename, normalized_image = _build_normalized_account_avatar(user, uploaded_photo)
+            except ValueError as exc:
+                return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            user.photo.save(filename, normalized_image, save=False)
+            update_fields.append("photo")
+
+        if update_fields:
+            user.save(update_fields=update_fields)
         return Response(_user_payload(user))
+
+
+class CreditTopUpAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            amount = int(request.data.get("amount", 0))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "Neplatná částka."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if amount < 100:
+            return Response(
+                {"detail": "Minimální částka pro nákup kreditu je 100 Kč."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if amount > 10000:
+            return Response(
+                {"detail": "Maximální částka pro nákup kreditu je 10 000 Kč."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=build_credit_checkout_line_item(request.user, amount),
+                mode="payment",
+                customer_email=request.user.email,
+                success_url=(
+                    settings.YOUR_DOMAIN
+                    + "/event/success-credit?session_id={CHECKOUT_SESSION_ID}"
+                ),
+                cancel_url=settings.YOUR_DOMAIN + "/event/cancel?source=credit",
+            )
+            CreditTransaction.objects.create(
+                transaction_id=checkout_session.id,
+                amount=amount,
+                user=request.user,
+                kind=CreditTransaction.Kind.TOPUP,
+            )
+            audit_logger.info(
+                "api_credit_checkout_started user_id=%s amount=%s session_id=%s",
+                request.user.id,
+                amount,
+                checkout_session.id,
+            )
+            return Response(
+                {
+                    "checkout_url": checkout_session.url,
+                    "session_id": checkout_session.id,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        except stripe.error.StripeError as error:
+            audit_logger.exception(
+                "api_credit_checkout_failed user_id=%s amount=%s",
+                request.user.id,
+                amount,
+            )
+            return Response(
+                {"detail": str(error)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
 
 class PasswordChangeAPIView(APIView):

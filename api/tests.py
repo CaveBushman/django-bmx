@@ -1,7 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from io import BytesIO
+from PIL import Image
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from event.models import CreditTransaction
 
 User = get_user_model()
 
@@ -122,9 +129,74 @@ class MeAPITests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, original_email)
 
+    @override_settings(MEDIA_ROOT="/tmp/czechbmx-api-test-media")
+    def test_patch_me_updates_photo(self):
+        image = BytesIO()
+        Image.new("RGB", (240, 240), color=(20, 80, 160)).save(image, format="JPEG")
+        image.seek(0)
+        upload = SimpleUploadedFile(
+            "avatar.jpg",
+            image.read(),
+            content_type="image/jpeg",
+        )
+
+        response = self.client.patch(
+            "/api/auth/me/",
+            {"photo": upload},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["photo_url"])
+        self.user.refresh_from_db()
+        self.assertIn("images/users/", self.user.photo.name)
+        self.assertTrue(
+            self.user.photo.name.endswith(".webp")
+            or self.user.photo.name.endswith(".jpg")
+        )
+
     def test_unauthenticated_me_returns_401(self):
         self.client.credentials()
         response = self.client.get("/api/auth/me/")
+        self.assertEqual(response.status_code, 401)
+
+
+class CreditTopUpAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = make_user(username="credit_user", email="credit@example.com")
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+    @patch("api.views.stripe.checkout.Session.create")
+    def test_credit_topup_creates_stripe_checkout_session(self, create_mock):
+        create_mock.return_value = SimpleNamespace(
+            id="cs_test_mobile_credit",
+            url="https://checkout.stripe.com/c/pay/cs_test_mobile_credit",
+        )
+
+        response = self.client.post("/api/credit/topup/", {"amount": 500})
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(
+            response.data["checkout_url"],
+            "https://checkout.stripe.com/c/pay/cs_test_mobile_credit",
+        )
+        transaction = CreditTransaction.objects.get(transaction_id="cs_test_mobile_credit")
+        self.assertEqual(transaction.user, self.user)
+        self.assertEqual(transaction.amount, 500)
+        self.assertEqual(transaction.kind, CreditTransaction.Kind.TOPUP)
+        self.assertFalse(transaction.payment_complete)
+        create_mock.assert_called_once()
+
+    def test_credit_topup_rejects_low_amount(self):
+        response = self.client.post("/api/credit/topup/", {"amount": 99})
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(CreditTransaction.objects.exists())
+
+    def test_credit_topup_requires_authentication(self):
+        self.client.credentials()
+        response = self.client.post("/api/credit/topup/", {"amount": 500})
         self.assertEqual(response.status_code, 401)
 
 
