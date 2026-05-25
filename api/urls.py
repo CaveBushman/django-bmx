@@ -12,6 +12,7 @@ urlpatterns = [
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("auth/me/", views.MeAPIView.as_view(), name="me"),
     path("auth/password/change/", views.PasswordChangeAPIView.as_view(), name="password-change"),
+    path("auth/avatar-request/", views.AvatarRequestAPIView.as_view(), name="avatar-request"),
     path("auth/register/", views.RegisterAPIView.as_view(), name="register"),
     path("auth/activation/resend/", views.ActivationResendAPIView.as_view(), name="activation-resend"),
     path("auth/password/reset/", views.PasswordResetRequestAPIView.as_view(), name="password-reset"),

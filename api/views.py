@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django_filters.rest_framework import DjangoFilterBackend
+from PIL import Image, UnidentifiedImageError
 from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -29,7 +30,7 @@ from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer
 from news.serializer import NewsSerializer
 from club.serializers import ClubSerializer
-from accounts.models import Account, AccountActivationAuditLog, normalize_account_email
+from accounts.models import Account, AccountActivationAuditLog, AvatarChangeRequest, normalize_account_email
 from eshop.models import Category, Product, ProductVariant, Order, OrderItem, OrderHistory
 from eshop.serializers import (
     CategorySerializer,
@@ -39,6 +40,32 @@ from eshop.serializers import (
 )
 from eshop.cart import Cart
 from ranking.ranking import Categories
+
+_AVATAR_MAX_BYTES = 5 * 1024 * 1024
+_AVATAR_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+def _validate_avatar_image(uploaded_file):
+    if not uploaded_file:
+        raise ValueError("Vyber obrázek, který chceš nahrát.")
+    if uploaded_file.size > _AVATAR_MAX_BYTES:
+        raise ValueError("Avatar může mít maximálně 5 MB.")
+    if uploaded_file.content_type not in _AVATAR_ALLOWED_TYPES:
+        raise ValueError("Povolené jsou pouze obrázky JPG, PNG nebo WEBP.")
+    try:
+        uploaded_file.seek(0)
+        image = Image.open(uploaded_file)
+        image.verify()
+        uploaded_file.seek(0)
+        checked = Image.open(uploaded_file)
+        width, height = checked.size
+        uploaded_file.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise ValueError("Nahraný soubor není platný obrázek.")
+    if width < 120 or height < 120:
+        raise ValueError("Avatar musí mít alespoň 120 × 120 px.")
+    if width > 6000 or height > 6000:
+        raise ValueError("Avatar je příliš velký.")
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -293,6 +320,117 @@ class PasswordChangeAPIView(APIView):
         request.user.set_password(new_password)
         request.user.save(update_fields=["password"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AvatarRequestAPIView(APIView):
+    """
+    GET  — stav žádosti o avatar pro přihlášeného uživatele (účet + navázaní jezdci)
+    POST — odešle žádost o nový avatar ke schválení administrátorem
+
+    POST přijímá multipart/form-data:
+      image          — soubor (JPG / PNG / WEBP, max 5 MB, min 120 × 120 px)
+      target_type    — "account" (výchozí) nebo "rider"
+      target_rider_id — PK jezdce (povinné pokud target_type == "rider")
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        AvatarChangeRequest.expire_stale_requests()
+        account_req = AvatarChangeRequest.objects.filter(
+            target_account=request.user,
+            status=AvatarChangeRequest.STATUS_PENDING,
+        ).first()
+        linked_riders = list(
+            request.user.riders.filter(is_active=True).only("id", "first_name", "last_name")
+        )
+        rider_pending = {
+            req.target_rider_id: req.created.isoformat()
+            for req in AvatarChangeRequest.objects.filter(
+                target_rider__in=linked_riders,
+                status=AvatarChangeRequest.STATUS_PENDING,
+            ).only("target_rider_id", "created")
+        }
+        return Response({
+            "account": {
+                "pending": account_req is not None,
+                "submitted_at": account_req.created.isoformat() if account_req else None,
+            },
+            "linked_riders": [
+                {
+                    "id": rider.id,
+                    "name": f"{rider.first_name} {rider.last_name}",
+                    "pending": rider.id in rider_pending,
+                    "submitted_at": rider_pending.get(rider.id),
+                }
+                for rider in linked_riders
+            ],
+        })
+
+    def post(self, request):
+        AvatarChangeRequest.expire_stale_requests()
+
+        uploaded_file = request.FILES.get("image")
+        try:
+            _validate_avatar_image(uploaded_file)
+        except ValueError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        target_type = request.data.get("target_type", "account")
+
+        if target_type == "account":
+            if AvatarChangeRequest.objects.filter(
+                target_account=request.user,
+                status=AvatarChangeRequest.STATUS_PENDING,
+            ).exists():
+                return Response(
+                    {"error": "Pro tvůj účet už čeká jedna žádost o avatar na schválení."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            AvatarChangeRequest.objects.create(
+                uploaded_by=request.user,
+                target_account=request.user,
+                image=uploaded_file,
+            )
+            return Response(
+                {"detail": "Nový avatar účtu byl odeslán ke schválení administrátorem."},
+                status=status.HTTP_201_CREATED,
+            )
+
+        if target_type == "rider":
+            target_rider_id = request.data.get("target_rider_id")
+            if not target_rider_id:
+                return Response(
+                    {"error": "Pole target_rider_id je povinné pro target_type == 'rider'."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            rider = request.user.riders.filter(pk=target_rider_id, is_active=True).first()
+            if not rider:
+                return Response(
+                    {"error": "Jezdec nenalezen nebo není navázán na tvůj účet."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            if AvatarChangeRequest.objects.filter(
+                target_rider=rider,
+                status=AvatarChangeRequest.STATUS_PENDING,
+            ).exists():
+                return Response(
+                    {"error": "Pro tohoto jezdce už čeká jedna žádost o avatar na schválení."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            AvatarChangeRequest.objects.create(
+                uploaded_by=request.user,
+                target_rider=rider,
+                image=uploaded_file,
+            )
+            return Response(
+                {"detail": f"Nový avatar pro jezdce {rider.first_name} {rider.last_name} byl odeslán ke schválení."},
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            {"error": "Neplatný target_type. Povolen je 'account' nebo 'rider'."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 # ---------------------------------------------------------------------------
