@@ -10,6 +10,7 @@ import datetime
 import io
 from django.core.files.base import ContentFile
 import asyncio
+import concurrent.futures
 import edge_tts
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -211,18 +212,43 @@ async def _edge_tts_bytes(text: str, voice: str) -> bytes:
     return b"".join(chunks)
 
 
+def _run_async(coro):
+    # asyncio.run() inside a ThreadPoolExecutor thread shares Python's default
+    # executor with aiohttp's run_in_executor calls. During interpreter shutdown
+    # that executor is already closed, causing RuntimeError. Fix: give each
+    # event loop its own isolated executor so it is never the shutting-down one.
+    loop = asyncio.new_event_loop()
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+    loop.set_default_executor(executor)
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        executor.shutdown(wait=False)
+        loop.close()
+
+
 def _tts_chunk(text: str, lang: str, max_retries: int = 4) -> io.BytesIO:
     """Generates a single MP3 chunk via edge-tts with retry on network errors."""
     voice = _EDGE_VOICES.get(lang, "en-US-AriaNeural")
     for attempt in range(max_retries):
         try:
-            data = asyncio.run(_edge_tts_bytes(text, voice))
-            buf = io.BytesIO(data)
-            return buf
+            data = _run_async(_edge_tts_bytes(text, voice))
+            return io.BytesIO(data)
+        except RuntimeError as exc:
+            if "interpreter shutdown" in str(exc):
+                raise  # server restarts — don't retry
+            if attempt == max_retries - 1:
+                raise
+            wait = 2 ** (attempt + 1)
+            logger.warning(
+                "[TTS] edge-tts pokus %d/%d selhal (lang=%s), čekám %ds: %s",
+                attempt + 1, max_retries, lang, wait, exc,
+            )
+            time.sleep(wait)
         except Exception as exc:
             if attempt == max_retries - 1:
                 raise
-            wait = 2 ** (attempt + 1)  # 2, 4, 8 s
+            wait = 2 ** (attempt + 1)
             logger.warning(
                 "[TTS] edge-tts pokus %d/%d selhal (lang=%s), čekám %ds: %s",
                 attempt + 1, max_retries, lang, wait, exc,
@@ -255,14 +281,7 @@ def _generate_audio(article_id: int, lang: str = "cs"):
                 logger.warning("[TTS] Article %s lang=%s: překlad selhal, audio nevygenerováno.", article_id, lang)
                 return
 
-        # Pole na modelu: cs → audio_file, ostatní → audio_file_en apod.
         field_name = "audio_file" if lang == "cs" else f"audio_file_{lang}"
-        old_audio = getattr(article, field_name)
-        if old_audio:
-            try:
-                old_audio.delete(save=False)
-            except Exception:
-                pass
 
         section_title, section_body = _TTS_LABELS.get(lang, ("TITLE.", "TEXT."))
         out = io.BytesIO()
@@ -274,6 +293,15 @@ def _generate_audio(article_id: int, lang: str = "cs"):
         if body_plain:
             for chunk in _split_text(f"{section_body} {body_plain}"):
                 out.write(_tts_chunk(chunk, lang).getvalue())
+
+        # Delete old file only after new audio is successfully generated —
+        # avoids a window where published_audio=True but file is missing (404).
+        old_audio = getattr(article, field_name)
+        if old_audio:
+            try:
+                old_audio.delete(save=False)
+            except Exception:
+                pass
 
         out.seek(0)
         filename = f"article_{article.pk}_{lang}.mp3"

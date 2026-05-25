@@ -1,3 +1,4 @@
+import os
 import time
 
 from django.core.management.base import BaseCommand
@@ -29,9 +30,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "--delay",
             type=float,
-            default=5.0,
+            default=1.0,
             metavar="SECONDS",
-            help="Pause between articles to avoid gTTS rate limiting (default: 5s).",
+            help="Pause between articles (default: 1s).",
         )
         parser.add_argument(
             "--app-only",
@@ -67,7 +68,10 @@ class Command(BaseCommand):
             for lang in langs:
                 field = "audio_file" if lang == "cs" else f"audio_file_{lang}"
                 existing = getattr(article, field)
-                if existing and not force:
+                # Check if the file actually exists on disk, not just in the DB —
+                # a deleted or moved file leaves a stale DB path that looks non-empty.
+                file_exists = bool(existing) and os.path.isfile(existing.path)
+                if file_exists and not force:
                     continue
                 self.stdout.write(f"  [{article.pk}] {lang} ...", ending=" ")
                 self.stdout.flush()
