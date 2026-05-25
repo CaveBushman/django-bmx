@@ -378,6 +378,21 @@ class Event(models.Model):
         ]
 
 
+class EventPhoto(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="photos")
+    photo = models.ImageField(upload_to="images/events/gallery/")
+    caption = models.CharField(max_length=255, blank=True, default="")
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Foto závodu"
+        verbose_name_plural = "Fotogalerie závodů"
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"{self.event.name} – foto {self.pk}"
+
+
 class EventProposition(models.Model):
     event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name="structured_proposition")
     venue_name = models.CharField(max_length=255, blank=True, default="")

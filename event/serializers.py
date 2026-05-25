@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from event.models import Event, Entry
+from event.models_events import EventPhoto
 from event.services.registration_status import can_register, can_unregister
 
 
@@ -20,6 +21,22 @@ class OrganizerCoordinatesMixin:
         return value if value not in (None, 0) else None
 
 
+class EventPhotoSerializer(serializers.ModelSerializer):
+    photo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EventPhoto
+        fields = ["id", "photo_url", "caption", "order"]
+
+    def get_photo_url(self, obj) -> str:
+        request = self.context.get("request")
+        try:
+            url = obj.photo.url
+            return request.build_absolute_uri(url) if request else url
+        except (ValueError, OSError):
+            return ""
+
+
 class EventSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
     class Meta:
         model = Event
@@ -30,6 +47,7 @@ class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializ
     organizer_name = serializers.CharField(source="organizer.team_name", read_only=True, default=None)
     registration_open = serializers.SerializerMethodField()
     unregistration_open = serializers.SerializerMethodField()
+    photos = EventPhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
@@ -39,7 +57,7 @@ class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializ
             "reg_open", "reg_open_from", "reg_open_to", "reg_cancel_to",
             "registration_open", "unregistration_open",
             "organizer", "organizer_name", "organizer_lat", "organizer_lon",
-            "eshop_pickup_enabled",
+            "eshop_pickup_enabled", "photos",
         ]
 
     def get_registration_open(self, obj) -> bool:

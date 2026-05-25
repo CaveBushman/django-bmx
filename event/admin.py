@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.urls import NoReverseMatch
 from django.utils.safestring import mark_safe
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
+from .models_events import EventPhoto
 from rider.models import ForeignRider
 from django.utils.timezone import now
 from datetime import timedelta
@@ -53,7 +54,28 @@ class ResultAdmin(BaseAdmin):
     list_filter = ('event__name',)
 
 
+class EventPhotoInline(admin.TabularInline):
+    model = EventPhoto
+    extra = 3
+    fields = ("photo", "photo_preview", "caption", "order")
+    readonly_fields = ("photo_preview",)
+    ordering = ("order", "id")
+
+    @admin.display(description=_("Náhled"))
+    def photo_preview(self, obj):
+        if obj.pk and obj.photo:
+            try:
+                return mark_safe(
+                    f'<img src="{obj.photo.url}" style="height:80px;border-radius:4px;" />'
+                )
+            except (ValueError, OSError):
+                pass
+        return "-"
+
+
 class EventAdmin(BaseAdmin):
+    inlines = [EventPhotoInline]
+
     list_display = (
         'id',
         'name',

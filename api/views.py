@@ -1062,7 +1062,7 @@ class RankingAPIView(APIView):
 # ---------------------------------------------------------------------------
 
 class EventPublicDetailAPIView(generics.RetrieveAPIView):
-    queryset = Event.objects.select_related("organizer")
+    queryset = Event.objects.select_related("organizer").prefetch_related("photos")
     serializer_class = EventPublicSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 

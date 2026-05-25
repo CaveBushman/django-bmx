@@ -64,11 +64,59 @@ _EXECUTOR = ThreadPoolExecutor(max_workers=2)
 atexit.register(_EXECUTOR.shutdown, wait=False)
 
 def enqueue_article_tts(article_id: int):
-    # CS audio
     _EXECUTOR.submit(_generate_audio, article_id, "cs")
-    # Přeložená audio pro ostatní jazyky
     for lang in _AUDIO_LANGS:
         _EXECUTOR.submit(_generate_audio, article_id, lang)
+
+
+def enqueue_article_translation(article_id: int):
+    for lang in _AUDIO_LANGS:
+        _EXECUTOR.submit(_translate_article_content, article_id, lang)
+
+
+def _html_to_blocks(html: str) -> list[str]:
+    """Splits HTML into plain-text paragraphs for translation."""
+    s = re.sub(r'<br\s*/?>', '\n', html or '', flags=re.IGNORECASE)
+    s = re.sub(r'</(p|div|li|h[1-6]|blockquote|tr)>', '\n', s, flags=re.IGNORECASE)
+    s = re.sub(r'<script\b[^>]*>[\s\S]*?</script>', ' ', s, flags=re.IGNORECASE)
+    s = re.sub(r'<style\b[^>]*>[\s\S]*?</style>', ' ', s, flags=re.IGNORECASE)
+    s = re.sub(r'<[^>]+>', ' ', s)
+    s = html_stdlib.unescape(s)
+    return [b.strip() for b in s.splitlines() if b.strip()]
+
+
+def _translate_article_content(article_id: int, lang: str):
+    """Background task: translates article prefix/content to target language."""
+    try:
+        NewsModel = apps.get_model("news", "News")
+        article = NewsModel.objects.get(pk=article_id)
+
+        def _translate_html(html: str) -> str:
+            blocks = _html_to_blocks(html)
+            if not blocks:
+                return ""
+            parts = []
+            for block in blocks:
+                translated = _translate_text(block, lang)
+                if translated:
+                    parts.append(f"<p>{translated}</p>")
+                time.sleep(0.8)
+            return "\n".join(parts)
+
+        prefix_t = _translate_html(article.prefix or "")
+        content_t = _translate_html(article.content or "")
+
+        if not (prefix_t or content_t):
+            logger.warning("[TRANSLATE] Article %s lang=%s: překlad selhal.", article_id, lang)
+            return
+
+        NewsModel.objects.filter(pk=article_id).update(**{
+            f"prefix_{lang}": prefix_t,
+            f"content_{lang}": content_t,
+        })
+        logger.info("[TRANSLATE] Article %s lang=%s: přeloženo.", article_id, lang)
+    except Exception as exc:
+        logger.exception("[TRANSLATE] Chyba Article %s lang=%s: %s", article_id, lang, exc)
 
 
 def _translate_text(text: str, target_lang: str) -> str:
@@ -231,6 +279,20 @@ class News (models.Model):
 
     view_count = models.PositiveIntegerField(default=0, db_index=True, help_text=_("Počet zhlédnutí"))
 
+    # Přeložený obsah (generováno automaticky při uložení)
+    prefix_en = models.TextField(blank=True, default="")
+    prefix_de = models.TextField(blank=True, default="")
+    prefix_sk = models.TextField(blank=True, default="")
+    prefix_es = models.TextField(blank=True, default="")
+    prefix_it = models.TextField(blank=True, default="")
+    prefix_fr = models.TextField(blank=True, default="")
+    content_en = models.TextField(blank=True, default="")
+    content_de = models.TextField(blank=True, default="")
+    content_sk = models.TextField(blank=True, default="")
+    content_es = models.TextField(blank=True, default="")
+    content_it = models.TextField(blank=True, default="")
+    content_fr = models.TextField(blank=True, default="")
+
     audio_file = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_file_en = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_file_de = models.FileField(upload_to="audio/news/", blank=True, null=True)
@@ -314,6 +376,7 @@ class News (models.Model):
             if should_generate:
                 logger.info("[TTS] Enqueue article %s (creating=%s, hash_changed=%s)", self.pk, creating, old_hash != new_hash)
                 enqueue_article_tts(self.pk)
+                enqueue_article_translation(self.pk)
 
         transaction.on_commit(_enqueue)
 
