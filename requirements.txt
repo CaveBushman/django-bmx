@@ -22,10 +22,16 @@ django-js-asset==3.1.2
 django-recurrence==1.14
 django-tailwind==4.2.0
 djangorestframework==3.16.1
+<<<<<<< HEAD
 djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.9.0
 django-filter==25.2
 drf-spectacular==0.29.0
+=======
+djangorestframework-simplejwt==5.5.0
+django-cors-headers==4.7.0
+drf-spectacular==0.28.0
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
 et_xmlfile==2.0.0
 edge-tts==7.2.8
 gunicorn==23.0.0

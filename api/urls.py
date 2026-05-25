@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from api import views
+<<<<<<< HEAD
 
 app_name = "api"
 
@@ -84,4 +85,43 @@ urlpatterns = [
     # OpenAPI schema + Swagger UI
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("schema/swagger/", SpectacularSwaggerView.as_view(url_name="api:schema"), name="swagger"),
+=======
+from api import auth_views
+from rest_framework_simplejwt.views import TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+urlpatterns = [
+    # Auth
+    path('auth/login/', auth_views.LoginAPIView.as_view()),
+    path('auth/logout/', auth_views.LogoutAPIView.as_view()),
+    path('auth/me/', auth_views.MeAPIView.as_view()),
+    path('auth/token/refresh/', TokenRefreshView.as_view()),
+
+    # Riders
+    path('riders/', views.RiderList.as_view()),
+    path('riders/<int:uci_id>/', views.RiderDetail.as_view()),
+    path('riders/new/', views.RiderNewAPIView.as_view()),
+    path('riders/admin/<int:uci_id>/', views.RiderAdminAPIView.as_view()),
+
+    # Foreign riders
+    path('foreignriders/', views.ForeignRiderList.as_view()),
+    path('foreignriders/<int:uci_id>/', views.ForeignRiderDetail.as_view()),
+
+    # Clubs
+    path('clubs/', views.ClubList.as_view()),
+
+    # Events
+    path('events/', views.EventList.as_view()),
+    path('events/<int:pk>/', views.EventDetail.as_view()),
+
+    # News
+    path('news/', views.NewsListAPIView.as_view()),
+
+    # Entry
+    path('entry/<str:transaction_id>/', views.EntryAdminAPIView.as_view()),
+
+    # Schema
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
 ]

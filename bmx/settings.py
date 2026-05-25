@@ -134,11 +134,17 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
 
     # 3rd party
+    "corsheaders",
     "rest_framework",
+<<<<<<< HEAD
     "rest_framework.authtoken",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
+=======
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "drf_spectacular",
     "ckeditor",
     "django_ckeditor_5",
@@ -313,6 +319,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
+<<<<<<< HEAD
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
     "DEFAULT_FILTER_BACKENDS": [
@@ -328,14 +335,22 @@ REST_FRAMEWORK = {
         "anon": "30/minute",
         "user": "300/minute",
     },
+=======
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 from datetime import timedelta
+<<<<<<< HEAD
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+=======
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -343,6 +358,7 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Czech BMX API",
+<<<<<<< HEAD
     "DESCRIPTION": "API pro mobilní aplikaci Czech BMX",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -356,6 +372,19 @@ CORS_ALLOWED_ORIGINS = config_list(
 CORS_ALLOW_CREDENTIALS = True
 
 BASE_CSP_POLICY = {
+=======
+    "VERSION": "1.0.0",
+}
+
+# CORS – mobilní app a vývoj
+CORS_ALLOWED_ORIGINS = config_list(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:3000,http://localhost:8080",
+)
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # V produkci nastavit CORS_ALLOWED_ORIGINS
+
+SECURE_CSP_REPORT_ONLY = {
+>>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "default-src": [CSP.SELF],
     "base-uri": [CSP.SELF],
     "object-src": [CSP.NONE],
