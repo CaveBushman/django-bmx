@@ -179,6 +179,7 @@ class News (models.Model):
 
     on_homepage = models.BooleanField(default=False)
     published = models.BooleanField(default=False, help_text=_("Článek zveřejněn"))
+    publish_in_app = models.BooleanField(default=False, help_text=_("Zveřejnit v mobilní aplikaci"))
 
     created_date = models.DateTimeField(editable=True, auto_now_add=True, null=True, blank=True)
     created = models.ForeignKey(Account, on_delete = models.SET_NULL, null=True, blank = True)

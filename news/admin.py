@@ -32,11 +32,11 @@ class DownloadsAdminForm(forms.ModelForm):
 class NewsAdmin (admin.ModelAdmin):
     form = NewsAdminForm
 
-    list_display = ('title', 'on_homepage', 'published', "view_count")
+    list_display = ('title', 'on_homepage', 'published', 'publish_in_app', "view_count")
     list_display_links = ('title',)
-    list_editable = ('on_homepage', 'published')
+    list_editable = ('on_homepage', 'published', 'publish_in_app')
     search_fields = ('title', 'prefix', 'content')
-    list_filter = ('on_homepage', 'published','created_date')
+    list_filter = ('on_homepage', 'published', 'publish_in_app', 'created_date')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_date','view_count')
     exclude = ('time_to_read',)

@@ -7,6 +7,7 @@ Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg str�
 import logging
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
+from django.http import Http404
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
@@ -124,6 +125,8 @@ def events_list_view(request):
 
 def events_list_by_year_view(request, pk):
     """Seznam závodů zvoleného roku (archiv)."""
+    if not (1900 <= pk <= 9999):
+        raise Http404
     if pk == date.today().year:
         return redirect('event:events')
 
