@@ -25,6 +25,11 @@ urlpatterns = [
     path("riders/new/", views.RiderNewAPIView.as_view(), name="rider-new"),
     path("riders/admin/<int:uci_id>/", views.RiderAdminAPIView.as_view(), name="rider-admin"),
 
+    # Plate request (žádost o přidělení startovního čísla)
+    path("riders/plate-request/", views.PlateRequestAPIView.as_view(), name="plate-request"),
+    path("riders/plate-request/lookup/", views.PlateRequestLookupAPIView.as_view(), name="plate-request-lookup"),
+    path("riders/plate-request/free-plates/", views.PlateRequestFreePlatesAPIView.as_view(), name="plate-request-free-plates"),
+
     # Foreign riders
     path("foreignriders/", views.ForeignRiderList.as_view(), name="foreignrider-list"),
     path("foreignriders/<int:uci_id>/", views.ForeignRiderDetail.as_view(), name="foreignrider-detail"),
