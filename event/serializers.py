@@ -3,14 +3,30 @@ from event.models import Event, Entry
 from event.services.registration_status import can_register, can_unregister
 
 
-class EventSerializer(serializers.ModelSerializer):
+class OrganizerCoordinatesMixin:
+    organizer_lat = serializers.SerializerMethodField()
+    organizer_lon = serializers.SerializerMethodField()
 
+    def get_organizer_lat(self, obj):
+        if not obj.organizer_id or not obj.organizer:
+            return None
+        value = obj.organizer.lon
+        return value if value not in (None, 0) else None
+
+    def get_organizer_lon(self, obj):
+        if not obj.organizer_id or not obj.organizer:
+            return None
+        value = obj.organizer.lng
+        return value if value not in (None, 0) else None
+
+
+class EventSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
 
 
-class EventPublicSerializer(serializers.ModelSerializer):
+class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
     organizer_name = serializers.CharField(source="organizer.team_name", read_only=True, default=None)
     registration_open = serializers.SerializerMethodField()
     unregistration_open = serializers.SerializerMethodField()
@@ -22,7 +38,7 @@ class EventPublicSerializer(serializers.ModelSerializer):
             "system", "director", "youtube_link", "canceled",
             "reg_open", "reg_open_from", "reg_open_to", "reg_cancel_to",
             "registration_open", "unregistration_open",
-            "organizer", "organizer_name",
+            "organizer", "organizer_name", "organizer_lat", "organizer_lon",
             "eshop_pickup_enabled",
         ]
 

@@ -17,11 +17,26 @@ import hashlib
 
 import re
 import html as html_stdlib
+import requests as _requests
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.text import slugify
 from bmx.html_sanitizer import sanitize_rich_html
+
+# Jazyky, pro které generujeme přeložené TTS audio (cs se generuje zvlášť)
+_AUDIO_LANGS = ("en", "de", "sk", "es", "it", "fr")
+
+# Označení sekcí pro TTS – v každém jazyce
+_TTS_LABELS = {
+    "cs": ("NADPIS.", "TEXT."),
+    "en": ("TITLE.", "TEXT."),
+    "de": ("ÜBERSCHRIFT.", "TEXT."),
+    "sk": ("NADPIS.", "TEXT."),
+    "es": ("TÍTULO.", "TEXTO."),
+    "it": ("TITOLO.", "TESTO."),
+    "fr": ("TITRE.", "TEXTE."),
+}
 
 # TTS labels (bez přesné pauzy varianta)
 TTS_SECTION_TITLE = "NADPIS."
@@ -48,8 +63,33 @@ _EXECUTOR = ThreadPoolExecutor(max_workers=2)
 atexit.register(_EXECUTOR.shutdown, wait=False)
 
 def enqueue_article_tts(article_id: int):
-    # Spustíme mimo request thread, po commitu
-    _EXECUTOR.submit(_generate_audio, article_id)
+    # CS audio
+    _EXECUTOR.submit(_generate_audio, article_id, "cs")
+    # Přeložená audio pro ostatní jazyky
+    for lang in _AUDIO_LANGS:
+        _EXECUTOR.submit(_generate_audio, article_id, lang)
+
+
+def _translate_text(text: str, target_lang: str) -> str:
+    """Přeloží text z češtiny do cílového jazyka (Google Translate, bez API klíče)."""
+    if not text.strip():
+        return text
+    chunks = _split_text(text, max_len=4800)
+    parts = []
+    for chunk in chunks:
+        try:
+            resp = _requests.get(
+                "https://translate.googleapis.com/translate_a/single",
+                params={"client": "gtx", "sl": "cs", "tl": target_lang, "dt": "t", "q": chunk},
+                timeout=20,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            parts.append("".join(seg[0] for seg in data[0] if seg[0]))
+        except Exception as exc:
+            logger.warning("[TTS] Překlad selhal lang=%s: %s", target_lang, exc)
+            return ""  # prázdný string = přeskočit generování
+    return " ".join(parts)
 
 def _split_text(text: str, max_len: int = 4500):
     """Rozdělí dlouhý text na kratší části (gTTS lépe snáší <5k znaků)."""
@@ -98,61 +138,61 @@ def _article_text_plain(article) -> str:
     text = " ".join(p for p in ("NADPIS:     ",title, "TEXT:      ", prefix, content) if p)
     return text.strip()
 
-def _generate_audio(article_id: int):
+def _generate_audio(article_id: int, lang: str = "cs"):
     """
-    Běží v samostatném vlákně. ŽÁDNÝ přímý import News z models.py!
-    Načte model dynamicky přes apps.get_model -> žádné kruhy importů.
-    Generuje MP3 pomocí Google TTS API.
+    Běží v samostatném vlákně. Generuje MP3 pomocí Google TTS API.
+    Pro jiné jazyky než CS nejprve přeloží text přes Google Translate.
     """
     try:
         NewsModel = apps.get_model("news", "News")
         article = NewsModel.objects.get(pk=article_id)
 
-        # Připrav označené sekce: NADPIS + titulek, TEXT + (prefix+content)
         title_plain, prefix_plain, content_plain = _article_parts_plain(article)
         body_plain = " ".join(p for p in (prefix_plain, content_plain) if p).strip()
 
         if not (title_plain or body_plain):
-            logger.info("[TTS] Article %s: prázdný text, nic negeneruji.", article_id)
+            logger.info("[TTS] Article %s lang=%s: prázdný text, nic negeneruji.", article_id, lang)
             return
 
-        # Smazat staré audio, pokud existuje (clean-up)
-        if article.audio_file:
+        # Překlad pro ne-české jazyky
+        if lang != "cs":
+            title_plain = _translate_text(title_plain, lang) if title_plain else ""
+            body_plain = _translate_text(body_plain, lang) if body_plain else ""
+            if not (title_plain or body_plain):
+                logger.warning("[TTS] Article %s lang=%s: překlad selhal, audio nevygenerováno.", article_id, lang)
+                return
+
+        # Pole na modelu: cs → audio_file, ostatní → audio_file_en apod.
+        field_name = "audio_file" if lang == "cs" else f"audio_file_{lang}"
+        old_audio = getattr(article, field_name)
+        if old_audio:
             try:
-                article.audio_file.delete(save=False)
+                old_audio.delete(save=False)
             except Exception:
                 pass
 
-        # gTTS volá Google – server musí mít internet
+        section_title, section_body = _TTS_LABELS.get(lang, ("TITLE.", "TEXT."))
         out = io.BytesIO()
 
-        # 1) NADPIS + titulek (pokud existuje titulek)
         if title_plain:
-            title_text = f"{TTS_SECTION_TITLE} {title_plain}".strip()
-            for idx, chunk in enumerate(_split_text(title_text), start=1):
+            for chunk in _split_text(f"{section_title} {title_plain}"):
                 buf = io.BytesIO()
-                gTTS(text=chunk, lang="cs").write_to_fp(buf)
+                gTTS(text=chunk, lang=lang).write_to_fp(buf)
                 out.write(buf.getvalue())
 
-        # (Bez přesné pauzy – fallback varianta: žádná garantovaná 1s tichá mezera)
-        # Pokud chceš přesnou pauzu, je třeba pydub+ffmpeg.
-
-        # 2) TEXT + tělo (prefix+content)
         if body_plain:
-            body_text = f"{TTS_SECTION_BODY} {body_plain}".strip()
-            first = True
-            for idx, chunk in enumerate(_split_text(body_text), start=1):
+            for chunk in _split_text(f"{section_body} {body_plain}"):
                 buf = io.BytesIO()
-                gTTS(text=chunk, lang="cs").write_to_fp(buf)
+                gTTS(text=chunk, lang=lang).write_to_fp(buf)
                 out.write(buf.getvalue())
 
         out.seek(0)
-        filename = f"article_{article.pk}.mp3"
-        article.audio_file.save(filename, ContentFile(out.read()), save=True)
-        logger.info("[TTS] Article %s: audio uloženo jako %s", article_id, filename)
+        filename = f"article_{article.pk}_{lang}.mp3"
+        getattr(article, field_name).save(filename, ContentFile(out.read()), save=True)
+        logger.info("[TTS] Article %s lang=%s: audio uloženo jako %s", article_id, lang, filename)
 
     except Exception as e:
-        logger.exception("[TTS] Chyba při generování audia pro Article %s: %s", article_id, e)
+        logger.exception("[TTS] Chyba při generování audia pro Article %s lang=%s: %s", article_id, lang, e)
 
 
 
@@ -174,6 +214,12 @@ class News (models.Model):
     view_count = models.PositiveIntegerField(default=0, db_index=True, help_text=_("Počet zhlédnutí"))
 
     audio_file = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_en = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_de = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_sk = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_es = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_it = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_fr = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_hash = models.CharField(max_length=64, blank=True, default="")
     published_audio = models.BooleanField(default=False, help_text=_("Audio zveřejněno"))
 
@@ -244,14 +290,12 @@ class News (models.Model):
         # transaction.on_commit zajistí, že se thread spustí až ve chvíli,
         # kdy jsou data bezpečně v databázi (prevence Race Condition).
         def _enqueue():
-            # Generuj jen pro publikované články a pokud je to nový článek,
-            # změnil se obsah (hash) NEBO zatím neexistuje audio soubor (první publikace)
             if not self.published:
                 return
             should_generate = creating or (old_hash != new_hash) or (not self.audio_file)
             if should_generate:
-                logger.info("[TTS] Enqueue article %s (creating=%s, hash_changed=%s, has_audio=%s)", self.pk, creating, old_hash != new_hash, bool(self.audio_file))
-                _EXECUTOR.submit(_generate_audio, self.pk)
+                logger.info("[TTS] Enqueue article %s (creating=%s, hash_changed=%s)", self.pk, creating, old_hash != new_hash)
+                enqueue_article_tts(self.pk)
 
         transaction.on_commit(_enqueue)
 

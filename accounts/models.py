@@ -8,12 +8,17 @@ from django.utils.translation import gettext_lazy as _
 from event.credit import calculate_user_balance
 from club.models import Club
 from django.conf import settings
+from django.db import transaction
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from PIL import Image, ImageOps, ImageFile, UnidentifiedImageError, features
 from io import BytesIO
 import uuid
 from bmx.text_normalization import normalize_search_text
+
+DEFAULT_ACCOUNT_PHOTO_PATHS = (
+    "images/users/blank-avatar-200x200.jpg",
+)
 
 
 # Create your models here.
@@ -478,3 +483,33 @@ def update_credit_before_save(sender, instance, **kwargs):
         except Exception as e:
             logger.error("Nepodařilo se přepočítat kredit pro uživatele pk=%s: %s", instance.pk, e)
             # Zachováme původní hodnotu kreditu z DB — nenulujeme
+
+
+@receiver(pre_save, sender=Account)
+def delete_old_account_photo_on_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+
+    try:
+        old_photo = Account.objects.only("photo").get(pk=instance.pk).photo
+    except Account.DoesNotExist:
+        return
+
+    new_photo = instance.photo
+    old_name = getattr(old_photo, "name", "") or ""
+    new_name = getattr(new_photo, "name", "") or ""
+
+    if not old_name or old_name == new_name or old_name in DEFAULT_ACCOUNT_PHOTO_PATHS:
+        return
+
+    def delete_old_photo():
+        try:
+            old_photo.delete(save=False)
+        except Exception:
+            logger.exception(
+                "Nepodařilo se smazat původní profilovou fotku uživatele pk=%s: %s",
+                instance.pk,
+                old_name,
+            )
+
+    transaction.on_commit(delete_old_photo)

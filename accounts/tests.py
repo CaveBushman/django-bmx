@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.contrib.sessions.middleware import SessionMiddleware
 import datetime
+import tempfile
 from io import BytesIO
 
 from PIL import Image
@@ -460,6 +461,45 @@ class AccountRiderLinkTests(TestCase):
 
         with self.assertRaises(IntegrityError):
             AccountRiderLink.objects.create(account=self.user, rider=self.rider)
+
+
+class AccountPhotoCleanupTests(TestCase):
+    def _build_test_image(self, *, name="avatar.png", color=(40, 120, 220)):
+        buffer = BytesIO()
+        image = Image.new("RGB", (240, 240), color=color)
+        image.save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    def test_replacing_account_photo_deletes_previous_uploaded_file(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                user = User.objects.create_user(
+                    first_name="Photo",
+                    last_name="Cleanup",
+                    username="photo_cleanup",
+                    email="photo-cleanup@example.com",
+                    password="StrongPass123!",
+                )
+                user.photo.save(
+                    "old-avatar.png",
+                    self._build_test_image(name="old-avatar.png"),
+                    save=True,
+                )
+                old_name = user.photo.name
+                self.assertTrue(user.photo.storage.exists(old_name))
+
+                with self.captureOnCommitCallbacks(execute=True):
+                    user.photo.save(
+                        "new-avatar.png",
+                        self._build_test_image(
+                            name="new-avatar.png",
+                            color=(120, 60, 220),
+                        ),
+                        save=True,
+                    )
+
+                self.assertFalse(user.photo.storage.exists(old_name))
+                self.assertTrue(user.photo.storage.exists(user.photo.name))
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)

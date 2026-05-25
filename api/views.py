@@ -116,6 +116,7 @@ audit_logger = logging.getLogger("audit")
 
 
 def _user_payload(user):
+    linked_rider = user.riders.filter(is_active=True).order_by("last_name", "first_name").first()
     return {
         "id": user.pk,
         "email": user.email,
@@ -128,6 +129,7 @@ def _user_payload(user):
         "is_trainer": user.is_trainer,
         "is_club_manager": user.is_club_manager,
         "photo_url": user.photo_url,
+        "rider_uci_id": linked_rider.uci_id if linked_rider else None,
     }
 
 
@@ -207,7 +209,7 @@ class ClubList(generics.ListAPIView):
 # ---------------------------------------------------------------------------
 
 class EventList(generics.ListAPIView):
-    queryset = Event.objects.all().order_by("-date")
+    queryset = Event.objects.select_related("organizer").all().order_by("-date")
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
