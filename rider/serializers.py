@@ -9,7 +9,14 @@ class RiderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rider
-        exclude = ['email', 'emergency_contact', 'emergency_phone']
+        fields = [
+            'id', 'uci_id', 'first_name', 'middle_name', 'last_name',
+            'nationality', 'gender', 'photo', 'club', 'club_name',
+            'is_20', 'is_24', 'is_elite', 'is_active', 'is_approved',
+            'class_20', 'class_24', 'plate_text',
+            'transponder_20', 'transponder_24',
+            'points_20', 'points_24', 'ranking_20', 'ranking_24',
+        ]
         read_only_fields = ['id']
 
 

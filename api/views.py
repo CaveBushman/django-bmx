@@ -20,6 +20,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django_filters.rest_framework import DjangoFilterBackend
 from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError, features
 from rest_framework import generics, status, filters
+from bmx.search_filters import NormalizedSearchFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -36,7 +37,7 @@ from club.models import Club
 from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer
 from news.serializer import NewsSerializer
-from club.serializers import ClubSerializer
+from club.serializers import ClubSerializer, ClubPublicSerializer
 from accounts.models import Account, AccountActivationAuditLog, AvatarChangeRequest, normalize_account_email
 from eshop.models import Category, Product, ProductVariant, Order, OrderItem, OrderHistory
 from eshop.serializers import (
@@ -140,12 +141,20 @@ def _user_payload(user):
 # ---------------------------------------------------------------------------
 
 class RiderList(generics.ListAPIView):
-    queryset = Rider.objects.filter(is_active=True).select_related("club")
+    queryset = Rider.objects.filter(is_active=True).select_related("club").only(
+        'id', 'uci_id', 'first_name', 'middle_name', 'last_name',
+        'nationality', 'gender', 'photo', 'club_id',
+        'is_20', 'is_24', 'is_elite', 'is_active', 'is_approved',
+        'class_20', 'class_24', 'plate_text',
+        'transponder_20', 'transponder_24',
+        'points_20', 'points_24', 'ranking_20', 'ranking_24',
+        'club__team_name', 'search_text_normalized',
+    )
     serializer_class = RiderSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, NormalizedSearchFilter, filters.OrderingFilter]
     filterset_fields = ["club", "class_20", "class_24", "is_20", "is_24", "is_elite", "gender"]
-    search_fields = ["first_name", "last_name", "uci_id", "plate_text"]
+    search_fields = ["search_text_normalized", "=uci_id", "plate_text"]
     ordering_fields = ["last_name", "first_name", "uci_id"]
     ordering = ["last_name", "first_name"]
 
@@ -161,6 +170,50 @@ class RiderNewAPIView(generics.CreateAPIView):
     queryset = Rider.objects.all()
     serializer_class = RiderSerializer
     permission_classes = [IsAdminUser]
+
+
+class RiderLicenseAPIView(APIView):
+    """Proxy: loads license data + validity from ČSC API for commissar/admin."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, uci_id):
+        if not getattr(request.user, 'is_commissar', False):
+            return Response({"detail": "Permission denied."}, status=403)
+
+        from rider.rider import get_api_token, get_rider_data
+        import requests as req_lib
+        from datetime import date
+
+        data_json, error = get_rider_data(uci_id)
+        if error or not data_json:
+            return Response({"error": error or "Jezdec nebyl nalezen."}, status=404)
+
+        token = get_api_token()
+        is_valid = None
+        if token:
+            try:
+                year = date.today().year
+                url = "https://portal.api.czechcyclingfederation.com/api/services/validuciid"
+                resp = req_lib.get(
+                    url,
+                    headers={"Authorization": f"Bearer {token}"},
+                    params={"year": year, "uciId": uci_id},
+                    timeout=10,
+                    verify=True,
+                )
+                if resp.ok:
+                    is_valid = resp.json().get("valid", False)
+            except Exception:
+                pass
+
+        return Response({
+            "uci_id": uci_id,
+            "first_name": (data_json.get("firstName") or "").strip(),
+            "last_name": (data_json.get("lastName") or "").strip(),
+            "date_of_birth": (data_json.get("birth") or "")[:10],
+            "gender": (data_json.get("sex") or {}).get("code", ""),
+            "license_valid": is_valid,
+        })
 
 
 class RiderAdminAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -198,12 +251,18 @@ class ForeignRiderDetail(generics.RetrieveAPIView):
 
 class ClubList(generics.ListAPIView):
     queryset = Club.objects.filter(is_active=True)
-    serializer_class = ClubSerializer
+    serializer_class = ClubPublicSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["team_name"]
     ordering_fields = ["team_name"]
     ordering = ["team_name"]
+
+
+class ClubDetail(generics.RetrieveAPIView):
+    queryset = Club.objects.filter(is_active=True)
+    serializer_class = ClubPublicSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 # ---------------------------------------------------------------------------

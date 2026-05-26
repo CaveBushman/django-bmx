@@ -7,6 +7,8 @@ from event.services.registration_status import can_register, can_unregister
 class OrganizerCoordinatesMixin(serializers.Serializer):
     organizer_lat = serializers.SerializerMethodField()
     organizer_lon = serializers.SerializerMethodField()
+    organizer_name = serializers.SerializerMethodField()
+    organizer_city = serializers.SerializerMethodField()
 
     def get_organizer_lat(self, obj):
         if not obj.organizer_id or not obj.organizer:
@@ -19,6 +21,16 @@ class OrganizerCoordinatesMixin(serializers.Serializer):
             return None
         value = obj.organizer.lng
         return value if value not in (None, 0) else None
+
+    def get_organizer_name(self, obj):
+        if not obj.organizer_id or not obj.organizer:
+            return None
+        return obj.organizer.team_name or None
+
+    def get_organizer_city(self, obj):
+        if not obj.organizer_id or not obj.organizer:
+            return None
+        return obj.organizer.city or None
 
 
 class EventPhotoSerializer(serializers.ModelSerializer):
@@ -44,7 +56,6 @@ class EventSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
 
 
 class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
-    organizer_name = serializers.CharField(source="organizer.team_name", read_only=True, default=None)
     registration_open = serializers.SerializerMethodField()
     unregistration_open = serializers.SerializerMethodField()
     photos = EventPhotoSerializer(many=True, read_only=True)
@@ -56,7 +67,7 @@ class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializ
             "system", "director", "youtube_link", "canceled",
             "reg_open", "reg_open_from", "reg_open_to", "reg_cancel_to",
             "registration_open", "unregistration_open",
-            "organizer", "organizer_name", "organizer_lat", "organizer_lon",
+            "organizer", "organizer_name", "organizer_city", "organizer_lat", "organizer_lon",
             "eshop_pickup_enabled", "eshop_pickup_location", "eshop_pickup_time", "eshop_pickup_note",
             "proposition", "series", "bem_riders_list", "full_results", "html_results",
             "fast_riders", "xls_results", "uec_link", "uci_event_code",

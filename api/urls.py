@@ -21,6 +21,7 @@ urlpatterns = [
 
     # Riders
     path("riders/", views.RiderList.as_view(), name="rider-list"),
+    path("riders/<int:uci_id>/license/", views.RiderLicenseAPIView.as_view(), name="rider-license"),
     path("riders/<int:uci_id>/", views.RiderDetail.as_view(), name="rider-detail"),
     path("riders/new/", views.RiderNewAPIView.as_view(), name="rider-new"),
     path("riders/admin/<int:uci_id>/", views.RiderAdminAPIView.as_view(), name="rider-admin"),
@@ -36,6 +37,7 @@ urlpatterns = [
 
     # Clubs
     path("clubs/", views.ClubList.as_view(), name="club-list"),
+    path("clubs/<int:pk>/", views.ClubDetail.as_view(), name="club-detail"),
 
     # Events
     path("events/", views.EventList.as_view(), name="event-list"),
