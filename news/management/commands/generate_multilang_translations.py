@@ -66,10 +66,10 @@ class Command(BaseCommand):
                 prefix_field = f"prefix_{lang}"
                 content_field = f"content_{lang}"
 
-                title_missing = not getattr(article, title_field, "").strip()
+                title_missing = not (getattr(article, title_field, "") or "").strip()
                 body_done = (
-                    bool(getattr(article, prefix_field, "").strip())
-                    or bool(getattr(article, content_field, "").strip())
+                    bool((getattr(article, prefix_field, "") or "").strip())
+                    or bool((getattr(article, content_field, "") or "").strip())
                 )
 
                 if not force:
