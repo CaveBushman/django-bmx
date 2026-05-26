@@ -731,11 +731,11 @@
                 <div class="flex h-full flex-col justify-between">
                     <div class="homepage-news-media relative aspect-[16/9] lg:aspect-[16/10]w-full">
                         <img src="{% if article.photo_01_url %}{{ article.photo_01_url }}{% endif %}"
-                             alt="{{ article.title }}"
+                             alt="{{ article.display_title }}"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                              class="h-full w-full object-cover transition duration-500 hover:scale-105">
                         <div class="homepage-news-image-fallback">
-                            <span class="text-lg font-black leading-tight tracking-tight">{{ article.title }}</span>
+                            <span class="text-lg font-black leading-tight tracking-tight">{{ article.display_title }}</span>
                         </div>
                     </div>
                     <div class="flex flex-1 flex-col px-6 pb-6 pt-5 sm:px-7">
@@ -750,11 +750,11 @@
                         <div class="mt-4">
                             <h3 class="text-3xl sm:text-xl font-black leading-tight tracking-tight text-slate-950 dark:text-slate-100">
                                 <a href="{{ article.get_absolute_url }}" class="transition hover:text-sky-700 dark:hover:text-sky-300">
-                                    {{article.title | upper}}
+                                    {{article.display_title | upper}}
                                 </a>
                             </h3>
                             <div class="homepage-news-prefix mt-4 line-clamp-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                {{ article.prefix|safe|truncatechars_html:400 }}
+                                {{ article.display_prefix|safe|truncatechars_html:400 }}
                             </div>
                         </div>
                     </div>

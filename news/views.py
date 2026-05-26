@@ -81,6 +81,18 @@ def homepage_view(request):
         }
         cache.set(cache_key, content, settings.HOMEPAGE_DATA_CACHE_SECONDS)
 
+    # Jazykové zpracování titulků a prefixů pro homepage články (per-request, ne v cache)
+    lang = (get_language() or "cs").split("-")[0].lower()
+    if lang not in _SUPPORTED_CONTENT_LANGS:
+        lang = "cs"
+    for article in content.get("homepage_news", []):
+        if lang != "cs":
+            article.display_title = getattr(article, f"title_{lang}", "") or article.title
+            article.display_prefix = getattr(article, f"prefix_{lang}", "") or article.prefix
+        else:
+            article.display_title = article.title
+            article.display_prefix = article.prefix
+
     update_cart(request)
     update_plate_notify(request)
     return render(request, "homepage.html", content)
