@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}
-{{ news.title }}
+{{ display_title }}
 {% endblock title %}
 
-{% block meta_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block meta_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
 {% block og_type %}article{% endblock %}
-{% block og_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
-{% block twitter_description %}{{ news.prefix|striptags|truncatechars:155 }}{% endblock %}
-{% block og_title %}{{ news.title }} | Czech BMX{% endblock %}
+{% block og_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block twitter_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block og_title %}{{ display_title }} | Czech BMX{% endblock %}
 {% block og_image %}{% if absolute_image_url %}{{ absolute_image_url }}{% else %}{{ seo_og_image_url }}{% endif %}{% endblock %}
-{% block twitter_title %}{{ news.title }} | Czech BMX{% endblock %}
+{% block twitter_title %}{{ display_title }} | Czech BMX{% endblock %}
 {% block twitter_image %}{% if absolute_image_url %}{{ absolute_image_url }}{% else %}{{ seo_og_image_url }}{% endif %}{% endblock %}
 {% block meta_tags %}
 <meta property="og:url" content="{{ seo_canonical_url }}">
@@ -34,7 +34,7 @@
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
         {"@type": "ListItem", "position": 2, "name": "Aktuality", "item": "{{ seo_domain }}{% url 'news:news-list' %}"},
-        {"@type": "ListItem", "position": 3, "name": "{{ news.title|escapejs }}", "item": "{{ seo_canonical_url }}"}
+        {"@type": "ListItem", "position": 3, "name": "{{ display_title|escapejs }}", "item": "{{ seo_canonical_url }}"}
       ]
     }
   ]
@@ -312,7 +312,7 @@
             Článek
           </p>
           <h1 class="mt-2 max-w-4xl text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            {{ news.title }}
+            {{ display_title }}
           </h1>
         </div>
         <div class="article-stats-grid">
@@ -340,8 +340,14 @@
           <img src="{{ news.photo_01_url }}" alt="{{ news.title }}">
         </div>
         <div class="article-feature-copy">
+          {% if display_lang != 'cs' %}
+          <div class="mb-3 inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-400/10 dark:text-indigo-200">
+            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            {{ display_lang|upper }}
+          </div>
+          {% endif %}
           <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
-            {{ news.prefix|safe }}
+            {{ display_prefix|safe }}
           </div>
           {% if news.tags.all %}
           <div class="mt-6 flex flex-wrap gap-2">
@@ -356,7 +362,7 @@
       </div>
     </div>
 
-    {% if news.audio_file and news.published_audio %}
+    {% if news.published_audio and display_audio_url %}
     <div class="article-audio-card mb-6 rounded-[2rem] px-5 py-5 sm:px-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-4">
@@ -368,20 +374,24 @@
             </svg>
           </span>
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">Audio verze</p>
-            <p class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-white">Poslech článku</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">
+              {% if display_lang == 'cs' %}Audio verze{% elif display_lang == 'en' %}Audio version{% elif display_lang == 'de' %}Audioversion{% elif display_lang == 'sk' %}Audio verzia{% elif display_lang == 'es' %}Versión audio{% elif display_lang == 'it' %}Versione audio{% elif display_lang == 'fr' %}Version audio{% else %}Audio verze{% endif %}
+            </p>
+            <p class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              {% if display_lang == 'cs' %}Poslech článku{% elif display_lang == 'en' %}Listen to article{% elif display_lang == 'de' %}Artikel anhören{% elif display_lang == 'sk' %}Počúvanie článku{% elif display_lang == 'es' %}Escuchar artículo{% elif display_lang == 'it' %}Ascolta l'articolo{% elif display_lang == 'fr' %}Écouter l'article{% else %}Poslech článku{% endif %}
+            </p>
           </div>
         </div>
         <a
-          href="{{ news.audio_file_url }}"
+          href="{{ display_audio_url }}"
           class="inline-flex items-center justify-center rounded-xl border border-sky-300 bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-white dark:border-sky-500/30 dark:bg-slate-900/50 dark:text-sky-300 dark:hover:bg-slate-900"
         >
-          Otevřít audio
+          {% if display_lang == 'cs' %}Otevřít audio{% elif display_lang == 'en' %}Open audio{% elif display_lang == 'de' %}Audio öffnen{% elif display_lang == 'sk' %}Otvoriť audio{% elif display_lang == 'es' %}Abrir audio{% elif display_lang == 'it' %}Apri audio{% elif display_lang == 'fr' %}Ouvrir audio{% else %}Otevřít audio{% endif %}
         </a>
       </div>
       <div class="mt-4">
         <audio class="article-audio-player" controls preload="none">
-          <source src="{{ news.audio_file_url }}" type="audio/mpeg">
+          <source src="{{ display_audio_url }}" type="audio/mpeg">
           Tvůj prohlížeč nepodporuje přehrávání audia.
         </audio>
       </div>
@@ -390,7 +400,7 @@
 
     <div class="article-body-card mt-8 rounded-[2rem] px-6 py-7 sm:px-8 sm:py-9">
       <div class="article-richtext-dark prose prose-slate max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-indigo-700 hover:prose-a:text-indigo-600 prose-img:rounded-xl dark:prose-invert dark:prose-p:text-slate-100 dark:prose-strong:text-white dark:prose-li:text-slate-100 dark:prose-headings:text-white dark:prose-blockquote:text-slate-100 dark:prose-blockquote:border-indigo-400/40 dark:prose-a:text-indigo-300 dark:hover:prose-a:text-indigo-200 dark:[&_*]:!bg-transparent dark:[&_div]:!bg-transparent dark:[&_p]:!bg-transparent dark:[&_span]:!bg-transparent">
-        {{ news.content|safe }}
+        {{ display_content|safe }}
       </div>
     </div>
   </article>

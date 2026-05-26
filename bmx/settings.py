@@ -245,6 +245,12 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            # Při zamčení DB čeká až 20 s místo okamžitého selhání.
+            # Řeší OperationalError: database is locked při souběžných
+            # zápisech z HTTP workerů a TTS background threadů.
+            "timeout": 20,
+        },
     }
 }
 

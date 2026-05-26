@@ -156,7 +156,7 @@
     <a href="{{ article.get_absolute_url }}" class="block">
       <div class="relative overflow-hidden border-b border-slate-200 dark:!border-slate-700">
         {% if article.photo_01_url %}
-        <img src="{{ article.photo_01_url }}" alt="{{ article.title }}"
+        <img src="{{ article.photo_01_url }}" alt="{{ article.display_title }}"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
           class="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-105">
         <div class="aspect-[16/9] w-full items-center justify-center" style="display:none;background:radial-gradient(circle at 30% 40%,rgba(99,102,241,0.18),transparent 60%),linear-gradient(135deg,#e0e7ff 0%,#f0f9ff 100%);">
@@ -182,12 +182,12 @@
 
       <h2 class="mt-4 text-xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
         <a href="{{ article.get_absolute_url }}" class="transition-colors hover:text-indigo-700 dark:hover:text-indigo-300">
-          {{article.title | upper}}
+          {{article.display_title | upper}}
         </a>
       </h2>
 
       <div class="news-card-prefix mt-4 flex-1 line-clamp-4 text-sm leading-6 text-slate-600 [&_a]:text-indigo-700 [&_p]:text-slate-600 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_div]:text-slate-100 dark:[&_span]:text-inherit">
-        {{ article.prefix|safe|truncatechars_html:400 }}
+        {{ article.display_prefix|safe|truncatechars_html:400 }}
       </div>
 
       <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:!border-slate-700">

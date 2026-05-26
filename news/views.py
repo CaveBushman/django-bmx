@@ -2,11 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.utils.translation import get_language
 from event.models import Event, SeasonSettings
 from event.func import update_cart
 from rider.rider import update_plate_notify
 from rider.models import Rider
-from news.models import News, Downloads
+from news.models import News, Downloads, _AUDIO_LANGS
 from club.models import Club
 from datetime import date
 from django.http import FileResponse, Http404
@@ -15,6 +16,8 @@ import mimetypes
 import os
 from theme.models import Sponsor
 from bmx.html_sanitizer import sanitize_rich_html
+
+_SUPPORTED_CONTENT_LANGS = {"cs"} | set(_AUDIO_LANGS)
 
 # Create your views here.
 
@@ -105,8 +108,12 @@ def news_list_view(request):
     ARTICLES_PER_PAGE = 10
     PAGINATION_WINDOW = 10
 
+    lang = (get_language() or "cs").split("-")[0].lower()
+    if lang not in _SUPPORTED_CONTENT_LANGS:
+        lang = "cs"
+
     page_number = request.GET.get('page', 1)
-    cache_key = f"news_list_page_{page_number}"
+    cache_key = f"news_list_page_{page_number}_{lang}"
     data = cache.get(cache_key)
 
     if data is None:
@@ -115,6 +122,14 @@ def news_list_view(request):
         paginator = Paginator(qs, ARTICLES_PER_PAGE)
         news_page = paginator.get_page(page_number)
         news_page.object_list = [_sanitize_news_for_render(a) for a in news_page.object_list]
+
+        for article in news_page.object_list:
+            if lang != "cs":
+                article.display_title = getattr(article, f"title_{lang}", "") or article.title
+                article.display_prefix = getattr(article, f"prefix_{lang}", "") or article.prefix
+            else:
+                article.display_title = article.title
+                article.display_prefix = article.prefix
 
         total_pages = news_page.paginator.num_pages
         start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
@@ -149,8 +164,36 @@ def news_detail_view(request, slug):
     # Přičti zhlédnutí
     news.increment_views()
     news = _sanitize_news_for_render(news)
+
+    # Jazykový obsah — detekujeme aktivní jazyk z LocaleMiddleware
+    lang = (get_language() or "cs").split("-")[0].lower()
+    if lang not in _SUPPORTED_CONTENT_LANGS:
+        lang = "cs"
+
+    if lang != "cs":
+        display_title = getattr(news, f"title_{lang}", "") or news.title
+        display_prefix = getattr(news, f"prefix_{lang}", "") or news.prefix
+        display_content = getattr(news, f"content_{lang}", "") or news.content
+        audio_field = getattr(news, f"audio_file_{lang}", None)
+        try:
+            display_audio_url = audio_field.url if audio_field else ""
+        except (ValueError, OSError):
+            display_audio_url = ""
+        if not display_audio_url:
+            display_audio_url = news.audio_file_url
+    else:
+        display_title = news.title
+        display_prefix = news.prefix
+        display_content = news.content
+        display_audio_url = news.audio_file_url
+
     queryset = {
         'news': news,
+        'display_title': display_title,
+        'display_prefix': display_prefix,
+        'display_content': display_content,
+        'display_audio_url': display_audio_url,
+        'display_lang': lang,
         "absolute_image_url": request.build_absolute_uri(news.photo_01_url) if news.photo_01_url else None,
     }
     return render(request, 'news/news-detail.html', queryset)
