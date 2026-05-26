@@ -26,19 +26,19 @@ msgstr "German"
 
 #: bmx/settings.py:206
 msgid "Slovak"
-msgstr ""
+msgstr "Slovak"
 
 #: bmx/settings.py:207
 msgid "Spanish"
-msgstr ""
+msgstr "Spanish"
 
 #: bmx/settings.py:208
 msgid "Italian"
-msgstr ""
+msgstr "Italian"
 
 #: bmx/settings.py:209
 msgid "French"
-msgstr ""
+msgstr "French"
 
 #: finance/views.py:115
 #, python-format
@@ -114,28 +114,28 @@ msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:94
 msgid "Příjmení"
-msgstr ""
+msgstr "Surname"
 
 #: rider/templates/rider/rider-inactive.html:95
 msgid "Jméno"
-msgstr ""
+msgstr "First name"
 
 #: rider/templates/rider/rider-inactive.html:96
 msgid "Startovní číslo"
-msgstr ""
+msgstr "Race number"
 
 #: rider/templates/rider/rider-inactive.html:98
 #: rider/templates/rider/trainer-dashboard.html:137
 msgid "Klub"
-msgstr ""
+msgstr "Club"
 
 #: rider/templates/rider/rider-inactive.html:123
 msgid "Uvolnit"
-msgstr ""
+msgstr "Release"
 
 #: rider/templates/rider/rider-inactive.html:139
 msgid "Databáze je čistá"
-msgstr ""
+msgstr "Database is clean"
 
 #: rider/templates/rider/rider-inactive.html:141
 msgid ""
@@ -145,23 +145,23 @@ msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:163
 msgid "Potvrzení akce"
-msgstr ""
+msgstr "Confirm action"
 
 #: rider/templates/rider/rider-inactive.html:164
 msgid "Opravdu deaktivovat jezdce?"
-msgstr ""
+msgstr "Really deactivate this rider?"
 
 #: rider/templates/rider/rider-inactive.html:168
 msgid "Zavřít"
-msgstr ""
+msgstr "Close"
 
 #: rider/templates/rider/rider-inactive.html:177
 msgid "Jezdec"
-msgstr ""
+msgstr "Rider"
 
 #: rider/templates/rider/rider-inactive.html:177
 msgid "bude označen jako neaktivní."
-msgstr ""
+msgstr "will be marked as inactive."
 
 #: rider/templates/rider/rider-inactive.html:180
 msgid "Tato akce změní `is_active` na `False`. Samotný profil se nesmaže."
@@ -169,11 +169,11 @@ msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:186
 msgid "Zrušit"
-msgstr ""
+msgstr "Cancel"
 
 #: rider/templates/rider/rider-inactive.html:192
 msgid "Potvrdit deaktivaci"
-msgstr ""
+msgstr "Confirm deactivation"
 
 #: rider/templates/rider/rider-inactive.html:222
 msgid "vybraný jezdec"
@@ -203,11 +203,11 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:29
 msgid "Zpět na profil jezdce"
-msgstr ""
+msgstr "Back to rider profile"
 
 #: rider/templates/rider/rider-premium-stats.html:37
 msgid "Výběr tratě / klubu"
-msgstr ""
+msgstr "Track / club selection"
 
 #: rider/templates/rider/rider-premium-stats.html:39
 msgid ""
@@ -217,19 +217,19 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:48
 msgid "Trať / klub"
-msgstr ""
+msgstr "Track / club"
 
 #: rider/templates/rider/rider-premium-stats.html:56
 msgid "Vyber trať"
-msgstr ""
+msgstr "Select track"
 
 #: rider/templates/rider/rider-premium-stats.html:75
 msgid "KPI období"
-msgstr ""
+msgstr "KPI period"
 
 #: rider/templates/rider/rider-premium-stats.html:97
 msgid "Disciplína"
-msgstr ""
+msgstr "Discipline"
 
 #: rider/templates/rider/rider-premium-stats.html:117
 msgid ""
@@ -239,7 +239,7 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:123
 msgid "Traťový profil"
-msgstr ""
+msgstr "Track profile"
 
 #: rider/templates/rider/rider-premium-stats.html:128
 #, python-format
@@ -272,7 +272,7 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:151
 #: rider/templates/rider/rider-premium-stats.html:152
 msgid "Starty"
-msgstr ""
+msgstr "Starts"
 
 #: rider/templates/rider/rider-premium-stats.html:152
 msgid "Nápověda k položce Starty"
@@ -286,7 +286,7 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:155
 msgid "Celkem"
-msgstr ""
+msgstr "Total"
 
 #: rider/templates/rider/rider-premium-stats.html:159
 #: rider/templates/rider/rider-premium-stats.html:160
@@ -501,7 +501,7 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:248
 #: rider/templates/rider/rider-premium-stats.html:249
 msgid "Trend"
-msgstr ""
+msgstr "Trend"
 
 #: rider/templates/rider/rider-premium-stats.html:249
 msgid "Nápověda k Trendu"
@@ -574,7 +574,7 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:293
 msgid "Pohled dat"
-msgstr ""
+msgstr "Data view"
 
 #: rider/templates/rider/rider-premium-stats.html:296
 msgid "FINISH"
@@ -590,7 +590,7 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:311
 msgid "Trend závodů"
-msgstr ""
+msgstr "Race trend"
 
 #: rider/templates/rider/rider-premium-stats.html:312
 msgid "Medián cílových časů podle závodu"
@@ -607,7 +607,7 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:434
 #: rider/templates/rider/rider-premium-stats.html:523
 msgid "Datum závodu"
-msgstr ""
+msgstr "Race date"
 
 #: rider/templates/rider/rider-premium-stats.html:354
 msgid "Pro vykreslení trendu zatím nejsou na této trati dostupné časy závodů."
@@ -617,17 +617,17 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:450
 #: rider/templates/rider/rider-premium-stats.html:539
 msgid "Datum"
-msgstr ""
+msgstr "Date"
 
 #: rider/templates/rider/rider-premium-stats.html:365
 #: rider/templates/rider/rider-premium-stats.html:451
 #: rider/templates/rider/rider-premium-stats.html:540
 msgid "Závod"
-msgstr ""
+msgstr "Race"
 
 #: rider/templates/rider/rider-premium-stats.html:396
 msgid "Start závodu"
-msgstr ""
+msgstr "Race start"
 
 #: rider/templates/rider/rider-premium-stats.html:397
 msgid "Medián startových časů podle závodu"
@@ -646,7 +646,7 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:485
 msgid "První zatáčka"
-msgstr ""
+msgstr "First corner"
 
 #: rider/templates/rider/rider-premium-stats.html:486
 msgid "Medián mezičasů Inter2 podle závodu"
@@ -675,15 +675,15 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:603
 msgid "Jak Se Počítá"
-msgstr ""
+msgstr "How It's Calculated"
 
 #: rider/templates/rider/rider-premium-stats.html:608
 msgid "Rozumím"
-msgstr ""
+msgstr "Got it"
 
 #: rider/templates/rider/rider-premium-stats.html:653
 msgid "Nápověda"
-msgstr ""
+msgstr "Help"
 
 #: rider/templates/rider/trainer-dashboard.html:4
 #: rider/templates/rider/trainer-dashboard.html:15
@@ -706,7 +706,7 @@ msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:21
 msgid "Kluby"
-msgstr ""
+msgstr "Clubs"
 
 #: rider/templates/rider/trainer-dashboard.html:23
 #, fuzzy
@@ -766,21 +766,21 @@ msgstr ""
 #: rider/templates/rider/trainer-dashboard.html:86
 #: rider/templates/rider/trainer-dashboard.html:91
 msgid "Aktivovat extended"
-msgstr ""
+msgstr "Activate extended"
 
 #: rider/templates/rider/trainer-dashboard.html:99
 #: rider/templates/rider/trainer-dashboard.html:181
 msgid "Vypnout obnovu"
-msgstr ""
+msgstr "Disable renewal"
 
 #: rider/templates/rider/trainer-dashboard.html:108
 #: rider/templates/rider/trainer-dashboard.html:190
 msgid "Zapnout obnovu"
-msgstr ""
+msgstr "Enable renewal"
 
 #: rider/templates/rider/trainer-dashboard.html:122
 msgid "Přiřazené kluby"
-msgstr ""
+msgstr "Assigned clubs"
 
 #: rider/templates/rider/trainer-dashboard.html:123
 msgid "Předplatná po klubech"
@@ -794,7 +794,7 @@ msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:141
 msgid "Detail klubu"
-msgstr ""
+msgstr "Club detail"
 
 #: rider/templates/rider/trainer-dashboard.html:159
 msgid "Klub zatím nemá aktivní stats předplatné."
@@ -802,7 +802,7 @@ msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:172
 msgid "Aktivovat stats"
-msgstr ""
+msgstr "Activate stats"
 
 #: rider/templates/rider/trainer-dashboard.html:202
 msgid "Extended exporty"
@@ -814,7 +814,7 @@ msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:208
 msgid "Seznam jezdců klubu"
-msgstr ""
+msgstr "Club rider list"
 
 #: rider/templates/rider/trainer-dashboard.html:210
 msgid "KPI přehled jezdců"
@@ -830,7 +830,7 @@ msgstr ""
 
 #: rider/views.py:211
 msgid "Celá historie"
-msgstr ""
+msgstr "Full history"
 
 #: rider/views.py:220
 #, python-format
@@ -841,47 +841,47 @@ msgstr[1] ""
 
 #: rider/views.py:680
 msgid "Oblíbená trať"
-msgstr ""
+msgstr "Favourite track"
 
 #: rider/views.py:682
 msgid "Problémová trať"
-msgstr ""
+msgstr "Problematic track"
 
 #: rider/views.py:684
 msgid "Neutrální trať"
-msgstr ""
+msgstr "Neutral track"
 
 #: rider/views.py:722
 msgid "Velmi stabilní"
-msgstr ""
+msgstr "Very stable"
 
 #: rider/views.py:724
 msgid "Stabilní"
-msgstr ""
+msgstr "Stable"
 
 #: rider/views.py:726
 msgid "Kolísavý"
-msgstr ""
+msgstr "Inconsistent"
 
 #: rider/views.py:728
 msgid "Nevyrovnaný"
-msgstr ""
+msgstr "Erratic"
 
 #: rider/views.py:773
 msgid "Potřebujeme víc startů"
-msgstr ""
+msgstr "More starts needed"
 
 #: rider/views.py:790
 msgid "Zlepšuje se"
-msgstr ""
+msgstr "Improving"
 
 #: rider/views.py:792
 msgid "Zhoršuje se"
-msgstr ""
+msgstr "Declining"
 
 #: rider/views.py:794
 msgid "Stagnuje"
-msgstr ""
+msgstr "Stagnating"
 
 #: rider/views.py:799
 #, python-format

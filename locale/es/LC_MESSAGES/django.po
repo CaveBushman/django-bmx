@@ -696,7 +696,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:363
 #: theme/templates/includes/navbar.html:570
 msgid "Trenérský dashboard"
-msgstr ""
+msgstr "Panel del entrenador"
 
 #: rider/templates/rider/trainer-dashboard.html:14
 msgid "Trenérská sekce"
@@ -909,160 +909,160 @@ msgstr ""
 
 #: theme/templates/admin/pagination.html:15
 msgid "Show all"
-msgstr ""
+msgstr "Mostrar todo"
 
 #: theme/templates/admin/pagination.html:18
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: theme/templates/base.html:49
 msgid "Czech BMX"
-msgstr ""
+msgstr "Czech BMX"
 
 #: theme/templates/base.html:82
 msgid "Done"
-msgstr ""
+msgstr "Hecho"
 
 #: theme/templates/base.html:84
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
 #: theme/templates/base.html:86
 msgid "Warning"
-msgstr ""
+msgstr "Advertencia"
 
 #: theme/templates/base.html:88
 msgid "Information"
-msgstr ""
+msgstr "Información"
 
 #: theme/templates/includes/navbar.html:73
 #: theme/templates/includes/navbar.html:76
 #: theme/templates/includes/navbar.html:427
 msgid "HOME"
-msgstr ""
+msgstr "HOME"
 
 #: theme/templates/includes/navbar.html:81
 #: theme/templates/includes/navbar.html:84
 #: theme/templates/includes/navbar.html:430
 msgid "ČLÁNKY"
-msgstr ""
+msgstr "ARTÍCULOS"
 
 #: theme/templates/includes/navbar.html:89
 #: theme/templates/includes/navbar.html:92
 #: theme/templates/includes/navbar.html:433
 msgid "KALENDÁŘ"
-msgstr ""
+msgstr "CALENDARIO"
 
 #: theme/templates/includes/navbar.html:97
 #: theme/templates/includes/navbar.html:100
 #: theme/templates/includes/navbar.html:436
 msgid "JEZDCI"
-msgstr ""
+msgstr "PILOTOS"
 
 #: theme/templates/includes/navbar.html:105
 #: theme/templates/includes/navbar.html:108
 #: theme/templates/includes/navbar.html:439
 msgid "KLUBY"
-msgstr ""
+msgstr "CLUBES"
 
 #: theme/templates/includes/navbar.html:113
 #: theme/templates/includes/navbar.html:116
 #: theme/templates/includes/navbar.html:442
 msgid "RANKING"
-msgstr ""
+msgstr "RANKING"
 
 #: theme/templates/includes/navbar.html:121
 #: theme/templates/includes/navbar.html:124
 #: theme/templates/includes/navbar.html:445
 msgid "PRAVIDLA"
-msgstr ""
+msgstr "REGLAS"
 
 #: theme/templates/includes/navbar.html:129
 #: theme/templates/includes/navbar.html:132
 #: theme/templates/includes/navbar.html:448
 msgid "KE STAŽENÍ"
-msgstr ""
+msgstr "DESCARGAS"
 
 #: theme/templates/includes/navbar.html:166
 msgid "Přepnout světlý/tmavý režim"
-msgstr ""
+msgstr "Cambiar modo claro/oscuro"
 
 #: theme/templates/includes/navbar.html:340
 msgid "Open user menu"
-msgstr ""
+msgstr "Open user menu"
 
 #: theme/templates/includes/navbar.html:353
 #: theme/templates/includes/navbar.html:503
 msgid "Zobraz/skryj CHIPKU"
-msgstr ""
+msgstr "Mostrar/ocultar CHIPKA"
 
 #: theme/templates/includes/navbar.html:356
 #: theme/templates/includes/navbar.html:563
 msgid "Aktivní registrace"
-msgstr ""
+msgstr "Inscripciones activas"
 
 #: theme/templates/includes/navbar.html:358
 #: theme/templates/includes/navbar.html:565
 msgid "Kredit"
-msgstr ""
+msgstr "Crédito"
 
 #: theme/templates/includes/navbar.html:360
 #: theme/templates/includes/navbar.html:567
 msgid "Moje nastavení a faktury"
-msgstr ""
+msgstr "Mi configuración y facturas"
 
 #: theme/templates/includes/navbar.html:366
 #: theme/templates/includes/navbar.html:394
 msgid "Vyhledej čip"
-msgstr ""
+msgstr "Buscar chip"
 
 #: theme/templates/includes/navbar.html:369
 msgid "Finance"
-msgstr ""
+msgstr "Finanzas"
 
 #: theme/templates/includes/navbar.html:371
 #: theme/templates/includes/navbar.html:574
 msgid "Administrace"
-msgstr ""
+msgstr "Administración"
 
 #: theme/templates/includes/navbar.html:373
 #: theme/templates/includes/navbar.html:576
 msgid "Nasazení rozhodčích"
-msgstr ""
+msgstr "Asignación de árbitros"
 
 #: theme/templates/includes/navbar.html:375
 #: theme/templates/includes/navbar.html:579
 msgid "Statistika webu"
-msgstr ""
+msgstr "Estadísticas web"
 
 #: theme/templates/includes/navbar.html:381
 #: theme/templates/includes/navbar.html:584
 msgid "Úkoly komise"
-msgstr ""
+msgstr "Tareas de la comisión"
 
 #: theme/templates/includes/navbar.html:391
 #: theme/templates/includes/navbar.html:593
 msgid "Odhlášení"
-msgstr ""
+msgstr "Cerrar sesión"
 
 #: theme/templates/includes/navbar.html:396
 #: theme/templates/includes/navbar.html:596
 msgid "Přihlášení"
-msgstr ""
+msgstr "Iniciar sesión"
 
 #: theme/templates/includes/navbar.html:398
 #: theme/templates/includes/navbar.html:598
 msgid "Registrace"
-msgstr ""
+msgstr "Registro"
 
 #: theme/templates/includes/navbar.html:408
 msgid "Open main menu"
-msgstr ""
+msgstr "Open main menu"
 
 #: theme/templates/includes/navbar.html:488
 msgid "View notifications"
-msgstr ""
+msgstr "View notifications"
 
 #: theme/templates/includes/navbar.html:505
 msgid "Jazyk"
-msgstr ""
+msgstr "Idioma"

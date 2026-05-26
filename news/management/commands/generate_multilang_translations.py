@@ -2,7 +2,7 @@ import time
 
 from django.core.management.base import BaseCommand
 
-from news.models import News, _AUDIO_LANGS, _translate_article_content
+from news.models import News, _AUDIO_LANGS, _translate_article_content, _translate_text
 
 
 class Command(BaseCommand):
@@ -62,16 +62,41 @@ class Command(BaseCommand):
         for idx, article in enumerate(qs):
             any_generated = False
             for lang in langs:
-                # Skip if both prefix and content are already translated (unless forced).
+                title_field = f"title_{lang}"
                 prefix_field = f"prefix_{lang}"
                 content_field = f"content_{lang}"
-                already_done = (
+
+                title_missing = not getattr(article, title_field, "").strip()
+                body_done = (
                     bool(getattr(article, prefix_field, "").strip())
                     or bool(getattr(article, content_field, "").strip())
                 )
-                if already_done and not force:
-                    continue
 
+                if not force:
+                    if not title_missing and body_done:
+                        # Fully translated — skip.
+                        continue
+
+                    if title_missing and body_done:
+                        # Tělo již existuje, chybí jen titulek — přeložíme pouze ho.
+                        self.stdout.write(
+                            f"  [{article.pk}] {article.title[:50]!r} → {lang} (title only) ...",
+                            ending=" ",
+                        )
+                        self.stdout.flush()
+                        try:
+                            translated = _translate_text(article.title or "", lang)
+                            if translated:
+                                News.objects.filter(pk=article.pk).update(**{title_field: translated})
+                                self.stdout.write(self.style.SUCCESS("ok"))
+                                any_generated = True
+                            else:
+                                self.stdout.write(self.style.WARNING("empty — skipped"))
+                        except Exception as exc:
+                            self.stdout.write(self.style.ERROR(f"FAILED: {exc}"))
+                        continue
+
+                # Plný překlad (titulek + prefix + content).
                 self.stdout.write(f"  [{article.pk}] {article.title[:50]!r} → {lang} ...", ending=" ")
                 self.stdout.flush()
                 try:
