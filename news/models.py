@@ -105,14 +105,16 @@ def _translate_article_content(article_id: int, lang: str):
                 time.sleep(0.8)
             return "\n".join(parts)
 
+        title_t = _translate_text(article.title or "", lang) if article.title else ""
         prefix_t = _translate_html(article.prefix or "")
         content_t = _translate_html(article.content or "")
 
-        if not (prefix_t or content_t):
+        if not (title_t or prefix_t or content_t):
             logger.warning("[TRANSLATE] Article %s lang=%s: překlad selhal.", article_id, lang)
             return
 
         NewsModel.objects.filter(pk=article_id).update(**{
+            f"title_{lang}": title_t,
             f"prefix_{lang}": prefix_t,
             f"content_{lang}": content_t,
         })
@@ -331,6 +333,12 @@ class News (models.Model):
     view_count = models.PositiveIntegerField(default=0, db_index=True, help_text=_("Počet zhlédnutí"))
 
     # Přeložený obsah (generováno automaticky při uložení)
+    title_en = models.CharField(max_length=255, blank=True, default="")
+    title_de = models.CharField(max_length=255, blank=True, default="")
+    title_sk = models.CharField(max_length=255, blank=True, default="")
+    title_es = models.CharField(max_length=255, blank=True, default="")
+    title_it = models.CharField(max_length=255, blank=True, default="")
+    title_fr = models.CharField(max_length=255, blank=True, default="")
     prefix_en = models.TextField(blank=True, default="")
     prefix_de = models.TextField(blank=True, default="")
     prefix_sk = models.TextField(blank=True, default="")

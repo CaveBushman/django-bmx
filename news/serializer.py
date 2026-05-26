@@ -3,12 +3,14 @@ from .models import News
 
 _SUPPORTED_LANGS = frozenset(("en", "de", "sk", "es", "it", "fr"))
 _TRANSLATED_FIELDS = (
+    [f"title_{l}" for l in _SUPPORTED_LANGS] +
     [f"prefix_{l}" for l in _SUPPORTED_LANGS] +
     [f"content_{l}" for l in _SUPPORTED_LANGS]
 )
 
 
 class NewsSerializer(serializers.ModelSerializer):
+    title = serializers.SerializerMethodField()
     prefix = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
 
@@ -24,6 +26,14 @@ class NewsSerializer(serializers.ModelSerializer):
             lang = raw.split(",")[0].split("-")[0].strip().lower()[:2]
             return lang if lang in _SUPPORTED_LANGS else "cs"
         return "cs"
+
+    def get_title(self, obj) -> str:
+        lang = self._lang()
+        if lang != "cs":
+            translated = getattr(obj, f"title_{lang}", "") or ""
+            if translated.strip():
+                return translated
+        return obj.title
 
     def get_prefix(self, obj) -> str | None:
         lang = self._lang()
