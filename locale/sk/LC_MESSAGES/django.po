@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 21:02+0100\n"
+"POT-Creation-Date: 2026-05-26 22:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,69 +19,4510 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
 ">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
-#: bmx/settings.py:203
+#: accounts/admin.py:91
+#, python-format
+msgid "Aktivační e-mail znovu odeslán pro %(count)s účtů."
+msgstr ""
+
+#: accounts/admin.py:98
+msgid "Uživatel nebyl nalezen."
+msgstr ""
+
+#: accounts/admin.py:101
+msgid "Účet je už aktivní."
+msgstr ""
+
+#: accounts/admin.py:112
+#, python-format
+msgid "Aktivační e-mail byl znovu odeslán na %(email)s."
+msgstr ""
+
+#: accounts/admin.py:122
+msgid "Aktivní"
+msgstr ""
+
+#: accounts/admin.py:126
+msgid "Čeká na aktivaci"
+msgstr ""
+
+#: accounts/admin.py:134 accounts/templates/accounts/resend_activation.html:4
+msgid "Znovu poslat aktivaci"
+msgstr ""
+
+#: accounts/admin.py:142
+msgid "Žádné záznamy"
+msgstr ""
+
+#: accounts/admin.py:145
+msgid "systém"
+msgstr ""
+
+#: accounts/models.py:143
+msgid "Uživatel musí mít e-mailovou adresu."
+msgstr ""
+
+#: accounts/models.py:154
+msgid "Uživatel s tímto e-mailem již existuje bez ohledu na velikost písmen."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_email.txt:2
+#, python-format
+msgid "Ahoj %(name)s,"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_email.txt:4
+msgid "dokončete registraci účtu na Czech BMX kliknutím na tento odkaz:"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_email.txt:7
+msgid "Pokud jste registraci nevytvářeli, tento e-mail můžete ignorovat."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:4
+msgid "Aktivace účtu"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:20
+msgid "Zkontrolujte svůj e-mail"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:22
+msgid ""
+"Poslali jsme vám aktivační odkaz. Účet se zapne až po kliknutí na odkaz v e-"
+"mailu."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:26
+msgid "Další krok"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:28
+msgid ""
+"Otevřete zprávu od Czech BMX a potvrďte registraci. Pokud e-mail nevidíte "
+"během několika minut, zkontrolujte i složku spam nebo hromadné."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:33
+msgid ""
+"Po aktivaci se budete moct přihlásit stejným e-mailem a heslem, které jste "
+"právě zadali."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:36
+msgid "E-mail nedorazil?"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:38
+msgid "Můžete si nechat poslat nový aktivační odkaz na stejnou adresu."
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_sent.html:41
+msgid "Otevřít formulář pro nové odeslání"
+msgstr ""
+
+#: accounts/templates/accounts/account_activation_subject.txt:1
+msgid "Aktivace účtu na Czech BMX"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:4
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:155
+msgid "Schvalování avatarů"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:154
+msgid "Moderace obsahu"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:157
+#, python-format
+msgid ""
+"Žádosti čekají na ruční posouzení. Nevyřízené návrhy automaticky expirují po "
+"%(days)s dnech."
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:162
+msgid "Čeká"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:166
+msgid "Schváleno"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:170
+msgid "Zamítnuto"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:174
+msgid "Expirováno"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:186
+msgid "Fronta"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:187
+msgid "Čekající žádosti"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:190
+msgid "Otevřít i v adminu"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:210
+msgid "Typ: účet"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:212
+msgid "Typ: jezdec"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:216
+#, python-format
+msgid "Nahrál %(user)s dne %(created)s."
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:227
+msgid "Schválit a zveřejnit"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:235
+msgid "Zamítnout"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:246
+msgid "Teď tu nejsou žádné avatary čekající na schválení."
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:252
+msgid "Historie"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:253
+#, fuzzy
+#| msgid "Nasazení rozhodčích"
+msgid "Poslední rozhodnutí"
+msgstr "Nasadenie rozhodcov"
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:261
+msgid "Cíl"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:262
+msgid "Nahrál"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:263
+#: eshop/templates/eshop/admin-order-detail.html:23
+#: eshop/templates/eshop/order_confirmation.html:89 event/admin.py:347
+#: event/admin.py:610 event/templates/event/event-detail.html:397
+msgid "Stav"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:264
+msgid "Rozhodnuto"
+msgstr ""
+
+#: accounts/templates/accounts/avatar-moderation-dashboard.html:290
+msgid "Historie moderace zatím neobsahuje žádné záznamy."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:4
+#: accounts/templates/accounts/ops-dashboard.html:221
+#: theme/templates/includes/navbar.html:331
+#: theme/templates/includes/navbar.html:553
+#, fuzzy
+#| msgid "Trenérský dashboard"
+msgid "Provozní dashboard"
+msgstr "Trénerský dashboard"
+
+#: accounts/templates/accounts/ops-dashboard.html:219
+msgid "Ops"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:223
+msgid "Přehled avatarů, importů, stavu rankingu a datových chyb."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:232
+msgid "Čekající avatary"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:250
+msgid "Datové chyby"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:267
+msgid "Závody bez výsledků"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:288
+msgid "Pozornost teď"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:289
+msgid "Co řešit hned"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:294
+msgid "Avatar requesty"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:307
+msgid "Bez čekajících žádostí."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:314
+msgid "Refund kontroly dnes"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:329
+msgid "Žádné refund problémy dnes."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:338
+msgid "Importy a ranking"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:339
+msgid "Poslední systémové změny"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:342
+#: rider/templates/rider/rider-rank.html:3
+msgid "Přepočet rankingu"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:347
+msgid "Naposledy dokončeno"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:358
+msgid "Zatím nejsou evidované žádné importy."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:370
+msgid "Datová kvalita"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:371
+msgid "Souhrn chyb"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:374
+msgid "Jezdci bez klubu / transpondéru"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:378
+msgid "Ranking mismatch"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:382
+msgid "Výsledky bez ridera / kategorie / typu"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:386
+msgid "Označené výsledky s 0 body"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:393
+msgid "Kalendář"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:394
+msgid "Závody"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:398
+msgid "Bez výsledků (letošní rok)"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:415
+msgid "Všechny letošní závody mají výsledky."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:421
+msgid "Výsledky neodeslané na ČSC"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:438
+msgid "Všechny výsledky jsou odeslány na ČSC."
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:450
+msgid "Sekundární kontroly"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:451
+msgid "Rychlý souhrn"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:455
+msgid "Aktivace účtů"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:457
+msgid "posledních"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:461
+msgid "Finanční audit"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:463
+msgid "posledních zásahů"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:467
+msgid "Refund dnes"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:469
+msgid "otevřených"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:473
+#: accounts/templates/accounts/ops-dashboard.html:483
+msgid "Duplicitní e-maily"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:475
+msgid "skupin"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:482
+msgid "Účty"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:489
+msgid "účet"
+msgstr ""
+
+#: accounts/templates/accounts/ops-dashboard.html:494
+msgid "Žádné duplicitní e-mailové skupiny."
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:13
+msgid "Poslat nový aktivační odkaz"
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:15
+msgid ""
+"Zadejte e-mail použitý při registraci. Pokud pro něj existuje čekající "
+"aktivace, pošleme vám nový odkaz."
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:36
+#: eshop/templates/eshop/checkout.html:289
+#: eshop/templates/eshop/product_detail.html:805
+#: theme/templates/registration/password_reset_form.html:25
+msgid "E-mail"
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:37
+msgid "vas@email.cz"
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:41
+#: rider/templates/rider/rider-request.html:236
+#: rider/templates/rider/rider-request.html:455
+#: theme/templates/registration/password_reset_form.html:43
+msgid "Ověření"
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:43
+#: rider/templates/rider/rider-request.html:460
+#: theme/templates/registration/password_reset_form.html:53
+#, python-format
+msgid "Kolik je %(human_check_question)s?"
+msgstr ""
+
+#: accounts/templates/accounts/resend_activation.html:47
+msgid "Poslat nový odkaz"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:5
+#: event/templates/event/events-list_new.html:297
+#: theme/templates/includes/navbar.html:354
+#: theme/templates/includes/navbar.html:580
+msgid "Přihlášení"
+msgstr "Prihlásenie"
+
+#: accounts/templates/accounts/signin.html:26
+#: accounts/templates/accounts/signup.html:24
+msgid "Přístup do interní části webu"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:29
+msgid ""
+"Zadejte e-mail a heslo k účtu Czech BMX. Pokud ještě nejste registrováni,"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:30
+msgid "registrujte se zde"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:35
+msgid "Ještě vám nejde přihlášení?"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:37
+msgid ""
+"Nový účet je potřeba nejdřív potvrdit přes aktivační odkaz v e-mailu. Pokud "
+"formulář zachytí podezřelé chování, může se zobrazit krátké ověření proti "
+"robotům."
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:40
+msgid "Poslat aktivační e-mail znovu"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:72
+msgid "Zapomněli jste heslo?"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:84
+msgid ""
+"Zobrazujeme ho jen po sérii neúspěšných nebo podezřelých pokusů o přihlášení."
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:97
+msgid "Zapamatovat si mě"
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:99
+msgid "Přihlášení zůstane aktivní po dobu 14 dní."
+msgstr ""
+
+#: accounts/templates/accounts/signin.html:104
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlásit se"
+msgstr "Prihlásenie"
+
+#: accounts/templates/accounts/signup.html:27
+msgid ""
+"Vyplňte své základní údaje pro vytvoření účtu. Po odeslání formuláře vám "
+"pošleme aktivační e-mail a účet se zapne až po jeho potvrzení. Pokud už účet "
+"máte,"
+msgstr ""
+
+#: accounts/templates/accounts/signup.html:28
+msgid "přihlaste se zde"
+msgstr ""
+
+#: accounts/templates/accounts/signup.html:33
+msgid ""
+"Notice: user registration and credit purchases are intended for Czech riders "
+"only."
+msgstr ""
+
+#: accounts/templates/accounts/signup.html:37
+msgid "Jak registrace funguje"
+msgstr ""
+
+#: accounts/templates/accounts/signup.html:39
+msgid ""
+"1. Vyplníte formulář. 2. Potvrdíte registraci v e-mailu. 3. Teprve potom se "
+"můžete přihlásit a pracovat s kredity nebo registracemi jezdců."
+msgstr ""
+
+#: accounts/templates/accounts/signup.html:101
+msgid ""
+"Po několika podezřelých pokusech chceme krátké potvrzení, že formulář "
+"vyplňuje člověk."
+msgstr ""
+
+#: accounts/views.py:128
+msgid ""
+"Na tento e-mail už čeká nedokončená registrace. Pošlete si nový aktivační "
+"odkaz."
+msgstr ""
+
+#: accounts/views.py:131
+msgid "Uživatel s tímto e-mailem již existuje."
+msgstr ""
+
+#: accounts/views.py:139
+msgid "Uživatel s tímto uživatelským jménem již existuje."
+msgstr ""
+
+#: accounts/views.py:173
+msgid ""
+"Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu"
+msgstr ""
+
+#: accounts/views.py:196
+msgid ""
+"Pro tento e-mail existuje více historických účtů. Kontaktujte administrátora."
+msgstr ""
+
+#: accounts/views.py:210
+msgid ""
+"Účet ještě není aktivovaný. Otevřete aktivační e-mail a potvrďte registraci. "
+"Pokud zprávu nevidíte, zkontrolujte i spam."
+msgstr ""
+
+#: accounts/views.py:241
+msgid "Neplatné uživatelské jméno nebo heslo."
+msgstr ""
+
+#: accounts/views.py:254
+msgid "Aktivační odkaz je neplatný."
+msgstr ""
+
+#: accounts/views.py:258
+msgid "Aktivační odkaz je neplatný nebo expiroval."
+msgstr ""
+
+#: accounts/views.py:263
+msgid "Aktivační odkaz expiroval. Zaregistrujte se prosím znovu."
+msgstr ""
+
+#: accounts/views.py:283
+msgid ""
+"Účet byl úspěšně aktivován. Teď se můžete přihlásit svým e-mailem a heslem."
+msgstr ""
+
+#: accounts/views.py:349
+msgid ""
+"Pokud pro tento e-mail existuje čekající registrace, poslali jsme nový "
+"aktivační odkaz."
+msgstr ""
+
+#: bmx/form_protection.py:119
+msgid "Zkus to prosím znovu za několik minut."
+msgstr ""
+
+#: bmx/form_protection.py:127
+msgid "Formulář se nepodařilo ověřit. Zkus to prosím znovu."
+msgstr ""
+
+#: bmx/form_protection.py:142
+msgid "Platnost formuláře vypršela. Otevři stránku znovu."
+msgstr ""
+
+#: bmx/form_protection.py:151
+msgid "Formulář byl odeslán příliš rychle. Zkus to prosím znovu."
+msgstr ""
+
+#: bmx/form_protection.py:171
+msgid "Ověření, že nejste robot, se nepodařilo."
+msgstr ""
+
+#: bmx/settings.py:273
 msgid "Czech"
 msgstr ""
 
-#: bmx/settings.py:204
+#: bmx/settings.py:274
 msgid "English"
 msgstr ""
 
-#: bmx/settings.py:205
+#: bmx/settings.py:275
 msgid "German"
 msgstr ""
 
-#: bmx/settings.py:206
+#: bmx/settings.py:276
 msgid "Slovak"
 msgstr ""
 
-#: bmx/settings.py:207
+#: bmx/settings.py:277
 msgid "Spanish"
 msgstr ""
 
-#: bmx/settings.py:208
+#: bmx/settings.py:278
 msgid "Italian"
 msgstr ""
 
-#: bmx/settings.py:209
+#: bmx/settings.py:279
 msgid "French"
 msgstr ""
 
-#: finance/views.py:115
+#: club/templates/club/clubs-list.html:3
+#: rider/templates/rider/trainer-dashboard.html:96
+msgid "Kluby"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:169
+msgid "Kontakty a regiony"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:170
+msgid "České kluby BMX Racing"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:172
+msgid ""
+"Aktivní kluby, kontaktní osoby a komunikační údaje pohromadě. Přehled je "
+"připravený tak, aby se v něm dalo rychle zorientovat podle regionu i "
+"dostupnosti kontaktů."
+msgstr ""
+
+#: club/templates/club/clubs-list.html:177
+msgid "Aktivních klubů"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:181
+msgid "Krajů"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:185
+msgid "S kontaktem"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:199
+msgid "Adresář klubů"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:200
+msgid "Kontakty, regiony a spojení"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:202
+msgid ""
+"Vyhledávej podle názvu, města, kontaktu nebo si zúž přehled jen na vybraný "
+"kraj."
+msgstr ""
+
+#: club/templates/club/clubs-list.html:207
+msgid "zobrazených klubů"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:209
+msgid "celkem"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:217
+msgid "Hledat klub"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:222
+msgid "Název klubu, město, kontakt nebo e-mail"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:227
+msgid "Kraj"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:232
+msgid "Všechny kraje"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:240
+msgid "Filtrovat"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:244
+msgid "Reset"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:255
+msgid "Hledání:"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:260
+msgid "Kraj:"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:285
+msgid "Město není uvedeno"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:291
+msgid "Kontakt dostupný"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:293
+msgid "Bez kontaktu"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:300
+msgid "Kontaktní osoba"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:331
+msgid "E-mail ani telefon nejsou uvedené"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:339
+msgid "Otevřít detail klubu"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:350
+#: event/templates/event/entry.html:1385
+msgid "Žádný výsledek"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:351
+msgid "Pro zadaný filtr jsme nenašli žádný klub"
+msgstr ""
+
+#: club/templates/club/clubs-list.html:353
+msgid ""
+"Zkus upravit hledaný výraz nebo obnovit všechny kraje a zobrazit celý "
+"adresář."
+msgstr ""
+
+#: club/templates/club/clubs-list.html:357
+msgid "Zobrazit všechny kluby"
+msgstr ""
+
+#: eshop/forms.py:23 eshop/templates/eshop/admin-order-detail.html:112
+#: eshop/templates/eshop/checkout.html:317 event/admin.py:167
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:33
+#: finance/views.py:229 rider/premium_stats_pdf.py:560
+#: rider/premium_stats_pdf.py:599
+#: rider/templates/rider/account-settings-invoices.html:723
+#: rider/templates/rider/rider-premium-stats.html:652
+#: rider/templates/rider/rider-premium-stats.html:738
+#: rider/templates/rider/rider-premium-stats.html:827
+msgid "Závod"
+msgstr ""
+
+#: eshop/forms.py:25
+msgid "Vyber závod"
+msgstr ""
+
+#: eshop/forms.py:63 eshop/templates/eshop/product_detail.html:799
+msgid "Varianta"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:4
+#: eshop/templates/eshop/index.html:354
+#: eshop/templates/eshop/my_orders.html:308
+msgid "Detail objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:13
+msgid "Admin objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:27
+#: eshop/templates/eshop/cart.html:191 eshop/templates/eshop/cart.html:363
+#: eshop/templates/eshop/checkout.html:242
+#: eshop/templates/eshop/checkout.html:486
+#: eshop/templates/eshop/order_confirmation.html:85
+#: eshop/templates/eshop/order_confirmation.html:149
+#: eshop/templates/eshop/pickup-print.html:80
+#: rider/templates/rider/rider-premium-stats.html:394
+msgid "Celkem"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:31
+#: theme/templates/includes/navbar.html:312
+#: theme/templates/includes/navbar.html:544
+msgid "Kredit"
+msgstr "Kredit"
+
+#: eshop/templates/eshop/admin-order-detail.html:47
+msgid "Položky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:48
+msgid "Obsah objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:51
+msgid "Otevřít v Django adminu"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:61
+#: eshop/templates/eshop/checkout.html:418
+#: eshop/templates/eshop/my_orders.html:253
+#: eshop/templates/eshop/order_confirmation.html:129
+msgid "Bez fotky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:69
+#: eshop/templates/eshop/index.html:338
+#: eshop/templates/eshop/my_orders.html:258
+#: eshop/templates/eshop/order_confirmation.html:134
+#: eshop/templates/eshop/pickup-print.html:89
+msgid "Produkt"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:73
+#: eshop/templates/eshop/index.html:339 eshop/templates/eshop/index.html:461
+#: eshop/templates/eshop/index.html:486 eshop/templates/eshop/index.html:528
+#: eshop/templates/eshop/index.html:557 eshop/templates/eshop/index.html:612
+#: eshop/templates/eshop/my_orders.html:261
+#: eshop/templates/eshop/pickup-print.html:90
+msgid "Velikost"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:73
+#: eshop/templates/eshop/index.html:340
+#: eshop/templates/eshop/my_orders.html:262
+#: eshop/templates/eshop/order_confirmation.html:138
+#: eshop/templates/eshop/pickup-print.html:91
+msgid "Počet kusů"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:73
+msgid "Cena za kus"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:85
+msgid "Doklady a kontakty"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:88
+msgid "Doklady"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:90
+#: eshop/templates/eshop/my_orders.html:214
+#: eshop/templates/eshop/order_confirmation.html:81
+msgid "Faktura"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:92
+#: eshop/templates/eshop/my_orders.html:218
+msgid "Dobropis"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:97
+msgid "Stáhnout fakturu"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:101
+msgid "Stáhnout dobropis"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:107
+#: eshop/templates/eshop/checkout.html:282
+msgid "Kontakt a předání"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:109
+msgid "Zákazník"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:111
+#: eshop/templates/eshop/checkout.html:306
+#: rider/templates/rider/rider-request.html:440
+#: theme/templates/homepage.html:850
+msgid "Telefon"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:114
+msgid "Poznámka zákazníka"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:117
+msgid "Interní poznámka"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:127
+msgid "Průběh"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:130
+msgid "Vytvořeno"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:134
+#: eshop/templates/eshop/my_orders.html:239
+msgid "Uhrazeno kredity"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:136
+msgid "Bez aktivní úhrady"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:140
+#: eshop/templates/eshop/checkout.html:312
+#: eshop/templates/eshop/my_orders.html:274
+#: eshop/templates/eshop/order_confirmation.html:168
+#: eshop/templates/eshop/product_detail.html:728
+#: eshop/templates/eshop/shop.html:513
+msgid "Předání"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:144
+#: eshop/templates/eshop/index.html:401
+#: eshop/templates/eshop/my_orders.html:287
+#: eshop/templates/eshop/order_confirmation.html:189
+msgid "Předal"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:147
+msgid "Zatím nepředáno"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:154
+msgid "Kreditní transakce"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:167
+msgid "K této objednávce zatím nejsou dohledané kreditní transakce."
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:173
+msgid "Historie objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:190
+msgid "Provedl"
+msgstr ""
+
+#: eshop/templates/eshop/admin-order-detail.html:195
+msgid "Historie objednávky zatím neobsahuje žádné záznamy."
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:4 eshop/templates/eshop/cart.html:166
+#: eshop/templates/eshop/cart.html:168
+msgid "Košík"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:4 eshop/templates/eshop/cart.html:164
+#: eshop/templates/eshop/checkout.html:4 eshop/templates/eshop/my_orders.html:4
+#: eshop/templates/eshop/my_orders.html:166
+#: eshop/templates/eshop/order_confirmation.html:4
+#: eshop/templates/eshop/product_detail.html:4
+#: eshop/templates/eshop/product_detail.html:217
+#: eshop/templates/eshop/shop.html:4 eshop/templates/eshop/shop.html:341
+#: eshop/templates/eshop/size_guide.html:4
+#: eshop/templates/eshop/size_guide.html:35
+#: eshop/templates/eshop/size_guide.html:43
+#: theme/templates/includes/navbar.html:557
+msgid "E-shop"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:171
 #, python-format
-msgid "Ověřeno %(count)d plateb za kredity za poslední 2 dny."
+msgid ""
+"%(count)s položek čeká na objednání. Zkontroluj množství a pokračuj na "
+"checkout."
 msgstr ""
 
-#: rider/templates/rider/rider-checkout.html:3
-#: rider/templates/rider/rider-success.html:3
-msgid "Potvrzení"
+#: eshop/templates/eshop/cart.html:173
+msgid "Žádné položky v košíku."
 msgstr ""
 
+#: eshop/templates/eshop/cart.html:179 eshop/templates/eshop/shop.html:355
+msgid "Dokončit objednávku"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:187 eshop/templates/eshop/checkout.html:238
+msgid "Položek"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:195 eshop/templates/eshop/cart.html:355
+#: eshop/templates/eshop/checkout.html:478
+msgid "Doprava"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:196
+msgid "Zdarma"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:213
+msgid "Obsah košíku"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:214
+msgid "Vybrané produkty"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:273
+msgid "Odebrat kus"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:280
+msgid "Přidat kus"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:292
+msgid "Odebrat z košíku"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:311
+#: eshop/templates/eshop/product_detail.html:348
+msgid "Pokračovat v nákupu"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:320 eshop/templates/eshop/checkout.html:356
+msgid "Souhrn"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:321
+msgid "Souhrn košíku"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:351 eshop/templates/eshop/checkout.html:474
+#: eshop/templates/eshop/my_orders.html:263
+msgid "Mezisoučet"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:356 eshop/templates/eshop/checkout.html:479
+msgid "Předání na závodě"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:359 eshop/templates/eshop/checkout.html:246
+msgid "Platba"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:360 eshop/templates/eshop/checkout.html:483
+msgid "Kredity z účtu"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:371
+msgid "Pokračovat k objednávce"
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:377
+msgid "Objednávka se uhradí kredity z účtu."
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:392
+msgid "Košík je prázdný."
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:393
+msgid "Přidej produkty z e-shopu a pak se vrať sem."
+msgstr ""
+
+#: eshop/templates/eshop/cart.html:396 eshop/templates/eshop/my_orders.html:355
+msgid "Přejít do e-shopu"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:4
+msgid "Objednávka"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:230
+#: eshop/templates/eshop/order_confirmation.html:67
+msgid "E-shop checkout"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:231
+msgid "Dokončení objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:233
+msgid ""
+"Jeden čistý krok: doplnit údaje, zvolit předání na závodě a potvrdit "
+"objednávku. Úhrada proběhne kredity z účtu."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:247
+#, fuzzy
+#| msgid "Kredit"
+msgid "Kredity"
+msgstr "Kredit"
+
+#: eshop/templates/eshop/checkout.html:272
+msgid "Objednávku se nepodařilo potvrdit."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:273
+msgid "Zkontroluj vyplněné údaje v kontaktním formuláři a místě předání."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:283
+msgid "Údaje k objednávce"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:284
+msgid "Vyplň minimum potřebné pro předání zboží a potvrzení nákupu."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:295
+#: event/services/unpaid_moto_report_pdf.py:98
+#: event/services/unpaid_moto_report_pdf.py:113
+#: event/templates/event/entry-list.html:218
+#: event/templates/event/entry-list.html:290
+#: event/templates/event/unpaid-moto-riders-report.html:130
+#: event/templates/event/unpaid-moto-riders-report.html:168
+#: rider/templates/rider/rider-inactive.html:96
+#: rider/templates/rider/rider-request.html:350
+msgid "Jméno"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:300
+#: event/services/unpaid_moto_report_pdf.py:98
+#: event/services/unpaid_moto_report_pdf.py:113
+#: event/templates/event/entry.html:972
+#: event/templates/event/unpaid-moto-riders-report.html:129
+#: event/templates/event/unpaid-moto-riders-report.html:167
+#: rider/templates/rider/rider-inactive.html:95
+#: rider/templates/rider/rider-request.html:356
+msgid "Příjmení"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:313
+msgid "Místo předání"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:322
+msgid "Informace k výdeji"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:326
+msgid "Místo:"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:332
+msgid "Čas:"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:345
+#: eshop/templates/eshop/product_detail.html:811 event/admin.py:349
+#: event/admin.py:612
+msgid "Poznámka"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:357
+#: eshop/templates/eshop/order_confirmation.html:115
+msgid "Souhrn objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:364
+msgid "Úhrada kredity"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:365
+msgid "Objednávka se po potvrzení uhradí z kreditu účtu."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:372
+#, python-format
+msgid "Kusy jsou rezervované od vložení do košíku přibližně do %(expires)s."
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:387
+msgid "Nedostatečný kredit"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:396
+msgid "Není dostupné místo výdeje"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:399
+#: eshop/templates/eshop/checkout.html:504
+#: eshop/templates/eshop/order_confirmation.html:215
+msgid "Zpět do e-shopu"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:426
+msgid "Počet kusů:"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:454
+msgid "Odebrat"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:482
+#: eshop/templates/eshop/order_confirmation.html:157
+msgid "Úhrada"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:498
+msgid "Potvrdit objednávku"
+msgstr ""
+
+#: eshop/templates/eshop/checkout.html:507
+msgid ""
+"Objednávku můžeš dokončit jen tehdy, když je na účtu dostatek kreditu pro "
+"celou částku."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:222
+msgid "Admin"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:225
+msgid ""
+"Přehled produktů, objednávek a skladu. Spravuj zboží přímo z administrace "
+"Django."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:230
+msgid "Produktů"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:234
+#: eshop/templates/eshop/my_orders.html:174
+msgid "Objednávek"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:238
+#: eshop/templates/eshop/my_orders.html:178
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Aktivních"
+msgstr "Aktívne registrácie"
+
+#: eshop/templates/eshop/index.html:253
+msgid "Export výdeje CSV"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:257
+msgid "Účetní export CSV"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:261
+msgid "ABRA Flexi XML"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:265
+msgid "Všechny objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:269
+msgid "Správa produktů"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:277
+msgid "Logistika"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:278
+msgid "Výdej na závodě"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:280
+msgid "Objednávky připravené k předání na konkrétním závodě."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:286
+msgid "objednávek"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:290
+msgid "kusů k výdeji"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:293
+msgid "Exportovat →"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:296
+msgid "Tisknout list →"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:302
+msgid "Filtrovat závod"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:307
+#: eshop/templates/eshop/pickup-print.html:45
+msgid "Všechny závody"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:316
+msgid "Použít filtr"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:320
+msgid "Zrušit filtr"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:363
+msgid "Označit jako předáno"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:369
+#: eshop/templates/eshop/pickup-print.html:101
+msgid "Žádné objednávky k výdeji."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:377
+msgid "Dnes"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:378
+msgid "Předané dnes"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:380
+#, python-format
+msgid "Objednávky uzavřené během dne %(day)s."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:385
+msgid "předáno dnes"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:414
+msgid "Dnes zatím nebyla předána žádná objednávka."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:422
+msgid "Rezervace"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:423
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Aktivní rezervace skladu"
+msgstr "Aktívne registrácie"
+
+#: eshop/templates/eshop/index.html:425
+msgid ""
+"Dočasně blokované kusy v košíku. Pomáhá odhalit, proč varianta není aktuálně "
+"dostupná."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:431
+msgid "relací"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:435
+msgid "blokovaných kusů"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:438 eshop/templates/eshop/index.html:516
+msgid "Otevřít v adminu →"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:444
+#, python-format
+msgid ""
+"\n"
+"              Při načtení panelu byla odstraněna %(count)s expirovaná "
+"rezervace.\n"
+"            "
+msgid_plural ""
+"\n"
+"              Při načtení panelu bylo odstraněno %(count)s expirovaných "
+"rezervací.\n"
+"            "
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: eshop/templates/eshop/index.html:461
+msgid "Session"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:465 eshop/templates/eshop/index.html:489
+#: eshop/templates/eshop/index.html:557
+msgid "ks"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:467
+msgid "Expiruje"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:473
+msgid "Právě není aktivní žádná rezervace."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:479
+msgid "Blokované varianty"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:493
+msgid "Žádné blokované varianty."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:504
+msgid "Poptávka"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:505
+msgid "Poptávka po naskladnění"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:507
+msgid "Otevřené požadavky od uživatelů na vyprodané varianty."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:513
+msgid "požadavků"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:538
+msgid "čeká"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:543
+msgid "Aktuálně není žádná otevřená poptávka po naskladnění."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:549
+msgid "Nejžádanější varianty"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:557
+#: eshop/templates/eshop/product_detail.html:265
+msgid "Skladem"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:565
+msgid "Bez dat pro agregaci."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:575
+msgid "Poslední objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:576
+msgid "Zobrazit vše →"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:599
+#: eshop/templates/eshop/my_orders.html:352
+msgid "Zatím žádné objednávky."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:605
+msgid "Nízký stav skladu"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:606
+msgid "Varianty se skladem ≤ 5 ks"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:615
+#: eshop/templates/eshop/product_detail.html:369
+#: eshop/templates/eshop/shop.html:488
+msgid "Vyprodáno"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:619
+msgid "Vše skladem v pořádku."
+msgstr ""
+
+#: eshop/templates/eshop/index.html:628
+msgid "Produkty"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:629 eshop/templates/eshop/shop.html:372
+msgid "Přidat produkt"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:643
+msgid "Neaktivní"
+msgstr ""
+
+#: eshop/templates/eshop/index.html:654
+msgid "Žádné produkty."
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:4
+#: eshop/templates/eshop/my_orders.html:167
+#: eshop/templates/eshop/order_confirmation.html:220
+msgid "Moje objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:169
+msgid ""
+"Přehled objednávek, stažení faktury a storno do okamžiku, než je zboží "
+"označeno jako předané."
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:182
+msgid "Uhrazených"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:241
+#, fuzzy
+#| msgid "Kredit"
+msgid "Kredit vrácen"
+msgstr "Kredit"
+
+#: eshop/templates/eshop/my_orders.html:279
+msgid "Dle individuální domluvy"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:283
+msgid "Předáno"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:294
+msgid "Pravidlo storna"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:297
+msgid ""
+"Objednávku můžeš stornovat do okamžiku, než bude zboží označeno jako předané."
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:299
+msgid ""
+"Tuto objednávku už nelze stornovat, protože byla předána nebo už byla "
+"zrušena."
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:318
+#: eshop/templates/eshop/order_confirmation.html:210
+msgid "Stáhnout fakturu PDF"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:329
+msgid "Stáhnout dobropis PDF"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:340
+msgid "Stornovat objednávku"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:377
+msgid "Potvrzení storna"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:380
+msgid "Stornovat objednávku?"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:384
+msgid ""
+"Kredit se vrátí na účet a zboží se vrátí zpět na sklad. Tuto akci použij jen "
+"v případě, že objednávku opravdu nechceš převzít."
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:392
+msgid "Zpět"
+msgstr ""
+
+#: eshop/templates/eshop/my_orders.html:397
+msgid "Ano, stornovat"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:4
+msgid "Potvrzení objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:69
+msgid "Objednávka potvrzena"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:69
+msgid "Objednávka přijata"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:73
+#, python-format
+msgid ""
+"Objednávka č. %(num)s byla rovnou uhrazena kredity z účtu a předána ke "
+"zpracování."
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:75
+#, python-format
+msgid "Objednávka č. %(num)s byla přijata a čeká na dokončení úhrady."
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:116
+msgid "Objednané položky"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:158
+msgid "Platba kredity"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:160
+msgid "Kredit odečten automaticky"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:162
+#, python-format
+msgid "Z účtu bylo odečteno %(amount)s Kč a objednávka je potvrzená."
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:169
+msgid "Kontaktní údaje"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:185
+msgid "Zboží bylo předáno"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:193
+msgid "Objednávka čeká na výdej"
+msgstr ""
+
+#: eshop/templates/eshop/order_confirmation.html:195
+msgid "Jakmile bude zboží předané, propíše se to i sem do detailu objednávky."
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:4
+#: eshop/templates/eshop/pickup-print.html:43
+msgid "Výdejový list"
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:36
+msgid "Tisknout"
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:49
+#, python-format
+msgid "Vygenerováno %(generated)s"
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:54
+msgid "Objednávky"
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:58
+msgid "Kusy k výdeji"
+msgstr ""
+
+#: eshop/templates/eshop/pickup-print.html:96
+msgid "Převzato / podpis"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:261
+msgid "Cena"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:272
+#: eshop/templates/eshop/shop.html:384
+#: event/services/unpaid_moto_report_pdf.py:98
+#: event/services/unpaid_moto_report_pdf.py:113
+#: event/templates/event/entry-list.html:224
+#: event/templates/event/entry-list.html:296
+#: event/templates/event/riders-sum-event.html:236
+#: event/templates/event/riders-sum-event.html:273
+#: event/templates/event/unpaid-moto-riders-report.html:133
+#: event/templates/event/unpaid-moto-riders-report.html:170
+#: rider/premium_stats_pdf.py:560
+msgid "Kategorie"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:314
+msgid "Hlavní fotka"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:315
+msgid "Základní pohled na produkt"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:328
+msgid "Detail produktu"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:329
+msgid "Druhý pohled nebo detail materiálu"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:342
+msgid "Přidáno do košíku"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:344
+msgid ""
+"Můžeš pokračovat v nákupu, nebo přejít do košíku a zkontrolovat objednávku "
+"před checkoutem."
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:351
+msgid "Přejít do košíku"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:366
+msgid "Dostupnost"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:371
+msgid "Poslední kusy skladem"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:373
+msgid "Skladem ihned k rezervaci"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:377
+#, python-format
+msgid "Aktuálně dostupné kusy: %(count)s"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:384
+msgid "Otevřít tabulku velikostí"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:416
+msgid "Vyprodáno · hlídat"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:417
+msgid "Maximum v košíku"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:429
+msgid "Počet"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:467
+#: event/templates/event/entry.html:904 event/templates/event/entry.html:938
+#: event/templates/event/entry.html:943 event/templates/event/entry.html:1406
+msgid "Přidat do košíku"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:708
+msgid ""
+"Kliknutím na vyprodanou variantu otevřeš formulář pro hlídání dostupnosti."
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:716
+#: eshop/templates/eshop/shop.html:511
+msgid "Materiál"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:722
+#: eshop/templates/eshop/shop.html:512
+msgid "Střih"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:738
+#: rider/templates/rider/account-settings-invoices.html:640
+msgid "Popis"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:751
+msgid "Platba probíhá kredity přes váš účet nebo osobně po domluvě."
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:774
+msgid "Není skladem"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:777
+msgid "Hlídat dostupnost"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:780
+msgid ""
+"Pošli požadavek na naskladnění. V administraci uvidíme, o jaký produkt a "
+"velikost je zájem."
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:783
+msgid "Vyber vyprodanou variantu."
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:789
+#: event/templates/event/riders-sum-event.html:278
+#: rider/templates/rider/rider-inactive.html:169
+msgid "Zavřít"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:821
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:55
+#: rider/templates/rider/rider-inactive.html:187
+msgid "Zrušit"
+msgstr ""
+
+#: eshop/templates/eshop/product_detail.html:825
+msgid "Uložit požadavek"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:344
+msgid "BMX vybavení a doplňky"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:347
+msgid "Dresy, doplňky a náhradní díly pro vaše závody."
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:351 eshop/templates/eshop/size_guide.html:4
+#: eshop/templates/eshop/size_guide.html:39
+#: eshop/templates/eshop/size_guide.html:46
+msgid "Tabulka velikostí"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:368
+msgid "Zobrazuješ e-shop jako admin."
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:376
+msgid "Admin přehled"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:388
+msgid "Vše"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:404
+msgid "Hledat produkt"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:414
+msgid "Hledat podle názvu, kolekce nebo kategorie"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:419
+msgid "Hledat"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:458
+msgid "Zobrazit detail"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:490
+#, python-format
+msgid "Skladem %(count)s ks"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:494
+msgid "Vybrat"
+msgstr ""
+
+#: eshop/templates/eshop/shop.html:520
+msgid "Žádné produkty v této kategorii."
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:49
+#: eshop/templates/eshop/size_guide.html:107
+#: eshop/templates/eshop/size_guide.html:159
+msgid ""
+"Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost. "
+"V případě pochybností nás kontaktujte."
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:69
+msgid "Pánské – horní díly"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:71
+msgid "dresy, bundy, vesty, apod."
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:71
+msgid "Podle obvodu hrudníku"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:79
+msgid "Obvod hrudi (cm)"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:92
+#: eshop/templates/eshop/size_guide.html:144
+msgid "Vaše velikost"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:121
+msgid "Dětské – horní a spodní díly"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:123
+msgid "Podle výšky postavy"
+msgstr ""
+
+#: eshop/templates/eshop/size_guide.html:131
+msgid "Výška postavy (cm)"
+msgstr ""
+
+#: event/admin.py:64
+msgid "Náhled"
+msgstr ""
+
+#: event/admin.py:101
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlášeno"
+msgstr "Prihlásenie"
+
+#: event/admin.py:105
+msgid "Status reg."
+msgstr ""
+
+#: event/admin.py:118
+msgid "Zbývá dní"
+msgstr ""
+
+#: event/admin.py:129 event/templates/event/event-detail.html:494
+#: event/views/views_admin.py:1607 event/views/views_admin.py:1614
+#: event/views/views_admin.py:1621 event/views/views_admin.py:1628
+#: event/views/views_admin.py:1635 event/views/views_admin.py:1642
+msgid "Výsledky"
+msgstr ""
+
+#: event/admin.py:184
+msgid "UCI / ČSC"
+msgstr ""
+
+#: event/admin.py:195
+msgid "Soubory"
+msgstr ""
+
+#: event/admin.py:218 event/admin.py:230
+msgid "Rychlé odkazy"
+msgstr ""
+
+#: event/admin.py:221
+msgid "Kvalita výsledků"
+msgstr ""
+
+#: event/admin.py:224
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Audit registrací"
+msgstr "Aktívne registrácie"
+
+#: event/admin.py:233
+msgid "Odkazy budou dostupné po prvním uložení závodu."
+msgstr ""
+
+#: event/admin.py:249
+msgid "Kontrola výsledků"
+msgstr ""
+
+#: event/admin.py:253
+msgid "Pro tento závod zatím nejsou nahrané žádné výsledky."
+msgstr ""
+
+#: event/admin.py:274
+msgid "Výsledků celkem:"
+msgstr ""
+
+#: event/admin.py:276
+msgid "Bez navázaného jezdce:"
+msgstr ""
+
+#: event/admin.py:278
+msgid "Bez kategorie:"
+msgstr ""
+
+#: event/admin.py:280
+msgid "Bez typu závodu:"
+msgstr ""
+
+#: event/admin.py:282
+msgid "Bodovaných závodních řádků s 0 body:"
+msgstr ""
+
+#: event/admin.py:287
+msgid "Souhrn refundů"
+msgstr ""
+
+#: event/admin.py:305
+msgid "Počet refundů:"
+msgstr ""
+
+#: event/admin.py:307
+msgid "Celkem vráceno:"
+msgstr ""
+
+#: event/admin.py:309
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace s checkout:"
+msgstr "Registrácia"
+
+#: event/admin.py:314
+msgid "Timeline checkoutu"
+msgstr ""
+
+#: event/admin.py:322
+msgid "Zatím nejsou k dispozici žádné auditní záznamy pro tento závod."
+msgstr ""
+
+#: event/admin.py:343 event/admin.py:607
+msgid "Kdy"
+msgstr ""
+
+#: event/admin.py:344
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:32
+#: event/templates/event/entry.html:1213 finance/views.py:228
+#: rider/premium_stats_pdf.py:285 rider/premium_stats_pdf.py:328
+#: rider/premium_stats_pdf.py:355 rider/templates/rider/rider-inactive.html:178
+msgid "Jezdec"
+msgstr ""
+
+#: event/admin.py:345 event/admin.py:608
+msgid "Akce"
+msgstr ""
+
+#: event/admin.py:346 event/admin.py:609
+msgid "Zdroj"
+msgstr ""
+
+#: event/admin.py:348 event/admin.py:611
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:34
+#: finance/templates/finance/finance.html:353 finance/views.py:226
+msgid "Uživatel"
+msgstr ""
+
+#: event/admin.py:418 theme/templates/includes/navbar.html:356
+#: theme/templates/includes/navbar.html:582
+msgid "Registrace"
+msgstr "Registrácia"
+
+#: event/admin.py:432
+msgid "Audit a refund"
+msgstr ""
+
+#: event/admin.py:486
+msgid "Zapnout checkout a vrátit startovné"
+msgstr ""
+
+#: event/admin.py:495
+msgid "Potvrzení vrácení startovného"
+msgstr ""
+
+#: event/admin.py:501
+#, python-format
+msgid "Checkout byl zapnut u %(count)s registrací."
+msgstr ""
+
+#: event/admin.py:507 event/admin.py:532
+#, python-format
+msgid "%(count)s registrací bylo přeskočeno kvůli nevalidnímu stavu."
+msgstr ""
+
+#: event/admin.py:511
+msgid "Vypnout checkout a smazat vratku startovného"
+msgstr ""
+
+#: event/admin.py:520
+msgid "Potvrzení zrušení vratky startovného"
+msgstr ""
+
+#: event/admin.py:526
+#, python-format
+msgid "Checkout byl vypnut u %(count)s registrací."
+msgstr ""
+
+#: event/admin.py:536
+msgid "Vratka kreditu"
+msgstr ""
+
+#: event/admin.py:547
+msgid "Souhrn refundu"
+msgstr ""
+
+#: event/admin.py:551
+msgid "Pro tuto registraci není vytvořená žádná refund transakce."
+msgstr ""
+
+#: event/admin.py:570
+msgid "Částka:"
+msgstr ""
+
+#: event/admin.py:572
+msgid "Transakce:"
+msgstr ""
+
+#: event/admin.py:574
+msgid "Intent:"
+msgstr ""
+
+#: event/admin.py:576
+msgid "Dokončeno:"
+msgstr ""
+
+#: event/admin.py:577
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:45
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:46
+msgid "Ano"
+msgstr ""
+
+#: event/admin.py:577
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:45
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:46
+msgid "Ne"
+msgstr ""
+
+#: event/admin.py:581
+msgid "Audit checkoutu"
+msgstr ""
+
+#: event/admin.py:587
+msgid "Zatím nejsou k dispozici žádné auditní záznamy."
+msgstr ""
+
+#: event/admin.py:761
+msgid "Automatickou checkout refund transakci nelze ručně upravovat."
+msgstr ""
+
+#: event/migrations/0088_event_eshop_pickup_enabled.py:20
+#: event/models_events.py:238
+msgid ""
+"Zaškrtněte pouze u závodů, kde bude možné předávat objednávky z e-shopu."
+msgstr ""
+
+#: event/migrations/0088_event_eshop_pickup_enabled.py:22
+#: event/models_events.py:236
+msgid "Výdej e-shop zboží"
+msgstr ""
+
+#: event/migrations/0089_event_eshop_pickup_details.py:20
+#: event/models_events.py:240
+msgid "Místo výdeje e-shopu"
+msgstr ""
+
+#: event/migrations/0089_event_eshop_pickup_details.py:29
+#: event/models_events.py:241
+msgid "Čas výdeje e-shopu"
+msgstr ""
+
+#: event/migrations/0089_event_eshop_pickup_details.py:37
+#: event/models_events.py:242
+msgid "Poznámka k výdeji e-shopu"
+msgstr ""
+
+#: event/models_entries.py:53
+msgid "Checkout lze zapnout jen u zaplacené registrace."
+msgstr ""
+
+#: event/models_entries.py:55
+msgid "Checkout lze použít jen u registrace s přiřazeným uživatelem."
+msgstr ""
+
+#: event/models_entries.py:57
+msgid "Checkout refund nelze vytvořit pro nulové nebo záporné startovné."
+msgstr ""
+
+#: event/models_events.py:286
+msgid "UCI event code"
+msgstr ""
+
+#: event/models_events.py:286
+msgid "Unique UCI event code"
+msgstr ""
+
+#: event/models_events.py:287
+msgid "UCI code women elite"
+msgstr ""
+
+#: event/models_events.py:288
+msgid "UCI code men elite"
+msgstr ""
+
+#: event/models_events.py:289
+msgid "UCI code women under 23"
+msgstr ""
+
+#: event/models_events.py:290
+msgid "UCI code men under 23"
+msgstr ""
+
+#: event/models_events.py:291
+msgid "UCI code women junior"
+msgstr ""
+
+#: event/models_events.py:292
+msgid "UCI code men junior"
+msgstr ""
+
+#: event/models_events.py:359
+msgid ""
+"Jeden rozhodčí nemůže být v jednom závodě nasazen do více rolí současně."
+msgstr ""
+
+#: event/services/checkout_refunds.py:74 event/services/checkout_refunds.py:148
+#: event/services/checkout_refunds.py:176
+msgid "Neznámý závod"
+msgstr ""
+
+#: event/services/checkout_refunds.py:75
+#, python-format
+msgid "Vrácení startovného za závod %(event_name)s"
+msgstr ""
+
+#: event/services/checkout_refunds.py:149
+#, python-format
+msgid "Checkout refund vytvořen: %(event_name)s"
+msgstr ""
+
+#: event/services/checkout_refunds.py:153
+#, python-format
+msgid ""
+"Byla vytvořena vratka startovného za závod %(event_name)s.\n"
+"\n"
+"Jezdec: %(rider)s\n"
+"Uživatel: %(user)s\n"
+"Částka: %(amount)s Kč\n"
+"Registrace ID: %(entry_id)s\n"
+"Transakce: %(payment_intent)s\n"
+msgstr ""
+
+#: event/services/checkout_refunds.py:177
+#, python-format
+msgid "Checkout refund zrušen: %(event_name)s"
+msgstr ""
+
+#: event/services/checkout_refunds.py:181
+#, python-format
+msgid ""
+"Vratka startovného za závod %(event_name)s byla zrušena.\n"
+"\n"
+"Jezdec: %(rider)s\n"
+"Uživatel: %(user)s\n"
+"Částka: %(amount)s Kč\n"
+"Registrace ID: %(entry_id)s\n"
+"Transakce: %(payment_intent)s\n"
+msgstr ""
+
+#: event/services/checkout_refunds.py:371
+#, python-format
+msgid "Změna částky refundu: %(old_amount)s -> %(new_amount)s Kč"
+msgstr ""
+
+#: event/services/checkout_refunds.py:385
+#, python-format
+msgid "Změna uživatele refundu: %(old_user_id)s -> %(new_user_id)s"
+msgstr ""
+
+#: event/services/checkout_refunds.py:399
+#, python-format
+msgid "Změna závodu refundu: %(old_event_id)s -> %(new_event_id)s"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:71
+#: event/templates/event/event-admin.html:769
+#: event/templates/event/unpaid-moto-riders-report.html:4
+msgid "Kontrola startovného podle MOTO"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:75
+#: event/templates/event/unpaid-moto-riders-report.html:80
+msgid ""
+"Sestava porovnává jezdce z MOTO jízd v RaceRun s uhrazenými online "
+"registracemi. Záznamy bez UCI ID jsou vedené zvlášť pro ruční kontrolu."
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:83
+#, python-format
+msgid ""
+"Jezdci v MOTO: %(moto)s | Uhrazené online registrace: %(paid)s | Podezřelé "
+"neshody: %(flagged)s"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:97
+#: event/templates/event/unpaid-moto-riders-report.html:107
+msgid "Jezdci bez uhrazeného startovného"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:98
+#: event/templates/event/unpaid-moto-riders-report.html:131
+#: event/views/views_admin.py:1230
+msgid "UCI ID"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:98
+#: event/services/unpaid_moto_report_pdf.py:113
+#: event/templates/event/entry-list.html:227
+#: event/templates/event/entry-list.html:299
+#: event/templates/event/unpaid-moto-riders-report.html:132
+#: event/templates/event/unpaid-moto-riders-report.html:169
+#: event/views/views_admin.py:1231 rider/templates/rider/rider-inactive.html:97
+#: rider/templates/rider/rider-request.html:382
+msgid "Startovní číslo"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:103
+#: event/templates/event/unpaid-moto-riders-report.html:147
+msgid "Nebyla nalezena žádná jistá neshoda."
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:112
+#: event/templates/event/unpaid-moto-riders-report.html:157
+msgid "Záznamy bez UCI ID"
+msgstr ""
+
+#: event/services/unpaid_moto_report_pdf.py:118
+#: event/templates/event/unpaid-moto-riders-report.html:183
+msgid "Žádné problematické záznamy bez UCI ID nebyly nalezeny."
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:19
+msgid ""
+"Tato akce zapne checkout a vytvoří nebo aktualizuje vratku startovného v "
+"kreditu."
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:21
+msgid ""
+"Tato akce vypne checkout a smaže navázanou vratku startovného v kreditu."
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:24
+msgid "Počet vybraných registrací:"
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:25
+msgid "Poznámka do auditu:"
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:35
+msgid "Zaplaceno"
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:36
+msgid "Checkout"
+msgstr ""
+
+#: event/templates/admin/event/entry/checkout_action_confirmation.html:54
+msgid "Potvrdit"
+msgstr ""
+
+#: event/templates/event/checkout.html:4 event/templates/event/order.html:3
+msgid "Potvrzení přihlášky"
+msgstr ""
+
+#: event/templates/event/checkout.html:10 event/templates/event/order.html:181
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Potvrzení registrace"
+msgstr "Aktívne registrácie"
+
+#: event/templates/event/checkout.html:16
+msgid "Zkontroluj vybrané jezdce a pokračuj k platbě přes Stripe."
+msgstr ""
+
+#: event/templates/event/checkout.html:22
+msgid "Beginneři"
+msgstr ""
+
+#: event/templates/event/checkout.html:80
+msgid "Celkem k úhradě"
+msgstr ""
+
+#: event/templates/event/checkout.html:86
+msgid "Pokračovat k platbě"
+msgstr ""
+
+#: event/templates/event/entry-list.html:3 event/templates/event/entry.html:3
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlášení na závody"
+msgstr "Prihlásenie"
+
+#: event/templates/event/entry-list.html:161
+#: event/templates/event/event-detail.html:417
+#: event/templates/event/event-detail.html:534
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlášení jezdci"
+msgstr "Prihlásenie"
+
+#: event/templates/event/entry-list.html:167
+msgid ""
+"Veřejný přehled uhrazených registrací včetně zahraničních jezdců a jejich "
+"kategorií."
+msgstr ""
+
+#: event/templates/event/entry-list.html:172
+msgid "Aktuální stav"
+msgstr ""
+
+#: event/templates/event/entry-list.html:174
+#: event/templates/event/riders-sum-event.html:326
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "přihlášených jezdců"
+msgstr "Prihlásenie"
+
+#: event/templates/event/entry-list.html:186
+msgid "Počet přihlášených jezdců:"
+msgstr ""
+
+#: event/templates/event/entry-list.html:193
+msgid "Napiš příjmení"
+msgstr ""
+
+#: event/templates/event/entry-list.html:194
+msgid "Filtrovat podle příjmení"
+msgstr ""
+
+#: event/templates/event/entry-list.html:200
+#: event/templates/event/entry.html:990
+msgid "Napiš klub"
+msgstr ""
+
+#: event/templates/event/entry-list.html:201
+msgid "Filtrovat podle klubu"
+msgstr ""
+
+#: event/templates/event/entry-list.html:207
+msgid "Napiš kategorii"
+msgstr ""
+
+#: event/templates/event/entry-list.html:208
+msgid "Filtrovat podle kategorie"
+msgstr ""
+
+#: event/templates/event/entry-list.html:221
+#: event/templates/event/entry-list.html:293
+msgid "Klub, UCI ID"
+msgstr ""
+
+#: event/templates/event/entry-list.html:282
+msgid "Seznam odhlášených jezdců"
+msgstr ""
+
+#: event/templates/event/entry-list.html:303
+msgid "Info o platbě"
+msgstr ""
+
+#: event/templates/event/entry.html:898
+msgid "Vybráno"
+msgstr ""
+
+#: event/templates/event/entry.html:899
+#, fuzzy
+#| msgid "Registrace"
+msgid "registrací"
+msgstr "Registrácia"
+
+#: event/templates/event/entry.html:900 event/templates/event/entry.html:1156
+#: event/templates/event/entry.html:1218
+msgid "Příchozí"
+msgstr ""
+
+#: event/templates/event/entry.html:901
+msgid "jezdec"
+msgstr ""
+
+#: event/templates/event/entry.html:902
+msgid "jezdci"
+msgstr ""
+
+#: event/templates/event/entry.html:903
+#: event/templates/event/riders-sum-event.html:217
+msgid "jezdců"
+msgstr ""
+
+#: event/templates/event/entry.html:905
+msgid "Přidat vybrané do košíku"
+msgstr ""
+
+#: event/templates/event/entry.html:914
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlášení jezdců"
+msgstr "Prihlásenie"
+
+#: event/templates/event/entry.html:920
+msgid ""
+"Vyber jezdce a kategorie pro závod. Přihlášení probíhá přímo z aktivní "
+"databáze jezdců."
+msgstr ""
+
+#: event/templates/event/entry.html:926
+msgid "Datum konání"
+msgstr ""
+
+#: event/templates/event/entry.html:930
+#, fuzzy
+#| msgid "Registrace"
+msgid "Konec registrace"
+msgstr "Registrácia"
+
+#: event/templates/event/entry.html:947
+msgid "Vybráno 0 jezdců"
+msgstr ""
+
+#: event/templates/event/entry.html:963 event/views/views_admin.py:1606
+#: event/views/views_admin.py:1613 event/views/views_admin.py:1620
+#: event/views/views_admin.py:1627 event/views/views_admin.py:1634
+#: event/views/views_admin.py:1641
+msgid "Startovní listina"
+msgstr ""
+
+#: event/templates/event/entry.html:965
+msgid ""
+"Filtrovat můžeš podle příjmení nebo klubu. Vybrané checkboxy se po odeslání "
+"přidají do košíku."
+msgstr ""
+
+#: event/templates/event/entry.html:977
+msgid "Napiš příjmení jezdce"
+msgstr ""
+
+#: event/templates/event/entry.html:985 event/templates/event/entry.html:1214
+#: rider/templates/rider/rider-inactive.html:99
+#: rider/templates/rider/rider-request.html:392
+#: rider/templates/rider/trainer-dashboard.html:224
+msgid "Klub"
+msgstr ""
+
+#: event/templates/event/entry.html:1012 event/templates/event/entry.html:1087
+#: event/templates/event/entry.html:1237 event/templates/event/entry.html:1293
+msgid "Nekvalifikoval se"
+msgstr ""
+
+#: event/templates/event/entry.html:1024 event/templates/event/entry.html:1045
+#: event/templates/event/entry.html:1067 event/templates/event/entry.html:1099
+#: event/templates/event/entry.html:1120 event/templates/event/entry.html:1142
+#: event/templates/event/entry.html:1168 event/templates/event/entry.html:1190
+#: event/templates/event/entry.html:1244 event/templates/event/entry.html:1259
+#: event/templates/event/entry.html:1275 event/templates/event/entry.html:1300
+#: event/templates/event/entry.html:1315 event/templates/event/entry.html:1331
+#: event/templates/event/entry.html:1350 event/templates/event/entry.html:1366
+msgid "Zobrazit přihlášené v kategorii"
+msgstr ""
+
+#: event/templates/event/entry.html:1212
+msgid "Start.č."
+msgstr ""
+
+#: event/templates/event/entry.html:1387
+msgid "Nenašli jsme žádného jezdce pro zadané příjmení nebo klub."
+msgstr ""
+
+#: event/templates/event/entry.html:1399
+msgid "Vybráno 0 registrací"
+msgstr ""
+
+#: event/templates/event/entry.html:1410
+msgid "Do košíku"
+msgstr ""
+
+#: event/templates/event/event-admin.html:747
+msgid "UCI Excel export"
+msgstr ""
+
+#: event/templates/event/event-admin.html:750
+msgid ""
+"Vygeneruje ZIP se samostatným XLSX souborem pro každou UCI kategorii podle "
+"finálních výsledků."
+msgstr ""
+
+#: event/templates/event/event-admin.html:756
+msgid "Exportuj UCI výsledky"
+msgstr ""
+
+#: event/templates/event/event-admin.html:757
+msgid "Exportovat UCI"
+msgstr ""
+
+#: event/templates/event/event-admin.html:772
+msgid ""
+"Porovná jezdce z nahraných MOTO jízd v RaceRun s uhrazenými online "
+"registracemi a ukáže podezřelé neshody."
+msgstr ""
+
+#: event/templates/event/event-admin.html:777
+msgid "Otevři kontrolu startovného"
+msgstr ""
+
+#: event/templates/event/event-admin.html:778
+msgid "Zobrazit sestavu"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:3
 #: rider/templates/rider/rider-checkout.html:8
 msgid "Seznam registrací na závody"
 msgstr ""
 
+#: event/templates/event/event-checkout.html:87
+msgid "Přehled registrací"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:90
+#: theme/templates/includes/navbar.html:310
+#: theme/templates/includes/navbar.html:542
+msgid "Aktivní registrace"
+msgstr "Aktívne registrácie"
+
+#: event/templates/event/event-checkout.html:93
+msgid ""
+"Přehled zaplacených registrací na nadcházející závody včetně samostatného "
+"termínu pro odhlášení."
+msgstr ""
+
+#: event/templates/event/event-checkout.html:98
+msgid "Aktivní položky"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:100
+msgid "registrací v přehledu"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:103
+#, fuzzy
+#| msgid "Odhlášení"
+msgid "Odhlášení otevřeno"
+msgstr "Odhlásenie"
+
+#: event/templates/event/event-checkout.html:105
+msgid "registrací lze ještě zrušit"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:108
+#: event/templates/event/event-checkout.html:199
+#, fuzzy
+#| msgid "Odhlášení"
+msgid "Odhlášení uzavřeno"
+msgstr "Odhlásenie"
+
+#: event/templates/event/event-checkout.html:110
+msgid "registrací už nelze zrušit"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:150
+#: event/templates/event/order.html:286 theme/templates/homepage.html:670
+#: theme/templates/homepage.html:711
+msgid "Bez klubové příslušnosti"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:162
+#, fuzzy
+#| msgid "Odhlášení"
+msgid "Odhlášení do"
+msgstr "Odhlásenie"
+
+#: event/templates/event/event-checkout.html:185
+msgid "Čeká na potvrzení"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:195
+msgid "Odhlásit"
+msgstr ""
+
+#: event/templates/event/event-checkout.html:209
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Žádné aktivní registrace"
+msgstr "Aktívne registrácie"
+
+#: event/templates/event/event-checkout.html:210
+msgid "Momentálně nemáš žádnou zaplacenou registraci na budoucí závod."
+msgstr ""
+
+#: event/templates/event/event-detail.html:338
+msgid "Detail závodu"
+msgstr ""
+
+#: event/templates/event/event-detail.html:344
+#, python-format
+msgid ""
+"Kompletní přehled termínu, pořadatele, registrace a organizačních informací "
+"pro závod %(organizer)s v režimu %(type)s."
+msgstr ""
+
+#: event/templates/event/event-detail.html:349 rider/premium_stats_pdf.py:709
+#: rider/templates/rider/rider-premium-stats.html:636
+#: rider/templates/rider/rider-premium-stats.html:721
+#: rider/templates/rider/rider-premium-stats.html:810
+msgid "Datum závodu"
+msgstr ""
+
+#: event/templates/event/event-detail.html:353
+msgid "Pořadatel"
+msgstr ""
+
+#: event/templates/event/event-detail.html:357
+msgid "Systém závodu"
+msgstr ""
+
+#: event/templates/event/event-detail.html:372
+msgid "Závod zrušen"
+msgstr ""
+
+#: event/templates/event/event-detail.html:374
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace otevřená"
+msgstr "Registrácia"
+
+#: event/templates/event/event-detail.html:376
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace uzavřená"
+msgstr "Registrácia"
+
+#: event/templates/event/event-detail.html:379
+msgid "UCI režim"
+msgstr ""
+
+#: event/templates/event/event-detail.html:383
+msgid "Co potřebuješ vědět před registrací"
+msgstr ""
+
+#: event/templates/event/event-detail.html:387
+msgid ""
+"Závod je označený jako zrušený. Sleduj propozice a oficiální komunikaci "
+"pořadatele kvůli náhradnímu termínu nebo dalším pokynům."
+msgstr ""
+
+#: event/templates/event/event-detail.html:389
+msgid ""
+"Registrace právě běží. Zkontroluj termíny, podmínky v propozicích a potom "
+"dokonči přihlášení jezdce."
+msgstr ""
+
+#: event/templates/event/event-detail.html:391
+msgid ""
+"Registrace teď neběží. Ověř termíny, seznam přihlášených a zveřejněné "
+"propozice, ať víš, jestli čekat na otevření nebo už jen sledovat závod."
+msgstr ""
+
+#: event/templates/event/event-detail.html:400
+msgid "Závod se nejede"
+msgstr ""
+
+#: event/templates/event/event-detail.html:402
+msgid "Lze se přihlásit"
+msgstr ""
+
+#: event/templates/event/event-detail.html:404
+msgid "Čeká se nebo je po termínu"
+msgstr ""
+
+#: event/templates/event/event-detail.html:409
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Konec přihlášení"
+msgstr "Prihlásenie"
+
+#: event/templates/event/event-detail.html:413
+#, fuzzy
+#| msgid "Odhlášení"
+msgid "Konec odhlášení"
+msgstr "Odhlásenie"
+
+#: event/templates/event/event-detail.html:421
+#: event/templates/event/event-detail.html:556
+#: event/templates/event/events-list_new.html:303
+#: event/templates/event/events-list_new.html:366
+msgid "Propozice"
+msgstr ""
+
+#: event/templates/event/event-detail.html:424
+msgid "K dispozici"
+msgstr ""
+
+#: event/templates/event/event-detail.html:426
+msgid "Čeká na zveřejnění"
+msgstr ""
+
+#: event/templates/event/event-detail.html:439
+msgid "Vyhledávání a akce"
+msgstr ""
+
+#: event/templates/event/event-detail.html:442
+msgid "Rychlý přístup k závodu"
+msgstr ""
+
+#: event/templates/event/event-detail.html:445
+msgid ""
+"Registrace, přihlášení jezdci, souhrn startujících a organizační výstupy máš "
+"na jednom místě."
+msgstr ""
+
+#: event/templates/event/event-detail.html:452
+msgid "Další akce"
+msgstr ""
+
+#: event/templates/event/event-detail.html:465
+msgid "Upravit propozice"
+msgstr ""
+
+#: event/templates/event/event-detail.html:475
+msgid "Vybrané startovné"
+msgstr ""
+
+#: event/templates/event/event-detail.html:483
+#, fuzzy
+#| msgid "Administrace"
+msgid "Administrace závodu"
+msgstr "Administrácia"
+
+#: event/templates/event/event-detail.html:511
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace na UEC"
+msgstr "Registrácia"
+
+#: event/templates/event/event-detail.html:522
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Přihlášení do závodu"
+msgstr "Prihlásenie"
+
+#: event/templates/event/event-detail.html:545
+msgid "Počet přihlášených jezdců"
+msgstr ""
+
+#: event/templates/event/event-detail.html:567
+#: event/templates/event/events-list_new.html:305
+#: event/templates/event/events-list_new.html:368
+msgid "Propozice PDF"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:4
+msgid "Kalendář závodů"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:8
+#: event/templates/event/events-list_new.html:9
+#: event/templates/event/events-list_new.html:18
+msgid "Kalendář závodů Czech BMX"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:25
+#: event/templates/event/events-list_new.html:221
+msgid "Nadcházející závody"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:47
+msgid "Archiv závodů"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:196
+msgid "Termíny a pořadatelé"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:199
+msgid "Český kalendář BMX Racing"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:215
+msgid "Odebírat kalendář"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:225
+msgid "Ukončených závodů"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:229
+msgid "Sezóna"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:241
+msgid "Přepínání sezony"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:243
+msgid "Předchozí rok"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:250
+msgid "Další rok"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:261
+msgid "Následující"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:282
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace otevřena"
+msgstr "Registrácia"
+
+#: event/templates/event/events-list_new.html:293
+#: event/templates/event/events-list_new.html:364
+#: finance/templates/finance/finance.html:355
+#: rider/templates/rider/account-settings-invoices.html:504
+msgid "Detail"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:295
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace UEC"
+msgstr "Registrácia"
+
+#: event/templates/event/events-list_new.html:300
+msgid "Foreign riders"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:308
+#: event/templates/event/events-list_new.html:310
+msgid "Výsledky závodu"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:313
+msgid "YouTube"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:316
+#: event/templates/event/events-list_new.html:379
+msgid "Výsledky družstev"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:318
+#: event/templates/event/events-list_new.html:381
+msgid "Výsledky seriálu"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:321
+#: theme/templates/includes/navbar.html:325
+#: theme/templates/includes/navbar.html:561
+msgid "Administrace"
+msgstr "Administrácia"
+
+#: event/templates/event/events-list_new.html:338
+#: event/views/views_public.py:120 event/views/views_public.py:147
+msgid "Archiv"
+msgstr ""
+
+#: event/templates/event/events-list_new.html:391
+msgid "Pro tento rok zatím nejsou evidované žádné závody."
+msgstr ""
+
+#: event/templates/event/import-stats.html:3
+#: event/templates/event/import-stats.html:44
+msgid "Import statistik"
+msgstr ""
+
+#: event/templates/event/import-stats.html:42
+#, fuzzy
+#| msgid "Administrace"
+msgid "Zpět na administraci"
+msgstr "Administrácia"
+
+#: event/templates/event/import-stats.html:46
+#, python-format
+msgid ""
+"Nahrání souborů pro jednotlivé fáze závodu <span class=\"font-semibold text-"
+"slate-900 dark:text-white\">%(event_name)s</span>."
+msgstr ""
+
+#: event/templates/event/import-stats.html:78
+#: event/templates/event/import-stats.html:107
+msgid "Nahráno:"
+msgstr ""
+
+#: event/templates/event/import-stats.html:80
+#: event/templates/event/import-stats.html:109
+#: event/templates/event/import-stats.html:159
+msgid "Zobrazit"
+msgstr ""
+
+#: event/templates/event/import-stats.html:83
+#: event/templates/event/import-stats.html:112
+msgid "Opravdu chcete smazat nahraný soubor pro tuto sekci?"
+msgstr ""
+
+#: event/templates/event/import-stats.html:83
+#: event/templates/event/import-stats.html:112
+#: event/templates/event/order.html:314
+msgid "Smazat"
+msgstr ""
+
+#: event/templates/event/import-stats.html:87
+#: event/templates/event/import-stats.html:116
+msgid "Nenahráno"
+msgstr ""
+
+#: event/templates/event/import-stats.html:127
+msgid "Opravdu chcete smazat všechny nahrané soubory?"
+msgstr ""
+
+#: event/templates/event/import-stats.html:128
+msgid "Smazat vše"
+msgstr ""
+
+#: event/templates/event/import-stats.html:132
+msgid "Nahrát vybrané soubory"
+msgstr ""
+
+#: event/templates/event/import-stats.html:142
+msgid "Již nahrané soubory"
+msgstr ""
+
+#: event/templates/event/order.html:184
+msgid "Košík přihlášek"
+msgstr ""
+
+#: event/templates/event/order.html:187
+msgid ""
+"Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je "
+"odečtením kreditu."
+msgstr ""
+
+#: event/templates/event/order.html:192
+msgid "Položky v košíku"
+msgstr ""
+
+#: event/templates/event/order.html:196
+msgid "Celková platba"
+msgstr ""
+
+#: event/templates/event/order.html:200 event/templates/event/success.html:3
+#: event/templates/event/success.html:36 event/templates/event/success.html:41
+#: rider/templates/rider/rider-checkout.html:3
+#: rider/templates/rider/rider-success.html:4
+msgid "Potvrzení"
+msgstr ""
+
+#: event/templates/event/order.html:201
+#, fuzzy
+#| msgid "Kredit"
+msgid "Kreditem"
+msgstr "Kredit"
+
+#: event/templates/event/order.html:216
+msgid "Duplicitní položky"
+msgstr ""
+
+#: event/templates/event/order.html:217
+msgid "Košík byl automaticky vyčištěn"
+msgstr ""
+
+#: event/templates/event/order.html:219
+msgid ""
+"Z košíku byli odebráni jezdci, kteří už jsou na závod přihlášeni nebo jsou "
+"aktuálně v košíku jiného uživatele."
+msgstr ""
+
+#: event/templates/event/order.html:226 event/templates/event/order.html:228
+#: event/templates/event/order.html:230
+#, python-format
+msgid ""
+"%(last_name)s %(first_name)s ze závodu %(event_name)s v kategorii "
+"%(category)s, v košíku uživatele: %(user_name)s"
+msgstr ""
+
+#: event/templates/event/order.html:237
+msgid "Beru na vědomí"
+msgstr ""
+
+#: event/templates/event/order.html:246
+msgid "Co se stane"
+msgstr ""
+
+#: event/templates/event/order.html:248
+msgid ""
+"Potvrzením se přihlášky odečtou z uživatelského kreditu a položky v košíku "
+"se převedou na aktivní registrace."
+msgstr ""
+
+#: event/templates/event/order.html:259
+msgid "Potvrdit a odečíst kredit"
+msgstr ""
+
+#: event/templates/event/order.html:296 event/templates/event/order.html:298
+#: event/templates/event/order.html:300
+msgid "Startovné:"
+msgstr ""
+
+#: event/templates/event/order.html:323
+msgid "Košík je prázdný"
+msgstr ""
+
+#: event/templates/event/order.html:324
+msgid "V tuto chvíli nemáš připravené žádné přihlášky k potvrzení."
+msgstr ""
+
+#: event/templates/event/order_error.html:3
+#: event/templates/event/reg-close.html:3
+#: rider/templates/rider/rider-request.html:263
+msgid "Chyba"
+msgstr ""
+
+#: event/templates/event/order_error.html:11
+#: event/templates/event/reg-close.html:11
+msgid "OOPS. NĚKDE SE STALA CHYBA."
+msgstr ""
+
+#: event/templates/event/order_error.html:12
+msgid ""
+"Pro dokončení registrace nemáte dostatečný kredit. Buď si kredit navyšte, "
+"nebo smažte některou z registrací."
+msgstr ""
+
+#: event/templates/event/reg-close.html:12
+msgid "Registrace na tento závod není v tuto chvíli možná."
+msgstr ""
+
+#: event/templates/event/riders-sum-event.html:4
+msgid "Počet jezdců"
+msgstr ""
+
+#: event/templates/event/riders-sum-event.html:204
+msgid "Počty kategorií"
+msgstr ""
+
+#: event/templates/event/riders-sum-event.html:210
+msgid ""
+"Přehled počtu přihlášených jezdců v jednotlivých kategoriích včetně "
+"zahraničních registrací."
+msgstr ""
+
+#: event/templates/event/riders-sum-event.html:215
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Celkem přihlášených"
+msgstr "Prihlásenie"
+
+#: event/templates/event/riders-sum-event.html:246
+msgid "Zobrazit jezdce"
+msgstr ""
+
+#: event/templates/event/riders-sum-event.html:252
+msgid "Jezdců"
+msgstr ""
+
+#: event/templates/event/success.html:34
+msgid "Hotovo"
+msgstr ""
+
+#: event/templates/event/success.html:42
+msgid "Operace byla úspěšně dokončena."
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:74
+msgid "MOTO kontrola"
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:85
+msgid "Jezdci v MOTO"
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:89
+msgid "Uhrazené online registrace"
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:93
+msgid "Podezřelé neshody"
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:110
+msgid ""
+"Tady jsou pouze záznamy, kde je k dispozici UCI ID a nebyla nalezena "
+"uhrazená online registrace."
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:115
+msgid "Exportovat PDF"
+msgstr ""
+
+#: event/templates/event/unpaid-moto-riders-report.html:118
+#, fuzzy
+#| msgid "Administrace"
+msgid "Zpět do administrace"
+msgstr "Administrácia"
+
+#: event/templates/event/unpaid-moto-riders-report.html:159
+msgid ""
+"Tyto záznamy jsou oddělené, protože v MOTO datech není k dispozici UCI ID a "
+"je potřeba ruční kontrola."
+msgstr ""
+
+#: event/views/payment_helpers.py:358
+#, python-format
+msgid "Prémiové statistiky: %(name)s (%(reason)s)"
+msgstr ""
+
+#: event/views/payment_helpers.py:360
+#: rider/templates/rider/rider-premium-stats.html:3
+msgid "Prémiové statistiky jezdce"
+msgstr ""
+
+#: event/views/payment_helpers.py:373
+#, python-format
+msgid "Trenérské předplatné: %(club)s (%(product)s, %(reason)s)"
+msgstr ""
+
+#: event/views/payment_helpers.py:375
+msgid "Trenérské předplatné klubu"
+msgstr ""
+
+#: event/views/payment_helpers.py:428
+msgid "Kontrola kreditu"
+msgstr ""
+
+#: event/views/payment_helpers.py:429
+msgid "Stavy kreditů se právě překontrolovávají."
+msgstr ""
+
+#: event/views/payment_helpers.py:430
+msgid "Po dokončení uvidíte výsledek přepočtu všech aktivních účtů."
+msgstr ""
+
+#: event/views/views_admin.py:940
+#, python-format
+msgid ""
+"Závod %(event)s mezitím upravil někdo jiný. Obnov stránku a zkontroluj "
+"aktuální nasazení."
+msgstr ""
+
+#: event/views/views_admin.py:961
+#, python-format
+msgid ""
+"V závodu %(event)s nemůže být jeden rozhodčí nasazen do více rolí současně."
+msgstr ""
+
+#: event/views/views_admin.py:994
+#, fuzzy
+#| msgid "Nasazení rozhodčích"
+msgid "Nasazení rozhodčích bylo uloženo."
+msgstr "Nasadenie rozhodcov"
+
+#: event/views/views_admin.py:996
+msgid "Nebyla provedena žádná změna."
+msgstr ""
+
+#: event/views/views_admin.py:1125
+msgid "Bez kódu"
+msgstr ""
+
+#: event/views/views_admin.py:1229
+msgid "Spárovaní jezdci"
+msgstr ""
+
+#: event/views/views_admin.py:1232
+msgid "Klub / tým"
+msgstr ""
+
+#: event/views/views_admin.py:1251
+msgid "Tento závod není označen jako UCI závod."
+msgstr ""
+
+#: event/views/views_admin.py:1256
+msgid "Chybí UCI XLSX šablona pro export."
+msgstr ""
+
+#: event/views/views_admin.py:1261
+msgid "U závodu chybí UCI_EVENT_CODE."
+msgstr ""
+
+#: event/views/views_admin.py:1273
+#, python-format
+msgid "U závodu chybí některé UCI kódy kategorií: %(fields)s."
+msgstr ""
+
+#: event/views/views_admin.py:1311 event/views/views_admin.py:1338
+msgid "Pro tento závod zatím nejsou nahrané žádné MOTO jízdy v RaceRun."
+msgstr ""
+
+#: event/views/views_admin.py:1461
+#, python-brace-format
+msgid "RaceRun aktualizován, zapsáno {count} jízd"
+msgstr ""
+
+#: event/views/views_admin.py:1477
+msgid "Tito závodníci nebyli nalezeni v databázi: "
+msgstr ""
+
+#: event/views/views_admin.py:1479
+#, python-brace-format
+msgid " (a {n} dalších)"
+msgstr ""
+
+#: event/views/views_admin.py:1486
+msgid "Neplatný klíč pro smazání."
+msgstr ""
+
+#: event/views/views_admin.py:1496
+msgid "Soubor pro vybranou sekci byl smazán."
+msgstr ""
+
+#: event/views/views_admin.py:1500
+msgid "Pro vybranou sekci nebyl nalezen žádný soubor."
+msgstr ""
+
+#: event/views/views_admin.py:1522
+msgid "Všechny statistiky byly smazány."
+msgstr ""
+
+#: event/views/views_admin.py:1524
+msgid "Žádné soubory k smazání."
+msgstr ""
+
+#: event/views/views_admin.py:1538
+#, python-brace-format
+msgid "Soubor {name} je příliš velký ({size} kB), maximum je 2 MB."
+msgstr ""
+
+#: event/views/views_admin.py:1559
+#, python-brace-format
+msgid "Nahráno ({count}): {names}."
+msgstr ""
+
+#: event/views/views_admin.py:1566
+msgid ""
+"Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické "
+"jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a "
+"potom spusť import statistik znovu."
+msgstr ""
+
+#: event/views/views_admin.py:1573
+msgid ""
+"Statistické soubory se nahrály, ale nevznikl žádný RaceRun. Zkontroluj, že "
+"kategorie, jména a čísla v HTML odpovídají výsledkům uloženým v Result."
+msgstr ""
+
+#: event/views/views_admin.py:1578
+msgid "Nebyly nahrány žádné soubory (povoleny jsou pouze .html)."
+msgstr ""
+
+#: event/views/views_admin.py:1604
+msgid "Motos (Rozjížďky)"
+msgstr ""
+
+#: event/views/views_admin.py:1611
+msgid "1/16 Finále"
+msgstr ""
+
+#: event/views/views_admin.py:1618
+msgid "1/8 Finále"
+msgstr ""
+
+#: event/views/views_admin.py:1625
+msgid "1/4 Finále"
+msgstr ""
+
+#: event/views/views_admin.py:1632
+msgid "1/2 Finále"
+msgstr ""
+
+#: event/views/views_admin.py:1639
+msgid "Finále"
+msgstr ""
+
+#: event/views/views_admin.py:1648 event/views/views_admin.py:1659
+msgid "Celkové výsledky"
+msgstr ""
+
+#: event/views/views_admin.py:1649
+msgid "Soubor s celkovými výsledky"
+msgstr ""
+
+#: event/views/views_admin.py:1655
+#, python-format
+msgid "%(section)s - %(label)s"
+msgstr ""
+
+#: event/views/views_admin.py:1672
+msgid "Neznámá kategorie"
+msgstr ""
+
+#: event/views/views_admin.py:1693
+#, python-brace-format
+msgid "{section}: nahrána startovní listina, chybí výsledky"
+msgstr ""
+
+#: event/views/views_admin.py:1697
+#, python-brace-format
+msgid "{section}: nahrány výsledky, chybí startovní listina"
+msgstr ""
+
+#: event/views/views_payment.py:196
+msgid ""
+"Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo "
+"smažte některou z registrací v košíku."
+msgstr ""
+
+#: event/views/views_payment.py:234
+msgid "Vaše přihláška byla úspěšně přijata."
+msgstr ""
+
+#: event/views/views_public.py:115
+#, python-format
+msgid ""
+"Přehled plánovaných závodů, otevřených registrací a archivních termínů pro "
+"sezonu %(year)s."
+msgstr ""
+
+#: event/views/views_public.py:116
+msgid "Následující závody"
+msgstr ""
+
+#: event/views/views_public.py:117 event/views/views_public.py:119
+msgid "Ukončené závody"
+msgstr ""
+
+#: event/views/views_public.py:118
+msgid "Nejbližší závody"
+msgstr ""
+
+#: event/views/views_public.py:143
+#, python-format
+msgid "Přehled archivních závodů a uzavřených termínů pro sezonu %(year)s."
+msgstr ""
+
+#: event/views/views_public.py:144
+msgid "Budoucí závody"
+msgstr ""
+
+#: event/views/views_public.py:145 event/views/views_public.py:151
+msgid "Odjeté závody"
+msgstr ""
+
+#: event/views/views_public.py:146
+#, python-format
+msgid "Archiv %(year)s"
+msgstr ""
+
+#: event/views/views_public.py:149
+#, python-format
+msgid "Přehled plánovaných závodů a budoucích termínů pro sezonu %(year)s."
+msgstr ""
+
+#: event/views/views_public.py:150
+msgid "Plánované závody"
+msgstr ""
+
+#: event/views/views_public.py:152
+#, python-format
+msgid "Sezona %(year)s"
+msgstr ""
+
+#: event/views/views_public.py:153 theme/templates/homepage.html:640
+msgid "Sezona"
+msgstr ""
+
+#: finance/templates/finance/finance.html:330
+msgid "Checkout refundy"
+msgstr ""
+
+#: finance/templates/finance/finance.html:333
+msgid "Posledních 100 vratek startovného"
+msgstr ""
+
+#: finance/templates/finance/finance.html:336
+msgid ""
+"Přehled automaticky vytvořených refundů po checkoutu českých registrací."
+msgstr ""
+
+#: finance/templates/finance/finance.html:341
+msgid "Export CSV refundů"
+msgstr ""
+
+#: finance/templates/finance/finance.html:351 finance/views.py:225
+#: rider/premium_stats_pdf.py:560 rider/premium_stats_pdf.py:599
+#: rider/templates/rider/account-settings-invoices.html:641
+#: rider/templates/rider/account-settings-invoices.html:724
+#: rider/templates/rider/rider-premium-stats.html:651
+#: rider/templates/rider/rider-premium-stats.html:737
+#: rider/templates/rider/rider-premium-stats.html:826
+msgid "Datum"
+msgstr ""
+
+#: finance/templates/finance/finance.html:352
+#: rider/templates/rider/account-settings-invoices.html:639
+msgid "Typ"
+msgstr ""
+
+#: finance/templates/finance/finance.html:354 finance/views.py:230
+#: rider/templates/rider/account-settings-invoices.html:642
+#: rider/templates/rider/account-settings-invoices.html:725
+msgid "Částka"
+msgstr ""
+
+#: finance/templates/finance/finance.html:367
+msgid "Bez uživatele"
+msgstr ""
+
+#: finance/templates/finance/finance.html:383
+msgid "Zatím nejsou k dispozici žádné checkout refundy."
+msgstr ""
+
+#: finance/views.py:188
+#, python-format
+msgid "Ověřeno %(count)d plateb za kredity za poslední 2 dny."
+msgstr ""
+
+#: finance/views.py:227 theme/templates/homepage.html:812
+msgid "Email"
+msgstr ""
+
+#: finance/views.py:231
+msgid "Payment intent"
+msgstr ""
+
+#: finance/views.py:232
+#, fuzzy
+#| msgid "Registrace"
+msgid "Registrace ID"
+msgstr "Registrácia"
+
+#: finance/views.py:233
+msgid "Transaction ID"
+msgstr ""
+
+#: news/models.py:322
+msgid "Automaticky generováno z titulku pro hezké URL"
+msgstr ""
+
+#: news/models.py:333
+msgid "Počet zhlédnutí"
+msgstr ""
+
+#: news/models.py:363
+msgid "Audio zveřejněno"
+msgstr ""
+
+#: news/models.py:366
+msgid "Článek zveřejněn"
+msgstr ""
+
+#: news/models.py:367
+msgid "Zveřejnit v mobilní aplikaci"
+msgstr ""
+
+#: news/models.py:443
+msgid "Článek"
+msgstr ""
+
+#: news/models.py:444
+msgid "Články"
+msgstr ""
+
+#: news/models.py:518
+msgid "Typ dokumentu"
+msgstr ""
+
+#: news/models.py:519
+msgid "Typ dokumentů"
+msgstr ""
+
+#: news/models.py:539 news/models.py:540
+msgid "Ke stažení"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:39
+msgid "Starty"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:40
+#: rider/templates/rider/rider-premium-stats.html:226
+msgid "Měřené jízdy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:41 rider/templates/rider/rider-compare.html:338
+#: rider/templates/rider/rider-compare.html:339
+#: rider/templates/rider/rider-compare.html:401
+#: rider/templates/rider/rider-compare.html:402
+msgid "Final rate"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:42 rider/templates/rider/rider-compare.html:345
+#: rider/templates/rider/rider-compare.html:346
+#: rider/templates/rider/rider-compare.html:408
+#: rider/templates/rider/rider-compare.html:409
+#: rider/templates/rider/rider-premium-stats.html:405
+#: rider/templates/rider/rider-premium-stats.html:406
+msgid "Podium rate"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:43
+#: rider/templates/rider/rider-premium-stats.html:412
+#: rider/templates/rider/rider-premium-stats.html:413
+msgid "Nejlepší výsledek"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:44
+msgid "Medián výsledků"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:45
+msgid "Medián cíle"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:46 rider/premium_stats_pdf.py:307
+msgid "Medián startu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:47 rider/premium_stats_pdf.py:308
+msgid "Medián Inter2"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:48
+msgid "Nejlepší cíl"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:49
+msgid "Nejlepší start"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:50
+msgid "Nejlepší Inter2"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:55
+msgid "Výsledky a umístění"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:57
+msgid "Celkem závodů na trati"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:58
+msgid "Výsledky v KPI období"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:59
+msgid "Jízdy v KPI období"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:60 rider/templates/rider/rider-compare.html:430
+#: rider/templates/rider/rider-compare.html:431
+msgid "Finálové jízdy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:61
+msgid "Postupů do dalších kol"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:62
+msgid "Postupovost"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:63
+msgid "Průměr moto umístění"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:64
+msgid "Průměr finálového umístění"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:65
+msgid "Win rate"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:69
+msgid "Časy a start"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:71
+msgid "Průměrný cíl"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:72
+msgid "Rozptyl cílových časů"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:73
+#: rider/templates/rider/rider-premium-stats.html:447
+#: rider/templates/rider/rider-premium-stats.html:448
+msgid "Průměrné pořadí na hillu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:74
+#: rider/templates/rider/rider-premium-stats.html:455
+#: rider/templates/rider/rider-premium-stats.html:456
+msgid "Hill win rate"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:75
+msgid "Hill top3 rate"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:76
+msgid "Zisk pozic po startu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:77
+msgid "Jízdy s hill pořadím"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:78
+#: rider/templates/rider/rider-premium-stats.html:471
+#: rider/templates/rider/rider-premium-stats.html:472
+msgid "Nejrychlejší dráha pro start"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:79
+msgid "Medián nejlepší dráhy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:80
+#: rider/templates/rider/rider-premium-stats.html:479
+#: rider/templates/rider/rider-premium-stats.html:480
+msgid "Nejlepší dráha pro výsledek"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:81
+msgid "Průměrné umístění nejlepší dráhy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:85
+msgid "Skóre a profil"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:87
+msgid "Konverze"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:88
+#: rider/templates/rider/rider-premium-stats.html:491
+msgid "Návrat"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:89
+msgid "Tlak"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:90
+msgid "Rozdíl tlaku"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:91
+msgid "Track affinity score"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:92
+msgid "Rozdíl affinity"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:93
+msgid "Affinity tratě"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:94
+#: rider/templates/rider/rider-premium-stats.html:503
+#: rider/templates/rider/rider-premium-stats.html:504
+msgid "Stability score"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:95
+#: rider/templates/rider/rider-premium-stats.html:507
+msgid "Riziko"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:96
+#: rider/templates/rider/rider-premium-stats.html:511
+#: rider/templates/rider/rider-premium-stats.html:512
+msgid "Consistency score"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:97
+msgid "Konzistence"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:101
+msgid "Spolehlivost a peer group"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:103
+msgid "Problematické jízdy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:104
+#: rider/templates/rider/rider-premium-stats.html:527
+#: rider/templates/rider/rider-premium-stats.html:528
+msgid "Čisté jízdy"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:105
+msgid "Pace index"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:106
+msgid "Velikost peer group"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:107
+msgid "Percentil pořadí"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:108
+msgid "Percentil času"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:109
+#: rider/templates/rider/rider-premium-stats.html:535
+#: rider/templates/rider/rider-premium-stats.html:536
+msgid "Trend"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:110
+msgid "Rozdíl trendu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:111
+msgid "Detail trendu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:112
+msgid "Peer group"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:160
+#: rider/templates/rider/rider-premium-stats.html:599
+msgid "Medián cílových časů podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:161
+#: rider/templates/rider/rider-premium-stats.html:432
+msgid "Finish time"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:167
+#: rider/templates/rider/rider-premium-stats.html:641
+msgid "Pro vykreslení trendu zatím nejsou na této trati dostupné časy závodů."
+msgstr ""
+
+#: rider/premium_stats_pdf.py:174
+#: rider/templates/rider/rider-premium-stats.html:684
+msgid "Medián startových časů podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:175
+#: rider/templates/rider/rider-premium-stats.html:440
+msgid "Hill time"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:181
+#: rider/templates/rider/rider-premium-stats.html:726
+msgid ""
+"Pro vykreslení trendu startových časů zatím nejsou na této trati dostupná "
+"data."
+msgstr ""
+
+#: rider/premium_stats_pdf.py:188
+#: rider/templates/rider/rider-premium-stats.html:773
+msgid "Medián mezičasů Inter2 podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:189
+msgid "Split 1"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:195
+#: rider/templates/rider/rider-premium-stats.html:815
+msgid "Pro vykreslení trendu Inter2 zatím nejsou na této trati dostupná data."
+msgstr ""
+
+#: rider/premium_stats_pdf.py:212 rider/premium_stats_pdf.py:279
+#: rider/premium_stats_pdf.py:322 rider/premium_stats_pdf.py:349
+msgid "Premium Statistics Report"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:227
+msgid "Rider"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:229
+#, python-format
+msgid "Jméno: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:230
+#, python-format
+msgid "UCI ID: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:231
+#, python-format
+msgid "Klub: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:239
+msgid "Export"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:241
+#, python-format
+msgid "Trať: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:242
+#, python-format
+msgid "Disciplína: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:243
+#, python-format
+msgid "KPI období: %(value)s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:271
+msgid ""
+"Tento report obsahuje souhrn vybrané tratě a tři trendové grafy z premium "
+"statistik."
+msgstr ""
+
+#: rider/premium_stats_pdf.py:280
+msgid "Detailní KPI a profil jezdce"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:286 rider/premium_stats_pdf.py:329
+#: rider/premium_stats_pdf.py:356
+msgid "Trať"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:287 rider/premium_stats_pdf.py:330
+#: rider/premium_stats_pdf.py:357 rider/templates/rider/rider-compare.html:232
+#: rider/templates/rider/rider-premium-stats.html:336
+msgid "Disciplína"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:306
+msgid "Finish time podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:306
+msgid "Medián dne"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:307
+msgid "Hill time podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:308
+msgid "Split 1 podle závodu"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:319
+#, python-format
+msgid "%(title)s (%(page)s)"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:360
+#: rider/templates/rider/rider-premium-stats.html:603
+#: rider/templates/rider/rider-premium-stats.html:688
+#: rider/templates/rider/rider-premium-stats.html:777
+#, python-format
+msgid "Rozsah %(min)s s až %(max)s s"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:421
+msgid "Premium statistics report"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:558
+msgid "Poslední výsledky"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:560
+msgid "Place"
+msgstr ""
+
+#: rider/premium_stats_pdf.py:626
+msgid "Pro tuto tabulku zatím nejsou dostupná data."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:3
+#: rider/templates/rider/account-settings-invoices.html:350
+#: theme/templates/includes/navbar.html:314
+#: theme/templates/includes/navbar.html:546
+msgid "Moje nastavení a faktury"
+msgstr "Moje nastavenia a faktúry"
+
+#: rider/templates/rider/account-settings-invoices.html:349
+#: rider/templates/rider/account-settings-invoices.html:400
+msgid "Účet uživatele"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:352
+msgid ""
+"Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn "
+"avatarů."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:356
+msgid "Správa individuálních předplatných"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:365
+#: rider/templates/rider/account-settings-invoices.html:457
+msgid "Navázaní jezdci"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:369
+#: rider/templates/rider/account-settings-invoices.html:624
+msgid "Faktury"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:373
+msgid "Předplatná"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:385
+msgid "Profil"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:402
+#, python-format
+msgid "%(count)s navázaný jezdec"
+msgid_plural "%(count)s navázaní jezdci"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: rider/templates/rider/account-settings-invoices.html:405
+#: rider/templates/rider/account-settings-invoices.html:499
+msgid "Avatar čeká na schválení"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:413
+msgid "Změna avataru účtu"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:415
+msgid ""
+"Nahraný obrázek se neprojeví hned. Nejprve počká na ruční schválení "
+"administrátorem."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:420
+#: rider/templates/rider/account-settings-invoices.html:519
+msgid "Čeká na schválení"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:425
+#: rider/templates/rider/account-settings-invoices.html:524
+msgid "JPG, PNG nebo WEBP"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:426
+#: rider/templates/rider/account-settings-invoices.html:525
+msgid "Max. 5 MB"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:427
+msgid "Doporučený čtvercový portrét"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:436
+#: rider/templates/rider/account-settings-invoices.html:535
+msgid "Vybrat obrázek k posouzení"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:437
+#: rider/templates/rider/account-settings-invoices.html:536
+msgid "Zatím není vybrán žádný soubor"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:439
+#: rider/templates/rider/account-settings-invoices.html:538
+msgid "Vybrat soubor"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:444
+#: rider/templates/rider/account-settings-invoices.html:543
+msgid "Odeslat vybraný obrázek ke schválení"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:447
+#: rider/templates/rider/account-settings-invoices.html:546
+msgid "Po výběru souboru odešli žádost tímto tlačítkem."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:458
+msgid "Profily jezdců navázané na účet"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:492
+#: rider/templates/rider/account-settings-invoices.html:638
+#: rider/templates/rider/account-settings-invoices.html:722
+msgid "Číslo"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:497
+msgid "Navázaný jezdec"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:512
+msgid "Návrh nového avataru"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:514
+msgid "U jezdců se nový obrázek zveřejní až po kontrole administrátorem."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:526
+msgid "Nezveřejní se bez kontroly"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:556
+msgid ""
+"K tomuto účtu zatím není navázaný žádný jezdec. Vazbu nastavuje "
+"administrátor ručně."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:565
+#: rider/templates/rider/rider-success.html:91 rider/views.py:2200
+#: rider/views.py:2212 rider/views.py:2337 rider/views.py:2420
+msgid "Správa jezdců"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:566
 #: rider/templates/rider/rider-inactive.html:4
-#: rider/templates/rider/rider-inactive.html:40
+#: rider/templates/rider/rider-inactive.html:41
 msgid "Neaktivní jezdci"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:37
+#: rider/templates/rider/account-settings-invoices.html:569
+#, python-format
+msgid "Přístup k deaktivaci neaktivních profilů v klubu %(team_name)s."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:571
+msgid "Přístup k administrativnímu seznamu neaktivních jezdců."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:576
+msgid "Otevřít seznam"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:584
+msgid "Individuální předplatná"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:591
+#: rider/templates/rider/trainer-dashboard.html:156
+#: rider/templates/rider/trainer-dashboard.html:244
+#, python-format
+msgid "Platné do %(date)s"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:603
+msgid "Trenérská předplatná"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:625
+msgid "Faktury za předplatné"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:627
+msgid "Tady najdeš PDF faktury za individuální, klubové i extended předplatné."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:643
+#: rider/templates/rider/account-settings-invoices.html:726
+msgid "Stažení"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:679
+#, python-format
+msgid "Zobrazeno %(current)s z %(total)s faktur."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:684
+#: rider/templates/rider/account-settings-invoices.html:777
+msgid "Předchozí"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:688
+#: rider/templates/rider/account-settings-invoices.html:781
+#, python-format
+msgid "Strana %(num)s / %(total)s"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:692
+#: rider/templates/rider/account-settings-invoices.html:785
+msgid "Další"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:700
+msgid "Zatím tu nemáš žádné faktury za předplatné."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:708
+msgid "Klubový manager"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:709
+msgid "Faktury za startovné klubu"
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:711
+#, python-format
+msgid ""
+"Zobrazené jsou pouze faktury za startovné vztahující se ke klubu "
+"%(team_name)s."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:772
+#, python-format
+msgid "Zobrazeno %(current)s z %(total)s klubových faktur."
+msgstr ""
+
+#: rider/templates/rider/account-settings-invoices.html:793
+msgid "K tomuto klubu zatím nejsou vystavené žádné faktury za startovné."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:3
+#: rider/templates/rider/rider-compare.html:179
+msgid "Porovnání jezdců"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:184
+msgid "Vyber soupeře ze stejné kategorie a porovnej KPI i přímé souboje."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:189
+msgid "Kategorie 20\\"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:193
+msgid "Kategorie 24\\"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:197
+#: rider/templates/rider/rider-compare.html:257
+#: rider/templates/rider/rider-premium-stats.html:310
+msgid "KPI období"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:210
+msgid "Výběr soupeře"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:212
+msgid ""
+"Vyber trať, disciplínu a soupeře. Systém pak zobrazí head-to-head porovnání "
+"i rozdíly v KPI."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:216
+msgid "Zpět na premium stats"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:223
+#: rider/templates/rider/rider-premium-stats.html:274
+msgid "Trať / klub"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:225
+#: rider/templates/rider/rider-premium-stats.html:282
+msgid "Vyber trať"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:234
+msgid "Vyber disciplínu"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:241
+#: rider/templates/rider/rider-compare.html:354
+msgid "Soupeř"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:243
+msgid "Vyber jezdce"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:251
+msgid "Porovnat"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:278
+msgid ""
+"Na této trati jsou výsledky jak pro 20\", tak pro 24\". Nejdřív vyber "
+"disciplínu."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:282
+msgid "Nejdřív vyber trať nebo klub."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:286
+msgid "Vyber soupeře ze stejné kategorie a zobrazí se head-to-head porovnání."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:291
+msgid "Náš jezdec"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:296
+#: rider/templates/rider/rider-compare.html:297
+#: rider/templates/rider/rider-compare.html:359
+#: rider/templates/rider/rider-compare.html:360
+msgid "Median finish"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:297
+#: rider/templates/rider/rider-compare.html:360
+msgid "Nápověda k mediánu finish time"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:297
+#: rider/templates/rider/rider-compare.html:360
+msgid ""
+"Medián všech dostupných cílových časů vybraného jezdce na této trati a v "
+"tomto období. Je vhodný pro porovnání typického výkonu bez vlivu extrémů."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:303
+#: rider/templates/rider/rider-compare.html:304
+#: rider/templates/rider/rider-compare.html:366
+#: rider/templates/rider/rider-compare.html:367
+msgid "Best finish"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:304
+#: rider/templates/rider/rider-compare.html:367
+msgid "Nápověda k best finish time"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:304
+#: rider/templates/rider/rider-compare.html:367
+msgid ""
+"Nejlepší naměřený cílový čas vybraného jezdce na této trati v daném období. "
+"Ukazuje strop výkonu, ne typický standard."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:310
+#: rider/templates/rider/rider-compare.html:311
+#: rider/templates/rider/rider-compare.html:373
+#: rider/templates/rider/rider-compare.html:374
+msgid "Median hill"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:311
+#: rider/templates/rider/rider-compare.html:374
+msgid "Nápověda k mediánu hill time"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:311
+#: rider/templates/rider/rider-compare.html:374
+msgid ""
+"Medián všech dostupných hill time na této trati v daném období. Ukazuje "
+"typickou kvalitu startu na kopci."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:317
+#: rider/templates/rider/rider-compare.html:318
+#: rider/templates/rider/rider-compare.html:380
+#: rider/templates/rider/rider-compare.html:381
+msgid "Best hill"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:318
+#: rider/templates/rider/rider-compare.html:381
+msgid "Nápověda k best hill time"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:318
+#: rider/templates/rider/rider-compare.html:381
+msgid ""
+"Nejlepší naměřený hill time vybraného jezdce na této trati v daném období. "
+"Ukazuje maximální kvalitu startu."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:324
+#: rider/templates/rider/rider-compare.html:325
+#: rider/templates/rider/rider-compare.html:387
+#: rider/templates/rider/rider-compare.html:388
+msgid "Median split 1"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:325
+#: rider/templates/rider/rider-compare.html:388
+msgid "Nápověda k mediánu split 1"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:325
+#: rider/templates/rider/rider-compare.html:388
+msgid ""
+"Medián mezičasů ze split 1. Zatím se zobrazí jen tam, kde už jsou split data "
+"k dispozici."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:331
+#: rider/templates/rider/rider-compare.html:332
+#: rider/templates/rider/rider-compare.html:394
+#: rider/templates/rider/rider-compare.html:395
+msgid "Best split 1"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:332
+#: rider/templates/rider/rider-compare.html:395
+msgid "Nápověda k best split 1"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:332
+#: rider/templates/rider/rider-compare.html:395
+msgid ""
+"Nejlepší dostupný mezičas split 1. Hodí se pro porovnání špičkové akcelerace "
+"v první části tratě."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:339
+#: rider/templates/rider/rider-compare.html:402
+msgid "Nápověda k final rate"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:339
+#: rider/templates/rider/rider-compare.html:402
+msgid ""
+"Podíl závodů v daném období, kde se jezdec dostal do velkého finále F1. "
+"Pomáhá porovnat, jak často se oba jezdci dostanou mezi nejlepší."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:346
+#: rider/templates/rider/rider-compare.html:409
+msgid "Nápověda k podium rate"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:346
+#: rider/templates/rider/rider-compare.html:409
+msgid ""
+"Podíl výsledků na této trati v daném období, kde jezdec skončil na 1. až 3. "
+"místě."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:418
+msgid "Přímé souboje"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:422
+#: rider/templates/rider/rider-compare.html:423
+msgid "Motos"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:423
+msgid "Nápověda k moto soubojům"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:423
+msgid ""
+"Poměr výher a proher v přímých moto jízdách, kde jeli oba jezdci ve stejné "
+"jízdě. Vyhrává ten, kdo skončil v jízdě lépe."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:426
+#: rider/templates/rider/rider-compare.html:434
+#, python-format
+msgid "Společné jízdy %(shared)s"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:431
+msgid "Nápověda k finálovým soubojům"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:431
+msgid ""
+"Poměr výher a proher v knockout a finálových jízdách, kde oba jezdci "
+"nastoupili proti sobě ve stejné jízdě."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:438
+#: rider/templates/rider/rider-compare.html:439
+msgid "Celkový výsledek závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:439
+msgid "Nápověda k celkovému výsledku závodu"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:439
+msgid ""
+"Porovnání celkového pořadí v závodech, kde startovali oba jezdci. Vyhrává "
+"ten, kdo skončil v závodě na lepším místě."
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:442
+#, python-format
+msgid "Společné závody %(shared)s"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:455
+#: rider/templates/rider/rider-premium-stats.html:881
+msgid "Kontextová nápověda"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:464
+#: rider/templates/rider/rider-premium-stats.html:890
+msgid "Jak Se Počítá"
+msgstr ""
+
+#: rider/templates/rider/rider-compare.html:469
+#: rider/templates/rider/rider-premium-stats.html:895
+msgid "Rozumím"
+msgstr ""
+
+#: rider/templates/rider/rider-inactive.html:38
 msgid "Rider Admin"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:43
+#: rider/templates/rider/rider-inactive.html:44
 msgid ""
 "Profily bez výsledku za předchozí kalendářní rok. Tohle je administrativní "
 "čistka databáze, ne archiv. Jedním klikem se jezdec pouze skryje z aktivní "
 "databáze."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:54
+#: rider/templates/rider/rider-inactive.html:55
 msgid "Akce je nevratná z této obrazovky"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:56
+#: rider/templates/rider/rider-inactive.html:57
 msgid ""
 "Tlačítko <span class=\"font-semibold text-rose-600 dark:text-"
 "rose-300\">Uvolnit</span> změní pouze stav jezdce na neaktivní. Startovní "
@@ -89,328 +4530,376 @@ msgid ""
 "jezdec."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:64
+#: rider/templates/rider/rider-inactive.html:65
 msgid "K evidenci"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:66
+#: rider/templates/rider/rider-inactive.html:67
 msgid "profilů připravených k deaktivaci"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:69
+#: rider/templates/rider/rider-inactive.html:70
 msgid "Typ zásahu"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:70
+#: rider/templates/rider/rider-inactive.html:71
 msgid "deaktivace profilu"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:80
+#: rider/templates/rider/rider-inactive.html:81
 msgid "Admin workflow"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:81
+#: rider/templates/rider/rider-inactive.html:82
 msgid "Kandidáti na deaktivaci"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:84
+#: rider/templates/rider/rider-inactive.html:85
 msgid ""
 "Přehled je záměrně čistý a rychlý. Důležitá jsou jen identita jezdce, číslo, "
 "klub a jednoznačná akce."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:94
-msgid "Příjmení"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:95
-msgid "Jméno"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:96
-msgid "Startovní číslo"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:98
-#: rider/templates/rider/trainer-dashboard.html:137
-msgid "Klub"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:123
+#: rider/templates/rider/rider-inactive.html:124
 msgid "Uvolnit"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:139
+#: rider/templates/rider/rider-inactive.html:140
 msgid "Databáze je čistá"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:141
+#: rider/templates/rider/rider-inactive.html:142
 msgid ""
 "Momentálně tu není žádný jezdec, který by splnil podmínky pro přesun do "
 "neaktivních profilů."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:163
+#: rider/templates/rider/rider-inactive.html:164
 msgid "Potvrzení akce"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:164
+#: rider/templates/rider/rider-inactive.html:165
 msgid "Opravdu deaktivovat jezdce?"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:168
-msgid "Zavřít"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:177
-msgid "Jezdec"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:177
+#: rider/templates/rider/rider-inactive.html:178
 msgid "bude označen jako neaktivní."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:180
+#: rider/templates/rider/rider-inactive.html:181
 msgid "Tato akce změní `is_active` na `False`. Samotný profil se nesmaže."
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:186
-msgid "Zrušit"
-msgstr ""
-
-#: rider/templates/rider/rider-inactive.html:192
+#: rider/templates/rider/rider-inactive.html:193
 msgid "Potvrdit deaktivaci"
 msgstr ""
 
-#: rider/templates/rider/rider-inactive.html:222
-msgid "vybraný jezdec"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:3
-msgid "Prémiové statistiky jezdce"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:10
+#: rider/templates/rider/rider-premium-stats.html:206
 msgid "Prémiové statistiky"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:16
+#: rider/templates/rider/rider-premium-stats.html:212
 #, python-format
 msgid "Aktivní do %(date)s"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:20
+#: rider/templates/rider/rider-premium-stats.html:216
 #, python-format
 msgid "Trenérský přístup přes klub aktivní do %(date)s."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:24
+#: rider/templates/rider/rider-premium-stats.html:220
 msgid "Administrátorský přístup bez omezení předplatným."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:29
+#: rider/templates/rider/rider-premium-stats.html:230
+msgid "Kategorie 20\""
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:234
+msgid "Kategorie 24\""
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:251
+msgid "Export PDF"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:255
 msgid "Zpět na profil jezdce"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:37
+#: rider/templates/rider/rider-premium-stats.html:263
 msgid "Výběr tratě / klubu"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:39
+#: rider/templates/rider/rider-premium-stats.html:265
 msgid ""
 "Vyber trať a zobrazí se agregované KPI a poslední výsledky jezdce na dané "
 "dráze."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:48
-msgid "Trať / klub"
+#: rider/templates/rider/rider-premium-stats.html:286
+#, python-format
+msgid ""
+"%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd | Nejlépe #%(best)s"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:56
-msgid "Vyber trať"
+#: rider/templates/rider/rider-premium-stats.html:290
+#, python-format
+msgid "%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:75
-msgid "KPI období"
+#: rider/templates/rider/rider-premium-stats.html:326
+msgid "Porovnat s jezdcem"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:97
-msgid "Disciplína"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:117
+#: rider/templates/rider/rider-premium-stats.html:356
 msgid ""
 "Na této trati jsou výsledky jak pro 20\", tak pro 24\". Nejdřív vyber "
 "disciplínu, pro kterou chceš zobrazit statistiky."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:123
+#: rider/templates/rider/rider-premium-stats.html:362
 msgid "Traťový profil"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:128
+#: rider/templates/rider/rider-premium-stats.html:367
 #, python-format
 msgid "Jezdec je porovnáván s jezdci kategorie %(label)s"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:134
+#: rider/templates/rider/rider-premium-stats.html:373
 #, python-format
 msgid "Statistiky pro %(wheel)s\""
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:138
+#: rider/templates/rider/rider-premium-stats.html:377
 msgid "Prémiové KPI a trend výkonu jezdce na této konkrétní trati."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:142
+#: rider/templates/rider/rider-premium-stats.html:381
 #, python-format
 msgid ""
 "KPI a srovnání počítáme pro vybrané období %(label)s, od %(date)s. Graf a "
 "tabulka zůstávají za celou historii."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:144
+#: rider/templates/rider/rider-premium-stats.html:383
 msgid ""
 "KPI a srovnání počítáme z celé historie. Graf i tabulka zůstávají za celou "
 "historii."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:151
-#: rider/templates/rider/rider-premium-stats.html:152
-msgid "Starty"
+#: rider/templates/rider/rider-premium-stats.html:390
+#: rider/templates/rider/rider-premium-stats.html:391
+msgid "Počet závodů"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:152
-msgid "Nápověda k položce Starty"
+#: rider/templates/rider/rider-premium-stats.html:391
+msgid "Nápověda k položce Počet závodů"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:152
+#: rider/templates/rider/rider-premium-stats.html:391
 msgid ""
-"Hlavní číslo ukazuje počet startů na této trati ve vybraném období. Druhý "
-"řádek ukazuje celkový počet startů v celé historii."
+"Hlavní číslo ukazuje počet závodů na této trati ve vybraném období, ve "
+"kterých má jezdec alespoň jednu měřenou jízdu. Druhý řádek ukazuje celkový "
+"počet takových závodů v celé historii."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:155
-msgid "Celkem"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:159
-#: rider/templates/rider/rider-premium-stats.html:160
+#: rider/templates/rider/rider-premium-stats.html:398
+#: rider/templates/rider/rider-premium-stats.html:399
 msgid "Final rate (F1)"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:160
+#: rider/templates/rider/rider-premium-stats.html:399
 msgid "Nápověda k Final rate"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:160
+#: rider/templates/rider/rider-premium-stats.html:399
 msgid ""
 "Podíl závodů ve vybraném období, ve kterých jezdec jel velké finále F1. "
 "Počítá se jen z jízd s round_type FINAL, tedy nezahrnuje F2, F4, F8, F16 a "
 "další knockout kola."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:166
-#: rider/templates/rider/rider-premium-stats.html:167
-msgid "Podium rate"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:167
+#: rider/templates/rider/rider-premium-stats.html:406
 msgid "Nápověda k Podium rate"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:167
+#: rider/templates/rider/rider-premium-stats.html:406
 msgid ""
 "Podíl výsledků ve vybraném období na této trati, kde jezdec skončil na 1. až "
 "3. místě."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:173
-#: rider/templates/rider/rider-premium-stats.html:174
-msgid "Best result"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:174
+#: rider/templates/rider/rider-premium-stats.html:413
 msgid "Nápověda k Best result"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:174
+#: rider/templates/rider/rider-premium-stats.html:413
 msgid ""
 "Nejlepší celkové umístění v závodě na této trati ve vybraném období. Nižší "
 "číslo je lepší."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:184
-#: rider/templates/rider/rider-premium-stats.html:185
+#: rider/templates/rider/rider-premium-stats.html:423
+#: rider/templates/rider/rider-premium-stats.html:424
 msgid "Průměrné umístění v motos"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:185
+#: rider/templates/rider/rider-premium-stats.html:424
 msgid "Nápověda k umístění v motos"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:185
+#: rider/templates/rider/rider-premium-stats.html:424
 msgid ""
 "Průměr umístění ve všech moto jízdách ve vybraném období na této trati. Na "
 "druhém řádku je průměr finálových jízd."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:188
+#: rider/templates/rider/rider-premium-stats.html:427
 msgid "u finálových jízd:"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:192
-msgid "Median time's"
+#: rider/templates/rider/rider-premium-stats.html:431
+msgid "Medián cílových časů"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:193
+#: rider/templates/rider/rider-premium-stats.html:432
 msgid "Nápověda k časům"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:193
-msgid "Finish time"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:193
+#: rider/templates/rider/rider-premium-stats.html:432
 msgid ""
 "Hlavní číslo je medián všech dostupných cílových časů ve vybraném období na "
 "této trati. Dole zůstává nejlepší naměřený čas."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:196
-msgid "Best"
+#: rider/templates/rider/rider-premium-stats.html:435
+#: rider/templates/rider/rider-premium-stats.html:443
+msgid "Nejlepší čas"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:200
-#: rider/templates/rider/rider-premium-stats.html:201
-msgid "Conversion / Recovery"
+#: rider/templates/rider/rider-premium-stats.html:439
+msgid "Medián hill time"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:201
+#: rider/templates/rider/rider-premium-stats.html:440
+msgid "Nápověda k hill time"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:440
+msgid ""
+"Hlavní číslo je medián všech dostupných startových časů na kopci ve vybraném "
+"období. Dole zůstává nejlepší naměřený hill time."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:448
+msgid "Nápověda k hill rank"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:448
+msgid ""
+"Pořadí se počítá uvnitř každé společné jízdy podle hill time. Nižší číslo "
+"znamená lepší start. Dole je počet jízd, kde šlo hill pořadí spočítat."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:451
+msgid "Spočítáno jízd"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:456
+msgid "Nápověda k hill win rate"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:456
+msgid ""
+"Podíl jízd ve vybraném období, kde měl jezdec nejlepší hill time v celé své "
+"jízdě."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:459
+msgid "Top 3"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:463
+#: rider/templates/rider/rider-premium-stats.html:464
+msgid "Pozice po startu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:464
+msgid "Nápověda k pozicím po startu"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:464
+msgid ""
+"Rozdíl mezi pořadím na hillu a pořadím v cíli. Kladná hodnota znamená, že "
+"jezdec po startu typicky získává pozice, záporná že je ztrácí."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:467
+msgid "kladná = získává pozice"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:472
+msgid "Nápověda k nejlepší dráze"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:472
+msgid ""
+"Dráha, na které má jezdec ve vybraném období nejnižší medián hill time. Je "
+"to čistě osobní profil jezdce, ne obecná výhoda tratě."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:474
+#: rider/templates/rider/rider-premium-stats.html:482
+msgid "Dráha"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:475
+msgid "Medián"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:480
+msgid "Nápověda k nejlepší dráze pro výsledek"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:480
+msgid ""
+"Dráha, ze které jezdec na této trati ve vybraném období v průměru dosahuje "
+"nejlepších umístění. Nižší průměrné pořadí je lepší."
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:483
+msgid "Průměrné umístění"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:487
+#: rider/templates/rider/rider-premium-stats.html:488
+msgid "Konverze / návrat"
+msgstr ""
+
+#: rider/templates/rider/rider-premium-stats.html:488
 msgid "Nápověda ke Conversion/Recovery"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:201
+#: rider/templates/rider/rider-premium-stats.html:488
 msgid ""
 "Conversion ukazuje, jak často jezdec promění silné motos v celkový výsledek "
 "do 3. místa. Recovery ukazuje, jak často po slabším startu skončí lépe než "
 "naznačují motos. Obojí ve vybraném období."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:204
-msgid "Recovery"
+#: rider/templates/rider/rider-premium-stats.html:495
+#: rider/templates/rider/rider-premium-stats.html:496
+msgid "Tlak / affinity"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:208
-#: rider/templates/rider/rider-premium-stats.html:209
-msgid "Pressure / Affinity"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:209
+#: rider/templates/rider/rider-premium-stats.html:496
 msgid "Nápověda k Pressure/Affinity"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:209
+#: rider/templates/rider/rider-premium-stats.html:496
 msgid ""
 "Pressure score je škála 1 až 100, která porovnává průměrné umístění v motos "
 "a ve finálových jízdách. Hodnota 100 znamená, že jezdec ve finálových "
@@ -424,16 +4913,11 @@ msgid ""
 "záporná, že horší, a hodnota blízko nule znamená neutrální trať."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:216
-#: rider/templates/rider/rider-premium-stats.html:217
-msgid "Stability score"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:217
+#: rider/templates/rider/rider-premium-stats.html:504
 msgid "Nápověda ke Stability score"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:217
+#: rider/templates/rider/rider-premium-stats.html:504
 msgid ""
 "Stability score je škála 1 až 100, která kombinuje rozptyl umístění, rozptyl "
 "časů a počet problémových jízd. Hodnota 100 znamená velmi stabilní výkony "
@@ -443,130 +4927,111 @@ msgid ""
 "opačný pohled, tedy míru nestability a rizika."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:220
-msgid "Risk"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:224
-#: rider/templates/rider/rider-premium-stats.html:225
-msgid "Consistency score"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:225
+#: rider/templates/rider/rider-premium-stats.html:512
 msgid "Nápověda ke Consistency score"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:225
+#: rider/templates/rider/rider-premium-stats.html:512
 msgid ""
 "Consistency score měří vyrovnanost výkonů na základě variability časů "
 "startu, časů v cíli a umístění. Čím vyšší skóre, tím stabilnější je "
 "výkonnost jezdce (90+ velmi stabilní, pod 60 nevyrovnaný)."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:232
-#: rider/templates/rider/rider-premium-stats.html:233
+#: rider/templates/rider/rider-premium-stats.html:519
+#: rider/templates/rider/rider-premium-stats.html:520
 msgid "Postup z motos"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:233
+#: rider/templates/rider/rider-premium-stats.html:520
 msgid "Nápověda k postupu"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:233
+#: rider/templates/rider/rider-premium-stats.html:520
 msgid ""
 "Podíl závodů ve vybraném období, kde se jezdec z motos dostal do "
 "vyřazovacích nebo finálových jízd. Dole je počet závodů, ve kterých k "
 "postupu došlo."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:236
+#: rider/templates/rider/rider-premium-stats.html:523
 #, python-format
 msgid "%(count)s postupů z motos"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:240
-#: rider/templates/rider/rider-premium-stats.html:241
-msgid "Čisté jízdy"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:241
+#: rider/templates/rider/rider-premium-stats.html:528
 msgid "Nápověda k čistým jízdám"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:241
+#: rider/templates/rider/rider-premium-stats.html:528
 msgid ""
 "Podíl jízd ve vybraném období bez DNF, DNS, DSQ nebo REL. Dole je počet "
 "problémových jízd."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:244
+#: rider/templates/rider/rider-premium-stats.html:531
 #, python-format
 msgid "%(count)sx DNF/DNS/DSQ/REL"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:248
-#: rider/templates/rider/rider-premium-stats.html:249
-msgid "Trend"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:249
+#: rider/templates/rider/rider-premium-stats.html:536
 msgid "Nápověda k Trendu"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:249
+#: rider/templates/rider/rider-premium-stats.html:536
 msgid ""
 "Trend porovnává první a poslední závod v daném období (místo posledních "
 "dvou). Ukazuje celkový posun výkonnosti na této trati za zvolený časový úsek."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:256
-#: rider/templates/rider/rider-premium-stats.html:257
+#: rider/templates/rider/rider-premium-stats.html:543
+#: rider/templates/rider/rider-premium-stats.html:544
 msgid "Srovnání pořadí"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:257
+#: rider/templates/rider/rider-premium-stats.html:544
 msgid "Nápověda ke srovnání pořadí"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:257
+#: rider/templates/rider/rider-premium-stats.html:544
 msgid ""
 "Porovnání s ostatními stejně starými jezdci na stejné trati ve vybraném "
 "období. Vychází z průměrného celkového umístění v závodech."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:263
+#: rider/templates/rider/rider-premium-stats.html:550
 msgid "Lepší než tolik stejně starých jezdců"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:268
-#: rider/templates/rider/rider-premium-stats.html:269
+#: rider/templates/rider/rider-premium-stats.html:555
+#: rider/templates/rider/rider-premium-stats.html:556
 msgid "Srovnání času"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:269
+#: rider/templates/rider/rider-premium-stats.html:556
 msgid "Nápověda ke srovnání času"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:269
+#: rider/templates/rider/rider-premium-stats.html:556
 msgid ""
 "Porovnání s ostatními stejně starými jezdci na stejné trati ve vybraném "
 "období. Vychází z mediánu všech dostupných cílových časů."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:275
+#: rider/templates/rider/rider-premium-stats.html:562
 msgid "Lepší medián času než tolik stejně starých jezdců"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:280
-#: rider/templates/rider/rider-premium-stats.html:281
+#: rider/templates/rider/rider-premium-stats.html:567
+#: rider/templates/rider/rider-premium-stats.html:568
 msgid "Pace Index"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:281
+#: rider/templates/rider/rider-premium-stats.html:568
 msgid "Nápověda k Pace Indexu"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:281
+#: rider/templates/rider/rider-premium-stats.html:568
 #, python-format
 msgid ""
 "Pace Index (100 * medián pole / tvůj průměr). Hodnota 100 = medián. Hodnota "
@@ -574,337 +5039,678 @@ msgid ""
 "Pod 100 = ztráta."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:285
+#: rider/templates/rider/rider-premium-stats.html:572
 msgid "nad 100 = rychlejší než medián"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:293
+#: rider/templates/rider/rider-premium-stats.html:580
 msgid "Pohled dat"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:296
+#: rider/templates/rider/rider-premium-stats.html:583
 msgid "FINISH"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:300
+#: rider/templates/rider/rider-premium-stats.html:587
 msgid "HILL"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:304
+#: rider/templates/rider/rider-premium-stats.html:591
 msgid "SPLIT 1"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:311
+#: rider/templates/rider/rider-premium-stats.html:598
 msgid "Trend závodů"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:312
-msgid "Medián cílových časů podle závodu"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:316
-#: rider/templates/rider/rider-premium-stats.html:401
-#: rider/templates/rider/rider-premium-stats.html:490
-#, python-format
-msgid "Rozsah %(min)s s až %(max)s s"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:349
-#: rider/templates/rider/rider-premium-stats.html:434
-#: rider/templates/rider/rider-premium-stats.html:523
-msgid "Datum závodu"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:354
-msgid "Pro vykreslení trendu zatím nejsou na této trati dostupné časy závodů."
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:364
-#: rider/templates/rider/rider-premium-stats.html:450
-#: rider/templates/rider/rider-premium-stats.html:539
-msgid "Datum"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:365
-#: rider/templates/rider/rider-premium-stats.html:451
-#: rider/templates/rider/rider-premium-stats.html:540
-msgid "Závod"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:396
+#: rider/templates/rider/rider-premium-stats.html:683
 msgid "Start závodu"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:397
-msgid "Medián startových časů podle závodu"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:439
-msgid ""
-"Pro vykreslení trendu startových časů zatím nejsou na této trati dostupná "
-"data."
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:478
-#: rider/templates/rider/rider-premium-stats.html:567
+#: rider/templates/rider/rider-premium-stats.html:765
+#: rider/templates/rider/rider-premium-stats.html:854
 msgid "Pro tuto statistiku není v současné době dostatek dat."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:485
+#: rider/templates/rider/rider-premium-stats.html:772
 msgid "První zatáčka"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:486
-msgid "Medián mezičasů Inter2 podle závodu"
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:528
-msgid "Pro vykreslení trendu Inter2 zatím nejsou na této trati dostupná data."
-msgstr ""
-
-#: rider/templates/rider/rider-premium-stats.html:573
+#: rider/templates/rider/rider-premium-stats.html:860
 msgid "Pro vybranou trať zatím nejsou uložené žádné detailní jízdy."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:577
+#: rider/templates/rider/rider-premium-stats.html:864
 msgid ""
 "Vyber trať nebo klub nahoře a zobrazí se prémiové statistiky této dráhy."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:582
+#: rider/templates/rider/rider-premium-stats.html:869
 msgid "Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z tratí."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:594
-msgid "Kontextová nápověda"
+#: rider/templates/rider/rider-rank.html:21
+msgid "INFORMACE."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:603
-msgid "Jak Se Počítá"
+#: rider/templates/rider/rider-rank.html:22 rider/views.py:2234
+msgid "Přepočet rankingu byl spuštěn na pozadí."
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:608
-msgid "Rozumím"
+#: rider/templates/rider/rider-request.html:3
+msgid "Žádost o startovní číslo"
 msgstr ""
 
-#: rider/templates/rider/rider-premium-stats.html:653
-msgid "Nápověda"
+#: rider/templates/rider/rider-request.html:224
+msgid "Žádost jezdce"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:227
+msgid "Žádost o přidělení startovního čísla"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:230
+msgid ""
+"Zadej UCI ID, ověř licenci u ČSC a po úspěšném načtení dokonči žádost o "
+"permanentní startovní číslo na stejné stránce."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:237
+msgid "Licence ČSC"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:240
+msgid "Identifikace"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:241
+msgid "číslic UCI ID"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:244
+msgid "Výstup"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:245
+msgid "Permanentní číslo"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:280
+msgid "Upozornění"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:290 rider/views.py:2004
+#: rider/views.py:2094
+msgid "UCI ID musí obsahovat přesně 11 číslic."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:291
+msgid "Načítám..."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:292 rider/views.py:2021
+msgid "Licence nebyla nalezena."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:293
+msgid "Licence byla úspěšně načtena. Pokračuj vyplněním žádosti."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:294
+#: rider/templates/rider/rider-request.html:339
+msgid "Licence byla ověřena. Pokračuj vyplněním zbytku žádosti."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:295 rider/views.py:2089
+msgid "Nejprve ověř UCI ID proti licenci ČSC."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:296
+msgid "Zadejte platné telefonní číslo (6–20 znaků)."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:306
+msgid "1. Ověření licence"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:325
+msgid "Zadej 11místné UCI ID"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:328
+msgid "Po ověření licence se zpřístupní druhá část formuláře."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:332
+msgid "Načíst licenci"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:341
+msgid "Zatím nebyla načtena žádná licence."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:347
+msgid "2. Osobní údaje z licence"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:362
+msgid "Datum narození"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:368
+msgid "Pohlaví"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:379
+msgid "Klub a startovní číslo"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:384
+#: rider/templates/rider/rider-request.html:394
+msgid "Vyber..."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:404
+msgid "Kategorie a nastavení"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:405
+msgid "Vyberte alespoň jednu kategorii kola (20\" nebo 24\")."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:409
+msgid "20\" kolo"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:419
+msgid "Cruiser 24\""
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:425
+msgid "Nouzový kontakt"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:428
+msgid "Jméno kontaktu"
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:457
+msgid ""
+"Po sérii podezřelých pokusů chceme krátké potvrzení, že žádost vyplňuje "
+"člověk."
+msgstr ""
+
+#: rider/templates/rider/rider-request.html:466
+msgid "Odeslat žádost"
+msgstr ""
+
+#: rider/templates/rider/rider-success.html:94
+msgid "Akce byla spuštěna"
+msgstr ""
+
+#: rider/templates/rider/rider-success.html:97
+msgid "Požadovaná operace byla přijata a systém ji zpracuje na pozadí."
+msgstr ""
+
+#: rider/templates/rider/rider-success.html:121
+msgid ""
+"Není potřeba čekat na této stránce. Můžeš pokračovat v další administraci."
+msgstr ""
+
+#: rider/templates/rider/rider-success.html:129
+#: rider/templates/rider/rider-success.html:133 rider/views.py:2205
+#: rider/views.py:2217 rider/views.py:2342 rider/views.py:2425
+msgid "Zpět na administraci jezdců"
+msgstr ""
+
+#: rider/templates/rider/rider-success.html:139
+#: rider/templates/rider/rider-success.html:143 rider/views.py:2207
+#: rider/views.py:2219 rider/views.py:2344 rider/views.py:2427
+msgid "Seznam jezdců"
 msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:4
-#: rider/templates/rider/trainer-dashboard.html:15
-#: theme/templates/includes/navbar.html:363
-#: theme/templates/includes/navbar.html:570
+#: theme/templates/includes/navbar.html:317
+#: theme/templates/includes/navbar.html:549
 msgid "Trenérský dashboard"
 msgstr "Trénerský dashboard"
 
-#: rider/templates/rider/trainer-dashboard.html:14
+#: rider/templates/rider/trainer-dashboard.html:88
 msgid "Trenérská sekce"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:17
+#: rider/templates/rider/trainer-dashboard.html:89
+msgid "TRENÉRSKÝ DASHBOARD"
+msgstr ""
+
+#: rider/templates/rider/trainer-dashboard.html:91
 msgid ""
 "Přehled klubů, které máš přiřazené jako trenér, a stav měsíčních "
 "předplatných pro klubové prémiové statistiky a rozšířené funkce."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:21
-msgid "Kluby"
-msgstr ""
-
-#: rider/templates/rider/trainer-dashboard.html:23
+#: rider/templates/rider/trainer-dashboard.html:100
 msgid "Aktivní stats"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:35
+#: rider/templates/rider/trainer-dashboard.html:122
 msgid "Ceník sezóny"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:36
+#: rider/templates/rider/trainer-dashboard.html:123
 msgid "Měsíční tarify pro trenéra"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:39
+#: rider/templates/rider/trainer-dashboard.html:126
 msgid "Ceny se berou z aktuálního nastavení sezóny."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:45
+#: rider/templates/rider/trainer-dashboard.html:132
 msgid "Klubové stats"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:50
+#: rider/templates/rider/trainer-dashboard.html:137
 msgid ""
 "Měsíční předplatné pro přístup k prémiovým statistikám jezdců jednoho "
 "konkrétního klubu."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:59
+#: rider/templates/rider/trainer-dashboard.html:146
 msgid ""
 "Rozšířené měsíční předplatné pro exporty a návazné trenérské nástroje. Platí "
 "globálně pro trenéra a vztahuje se na všechny kluby s aktivním stats "
 "předplatným."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:69
-#: rider/templates/rider/trainer-dashboard.html:157
-#, python-format
-msgid "Platné do %(date)s"
-msgstr ""
-
-#: rider/templates/rider/trainer-dashboard.html:71
-#: rider/templates/rider/trainer-dashboard.html:163
+#: rider/templates/rider/trainer-dashboard.html:158
+#: rider/templates/rider/trainer-dashboard.html:250
 msgid "Automatické obnovení zapnuto"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:71
-#: rider/templates/rider/trainer-dashboard.html:163
+#: rider/templates/rider/trainer-dashboard.html:158
+#: rider/templates/rider/trainer-dashboard.html:250
 msgid "Automatické obnovení vypnuto"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:74
+#: rider/templates/rider/trainer-dashboard.html:161
 msgid "Rozšířené předplatné zatím není aktivní."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:86
-#: rider/templates/rider/trainer-dashboard.html:91
+#: rider/templates/rider/trainer-dashboard.html:173
+#: rider/templates/rider/trainer-dashboard.html:178
 msgid "Aktivovat extended"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:99
-#: rider/templates/rider/trainer-dashboard.html:181
+#: rider/templates/rider/trainer-dashboard.html:186
+#: rider/templates/rider/trainer-dashboard.html:268
 msgid "Vypnout obnovu"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:108
-#: rider/templates/rider/trainer-dashboard.html:190
+#: rider/templates/rider/trainer-dashboard.html:195
+#: rider/templates/rider/trainer-dashboard.html:277
 msgid "Zapnout obnovu"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:122
+#: rider/templates/rider/trainer-dashboard.html:209
 msgid "Přiřazené kluby"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:123
+#: rider/templates/rider/trainer-dashboard.html:210
 msgid "Předplatná po klubech"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:125
+#: rider/templates/rider/trainer-dashboard.html:212
 msgid ""
 "Stats se účtuje po klubech. Extended je jedno měsíční trenérské předplatné "
 "pro všechny kluby s aktivními stats."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:141
+#: rider/templates/rider/trainer-dashboard.html:228
 msgid "Detail klubu"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:159
+#: rider/templates/rider/trainer-dashboard.html:246
 msgid "Klub zatím nemá aktivní stats předplatné."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:172
+#: rider/templates/rider/trainer-dashboard.html:259
 msgid "Aktivovat stats"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:202
+#: rider/templates/rider/trainer-dashboard.html:289
 msgid "Extended exporty"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:203
+#: rider/templates/rider/trainer-dashboard.html:290
 msgid "Aktivní pro tento klub."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:208
+#: rider/templates/rider/trainer-dashboard.html:295
 msgid "Seznam jezdců klubu"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:210
+#: rider/templates/rider/trainer-dashboard.html:297
 msgid "KPI přehled jezdců"
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:216
+#: rider/templates/rider/trainer-dashboard.html:303
 msgid "Pro exporty tohoto klubu aktivuj globální předplatné Extended."
 msgstr ""
 
-#: rider/templates/rider/trainer-dashboard.html:224
+#: rider/templates/rider/trainer-dashboard.html:311
 msgid "K tomuto účtu zatím nejsou přiřazené žádné aktivní kluby trenéra."
 msgstr ""
 
-#: rider/views.py:211
+#: rider/views.py:206
+msgid "Vyber obrázek, který chceš nahrát."
+msgstr ""
+
+#: rider/views.py:208
+msgid "Avatar může mít maximálně 5 MB."
+msgstr ""
+
+#: rider/views.py:210
+msgid "Povolené jsou pouze obrázky JPG, PNG nebo WEBP."
+msgstr ""
+
+#: rider/views.py:221
+msgid "Nahraný soubor není platný obrázek."
+msgstr ""
+
+#: rider/views.py:224
+msgid "Avatar musí mít alespoň 120 × 120 px."
+msgstr ""
+
+#: rider/views.py:226
+msgid "Avatar je příliš velký."
+msgstr ""
+
+#: rider/views.py:251
 msgid "Celá historie"
 msgstr ""
 
-#: rider/views.py:220
+#: rider/views.py:260
 #, python-format
 msgid "%(count)d rok"
 msgid_plural "%(count)d let"
 msgstr[0] ""
 msgstr[1] ""
 
-#: rider/views.py:680
+#: rider/views.py:522
+#, python-format
+msgid "Prémiové statistiky jezdce %(name)s jsou aktivní do %(date)s."
+msgstr ""
+
+#: rider/views.py:525
+msgid "Prémiové statistiky tohoto jezdce už máš aktivní."
+msgstr ""
+
+#: rider/views.py:1118
 msgid "Oblíbená trať"
 msgstr ""
 
-#: rider/views.py:682
+#: rider/views.py:1120
 msgid "Problémová trať"
 msgstr ""
 
-#: rider/views.py:684
+#: rider/views.py:1122
 msgid "Neutrální trať"
 msgstr ""
 
-#: rider/views.py:722
+#: rider/views.py:1160
 msgid "Velmi stabilní"
 msgstr ""
 
-#: rider/views.py:724
+#: rider/views.py:1162
 msgid "Stabilní"
 msgstr ""
 
-#: rider/views.py:726
+#: rider/views.py:1164
 msgid "Kolísavý"
 msgstr ""
 
-#: rider/views.py:728
+#: rider/views.py:1166
 msgid "Nevyrovnaný"
 msgstr ""
 
-#: rider/views.py:773
+#: rider/views.py:1233
 msgid "Potřebujeme víc startů"
 msgstr ""
 
-#: rider/views.py:790
+#: rider/views.py:1250
 msgid "Zlepšuje se"
 msgstr ""
 
-#: rider/views.py:792
+#: rider/views.py:1252
 msgid "Zhoršuje se"
 msgstr ""
 
-#: rider/views.py:794
+#: rider/views.py:1254
 msgid "Stagnuje"
 msgstr ""
 
-#: rider/views.py:799
+#: rider/views.py:1259
 #, python-format
 msgid "čas o %(delta)s s rychlejší"
 msgstr ""
 
-#: rider/views.py:801
+#: rider/views.py:1261
 #, python-format
 msgid "čas o %(delta)s s pomalejší"
 msgstr ""
 
-#: rider/views.py:803
+#: rider/views.py:1263
 msgid "čas beze změny"
 msgstr ""
 
-#: rider/views.py:806
-msgid "Poslední vs předchozí: "
+#: rider/views.py:1266
+msgid "Poslední vs první: "
 msgstr ""
 
-#: rider/views.py:808
+#: rider/views.py:1268
 msgid "Málo dat"
+msgstr ""
+
+#: rider/views.py:1557 rider/views.py:1574
+msgid ""
+"Pro rozšířené časy z tratí potřebuješ aktivní předplatné tohoto jezdce nebo "
+"trenérský přístup přes klub."
+msgstr ""
+
+#: rider/views.py:1580
+msgid ""
+"PDF export premium statistik je dostupný jen pro aktivní trainer extended."
+msgstr ""
+
+#: rider/views.py:1586
+msgid "Nejdřív vyber trať nebo klub, který chceš exportovat do PDF."
+msgstr ""
+
+#: rider/views.py:1589
+msgid "Pro PDF export nejdřív vyber disciplínu 20\" nebo 24\"."
+msgstr ""
+
+#: rider/views.py:1592
+msgid ""
+"Pro vybranou trať zatím nejsou k dispozici detailní data pro PDF export."
+msgstr ""
+
+#: rider/views.py:1617
+msgid ""
+"Pro porovnání jezdců potřebuješ aktivní předplatné tohoto jezdce nebo "
+"trenérský přístup přes klub."
+msgstr ""
+
+#: rider/views.py:1761
+#, python-format
+msgid "Automatické obnovování pro %(name)s bylo vypnuto."
+msgstr ""
+
+#: rider/views.py:1767
+#, python-format
+msgid "Automatické obnovování pro %(name)s bylo zapnuto."
+msgstr ""
+
+#: rider/views.py:1774
+#, python-format
+msgid "Předplatné jezdce %(name)s bylo smazáno z přehledu."
+msgstr ""
+
+#: rider/views.py:1898
+msgid "Nemůžeš žádat změnu avataru pro jiný účet."
+msgstr ""
+
+#: rider/views.py:1902
+msgid "Pro tvůj účet už čeká jedna žádost o změnu avataru na schválení."
+msgstr ""
+
+#: rider/views.py:1909
+msgid "Nový avatar účtu byl odeslán ke schválení administrátorem."
+msgstr ""
+
+#: rider/views.py:1915
+msgid "Nemůžeš žádat změnu avataru pro cizího jezdce."
+msgstr ""
+
+#: rider/views.py:1919
+msgid "Pro tohoto jezdce už čeká jedna žádost o změnu avataru na schválení."
+msgstr ""
+
+#: rider/views.py:1928
+#, python-format
+msgid ""
+"Nový avatar pro jezdce %(name)s byl odeslán ke schválení administrátorem."
+msgstr ""
+
+#: rider/views.py:1933
+msgid "Neplatný cíl změny avataru."
+msgstr ""
+
+#: rider/views.py:2013
+#, python-format
+msgid "Jezdec %(name)s už má přidělené startovní číslo."
+msgstr ""
+
+#: rider/views.py:2029
+msgid "Žena"
+msgstr ""
+
+#: rider/views.py:2029
+msgid "Muž"
+msgstr ""
+
+#: rider/views.py:2085
+#, python-format
+msgid "Pole %(label)s je povinné."
+msgstr ""
+
+#: rider/views.py:2101
+#, python-format
+msgid "Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo."
+msgstr ""
+
+#: rider/views.py:2107
+msgid "Licence UCI ID nebyla nalezena."
+msgstr ""
+
+#: rider/views.py:2111
+msgid "Musíš vybrat, zda budeš jezdit 20\" nebo 24\" kolo."
+msgstr ""
+
+#: rider/views.py:2119
+msgid "Datum narození není ve správném formátu."
+msgstr ""
+
+#: rider/views.py:2124
+msgid "Vybraný klub nebyl nalezen."
+msgstr ""
+
+#: rider/views.py:2172
+msgid "Jezdce nelze deaktivovat mimo seznam neaktivních jezdců."
+msgstr ""
+
+#: rider/views.py:2189
+#, python-format
+msgid "Jezdec %(name)s byl označen jako neaktivní."
+msgstr ""
+
+#: rider/views.py:2201
+msgid "Kontrola licencí byla spuštěna"
+msgstr ""
+
+#: rider/views.py:2202
+msgid ""
+"Ověřování platnosti licencí nyní běží na pozadí. Po dokončení se stav "
+"propíše přímo v databázi jezdců."
+msgstr ""
+
+#: rider/views.py:2203
+msgid ""
+"Není potřeba čekat na této stránce. Můžeš pokračovat v administraci nebo se "
+"vrátit zpět na přehled nástrojů."
+msgstr ""
+
+#: rider/views.py:2213
+msgid "Kontrola licencí již probíhá"
+msgstr ""
+
+#: rider/views.py:2214
+msgid ""
+"Ověřování platnosti licencí již běží na pozadí. Počkej na dokončení "
+"předchozího průchodu."
+msgstr ""
+
+#: rider/views.py:2215
+msgid ""
+"Není potřeba spouštět kontrolu znovu. Výsledky se propíší do databáze "
+"automaticky."
+msgstr ""
+
+#: rider/views.py:2232
+msgid "Přepočet rankingu už běží. Další průchod byl zařazen do fronty."
+msgstr ""
+
+#: rider/views.py:2239
+#, python-format
+msgid ""
+"Při naplánování přepočtu rankingu došlo k následující chybě: %(message)s"
+msgstr ""
+
+#: rider/views.py:2338
+msgid "Přepočet kategorií byl spuštěn"
+msgstr ""
+
+#: rider/views.py:2339
+msgid ""
+"Kategorie jezdců se teď přepočítávají na pozadí podle aktuálních pravidel."
+msgstr ""
+
+#: rider/views.py:2340
+msgid ""
+"Po dokončení se nové třídy propíšou do profilů jezdců. Můžeš se vrátit do "
+"administrace nebo pokračovat v jiné práci."
+msgstr ""
+
+#: rider/views.py:2421
+msgid "Výpočet kvalifikace byl spuštěn"
+msgstr ""
+
+#: rider/views.py:2422
+msgid "Kvalifikace na Mistrovství České republiky se právě počítá na pozadí."
+msgstr ""
+
+#: rider/views.py:2423
+msgid ""
+"Po dokončení budou nové výsledky dostupné v příslušném přehledu. Není "
+"potřeba čekat na této stránce."
+msgstr ""
+
+#: rider/views.py:2472 rider/views.py:2492
+msgid "Aktuální čip"
+msgstr ""
+
+#: rider/views.py:2537
+msgid "Historický čip"
 msgstr ""
 
 #: theme/templates/admin/pagination.html:15
@@ -915,154 +5721,293 @@ msgstr "Zobraziť všetko"
 msgid "Save"
 msgstr "Uložiť"
 
-#: theme/templates/base.html:49
+#: theme/templates/base.html:23
 msgid "Czech BMX"
 msgstr "Czech BMX"
 
-#: theme/templates/base.html:82
+#: theme/templates/base.html:74
 msgid "Done"
 msgstr "Hotovo"
 
-#: theme/templates/base.html:84
+#: theme/templates/base.html:87
 msgid "Error"
 msgstr "Chyba"
 
-#: theme/templates/base.html:86
+#: theme/templates/base.html:100
 msgid "Warning"
 msgstr "Upozornenie"
 
-#: theme/templates/base.html:88
+#: theme/templates/base.html:113
 msgid "Information"
 msgstr "Informácia"
 
-#: theme/templates/includes/navbar.html:73
-#: theme/templates/includes/navbar.html:76
-#: theme/templates/includes/navbar.html:427
+#: theme/templates/homepage.html:3
+msgid "Homepage"
+msgstr ""
+
+#: theme/templates/homepage.html:617
+msgid "Váš prohlížeč nepodporuje video tag."
+msgstr ""
+
+#: theme/templates/homepage.html:630
+msgid "Databáze"
+msgstr ""
+
+#: theme/templates/homepage.html:632
+msgid "aktivních jezdců"
+msgstr ""
+
+#: theme/templates/homepage.html:635
+msgid "Zázemí"
+msgstr ""
+
+#: theme/templates/homepage.html:637
+msgid "klubů"
+msgstr ""
+
+#: theme/templates/homepage.html:642
+msgid "závodů letos"
+msgstr ""
+
+#: theme/templates/homepage.html:652
+msgid "CHAMPIONSHIP BEST RIDERS BY RANKING"
+msgstr ""
+
+#: theme/templates/homepage.html:659
+msgid "Muži"
+msgstr ""
+
+#: theme/templates/homepage.html:668 theme/templates/homepage.html:709
+msgid "bodů"
+msgstr ""
+
+#: theme/templates/homepage.html:672
+msgid "Zatím bez lídra"
+msgstr ""
+
+#: theme/templates/homepage.html:673
+msgid "Pro mužské Championship kategorie zatím nejsou k dispozici žádné body."
+msgstr ""
+
+#: theme/templates/homepage.html:700
+msgid "Ženy"
+msgstr ""
+
+#: theme/templates/homepage.html:713
+msgid "Zatím bez lídryně"
+msgstr ""
+
+#: theme/templates/homepage.html:714
+msgid "Pro ženské Championship kategorie zatím nejsou k dispozici žádné body."
+msgstr ""
+
+#: theme/templates/homepage.html:776
+msgid "min. čtení"
+msgstr ""
+
+#: theme/templates/homepage.html:792
+msgid "Kontakt"
+msgstr ""
+
+#: theme/templates/homepage.html:794
+msgid "KONTAKTUJTE NÁS"
+msgstr ""
+
+#: theme/templates/homepage.html:797
+msgid ""
+"Potřebujete poradit s registrací, licencí nebo organizací závodů? Ozvěte se "
+"BMX komisi napřímo."
+msgstr ""
+
+#: theme/templates/homepage.html:813
+msgid "Nejrychlejší cesta pro dotazy i podklady."
+msgstr ""
+
+#: theme/templates/homepage.html:833
+msgid "Kancelář"
+msgstr ""
+
+#: theme/templates/homepage.html:834
+msgid "Administrativní zázemí českého BMX."
+msgstr ""
+
+#: theme/templates/homepage.html:835
+msgid "Nad Hliníkem 4, 150 00 Praha 5 - Motol"
+msgstr ""
+
+#: theme/templates/homepage.html:851
+msgid "Když je potřeba řešit věci hned."
+msgstr ""
+
+#: theme/templates/homepage.html:871
+msgid "Partneři"
+msgstr ""
+
+#: theme/templates/homepage.html:873
+msgid "JE NÁM CTÍ SPOLUPRACOVAT S"
+msgstr ""
+
+#: theme/templates/homepage.html:876
+msgid ""
+"Značky a instituce, které pomáhají rozvíjet české BMX od domácích závodů po "
+"mezinárodní scénu."
+msgstr ""
+
+#: theme/templates/homepage.html:914
+msgid "Sponzoři budou doplněni."
+msgstr ""
+
+#: theme/templates/homepage.html:935
+msgid "Facebook"
+msgstr ""
+
+#: theme/templates/homepage.html:954
+msgid "Instagram"
+msgstr ""
+
+#: theme/templates/homepage.html:971
+msgid "Všechna práva vyhrazena."
+msgstr ""
+
+#: theme/templates/includes/navbar.html:9
+#: theme/templates/includes/navbar.html:12
+#: theme/templates/includes/navbar.html:395
 msgid "HOME"
 msgstr "HOME"
 
-#: theme/templates/includes/navbar.html:81
-#: theme/templates/includes/navbar.html:84
-#: theme/templates/includes/navbar.html:430
+#: theme/templates/includes/navbar.html:17
+#: theme/templates/includes/navbar.html:20
+#: theme/templates/includes/navbar.html:398
 msgid "ČLÁNKY"
 msgstr "ČLÁNKY"
 
-#: theme/templates/includes/navbar.html:89
-#: theme/templates/includes/navbar.html:92
-#: theme/templates/includes/navbar.html:433
+#: theme/templates/includes/navbar.html:25
+#: theme/templates/includes/navbar.html:28
+#: theme/templates/includes/navbar.html:401
 msgid "KALENDÁŘ"
 msgstr "KALENDÁR"
 
-#: theme/templates/includes/navbar.html:97
-#: theme/templates/includes/navbar.html:100
-#: theme/templates/includes/navbar.html:436
+#: theme/templates/includes/navbar.html:33
+#: theme/templates/includes/navbar.html:36
+#: theme/templates/includes/navbar.html:404
 msgid "JEZDCI"
 msgstr "JAZDCI"
 
-#: theme/templates/includes/navbar.html:105
-#: theme/templates/includes/navbar.html:108
-#: theme/templates/includes/navbar.html:439
+#: theme/templates/includes/navbar.html:41
+#: theme/templates/includes/navbar.html:44
+#: theme/templates/includes/navbar.html:407
 msgid "KLUBY"
 msgstr "KLUBY"
 
-#: theme/templates/includes/navbar.html:113
-#: theme/templates/includes/navbar.html:116
-#: theme/templates/includes/navbar.html:442
+#: theme/templates/includes/navbar.html:49
+#: theme/templates/includes/navbar.html:52
+#: theme/templates/includes/navbar.html:410
 msgid "RANKING"
 msgstr "RANKING"
 
-#: theme/templates/includes/navbar.html:121
-#: theme/templates/includes/navbar.html:124
-#: theme/templates/includes/navbar.html:445
+#: theme/templates/includes/navbar.html:57
+#: theme/templates/includes/navbar.html:60
+#: theme/templates/includes/navbar.html:413
 msgid "PRAVIDLA"
 msgstr "PRAVIDLÁ"
 
-#: theme/templates/includes/navbar.html:129
-#: theme/templates/includes/navbar.html:132
-#: theme/templates/includes/navbar.html:448
+#: theme/templates/includes/navbar.html:65
+#: theme/templates/includes/navbar.html:68
+#: theme/templates/includes/navbar.html:416
 msgid "KE STAŽENÍ"
 msgstr "NA STIAHNUTIE"
 
-#: theme/templates/includes/navbar.html:166
+#: theme/templates/includes/navbar.html:74
+#: theme/templates/includes/navbar.html:77
+#: theme/templates/includes/navbar.html:421
+#: theme/templates/includes/navbar.html:424
+msgid "ESHOP"
+msgstr ""
+
+#: theme/templates/includes/navbar.html:86
+#, python-format
+msgid "1 jezdec čeká na schválení plate"
+msgid_plural "%(count)s jezdců čeká na schválení plate"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: theme/templates/includes/navbar.html:98
+#, python-format
+msgid "1 avatar čeká na schválení"
+msgid_plural "%(count)s avatarů čeká na schválení"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: theme/templates/includes/navbar.html:122
+#: theme/templates/includes/navbar.html:365
 msgid "Přepnout světlý/tmavý režim"
 msgstr "Prepnúť svetlý/tmavý režim"
 
-#: theme/templates/includes/navbar.html:340
+#: theme/templates/includes/navbar.html:296
 msgid "Open user menu"
 msgstr "Open user menu"
 
-#: theme/templates/includes/navbar.html:353
-#: theme/templates/includes/navbar.html:503
-msgid "Zobraz/skryj CHIPKU"
-msgstr "Zobraziť/skryť CHIPKU"
-
-#: theme/templates/includes/navbar.html:356
-#: theme/templates/includes/navbar.html:563
-msgid "Aktivní registrace"
-msgstr "Aktívne registrácie"
-
-#: theme/templates/includes/navbar.html:358
-#: theme/templates/includes/navbar.html:565
-msgid "Kredit"
-msgstr "Kredit"
-
-#: theme/templates/includes/navbar.html:360
-#: theme/templates/includes/navbar.html:567
-msgid "Moje nastavení a faktury"
-msgstr "Moje nastavenia a faktúry"
-
-#: theme/templates/includes/navbar.html:366
-#: theme/templates/includes/navbar.html:394
+#: theme/templates/includes/navbar.html:320
+#: theme/templates/includes/navbar.html:352
 msgid "Vyhledej čip"
 msgstr "Nájdi čip"
 
-#: theme/templates/includes/navbar.html:369
+#: theme/templates/includes/navbar.html:323
 msgid "Finance"
 msgstr "Financie"
 
-#: theme/templates/includes/navbar.html:371
-#: theme/templates/includes/navbar.html:574
-msgid "Administrace"
-msgstr "Administrácia"
-
-#: theme/templates/includes/navbar.html:373
-#: theme/templates/includes/navbar.html:576
+#: theme/templates/includes/navbar.html:327
+#: theme/templates/includes/navbar.html:563
 msgid "Nasazení rozhodčích"
 msgstr "Nasadenie rozhodcov"
 
-#: theme/templates/includes/navbar.html:375
-#: theme/templates/includes/navbar.html:579
+#: theme/templates/includes/navbar.html:329
 msgid "Statistika webu"
 msgstr "Štatistika webu"
 
-#: theme/templates/includes/navbar.html:381
-#: theme/templates/includes/navbar.html:584
+#: theme/templates/includes/navbar.html:333
+#: theme/templates/includes/navbar.html:555
+msgid "Moje objednávky e-shopu"
+msgstr ""
+
+#: theme/templates/includes/navbar.html:339
+#: theme/templates/includes/navbar.html:568
 msgid "Úkoly komise"
 msgstr "Úlohy komisie"
 
-#: theme/templates/includes/navbar.html:391
-#: theme/templates/includes/navbar.html:593
+#: theme/templates/includes/navbar.html:349
+#: theme/templates/includes/navbar.html:577
 msgid "Odhlášení"
 msgstr "Odhlásenie"
 
-#: theme/templates/includes/navbar.html:396
-#: theme/templates/includes/navbar.html:596
-msgid "Přihlášení"
-msgstr "Prihlásenie"
-
-#: theme/templates/includes/navbar.html:398
-#: theme/templates/includes/navbar.html:598
-msgid "Registrace"
-msgstr "Registrácia"
-
-#: theme/templates/includes/navbar.html:408
+#: theme/templates/includes/navbar.html:376
 msgid "Open main menu"
 msgstr "Open main menu"
 
-#: theme/templates/includes/navbar.html:488
+#: theme/templates/includes/navbar.html:461
 msgid "View notifications"
 msgstr "View notifications"
 
-#: theme/templates/includes/navbar.html:505
+#: theme/templates/includes/navbar.html:479
 msgid "Jazyk"
 msgstr "Jazyk"
+
+#: theme/templates/registration/password_reset_form.html:4
+msgid "Reset hesla"
+msgstr ""
+
+#: theme/templates/registration/password_reset_form.html:9
+msgid "Obnova hesla"
+msgstr ""
+
+#: theme/templates/registration/password_reset_form.html:11
+msgid "Zadej svůj e-mail a pošleme ti odkaz pro nastavení nového hesla."
+msgstr ""
+
+#: theme/templates/registration/password_reset_form.html:61
+msgid "Poslat odkaz pro reset"
+msgstr ""
