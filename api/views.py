@@ -38,7 +38,7 @@ from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer
 from news.serializer import NewsSerializer
 from club.serializers import ClubSerializer, ClubPublicSerializer
-from accounts.models import Account, AccountActivationAuditLog, AvatarChangeRequest, normalize_account_email
+from accounts.models import Account, AccountActivationAuditLog, AvatarChangeRequest, FcmDevice, normalize_account_email
 from eshop.models import Category, Product, ProductVariant, Order, OrderItem, OrderHistory
 from eshop.serializers import (
     CategorySerializer,
@@ -181,7 +181,8 @@ class RiderLicenseAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, uci_id):
-        if not getattr(request.user, 'is_commissar', False):
+        is_commissar = getattr(request.user, 'is_commissar', False)
+        if not (is_commissar or request.user.is_staff):
             return Response({"detail": "Permission denied."}, status=403)
 
         from rider.rider import get_api_token, get_rider_data
@@ -536,6 +537,27 @@ class LogoutAPIView(APIView):
                 token.blacklist()
             except TokenError:
                 pass
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FcmTokenAPIView(APIView):
+    """Register or update the FCM push token for the calling user's device."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        token = (request.data.get("fcm_token") or "").strip()
+        if not token:
+            return Response({"detail": "fcm_token required."}, status=status.HTTP_400_BAD_REQUEST)
+        FcmDevice.objects.update_or_create(
+            token=token,
+            defaults={"user": request.user},
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request):
+        token = (request.data.get("fcm_token") or "").strip()
+        if token:
+            FcmDevice.objects.filter(user=request.user, token=token).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

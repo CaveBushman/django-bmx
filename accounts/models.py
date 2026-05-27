@@ -472,6 +472,25 @@ class PendingAvatarChangeRequest(AvatarChangeRequest):
         verbose_name = "Čekající avatar"
         verbose_name_plural = "Čekající avatary"
 
+
+class FcmDevice(models.Model):
+    """One row per physical device. Upserted on every app start."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="fcm_devices",
+    )
+    token = models.TextField(unique=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "FCM zařízení"
+        verbose_name_plural = "FCM zařízení"
+
+    def __str__(self):
+        return f"{self.user} – {self.token[:20]}…"
+
+
 import logging
 logger = logging.getLogger(__name__)
 

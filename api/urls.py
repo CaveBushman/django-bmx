@@ -14,6 +14,7 @@ urlpatterns = [
     path("auth/password/change/", views.PasswordChangeAPIView.as_view(), name="password-change"),
     path("auth/avatar-request/", views.AvatarRequestAPIView.as_view(), name="avatar-request"),
     path("auth/register/", views.RegisterAPIView.as_view(), name="register"),
+    path("auth/fcm-token/", views.FcmTokenAPIView.as_view(), name="fcm-token"),
     path("auth/activation/resend/", views.ActivationResendAPIView.as_view(), name="activation-resend"),
     path("auth/password/reset/", views.PasswordResetRequestAPIView.as_view(), name="password-reset"),
     path("auth/password/reset/confirm/", views.PasswordResetConfirmAPIView.as_view(), name="password-reset-confirm"),
