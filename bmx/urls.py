@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from accounts import views as account_views
 from bmx import views as bmx_views
+from api.views import FcmTokenAPIView
 
 app_name = "bmx"
 handler400 = "bmx.views.error_400_view"
@@ -30,6 +31,8 @@ urlpatterns = [
     path('bmx-admin/', admin.site.urls),
     path('finance/', include('finance.urls')),
     path('eshop/', include('eshop.urls')),
+    # Alias pro mobilní aplikaci — Flutter app volá /user/notification-tokens/
+    path('user/notification-tokens/', FcmTokenAPIView.as_view(), name='fcm-token-mobile'),
     path('healthz', bmx_views.healthz_view, name='healthz'),
     path('readyz', bmx_views.readyz_view, name='readyz'),
     path('csp-report/', bmx_views.csp_report_view, name='csp-report'),

@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django_ckeditor_5.widgets import CKEditor5Widget
 
 from .models import News, Tag, Downloads, DocumentTag
@@ -29,19 +29,50 @@ class DownloadsAdminForm(forms.ModelForm):
         model = Downloads
         fields = "__all__"
 
-class NewsAdmin (admin.ModelAdmin):
+class NewsAdmin(admin.ModelAdmin):
     form = NewsAdminForm
 
-    list_display = ('title', 'on_homepage', 'published', 'publish_in_app', "view_count")
+    list_display = ('title', 'on_homepage', 'published', 'publish_in_app', 'published_audio', "view_count")
     list_display_links = ('title',)
-    list_editable = ('on_homepage', 'published', 'publish_in_app')
+    list_editable = ('on_homepage', 'published', 'publish_in_app', 'published_audio')
     search_fields = ('title', 'prefix', 'content')
-    list_filter = ('on_homepage', 'published', 'publish_in_app', 'created_date')
+    list_filter = ('on_homepage', 'published', 'publish_in_app', 'published_audio', 'created_date')
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ('created_date','view_count')
+    readonly_fields = ('created_date', 'view_count')
     exclude = ('time_to_read',)
-    
-admin.site.register(News, NewsAdmin,)
+    actions = ('send_push_notification_action',)
+
+    @admin.action(description="Poslat push notifikaci do mobilní aplikace")
+    def send_push_notification_action(self, request, queryset):
+        from accounts.push_notifications import send_to_all_users
+        sent = 0
+        skipped = 0
+        for article in queryset:
+            if not article.published or not article.publish_in_app:
+                skipped += 1
+                continue
+            slug = article.slug or str(article.pk)
+            result = send_to_all_users(
+                title=article.title or "Nový článek",
+                body="Přečti si nejnovější zprávy z Czech BMX.",
+                path=f"/news/{slug}",
+            )
+            sent += result.get("success", 0)
+        if sent:
+            self.message_user(
+                request,
+                f"Push notifikace odeslána: {sent} zařízení úspěšně.",
+                level=messages.SUCCESS,
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"{skipped} článků přeskočeno (nepublikováno nebo nevybráno pro app).",
+                level=messages.WARNING,
+            )
+
+
+admin.site.register(News, NewsAdmin)
 admin.site.register(Tag)
 
 class DownloadsAdmin(admin.ModelAdmin):

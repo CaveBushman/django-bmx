@@ -461,12 +461,7 @@ class EventDetail(generics.RetrieveUpdateDestroyAPIView):
 # ---------------------------------------------------------------------------
 
 class NewsListAPIView(generics.ListAPIView):
-<<<<<<< HEAD
     queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-publish_date")
-=======
-    """API for list of all published news"""
-    queryset = News.objects.filter(published=True).order_by('-publish_date')
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     serializer_class = NewsSerializer
     permission_classes = [AllowAny]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -1069,6 +1064,11 @@ class EshopCartAPIView(APIView):
         cart = Cart(request)
         action = request.data.get("action", "add")
         if action == "set":
+            if quantity > variant.stock:
+                return Response(
+                    {"error": f"Na skladě je jen {variant.stock} ks."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             cart.set(variant_id, quantity)
         else:
             new_qty = cart.get_quantity(variant_id) + quantity

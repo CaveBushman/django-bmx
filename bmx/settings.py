@@ -136,15 +136,10 @@ INSTALLED_APPS = [
     # 3rd party
     "corsheaders",
     "rest_framework",
-<<<<<<< HEAD
     "rest_framework.authtoken",
-    "rest_framework_simplejwt.token_blacklist",
-    "corsheaders",
-    "django_filters",
-=======
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
+    "django_filters",
     "drf_spectacular",
     "ckeditor",
     "django_ckeditor_5",
@@ -319,7 +314,6 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
-<<<<<<< HEAD
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
     "DEFAULT_FILTER_BACKENDS": [
@@ -334,23 +328,19 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/minute",
         "user": "300/minute",
+        "login": "5/minute",
     },
-=======
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
+
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 from datetime import timedelta
-<<<<<<< HEAD
+
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-=======
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -358,7 +348,6 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Czech BMX API",
-<<<<<<< HEAD
     "DESCRIPTION": "API pro mobilní aplikaci Czech BMX",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -372,19 +361,6 @@ CORS_ALLOWED_ORIGINS = config_list(
 CORS_ALLOW_CREDENTIALS = True
 
 BASE_CSP_POLICY = {
-=======
-    "VERSION": "1.0.0",
-}
-
-# CORS – mobilní app a vývoj
-CORS_ALLOWED_ORIGINS = config_list(
-    "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:3000,http://localhost:8080",
-)
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # V produkci nastavit CORS_ALLOWED_ORIGINS
-
-SECURE_CSP_REPORT_ONLY = {
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
     "default-src": [CSP.SELF],
     "base-uri": [CSP.SELF],
     "object-src": [CSP.NONE],
@@ -704,7 +680,17 @@ AI_AGENT_MODEL = config("AI_AGENT_MODEL", default="llama3.2")
 AI_AGENT_API_KEY = config("AI_AGENT_API_KEY", default="")
 AI_AGENT_TIMEOUT = config("AI_AGENT_TIMEOUT", default=120, cast=int)
 # E-mailová oznámení – čárkou oddělený seznam adres superuserů
-AI_AGENT_NOTIFY_EMAILS = config_list("AI_AGENT_NOTIFY_EMAILS", default="david@black-ops.eu")
+AI_AGENT_NOTIFY_EMAILS = config_list("AI_AGENT_NOTIFY_EMAILS", default="")
+
+# ---------------------------------------------------------------------------
+# Firebase Cloud Messaging (push notifikace do mobilní aplikace)
+# Jeden z těchto dvou parametrů musí být nastaven pro aktivaci push notifikací.
+#   FIREBASE_CREDENTIALS_JSON — obsah serviceAccountKey.json (raw JSON nebo base64)
+#   FIREBASE_CREDENTIALS_PATH — cesta k souboru serviceAccountKey.json na disku
+# Service account klíč: Firebase Console → Project Settings → Service Accounts
+# ---------------------------------------------------------------------------
+FIREBASE_CREDENTIALS_JSON = config("FIREBASE_CREDENTIALS_JSON", default="")
+FIREBASE_CREDENTIALS_PATH = config("FIREBASE_CREDENTIALS_PATH", default="")
 
 LOGGING = build_logging_config(
     log_dir=LOG_DIR,
@@ -741,3 +727,15 @@ JAZZMIN_SETTINGS = {
 
 INSTALLED_APPS += ["analytical"]
 GOOGLE_ANALYTICS_GTAG_PROPERTY_ID = "G-6VFMEQ1EVX"  # GA4 measurement ID
+
+# Varování: LocMemCache nesdílí rate limity mezi Gunicorn workery.
+# V produkci nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
+if not DEBUG and _cache_backend == "django.core.cache.backends.locmem.LocMemCache":
+    import warnings
+    warnings.warn(
+        "BEZPEČNOSTNÍ VAROVÁNÍ: LocMemCache nezajišťuje sdílené rate limity mezi "
+        "Gunicorn workery. Nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache "
+        "a CACHE_LOCATION=redis://127.0.0.1:6379/1 v produkci.",
+        RuntimeWarning,
+        stacklevel=2,
+    )

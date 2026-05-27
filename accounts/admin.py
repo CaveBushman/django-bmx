@@ -9,7 +9,7 @@ from django.utils.html import format_html, format_html_join
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from bmx.admin_search import DiacriticsInsensitiveSearchAdminMixin
-from .models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount, PendingAvatarChangeRequest
+from .models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, FcmDevice, PendingActivationAccount, PendingAvatarChangeRequest
 from .views import send_activation_email
 
 
@@ -317,6 +317,18 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
             lambda avatar_request: avatar_request.reject(request.user),
             success_label="Zamítnuto",
         )
+
+
+@admin.register(FcmDevice)
+class FcmDeviceAdmin(admin.ModelAdmin):
+    list_display = ("user", "token_preview", "updated_at")
+    list_filter = ("updated_at",)
+    search_fields = ("user__email", "user__first_name", "user__last_name", "token")
+    readonly_fields = ("updated_at",)
+
+    @admin.display(description="Token (zkrácený)")
+    def token_preview(self, obj):
+        return f"{obj.token[:30]}…" if len(obj.token) > 30 else obj.token
 
 
 class PendingAvatarChangeRequestChangeList(ChangeList):

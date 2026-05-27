@@ -1,8 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework.permissions import IsAdminUser
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from api import views
-<<<<<<< HEAD
 
 app_name = "api"
 
@@ -28,7 +28,7 @@ urlpatterns = [
     path("riders/new/", views.RiderNewAPIView.as_view(), name="rider-new"),
     path("riders/admin/<int:uci_id>/", views.RiderAdminAPIView.as_view(), name="rider-admin"),
 
-    # Plate request (žádost o přidělení startovního čísla)
+    # Plate request
     path("riders/plate-request/", views.PlateRequestAPIView.as_view(), name="plate-request"),
     path("riders/plate-request/lookup/", views.PlateRequestLookupAPIView.as_view(), name="plate-request-lookup"),
     path("riders/plate-request/free-plates/", views.PlateRequestFreePlatesAPIView.as_view(), name="plate-request-free-plates"),
@@ -82,46 +82,7 @@ urlpatterns = [
     path("ranking/categories/", views.RankingCategoryListAPIView.as_view(), name="ranking-category-list"),
     path("ranking/", views.RankingAPIView.as_view(), name="ranking"),
 
-    # OpenAPI schema + Swagger UI
-    path("schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("schema/swagger/", SpectacularSwaggerView.as_view(url_name="api:schema"), name="swagger"),
-=======
-from api import auth_views
-from rest_framework_simplejwt.views import TokenRefreshView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-
-urlpatterns = [
-    # Auth
-    path('auth/login/', auth_views.LoginAPIView.as_view()),
-    path('auth/logout/', auth_views.LogoutAPIView.as_view()),
-    path('auth/me/', auth_views.MeAPIView.as_view()),
-    path('auth/token/refresh/', TokenRefreshView.as_view()),
-
-    # Riders
-    path('riders/', views.RiderList.as_view()),
-    path('riders/<int:uci_id>/', views.RiderDetail.as_view()),
-    path('riders/new/', views.RiderNewAPIView.as_view()),
-    path('riders/admin/<int:uci_id>/', views.RiderAdminAPIView.as_view()),
-
-    # Foreign riders
-    path('foreignriders/', views.ForeignRiderList.as_view()),
-    path('foreignriders/<int:uci_id>/', views.ForeignRiderDetail.as_view()),
-
-    # Clubs
-    path('clubs/', views.ClubList.as_view()),
-
-    # Events
-    path('events/', views.EventList.as_view()),
-    path('events/<int:pk>/', views.EventDetail.as_view()),
-
-    # News
-    path('news/', views.NewsListAPIView.as_view()),
-
-    # Entry
-    path('entry/<str:transaction_id>/', views.EntryAdminAPIView.as_view()),
-
-    # Schema
-    path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
->>>>>>> 012cfe19 (feat(api): add JWT auth endpoints + CORS for mobile app)
+    # OpenAPI schema + Swagger UI — pouze pro adminy
+    path("schema/", SpectacularAPIView.as_view(permission_classes=[IsAdminUser]), name="schema"),
+    path("schema/swagger/", SpectacularSwaggerView.as_view(url_name="api:schema", permission_classes=[IsAdminUser]), name="swagger"),
 ]

@@ -30,6 +30,9 @@ from bmx.html_sanitizer import sanitize_rich_html
 # Jazyky, pro které generujeme přeložené TTS audio (cs se generuje zvlášť)
 _AUDIO_LANGS = ("en", "de", "sk", "es", "it", "fr")
 
+# Všechna pole s audio soubory na modelu News
+_ALL_AUDIO_FIELDS = ["audio_file"] + [f"audio_file_{lang}" for lang in _AUDIO_LANGS]
+
 # Označení sekcí pro TTS – v každém jazyce
 _TTS_LABELS = {
     "cs": ("NADPIS.", "TEXT."),
@@ -64,6 +67,49 @@ logger = logging.getLogger(__name__)
 # aby se úlohy neztratily při restartu serveru a lépe se škálovaly.
 _EXECUTOR = ThreadPoolExecutor(max_workers=2)
 atexit.register(_EXECUTOR.shutdown, wait=False)
+
+def _send_article_push_notification(article_id: int):
+    """Odešle push notifikaci o novém článku všem zaregistrovaným zařízením."""
+    try:
+        from accounts.push_notifications import send_to_all_users
+        NewsModel = apps.get_model("news", "News")
+        article = NewsModel.objects.get(pk=article_id)
+        slug = article.slug or str(article.pk)
+        result = send_to_all_users(
+            title=article.title or "Nový článek",
+            body="Přečti si nejnovější zprávy z Czech BMX.",
+            path=f"/news/{slug}",
+        )
+        logger.info(
+            "[FCM] Article %s: notifikace odeslána — %d úspěch, %d selhání.",
+            article_id, result.get("success", 0), result.get("failure", 0),
+        )
+    except Exception:
+        logger.exception("[FCM] Chyba při odesílání push notifikace pro Article %s", article_id)
+
+
+def _delete_all_audio(article_id: int):
+    """Smaže všechny audio soubory článku z disku a vymaže DB pole."""
+    try:
+        NewsModel = apps.get_model("news", "News")
+        article = NewsModel.objects.get(pk=article_id)
+        cleared = []
+        for field_name in _ALL_AUDIO_FIELDS:
+            f = getattr(article, field_name)
+            if f:
+                try:
+                    f.delete(save=False)
+                except Exception:
+                    pass
+                setattr(article, field_name, None)
+                cleared.append(field_name)
+        if cleared:
+            article.audio_hash = ""
+            article.save(update_fields=cleared + ["audio_hash"])
+            logger.info("[TTS] Article %s: smazáno %d audio souborů.", article_id, len(cleared))
+    except Exception:
+        logger.exception("[TTS] Chyba při mazání audio souborů Article %s", article_id)
+
 
 def enqueue_article_tts(article_id: int):
     _EXECUTOR.submit(_generate_audio, article_id, "cs")
@@ -421,6 +467,8 @@ class News (models.Model):
 
         creating = self.pk is None
         old_hash = self.audio_hash
+        # Stará hodnota published_audio zachycená v pre_save signálu
+        old_published_audio = getattr(self, "_old_published_audio", self.published_audio)
         # Ulož nový hash do instance před uložením do DB
         self.audio_hash = new_hash
 
@@ -428,14 +476,32 @@ class News (models.Model):
 
         # transaction.on_commit zajistí, že se thread spustí až ve chvíli,
         # kdy jsou data bezpečně v databázi (prevence Race Condition).
+        old_published = getattr(self, "_old_published", self.published)
+        old_publish_in_app = getattr(self, "_old_publish_in_app", self.publish_in_app)
+
         def _enqueue():
-            if not self.published:
-                return
-            should_generate = creating or (old_hash != new_hash) or (not self.audio_file)
-            if should_generate:
-                logger.info("[TTS] Enqueue article %s (creating=%s, hash_changed=%s)", self.pk, creating, old_hash != new_hash)
-                enqueue_article_tts(self.pk)
-                enqueue_article_translation(self.pk)
+            if not self.published_audio:
+                # audio vypnuto — smaž soubory pokud byl přechod True → False
+                if old_published_audio:
+                    logger.info("[TTS] Article %s: published_audio=False, mažu audio soubory.", self.pk)
+                    _EXECUTOR.submit(_delete_all_audio, self.pk)
+            elif self.published:
+                audio_newly_enabled = not old_published_audio
+                should_generate = creating or (old_hash != new_hash) or (not self.audio_file) or audio_newly_enabled
+                if should_generate:
+                    logger.info(
+                        "[TTS] Enqueue article %s (creating=%s, hash_changed=%s, audio_enabled=%s)",
+                        self.pk, creating, old_hash != new_hash, audio_newly_enabled,
+                    )
+                    enqueue_article_tts(self.pk)
+                    enqueue_article_translation(self.pk)
+
+            # Push notifikace — odešli při prvním publikování do app
+            if self.published and self.publish_in_app:
+                just_published = not old_published and self.published
+                just_enabled_in_app = not old_publish_in_app and self.publish_in_app
+                if creating or just_published or just_enabled_in_app:
+                    _EXECUTOR.submit(_send_article_push_notification, self.pk)
 
         transaction.on_commit(_enqueue)
 
@@ -454,6 +520,29 @@ def set_time_to_read(sender, instance, *args, **kwargs):
     if time_to_read < 1:
         time_to_read = 1
     instance.time_to_read = time_to_read
+
+# Zachytí staré hodnoty před uložením, aby save() věděl o přechodech stavů
+@receiver(pre_save, sender=News)
+def capture_old_published_audio(sender, instance, **kwargs):
+    if instance.pk:
+        row = (
+            News.objects.filter(pk=instance.pk)
+            .values("published_audio", "published", "publish_in_app")
+            .first()
+        )
+        if row:
+            instance._old_published_audio = row["published_audio"]
+            instance._old_published = row["published"]
+            instance._old_publish_in_app = row["publish_in_app"]
+        else:
+            instance._old_published_audio = False
+            instance._old_published = False
+            instance._old_publish_in_app = False
+    else:
+        instance._old_published_audio = False
+        instance._old_published = False
+        instance._old_publish_in_app = False
+
 
 # vymazání staré fotky z disku při její změně
 @receiver(pre_save, sender=News)
