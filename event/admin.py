@@ -7,9 +7,10 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
 from django.core.exceptions import MultipleObjectsReturned
 from django.template.response import TemplateResponse
-from django.urls import reverse
+from django.urls import path, reverse
 from django.urls import NoReverseMatch
 from django.utils.safestring import mark_safe
+from django.shortcuts import redirect
 from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from .models_events import EventPhoto
 from rider.models import ForeignRider
@@ -18,6 +19,7 @@ from datetime import timedelta
 from django.contrib import messages
 
 from event.services.checkout_refunds import apply_entry_checkout
+from accounts.push_notifications import send_to_users
 
 audit_logger = logging.getLogger("audit")
 
@@ -93,6 +95,84 @@ class EventAdmin(BaseAdmin):
     search_fields = ('name', 'organizer',)
     list_filter = ('type_for_ranking', 'reg_open', 'is_uci_race', 'canceled', 'eshop_pickup_enabled', 'date')
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "<int:event_id>/send-notification/",
+                self.admin_site.admin_view(self.send_notification_view),
+                name="event_event_send_notification",
+            ),
+        ]
+        return custom + urls
+
+    def send_notification_view(self, request, event_id):
+        event = self.get_object(request, event_id)
+        if event is None:
+            return self._get_obj_does_not_exist_redirect(request, self.model._meta, str(event_id))
+
+        if request.method == "POST":
+            title = request.POST.get("notification_title", "").strip()
+            body = request.POST.get("notification_body", "").strip()
+            if not title or not body:
+                messages.error(request, _("Vyplň název i text notifikace."))
+            else:
+                user_ids = list(
+                    Entry.objects.filter(event=event, payment_complete=True)
+                    .exclude(user__isnull=True)
+                    .values_list("user_id", flat=True)
+                    .distinct()
+                )
+                result = (
+                    send_to_users(user_ids, title=title, body=body, path=f"/events/{event.pk}")
+                    if user_ids
+                    else {"success": 0}
+                )
+                messages.success(
+                    request,
+                    _("Notifikace odeslána na %(n)d zařízení.") % {"n": result.get("success", 0)},
+                )
+                return redirect(reverse("admin:event_event_change", args=[event.pk]))
+
+        user_count = (
+            Entry.objects.filter(event=event, payment_complete=True)
+            .exclude(user__isnull=True)
+            .values("user_id")
+            .distinct()
+            .count()
+        )
+        return TemplateResponse(
+            request,
+            "admin/event/event/send_notification.html",
+            {
+                "event": event,
+                "user_count": user_count,
+                "opts": self.model._meta,
+                **self.admin_site.each_context(request),
+            },
+        )
+
+    @admin.display(description=_("Push notifikace"))
+    def notification_panel(self, obj):
+        if not obj.pk:
+            return "-"
+        url = reverse("admin:event_event_send_notification", args=[obj.pk])
+        user_count = (
+            Entry.objects.filter(event=obj, payment_complete=True)
+            .exclude(user__isnull=True)
+            .values("user_id")
+            .distinct()
+            .count()
+        )
+        return mark_safe(
+            '<a href="{}" class="button">{}</a>'
+            '<span style="margin-left:12px;color:#64748b;">{}</span>'.format(
+                url,
+                _("Odeslat notifikaci"),
+                _("%(n)d přihlášených uživatelů") % {"n": user_count},
+            )
+        )
+
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
             _entry_count=Count("entry", distinct=True)
@@ -139,6 +219,7 @@ class EventAdmin(BaseAdmin):
         readonly_fields = ()
         if obj is not None:
             readonly_fields += (
+                "notification_panel",
                 "public_links",
                 "results_quality_overview",
                 "proposition_created",
@@ -215,6 +296,9 @@ class EventAdmin(BaseAdmin):
         )
         if obj is not None:
             fieldsets += (
+                (_("Push notifikace"), {
+                    "fields": ("notification_panel",),
+                }),
                 (_("Rychlé odkazy"), {
                     "fields": ("public_links",),
                 }),

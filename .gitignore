@@ -73,6 +73,8 @@ backups/
 .env
 .env
 sec.py
+serviceAccountKey.json
+**/serviceAccountKey.json
 static/js/checkout.js
 static/results/*
 static/images/*

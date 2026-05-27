@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Domů" %}</a>
+  &rsaquo; <a href="{% url 'admin:event_event_changelist' %}">{% translate "Závody" %}</a>
+  &rsaquo; <a href="{% url 'admin:event_event_change' event.pk %}">{{ event.name }}</a>
+  &rsaquo; {% translate "Odeslat notifikaci" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>{% translate "Odeslat push notifikaci" %} — {{ event.name }}</h1>
+  <p style="color:#64748b;">
+    {% blocktranslate with count=user_count %}
+      Notifikace bude odeslána <strong>{{ count }} uživatelům</strong> s dokončenou registrací (platba potvrzena).
+    {% endblocktranslate %}
+  </p>
+
+  {% if user_count == 0 %}
+    <div class="errornote">{% translate "Žádný uživatel zatím nemá dokončenou registraci na tento závod." %}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="module aligned">
+      <div class="form-row">
+        <label for="notification_title">{% translate "Název notifikace" %} *</label>
+        <input type="text" id="notification_title" name="notification_title" maxlength="100" required autofocus
+               style="width:100%;max-width:500px;padding:6px 8px;box-sizing:border-box;">
+        <p class="help">{% translate "Krátký titulek — zobrazí se tučně na zamykací obrazovce." %}</p>
+      </div>
+      <div class="form-row">
+        <label for="notification_body">{% translate "Text notifikace" %} *</label>
+        <textarea id="notification_body" name="notification_body" rows="3" maxlength="200" required
+                  style="width:100%;max-width:500px;padding:6px 8px;box-sizing:border-box;"></textarea>
+        <p class="help">{% translate "Max. 200 znaků. V aplikaci otevře detail závodu." %}</p>
+      </div>
+    </div>
+    <div class="submit-row">
+      <input type="submit" value="{% translate 'Odeslat notifikaci' %}" class="default"{% if user_count == 0 %} disabled{% endif %}>
+      <a href="{% url 'admin:event_event_change' event.pk %}" class="button cancel-link">{% translate "Zrušit" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

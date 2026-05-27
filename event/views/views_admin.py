@@ -75,6 +75,7 @@ from event.services.uci_export import (
 )
 from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.unpaid_moto_report_pdf import UnpaidMotoReportPdfService
+from accounts.push_notifications import send_to_users
 from openpyxl import Workbook, load_workbook
 import pandas as pd
 import stripe
@@ -751,6 +752,25 @@ def event_admin_view(request, pk):
         else:
             messages.warning(request, "Pro tento závod nebyly nalezeny žádné uhrazené registrace klubů k fakturaci.")
 
+    elif "btn-send-notification" in request.POST:
+        title = request.POST.get("notification_title", "").strip()
+        body = request.POST.get("notification_body", "").strip()
+        if not title or not body:
+            messages.error(request, "Vyplň název i text notifikace.")
+        else:
+            user_ids = list(
+                Entry.objects.filter(event=event, payment_complete=True)
+                .exclude(user__isnull=True)
+                .values_list("user_id", flat=True)
+                .distinct()
+            )
+            result = (
+                send_to_users(user_ids, title=title, body=body, path=f"/events/{event.pk}")
+                if user_ids
+                else {"success": 0}
+            )
+            messages.success(request, f"Notifikace odeslána na {result.get('success', 0)} zařízení.")
+
     elif "btn-send-invoices" in request.POST:
         generated = generate_event_invoices(event.id)
         result = send_event_invoices(event.id)
@@ -771,11 +791,19 @@ def event_admin_view(request, pk):
     sum_of_fees = sum((e.fee_beginner or 0) + (e.fee_20 or 0) + (e.fee_24 or 0) for e in entries)
     sum_of_fees += sum((e.fee_20 or 0) + (e.fee_24 or 0) for e in foreign_entries)
 
+    notification_user_count = (
+        Entry.objects.filter(event=event, payment_complete=True)
+        .exclude(user__isnull=True)
+        .values("user_id")
+        .distinct()
+        .count()
+    )
     data = {
         "event": event,
         "invalid_licences": invalid_licence_in_event(event),
         "sum_of_fees": sum_of_fees,
         "sum_of_riders": entries.count() + foreign_entries.count(),
+        "notification_user_count": notification_user_count,
         "asociation_fee": _resolve_association_fee(sum_of_fees, event.commission_fee),
         "results_exist": Result.objects.filter(event=event).exists(),
         "moto_runs_exist": RaceRun.objects.filter(event=event, round_type="MOTO").exists(),
