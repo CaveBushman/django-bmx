@@ -126,7 +126,7 @@ def _user_payload(user):
         "first_name": user.first_name,
         "last_name": user.last_name,
         "credit": user.credit,
-        "is_staff": user.is_staff,
+        "is_staff": (user.is_staff or getattr(user, 'is_admin', False) or user.is_superuser),
         "is_rider": user.is_rider,
         "is_commissar": user.is_commissar,
         "is_trainer": user.is_trainer,
@@ -182,7 +182,12 @@ class RiderLicenseAPIView(APIView):
 
     def get(self, request, uci_id):
         is_commissar = getattr(request.user, 'is_commissar', False)
-        if not (is_commissar or request.user.is_staff):
+        is_admin = (
+            getattr(request.user, 'is_admin', False)
+            or request.user.is_superuser
+            or request.user.is_staff
+        )
+        if not (is_commissar or is_admin):
             return Response({"detail": "Permission denied."}, status=403)
 
         from rider.rider import get_api_token, get_rider_data
