@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %}Odesílání výsledků{% endblock title %}
+
+{% block extra_head %}
+<style>
+  .results-export-shell {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 24%),
+      linear-gradient(180deg, #eff6ff 0%, #f8fafc 48%, #ffffff 100%);
+  }
+
+  .results-export-panel {
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+  }
+
+  .results-export-track {
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgba(203, 213, 225, 0.55);
+  }
+
+  .results-export-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 55%, #10b981 100%);
+    transition: width 320ms ease;
+  }
+
+  .results-export-stat {
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.84);
+  }
+
+  html.dark .results-export-shell {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 28%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 24%),
+      linear-gradient(180deg, #0f172a 0%, #111827 48%, #020617 100%);
+  }
+
+  html.dark .results-export-panel {
+    border-color: rgba(71, 85, 105, 0.6);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(17, 24, 39, 0.9));
+    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.44);
+  }
+
+  html.dark .results-export-track {
+    background: rgba(51, 65, 85, 0.88);
+  }
+
+  html.dark .results-export-stat {
+    border-color: rgba(71, 85, 105, 0.5);
+    background: rgba(15, 23, 42, 0.72);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section
+  class="results-export-shell min-h-[calc(100vh-4rem)] px-4 py-10 sm:px-6 lg:px-8"
+  data-export-progress
+  data-start-url="{{ start_url }}"
+  data-admin-url="{{ admin_url }}">
+  <div class="mx-auto max-w-4xl">
+    <div class="results-export-panel overflow-hidden rounded-[2rem] p-6 sm:p-8 lg:p-10">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.28em] text-sky-700 dark:text-sky-300">Live export</p>
+          <h1 class="mt-3 text-4xl font-black tracking-tight text-slate-900 dark:text-white sm:text-5xl">{{ event.name }}</h1>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Výsledky posíláme do API Českého svazu cyklistiky. Průběh se aktualizuje podle skutečného stavu úlohy na backendu.
+          </p>
+        </div>
+        <div class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          <span id="export-status-dot" class="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
+          <span id="export-status-label">Spouštím úlohu</span>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <div class="flex items-end justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Průběh</p>
+            <p id="export-message" class="mt-2 text-xl font-bold text-slate-900 dark:text-white">Inicializuji exportní úlohu</p>
+          </div>
+          <p id="export-percent" class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">0 %</p>
+        </div>
+
+        <div class="results-export-track mt-4 h-4 w-full">
+          <div id="export-progress-bar" class="results-export-bar h-full"></div>
+        </div>
+      </div>
+
+      <div class="mt-8 grid gap-4 sm:grid-cols-3">
+        <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zpracováno</p>
+          <p id="export-processed" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0 / 0</p>
+        </div>
+        <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Připraveno k odeslání</p>
+          <p id="export-sent" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0</p>
+        </div>
+        <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přeskočeno</p>
+          <p id="export-skipped" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0</p>
+        </div>
+      </div>
+
+      <div id="export-error" class="mt-8 hidden rounded-[1.5rem] border border-rose-200 bg-rose-50 px-5 py-4 text-sm leading-6 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200"></div>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="{{ admin_url }}" class="inline-flex items-center justify-center rounded-[1rem] bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
+          Zpět do administrace
+        </a>
+        <p id="export-redirect-note" class="hidden self-center text-sm text-slate-500 dark:text-slate-400">
+          Hotovo. Přesměrovávám na potvrzení exportu.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var shell = document.querySelector("[data-export-progress]");
+    if (!shell) return;
+
+    var startUrl = shell.getAttribute("data-start-url");
+    var adminUrl = shell.getAttribute("data-admin-url");
+    var csrfToken = document.body.getAttribute("data-csrf-token") || "";
+    var statusUrl = "";
+    var pollTimer = null;
+    var hasRedirected = false;
+
+    var progressBar = document.getElementById("export-progress-bar");
+    var percentLabel = document.getElementById("export-percent");
+    var messageLabel = document.getElementById("export-message");
+    var processedLabel = document.getElementById("export-processed");
+    var sentLabel = document.getElementById("export-sent");
+    var skippedLabel = document.getElementById("export-skipped");
+    var errorBox = document.getElementById("export-error");
+    var statusLabel = document.getElementById("export-status-label");
+    var statusDot = document.getElementById("export-status-dot");
+    var redirectNote = document.getElementById("export-redirect-note");
+
+    function setStatusTone(status) {
+      statusDot.classList.remove("bg-sky-500", "bg-emerald-500", "bg-rose-500", "bg-amber-400");
+      if (status === "completed") {
+        statusDot.classList.add("bg-emerald-500");
+        statusLabel.textContent = "Dokončeno";
+        return;
+      }
+      if (status === "failed") {
+        statusDot.classList.add("bg-rose-500");
+        statusLabel.textContent = "Selhalo";
+        return;
+      }
+      if (status === "uploading") {
+        statusDot.classList.add("bg-amber-400");
+        statusLabel.textContent = "Odesílá se";
+        return;
+      }
+      statusDot.classList.add("bg-sky-500");
+      statusLabel.textContent = "Zpracovává se";
+    }
+
+    function renderJob(data) {
+      var percent = Math.max(0, Math.min(Number(data.progress_percent || 0), 100));
+      progressBar.style.width = percent + "%";
+      percentLabel.textContent = percent + " %";
+      messageLabel.textContent = data.message || "Probíhá zpracování exportu";
+      processedLabel.textContent = String(data.processed_items || 0) + " / " + String(data.total_items || 0);
+      sentLabel.textContent = String(data.sent_count || 0);
+      skippedLabel.textContent = String(data.skipped_count || 0);
+      setStatusTone(data.status);
+
+      if (data.error_detail) {
+        errorBox.textContent = data.error_detail;
+        errorBox.classList.remove("hidden");
+      } else {
+        errorBox.classList.add("hidden");
+      }
+
+      if (data.status === "completed" && data.redirect_url && !hasRedirected) {
+        hasRedirected = true;
+        redirectNote.classList.remove("hidden");
+        window.setTimeout(function () {
+          window.location.href = data.redirect_url;
+        }, 600);
+      }
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        window.clearTimeout(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function schedulePoll() {
+      stopPolling();
+      pollTimer = window.setTimeout(pollStatus, 1200);
+    }
+
+    function pollStatus() {
+      if (!statusUrl || hasRedirected) return;
+      fetch(statusUrl, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error("Nepodařilo se načíst stav exportu.");
+          return response.json();
+        })
+        .then(function (data) {
+          renderJob(data);
+          if (!data.is_finished) {
+            schedulePoll();
+            return;
+          }
+          if (data.status === "failed") {
+            statusLabel.textContent = "Selhalo";
+            if (!data.error_detail) {
+              errorBox.textContent = "Export výsledků se nepodařilo dokončit.";
+              errorBox.classList.remove("hidden");
+            }
+          }
+        })
+        .catch(function () {
+          errorBox.textContent = "Spojení se serverem během exportu vypadlo. Obnov stránku, nebo se vrať do administrace závodu.";
+          errorBox.classList.remove("hidden");
+          statusDot.classList.remove("bg-sky-500", "bg-emerald-500", "bg-amber-400");
+          statusDot.classList.add("bg-rose-500");
+          statusLabel.textContent = "Chyba spojení";
+        });
+    }
+
+    fetch(startUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) {
+            throw new Error(data.detail || data.message || "Nepodařilo se spustit export.");
+          }
+          return data;
+        });
+      })
+      .then(function (data) {
+        statusUrl = data.status_url || "";
+        renderJob(data);
+        if (data.is_finished) {
+          return;
+        }
+        schedulePoll();
+      })
+      .catch(function (error) {
+        errorBox.textContent = error.message || "Nepodařilo se spustit export výsledků.";
+        errorBox.classList.remove("hidden");
+        statusDot.classList.remove("bg-sky-500", "bg-emerald-500", "bg-amber-400");
+        statusDot.classList.add("bg-rose-500");
+        statusLabel.textContent = "Nepodařilo se spustit";
+        messageLabel.textContent = "Export se nespustil";
+        window.setTimeout(function () {
+          if (!hasRedirected) {
+            window.history.replaceState({}, "", adminUrl);
+          }
+        }, 0);
+      });
+  })();
+</script>
+{% endblock content %}
