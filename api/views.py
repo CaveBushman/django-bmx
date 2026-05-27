@@ -173,7 +173,11 @@ class RiderNewAPIView(generics.CreateAPIView):
 
 
 class RiderLicenseAPIView(APIView):
-    """Proxy: loads license data + validity from ČSC API for commissar/admin."""
+    """
+    License check for commissars.
+    Identity: local DB (primary) → ČSC licenseinfo (fallback for unknown riders).
+    Validity: ČSC validuciid endpoint (null when unreachable).
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, uci_id):
@@ -184,20 +188,36 @@ class RiderLicenseAPIView(APIView):
         import requests as req_lib
         from datetime import date
 
-        data_json, error = get_rider_data(uci_id)
-        if error or not data_json:
-            return Response({"error": error or "Jezdec nebyl nalezen."}, status=404)
+        # ── 1. Identity: local DB first ──────────────────────────────────────
+        local = Rider.objects.filter(uci_id=uci_id).first()
 
-        token = get_api_token()
+        if local:
+            first_name = local.first_name
+            last_name  = local.last_name
+            dob        = str(local.date_of_birth) if local.date_of_birth else ""
+            gender     = local.gender or ""
+        else:
+            # Fallback: ask ČSC API (handles riders not yet in our DB)
+            data_json, error = get_rider_data(uci_id)
+            if not data_json:
+                return Response(
+                    {"error": error or "Jezdec nebyl nalezen."},
+                    status=404,
+                )
+            first_name = (data_json.get("firstName") or "").strip()
+            last_name  = (data_json.get("lastName") or "").strip()
+            dob        = (data_json.get("birth") or "")[:10]
+            gender     = (data_json.get("sex") or {}).get("code", "")
+
+        # ── 2. Validity: ČSC validuciid ──────────────────────────────────────
         is_valid = None
+        token = get_api_token()
         if token:
             try:
-                year = date.today().year
-                url = "https://portal.api.czechcyclingfederation.com/api/services/validuciid"
                 resp = req_lib.get(
-                    url,
+                    "https://portal.api.czechcyclingfederation.com/api/services/validuciid",
                     headers={"Authorization": f"Bearer {token}"},
-                    params={"year": year, "uciId": uci_id},
+                    params={"year": date.today().year, "uciId": uci_id},
                     timeout=10,
                     verify=True,
                 )
@@ -207,12 +227,12 @@ class RiderLicenseAPIView(APIView):
                 pass
 
         return Response({
-            "uci_id": uci_id,
-            "first_name": (data_json.get("firstName") or "").strip(),
-            "last_name": (data_json.get("lastName") or "").strip(),
-            "date_of_birth": (data_json.get("birth") or "")[:10],
-            "gender": (data_json.get("sex") or {}).get("code", ""),
-            "license_valid": is_valid,
+            "uci_id":         uci_id,
+            "first_name":     first_name,
+            "last_name":      last_name,
+            "date_of_birth":  dob,
+            "gender":         gender,
+            "license_valid":  is_valid,
         })
 
 
