@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %} Ranking {% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Ranking" %}{% endblock title %}
 {% block extra_head %}
 <style>
   .ranking-page {
@@ -286,26 +287,26 @@
       <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Národní pořadí
+            {% trans "Národní pořadí" %}
           </p>
           <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            RANKING
+            {% trans "RANKING" %}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Aktuální bodové pořadí jezdců podle kategorií a výsledků započítaných do rankingu. Výběr kategorie přepne celý leaderboard.
+            {% trans "Aktuální bodové pořadí jezdců podle kategorií a výsledků započítaných do rankingu. Výběr kategorie přepne celý leaderboard." %}
           </p>
         </div>
         <div class="ranking-stats-grid">
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní kategorie dle UCI</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní kategorie dle UCI" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ categories_count }}</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Jezdců v kategorii</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Jezdců v kategorii" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ leaderboard_size }}</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Lídr má bodů</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Lídr má bodů" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ leader_points }}</p>
           </div>
         </div>
@@ -318,43 +319,43 @@
   <div class="ranking-shell">
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div class="ranking-panel rounded-[2rem] p-5 sm:p-6 lg:p-8">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pravidla výpočtu</p>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pravidla výpočtu" %}</p>
         <div class="mt-3 space-y-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-          <p>Do národního rankingu vstupují výsledky z MČR jednotlivců, 8 nejlepších výsledků Českého poháru a 6 nejlepších výsledků České ligy, Moravské ligy a volných závodů dohromady.</p>
-          <p>MČR družstev se nezapočítává, kategorie Příchozí také ne. Body se počítají z posledních 365 dní a na konci roku se přenášejí mezi kategoriemi.</p>
-          <p>Tabulku pro výpočet bodů do rankingu najdeš <a class="font-semibold text-indigo-700 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200" href="{% url 'event:ranking-table' %}">zde</a>.</p>
+          <p>{% trans "Do národního rankingu vstupují výsledky z MČR jednotlivců, 8 nejlepších výsledků Českého poháru a 6 nejlepších výsledků České ligy, Moravské ligy a volných závodů dohromady." %}</p>
+          <p>{% trans "MČR družstev se nezapočítává, kategorie Příchozí také ne. Body se počítají z posledních 365 dní a na konci roku se přenášejí mezi kategoriemi." %}</p>
+          <p>{% trans "Tabulku pro výpočet bodů do rankingu najdeš" %} <a class="font-semibold text-indigo-700 transition hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200" href="{% url 'event:ranking-table' %}">{% trans "zde" %}</a>.</p>
         </div>
       </div>
 
       <div class="ranking-panel rounded-[2rem] p-5 sm:p-6">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kategorie" %}</p>
         <h2 class="mt-2 text-xl font-black tracking-tight text-slate-900 dark:text-white">{{ category|upper }}</h2>
         <form method="GET" id="rankingForm" class="mt-5">
           <select id="categoryInput" name="category" class="block w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-10 text-base text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:border-indigo-500 dark:focus:ring-indigo-500/20">
-            <option value="">Vyber kategorii</option>
+            <option value="">{% trans "Vyber kategorii" %}</option>
             {% for category in categories %}
             <option value="{{ category }}"{% if category == selected_category %} selected{% endif %}>{{ category }}</option>
             {% endfor %}
           </select>
         </form>
-        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Po změně výběru se tabulka automaticky přenačte.</p>
+        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">{% trans "Po změně výběru se tabulka automaticky přenačte." %}</p>
       </div>
     </div>
 
     {% if invalid_category %}
     <div class="ranking-notice mt-6 rounded-2xl px-5 py-4 text-sm text-slate-600 dark:text-slate-300">
-      Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard pro <span class="font-semibold text-slate-900 dark:text-white">{{ category }}</span>.
+      {% trans "Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard pro" %} <span class="font-semibold text-slate-900 dark:text-white">{{ category }}</span>.
     </div>
     {% endif %}
 
     <div class="ranking-panel mt-8 rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Leaderboard</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Leaderboard" %}</p>
           <h3 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ category|upper }}</h3>
         </div>
         <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          {{ leaderboard_size }} jezdců v pořadí
+          {% blocktrans with count=leaderboard_size %}{{ count }} jezdců v pořadí{% endblocktrans %}
         </div>
       </div>
 
@@ -363,9 +364,9 @@
         {% include "ranking/includes/ranking-card.html" with result=result cruiser=cruiser rank_index=forloop.counter %}
         {% empty %}
         <div class="ranking-empty-state rounded-2xl px-6 py-12 text-center">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Žádná data</p>
-          <p class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">Pro tuto kategorii nejsou k dispozici žádní jezdci</p>
-          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Vyber jinou kategorii nebo zkontroluj, zda už byl ranking pro tuto skupinu přepočítán.</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{% trans "Žádná data" %}</p>
+          <p class="mt-2 text-lg font-black tracking-tight text-slate-900 dark:text-white">{% trans "Pro tuto kategorii nejsou k dispozici žádní jezdci" %}</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "Vyber jinou kategorii nebo zkontroluj, zda už byl ranking pro tuto skupinu přepočítán." %}</p>
         </div>
         {% endfor %}
       </div>

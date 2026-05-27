@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 22:49+0200\n"
+"POT-Creation-Date: 2026-05-27 08:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1679,7 +1679,8 @@ msgstr ""
 #: event/templates/event/riders-sum-event.html:273
 #: event/templates/event/unpaid-moto-riders-report.html:133
 #: event/templates/event/unpaid-moto-riders-report.html:170
-#: rider/premium_stats_pdf.py:560
+#: ranking/templates/ranking/ranking.html:331 rider/premium_stats_pdf.py:560
+#: theme/templates/downloads.html:153 theme/templates/rules.html:151
 msgid "Kategorie"
 msgstr ""
 
@@ -1845,6 +1846,7 @@ msgid "Hledat podle názvu, kolekce nebo kategorie"
 msgstr ""
 
 #: eshop/templates/eshop/shop.html:419
+#: rider/templates/rider/riders-list.html:207
 msgid "Hledat"
 msgstr ""
 
@@ -2522,6 +2524,7 @@ msgid ""
 msgstr ""
 
 #: event/templates/event/entry.html:977
+#: rider/templates/rider/riders-list.html:189
 msgid "Napiš příjmení jezdce"
 msgstr ""
 
@@ -2784,6 +2787,7 @@ msgid "Čeká na zveřejnění"
 msgstr ""
 
 #: event/templates/event/event-detail.html:439
+#: rider/templates/rider/riders-list.html:159
 msgid "Vyhledávání a akce"
 msgstr ""
 
@@ -3558,8 +3562,178 @@ msgstr ""
 msgid "Typ dokumentů"
 msgstr ""
 
-#: news/models.py:539 news/models.py:540
+#: news/models.py:539 news/models.py:540 theme/templates/downloads.html:3
 msgid "Ke stažení"
+msgstr ""
+
+#: news/templates/news/news-list.html:1
+msgid "Novinky"
+msgstr ""
+
+#: news/templates/news/news-list.html:1
+msgid ""
+"Aktuality Czech BMX. Novinky, reporty, organizacni informace a dulezite "
+"oznameni ze sveta BMX v Cesku."
+msgstr ""
+
+#: news/templates/news/news-list.html:124
+msgid "Aktuality"
+msgstr ""
+
+#: news/templates/news/news-list.html:127
+msgid "NOVINKY ZE SVĚTA BMX"
+msgstr ""
+
+#: news/templates/news/news-list.html:130
+msgid ""
+"Přehled publikovaných článků, novinek a informací z domácího i mezinárodního "
+"BMX dění."
+msgstr ""
+
+#: news/templates/news/news-list.html:135
+msgid "Publikováno"
+msgstr ""
+
+#: news/templates/news/news-list.html:139
+msgid "Aktuální stránka"
+msgstr ""
+
+#: news/templates/news/news-list.html:143
+msgid "Počet stran"
+msgstr ""
+
+#: news/templates/news/news-list.html:202 theme/templates/homepage.html:776
+msgid "min. čtení"
+msgstr ""
+
+#: news/templates/news/news-list.html:207
+msgid "Číst"
+msgstr ""
+
+#: news/templates/news/news-list.html:214
+msgid "Žádný obsah"
+msgstr ""
+
+#: news/templates/news/news-list.html:215
+msgid "Zatím zde nejsou žádné novinky"
+msgstr ""
+
+#: news/templates/news/news-list.html:216
+msgid "Brzy se tu něco objeví."
+msgstr ""
+
+#: news/templates/news/news-list.html:229
+#: rider/templates/rider/account-settings-invoices.html:684
+#: rider/templates/rider/account-settings-invoices.html:777
+msgid "Předchozí"
+msgstr ""
+
+#: news/templates/news/news-list.html:237
+#: rider/templates/rider/account-settings-invoices.html:692
+#: rider/templates/rider/account-settings-invoices.html:785
+msgid "Další"
+msgstr ""
+
+#: news/templates/news/news-list.html:245
+msgid "Zobrazuji stránku"
+msgstr ""
+
+#: news/templates/news/news-list.html:247
+msgid "z"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:3
+msgid "Ranking"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:290
+msgid "Národní pořadí"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:293
+#: theme/templates/includes/navbar.html:49
+#: theme/templates/includes/navbar.html:52
+#: theme/templates/includes/navbar.html:410
+msgid "RANKING"
+msgstr "RANKING"
+
+#: ranking/templates/ranking/ranking.html:296
+msgid ""
+"Aktuální bodové pořadí jezdců podle kategorií a výsledků započítaných do "
+"rankingu. Výběr kategorie přepne celý leaderboard."
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:301
+msgid "Aktivní kategorie dle UCI"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:305
+msgid "Jezdců v kategorii"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:309
+msgid "Lídr má bodů"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:322
+msgid "Pravidla výpočtu"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:324
+msgid ""
+"Do národního rankingu vstupují výsledky z MČR jednotlivců, 8 nejlepších "
+"výsledků Českého poháru a 6 nejlepších výsledků České ligy, Moravské ligy a "
+"volných závodů dohromady."
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:325
+msgid ""
+"MČR družstev se nezapočítává, kategorie Příchozí také ne. Body se počítají z "
+"posledních 365 dní a na konci roku se přenášejí mezi kategoriemi."
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:326
+msgid "Tabulku pro výpočet bodů do rankingu najdeš"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:326
+msgid "zde"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:335
+msgid "Vyber kategorii"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:341
+msgid "Po změně výběru se tabulka automaticky přenačte."
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:347
+msgid ""
+"Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard pro"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:354
+msgid "Leaderboard"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:358
+#, python-format
+msgid "%(count)s jezdců v pořadí"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:367
+msgid "Žádná data"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:368
+msgid "Pro tuto kategorii nejsou k dispozici žádní jezdci"
+msgstr ""
+
+#: ranking/templates/ranking/ranking.html:369
+msgid ""
+"Vyber jinou kategorii nebo zkontroluj, zda už byl ranking pro tuto skupinu "
+"přepočítán."
 msgstr ""
 
 #: rider/premium_stats_pdf.py:39
@@ -4173,20 +4347,10 @@ msgstr ""
 msgid "Zobrazeno %(current)s z %(total)s faktur."
 msgstr ""
 
-#: rider/templates/rider/account-settings-invoices.html:684
-#: rider/templates/rider/account-settings-invoices.html:777
-msgid "Předchozí"
-msgstr ""
-
 #: rider/templates/rider/account-settings-invoices.html:688
 #: rider/templates/rider/account-settings-invoices.html:781
 #, python-format
 msgid "Strana %(num)s / %(total)s"
-msgstr ""
-
-#: rider/templates/rider/account-settings-invoices.html:692
-#: rider/templates/rider/account-settings-invoices.html:785
-msgid "Další"
 msgstr ""
 
 #: rider/templates/rider/account-settings-invoices.html:700
@@ -5264,9 +5428,96 @@ msgid "Zpět na administraci jezdců"
 msgstr ""
 
 #: rider/templates/rider/rider-success.html:139
-#: rider/templates/rider/rider-success.html:143 rider/views.py:2207
+#: rider/templates/rider/rider-success.html:143
+#: rider/templates/rider/riders-list.html:113 rider/views.py:2207
 #: rider/views.py:2219 rider/views.py:2344 rider/views.py:2427
 msgid "Seznam jezdců"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:3
+msgid "Jezdci"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:110
+msgid "Kvalifikace na MČR"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:110
+#, fuzzy
+#| msgid "Přihlášení"
+msgid "Evidence jezdců"
+msgstr "Prihlásenie"
+
+#: rider/templates/rider/riders-list.html:113
+msgid "Seznam kvalifikovaných"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:117
+msgid ""
+"Přehled jezdců, kteří jsou aktuálně kvalifikovaní na MČR. Můžeš je dál "
+"filtrovat podle příjmení, klubu a startovního čísla."
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:119
+msgid ""
+"Vyhledávání registrovaných jezdců podle jména, klubu a základních údajů. "
+"Rychlý přehled aktivních licencí, klubů a startovních čísel na jednom místě."
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:126
+msgid "Celkem kvalifikováno"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:126
+#, fuzzy
+#| msgid "Aktivní registrace"
+msgid "Aktivních jezdců"
+msgstr "Aktívne registrácie"
+
+#: rider/templates/rider/riders-list.html:133
+msgid "Kvalifikováno ve 20"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:133
+msgid "Platných licencí"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:141
+msgid "Kvalifikováno ve 24"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:141
+msgid "Klubů"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:160
+msgid "Rychlá práce s evidencí"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:163
+msgid ""
+"Vyhledávej jezdce podle příjmení, klubu nebo startovního čísla a hned vedle "
+"máš přístup k žádosti o nové číslo."
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:167
+msgid "Filtr: kvalifikovaní na MČR"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:174
+msgid "Požádat o startovní číslo"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:195
+msgid "Napiš jméno klubu"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:201
+msgid "Napiš startovní číslo"
+msgstr ""
+
+#: rider/templates/rider/riders-list.html:211
+msgid "Vyčistit"
 msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:4
@@ -5741,6 +5992,32 @@ msgstr "Upozornenie"
 msgid "Information"
 msgstr "Informácia"
 
+#: theme/templates/downloads.html:142
+msgid "Dokumenty a formuláře"
+msgstr ""
+
+#: theme/templates/downloads.html:145 theme/templates/includes/navbar.html:65
+#: theme/templates/includes/navbar.html:68
+#: theme/templates/includes/navbar.html:416
+msgid "KE STAŽENÍ"
+msgstr "NA STIAHNUTIE"
+
+#: theme/templates/downloads.html:148
+msgid "Přehled všech dostupných dokumentů rozdělených do kategorií."
+msgstr ""
+
+#: theme/templates/downloads.html:157
+msgid "Dokumentů"
+msgstr ""
+
+#: theme/templates/downloads.html:161
+msgid "Určení"
+msgstr ""
+
+#: theme/templates/downloads.html:162
+msgid "Jezdci, kluby, rozhodčí"
+msgstr ""
+
 #: theme/templates/homepage.html:3
 msgid "Homepage"
 msgstr ""
@@ -5799,10 +6076,6 @@ msgstr ""
 
 #: theme/templates/homepage.html:714
 msgid "Pro ženské Championship kategorie zatím nejsou k dispozici žádné body."
-msgstr ""
-
-#: theme/templates/homepage.html:776
-msgid "min. čtení"
 msgstr ""
 
 #: theme/templates/homepage.html:792
@@ -5899,23 +6172,11 @@ msgstr "JAZDCI"
 msgid "KLUBY"
 msgstr "KLUBY"
 
-#: theme/templates/includes/navbar.html:49
-#: theme/templates/includes/navbar.html:52
-#: theme/templates/includes/navbar.html:410
-msgid "RANKING"
-msgstr "RANKING"
-
 #: theme/templates/includes/navbar.html:57
 #: theme/templates/includes/navbar.html:60
 #: theme/templates/includes/navbar.html:413
 msgid "PRAVIDLA"
 msgstr "PRAVIDLÁ"
-
-#: theme/templates/includes/navbar.html:65
-#: theme/templates/includes/navbar.html:68
-#: theme/templates/includes/navbar.html:416
-msgid "KE STAŽENÍ"
-msgstr "NA STIAHNUTIE"
 
 #: theme/templates/includes/navbar.html:74
 #: theme/templates/includes/navbar.html:77
@@ -6010,4 +6271,21 @@ msgstr ""
 
 #: theme/templates/registration/password_reset_form.html:61
 msgid "Poslat odkaz pro reset"
+msgstr ""
+
+#: theme/templates/rules.html:3 theme/templates/rules.html:132
+msgid "Pravidla BMX"
+msgstr ""
+
+#: theme/templates/rules.html:130
+msgid "Soutěžní řád"
+msgstr ""
+
+#: theme/templates/rules.html:135
+msgid ""
+"Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing."
+msgstr ""
+
+#: theme/templates/rules.html:145
+msgid "Pravidla"
 msgstr ""

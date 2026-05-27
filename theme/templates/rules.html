@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %} Pravidla BMX {% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Pravidla BMX" %}{% endblock title %}
 {% block extra_head %}
 <style>
   .ranking-hero {
@@ -126,12 +127,12 @@
     <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
       <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Soutěžní řád
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Soutěžní řád" %}
           </p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Pravidla BMX
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Pravidla BMX" %}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing.
+            {% trans "Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing." %}
           </p>
         </div>
         <div class="ranking-stats-grid">
@@ -141,13 +142,13 @@
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">UCI</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pravidla
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pravidla" %}
             </p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">BMX</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
             <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-              Kategorie</p>
+              {% trans "Kategorie" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">Racing</p>
           </div>
         </div>

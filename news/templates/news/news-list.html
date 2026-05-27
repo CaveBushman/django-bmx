@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %}{% block title %} Novinky {% endblock title %}{% block meta_description %}Aktuality Czech BMX. Novinky, reporty, organizacni informace a dulezite oznameni ze sveta BMX v Cesku.{% endblock %}
+{% extends 'base.html' %} {% load static %}{% load i18n %}{% block title %}{% trans "Novinky" %}{% endblock title %}{% block meta_description %}{% trans "Aktuality Czech BMX. Novinky, reporty, organizacni informace a dulezite oznameni ze sveta BMX v Cesku." %}{% endblock %}
 {% block extra_head %}
 <style>
   .ranking-hero {
@@ -121,26 +121,26 @@
       <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Aktuality
+            {% trans "Aktuality" %}
           </p>
           <h1 class="mt-2 max-w-4xl text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-            NOVINKY ZE SVĚTA BMX
+            {% trans "NOVINKY ZE SVĚTA BMX" %}
           </h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Přehled publikovaných článků, novinek a informací z domácího i mezinárodního BMX dění.
+            {% trans "Přehled publikovaných článků, novinek a informací z domácího i mezinárodního BMX dění." %}
           </p>
         </div>
         <div class="ranking-stats-grid">
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Publikováno</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Publikováno" %}</p>
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ sum_of_news }}</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální stránka</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktuální stránka" %}</p>
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ news.number }}</p>
           </div>
           <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Počet stran</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Počet stran" %}</p>
             <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ news.paginator.num_pages }}</p>
           </div>
         </div>
@@ -199,21 +199,21 @@
           </div>
           <div class="text-sm leading-5">
             <p class="font-semibold text-slate-900 dark:text-white">{{article.created}}</p>
-            <p class="text-slate-500 dark:text-slate-300">{{article.time_to_read}} min. cteni</p>
+            <p class="text-slate-500 dark:text-slate-300">{{article.time_to_read}} {% trans "min. čtení" %}</p>
           </div>
         </div>
         <a href="{{ article.get_absolute_url }}"
           class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-600 dark:!bg-indigo-500 dark:hover:!bg-indigo-400">
-          Číst
+          {% trans "Číst" %}
         </a>
       </div>
     </div>
   </article>
   {% empty %}
   <div class="col-span-full rounded-[2rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900/70">
-    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Žádný obsah</p>
-    <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Zatím zde nejsou žádné novinky</h3>
-    <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Brzy se tu něco objeví.</p>
+    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{% trans "Žádný obsah" %}</p>
+    <h3 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Zatím zde nejsou žádné novinky" %}</h3>
+    <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{% trans "Brzy se tu něco objeví." %}</p>
   </div>
   {% endfor %}
   </div>
@@ -226,7 +226,7 @@
     {% if news.has_previous %}
     <a href="{% url 'news:news-list' %}?page={{ news.previous_page_number }}"
       class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
-      Predchozi
+      {% trans "Předchozí" %}
     </a>
     {% else %}
     <div></div>
@@ -234,7 +234,7 @@
     {% if news.has_next %}
     <a href="{% url 'news:news-list' %}?page={{ news.next_page_number }}"
       class="ml-3 relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-white dark:hover:!bg-slate-700">
-      Dalsi
+      {% trans "Další" %}
     </a>
     {% endif %}
   </div>
@@ -242,9 +242,9 @@
   <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
     <div>
       <p class="text-sm text-slate-600 dark:text-slate-300">
-        Zobrazuji stránku
+        {% trans "Zobrazuji stránku" %}
         <span class="font-medium">{{ news.number }}</span>
-        z
+        {% trans "z" %}
         <span class="font-medium">{{ news.paginator.num_pages }}</span>
       </p>
     </div>
