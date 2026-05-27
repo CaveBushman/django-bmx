@@ -248,6 +248,42 @@ class AccountEmailNormalizationTests(TestCase):
             ).exists()
         )
 
+    @override_settings(ALLOWED_HOSTS=["testserver", "localhost"])
+    def test_account_admin_change_page_renders_with_activation_audit_logs(self):
+        account = User.objects.create_user(
+            first_name="Jan",
+            last_name="Svub",
+            username="jan_svub",
+            email="jan-svub@example.com",
+            password="StrongPass123!",
+        )
+        account.is_active = True
+        account.save(update_fields=["is_active"])
+        admin_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Viewer",
+            username="admin_viewer",
+            email="admin-viewer@example.com",
+            password="StrongPass123!",
+        )
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.is_active = True
+        admin_user.save(update_fields=["is_staff", "is_superuser", "is_active"])
+        AccountActivationAuditLog.objects.create(
+            account=account,
+            actor=admin_user,
+            action=AccountActivationAuditLog.Action.ACTIVATED,
+            source="admin_test",
+            email_snapshot=account.email,
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse("admin:accounts_account_change", args=[account.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Účet aktivován")
+
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class PasswordResetTests(TestCase):

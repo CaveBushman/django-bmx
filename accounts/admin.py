@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin.views.main import ChangeList
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from bmx.admin_search import DiacriticsInsensitiveSearchAdminMixin
@@ -143,8 +143,8 @@ class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
         items = []
         for log in logs:
             actor = log.actor.email if log.actor else _("systém")
-            items.append(f"{log.created_at:%d.%m.%Y %H:%M} • {log.get_action_display()} • {actor}")
-        return format_html("<br>".join(items))
+            items.append((f"{log.created_at:%d.%m.%Y %H:%M} • {log.get_action_display()} • {actor}",))
+        return format_html_join("<br>", "{}", items)
 
 
 admin.site.register(Account, AccountAdmin)
