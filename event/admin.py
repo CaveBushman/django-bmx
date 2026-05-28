@@ -816,6 +816,7 @@ class CreditTransactionAdmin(BaseAdmin):
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'transaction_date', 'payment_intent', 'source_entry__event__name', 'source_entry__rider__last_name')
     list_filter = ('transaction_date', 'kind', 'payment_complete')
+    autocomplete_fields = ('user', 'source_entry')
 
     def _is_automatic_checkout_refund(self, obj):
         return bool(
