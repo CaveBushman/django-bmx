@@ -1,0 +1,15 @@
+{% for article in news %}
+<div class="col-md-6 mb-4 news-card-wrapper">
+    <div class="news-card h-100">
+        <img src="{{ article.photo_01_url }}" class="card-img-top" alt="{{ article.display_title }}">
+        <div class="card-body">
+            <h5 class="card-title">{{ article.display_title }}</h5>
+            <div class="article-meta mb-2 text-muted small">
+                <i class="bi bi-clock"></i> {{ article.audio_duration_estimate }} min. poslechu
+            </div>
+            <p class="card-text">{{ article.display_prefix|safe|truncatewords:20 }}</p>
+            <a href="{{ article.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Číst více</a>
+        </div>
+    </div>
+</div>
+{% endfor %}

@@ -37,14 +37,16 @@ urlpatterns = [
     path("foreignriders/", views.ForeignRiderList.as_view(), name="foreignrider-list"),
     path("foreignriders/<int:uci_id>/", views.ForeignRiderDetail.as_view(), name="foreignrider-detail"),
 
-    # Clubs
+    # Clubs / Teams (alias používaný mobilní aplikací)
     path("clubs/", views.ClubList.as_view(), name="club-list"),
     path("clubs/<int:pk>/", views.ClubDetail.as_view(), name="club-detail"),
+    path("teams/", views.ClubList.as_view(), name="team-list"),
 
     # Events
     path("events/", views.EventList.as_view(), name="event-list"),
     path("events/<int:pk>/", views.EventPublicDetailAPIView.as_view(), name="event-detail"),
     path("events/<int:pk>/admin/", views.EventDetail.as_view(), name="event-detail-admin"),
+    path("events/<int:pk>/entry-riders/", views.EventEntryRidersAPIView.as_view(), name="event-entry-riders"),
     path("events/<int:pk>/entry-info/", views.EventEntryInfoAPIView.as_view(), name="event-entry-info"),
     path("events/<int:pk>/enter/", views.EventEnterAPIView.as_view(), name="event-enter"),
 

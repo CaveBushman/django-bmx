@@ -131,6 +131,11 @@ def news_list_view(request):
     if data is None:
         # Stránkujeme v DB, sanitizujeme jen aktuální stránku (ne celý seznam)
         qs = News.objects.filter(published=True).order_by('-publish_date')
+        
+        query = request.GET.get('q')
+        if query:
+            qs = qs.filter(Q(title__icontains=query) | Q(prefix__icontains=query))
+            
         paginator = Paginator(qs, ARTICLES_PER_PAGE)
         news_page = paginator.get_page(page_number)
         news_page.object_list = [_sanitize_news_for_render(a) for a in news_page.object_list]
@@ -155,6 +160,10 @@ def news_list_view(request):
             'page_numbers': range(start_page, end_page + 1),
         }
         cache.set(cache_key, data, getattr(settings, "CACHE_TTL_LONG", 30 * 60))
+
+    # Pokud jde o HTMX požadavek, vrátíme jen fragment seznamu
+    if request.headers.get('HX-Request'):
+        return render(request, 'news/partials/news_list_loop.html', data)
 
     return render(request, 'news/news-list.html', data)
 

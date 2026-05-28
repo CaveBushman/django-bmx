@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import News
 
-_SUPPORTED_LANGS = frozenset(("en", "de", "sk", "es", "it", "fr"))
+_SUPPORTED_LANGS = frozenset(("en", "de", "sk", "es", "it", "fr", "pl", "hu"))
 _TRANSLATED_FIELDS = (
     [f"title_{l}" for l in _SUPPORTED_LANGS] +
     [f"prefix_{l}" for l in _SUPPORTED_LANGS] +

@@ -54,6 +54,14 @@ pytz==2025.2
 PyYAML==6.0.3
 reportlab==4.4.10
 requests==2.32.5
+# Cache
+django-redis>=5.4.0
+redis>=5.0.0
+# Task queue
+celery[redis]>=5.4.0
+django-celery-results>=2.5.1
+# Translation
+deepl>=1.19.0
 rich==14.2.0
 sentry-sdk==2.54.0
 six==1.17.0

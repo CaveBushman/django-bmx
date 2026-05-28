@@ -13,8 +13,6 @@ import asyncio
 import concurrent.futures
 import edge_tts
 import logging
-from concurrent.futures import ThreadPoolExecutor
-import atexit
 import hashlib
 
 import re
@@ -63,12 +61,6 @@ class Tag(models.Model):
 
 logger = logging.getLogger(__name__)
 
-# POZNÁMKA PRO PRODUKCI:
-# Používáme ThreadPoolExecutor pro jednoduché asynchronní zpracování TTS.
-# Pro high-traffic aplikaci ("World Class") zvážit migraci na Celery/Redis,
-# aby se úlohy neztratily při restartu serveru a lépe se škálovaly.
-_EXECUTOR = ThreadPoolExecutor(max_workers=2)
-atexit.register(_EXECUTOR.shutdown, wait=False)
 
 def _send_article_push_notification(article_id: int):
     """Odešle push notifikaci o novém článku všem zaregistrovaným zařízením."""
@@ -114,14 +106,16 @@ def _delete_all_audio(article_id: int):
 
 
 def enqueue_article_tts(article_id: int):
-    _EXECUTOR.submit(_generate_audio, article_id, "cs")
+    from news.tasks import generate_audio_task
+    generate_audio_task.delay(article_id, "cs")
     for lang in _AUDIO_LANGS:
-        _EXECUTOR.submit(_generate_audio, article_id, lang)
+        generate_audio_task.delay(article_id, lang)
 
 
 def enqueue_article_translation(article_id: int):
+    from news.tasks import translate_article_task
     for lang in _AUDIO_LANGS:
-        _EXECUTOR.submit(_translate_article_content, article_id, lang)
+        translate_article_task.delay(article_id, lang)
 
 
 def _html_to_blocks(html: str) -> list[str]:
@@ -171,10 +165,39 @@ def _translate_article_content(article_id: int, lang: str):
         logger.exception("[TRANSLATE] Chyba Article %s lang=%s: %s", article_id, lang, exc)
 
 
+# DeepL kódy jazyků — DeepL používá jiné kódy než ISO 639-1
+_DEEPL_LANG_MAP = {
+    "en": "EN-US", "de": "DE", "sk": "SK", "es": "ES",
+    "it": "IT", "fr": "FR", "pl": "PL", "hu": "HU",
+}
+
+
 def _translate_text(text: str, target_lang: str) -> str:
-    """Přeloží text z češtiny do cílového jazyka (Google Translate, bez API klíče)."""
+    """Přeloží text z češtiny. Primárně DeepL, záloha Google Translate."""
     if not text.strip():
         return text
+    from django.conf import settings
+    api_key = getattr(settings, "DEEPL_API_KEY", "")
+    if api_key:
+        result = _deepl_translate(text, target_lang, api_key)
+        if result:
+            return result
+    return _google_translate(text, target_lang)
+
+
+def _deepl_translate(text: str, target_lang: str, api_key: str) -> str:
+    try:
+        import deepl
+        dl_lang = _DEEPL_LANG_MAP.get(target_lang, target_lang.upper())
+        translator = deepl.Translator(api_key)
+        result = translator.translate_text(text, source_lang="CS", target_lang=dl_lang)
+        return result.text
+    except Exception as exc:
+        logger.warning("[TRANSLATE] DeepL selhal lang=%s: %s — zkouším zálohu.", target_lang, exc)
+        return ""
+
+
+def _google_translate(text: str, target_lang: str) -> str:
     chunks = _split_text(text, max_len=4800)
     parts = []
     for chunk in chunks:
@@ -188,8 +211,8 @@ def _translate_text(text: str, target_lang: str) -> str:
             data = resp.json()
             parts.append("".join(seg[0] for seg in data[0] if seg[0]))
         except Exception as exc:
-            logger.warning("[TTS] Překlad selhal lang=%s: %s", target_lang, exc)
-            return ""  # prázdný string = přeskočit generování
+            logger.warning("[TRANSLATE] Google Translate selhal lang=%s: %s", target_lang, exc)
+            return ""
     return " ".join(parts)
 
 def _split_text(text: str, max_len: int = 4500):
@@ -459,6 +482,13 @@ class News (models.Model):
         """ fukce vrací hodnotu všech zveřejněných článků """
         return News.objects.filter(published=True).count()
 
+    @property
+    def audio_duration_estimate(self):
+        """Odhad délky audia v minutách pro UI."""
+        title, prefix, content = _article_parts_plain(self)
+        total_chars = len(title) + len(prefix) + len(content)
+        return max(1, round(total_chars / 900)) # průměrně 900 znaků za minutu
+
     def save(self, *args, **kwargs):
         self.prefix = sanitize_rich_html(self.prefix)
         self.content = sanitize_rich_html(self.content)
@@ -492,11 +522,12 @@ class News (models.Model):
         old_publish_in_app = getattr(self, "_old_publish_in_app", self.publish_in_app)
 
         def _enqueue():
+            from news.tasks import delete_audio_task, send_push_task
             if not self.published_audio:
                 # audio vypnuto — smaž soubory pokud byl přechod True → False
                 if old_published_audio:
                     logger.info("[TTS] Article %s: published_audio=False, mažu audio soubory.", self.pk)
-                    _EXECUTOR.submit(_delete_all_audio, self.pk)
+                    delete_audio_task.delay(self.pk)
             elif self.published:
                 audio_newly_enabled = not old_published_audio
                 should_generate = creating or (old_hash != new_hash) or (not self.audio_file) or audio_newly_enabled
@@ -513,7 +544,7 @@ class News (models.Model):
                 just_published = not old_published and self.published
                 just_enabled_in_app = not old_publish_in_app and self.publish_in_app
                 if creating or just_published or just_enabled_in_app:
-                    _EXECUTOR.submit(_send_article_push_notification, self.pk)
+                    send_push_task.delay(self.pk)
 
         transaction.on_commit(_enqueue)
 

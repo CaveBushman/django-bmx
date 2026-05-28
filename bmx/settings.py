@@ -134,6 +134,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
 
     # 3rd party
+    "django_celery_results",
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
@@ -213,29 +214,54 @@ WSGI_APPLICATION = "bmx.wsgi.application"
 
 # ---------------------------------------------------------------------------
 # Cache
-# Lokálně: LocMemCache (výchozí, bez konfigurace).
-# Na serveru nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
-# a CACHE_LOCATION=redis://127.0.0.1:6379/1
+# Lokálně: LocMemCache (výchozí).
+# Na serveru nastav REDIS_URL=redis://127.0.0.1:6379/1 v .env
 # ---------------------------------------------------------------------------
-_cache_backend  = config("CACHE_BACKEND",  default="django.core.cache.backends.locmem.LocMemCache")
-_cache_location = config("CACHE_LOCATION", default="")
-_cache_options: dict = {}
-if "redis" in _cache_backend.lower() and not _cache_location:
-    _cache_location = "redis://127.0.0.1:6379/1"
+REDIS_URL = config("REDIS_URL", default="")
 
-CACHES = {
-    "default": {
-        "BACKEND":  _cache_backend,
-        **({"LOCATION": _cache_location} if _cache_location else {}),
-        "OPTIONS":  _cache_options,
-        "TIMEOUT":  300,
-        "KEY_PREFIX": "bmx",
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "TIMEOUT": 300,
+            "KEY_PREFIX": "bmx",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "TIMEOUT": 300,
+            "KEY_PREFIX": "bmx",
+        }
+    }
 
 CACHE_TTL_SHORT  = 60        # 1 min  – dynamická data (přihlášky, výsledky)
 CACHE_TTL_MEDIUM = 5 * 60   # 5 min  – žebříček, výsledky
 CACHE_TTL_LONG   = 30 * 60  # 30 min – seznam závodů, zprávy, klub
+
+# Celery
+# Na serveru nastav REDIS_URL (sdílí se s cache) nebo CELERY_BROKER_URL zvlášť
+# ---------------------------------------------------------------------------
+CELERY_BROKER_URL         = config("CELERY_BROKER_URL", default=REDIS_URL or "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND     = config("CELERY_RESULT_BACKEND", default=REDIS_URL or "redis://127.0.0.1:6379/0")
+CELERY_TASK_SERIALIZER    = "json"
+CELERY_RESULT_SERIALIZER  = "json"
+CELERY_ACCEPT_CONTENT     = ["json"]
+CELERY_TIMEZONE           = "Europe/Prague"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_ACKS_LATE     = True
+
+# DeepL překlad článků
+# Nastav DEEPL_API_KEY v .env — bez klíče se použije Google Translate záloha
+DEEPL_API_KEY = config("DEEPL_API_KEY", default="")
 
 AUTH_USER_MODEL = "accounts.Account"
 

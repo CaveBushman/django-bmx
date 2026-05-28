@@ -1,3 +1,7 @@
+from .celery import app as celery_app
+
+__all__ = ("celery_app",)
+
 from django.db.backends.signals import connection_created
 
 

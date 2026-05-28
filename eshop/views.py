@@ -687,6 +687,13 @@ def add_to_cart(request):
         messages.warning(request, "Do košíku jsme přidali jen aktuálně dostupný počet kusů.")
     cart_obj.add(variant.pk, addable_quantity)
     _sync_stock_reservations(request, cart_obj)
+    
+    # HTMX podpora: pokud přidáváme z detailu, vrátíme jen aktualizovaný widget košíku
+    if request.headers.get('HX-Request'):
+        return render(request, "eshop/partials/cart_count.html", {
+            "cart_count": len(cart_obj)
+        })
+
     return redirect(f"{reverse('eshop:product-detail', args=[variant.product.slug])}?added=1")
 
 
@@ -714,6 +721,12 @@ def cart(request):
                     messages.warning(request, "Počet kusů byl upraven podle aktuální skladové zásoby.")
                 cart_obj.set(vid, qty)
         _sync_stock_reservations(request, cart_obj)
+        
+        # Pokud jde o HTMX, vracíme aktualizovaný stav (např. celý obsah košíku)
+        if request.headers.get('HX-Request'):
+            items, total, _ = _build_cart_items(cart_obj, normalize=True, session_key=_ensure_session_key(request))
+            return render(request, "eshop/partials/cart_table.html", {"items": items, "total": total, "cart_count": len(cart_obj)})
+            
         return redirect("eshop:cart")
 
     items, total, stock_warnings = _build_cart_items(

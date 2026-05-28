@@ -528,6 +528,7 @@ class LoginAPIView(APIView):
         return Response({
             "access": str(refresh.access_token),
             "refresh": str(refresh),
+            "expires_at": timezone.now() + refresh.access_token.lifetime,
             "user": _user_payload(user),
         })
 
@@ -1315,6 +1316,46 @@ class EventPublicDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.select_related("organizer").prefetch_related("photos")
     serializer_class = EventPublicSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class EventEntryRidersAPIView(APIView):
+    """Přihlášení jezdci na závod — JSON verze pro mobilní aplikaci."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        from event.models import Entry, EntryForeign
+        from event.views.entry_helpers import build_public_entry_rows
+
+        get_object_or_404(Event, pk=pk)
+
+        czech_entries = Entry.objects.filter(event=pk, payment_complete=1, checkout=0).select_related("rider", "rider__club")
+        foreign_entries = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=0).select_related("rider")
+        czech_checkout = Entry.objects.filter(event=pk, payment_complete=1, checkout=1).select_related("rider", "rider__club")
+        foreign_checkout = EntryForeign.objects.filter(event=pk, payment_complete=1, checkout=1).select_related("rider")
+
+        def serialize_rows(rows):
+            return [
+                {
+                    "first_name": r.first_name,
+                    "last_name": r.last_name,
+                    "category": r.category,
+                    "club": r.club,
+                    "uci_id": r.uci_id,
+                    "plate": r.plate,
+                    "photo_url": r.photo_url,
+                    "is_foreign": r.is_foreign,
+                }
+                for r in sorted(rows, key=lambda x: (x.last_name, x.first_name))
+            ]
+
+        entries = build_public_entry_rows(czech_entries) + build_public_entry_rows(foreign_entries, is_foreign=True)
+        checkout = build_public_entry_rows(czech_checkout) + build_public_entry_rows(foreign_checkout, is_foreign=True)
+
+        return Response({
+            "entries": serialize_rows(entries),
+            "checkout": serialize_rows(checkout),
+            "categories": sorted({r.category for r in entries if r.category}),
+        })
 
 
 class EventEntryInfoAPIView(APIView):
