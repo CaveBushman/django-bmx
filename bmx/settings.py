@@ -757,13 +757,12 @@ INSTALLED_APPS += ["analytical"]
 GOOGLE_ANALYTICS_GTAG_PROPERTY_ID = "G-6VFMEQ1EVX"  # GA4 measurement ID
 
 # Varování: LocMemCache nesdílí rate limity mezi Gunicorn workery.
-# V produkci nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
-if not DEBUG and _cache_backend == "django.core.cache.backends.locmem.LocMemCache":
+# V produkci nastav REDIS_URL=redis://127.0.0.1:6379/1 v .env
+if not DEBUG and not REDIS_URL:
     import warnings
     warnings.warn(
         "BEZPEČNOSTNÍ VAROVÁNÍ: LocMemCache nezajišťuje sdílené rate limity mezi "
-        "Gunicorn workery. Nastav CACHE_BACKEND=django.core.cache.backends.redis.RedisCache "
-        "a CACHE_LOCATION=redis://127.0.0.1:6379/1 v produkci.",
+        "Gunicorn workery. Nastav REDIS_URL=redis://127.0.0.1:6379/1 v produkci.",
         RuntimeWarning,
         stacklevel=2,
     )
