@@ -148,7 +148,7 @@ def protect_public_flow(flow, request):
         return {
             "status": 400,
             "reason": "too_fast",
-            "message": _("Formulář byl odeslán příliš rychle. Zkus to prosím znovu."),
+            "message": _("Počkej prosím chvíli před odesláním. Chceme se ujistit, že jsi člověk."),
         }
 
     if flow_requires_human_check(flow, request):

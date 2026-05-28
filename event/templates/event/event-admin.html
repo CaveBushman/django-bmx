@@ -3,7 +3,7 @@
 {% load static i18n %} 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
-<script src="{% static 'js/event_admin.js' %}?v=3" defer></script>
+<script src="{% static 'js/event_admin.js' %}?v=4" defer></script>
 <style>
   .event-admin-page {
     min-height: calc(100vh - 4rem);
@@ -777,8 +777,7 @@
             Export finálních výsledků do API Českého svazu cyklistiky.
           </p>
         </div>
-        <a href="{% url 'event:export_event_results' event.id %}" target="_blank"
-          rel="noopener noreferrer"
+        <a href="{% url 'event:export_event_results' event.id %}"
           class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
           aria-label="Odešli výsledky">
           Odeslat výsledky

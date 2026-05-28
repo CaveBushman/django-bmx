@@ -2124,6 +2124,11 @@ def rider_new_view(request):
             messages.error(request, _("Vybraný klub nebyl nalezen."))
             return _render_rider_request(request, context)
 
+        club = Club.objects.filter(id=request.POST.get("club")).first()
+        if club is None:
+            messages.error(request, _("Vybraný klub nebyl nalezen."))
+            return render(request, "rider/rider-request.html", context)
+
         Rider.objects.create(
             first_name=request.POST["first_name"].strip(),
             last_name=request.POST["last_name"].strip(),

@@ -612,7 +612,7 @@
 {% endif %}
 
 <div class="homepage-hero-mobile relative w-full overflow-hidden">
-    <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
+    <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted playsinline preload="auto" data-homepage-video>
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
         {% trans "Váš prohlížeč nepodporuje video tag." %}
     </video>
@@ -644,6 +644,23 @@
         </div>
     </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var video = document.querySelector("[data-homepage-video]");
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+
+    var playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(function () {
+        video.setAttribute("controls", "controls");
+      });
+    }
+  });
+</script>
 
 <div class="homepage-dark-surface bg-white dark:!bg-slate-900">
 <section class="homepage-champions px-6 py-6 sm:px-8 lg:px-10 xl:px-12">

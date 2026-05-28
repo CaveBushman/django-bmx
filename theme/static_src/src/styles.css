@@ -382,114 +382,26 @@
   .dark .article-richtext-dark [bgcolor] {
     background-color: transparent !important;
   }
-}
 
-/* Late dark-mode overrides: keep after Tailwind layers so utility backgrounds cannot win. */
-.dark .clubs-directory-page {
-  background:
-    radial-gradient(circle at 16% 8%, rgba(79, 70, 229, 0.16), transparent 28rem),
-    linear-gradient(180deg, #0f172a 0%, #111827 42%, #0b1120 100%);
-  color: #e5e7eb;
-}
+  /* Language Selector Dark Mode - Force overrides */
+  .dark #language-menu {
+    background-color: rgba(15, 23, 42, 0.98) !important;
+    border: 1px solid rgba(51, 65, 85, 0.92) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(12px) !important;
+  }
 
-.dark .clubs-directory-filter,
-.dark .clubs-directory-card {
-  border-color: rgba(51, 65, 85, 0.92);
-  background: rgba(15, 23, 42, 0.94);
-  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
-}
+  .dark #language-menu-button,
+  .dark #language-menu button {
+    color: #e2e8f0 !important;
+  }
 
-.dark .clubs-directory-filter input,
-.dark .clubs-directory-filter select {
-  border-color: rgba(71, 85, 105, 0.96);
-  background: rgba(2, 6, 23, 0.78);
-  color: #f8fafc;
-}
+  .dark #language-menu button {
+    background-color: transparent !important;
+  }
 
-.dark .clubs-directory-filter input::placeholder {
-  color: #64748b;
-}
-
-.dark .clubs-directory-filter select option {
-  background: #0f172a;
-  color: #f8fafc;
-}
-
-.dark .clubs-directory-submit,
-.dark .eshop-shop-search-button {
-  border: 1px solid rgba(129, 140, 248, 0.34);
-  background: linear-gradient(135deg, #4338ca, #312e81);
-  color: #fff;
-  box-shadow: 0 14px 34px rgba(49, 46, 129, 0.36);
-}
-
-.dark .clubs-directory-submit:hover,
-.dark .eshop-shop-search-button:hover {
-  background: linear-gradient(135deg, #4f46e5, #3730a3);
-}
-
-.dark .clubs-directory-contact-badge {
-  background: rgba(16, 185, 129, 0.12);
-  color: #86efac;
-}
-
-.dark .clubs-directory-contact-link {
-  border: 1px solid rgba(51, 65, 85, 0.88);
-  background: rgba(15, 23, 42, 0.88);
-}
-
-.dark .clubs-directory-contact-link-email {
-  color: #93c5fd;
-}
-
-.dark .clubs-directory-contact-link-email:hover {
-  background: rgba(37, 99, 235, 0.16);
-  color: #bfdbfe;
-}
-
-.dark .clubs-directory-contact-link-phone {
-  color: #6ee7b7;
-}
-
-.dark .clubs-directory-contact-link-phone:hover {
-  background: rgba(16, 185, 129, 0.14);
-  color: #a7f3d0;
-}
-
-.dark .eshop-shop-admin-bar {
-  border-color: rgba(99, 102, 241, 0.28);
-  background: rgba(15, 23, 42, 0.92);
-  box-shadow: 0 18px 56px rgba(2, 6, 23, 0.34);
-}
-
-.dark .eshop-shop-admin-link {
-  border-color: rgba(129, 140, 248, 0.3);
-  background: rgba(30, 41, 59, 0.9);
-  color: #c7d2fe;
-}
-
-.dark .eshop-shop-admin-link:hover {
-  background: rgba(49, 46, 129, 0.54);
-  color: #fff;
-}
-
-.dark .eshop-shop-search {
-  border-color: rgba(51, 65, 85, 0.92);
-  background: rgba(15, 23, 42, 0.92);
-  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
-}
-
-.dark .eshop-shop-search input {
-  border-color: rgba(71, 85, 105, 0.96);
-  background: rgba(2, 6, 23, 0.78);
-  color: #f8fafc;
-}
-
-.dark .eshop-shop-search input::placeholder {
-  color: #64748b;
-}
-
-.dark .eshop-shop-search input:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+  .dark #language-menu button:hover {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    color: #ffffff !important;
+  }
 }

@@ -19,6 +19,25 @@ html.dark #profile-dropdown .border-t {
   border-color: #334155 !important;
 }
 
+html.dark #language-menu {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+html.dark #language-menu button {
+  color: #e2e8f0 !important;
+}
+
+html.dark #language-menu button:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark #language-menu button[class*="bg-slate-100"] {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
 .lang-flag {
   display: inline-flex;
   width: 1.35rem;
