@@ -228,7 +228,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:331
 #: theme/templates/includes/navbar.html:553
 msgid "Provozní dashboard"
-msgstr ""
+msgstr "Üzemeltetési irányítópult"
 
 #: accounts/templates/accounts/ops-dashboard.html:219
 msgid "Ops"
@@ -441,7 +441,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:354
 #: theme/templates/includes/navbar.html:580
 msgid "Přihlášení"
-msgstr ""
+msgstr "Bejelentkezés"
 
 #: accounts/templates/accounts/signin.html:26
 #: accounts/templates/accounts/signup.html:24
@@ -815,7 +815,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:312
 #: theme/templates/includes/navbar.html:544
 msgid "Kredit"
-msgstr ""
+msgstr "Kredit"
 
 #: eshop/templates/eshop/admin-order-detail.html:47
 msgid "Položky"
@@ -991,7 +991,7 @@ msgstr ""
 #: eshop/templates/eshop/size_guide.html:43
 #: theme/templates/includes/navbar.html:557
 msgid "E-shop"
-msgstr ""
+msgstr "Webshop"
 
 #: eshop/templates/eshop/cart.html:171
 #, python-format
@@ -2057,7 +2057,7 @@ msgstr ""
 #: event/admin.py:502 theme/templates/includes/navbar.html:356
 #: theme/templates/includes/navbar.html:582
 msgid "Registrace"
-msgstr ""
+msgstr "Regisztráció"
 
 #: event/admin.py:516
 msgid "Audit a refund"
@@ -2651,7 +2651,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:310
 #: theme/templates/includes/navbar.html:542
 msgid "Aktivní registrace"
-msgstr ""
+msgstr "Aktív regisztrációk"
 
 #: event/templates/event/event-checkout.html:93
 msgid ""
@@ -2955,7 +2955,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:325
 #: theme/templates/includes/navbar.html:561
 msgid "Administrace"
-msgstr ""
+msgstr "Adminisztráció"
 
 #: event/templates/event/events-list_new.html:338
 #: event/views/views_public.py:120 event/views/views_public.py:147
@@ -3656,7 +3656,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:52
 #: theme/templates/includes/navbar.html:410
 msgid "RANKING"
-msgstr ""
+msgstr "RANGSOR"
 
 #: ranking/templates/ranking/ranking.html:296
 msgid ""
@@ -4156,7 +4156,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:314
 #: theme/templates/includes/navbar.html:546
 msgid "Moje nastavení a faktury"
-msgstr ""
+msgstr "Beállítások és számlák"
 
 #: rider/templates/rider/account-settings-invoices.html:349
 #: rider/templates/rider/account-settings-invoices.html:400
@@ -5523,7 +5523,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:317
 #: theme/templates/includes/navbar.html:549
 msgid "Trenérský dashboard"
-msgstr ""
+msgstr "Edző irányítópult"
 
 #: rider/templates/rider/trainer-dashboard.html:88
 msgid "Trenérská sekce"
@@ -5999,7 +5999,7 @@ msgstr ""
 #: theme/templates/includes/navbar.html:68
 #: theme/templates/includes/navbar.html:416
 msgid "KE STAŽENÍ"
-msgstr ""
+msgstr "LETÖLTÉSEK"
 
 #: theme/templates/downloads.html:148
 msgid "Přehled všech dostupných dokumentů rozdělených do kategorií."
@@ -6150,44 +6150,44 @@ msgstr "Minden jog fenntartva."
 #: theme/templates/includes/navbar.html:12
 #: theme/templates/includes/navbar.html:395
 msgid "HOME"
-msgstr ""
+msgstr "FŐOLDAL"
 
 #: theme/templates/includes/navbar.html:17
 #: theme/templates/includes/navbar.html:20
 #: theme/templates/includes/navbar.html:398
 msgid "ČLÁNKY"
-msgstr ""
+msgstr "CIKKEK"
 
 #: theme/templates/includes/navbar.html:25
 #: theme/templates/includes/navbar.html:28
 #: theme/templates/includes/navbar.html:401
 msgid "KALENDÁŘ"
-msgstr ""
+msgstr "NAPTÁR"
 
 #: theme/templates/includes/navbar.html:33
 #: theme/templates/includes/navbar.html:36
 #: theme/templates/includes/navbar.html:404
 msgid "JEZDCI"
-msgstr ""
+msgstr "VERSENYZŐK"
 
 #: theme/templates/includes/navbar.html:41
 #: theme/templates/includes/navbar.html:44
 #: theme/templates/includes/navbar.html:407
 msgid "KLUBY"
-msgstr ""
+msgstr "KLUBOK"
 
 #: theme/templates/includes/navbar.html:57
 #: theme/templates/includes/navbar.html:60
 #: theme/templates/includes/navbar.html:413
 msgid "PRAVIDLA"
-msgstr ""
+msgstr "SZABÁLYOK"
 
 #: theme/templates/includes/navbar.html:74
 #: theme/templates/includes/navbar.html:77
 #: theme/templates/includes/navbar.html:421
 #: theme/templates/includes/navbar.html:424
 msgid "ESHOP"
-msgstr ""
+msgstr "WEBSHOP"
 
 #: theme/templates/includes/navbar.html:86
 #, python-format
@@ -6206,56 +6206,56 @@ msgstr[1] ""
 #: theme/templates/includes/navbar.html:122
 #: theme/templates/includes/navbar.html:365
 msgid "Přepnout světlý/tmavý režim"
-msgstr ""
+msgstr "Világos/sötét mód váltása"
 
 #: theme/templates/includes/navbar.html:296
 msgid "Open user menu"
-msgstr ""
+msgstr "Felhasználói menü megnyitása"
 
 #: theme/templates/includes/navbar.html:320
 #: theme/templates/includes/navbar.html:352
 msgid "Vyhledej čip"
-msgstr ""
+msgstr "Chip keresése"
 
 #: theme/templates/includes/navbar.html:323
 msgid "Finance"
-msgstr ""
+msgstr "Pénzügyek"
 
 #: theme/templates/includes/navbar.html:327
 #: theme/templates/includes/navbar.html:563
 msgid "Nasazení rozhodčích"
-msgstr ""
+msgstr "Bírók beosztása"
 
 #: theme/templates/includes/navbar.html:329
 msgid "Statistika webu"
-msgstr ""
+msgstr "Webstatisztikák"
 
 #: theme/templates/includes/navbar.html:333
 #: theme/templates/includes/navbar.html:555
 msgid "Moje objednávky e-shopu"
-msgstr ""
+msgstr "Webshop rendeléseim"
 
 #: theme/templates/includes/navbar.html:339
 #: theme/templates/includes/navbar.html:568
 msgid "Úkoly komise"
-msgstr ""
+msgstr "Bizottsági feladatok"
 
 #: theme/templates/includes/navbar.html:349
 #: theme/templates/includes/navbar.html:577
 msgid "Odhlášení"
-msgstr ""
+msgstr "Kijelentkezés"
 
 #: theme/templates/includes/navbar.html:376
 msgid "Open main menu"
-msgstr ""
+msgstr "Főmenü megnyitása"
 
 #: theme/templates/includes/navbar.html:461
 msgid "View notifications"
-msgstr ""
+msgstr "Értesítések megtekintése"
 
 #: theme/templates/includes/navbar.html:479
 msgid "Jazyk"
-msgstr ""
+msgstr "Nyelv"
 
 #: theme/templates/registration/password_reset_form.html:4
 msgid "Reset hesla"

@@ -28,7 +28,7 @@ from django.utils.text import slugify
 from bmx.html_sanitizer import sanitize_rich_html
 
 # Jazyky, pro které generujeme přeložené TTS audio (cs se generuje zvlášť)
-_AUDIO_LANGS = ("en", "de", "sk", "es", "it", "fr")
+_AUDIO_LANGS = ("en", "de", "sk", "es", "it", "fr", "pl", "hu")
 
 # Všechna pole s audio soubory na modelu News
 _ALL_AUDIO_FIELDS = ["audio_file"] + [f"audio_file_{lang}" for lang in _AUDIO_LANGS]
@@ -42,6 +42,8 @@ _TTS_LABELS = {
     "es": ("TÍTULO.", "TEXTO."),
     "it": ("TITOLO.", "TESTO."),
     "fr": ("TITRE.", "TEXTE."),
+    "pl": ("TYTUŁ.", "TEKST."),
+    "hu": ("CÍM.", "SZÖVEG."),
 }
 
 # TTS labels (bez přesné pauzy varianta)
@@ -247,6 +249,8 @@ _EDGE_VOICES = {
     "es": "es-ES-ElviraNeural",
     "it": "it-IT-ElsaNeural",
     "fr": "fr-FR-DeniseNeural",
+    "pl": "pl-PL-ZofiaNeural",
+    "hu": "hu-HU-NoemiNeural",
 }
 
 
@@ -385,18 +389,24 @@ class News (models.Model):
     title_es = models.CharField(max_length=255, blank=True, default="")
     title_it = models.CharField(max_length=255, blank=True, default="")
     title_fr = models.CharField(max_length=255, blank=True, default="")
+    title_pl = models.CharField(max_length=255, blank=True, default="")
+    title_hu = models.CharField(max_length=255, blank=True, default="")
     prefix_en = models.TextField(blank=True, default="")
     prefix_de = models.TextField(blank=True, default="")
     prefix_sk = models.TextField(blank=True, default="")
     prefix_es = models.TextField(blank=True, default="")
     prefix_it = models.TextField(blank=True, default="")
     prefix_fr = models.TextField(blank=True, default="")
+    prefix_pl = models.TextField(blank=True, default="")
+    prefix_hu = models.TextField(blank=True, default="")
     content_en = models.TextField(blank=True, default="")
     content_de = models.TextField(blank=True, default="")
     content_sk = models.TextField(blank=True, default="")
     content_es = models.TextField(blank=True, default="")
     content_it = models.TextField(blank=True, default="")
     content_fr = models.TextField(blank=True, default="")
+    content_pl = models.TextField(blank=True, default="")
+    content_hu = models.TextField(blank=True, default="")
 
     audio_file = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_file_en = models.FileField(upload_to="audio/news/", blank=True, null=True)
@@ -405,6 +415,8 @@ class News (models.Model):
     audio_file_es = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_file_it = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_file_fr = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_pl = models.FileField(upload_to="audio/news/", blank=True, null=True)
+    audio_file_hu = models.FileField(upload_to="audio/news/", blank=True, null=True)
     audio_hash = models.CharField(max_length=64, blank=True, default="")
     published_audio = models.BooleanField(default=False, help_text=_("Audio zveřejněno"))
 

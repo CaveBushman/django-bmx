@@ -6192,7 +6192,7 @@ msgstr "RÈGLES"
 #: theme/templates/includes/navbar.html:421
 #: theme/templates/includes/navbar.html:424
 msgid "ESHOP"
-msgstr ""
+msgstr "ESHOP"
 
 #: theme/templates/includes/navbar.html:86
 #, python-format
