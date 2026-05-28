@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db.models import Q, Count
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
 from django.core.exceptions import MultipleObjectsReturned
@@ -659,6 +660,8 @@ class EntryAdmin(BaseAdmin):
                 refund.payment_intent or "-",
                 _("Dokončeno:"),
                 _("Ano") if refund.payment_complete else _("Ne"),
+                _("Závod:"),
+                event_name,
             )
         )
 
@@ -715,6 +718,7 @@ class EntryForeignAdmin(BaseAdmin):
         'nationality',
         'payment_complete',
         'checkout',
+        'stripe_refund_badge',
         'transaction_date',
         'czech_rider_link',
         'foreign_rider_link',
@@ -737,7 +741,10 @@ class EntryForeignAdmin(BaseAdmin):
     list_editable = ('checkout',)
     autocomplete_fields = ('event', 'rider')
     list_select_related = ('event', 'rider')
-    readonly_fields = ('transaction_id', 'transaction_date', 'date_of_payment', 'foreign_rider_link', 'czech_rider_link')
+    readonly_fields = (
+        'transaction_id', 'transaction_date', 'date_of_payment',
+        'foreign_rider_link', 'czech_rider_link', 'stripe_refund_badge',
+    )
     ordering = ('-transaction_date', 'last_name', 'first_name')
 
     fieldsets = (
@@ -746,6 +753,7 @@ class EntryForeignAdmin(BaseAdmin):
                 'event',
                 'transaction_id',
                 ('payment_complete', 'checkout'),
+                'stripe_refund_badge',
                 ('transaction_date', 'date_of_payment'),
                 'customer_email',
                 'customer_name',
@@ -771,6 +779,44 @@ class EntryForeignAdmin(BaseAdmin):
             ),
         }),
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        base = list(self.readonly_fields)
+        if obj and obj.stripe_refund_id:
+            base.append('checkout')
+        return tuple(base)
+
+    @admin.display(description='Stripe refund')
+    def stripe_refund_badge(self, obj):
+        if not obj or not obj.pk:
+            return '—'
+        if obj.stripe_refund_id:
+            return format_html(
+                '<span style="display:inline-flex;padding:3px 8px;border-radius:999px;'
+                'background:#dcfce7;color:#166534;font-size:0.75rem;font-weight:600;">'
+                '✔ {}</span>',
+                obj.stripe_refund_id,
+            )
+        if obj.checkout and obj.payment_complete:
+            return format_html(
+                '<span style="display:inline-flex;padding:3px 8px;border-radius:999px;'
+                'background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:600;">'
+                '⏳ čeká</span>'
+            )
+        return '—'
+
+    def save_model(self, request, obj, form, change):
+        if change and 'checkout' in form.changed_data and obj.stripe_refund_id:
+            self.message_user(
+                request,
+                _("Checkout nelze změnit — Stripe refund byl již vydán (%(refund_id)s).") % {
+                    "refund_id": obj.stripe_refund_id
+                },
+                level=messages.WARNING,
+            )
+            obj.checkout = not obj.checkout
+            return
+        super().save_model(request, obj, form, change)
 
     @admin.display(description='Kategorie')
     def entry_category(self, obj):

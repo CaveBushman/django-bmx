@@ -7,7 +7,7 @@ Obsah: success/cancel Stripe flow, webhook pro kredit, košík (order),
 
 import logging
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -329,7 +329,9 @@ def credit_view(request):
                 amount,
                 checkout_session.id,
             )
-            return redirect(checkout_session.url, code=303)
+            response = HttpResponse(status=303)
+            response["Location"] = checkout_session.url
+            return response
         except stripe.error.StripeError as error:
             audit_logger.exception(
                 "credit_checkout_failed user_id=%s amount=%s",

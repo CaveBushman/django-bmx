@@ -323,7 +323,9 @@ def entry_foreign_pay_view(request, pk):
             customer_email,
             checkout_session.id,
         )
-        return redirect(checkout_session.url, code=303)
+        response = HttpResponse(status=303)
+        response["Location"] = checkout_session.url
+        return response
     except (stripe.error.StripeError, DatabaseError) as error:
         audit_logger.exception(
             "foreign_entry_checkout_failed event_id=%s rows=%s customer_email=%s",

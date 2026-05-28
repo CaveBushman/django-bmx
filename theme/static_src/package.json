@@ -4,9 +4,11 @@
   "description": "",
   "scripts": {
     "build:clean": "rimraf ../static/css/dist",
-    "build:tailwind": "cross-env NODE_ENV=production postcss ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "build:tailwind": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
     "dev": "cross-env NODE_ENV=development tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --watch",
-    "build": "cross-env NODE_ENV=production tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "optimize": "lightningcss --minify --bundle --targets '>= 0.25%' ../static/css/dist/styles.css -o ../static/css/dist/styles.css",
+    "size": "ls -lh ../static/css/dist/styles.css | awk '{print \"Final CSS size: \" $5}'",
+    "build": "cross-env NODE_ENV=production npm run build:tailwind && npm run optimize && npm run size",
     "start": "npm run dev"
   },
   "keywords": [],
@@ -20,6 +22,7 @@
     "postcss-cli": "^11.0.1",
     "postcss-nested": "^7.0.2",
     "postcss-simple-vars": "^7.0.1",
+    "lightningcss-cli": "^1.28.2",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.15"
   }

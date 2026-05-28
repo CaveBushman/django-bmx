@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Soupis družstev" %}{% endblock title %}
+
+{% block extra_head %}
+{{ block.super }}
+<style>
+  /* ===== WEB ===== */
+  .mcr-roster-page { min-height: 100vh; background: #f8fafc; }
+
+  .ranking-hero {
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
+      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
+  }
+  .ranking-hero::after {
+    content: ""; position: absolute; inset: auto 0 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  }
+  .ranking-hero-frame {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.65); border-radius: 2.2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+    box-shadow: 0 36px 90px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px);
+  }
+  .ranking-hero-frame::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
+  }
+  .ranking-stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 640px) { .ranking-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+  .ranking-stat, .mcr-roster-card, .mcr-roster-empty {
+    position: relative; overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  }
+  .ranking-stat::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+    background: linear-gradient(180deg, #4338ca, #0ea5e9);
+  }
+  .mcr-roster-member {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: rgba(248, 250, 252, 0.9);
+  }
+  .mcr-secondary-button {
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    background: rgba(255, 255, 255, 0.86); color: #334155;
+  }
+  .mcr-secondary-button:hover { background: #fff; color: #0f172a; }
+  .mcr-print-button {
+    border: 1px solid rgba(220, 38, 38, 0.22); background: #dc2626; color: #fff;
+    box-shadow: 0 14px 32px rgba(220, 38, 38, 0.22);
+  }
+  .mcr-print-button:hover { background: #b91c1c; }
+  .mcr-print-icon { width: 1rem; height: 1rem; }
+
+  /* ===== DARK ===== */
+  html.dark .mcr-roster-page {
+    background:
+      radial-gradient(circle at 16% 8%, rgba(79, 70, 229, 0.16), transparent 28rem),
+      linear-gradient(180deg, #0f172a 0%, #111827 42%, #0b1120 100%);
+    color: #e5e7eb;
+  }
+  html.dark .ranking-hero {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
+      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+  }
+  html.dark .ranking-hero-frame {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.62), rgba(30, 41, 59, 0.50));
+    box-shadow: 0 36px 90px rgba(2, 6, 23, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  html.dark .ranking-stat, html.dark .mcr-roster-card, html.dark .mcr-roster-empty {
+    border-color: rgba(51, 65, 85, 0.92); background: rgba(15, 23, 42, 0.94);
+    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
+  }
+  html.dark .ranking-stat {
+    border-color: rgba(99, 102, 241, 0.24);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72));
+  }
+  html.dark .mcr-roster-member { border-color: rgba(51, 65, 85, 0.92); background: rgba(2, 6, 23, 0.62); }
+  html.dark .mcr-secondary-button {
+    border-color: rgba(129, 140, 248, 0.36); background: rgba(15, 23, 42, 0.82); color: #e5e7eb;
+  }
+  html.dark .mcr-secondary-button:hover { border-color: rgba(165, 180, 252, 0.58); background: rgba(30, 41, 59, 0.94); color: #fff; }
+  html.dark .mcr-print-button { border-color: rgba(248, 113, 113, 0.48); background: rgba(153, 27, 27, 0.88); color: #fee2e2; box-shadow: 0 18px 38px rgba(127, 29, 29, 0.36); }
+  html.dark .mcr-print-button:hover { border-color: rgba(252, 165, 165, 0.62); background: rgba(185, 28, 28, 0.94); color: #fff; }
+
+  /* ===== PRINT-ONLY elements hidden on screen ===== */
+  @media screen {
+    .mcr-print-heading { display: none !important; }
+    .mcr-print-logo    { display: none !important; }
+    .mcr-fee-checkbox  { display: none !important; }
+    .mcr-rider-chk     { display: none !important; }
+    .mcr-team-row      { display: none !important; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    .ranking-hero, nav, .mcr-print-actions { display: none !important; }
+
+    @page { margin: 14mm 14mm 12mm; }
+
+    body, .mcr-roster-page { background: #fff !important; color: #000 !important; font-size: 9pt; }
+
+    /* Print page header */
+    .mcr-print-heading {
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #111;
+    }
+    .mcr-print-logo { display: block !important; height: 44px; width: auto; }
+    .mcr-print-heading-text { flex: 1; }
+    .mcr-print-heading-label {
+      font-size: 7pt; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.14em; color: #475569;
+    }
+    .mcr-print-heading-title { font-size: 13pt; font-weight: 900; margin-top: 2px; }
+    .mcr-print-heading-sub   { font-size: 7.5pt; color: #64748b; margin-top: 3px; }
+
+    /* Cards */
+    .mcr-print-main { padding: 0 !important; }
+
+    .mcr-roster-card {
+      break-inside: avoid;
+      box-shadow: none !important;
+      border: 1.5px solid #94a3b8 !important;
+      background: #fff !important;
+      color: #000 !important;
+      border-radius: 5px !important;
+      padding: 7px 10px 8px !important;
+      margin-bottom: 7px !important;
+    }
+    .mcr-roster-card * { color: #000 !important; }
+
+    /* Team header row: name + fee checkbox */
+    .mcr-team-row {
+      display: flex !important;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .mcr-team-name-wrap { flex: 1; min-width: 0; }
+    .mcr-team-name-print { font-size: 11pt; font-weight: 800; line-height: 1.2; }
+    .mcr-team-meta-print { font-size: 7.5pt; color: #475569 !important; margin-top: 1px; }
+
+    /* Fee checkbox */
+    .mcr-fee-checkbox {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      border: 1.5px solid #374151;
+      border-radius: 4px;
+      padding: 2px 7px 2px 5px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .mcr-fee-box {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 1.5px solid #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Members grid */
+    .mcr-members-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px 10px;
+      margin-top: 5px;
+    }
+    .mcr-roster-member {
+      display: flex !important;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 3px !important;
+      background: #f8fafc !important;
+      padding: 3px 6px !important;
+      break-inside: avoid;
+    }
+
+    /* Rider confirm checkbox */
+    .mcr-rider-chk {
+      display: inline-block !important;
+      width: 11px; height: 11px;
+      border: 1.5px solid #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .mcr-rider-info { flex: 1; min-width: 0; }
+    .mcr-rider-name-print { font-size: 8.5pt; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mcr-rider-meta-print { font-size: 7.5pt; color: #64748b !important; white-space: nowrap; }
+
+    /* Hide web-only elements */
+    .mcr-web-only { display: none !important; }
+
+    .space-y-4 > * + * { margin-top: 0 !important; }
+  }
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="mcr-roster-page">
+
+  {# ===== WEB HERO ===== #}
+  <header class="ranking-hero">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+        <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,32rem)] lg:items-end">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Soupis přihlášených družstev" %}</p>
+            <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{{ event.name }} · {{ year }}</h1>
+            <div class="mcr-print-actions mt-6 flex flex-wrap gap-3">
+              <button type="button" onclick="window.print()" class="mcr-print-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
+                <svg class="mcr-print-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                {% trans "Tisk soupisu" %}
+              </button>
+              <a href="{% url 'event:mcr-club-teams-admin' pk=event.pk %}" class="mcr-secondary-button inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold">
+                {% trans "Zpět" %}
+              </a>
+            </div>
+          </div>
+          <div class="ranking-stats-grid">
+            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přihlášených týmů" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ teams_count }}</p>
+            </div>
+            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Jezdců v soupisech" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ riders_count }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mcr-print-main mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    {# ===== PRINT PAGE HEADER (hidden on screen) ===== #}
+    <header class="mcr-print-heading">
+      <div class="mcr-print-heading-text">
+        <p class="mcr-print-heading-label">{% trans "Soupis přihlášených družstev" %}</p>
+        <p class="mcr-print-heading-title">{{ event.name }} &middot; {{ year }}</p>
+        <p class="mcr-print-heading-sub">{{ teams_count }} {% trans "týmů" %} &nbsp;·&nbsp; {{ riders_count }} {% trans "jezdců" %}</p>
+      </div>
+      <img class="mcr-print-logo" src="{% static 'images/logo.png' %}" alt="Czech BMX" />
+    </header>
+
+    {# ===== TEAM CARDS ===== #}
+    <div class="space-y-4">
+      {% for team in teams %}
+      <article class="mcr-roster-card rounded-2xl p-5">
+
+        {# --- Team header: web version --- #}
+        <div class="mcr-web-only flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 class="text-xl font-black text-slate-900 dark:text-white">{{ team.name }}</h2>
+            <p class="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {{ team.club.team_name }}{% if team.manager_name %} &nbsp;·&nbsp; {% trans "Manager" %}: {{ team.manager_name }}{% endif %}
+            </p>
+          </div>
+          <span class="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ team.members.all|length }}</span>
+        </div>
+
+        {# --- Team header: print version (name + startovné checkbox) --- #}
+        <div class="mcr-team-row">
+          <div class="mcr-team-name-wrap">
+            <p class="mcr-team-name-print">{{ team.name }}</p>
+            <p class="mcr-team-meta-print">{{ team.club.team_name }}{% if team.manager_name %} &nbsp;·&nbsp; {% trans "Manager" %}: {{ team.manager_name }}{% endif %}</p>
+          </div>
+          <span class="mcr-fee-checkbox">
+            <span class="mcr-fee-box"></span>{% trans "startovné uhrazeno" %}
+          </span>
+        </div>
+
+        {# --- Members --- #}
+        <div class="mcr-members-grid mt-4 grid gap-2 sm:grid-cols-2">
+          {% for member in team.members.all %}
+          <div class="mcr-roster-member rounded-md px-3 py-2">
+            {# Confirm checkbox — print only #}
+            <span class="mcr-rider-chk" aria-hidden="true"></span>
+            <div class="mcr-rider-info">
+              <p class="mcr-rider-name-print text-sm font-semibold text-slate-900 dark:text-white">
+                {{ member.rider.first_name }} {{ member.rider.last_name }}&nbsp;<span class="font-normal text-slate-500 dark:text-slate-400">#{{ member.rider.plate_display }}</span>
+              </p>
+              <p class="mcr-rider-meta-print mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                {{ member.wheel }}" &nbsp;·&nbsp; UCI {{ member.rider.uci_id }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </article>
+      {% empty %}
+      <div class="mcr-roster-empty rounded-2xl p-8 text-center">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Pro rok závodu zatím nejsou sestavená žádná družstva." %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+{% endblock content %}

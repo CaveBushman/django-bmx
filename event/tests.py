@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from io import BytesIO
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -25,7 +26,7 @@ from PIL import Image
 from commissar.models import Commissar
 from reportlab.pdfgen import canvas
 
-from club.models import Club
+from club.models import Club, McrClubTeam, McrClubTeamMember
 from event.forms import EventPropositionForm
 from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
 from event.credit import recalculate_all_balances
@@ -509,6 +510,8 @@ class PaymentServiceTests(TestCase):
             beginners_1="Beginners 1",
             boys_6="Boys 6",
             cr_boys_12_and_under="Boys 12 and under",
+            boys_16_fee=500,
+            boys_16="Boys 16",
         )
         self.event = Event.objects.create(
             name="Payment race",
@@ -1184,7 +1187,7 @@ class PaymentServiceTests(TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("js/event_admin.js", template)
-        self.assertIn("js/event_admin.js' %}?v=3", template)
+        self.assertIn("js/event_admin.js' %}?v=4", template)
         self.assertNotIn("<script>", template)
         self.assertIn("data-event-admin-form", template)
         self.assertIn("data-file-input", template)
@@ -1601,6 +1604,7 @@ class EventAdminViewTests(TestCase):
             is_active=True,
             is_approved=True,
             valid_licence=True,
+            plate=33,
             class_20="Boys 15",
         )
 
@@ -1652,6 +1656,44 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["asociation_fee"], 0)
         self.assertContains(response, "Volný závod")
+
+    def test_event_admin_links_mcr_club_teams_control_for_team_championship(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.save(update_fields=["type_for_ranking"])
+
+        response = self.client.get(reverse("event:event-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "MČR družstev")
+        self.assertContains(response, reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
+
+    def test_mcr_club_teams_roster_orders_teams_by_name(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        alpha = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        zeta = McrClubTeam.objects.create(year=2026, club=self.club, name="Zeta", manager_name="Manager Z")
+        McrClubTeamMember.objects.create(team=alpha, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+
+        response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Soupis přihlášených družstev")
+        team_names = list(response.context["teams"].values_list("name", flat=True))
+        self.assertEqual(team_names, ["Alpha", "Zeta"])
+        self.assertEqual(response.context["teams_count"], 2)
+        self.assertEqual(response.context["riders_count"], 1)
+        self.assertContains(response, "Czech Rider #33")
+        self.assertLess(response.content.decode().index("Alpha"), response.content.decode().index("Zeta"))
+
+    def test_mcr_club_teams_control_rejects_non_team_championship(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 404)
 
     def test_rem_exports_create_missing_media_directories(self):
         Entry.objects.create(

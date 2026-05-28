@@ -115,6 +115,13 @@ class EntryForeign(models.Model):
     date_of_payment = models.DateField(auto_now_add=True, null=True)
     customer_name = models.CharField(max_length=100, null=True, blank=True, default="")
     customer_email = models.CharField(max_length=100, null=True, blank=True, default="")
+    stripe_refund_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        default="",
+        help_text="Stripe Refund ID po vydání refundu startovného (re_xxx)",
+    )
     rider = models.ForeignKey(
         Rider,
         on_delete=models.SET_NULL,

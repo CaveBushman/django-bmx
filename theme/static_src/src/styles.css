@@ -46,17 +46,22 @@
 
   .dark .page-hero {
     background:
-      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
-      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
-      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
+      radial-gradient(circle at 12% 18%, rgba(99, 102, 241, 0.36), transparent 30%),
+      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.22), transparent 28%),
+      linear-gradient(180deg, #1e1b4b 0%, #131a36 55%, #0f172a 100%);
+  }
+
+  .dark .page-hero::after {
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.5), transparent);
   }
 
   .dark .page-hero-frame {
-    border-color: rgba(148, 163, 184, 0.14);
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+    border-color: rgba(148, 163, 184, 0.32);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
     box-shadow:
-      0 36px 90px rgba(2, 6, 23, 0.34),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      0 36px 90px rgba(2, 6, 23, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px);
   }
 
   .page-surface {

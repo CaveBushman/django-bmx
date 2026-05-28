@@ -60,6 +60,8 @@ from event.views.views_payment import (
 
 from event.views.views_admin import (
     event_admin_view,
+    mcr_club_teams_admin_view,
+    mcr_club_teams_roster_view,
     commissar_assignments_view,
     commissar_statistics_view,
     ec_by_club_xls,

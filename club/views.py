@@ -2,13 +2,18 @@ import os
 from pathlib import Path
 from datetime import date
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Sum, Count, F, Q
 from django.conf import settings
-from django.http import FileResponse, Http404
-from django.shortcuts import render, get_object_or_404
+from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.translation import gettext as _
 
-from .models import Club
+from .forms import McrClubTeamForm
+from .models import Club, McrClubTeam
 from rider.models import Rider
 from event.models import Event, Entry
 from .func import riders_on_events
@@ -73,6 +78,86 @@ def clubs_list_view(request):
     }
 
     return render(request, "club/clubs-list.html", data)
+
+
+def can_access_mcr_club_teams(user):
+    return user.is_authenticated and (
+        getattr(user, "is_club_manager", False)
+        or getattr(user, "is_admin", False)
+        or getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+    )
+
+
+mcr_club_teams_required = user_passes_test(can_access_mcr_club_teams, login_url="/login/")
+
+
+def _get_managed_club(user):
+    if getattr(user, "club_id", None):
+        return user.club
+    return None
+
+
+@login_required
+@mcr_club_teams_required
+def mcr_club_teams_redirect_view(request):
+    return redirect("club:mcr-club-teams", year=date.today().year)
+
+
+@login_required
+@mcr_club_teams_required
+def mcr_club_teams_view(request, year):
+    club = _get_managed_club(request.user)
+    if club is None:
+        return HttpResponseForbidden(_("K účtu není přiřazený klub pro správu družstev."))
+
+    teams = (
+        McrClubTeam.objects.filter(year=year, club=club)
+        .prefetch_related("members__rider")
+        .order_by("name")
+    )
+    selected_team = None
+    selected_team_id = request.GET.get("team")
+    if selected_team_id:
+        selected_team = get_object_or_404(McrClubTeam, pk=selected_team_id, year=year, club=club)
+    show_form = bool(selected_team_id or request.GET.get("new"))
+
+    if request.method == "POST":
+        show_form = True
+        action = request.POST.get("action", "save")
+        posted_team_id = request.POST.get("team_id")
+        posted_team = None
+        if posted_team_id:
+            posted_team = get_object_or_404(McrClubTeam, pk=posted_team_id, year=year, club=club)
+
+        if action == "delete" and posted_team:
+            posted_team.delete()
+            messages.success(request, _("Družstvo bylo odstraněno."))
+            return redirect("club:mcr-club-teams", year=year)
+
+        form = McrClubTeamForm(request.POST, club=club, year=year, team=posted_team, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Družstvo bylo uloženo."))
+            return redirect("club:mcr-club-teams", year=year)
+        selected_team = posted_team
+    else:
+        form = McrClubTeamForm(club=club, year=year, team=selected_team, user=request.user) if show_form else None
+
+    return render(
+        request,
+        "club/mcr-club-teams.html",
+        {
+            "club": club,
+            "year": year,
+            "previous_year": year - 1,
+            "next_year": year + 1,
+            "teams": teams,
+            "selected_team": selected_team,
+            "show_form": show_form,
+            "form": form,
+        },
+    )
 
 
 def club_detail_view(request, pk):

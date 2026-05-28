@@ -47,7 +47,7 @@ from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from django.utils.translation import gettext as _
 from event.models import Event, Entry, EntryForeign, Result, RaceRun
-from club.models import Club
+from club.models import Club, McrClubTeam, McrClubTeamMember
 from commissar.models import Commissar
 from rider.models import Rider
 from event.func import (
@@ -118,6 +118,32 @@ def _resolve_selected_year(selected_year, year_options):
     if not selected_year.isdigit():
         return str(year_options[0].year) if year_options else str(date.today().year)
     return selected_year
+
+
+def _is_mcr_club_teams_event(event):
+    return event.type_for_ranking == "Mistrovství ČR družstev"
+
+
+def _get_mcr_club_teams_year(event):
+    return event.date.year if event.date else date.today().year
+
+
+def _get_mcr_club_teams_for_event(event):
+    return (
+        McrClubTeam.objects.filter(year=_get_mcr_club_teams_year(event))
+        .select_related("club")
+        .prefetch_related("members__rider")
+        .order_by("club__team_name", "name")
+    )
+
+
+def _get_mcr_club_teams_riders_count(event):
+    return (
+        McrClubTeamMember.objects.filter(team__year=_get_mcr_club_teams_year(event))
+        .values("rider_id")
+        .distinct()
+        .count()
+    )
 
 
 def can_access_commissar_pages(user):
@@ -808,8 +834,50 @@ def event_admin_view(request, pk):
         "results_exist": Result.objects.filter(event=event).exists(),
         "moto_runs_exist": RaceRun.objects.filter(event=event, round_type="MOTO").exists(),
         "prize_money_amount_toggle": PrizeMoneyPdfService().allows_amount_toggle(event),
+        "is_mcr_club_teams_event": _is_mcr_club_teams_event(event),
     }
     return render(request, "event/event-admin.html", data)
+
+
+@staff_member_required(login_url="/bmx-admin/login/")
+def mcr_club_teams_admin_view(request, pk):
+    event = get_object_or_404(Event.objects.select_related("organizer"), pk=pk)
+    if not _is_mcr_club_teams_event(event):
+        return _render_error_page(request, "Tato stránka je dostupná pouze pro závod Mistrovství ČR družstev.", status=404)
+
+    teams = _get_mcr_club_teams_for_event(event)
+    teams_count = teams.count()
+    return render(
+        request,
+        "event/mcr-club-teams-admin.html",
+        {
+            "event": event,
+            "year": _get_mcr_club_teams_year(event),
+            "teams_count": teams_count,
+            "riders_count": _get_mcr_club_teams_riders_count(event),
+        },
+    )
+
+
+@staff_member_required(login_url="/bmx-admin/login/")
+def mcr_club_teams_roster_view(request, pk):
+    event = get_object_or_404(Event.objects.select_related("organizer"), pk=pk)
+    if not _is_mcr_club_teams_event(event):
+        return _render_error_page(request, "Soupis družstev je dostupný pouze pro závod Mistrovství ČR družstev.", status=404)
+
+    teams = _get_mcr_club_teams_for_event(event)
+    teams_count = teams.count()
+    return render(
+        request,
+        "event/mcr-club-teams-roster.html",
+        {
+            "event": event,
+            "year": _get_mcr_club_teams_year(event),
+            "teams": teams,
+            "teams_count": teams_count,
+            "riders_count": _get_mcr_club_teams_riders_count(event),
+        },
+    )
 
 
 @staff_member_required

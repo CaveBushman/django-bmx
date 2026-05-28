@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "MČR družstev klubů" %}{% endblock title %}
+
+{% block extra_head %}
+<style>
+  html.dark .mcr-team-page {
+    background: #020617;
+    color: #e2e8f0;
+  }
+
+  html.dark body {
+    background: #020617;
+  }
+
+  html.dark #flash-messages [data-flash-message] {
+    border: 1px solid rgba(74, 222, 128, 0.26);
+    background: rgba(20, 83, 45, 0.28);
+    color: #dcfce7;
+  }
+
+  html.dark #flash-messages [data-flash-message] h3,
+  html.dark #flash-messages [data-flash-message] p {
+    color: #dcfce7;
+  }
+
+  html.dark #flash-messages [data-flash-message] button {
+    color: #86efac;
+  }
+
+  html.dark .mcr-team-hero,
+  html.dark .mcr-team-card,
+  html.dark .mcr-team-list-card,
+  html.dark .mcr-team-empty {
+    border-color: #1e293b;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  html.dark .mcr-team-hero-title,
+  html.dark .mcr-team-section-title,
+  html.dark .mcr-team-card-title,
+  html.dark .mcr-team-list-title,
+  html.dark .mcr-team-member-name,
+  html.dark .mcr-team-label {
+    color: #f8fafc;
+  }
+
+  html.dark .mcr-team-muted,
+  html.dark .mcr-team-list-meta,
+  html.dark .mcr-team-member-meta,
+  html.dark .mcr-team-eyebrow {
+    color: #94a3b8;
+  }
+
+  html.dark .mcr-team-empty-text {
+    color: #cbd5e1;
+  }
+
+  html.dark .mcr-team-page input,
+  html.dark .mcr-team-page select {
+    border-color: #475569;
+    background: #020617;
+    color: #f8fafc;
+  }
+
+  html.dark .mcr-team-page input:focus,
+  html.dark .mcr-team-page select:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.24);
+    outline: none;
+  }
+
+  html.dark .mcr-team-year-link {
+    border-color: #334155;
+    background: #111827;
+    color: #e2e8f0;
+  }
+
+  html.dark .mcr-team-year-link:hover {
+    background: #1e293b;
+  }
+
+  html.dark .mcr-team-member {
+    border-color: #334155;
+    background: #020617;
+  }
+
+  html.dark .mcr-team-edit-link {
+    border-color: rgba(129, 140, 248, 0.38);
+    background: rgba(99, 102, 241, 0.14);
+    color: #c7d2fe;
+  }
+
+  html.dark .mcr-team-edit-link:hover {
+    background: rgba(99, 102, 241, 0.24);
+  }
+
+  html.dark .mcr-team-delete-button {
+    border-color: rgba(248, 113, 113, 0.36);
+    background: rgba(127, 29, 29, 0.34);
+    color: #fecaca;
+  }
+
+  html.dark .mcr-team-delete-button:hover {
+    background: rgba(153, 27, 27, 0.48);
+    color: #fee2e2;
+  }
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<main class="mcr-team-page min-h-screen bg-slate-50 dark:bg-slate-950">
+  <section class="mcr-team-hero border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="mcr-team-eyebrow text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Mistrovství republiky klubů" %}</p>
+          <h1 class="mcr-team-hero-title mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">{{ club.team_name }} · {{ year }}</h1>
+          <p class="mcr-team-muted mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">{% trans "Družstvo má 1 až 4 různé jezdce stejného klubu. Maximálně jeden záznam může být 24&quot;; stejný jezdec může být vybraný pro 20&quot; i 24&quot;." %}</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="{% url 'club:mcr-club-teams' previous_year %}" class="mcr-team-year-link inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">{{ previous_year }}</a>
+          <a href="{% url 'club:mcr-club-teams' next_year %}" class="mcr-team-year-link inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">{{ next_year }}</a>
+          <a href="{% url 'club:mcr-club-teams' year %}?new=1" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{% trans "Nové družstvo" %}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 {% if show_form %}lg:grid-cols-[minmax(0,1fr)_minmax(26rem,0.9fr)]{% endif %} lg:px-8">
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="mcr-team-section-title text-lg font-bold text-slate-900 dark:text-white">{% trans "Sestavená družstva" %}</h2>
+        <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ teams|length }}</span>
+      </div>
+
+      {% if teams %}
+      <div class="space-y-3">
+        {% for team in teams %}
+        <article class="mcr-team-list-card rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 class="mcr-team-list-title text-xl font-black text-slate-900 dark:text-white">{{ team.name }}</h3>
+              <p class="mcr-team-list-meta mt-1 text-sm text-slate-600 dark:text-slate-300">{% trans "Manager" %}: {{ team.manager_name }}</p>
+            </div>
+            <a href="{% url 'club:mcr-club-teams' year %}?team={{ team.id }}" class="mcr-team-edit-link inline-flex w-fit items-center rounded-md border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-200">{% trans "Upravit" %}</a>
+          </div>
+          <div class="mt-4 grid gap-2 sm:grid-cols-2">
+            {% for member in team.members.all %}
+            <div class="mcr-team-member rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
+              <p class="mcr-team-member-name text-sm font-semibold text-slate-900 dark:text-white">{{ member.rider.first_name }} {{ member.rider.last_name }} #{{ member.rider.plate_display }}</p>
+              <p class="mcr-team-member-meta mt-0.5 text-xs font-bold text-slate-500 dark:text-slate-400">{{ member.wheel }}" · UCI {{ member.rider.uci_id }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="mcr-team-empty rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+        <p class="mcr-team-empty-text text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Pro tento rok zatím nejsou uložená žádná družstva." %}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if show_form %}
+    <div class="mcr-team-card rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="mb-5">
+        <p class="mcr-team-eyebrow text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% if selected_team %}{% trans "Úprava družstva" %}{% else %}{% trans "Nové družstvo" %}{% endif %}</p>
+        <h2 class="mcr-team-card-title mt-2 text-2xl font-black text-slate-900 dark:text-white">{% if selected_team %}{{ selected_team.name }}{% else %}{% trans "Sestavit družstvo" %}{% endif %}</h2>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="mb-4 rounded-md bg-red-50 p-4 text-sm font-medium text-red-700 dark:bg-red-500/10 dark:text-red-100">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% if selected_team %}<input type="hidden" name="team_id" value="{{ selected_team.id }}">{% endif %}
+
+        <div>
+          <label for="{{ form.name.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.name.label }}</label>
+          {{ form.name }}
+          {{ form.name.errors }}
+        </div>
+
+        <div>
+          <label for="{{ form.manager_name.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.manager_name.label }}</label>
+          {{ form.manager_name }}
+          {{ form.manager_name.errors }}
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="{{ form.rider_20_1.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.rider_20_1.label }}</label>
+            <div data-mcr-rider-20>{{ form.rider_20_1 }}</div>
+          </div>
+          <div>
+            <label for="{{ form.rider_20_2.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.rider_20_2.label }}</label>
+            <div data-mcr-rider-20>{{ form.rider_20_2 }}</div>
+          </div>
+          <div>
+            <label for="{{ form.rider_20_3.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.rider_20_3.label }}</label>
+            <div data-mcr-rider-20>{{ form.rider_20_3 }}</div>
+          </div>
+          <div>
+            <label for="{{ form.rider_20_4.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.rider_20_4.label }}</label>
+            <div data-mcr-rider-20>{{ form.rider_20_4 }}</div>
+          </div>
+        </div>
+
+        <div>
+          <label for="{{ form.rider_24.id_for_label }}" class="mcr-team-label text-sm font-semibold text-slate-800 dark:text-slate-100">{{ form.rider_24.label }}</label>
+          <div data-mcr-rider-24>{{ form.rider_24 }}</div>
+          <p class="mcr-team-muted mt-2 text-xs text-slate-500 dark:text-slate-400">{% trans "Pokud jsou obsazené všechny čtyři pozice 20&quot;, jezdec na 24&quot; musí být jedním z nich." %}</p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <button type="submit" name="action" value="save" class="inline-flex justify-center rounded-md bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-500">{% trans "Uložit družstvo" %}</button>
+          {% if selected_team %}
+          <button type="submit" name="action" value="delete" class="mcr-team-delete-button inline-flex justify-center rounded-md border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">{% trans "Smazat" %}</button>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+</main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const selects20 = Array.from(document.querySelectorAll("[data-mcr-rider-20] select"));
+    const select24 = document.querySelector("[data-mcr-rider-24] select");
+    if (!selects20.length || !select24) {
+      return;
+    }
+
+    function selected20Values() {
+      return selects20.map((select) => select.value).filter(Boolean);
+    }
+
+    function assignedSameWheelValues(select) {
+      return new Set(
+        (select.dataset.assignedSameWheel || "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      );
+    }
+
+    function syncMcrTeamSelects() {
+      const values20 = selected20Values();
+      const unique20 = new Set(values20);
+      const teamHasFour20Riders = unique20.size >= 4;
+
+      selects20.forEach((select) => {
+        const currentValue = select.value;
+        const assigned20 = assignedSameWheelValues(select);
+        Array.from(select.options).forEach((option) => {
+          if (!option.value) {
+            option.disabled = false;
+            return;
+          }
+          option.disabled = option.value !== currentValue && (unique20.has(option.value) || assigned20.has(option.value));
+        });
+      });
+
+      const assigned24 = assignedSameWheelValues(select24);
+      Array.from(select24.options).forEach((option) => {
+        if (!option.value) {
+          option.disabled = false;
+          return;
+        }
+        option.disabled = assigned24.has(option.value) || (teamHasFour20Riders && !unique20.has(option.value));
+      });
+
+      if (select24.value && select24.options[select24.selectedIndex].disabled) {
+        select24.value = "";
+      }
+    }
+
+    selects20.concat(select24).forEach((select) => {
+      select.addEventListener("change", syncMcrTeamSelects);
+    });
+    syncMcrTeamSelects();
+  });
+</script>
+{% endblock content %}

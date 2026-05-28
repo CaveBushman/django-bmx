@@ -3,51 +3,87 @@
 from django.db import migrations, models
 
 
+def add_missing_pl_hu_fields(apps, schema_editor):
+    News = apps.get_model("news", "News")
+    table_name = News._meta.db_table
+    existing_columns = {
+        column.name
+        for column in schema_editor.connection.introspection.get_table_description(
+            schema_editor.connection.cursor(),
+            table_name,
+        )
+    }
+
+    fields = [
+        ("audio_file_hu", models.FileField(blank=True, null=True, upload_to="audio/news/")),
+        ("audio_file_pl", models.FileField(blank=True, null=True, upload_to="audio/news/")),
+        ("content_hu", models.TextField(blank=True, default="")),
+        ("content_pl", models.TextField(blank=True, default="")),
+        ("prefix_hu", models.TextField(blank=True, default="")),
+        ("prefix_pl", models.TextField(blank=True, default="")),
+        ("title_hu", models.CharField(blank=True, default="", max_length=255)),
+        ("title_pl", models.CharField(blank=True, default="", max_length=255)),
+    ]
+    for name, field in fields:
+        if name in existing_columns:
+            continue
+        field.set_attributes_from_name(name)
+        schema_editor.add_field(News, field)
+        existing_columns.add(name)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('news', '0045_news_title_de_news_title_en_news_title_es_and_more'),
+        ("news", "0045_news_title_de_news_title_en_news_title_es_and_more"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='news',
-            name='audio_file_hu',
-            field=models.FileField(blank=True, null=True, upload_to='audio/news/'),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='audio_file_pl',
-            field=models.FileField(blank=True, null=True, upload_to='audio/news/'),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='content_hu',
-            field=models.TextField(blank=True, default=''),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='content_pl',
-            field=models.TextField(blank=True, default=''),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='prefix_hu',
-            field=models.TextField(blank=True, default=''),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='prefix_pl',
-            field=models.TextField(blank=True, default=''),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='title_hu',
-            field=models.CharField(blank=True, default='', max_length=255),
-        ),
-        migrations.AddField(
-            model_name='news',
-            name='title_pl',
-            field=models.CharField(blank=True, default='', max_length=255),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(add_missing_pl_hu_fields, migrations.RunPython.noop),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="news",
+                    name="audio_file_hu",
+                    field=models.FileField(blank=True, null=True, upload_to="audio/news/"),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="audio_file_pl",
+                    field=models.FileField(blank=True, null=True, upload_to="audio/news/"),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="content_hu",
+                    field=models.TextField(blank=True, default=""),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="content_pl",
+                    field=models.TextField(blank=True, default=""),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="prefix_hu",
+                    field=models.TextField(blank=True, default=""),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="prefix_pl",
+                    field=models.TextField(blank=True, default=""),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="title_hu",
+                    field=models.CharField(blank=True, default="", max_length=255),
+                ),
+                migrations.AddField(
+                    model_name="news",
+                    name="title_pl",
+                    field=models.CharField(blank=True, default="", max_length=255),
+                ),
+            ],
         ),
     ]

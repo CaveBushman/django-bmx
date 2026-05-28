@@ -26,7 +26,7 @@ python manage.py shell
 
 # Tailwind CSS (from theme/static_src/)
 npm run dev      # watch mode during development
-npm run build    # production minified build
+npm run build    # production optimized build (Purged & Lightning CSS minified)
 ```
 
 The database is SQLite at `django-bmx/db.sqlite3`. Environment variables are loaded from `bmx/.env` (see `bmx/.env.example`).

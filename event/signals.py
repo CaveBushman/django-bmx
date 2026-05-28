@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from event.models import CreditTransaction, Entry, Event, Result
+from event.models import CreditTransaction, Entry, EntryForeign, Event, Result
 from rider.models import Rider
 
 
@@ -126,3 +126,19 @@ def update_user_balance_after_delete(sender, instance, **kwargs):
 
         new_balance = calculate_user_balance(instance.user.id)
         apps.get_model("accounts", "Account").objects.filter(pk=instance.user_id).update(credit=new_balance)
+
+
+@receiver(pre_save, sender=EntryForeign)
+def capture_foreign_entry_checkout_state(sender, instance, **kwargs):
+    from event.services.foreign_entry_refunds import capture_foreign_entry_checkout_state
+
+    capture_foreign_entry_checkout_state(instance)
+
+
+@receiver(post_save, sender=EntryForeign)
+def sync_foreign_entry_stripe_refund_on_checkout(sender, instance, created, **kwargs):
+    if created:
+        return
+    from event.services.foreign_entry_refunds import sync_foreign_entry_stripe_refund
+
+    sync_foreign_entry_stripe_refund(instance)

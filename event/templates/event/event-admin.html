@@ -556,6 +556,29 @@
     </div>
   
     <div class="event-admin-command-grid">
+      {% if is_mcr_club_teams_event %}
+      <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-200">
+              <i class="fas fa-users text-lg"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">MČR družstev</h3>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Řídicí stránka pro kontrolu a soupis přihlášených klubových družstev.
+          </p>
+        </div>
+        <a
+          href="{% url 'event:mcr-club-teams-admin' pk=event.pk %}"
+          class="event-admin-action-link mt-5 inline-flex items-center justify-center py-3 px-5 rounded-[1rem]"
+          aria-label="Otevřít řízení MČR družstev"
+        >
+          Otevřít řízení
+        </a>
+      </div>
+      {% endif %}
+
       <div class="event-admin-command-card rounded-[1.5rem] p-5 flex min-h-[176px] flex-col justify-between">
         <div>
           <div class="flex items-center gap-3">

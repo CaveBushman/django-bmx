@@ -53,3 +53,55 @@ class Club(models.Model):
     class Meta:
         verbose_name_plural = 'Kluby'
         ordering = ['team_name']
+
+
+class McrClubTeam(models.Model):
+    year = models.PositiveSmallIntegerField()
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="mcr_teams")
+    name = models.CharField(max_length=120)
+    manager_name = models.CharField(max_length=120)
+    created_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_mcr_club_teams",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["year", "club__team_name", "name"]
+        verbose_name = "Družstvo MČR klubů"
+        verbose_name_plural = "Družstva MČR klubů"
+        constraints = [
+            models.UniqueConstraint(fields=["year", "club", "name"], name="unique_mcr_club_team_name")
+        ]
+
+    def __str__(self):
+        return f"{self.year} - {self.club} - {self.name}"
+
+
+class McrClubTeamMember(models.Model):
+    WHEEL_20 = "20"
+    WHEEL_24 = "24"
+    WHEEL_CHOICES = (
+        (WHEEL_20, '20"'),
+        (WHEEL_24, '24"'),
+    )
+
+    team = models.ForeignKey(McrClubTeam, on_delete=models.CASCADE, related_name="members")
+    rider = models.ForeignKey("rider.Rider", on_delete=models.CASCADE, related_name="mcr_club_team_memberships")
+    wheel = models.CharField(max_length=2, choices=WHEEL_CHOICES)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+        verbose_name = "Člen družstva MČR klubů"
+        verbose_name_plural = "Členové družstva MČR klubů"
+        constraints = [
+            models.UniqueConstraint(fields=["team", "rider", "wheel"], name="unique_mcr_club_team_member_wheel")
+        ]
+
+    def __str__(self):
+        return f'{self.rider} {self.wheel}"'
