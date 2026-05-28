@@ -1733,7 +1733,7 @@ msgstr ""
 #: ranking/templates/ranking/ranking.html:331 rider/premium_stats_pdf.py:560
 #: theme/templates/downloads.html:153 theme/templates/rules.html:151
 msgid "Kategorie"
-msgstr ""
+msgstr "Category"
 
 #: eshop/templates/eshop/product_detail.html:314
 msgid "Hlavní fotka"

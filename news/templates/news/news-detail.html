@@ -126,7 +126,9 @@
 
   .article-feature-image-shell {
     position: relative;
+    aspect-ratio: 4 / 3;
     min-height: 320px;
+    max-height: 520px;
     overflow: hidden;
     border-radius: 2rem;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(56, 189, 248, 0.1));
@@ -171,6 +173,10 @@
     border: 1px solid rgba(226, 232, 240, 0.95);
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 26px 50px -34px rgba(15, 23, 42, 0.18);
+  }
+
+  .article-richtext-dark p {
+    margin-bottom: 1.25em;
   }
 
   html.dark .article-page-surface {
@@ -309,7 +315,7 @@
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-            Článek
+            {% if display_lang == 'cs' %}Článek{% elif display_lang == 'en' %}Article{% elif display_lang == 'de' %}Artikel{% elif display_lang == 'sk' %}Článok{% elif display_lang == 'es' %}Artículo{% elif display_lang == 'it' %}Articolo{% elif display_lang == 'fr' %}Article{% elif display_lang == 'pl' %}Artykuł{% elif display_lang == 'hu' %}Cikk{% else %}Článek{% endif %}
           </p>
           <h1 class="mt-2 max-w-4xl text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white md:text-5xl">
             {{ display_title }}
@@ -317,16 +323,16 @@
         </div>
         <div class="article-stats-grid">
           <div class="article-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Autor článku</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% if display_lang == 'cs' %}Autor článku{% elif display_lang == 'en' %}Article author{% elif display_lang == 'de' %}Artikelautor{% elif display_lang == 'sk' %}Autor článku{% elif display_lang == 'es' %}Autor del artículo{% elif display_lang == 'it' %}Autore dell'articolo{% elif display_lang == 'fr' %}Auteur de l'article{% elif display_lang == 'pl' %}Autor artykułu{% elif display_lang == 'hu' %}Cikk szerzője{% else %}Autor článku{% endif %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.created }}</p>
           </div>
           <div class="article-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Publikováno</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% if display_lang == 'cs' %}Publikováno{% elif display_lang == 'en' %}Published{% elif display_lang == 'de' %}Veröffentlicht{% elif display_lang == 'sk' %}Publikované{% elif display_lang == 'es' %}Publicado{% elif display_lang == 'it' %}Pubblicato{% elif display_lang == 'fr' %}Publié le{% elif display_lang == 'pl' %}Opublikowano{% elif display_lang == 'hu' %}Megjelent{% else %}Publikováno{% endif %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.publish_date }}</p>
           </div>
           <div class="article-stat rounded-2xl px-5 py-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Doba čtení</p>
-            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.time_to_read }} min.</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% if display_lang == 'cs' %}Doba čtení{% elif display_lang == 'en' %}Reading time{% elif display_lang == 'de' %}Lesezeit{% elif display_lang == 'sk' %}Čas čítania{% elif display_lang == 'es' %}Tiempo de lectura{% elif display_lang == 'it' %}Tempo di lettura{% elif display_lang == 'fr' %}Temps de lecture{% elif display_lang == 'pl' %}Czas czytania{% elif display_lang == 'hu' %}Olvasási idő{% else %}Doba čtení{% endif %}</p>
+            <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ news.time_to_read }} {% if display_lang == 'en' %}min.{% elif display_lang == 'de' %}Min.{% elif display_lang == 'hu' %}perc{% else %}min.{% endif %}</p>
           </div>
         </div>
       </div>

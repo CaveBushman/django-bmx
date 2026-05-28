@@ -276,7 +276,7 @@ class RankPositionCount:
                         class_20=category_20, is_approved=True
                     )
                     count = qs.count()
-                    text_ranking = f"{position}. - {int(position) + count - 1}"
+                    text_ranking = f"{position} - {int(position) + count - 1}"
                     qs.update(ranking_20=text_ranking)
             duplicates = []
             all_positions = []

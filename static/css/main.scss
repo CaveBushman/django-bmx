@@ -4,11 +4,87 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap");
 
 //COLORS
+:root {
+  // Primary brand colors
+  --primary-color: #0051ff;
+  --primary-hover: #003dbb;
+  --accent-color: #ffd700; // BMX Gold
 
-//
+  // Backgrounds
+  --bg-page: #ffffff;
+  --bg-navbar: rgba(245, 245, 245, 0.8);
+  --bg-secondary: #222; // For nav2 in light mode
+  --bg-card: #ffffff;
+  --bg-footer: dimgray;
+  --bg-input: #ffffff;
+  --bg-success: rgb(10, 94, 10); // For registered status
+
+  // Text colors
+  --text-main: #222;
+  --text-muted: #666;
+  --text-light: #fff; // Text on dark backgrounds
+  --text-on-primary: #fff; // Text on primary buttons/backgrounds
+  --text-on-secondary: #fff; // Text on secondary dark backgrounds
+  --text-carousel-caption: rgb(247, 241, 156);
+
+  // Borders and shadows
+  --border-color: #ddd;
+  --border-color-light: rgba(0, 0, 0, 0.05);
+  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --card-hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  --shadow-navbar-active: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --focus-ring: 0 0 0 3px rgba(0, 81, 255, 0.3);
+
+  // Spacing and sizing
+  --navbar-height: 77px;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-round: 50%;
+
+  // Transitions
+  --transition-smooth: all 0.3s ease-in-out;
+
+  // Specific colors
+  --color-red: red;
+  --repre-blue: #0000ff;
+}
+
+// Dark Mode support
+[data-theme="dark"] {
+  --bg-page: #1a1a1a;
+  --bg-navbar: rgba(26, 26, 26, 0.8);
+  --bg-secondary: #333;
+  --bg-card: #2a2a2a;
+  --bg-footer: #333;
+  --bg-input: #3a3a3a;
+  --bg-success: rgb(0, 60, 0);
+
+  --text-main: #e0e0e0;
+  --text-muted: #aaaaaa;
+  --text-light: #1a1a1a; // Text on light backgrounds in dark mode
+  --text-on-primary: #fff;
+  --text-on-secondary: #e0e0e0;
+  --text-carousel-caption: rgb(200, 190, 100); // Adjusted for dark mode
+
+  --border-color: #444;
+  --border-color-light: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --card-hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  --shadow-navbar-active: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 3px rgba(0, 81, 255, 0.5);
+}
 
 html {
-  margin-top: 5rem;
+  margin-top: var(--navbar-height);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: "Roboto", sans-serif; // Ensure font is applied globally
 }
 
 // NAVBAR
@@ -17,7 +93,7 @@ html {
   width: 100%;
   top: 0;
   left: 0;
-  background-color: rgba(245, 245, 245, 0.8);
+  background-color: var(--bg-navbar);
   backdrop-filter: blur(10px); // Moderní průhlednost
   z-index: 99;
 }
@@ -36,19 +112,19 @@ html {
 
 .nav2 {
   position: fixed;
-  background-color: #222;
+  background-color: var(--bg-secondary);
   top: 0;
   left: 0;
   right: 0;
-  transition: all 0.3s ease-in-out;
+  transition: var(--transition-smooth);
   z-index: 20;
 }
 .nav2 .nav-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 77px;
-  transition: all 0.3s ease-in-out;
+  height: var(--navbar-height);
+  transition: var(--transition-smooth);
 }
 .nav2 ul {
   display: flex;
@@ -59,29 +135,29 @@ html {
   margin-bottom: auto;
 }
 .nav2 a {
-  color: white;
+  color: var(--text-on-secondary);
   text-decoration: none;
   padding: 7px 15px;
   transition: all 0.3s ease-in-out;
 }
 .nav2 a.current,
 .nav2 a:hover {
-  color: rgb(206, 206, 206);
+  color: var(--accent-color);
 }
 .nav2 a.current {
   font-weight: bold;
 }
 .nav2.active {
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-navbar-active);
 }
 .nav2.active a {
-  color: black;
+  color: var(--text-main);
 }
 
 .nav2.active a:hover,
 .nav2.active a.current {
-  color: rgb(73, 73, 73);
+  color: var(--primary-color);
 }
 
 .nav2.active .nav-container {
@@ -133,7 +209,7 @@ html {
   }
 
   .nav2.active a {
-    color: white;
+    color: var(--text-on-secondary);
   }
 
   .nav2 li:first-child {
@@ -146,7 +222,7 @@ html {
 
   .nav2.active a.current,
   .nav2.active a:hover {
-    color: rgb(206, 206, 206);
+    color: var(--accent-color);
   }
 
   .nav2.active .nav-container {
@@ -171,9 +247,10 @@ html {
 
 // HTMX LOADING STATE
 .htmx-indicator {
-  opacity: 0;
-  transition: opacity 200ms ease-in;
-  pointer-events: none;
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: inline-block;
 }
 .htmx-request .htmx-indicator {
   opacity: 1;
@@ -181,6 +258,18 @@ html {
 .htmx-request.news-card-wrapper {
   filter: blur(2px);
   opacity: 0.7;
+}
+
+// TOP PROGRESS BAR FOR HTMX
+.htmx-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent-color);
+  z-index: 2000;
+  transition: width 0.3s ease;
+  width: 0;
 }
 
 // AUDIO BADGE
@@ -213,29 +302,33 @@ html {
 .carousel-caption-h1 {
   font-size: 5rem;
   margin-top: -15rem;
-  color: rgb(247, 241, 156);
+  color: var(--text-carousel-caption); // Use new variable
 }
 
 .main-header {
   margin-top: 1rem;
   text-transform: uppercase;
+  color: var(--text-main); // Ensure header text color adapts
 }
 
 .instrument {
   margin-top: 2rem;
   margin-bottom: 3rem;
   font-family: "Roboto", sans-serif;
+  color: var(--text-main); // Ensure instrument text color adapts
 }
 
 .instrument-text {
   padding: 2rem 1rem 1rem 1rem;
   text-align: center;
   font-family: "Roboto", sans-serif;
+  color: var(--text-main); // Ensure instrument text color adapts
 }
 
 .instrument-subtext {
   font-size: 1.4rem;
   text-align: center;
+  color: var(--text-muted); // Use muted text color
 }
 
 #partners-image {
@@ -248,12 +341,14 @@ html {
 }
 
 .contacts {
-  background-color: dimgray;
+  background-color: var(--bg-footer); // Use new variable
   height: 400px;
+  color: var(--text-on-secondary); // Text on dark background
 }
 
 .follow-us {
   font-size: 3rem;
+  color: var(--text-main); // Ensure follow-us text color adapts
 }
 
 // RIDER-DETAIL
@@ -270,7 +365,8 @@ html {
 
 .rider-detail-container {
   padding-top: 5rem;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--bg-page); // Use page background
+  color: var(--text-main); // Ensure text color adapts
 
   .table {
     width: 70%;
@@ -289,34 +385,35 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: var(--text-light); // Text on plate
   margin: 2rem;
   font-size: 1.8rem;
   font-weight: bold;
-  border-radius: 50%;
+  border-radius: var(--border-radius-round);
 }
 .plate.small.red {
-  background-color: red;
+  background-color: var(--color-red); // Use new variable
 }
 
 .rider-detail-header {
-  color: black;
+  color: var(--text-dark);
   margin-bottom: 2rem;
   text-transform: uppercase;
   margin: 3rem 0rem 0rem 0rem;
 }
 
 .repre {
-  color: white;
-  background-color: blue;
+  color: var(--text-on-secondary); // Text on blue background
+  background-color: var(--repre-blue);
   padding: 1rem 2rem 1rem 2rem;
-  border-radius: 3rem;
+  border-radius: 30px;
 }
 
 // RIDERS LIST
 
 .table {
   margin: auto;
+  color: var(--text-main); // Ensure table text color adapts
 }
 
 .search {
@@ -327,10 +424,12 @@ html {
 
 #myTable {
   margin-bottom: 10rem;
+  color: var(--text-main); // Ensure table text color adapts
 }
 
 .registered {
-  background-color: rgb(10, 94, 10);
+  background-color: var(--bg-success); // Use new variable
+  color: var(--text-on-secondary); // Text on dark green background
 }
 
 // EVENT LIST
@@ -340,6 +439,7 @@ html {
 .event-admin-header {
   margin-top: 3rem;
   font-size: 2rem;
+  color: var(--text-main);
 }
 
 .event-admin-flex {
@@ -351,68 +451,83 @@ html {
   padding-top: 2rem;
   margin-top: 4rem;
   padding-top: 2rem;
+  color: var(--text-main);
 }
 
 .table-event-admin {
   margin-top: 3rem;
+  color: var(--text-main);
 }
 
 // EVENT DETAIL
 
 .event-header {
   font-size: 1.5rem;
+  color: var(--text-main);
 }
 
 .event-date {
   margin-top: 2rem;
   font-size: 1.5rem;
+  color: var(--text-main);
 }
 
 .event-detail-header {
   margin-top: 2rem;
   font-size: 2rem;
+  color: var(--text-main);
 }
 
 .container-date {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .registration {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .race-sys {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .classes {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .fees {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .prices {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .timeschedule {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .note {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .entries {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 // EVENT SUCCESS PAYMENT
 
 .success-payment-header {
   margin-bottom: 3rem;
+  color: var(--text-main);
 }
 
 // EVENT UPLOAD RESULTS
@@ -429,10 +544,12 @@ html {
 .spinner-header {
   margin-top: 2rem;
   margin-bottom: 2rem;
+  color: var(--text-main);
 }
 
 .spinner-text {
   margin-bottom: 2rem;
+  color: var(--text-main);
 }
 
 // ARROW
@@ -442,11 +559,15 @@ html {
   position: fixed;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-round);
   border: none;
   font-size: 40px;
   cursor: pointer;
   text-align: center;
+  background-color: var(
+    --primary-color
+  ); // Example, could be a specific arrow background
+  color: var(--text-on-primary);
 }
 
 .arrow:focus {
@@ -464,22 +585,23 @@ html {
   right: calc(3% + 60px);
   bottom: 5%;
   width: 300px;
-  border-radius: 10px;
+  border-radius: var(--border-radius);
   font-size: 20px;
 }
 
 // NEW-RIDER-LICENCE
 
 .uciid-container {
-  border: 1px solid black;
-  background-color: white;
-  border-radius: 10px;
+  border: 1px solid var(--border-color); // Use new variable
+  background-color: var(--bg-card); // Use new variable
+  border-radius: var(--border-radius);
   width: 70%;
   max-width: 1000px;
   padding: 3rem;
   margin-top: 5rem;
   margin-left: auto;
   margin-right: auto;
+  color: var(--text-main); // Ensure text color adapts
 }
 .logo {
   width: 200px;
@@ -496,12 +618,13 @@ html {
 .foto img {
   width: 150px;
   height: 150px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-round);
 }
 
 .text-container {
   padding-left: 5rem;
   padding-top: 5rem;
+  color: var(--text-main);
 }
 
 .img-and-text {
@@ -511,11 +634,13 @@ html {
 .nadpis h2 {
   text-align: center;
   font-size: 1.5rem;
+  color: var(--text-main);
 }
 
 .text {
   margin-right: 20px;
   margin-top: 2.5rem;
+  color: var(--text-main);
 }
 
 .alert-container {
@@ -540,16 +665,18 @@ html {
   margin: 1px;
   padding: 4px;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color); // Use new variable
   -moz-appearance: textfield;
+  background-color: var(--bg-input); // Input background
+  color: var(--text-main); // Input text color
 }
 
 .inputs-container input:valid {
-  border-color: rgb(0, 81, 255);
+  border-color: var(--primary-color); // Use new variable
 }
 
 .inputs-container input:focus {
-  outline-color: rgb(0, 81, 255);
+  outline-color: var(--primary-color); // Use new variable
 }
 
 .inputs-container input::-webkit-outer-spin-button,
@@ -562,7 +689,7 @@ html {
 .btn-licence {
   display: block;
   background-color: var(--primary-color);
-  color: white;
+  color: var(--text-on-primary); // Use new variable
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -582,6 +709,12 @@ html {
   background-color: var(--primary-hover);
 }
 
+.btn-licence:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border: 1px solid var(--primary-color);
+}
+
 .inputs-container button:focus {
   outline: none;
 }
@@ -595,14 +728,17 @@ html {
 .club-num-riders {
   font-size: 1.3rem;
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .club-detail-address {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 
 .club-detail-contact {
   margin-top: 2rem;
+  color: var(--text-main);
 }
 // ALERT
 
@@ -612,6 +748,11 @@ html {
   border-radius: 0;
   padding: 15px 20px;
   margin-bottom: 10px;
+  background-color: var(
+    --bg-card
+  ); // Example, could be specific alert background
+  color: var(--text-main); // Example, could be specific alert text color
+  border: 1px solid var(--border-color); // Example
 }
 
 .alert .close {

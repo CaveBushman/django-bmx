@@ -446,7 +446,7 @@ msgstr "Zaloguj się"
 #: accounts/templates/accounts/signin.html:26
 #: accounts/templates/accounts/signup.html:24
 msgid "Přístup do interní části webu"
-msgstr ""
+msgstr "Dostęp do wewnętrznej części strony"
 
 #: accounts/templates/accounts/signin.html:29
 msgid ""
@@ -459,7 +459,7 @@ msgstr ""
 
 #: accounts/templates/accounts/signin.html:35
 msgid "Ještě vám nejde přihlášení?"
-msgstr ""
+msgstr "Nadal masz problemy z logowaniem?"
 
 #: accounts/templates/accounts/signin.html:37
 msgid ""
@@ -470,7 +470,7 @@ msgstr ""
 
 #: accounts/templates/accounts/signin.html:40
 msgid "Poslat aktivační e-mail znovu"
-msgstr ""
+msgstr "Wyślij ponownie e-mail aktywacyjny"
 
 #: accounts/templates/accounts/signin.html:72
 msgid "Zapomněli jste heslo?"
@@ -513,7 +513,7 @@ msgstr ""
 
 #: accounts/templates/accounts/signup.html:37
 msgid "Jak registrace funguje"
-msgstr ""
+msgstr "Jak działa rejestracja"
 
 #: accounts/templates/accounts/signup.html:39
 msgid ""
@@ -560,7 +560,7 @@ msgstr ""
 
 #: accounts/views.py:241
 msgid "Neplatné uživatelské jméno nebo heslo."
-msgstr ""
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło."
 
 #: accounts/views.py:254
 msgid "Aktivační odkaz je neplatný."
@@ -1677,7 +1677,7 @@ msgstr ""
 #: ranking/templates/ranking/ranking.html:331 rider/premium_stats_pdf.py:560
 #: theme/templates/downloads.html:153 theme/templates/rules.html:151
 msgid "Kategorie"
-msgstr ""
+msgstr "Kategoria"
 
 #: eshop/templates/eshop/product_detail.html:314
 msgid "Hlavní fotka"
@@ -3569,7 +3569,7 @@ msgstr ""
 
 #: news/templates/news/news-list.html:1
 msgid "Novinky"
-msgstr ""
+msgstr "Nowości"
 
 #: news/templates/news/news-list.html:1
 msgid ""
@@ -3579,11 +3579,11 @@ msgstr ""
 
 #: news/templates/news/news-list.html:124
 msgid "Aktuality"
-msgstr ""
+msgstr "Aktualności"
 
 #: news/templates/news/news-list.html:127
 msgid "NOVINKY ZE SVĚTA BMX"
-msgstr ""
+msgstr "AKTUALNOŚCI BMX"
 
 #: news/templates/news/news-list.html:130
 msgid ""
@@ -3593,7 +3593,7 @@ msgstr ""
 
 #: news/templates/news/news-list.html:135
 msgid "Publikováno"
-msgstr ""
+msgstr "Opublikowano"
 
 #: news/templates/news/news-list.html:139
 msgid "Aktuální stránka"
@@ -3601,7 +3601,7 @@ msgstr ""
 
 #: news/templates/news/news-list.html:143
 msgid "Počet stran"
-msgstr ""
+msgstr "Liczba stron"
 
 #: news/templates/news/news-list.html:202 theme/templates/homepage.html:793
 msgid "min. čtení"
@@ -3609,47 +3609,47 @@ msgstr "min. czytania"
 
 #: news/templates/news/news-list.html:207
 msgid "Číst"
-msgstr ""
+msgstr "Czytaj"
 
 #: news/templates/news/news-list.html:214
 msgid "Žádný obsah"
-msgstr ""
+msgstr "Brak treści"
 
 #: news/templates/news/news-list.html:215
 msgid "Zatím zde nejsou žádné novinky"
-msgstr ""
+msgstr "Brak aktualności"
 
 #: news/templates/news/news-list.html:216
 msgid "Brzy se tu něco objeví."
-msgstr ""
+msgstr "Wkrótce pojawi się tutaj coś nowego."
 
 #: news/templates/news/news-list.html:229
 #: rider/templates/rider/account-settings-invoices.html:684
 #: rider/templates/rider/account-settings-invoices.html:777
 msgid "Předchozí"
-msgstr ""
+msgstr "Poprzedni"
 
 #: news/templates/news/news-list.html:237
 #: rider/templates/rider/account-settings-invoices.html:692
 #: rider/templates/rider/account-settings-invoices.html:785
 msgid "Další"
-msgstr ""
+msgstr "Następny"
 
 #: news/templates/news/news-list.html:245
 msgid "Zobrazuji stránku"
-msgstr ""
+msgstr "Wyświetlanie strony"
 
 #: news/templates/news/news-list.html:247
 msgid "z"
-msgstr ""
+msgstr "z"
 
 #: ranking/templates/ranking/ranking.html:3
 msgid "Ranking"
-msgstr ""
+msgstr "Ranking"
 
 #: ranking/templates/ranking/ranking.html:290
 msgid "Národní pořadí"
-msgstr ""
+msgstr "Ranking narodowy"
 
 #: ranking/templates/ranking/ranking.html:293
 #: theme/templates/includes/navbar.html:49
@@ -3666,19 +3666,19 @@ msgstr ""
 
 #: ranking/templates/ranking/ranking.html:301
 msgid "Aktivní kategorie dle UCI"
-msgstr ""
+msgstr "Aktywne kategorie UCI"
 
 #: ranking/templates/ranking/ranking.html:305
 msgid "Jezdců v kategorii"
-msgstr ""
+msgstr "Zawodników w kategorii"
 
 #: ranking/templates/ranking/ranking.html:309
 msgid "Lídr má bodů"
-msgstr ""
+msgstr "Punkty lidera"
 
 #: ranking/templates/ranking/ranking.html:322
 msgid "Pravidla výpočtu"
-msgstr ""
+msgstr "Zasady obliczania"
 
 #: ranking/templates/ranking/ranking.html:324
 msgid ""
@@ -3695,19 +3695,19 @@ msgstr ""
 
 #: ranking/templates/ranking/ranking.html:326
 msgid "Tabulku pro výpočet bodů do rankingu najdeš"
-msgstr ""
+msgstr "Tabelę do obliczania punktów rankingowych znajdziesz"
 
 #: ranking/templates/ranking/ranking.html:326
 msgid "zde"
-msgstr ""
+msgstr "tutaj"
 
 #: ranking/templates/ranking/ranking.html:335
 msgid "Vyber kategorii"
-msgstr ""
+msgstr "Wybierz kategorię"
 
 #: ranking/templates/ranking/ranking.html:341
 msgid "Po změně výběru se tabulka automaticky přenačte."
-msgstr ""
+msgstr "Tabela odświeża się automatycznie po zmianie wyboru."
 
 #: ranking/templates/ranking/ranking.html:347
 msgid ""
@@ -3717,20 +3717,20 @@ msgstr ""
 
 #: ranking/templates/ranking/ranking.html:354
 msgid "Leaderboard"
-msgstr ""
+msgstr "Tabela wyników"
 
 #: ranking/templates/ranking/ranking.html:358
 #, python-format
 msgid "%(count)s jezdců v pořadí"
-msgstr ""
+msgstr "%(count)s zawodników w klasyfikacji"
 
 #: ranking/templates/ranking/ranking.html:367
 msgid "Žádná data"
-msgstr ""
+msgstr "Brak danych"
 
 #: ranking/templates/ranking/ranking.html:368
 msgid "Pro tuto kategorii nejsou k dispozici žádní jezdci"
-msgstr ""
+msgstr "Brak zawodników dostępnych w tej kategorii"
 
 #: ranking/templates/ranking/ranking.html:369
 msgid ""
@@ -4665,7 +4665,7 @@ msgstr ""
 #: rider/templates/rider/rider-compare.html:464
 #: rider/templates/rider/rider-premium-stats.html:890
 msgid "Jak Se Počítá"
-msgstr ""
+msgstr "Jak jest obliczane"
 
 #: rider/templates/rider/rider-compare.html:469
 #: rider/templates/rider/rider-premium-stats.html:895
@@ -5993,7 +5993,7 @@ msgstr ""
 
 #: theme/templates/downloads.html:142
 msgid "Dokumenty a formuláře"
-msgstr ""
+msgstr "Dokumenty i formularze"
 
 #: theme/templates/downloads.html:145 theme/templates/includes/navbar.html:65
 #: theme/templates/includes/navbar.html:68
@@ -6003,19 +6003,19 @@ msgstr "POBIERZ"
 
 #: theme/templates/downloads.html:148
 msgid "Přehled všech dostupných dokumentů rozdělených do kategorií."
-msgstr ""
+msgstr "Przegląd wszystkich dostępnych dokumentów podzielonych na kategorie."
 
 #: theme/templates/downloads.html:157
 msgid "Dokumentů"
-msgstr ""
+msgstr "Dokumentów"
 
 #: theme/templates/downloads.html:161
 msgid "Určení"
-msgstr ""
+msgstr "Odbiorcy"
 
 #: theme/templates/downloads.html:162
 msgid "Jezdci, kluby, rozhodčí"
-msgstr ""
+msgstr "Zawodnicy, kluby, sędziowie"
 
 #: theme/templates/homepage.html:3
 msgid "Homepage"
@@ -6274,11 +6274,11 @@ msgstr ""
 
 #: theme/templates/rules.html:3 theme/templates/rules.html:132
 msgid "Pravidla BMX"
-msgstr ""
+msgstr "Zasady BMX"
 
 #: theme/templates/rules.html:130
 msgid "Soutěžní řád"
-msgstr ""
+msgstr "Regulamin zawodów"
 
 #: theme/templates/rules.html:135
 msgid ""
@@ -6287,4 +6287,4 @@ msgstr ""
 
 #: theme/templates/rules.html:145
 msgid "Pravidla"
-msgstr ""
+msgstr "Zasady"

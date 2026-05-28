@@ -49,13 +49,44 @@
   }
 
   .rider-request-fieldset {
-    border: 1px solid rgba(203, 213, 225, 0.88);
-    background: rgba(248, 250, 252, 0.72);
+    border: none;
+    background: transparent;
   }
 
-  .rider-request-legend {
-    color: #0f172a;
-    background: transparent;
+  .rider-request-step {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(248, 250, 252, 0.6);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  html.dark .rider-request-step {
+    border-color: rgba(51, 65, 85, 0.8) !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+  }
+
+  .rider-request-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 900;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px -3px rgba(79, 70, 229, 0.45);
+  }
+
+  .rider-request-step-locked .rider-request-step-badge {
+    background: #cbd5e1;
+    box-shadow: none;
+  }
+
+  html.dark .rider-request-step-locked .rider-request-step-badge {
+    background: #334155;
   }
 
   .rider-request-readonly {
@@ -302,9 +333,12 @@
           </div>
           <input type="hidden" name="lookup_confirmed" id="lookup_confirmed" value="{{ lookup_confirmed|default:'' }}">
 
-          <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "1. Ověření licence" %}</legend>
-            <div class="mt-2 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div class="rider-request-step" role="group" aria-labelledby="step1-label">
+            <div class="flex items-center gap-2.5 mb-5">
+              <span class="rider-request-step-badge">1</span>
+              <h2 id="step1-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Ověření licence" %}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div>
                 <label for="uci_id_lookup" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">UCI ID</label>
                 <div class="relative mt-2 group">
@@ -341,43 +375,46 @@
                 {% trans "Zatím nebyla načtena žádná licence." %}
               {% endif %}
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset id="licence_details" class="rider-request-fieldset transform transition-all duration-500 ease-out rounded-[1.5rem] p-5 sm:p-6 {% if lookup_confirmed != '1' %}rider-request-hidden rider-request-step-locked opacity-0 translate-y-4{% endif %}">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "2. Osobní údaje z licence" %}</legend>
-            <div class="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div id="licence_details" role="group" aria-labelledby="step2-label" class="rider-request-step transform transition-all duration-500 ease-out {% if lookup_confirmed != '1' %}rider-request-hidden rider-request-step-locked opacity-0 translate-y-4{% endif %}">
+            <div class="flex items-center gap-2.5 mb-5">
+              <span class="rider-request-step-badge">2</span>
+              <h2 id="step2-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Osobní údaje z licence" %}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Jméno" %}</label>
                 <input type="text" id="first_name_preview" value="{{ first_name|default:'' }}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" disabled>
                 <input type="hidden" name="first_name" id="first_name" value="{{ first_name|default:'' }}">
               </div>
-
               <div>
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Příjmení" %}</label>
                 <input type="text" id="last_name_preview" value="{{ last_name|default:'' }}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" disabled>
                 <input type="hidden" name="last_name" id="last_name" value="{{ last_name|default:'' }}">
               </div>
-
               <div>
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Datum narození" %}</label>
                 <input type="date" id="date_of_birth_preview" value="{{ date_of_birth|default:'' }}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" disabled>
                 <input type="hidden" name="date_of_birth" id="date_of_birth" value="{{ date_of_birth|default:'' }}">
               </div>
-
               <div>
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Pohlaví" %}</label>
                 <input type="text" id="gender_preview" value="{{ gender|default:'' }}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" disabled>
                 <input type="hidden" name="gender" id="gender" value="{{ gender|default:'' }}">
               </div>
             </div>
-
             <input type="hidden" name="uci_id" id="uci_id" value="{{ uci_id|default:'' }}">
-          </fieldset>
+          </div>
 
-          <div id="request_details" class="transition-all duration-500 ease-out {% if lookup_confirmed != '1' %}rider-request-hidden rider-request-step-locked opacity-0 translate-y-4{% endif %} space-y-6">
-          <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "Klub a startovní číslo" %}</legend>
-            <div class="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div id="request_details" class="transition-all duration-500 ease-out {% if lookup_confirmed != '1' %}rider-request-hidden rider-request-step-locked opacity-0 translate-y-4{% endif %} space-y-4">
+
+          <div class="rider-request-step" role="group" aria-labelledby="step3-label">
+            <div class="flex items-center gap-2.5 mb-5">
+              <span class="rider-request-step-badge">3</span>
+              <h2 id="step3-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Klub a startovní číslo" %}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label for="plate" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Startovní číslo" %}</label>
                 <select name="plate" id="plate" required class="rider-request-select mt-2 w-full rounded-xl px-4 py-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10">
@@ -387,7 +424,6 @@
                   {% endfor %}
                 </select>
               </div>
-
               <div>
                 <label for="club" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Klub" %}</label>
                 <select name="club" id="club" required class="rider-request-select mt-2 w-full rounded-xl px-4 py-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10">
@@ -398,32 +434,36 @@
                 </select>
               </div>
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "Kategorie a nastavení" %}</legend>
-            <p class="mt-2 px-2 text-xs text-slate-500 dark:text-slate-400">{% trans 'Vyberte alespoň jednu kategorii kola (20" nebo 24").' %}</p>
-            <div class="mt-2 flex w-full flex-col gap-4 md:flex-row md:items-stretch">
-              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-4 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 peer-checked:text-indigo-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:peer-checked:border-indigo-400 dark:peer-checked:bg-indigo-900/30 dark:peer-checked:text-indigo-100 md:min-w-0 md:flex-1">
+          <div class="rider-request-step" role="group" aria-labelledby="step4-label">
+            <div class="flex items-center gap-2.5 mb-3">
+              <span class="rider-request-step-badge">4</span>
+              <h2 id="step4-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Kategorie a nastavení" %}</h2>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">{% trans 'Vyberte alespoň jednu kategorii kola (20" nebo 24").' %}</p>
+            <div class="flex w-full flex-col gap-3 md:flex-row md:items-stretch">
+              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3.5 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 md:flex-1">
                 <input type="checkbox" name="is20" id="is20" class="peer mt-0.5 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" {% if is20_checked %}checked{% endif %}>
                 <span>{% trans '20" kolo' %}</span>
               </label>
-
-              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-4 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 peer-checked:text-indigo-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:peer-checked:border-indigo-400 dark:peer-checked:bg-indigo-900/30 dark:peer-checked:text-indigo-100 md:min-w-0 md:flex-1">
+              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3.5 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 md:flex-1">
                 <input type="checkbox" name="elite" id="elite" class="peer mt-0.5 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" {% if elite_checked %}checked{% endif %}>
                 <span>Elite</span>
               </label>
-
-              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-4 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 peer-checked:text-indigo-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:peer-checked:border-indigo-400 dark:peer-checked:bg-indigo-900/30 dark:peer-checked:text-indigo-100 md:min-w-0 md:flex-1">
+              <label class="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3.5 text-sm font-medium text-slate-700 transition-colors duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/70 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 md:flex-1">
                 <input type="checkbox" name="is24" id="is24" class="peer mt-0.5 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" {% if is24_checked %}checked{% endif %}>
                 <span>{% trans 'Cruiser 24"' %}</span>
               </label>
             </div>
-          </fieldset>
+          </div>
 
-          <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "Nouzový kontakt" %}</legend>
-            <div class="mt-2 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div class="rider-request-step" role="group" aria-labelledby="step5-label">
+            <div class="flex items-center gap-2.5 mb-5">
+              <span class="rider-request-step-badge">5</span>
+              <h2 id="step5-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Nouzový kontakt" %}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <label for="emergency-contact" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Jméno kontaktu" %}</label>
                 <div class="relative mt-2 group">
@@ -435,7 +475,6 @@
                   <input type="text" name="emergency-contact" id="emergency-contact" value="{{ emergency_contact|default:'' }}" required class="rider-request-input w-full rounded-xl py-3 pl-12 pr-4 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10" style="padding-left: 3rem">
                 </div>
               </div>
-
               <div>
                 <label for="emergency-phone" class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Telefon" %}</label>
                 <div class="relative mt-2 group">
@@ -448,21 +487,25 @@
                 </div>
               </div>
             </div>
-          </fieldset>
+          </div>
 
           {% if requires_human_check %}
-          <fieldset class="rider-request-fieldset rounded-[1.5rem] p-5 sm:p-6">
-            <legend class="rider-request-legend px-2 text-lg font-black tracking-tight">{% trans "Ověření" %}</legend>
-            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <div class="rider-request-step" role="group" aria-labelledby="step-human-label">
+            <div class="flex items-center gap-2.5 mb-3">
+              <span class="rider-request-step-badge">6</span>
+              <h2 id="step-human-label" class="text-base font-black tracking-tight text-slate-900 dark:text-white">{% trans "Ověření" %}</h2>
+            </div>
+            <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">
               {% trans "Po sérii podezřelých pokusů chceme krátké potvrzení, že žádost vyplňuje člověk." %}
             </p>
             <input type="hidden" name="human_check_token" value="{{ human_check_token }}">
             <input type="text" name="human_check_answer" id="human_check_answer" inputmode="numeric" required class="rider-request-input mt-4 w-full rounded-xl px-4 py-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10" placeholder="{% blocktrans %}Kolik je {{ human_check_question }}?{% endblocktrans %}">
-          </fieldset>
+          </div>
           {% endif %}
 
           <div class="flex justify-end pt-2">
-            <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               {% trans "Odeslat žádost" %}
             </button>
           </div>

@@ -14,10 +14,18 @@ from django.http import FileResponse, Http404
 from django.db.models import F, Q
 import mimetypes
 import os
+import re
 from theme.models import Sponsor
 from bmx.html_sanitizer import sanitize_rich_html
 
 _SUPPORTED_CONTENT_LANGS = {"cs"} | set(_AUDIO_LANGS)
+
+_EMPTY_P_RE = re.compile(r'<p>(\s|&nbsp;|<br\s*/?>)*</p>', re.IGNORECASE)
+
+def _strip_empty_paragraphs(html: str) -> str:
+    if not html:
+        return html
+    return _EMPTY_P_RE.sub('', html)
 
 # Create your views here.
 
@@ -86,12 +94,8 @@ def homepage_view(request):
     if lang not in _SUPPORTED_CONTENT_LANGS:
         lang = "cs"
     for article in content.get("homepage_news", []):
-        if lang != "cs":
-            article.display_title = getattr(article, f"title_{lang}", "") or article.title
-            article.display_prefix = getattr(article, f"prefix_{lang}", "") or article.prefix
-        else:
-            article.display_title = article.title
-            article.display_prefix = article.prefix
+        article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
+        article.display_prefix = article.get_localized("prefix", lang) # Přidáno pro konzistenci
 
     update_cart(request)
     update_plate_notify(request)
@@ -140,14 +144,10 @@ def news_list_view(request):
         news_page = paginator.get_page(page_number)
         news_page.object_list = [_sanitize_news_for_render(a) for a in news_page.object_list]
 
-        for article in news_page.object_list:
-            if lang != "cs":
-                article.display_title = getattr(article, f"title_{lang}", "") or article.title
-                article.display_prefix = getattr(article, f"prefix_{lang}", "") or article.prefix
-            else:
-                article.display_title = article.title
-                article.display_prefix = article.prefix
-
+        # Jazykové zpracování titulků a prefixů pro články na stránce
+        for article in news_page.object_list: # Přidáno pro konzistenci
+            article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
+            article.display_prefix = article.get_localized("prefix", lang) # Přidáno pro konzistenci
         total_pages = news_page.paginator.num_pages
         start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
         end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
@@ -191,22 +191,10 @@ def news_detail_view(request, slug):
     if lang not in _SUPPORTED_CONTENT_LANGS:
         lang = "cs"
 
-    if lang != "cs":
-        display_title = getattr(news, f"title_{lang}", "") or news.title
-        display_prefix = getattr(news, f"prefix_{lang}", "") or news.prefix
-        display_content = getattr(news, f"content_{lang}", "") or news.content
-        audio_field = getattr(news, f"audio_file_{lang}", None)
-        try:
-            display_audio_url = audio_field.url if audio_field else ""
-        except (ValueError, OSError):
-            display_audio_url = ""
-        if not display_audio_url:
-            display_audio_url = news.audio_file_url
-    else:
-        display_title = news.title
-        display_prefix = news.prefix
-        display_content = news.content
-        display_audio_url = news.audio_file_url
+    display_title = news.get_localized("title", lang)
+    display_prefix = _strip_empty_paragraphs(news.get_localized("prefix", lang))
+    display_content = _strip_empty_paragraphs(news.get_localized("content", lang))
+    display_audio_url = news.get_audio_url(lang)
 
     queryset = {
         'news': news,

@@ -177,6 +177,9 @@ document.addEventListener("DOMContentLoaded", function () {
         status.classList.add("hidden");
       }
     }
+    if (event.target.value.length === 11) {
+      lookupLicence();
+    }
   });
   lookupInput.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {

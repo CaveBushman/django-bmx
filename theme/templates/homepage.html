@@ -895,9 +895,9 @@
                 </div>
             </div>
 
-            <div class="relative z-10 mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+            <div class="relative z-10 mx-auto mt-10 flex max-w-6xl flex-wrap justify-center gap-4">
                 {% for sponsor in sponsors %}
-                <div class="homepage-partner-logo flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
+                <div class="homepage-partner-logo w-[calc(50%-0.5rem)] sm:w-56 flex min-h-28 items-center justify-center rounded-[1.5rem] p-5">
                     {% if sponsor.url %}
                     <a href="{{ sponsor.url }}" target="_blank" rel="noopener noreferrer" class="homepage-partner-link flex items-center justify-center">
                     {% else %}

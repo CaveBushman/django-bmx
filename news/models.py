@@ -472,10 +472,26 @@ class News (models.Model):
     def get_absolute_url(self):
         return reverse("news:news-detail", kwargs={"slug": self.slug or self.pk})
 
+    def get_localized(self, field, lang):
+        """Returns the localized version of a field or fallback to the primary (cs) field."""
+        if lang == "cs":
+            return getattr(self, field)
+        return getattr(self, f"{field}_{lang}", "") or getattr(self, field)
+
     def increment_views(self):
         # atomicky, bez race condition:
         News.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
-        self.refresh_from_db(fields=['view_count'])
+        self.view_count += 1
+
+    def get_audio_url(self, lang):
+        """Vrátí URL audio souboru pro daný jazyk s fallbackem na hlavní audio."""
+        audio_field = getattr(self, f"audio_file_{lang}", None) if lang != "cs" else self.audio_file
+        try:
+            if audio_field and audio_field.name and audio_field.storage.exists(audio_field.name):
+                return audio_field.url
+        except (ValueError, OSError):
+            pass
+        return self.audio_file_url
 
     @staticmethod
     def sum_of_news():

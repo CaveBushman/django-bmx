@@ -66,7 +66,7 @@ def clubs_list_view(request):
             | (Q(contact_phone__gt="") & ~Q(contact_phone="nan"))
         ).count(),
         "filtered_count": len(cleaned_clubs),
-        "regions": list(base_clubs.values_list("region", flat=True).distinct()),
+        "regions": sorted(filter(None, base_clubs.values_list("region", flat=True).order_by("region").distinct())),
         "query": query,
         "selected_region": selected_region,
         "has_active_filters": bool(query or selected_region),
