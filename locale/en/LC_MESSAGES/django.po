@@ -1,3 +1,4 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: django-bmx\n"
@@ -89,8 +90,8 @@ msgstr ""
 
 #: accounts/templates/accounts/account_activation_sent.html:22
 msgid ""
-"Poslali jsme vám aktivační odkaz. Účet se zapne až po kliknutí na odkaz v e-"
-"mailu."
+"Poslali jsme vám aktivační odkaz. Účet se zapne až po kliknutí na odkaz v "
+"e-mailu."
 msgstr ""
 
 #: accounts/templates/accounts/account_activation_sent.html:26
@@ -137,8 +138,8 @@ msgstr ""
 #: accounts/templates/accounts/avatar-moderation-dashboard.html:157
 #, python-format
 msgid ""
-"Žádosti čekají na ruční posouzení. Nevyřízené návrhy automaticky expirují po "
-"%(days)s dnech."
+"Žádosti čekají na ruční posouzení. Nevyřízené návrhy automaticky expirují po"
+" %(days)s dnech."
 msgstr ""
 
 #: accounts/templates/accounts/avatar-moderation-dashboard.html:162
@@ -501,7 +502,8 @@ msgstr ""
 
 #: accounts/templates/accounts/signin.html:84
 msgid ""
-"Zobrazujeme ho jen po sérii neúspěšných nebo podezřelých pokusů o přihlášení."
+"Zobrazujeme ho jen po sérii neúspěšných nebo podezřelých pokusů o "
+"přihlášení."
 msgstr ""
 
 #: accounts/templates/accounts/signin.html:97
@@ -521,8 +523,8 @@ msgstr "Sign in"
 #: accounts/templates/accounts/signup.html:27
 msgid ""
 "Vyplňte své základní údaje pro vytvoření účtu. Po odeslání formuláře vám "
-"pošleme aktivační e-mail a účet se zapne až po jeho potvrzení. Pokud už účet "
-"máte,"
+"pošleme aktivační e-mail a účet se zapne až po jeho potvrzení. Pokud už účet"
+" máte,"
 msgstr ""
 
 #: accounts/templates/accounts/signup.html:28
@@ -531,8 +533,8 @@ msgstr ""
 
 #: accounts/templates/accounts/signup.html:33
 msgid ""
-"Notice: user registration and credit purchases are intended for Czech riders "
-"only."
+"Notice: user registration and credit purchases are intended for Czech riders"
+" only."
 msgstr ""
 
 #: accounts/templates/accounts/signup.html:37
@@ -576,15 +578,16 @@ msgstr ""
 
 #: accounts/views.py:196
 msgid ""
-"Pro tento e-mail existuje více historických účtů. Kontaktujte administrátora."
+"Pro tento e-mail existuje více historických účtů. Kontaktujte "
+"administrátora."
 msgstr ""
 "There are multiple historical accounts for this email. Please contact an "
 "administrator."
 
 #: accounts/views.py:210
 msgid ""
-"Účet ještě není aktivovaný. Otevřete aktivační e-mail a potvrďte registraci. "
-"Pokud zprávu nevidíte, zkontrolujte i spam."
+"Účet ještě není aktivovaný. Otevřete aktivační e-mail a potvrďte registraci."
+" Pokud zprávu nevidíte, zkontrolujte i spam."
 msgstr ""
 "This account is not activated yet. Open the activation email and confirm "
 "your registration. If you cannot find it, check your spam folder."
@@ -941,7 +944,7 @@ msgstr ""
 #: rider/templates/rider/rider-request.html:440
 #: theme/templates/homepage.html:850
 msgid "Telefon"
-msgstr ""
+msgstr "Phone"
 
 #: eshop/templates/eshop/admin-order-detail.html:114
 msgid "Poznámka zákazníka"
@@ -1014,7 +1017,8 @@ msgid "Košík"
 msgstr ""
 
 #: eshop/templates/eshop/cart.html:4 eshop/templates/eshop/cart.html:164
-#: eshop/templates/eshop/checkout.html:4 eshop/templates/eshop/my_orders.html:4
+#: eshop/templates/eshop/checkout.html:4
+#: eshop/templates/eshop/my_orders.html:4
 #: eshop/templates/eshop/my_orders.html:166
 #: eshop/templates/eshop/order_confirmation.html:4
 #: eshop/templates/eshop/product_detail.html:4
@@ -1121,7 +1125,8 @@ msgstr ""
 msgid "Přidej produkty z e-shopu a pak se vrať sem."
 msgstr ""
 
-#: eshop/templates/eshop/cart.html:396 eshop/templates/eshop/my_orders.html:355
+#: eshop/templates/eshop/cart.html:396
+#: eshop/templates/eshop/my_orders.html:355
 msgid "Přejít do e-shopu"
 msgstr ""
 
@@ -1405,8 +1410,8 @@ msgstr "Active registrations"
 
 #: eshop/templates/eshop/index.html:425
 msgid ""
-"Dočasně blokované kusy v košíku. Pomáhá odhalit, proč varianta není aktuálně "
-"dostupná."
+"Dočasně blokované kusy v košíku. Pomáhá odhalit, proč varianta není aktuálně"
+" dostupná."
 msgstr ""
 
 #: eshop/templates/eshop/index.html:431
@@ -1425,13 +1430,11 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"              Při načtení panelu byla odstraněna %(count)s expirovaná "
-"rezervace.\n"
+"              Při načtení panelu byla odstraněna %(count)s expirovaná rezervace.\n"
 "            "
 msgid_plural ""
 "\n"
-"              Při načtení panelu bylo odstraněno %(count)s expirovaných "
-"rezervací.\n"
+"              Při načtení panelu bylo odstraněno %(count)s expirovaných rezervací.\n"
 "            "
 msgstr[0] ""
 msgstr[1] ""
@@ -1581,7 +1584,8 @@ msgstr ""
 
 #: eshop/templates/eshop/my_orders.html:297
 msgid ""
-"Objednávku můžeš stornovat do okamžiku, než bude zboží označeno jako předané."
+"Objednávku můžeš stornovat do okamžiku, než bude zboží označeno jako "
+"předané."
 msgstr ""
 
 #: eshop/templates/eshop/my_orders.html:299
@@ -1615,8 +1619,8 @@ msgstr ""
 
 #: eshop/templates/eshop/my_orders.html:384
 msgid ""
-"Kredit se vrátí na účet a zboží se vrátí zpět na sklad. Tuto akci použij jen "
-"v případě, že objednávku opravdu nechceš převzít."
+"Kredit se vrátí na účet a zboží se vrátí zpět na sklad. Tuto akci použij jen"
+" v případě, že objednávku opravdu nechceš převzít."
 msgstr ""
 
 #: eshop/templates/eshop/my_orders.html:392
@@ -1920,8 +1924,8 @@ msgstr ""
 #: eshop/templates/eshop/size_guide.html:107
 #: eshop/templates/eshop/size_guide.html:159
 msgid ""
-"Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost. "
-"V případě pochybností nás kontaktujte."
+"Pokud se hodnota nachází na hranici velikostí, zvolte raději větší velikost."
+" V případě pochybností nás kontaktujte."
 msgstr ""
 
 #: eshop/templates/eshop/size_guide.html:69
@@ -2072,7 +2076,8 @@ msgstr ""
 #: event/templates/admin/event/entry/checkout_action_confirmation.html:32
 #: event/templates/event/entry.html:1213 finance/views.py:228
 #: rider/premium_stats_pdf.py:285 rider/premium_stats_pdf.py:328
-#: rider/premium_stats_pdf.py:355 rider/templates/rider/rider-inactive.html:178
+#: rider/premium_stats_pdf.py:355
+#: rider/templates/rider/rider-inactive.html:178
 msgid "Jezdec"
 msgstr "Rider"
 
@@ -2257,7 +2262,8 @@ msgid ""
 "Jeden rozhodčí nemůže být v jednom závodě nasazen do více rolí současně."
 msgstr ""
 
-#: event/services/checkout_refunds.py:74 event/services/checkout_refunds.py:148
+#: event/services/checkout_refunds.py:74
+#: event/services/checkout_refunds.py:148
 #: event/services/checkout_refunds.py:176
 #, fuzzy
 #| msgid "Trend závodů"
@@ -2355,7 +2361,8 @@ msgstr ""
 #: event/templates/event/entry-list.html:299
 #: event/templates/event/unpaid-moto-riders-report.html:132
 #: event/templates/event/unpaid-moto-riders-report.html:169
-#: event/views/views_admin.py:1231 rider/templates/rider/rider-inactive.html:97
+#: event/views/views_admin.py:1231
+#: rider/templates/rider/rider-inactive.html:97
 #: rider/templates/rider/rider-request.html:382
 msgid "Startovní číslo"
 msgstr "Race number"
@@ -2870,8 +2877,8 @@ msgstr ""
 
 #: event/templates/event/event-detail.html:445
 msgid ""
-"Registrace, přihlášení jezdci, souhrn startujících a organizační výstupy máš "
-"na jednom místě."
+"Registrace, přihlášení jezdci, souhrn startujících a organizační výstupy máš"
+" na jednom místě."
 msgstr ""
 
 #: event/templates/event/event-detail.html:452
@@ -3413,8 +3420,8 @@ msgstr ""
 
 #: event/views/views_admin.py:1566
 msgid ""
-"Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické "
-"jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a "
+"Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické"
+" jízdy nešlo s nikým spárovat. Nejdřív nahraj výsledky závodu do Result a "
 "potom spusť import statistik znovu."
 msgstr ""
 
@@ -3542,7 +3549,7 @@ msgstr ""
 
 #: event/views/views_public.py:153 theme/templates/homepage.html:640
 msgid "Sezona"
-msgstr ""
+msgstr "Season"
 
 #: finance/templates/finance/finance.html:330
 msgid "Checkout refundy"
@@ -3675,11 +3682,11 @@ msgstr "BMX NEWS"
 
 #: news/templates/news/news-list.html:130
 msgid ""
-"Přehled publikovaných článků, novinek a informací z domácího i mezinárodního "
-"BMX dění."
+"Přehled publikovaných článků, novinek a informací z domácího i mezinárodního"
+" BMX dění."
 msgstr ""
-"Browse published articles, news and updates from the Czech and international "
-"BMX scene."
+"Browse published articles, news and updates from the Czech and international"
+" BMX scene."
 
 #: news/templates/news/news-list.html:135
 msgid "Publikováno"
@@ -3784,12 +3791,12 @@ msgstr ""
 
 #: ranking/templates/ranking/ranking.html:325
 msgid ""
-"MČR družstev se nezapočítává, kategorie Příchozí také ne. Body se počítají z "
-"posledních 365 dní a na konci roku se přenášejí mezi kategoriemi."
+"MČR družstev se nezapočítává, kategorie Příchozí také ne. Body se počítají z"
+" posledních 365 dní a na konci roku se přenášejí mezi kategoriemi."
 msgstr ""
 "The team championships and the Newcomer category are not included. Points "
-"are calculated from the last 365 days and are carried over between categories "
-"at the end of the year."
+"are calculated from the last 365 days and are carried over between "
+"categories at the end of the year."
 
 #: ranking/templates/ranking/ranking.html:326
 msgid "Tabulku pro výpočet bodů do rankingu najdeš"
@@ -3809,9 +3816,11 @@ msgstr "The table reloads automatically when you change the selection."
 
 #: ranking/templates/ranking/ranking.html:347
 msgid ""
-"Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard pro"
+"Požadovaná kategorie v URL nebyla nalezena. Zobrazuji výchozí leaderboard "
+"pro"
 msgstr ""
-"The requested category was not found in the URL. Showing the default leaderboard for"
+"The requested category was not found in the URL. Showing the default "
+"leaderboard for"
 
 #: ranking/templates/ranking/ranking.html:354
 msgid "Leaderboard"
@@ -4277,8 +4286,8 @@ msgstr ""
 
 #: rider/templates/rider/account-settings-invoices.html:352
 msgid ""
-"Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn "
-"avatarů."
+"Přehled předplatných, faktur ke stažení, základních údajů účtu a návrhů změn"
+" avatarů."
 msgstr ""
 
 #: rider/templates/rider/account-settings-invoices.html:356
@@ -4448,7 +4457,8 @@ msgid "Faktury za předplatné"
 msgstr ""
 
 #: rider/templates/rider/account-settings-invoices.html:627
-msgid "Tady najdeš PDF faktury za individuální, klubové i extended předplatné."
+msgid ""
+"Tady najdeš PDF faktury za individuální, klubové i extended předplatné."
 msgstr ""
 
 #: rider/templates/rider/account-settings-invoices.html:643
@@ -4670,8 +4680,8 @@ msgstr ""
 #: rider/templates/rider/rider-compare.html:325
 #: rider/templates/rider/rider-compare.html:388
 msgid ""
-"Medián mezičasů ze split 1. Zatím se zobrazí jen tam, kde už jsou split data "
-"k dispozici."
+"Medián mezičasů ze split 1. Zatím se zobrazí jen tam, kde už jsou split data"
+" k dispozici."
 msgstr ""
 
 #: rider/templates/rider/rider-compare.html:331
@@ -4689,8 +4699,8 @@ msgstr ""
 #: rider/templates/rider/rider-compare.html:332
 #: rider/templates/rider/rider-compare.html:395
 msgid ""
-"Nejlepší dostupný mezičas split 1. Hodí se pro porovnání špičkové akcelerace "
-"v první části tratě."
+"Nejlepší dostupný mezičas split 1. Hodí se pro porovnání špičkové akcelerace"
+" v první části tratě."
 msgstr ""
 
 #: rider/templates/rider/rider-compare.html:339
@@ -4808,8 +4818,8 @@ msgstr ""
 msgid ""
 "Tlačítko <span class=\"font-semibold text-rose-600 dark:text-"
 "rose-300\">Uvolnit</span> změní pouze stav jezdce na neaktivní. Startovní "
-"číslo ani ostatní data se nemažou, ale startovní číslo bude moci použít jiný "
-"jezdec."
+"číslo ani ostatní data se nemažou, ale startovní číslo bude moci použít jiný"
+" jezdec."
 msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:65
@@ -4838,8 +4848,8 @@ msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:85
 msgid ""
-"Přehled je záměrně čistý a rychlý. Důležitá jsou jen identita jezdce, číslo, "
-"klub a jednoznačná akce."
+"Přehled je záměrně čistý a rychlý. Důležitá jsou jen identita jezdce, číslo,"
+" klub a jednoznačná akce."
 msgstr ""
 
 #: rider/templates/rider/rider-inactive.html:124
@@ -4923,7 +4933,8 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:286
 #, python-format
 msgid ""
-"%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd | Nejlépe #%(best)s"
+"%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd | Nejlépe "
+"#%(best)s"
 msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:290
@@ -5013,8 +5024,8 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:406
 msgid ""
-"Podíl výsledků ve vybraném období na této trati, kde jezdec skončil na 1. až "
-"3. místě."
+"Podíl výsledků ve vybraném období na této trati, kde jezdec skončil na 1. až"
+" 3. místě."
 msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:413
@@ -5077,8 +5088,8 @@ msgstr "Help"
 
 #: rider/templates/rider/rider-premium-stats.html:440
 msgid ""
-"Hlavní číslo je medián všech dostupných startových časů na kopci ve vybraném "
-"období. Dole zůstává nejlepší naměřený hill time."
+"Hlavní číslo je medián všech dostupných startových časů na kopci ve vybraném"
+" období. Dole zůstává nejlepší naměřený hill time."
 msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:448
@@ -5192,8 +5203,8 @@ msgstr ""
 msgid ""
 "Pressure score je škála 1 až 100, která porovnává průměrné umístění v motos "
 "a ve finálových jízdách. Hodnota 100 znamená, že jezdec ve finálových "
-"jízdách výrazně zlepšuje výkon oproti motos a zvládá tlak rozhodujících jízd "
-"nadprůměrně dobře. Hodnota 50 znamená přibližně stejný výkon v motos i ve "
+"jízdách výrazně zlepšuje výkon oproti motos a zvládá tlak rozhodujících jízd"
+" nadprůměrně dobře. Hodnota 50 znamená přibližně stejný výkon v motos i ve "
 "finále. Nízké hodnoty znamenají, že ve finálových jízdách proti výkonu z "
 "motos spíš ztrácí. Affinity ukazuje, zda se jezdci na této trati daří lépe, "
 "nebo hůře než obvykle na ostatních tratích. Je to malé číslo v závorce a "
@@ -5208,8 +5219,8 @@ msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:504
 msgid ""
-"Stability score je škála 1 až 100, která kombinuje rozptyl umístění, rozptyl "
-"časů a počet problémových jízd. Hodnota 100 znamená velmi stabilní výkony "
+"Stability score je škála 1 až 100, která kombinuje rozptyl umístění, rozptyl"
+" časů a počet problémových jízd. Hodnota 100 znamená velmi stabilní výkony "
 "bez velkých výkyvů mezi závody a jízdami. Hodnota kolem 50 znamená střední "
 "kolísání výkonu. Nízké hodnoty znamenají, že výkon jezdce je výrazně "
 "proměnlivý a výsledky i časy mezi jízdami více skáčou. Risk pod tím ukazuje "
@@ -5270,7 +5281,8 @@ msgstr ""
 #: rider/templates/rider/rider-premium-stats.html:536
 msgid ""
 "Trend porovnává první a poslední závod v daném období (místo posledních "
-"dvou). Ukazuje celkový posun výkonnosti na této trati za zvolený časový úsek."
+"dvou). Ukazuje celkový posun výkonnosti na této trati za zvolený časový "
+"úsek."
 msgstr ""
 
 #: rider/templates/rider/rider-premium-stats.html:543
@@ -5709,8 +5721,8 @@ msgstr ""
 
 #: rider/templates/rider/trainer-dashboard.html:146
 msgid ""
-"Rozšířené měsíční předplatné pro exporty a návazné trenérské nástroje. Platí "
-"globálně pro trenéra a vztahuje se na všechny kluby s aktivním stats "
+"Rozšířené měsíční předplatné pro exporty a návazné trenérské nástroje. Platí"
+" globálně pro trenéra a vztahuje se na všechny kluby s aktivním stats "
 "předplatným."
 msgstr ""
 
@@ -6162,91 +6174,93 @@ msgstr "Riders, clubs, commissars"
 
 #: theme/templates/homepage.html:3
 msgid "Homepage"
-msgstr ""
+msgstr "Homepage"
 
 #: theme/templates/homepage.html:617
 msgid "Váš prohlížeč nepodporuje video tag."
-msgstr ""
+msgstr "Your browser does not support the video tag."
 
 #: theme/templates/homepage.html:630
 #, fuzzy
 #| msgid "Databáze je čistá"
 msgid "Databáze"
-msgstr "Database is clean"
+msgstr "Database"
 
 #: theme/templates/homepage.html:632
 msgid "aktivních jezdců"
-msgstr ""
+msgstr "active riders"
 
 #: theme/templates/homepage.html:635
 msgid "Zázemí"
-msgstr ""
+msgstr "Facilities"
 
 #: theme/templates/homepage.html:637
 msgid "klubů"
-msgstr ""
+msgstr "clubs"
 
 #: theme/templates/homepage.html:642
 msgid "závodů letos"
-msgstr ""
+msgstr "races this year"
 
 #: theme/templates/homepage.html:652
 msgid "CHAMPIONSHIP BEST RIDERS BY RANKING"
-msgstr ""
+msgstr "CHAMPIONSHIP BEST RIDERS BY RANKING"
 
 #: theme/templates/homepage.html:659
 msgid "Muži"
-msgstr ""
+msgstr "Men"
 
 #: theme/templates/homepage.html:668 theme/templates/homepage.html:709
 msgid "bodů"
-msgstr ""
+msgstr "points"
 
 #: theme/templates/homepage.html:672
 msgid "Zatím bez lídra"
-msgstr ""
+msgstr "No leader yet"
 
 #: theme/templates/homepage.html:673
 msgid "Pro mužské Championship kategorie zatím nejsou k dispozici žádné body."
-msgstr ""
+msgstr "No points available yet for men's championship categories."
 
 #: theme/templates/homepage.html:700
 msgid "Ženy"
-msgstr ""
+msgstr "Women"
 
 #: theme/templates/homepage.html:713
 msgid "Zatím bez lídryně"
-msgstr ""
+msgstr "No leader yet"
 
 #: theme/templates/homepage.html:714
 msgid "Pro ženské Championship kategorie zatím nejsou k dispozici žádné body."
-msgstr ""
+msgstr "No points available yet for women's championship categories."
 
 #: theme/templates/homepage.html:792
 msgid "Kontakt"
-msgstr ""
+msgstr "Contact"
 
 #: theme/templates/homepage.html:794
 msgid "KONTAKTUJTE NÁS"
-msgstr ""
+msgstr "CONTACT US"
 
 #: theme/templates/homepage.html:797
 msgid ""
 "Potřebujete poradit s registrací, licencí nebo organizací závodů? Ozvěte se "
 "BMX komisi napřímo."
 msgstr ""
+"Need help with registration, licence or race organization? Contact the BMX "
+"committee directly."
 
 #: theme/templates/homepage.html:813
 msgid "Nejrychlejší cesta pro dotazy i podklady."
-msgstr ""
+msgstr "The fastest way for queries and materials."
 
 #: theme/templates/homepage.html:833
 msgid "Kancelář"
-msgstr ""
+msgstr "Office"
 
 #: theme/templates/homepage.html:834
 msgid "Administrativní zázemí českého BMX."
-msgstr ""
+msgstr "Administrative headquarters of Czech BMX."
 
 #: theme/templates/homepage.html:835
 msgid "Nad Hliníkem 4, 150 00 Praha 5 - Motol"
@@ -6254,25 +6268,27 @@ msgstr ""
 
 #: theme/templates/homepage.html:851
 msgid "Když je potřeba řešit věci hned."
-msgstr ""
+msgstr "When things need to be resolved immediately."
 
 #: theme/templates/homepage.html:871
 msgid "Partneři"
-msgstr ""
+msgstr "Partners"
 
 #: theme/templates/homepage.html:873
 msgid "JE NÁM CTÍ SPOLUPRACOVAT S"
-msgstr ""
+msgstr "WE ARE PROUD TO WORK WITH"
 
 #: theme/templates/homepage.html:876
 msgid ""
 "Značky a instituce, které pomáhají rozvíjet české BMX od domácích závodů po "
 "mezinárodní scénu."
 msgstr ""
+"Brands and institutions that help develop Czech BMX from domestic races to "
+"the international scene."
 
 #: theme/templates/homepage.html:914
 msgid "Sponzoři budou doplněni."
-msgstr ""
+msgstr "Sponsors will be added soon."
 
 #: theme/templates/homepage.html:935
 msgid "Facebook"
@@ -6284,7 +6300,7 @@ msgstr ""
 
 #: theme/templates/homepage.html:971
 msgid "Všechna práva vyhrazena."
-msgstr ""
+msgstr "All rights reserved."
 
 #: theme/templates/includes/navbar.html:9
 #: theme/templates/includes/navbar.html:12
@@ -6425,7 +6441,8 @@ msgstr "Competition regulations"
 msgid ""
 "Základní přehled pravidel, kategorií a technických požadavků pro BMX Racing."
 msgstr ""
-"Basic overview of rules, categories and technical requirements for BMX Racing."
+"Basic overview of rules, categories and technical requirements for BMX "
+"Racing."
 
 #: theme/templates/rules.html:145
 msgid "Pravidla"
