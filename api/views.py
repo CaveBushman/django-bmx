@@ -461,13 +461,14 @@ class EventDetail(generics.RetrieveUpdateDestroyAPIView):
 # ---------------------------------------------------------------------------
 
 class NewsListAPIView(generics.ListAPIView):
-    queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-publish_date")
+    queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-created_date", "-id")
     serializer_class = NewsSerializer
     permission_classes = [AllowAny]
+    pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["title"]
-    ordering_fields = ["created"]
-    ordering = ["-created"]
+    ordering_fields = ["created_date", "publish_date", "id"]
+    ordering = ["-created_date", "-id"]
 
 
 # ---------------------------------------------------------------------------

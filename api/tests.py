@@ -1,6 +1,8 @@
+from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from io import BytesIO
 from PIL import Image
 from rest_framework.test import APIClient
@@ -9,6 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from event.models import CreditTransaction
+from news.models import News
 
 User = get_user_model()
 
@@ -251,3 +254,54 @@ class RiderListAPITests(TestCase):
         response = self.client.get("/api/riders/")
         self.assertIn("count", response.data)
         self.assertIn("results", response.data)
+
+
+class NewsListAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_news_list_returns_only_articles_published_in_app(self):
+        visible = News.objects.create(
+            title="Visible article",
+            prefix="prefix",
+            content="content",
+            published=True,
+            publish_in_app=True,
+        )
+        News.objects.create(
+            title="Hidden article",
+            prefix="prefix",
+            content="content",
+            published=True,
+            publish_in_app=False,
+        )
+
+        response = self.client.get("/api/news/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.data, list)
+        self.assertEqual([item["id"] for item in response.data], [visible.id])
+
+    def test_news_list_is_not_paginated_and_orders_by_created_date_desc(self):
+        older = News.objects.create(
+            title="Older article",
+            prefix="prefix",
+            content="content",
+            published=True,
+            publish_in_app=True,
+        )
+        newer = News.objects.create(
+            title="Newer article",
+            prefix="prefix",
+            content="content",
+            published=True,
+            publish_in_app=True,
+        )
+        News.objects.filter(pk=older.pk).update(created_date=timezone.now() - timedelta(days=2))
+        News.objects.filter(pk=newer.pk).update(created_date=timezone.now() - timedelta(days=1))
+
+        response = self.client.get("/api/news/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.data, list)
+        self.assertEqual([item["id"] for item in response.data[:2]], [newer.id, older.id])
