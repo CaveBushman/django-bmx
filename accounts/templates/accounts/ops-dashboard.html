@@ -444,7 +444,7 @@
     </div>
 
     {# ── Sekundární kontroly + Duplicity ─────────────────────────────── #}
-    <div class="grid gap-8 xl:grid-cols-[1.4fr_0.9fr]">
+    <div class="grid gap-8 xl:grid-cols-[1.2fr_0.9fr_0.9fr]">
 
       <section class="ops-section p-6 sm:p-8">
         <p class="ops-section-kicker">{% trans "Sekundární kontroly" %}</p>
@@ -492,6 +492,35 @@
         </div>
         {% else %}
         <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">{% trans "Žádné duplicitní e-mailové skupiny." %}</p>
+        {% endif %}
+      </section>
+
+      <section class="ops-section p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="ops-section-kicker">{% trans "Kluby" %}</p>
+            <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Kluby bez managera" %}</h2>
+          </div>
+          {% if clubs_without_manager_count > 0 %}
+          <span class="ops-badge err">{{ clubs_without_manager_count }}</span>
+          {% else %}
+          <span class="ops-badge ok">✓</span>
+          {% endif %}
+        </div>
+        {% if clubs_without_manager %}
+        <div class="mt-4 space-y-2">
+          {% for club in clubs_without_manager %}
+          <a href="{% url 'club:club-detail' pk=club.pk %}" class="ops-item-card block px-4 py-3">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ club.team_name }}</p>
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              {% if club.city %}{{ club.city }}{% else %}{% trans "Bez města" %}{% endif %}
+              {% if club.contact_email %} · {{ club.contact_email }}{% endif %}
+            </p>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">{% trans "Všechny aktivní kluby mají přiřazeného managera." %}</p>
         {% endif %}
       </section>
 

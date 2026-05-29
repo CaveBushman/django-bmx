@@ -203,6 +203,7 @@ def news_detail_view(request, slug):
         'display_content': display_content,
         'display_audio_url': display_audio_url,
         'display_lang': lang,
+        'structured_data': news.get_structured_data(lang),
         "absolute_image_url": request.build_absolute_uri(news.photo_01_url) if news.photo_01_url else None,
     }
     return render(request, 'news/news-detail.html', queryset)

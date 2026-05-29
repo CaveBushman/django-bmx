@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 
 from .forms import McrClubTeamForm
 from .models import Club, McrClubTeam
+from event.models import SeasonSettings
 from rider.models import Rider
 from event.models import Event, Entry
 from .func import riders_on_events
@@ -98,10 +99,29 @@ def _get_managed_club(user):
     return None
 
 
+def is_mcr_club_registration_open(year):
+    season = SeasonSettings.objects.filter(year=year).first()
+    if season is None:
+        return True
+    return bool(season.mcr_club_registration_open)
+
+
+def _render_mcr_registration_closed(request, year, club=None):
+    return render(
+        request,
+        "club/mcr-registration-closed.html",
+        {"year": year, "club": club},
+        status=403,
+    )
+
+
 @login_required
 @mcr_club_teams_required
 def mcr_club_teams_redirect_view(request):
-    return redirect("club:mcr-club-teams", year=date.today().year)
+    current_year = date.today().year
+    if not is_mcr_club_registration_open(current_year):
+        return _render_mcr_registration_closed(request, current_year, _get_managed_club(request.user))
+    return redirect("club:mcr-club-teams", year=current_year)
 
 
 @login_required
@@ -110,6 +130,8 @@ def mcr_club_teams_view(request, year):
     club = _get_managed_club(request.user)
     if club is None:
         return HttpResponseForbidden(_("K účtu není přiřazený klub pro správu družstev."))
+    if not is_mcr_club_registration_open(year):
+        return _render_mcr_registration_closed(request, year, club)
 
     teams = (
         McrClubTeam.objects.filter(year=year, club=club)

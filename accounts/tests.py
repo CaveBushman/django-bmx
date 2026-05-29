@@ -395,6 +395,7 @@ class OpsDashboardTests(TestCase):
 
     def test_ops_dashboard_renders_for_staff(self):
         club = Club.objects.create(team_name="Ops Club")
+        Club.objects.create(team_name="Club Without Manager", city="Praha", contact_email="club-no-manager@example.com")
         AccountActivationAuditLog.objects.create(
             action=AccountActivationAuditLog.Action.SENT,
             source="signup",
@@ -449,6 +450,8 @@ class OpsDashboardTests(TestCase):
         self.assertContains(response, "Souhrn chyb")
         self.assertContains(response, "Závody bez výsledků")
         self.assertContains(response, "Rychlý souhrn")
+        self.assertContains(response, "Kluby bez managera")
+        self.assertContains(response, "Club Without Manager")
 
 
 class AccountRiderLinkTests(TestCase):

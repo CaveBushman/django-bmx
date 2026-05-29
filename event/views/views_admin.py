@@ -46,7 +46,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from django.utils.translation import gettext as _
-from event.models import Event, Entry, EntryForeign, Result, RaceRun
+from event.models import Event, Entry, EntryForeign, Result, RaceRun, SeasonSettings
 from club.models import Club, McrClubTeam, McrClubTeamMember
 from commissar.models import Commissar
 from rider.models import Rider
@@ -144,6 +144,27 @@ def _get_mcr_club_teams_riders_count(event):
         .distinct()
         .count()
     )
+
+
+def _get_mcr_club_team_entry_fee_total(teams_count):
+    return teams_count * 2000
+
+
+def _is_mcr_club_registration_open(year):
+    season = SeasonSettings.objects.filter(year=year).first()
+    if season is None:
+        return True
+    return bool(season.mcr_club_registration_open)
+
+
+def _set_mcr_club_registration_open(year, *, is_open):
+    season = SeasonSettings.objects.filter(year=year).first()
+    if season is None:
+        season = SeasonSettings.objects.create(year=year, mcr_club_registration_open=is_open)
+    else:
+        season.mcr_club_registration_open = is_open
+        season.save(update_fields=["mcr_club_registration_open"])
+    return season
 
 
 def can_access_commissar_pages(user):
@@ -845,16 +866,33 @@ def mcr_club_teams_admin_view(request, pk):
     if not _is_mcr_club_teams_event(event):
         return _render_error_page(request, "Tato stránka je dostupná pouze pro závod Mistrovství ČR družstev.", status=404)
 
+    year = _get_mcr_club_teams_year(event)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "open_registration":
+            _set_mcr_club_registration_open(year, is_open=True)
+            messages.success(request, _("Registrace družstev MČR byla otevřena."))
+            return redirect("event:mcr-club-teams-admin", pk=event.pk)
+        if action == "close_registration":
+            _set_mcr_club_registration_open(year, is_open=False)
+            messages.success(request, _("Registrace družstev MČR byla uzavřena."))
+            return redirect("event:mcr-club-teams-admin", pk=event.pk)
+
     teams = _get_mcr_club_teams_for_event(event)
     teams_count = teams.count()
+    entry_fee_total = _get_mcr_club_team_entry_fee_total(teams_count)
     return render(
         request,
         "event/mcr-club-teams-admin.html",
         {
             "event": event,
-            "year": _get_mcr_club_teams_year(event),
+            "year": year,
+            "teams": teams,
             "teams_count": teams_count,
             "riders_count": _get_mcr_club_teams_riders_count(event),
+            "entry_fee_total": entry_fee_total,
+            "entry_fee_total_display": f"{entry_fee_total:,}".replace(",", " "),
+            "registration_open": _is_mcr_club_registration_open(year),
         },
     )
 
@@ -864,20 +902,7 @@ def mcr_club_teams_roster_view(request, pk):
     event = get_object_or_404(Event.objects.select_related("organizer"), pk=pk)
     if not _is_mcr_club_teams_event(event):
         return _render_error_page(request, "Soupis družstev je dostupný pouze pro závod Mistrovství ČR družstev.", status=404)
-
-    teams = _get_mcr_club_teams_for_event(event)
-    teams_count = teams.count()
-    return render(
-        request,
-        "event/mcr-club-teams-roster.html",
-        {
-            "event": event,
-            "year": _get_mcr_club_teams_year(event),
-            "teams": teams,
-            "teams_count": teams_count,
-            "riders_count": _get_mcr_club_teams_riders_count(event),
-        },
-    )
+    return redirect("event:mcr-club-teams-admin", pk=event.pk)
 
 
 @staff_member_required

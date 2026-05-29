@@ -1668,7 +1668,7 @@ class EventAdminViewTests(TestCase):
         self.assertContains(response, "MČR družstev")
         self.assertContains(response, reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
 
-    def test_mcr_club_teams_roster_orders_teams_by_name(self):
+    def test_mcr_club_teams_admin_shows_roster_ordered_by_name(self):
         self.client.force_login(self.staff_user)
         self.event.type_for_ranking = "Mistrovství ČR družstev"
         self.event.date = date(2026, 6, 1)
@@ -1677,7 +1677,7 @@ class EventAdminViewTests(TestCase):
         zeta = McrClubTeam.objects.create(year=2026, club=self.club, name="Zeta", manager_name="Manager Z")
         McrClubTeamMember.objects.create(team=alpha, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
 
-        response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.id}))
+        response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Soupis přihlášených družstev")
@@ -1685,8 +1685,22 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(team_names, ["Alpha", "Zeta"])
         self.assertEqual(response.context["teams_count"], 2)
         self.assertEqual(response.context["riders_count"], 1)
-        self.assertContains(response, "Czech Rider #33")
+        self.assertContains(response, "Czech Rider")
         self.assertLess(response.content.decode().index("Alpha"), response.content.decode().index("Zeta"))
+
+    def test_mcr_club_teams_roster_route_redirects_to_admin_page(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+
+        response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+        )
 
     def test_mcr_club_teams_control_rejects_non_team_championship(self):
         self.client.force_login(self.staff_user)
@@ -1694,6 +1708,69 @@ class EventAdminViewTests(TestCase):
         response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_mcr_club_teams_admin_can_open_registration_for_event_year(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        SeasonSettings.objects.create(year=2026, mcr_club_registration_open=False)
+
+        response = self.client.post(
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+            {"action": "open_registration"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+        )
+        self.assertTrue(
+            SeasonSettings.objects.get(year=2026).mcr_club_registration_open
+        )
+
+    def test_mcr_club_teams_admin_can_close_registration_for_event_year(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        SeasonSettings.objects.create(year=2026, mcr_club_registration_open=True)
+
+        response = self.client.post(
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+            {"action": "close_registration"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            SeasonSettings.objects.get(year=2026).mcr_club_registration_open
+        )
+
+    def test_mcr_club_teams_admin_defaults_registration_to_open_without_season_settings(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+
+        response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["registration_open"])
+
+    def test_mcr_club_teams_admin_shows_total_entry_fee_in_hero(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        McrClubTeam.objects.create(year=2026, club=self.club, name="Zeta", manager_name="Manager Z")
+
+        response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["entry_fee_total"], 4000)
+        self.assertContains(response, "4 000 Kč")
 
     def test_rem_exports_create_missing_media_directories(self):
         Entry.objects.create(

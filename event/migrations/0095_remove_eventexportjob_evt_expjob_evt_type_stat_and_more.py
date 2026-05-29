@@ -10,20 +10,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveIndex(
-            model_name='eventexportjob',
-            name='evt_expjob_evt_type_stat',
-        ),
-        migrations.RemoveIndex(
-            model_name='eventexportjob',
-            name='event_export_job_created',
-        ),
         migrations.AlterField(
             model_name='eventphoto',
             name='id',
             field=models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
         ),
-        migrations.DeleteModel(
-            name='EventExportJob',
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql='DROP TABLE IF EXISTS "event_eventexportjob";',
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
+            ],
+            state_operations=[
+                migrations.DeleteModel(
+                    name='EventExportJob',
+                ),
+            ],
         ),
     ]

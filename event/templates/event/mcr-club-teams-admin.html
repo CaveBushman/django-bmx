@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Administrace MČR klubů" %}{% endblock title %}
 
@@ -58,11 +58,20 @@
 
   @media (min-width: 640px) {
     .ranking-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
   .ranking-stat {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .mcr-roster-card,
+  .mcr-roster-empty {
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(99, 102, 241, 0.14);
@@ -78,15 +87,71 @@
     background: linear-gradient(180deg, #4338ca, #0ea5e9);
   }
 
+  .mcr-roster-member {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: rgba(248, 250, 252, 0.9);
+  }
+
   .mcr-secondary-button {
     border: 1px solid rgba(203, 213, 225, 0.95);
     background: rgba(255, 255, 255, 0.86);
     color: #334155;
   }
 
+  .mcr-open-button {
+    border: 1px solid #047857;
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 16px 34px rgba(5, 150, 105, 0.24);
+  }
+
+  .mcr-open-button:hover {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  .mcr-print-button {
+    border: 1px solid rgba(220, 38, 38, 0.22);
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 14px 32px rgba(220, 38, 38, 0.22);
+  }
+
+  .mcr-print-button:hover {
+    background: #b91c1c;
+    color: #fff;
+  }
+
+  .mcr-print-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
   .mcr-secondary-button:hover {
     background: #fff;
     color: #0f172a;
+  }
+
+  .mcr-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mcr-status-pill[data-open="true"] {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+  }
+
+  .mcr-status-pill[data-open="false"] {
+    background: rgba(220, 38, 38, 0.12);
+    color: #b91c1c;
   }
 
   html.dark .mcr-admin-page {
@@ -117,16 +182,207 @@
     box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
   }
 
+  html.dark .mcr-roster-card,
+  html.dark .mcr-roster-empty {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: rgba(15, 23, 42, 0.94);
+    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
+  }
+
+  html.dark .mcr-roster-member {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: rgba(2, 6, 23, 0.62);
+  }
+
   html.dark .mcr-secondary-button {
     border-color: rgba(129, 140, 248, 0.36);
     background: rgba(15, 23, 42, 0.82);
     color: #e5e7eb;
   }
 
+  html.dark .mcr-open-button {
+    border-color: #34d399;
+    background: #059669;
+    color: #ffffff;
+  }
+
+  html.dark .mcr-open-button:hover {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  html.dark .mcr-print-button {
+    border-color: rgba(248, 113, 113, 0.48);
+    background: rgba(153, 27, 27, 0.88);
+    color: #fee2e2;
+    box-shadow: 0 18px 38px rgba(127, 29, 29, 0.36);
+  }
+
+  html.dark .mcr-print-button:hover {
+    border-color: rgba(252, 165, 165, 0.62);
+    background: rgba(185, 28, 28, 0.94);
+    color: #fff;
+  }
+
   html.dark .mcr-secondary-button:hover {
     border-color: rgba(165, 180, 252, 0.58);
     background: rgba(30, 41, 59, 0.94);
     color: #fff;
+  }
+
+  html.dark .mcr-status-pill[data-open="true"] {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+  }
+
+  html.dark .mcr-status-pill[data-open="false"] {
+    background: rgba(248, 113, 113, 0.16);
+    color: #fca5a5;
+  }
+
+  @media screen {
+    .mcr-print-heading,
+    .mcr-print-logo,
+    .mcr-fee-checkbox,
+    .mcr-rider-chk,
+    .mcr-team-row {
+      display: none !important;
+    }
+  }
+
+  @media print {
+    .ranking-hero,
+    nav,
+    .mcr-print-actions,
+    .mcr-roster-web-header {
+      display: none !important;
+    }
+
+    @page { margin: 14mm 14mm 12mm; }
+
+    body,
+    .mcr-admin-page {
+      background: #fff !important;
+      color: #000 !important;
+      font-size: 9pt;
+    }
+
+    .mcr-print-heading {
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #111;
+    }
+
+    .mcr-print-logo {
+      display: block !important;
+      height: 44px;
+      width: auto;
+    }
+
+    .mcr-print-heading-text { flex: 1; }
+
+    .mcr-print-heading-label {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #475569;
+    }
+
+    .mcr-print-heading-title {
+      font-size: 13pt;
+      font-weight: 900;
+      margin-top: 2px;
+    }
+
+    .mcr-print-heading-sub {
+      font-size: 7.5pt;
+      color: #64748b;
+      margin-top: 3px;
+    }
+
+    .mcr-roster-card {
+      break-inside: avoid;
+      box-shadow: none !important;
+      border: 1.5px solid #94a3b8 !important;
+      background: #fff !important;
+      color: #000 !important;
+      border-radius: 5px !important;
+      padding: 7px 10px 8px !important;
+      margin-bottom: 7px !important;
+    }
+
+    .mcr-roster-card * { color: #000 !important; }
+
+    .mcr-team-row {
+      display: flex !important;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    .mcr-team-name-wrap { flex: 1; min-width: 0; }
+    .mcr-team-name-print { font-size: 11pt; font-weight: 800; line-height: 1.2; }
+    .mcr-team-meta-print { font-size: 7.5pt; color: #475569 !important; margin-top: 1px; }
+
+    .mcr-fee-checkbox {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      border: 1.5px solid #374151;
+      border-radius: 4px;
+      padding: 2px 7px 2px 5px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .mcr-fee-box {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .mcr-members-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px 10px;
+      margin-top: 5px;
+    }
+
+    .mcr-roster-member {
+      display: flex !important;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 3px !important;
+      background: #f8fafc !important;
+      padding: 3px 6px !important;
+      break-inside: avoid;
+    }
+
+    .mcr-rider-chk {
+      display: inline-block !important;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .mcr-rider-info { flex: 1; min-width: 0; }
+    .mcr-rider-name-print { font-size: 8.5pt; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mcr-rider-meta-print { font-size: 7.5pt; color: #64748b !important; white-space: nowrap; }
+    .mcr-web-only { display: none !important; }
+    .space-y-4 > * + * { margin-top: 0 !important; }
   }
 
 </style>
@@ -144,10 +400,32 @@
             <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
               {{ event.name }} · {{ year }}
             </p>
-            <div class="mt-6 flex flex-wrap gap-3">
-              <a href="{% url 'event:mcr-club-teams-roster' pk=event.pk %}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-500">
-                {% trans "Soupis přihlášených družstev" %}
-              </a>
+            <div class="mt-4">
+              <span class="mcr-status-pill" data-open="{% if registration_open %}true{% else %}false{% endif %}">
+                {% if registration_open %}{% trans "Registrace otevřena" %}{% else %}{% trans "Registrace uzavřena" %}{% endif %}
+              </span>
+            </div>
+            <div class="mcr-print-actions mt-6 flex flex-wrap gap-3">
+              <button type="button" onclick="window.print()" class="mcr-print-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
+                <svg class="mcr-print-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                {% trans "Tisk soupisu" %}
+              </button>
+              <form method="post" class="inline-flex">
+                {% csrf_token %}
+                {% if registration_open %}
+                <button type="submit" name="action" value="close_registration" class="inline-flex items-center justify-center rounded-md bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-red-500">
+                  {% trans "Uzavřít registraci" %}
+                </button>
+                {% else %}
+                <button type="submit" name="action" value="open_registration" class="mcr-open-button inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-bold">
+                  {% trans "Otevřít registraci" %}
+                </button>
+                {% endif %}
+              </form>
               <a href="{% url 'event:event-admin' pk=event.pk %}" class="mcr-secondary-button inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold">
                 {% trans "Zpět do administrace závodu" %}
               </a>
@@ -162,12 +440,79 @@
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Jezdců v soupisech" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ riders_count }}</p>
             </div>
+            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Vybrané startovné" %}</p>
+              <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ entry_fee_total_display }} Kč</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"></main>
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <header class="mcr-print-heading">
+      <div class="mcr-print-heading-text">
+        <p class="mcr-print-heading-label">{% trans "Soupis přihlášených družstev" %}</p>
+        <p class="mcr-print-heading-title">{{ event.name }} &middot; {{ year }}</p>
+        <p class="mcr-print-heading-sub">{{ teams_count }} {% trans "týmů" %} &nbsp;·&nbsp; {{ riders_count }} {% trans "jezdců" %}</p>
+      </div>
+      <img class="mcr-print-logo" src="{% static 'images/logo.png' %}" alt="Czech BMX" />
+    </header>
+
+    <div class="mcr-roster-web-header mb-6 flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Přihlášená družstva" %}</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Soupis přihlášených družstev" %}</h2>
+      </div>
+      <span class="inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ teams_count }}</span>
+    </div>
+
+    <div class="space-y-4">
+      {% for team in teams %}
+      <article class="mcr-roster-card rounded-2xl p-5">
+        <div class="mcr-web-only flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 class="text-xl font-black text-slate-900 dark:text-white">{{ team.name }}</h3>
+            <p class="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {{ team.club.team_name }}{% if team.manager_name %} &nbsp;·&nbsp; {% trans "Manager" %}: {{ team.manager_name }}{% endif %}
+            </p>
+          </div>
+          <span class="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ team.members.all|length }}</span>
+        </div>
+
+        <div class="mcr-team-row">
+          <div class="mcr-team-name-wrap">
+            <p class="mcr-team-name-print">{{ team.name }}</p>
+            <p class="mcr-team-meta-print">{{ team.club.team_name }}{% if team.manager_name %} &nbsp;·&nbsp; {% trans "Manager" %}: {{ team.manager_name }}{% endif %}</p>
+          </div>
+          <span class="mcr-fee-checkbox">
+            <span class="mcr-fee-box"></span>{% trans "startovné uhrazeno" %}
+          </span>
+        </div>
+
+        <div class="mcr-members-grid mt-4 grid gap-2 sm:grid-cols-2">
+          {% for member in team.members.all %}
+          <div class="mcr-roster-member rounded-md px-3 py-2">
+            <span class="mcr-rider-chk" aria-hidden="true"></span>
+            <div class="mcr-rider-info">
+              <p class="mcr-rider-name-print text-sm font-semibold text-slate-900 dark:text-white">
+                {{ member.rider.first_name }} {{ member.rider.last_name }}&nbsp;<span class="font-normal text-slate-500 dark:text-slate-400">#{{ member.rider.plate_display }}</span>
+              </p>
+              <p class="mcr-rider-meta-print mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                {{ member.wheel }}" &nbsp;·&nbsp; UCI {{ member.rider.uci_id }}
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+      {% empty %}
+      <div class="mcr-roster-empty rounded-2xl p-8 text-center">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Pro rok závodu zatím nejsou sestavená žádná družstva." %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
 </div>
 {% endblock content %}

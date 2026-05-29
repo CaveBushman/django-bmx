@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from club.models import Club, McrClubTeam, McrClubTeamMember
-from event.models import Event
+from event.models import Event, SeasonSettings
 from rider.models import Rider
 
 
@@ -198,6 +198,31 @@ class McrClubTeamManagerTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login/", response["Location"])
+
+    def test_page_is_forbidden_when_registration_is_closed_for_year(self):
+        SeasonSettings.objects.create(year=2026, mcr_club_registration_open=False)
+        self.client.force_login(self.manager)
+
+        response = self.client.get(reverse("club:mcr-club-teams", kwargs={"year": 2026}))
+
+        self.assertEqual(response.status_code, 403)
+        content = response.content.decode()
+        self.assertIn("Registrace uzavřena", content)
+        self.assertIn("Registrace družstev MČR pro rok 2026 je momentálně uzavřená.", content)
+
+    def test_current_year_redirect_is_forbidden_when_registration_is_closed(self):
+        SeasonSettings.objects.create(year=date.today().year, mcr_club_registration_open=False)
+        self.client.force_login(self.manager)
+
+        response = self.client.get(reverse("club:mcr-club-teams-current"))
+
+        self.assertEqual(response.status_code, 403)
+        content = response.content.decode()
+        self.assertIn("Registrace uzavřena", content)
+        self.assertIn(
+            f"Registrace družstev MČR pro rok {date.today().year} je momentálně uzavřená.",
+            content,
+        )
 
     def test_team_form_is_hidden_until_user_starts_create_or_edit(self):
         self.client.force_login(self.manager)

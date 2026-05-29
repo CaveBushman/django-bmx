@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .models import Account, AccountActivationAuditLog, AvatarChangeRequest, normalize_account_email
+from club.models import Club
 from bmx.form_protection import (
     build_security_context,
     clear_flow_attempts,
@@ -372,6 +373,14 @@ def ops_dashboard(request):
     from ranking.ranking import get_ranking_recount_status
     from rider.models import Rider
 
+    clubs_without_manager = (
+        Club.objects.filter(is_active=True)
+        .exclude(team_name="Bez klubové příslušnosti")
+        .exclude(managed_users__is_club_manager=True, managed_users__is_active=True)
+        .order_by("team_name")
+        .distinct()
+    )
+
     duplicate_email_groups = (
         Account.objects.annotate(email_lower=Lower("email"))
         .values("email_lower")
@@ -502,6 +511,8 @@ def ops_dashboard(request):
         "checkout_entries_missing_refund_count": checkout_entries_missing_refund.count(),
         "orphan_refunds_count": orphan_refunds.count(),
         "refunds_for_non_checkout_entries_count": refunds_for_non_checkout_entries.count(),
+        "clubs_without_manager": clubs_without_manager[:25],
+        "clubs_without_manager_count": clubs_without_manager.count(),
         "pending_avatar_requests": pending_avatar_requests,
         "pending_avatar_requests_count": AvatarChangeRequest.objects.filter(status=AvatarChangeRequest.STATUS_PENDING).count(),
         "recent_imports": recent_imports,
