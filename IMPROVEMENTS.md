@@ -2,11 +2,11 @@
 
 ## Dokončené úkoly (17. dubna 2026)
 
-### 1. Radikální optimalizace CSS (z 6 MB na < 150 KB) ✅
+### 1. Radikální optimalizace CSS (z 6 MB na 201 KB) ✅
 
 **Problém:** Soubor `styles.css` obsahoval kompletní knihovnu Tailwind bez pročištění, což vedlo k velikosti 6 MB.
 
-**Řešení (World Class Setup):** 
+**Řešení (World Class Setup):**
 - **Tailwind 4.x JIT Engine:** Nastaven build proces tak, aby generoval pouze utility skutečně použité v Django šablonách.
 - **Lightning CSS Pipeline:** Integrován Lightning CSS (již přítomen v `node_modules`) pro pokročilou minifikaci, sdružování (bundling) a odstranění duplicit.
 
