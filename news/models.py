@@ -1,3 +1,4 @@
+import json
 
 from django.db import models, transaction
 from django.dispatch import receiver
@@ -492,6 +493,23 @@ class News (models.Model):
         except (ValueError, OSError):
             pass
         return self.audio_file_url
+
+    def get_structured_data(self, lang="cs"):
+        """Vrátí JSON-LD pro Google News a vyhledávače."""
+        return json.dumps({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": self.get_localized("title", lang),
+            "image": [self.photo_01_url] if self.photo_01_url else [],
+            "datePublished": self.publish_date.isoformat() if self.publish_date else self.created_date.isoformat(),
+            "dateModified": self.created_date.isoformat(),
+            "author": [{
+                "@type": "Person",
+                "name": self.created.get_full_name() if self.created else "Czech BMX"
+            }],
+            "description": strip_tags(self.get_localized("prefix", lang))[:160],
+            "audio": self.get_audio_url(lang) if self.published_audio else None
+        }, ensure_ascii=False)
 
     @staticmethod
     def sum_of_news():

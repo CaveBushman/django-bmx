@@ -191,12 +191,12 @@ body {
     top: 77px;
     left: 0;
     right: 0;
-    background-color: #333;
+    background-color: var(--bg-secondary);
     transition: all 0.3s ease-in-out;
   }
 
   .nav2.active {
-    background-color: #222;
+    background-color: var(--bg-secondary);
     box-shadow: none;
   }
 
