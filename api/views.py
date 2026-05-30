@@ -30,7 +30,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rider.models import Rider, ForeignRider
 from rider.rider import get_rider_data
 from rider.plates import generate_available_plate_values, normalize_plate_value, legacy_plate_int, display_plate
-from event.models import CreditTransaction, Event, Entry
+from event.models import CreditTransaction, Event, Entry, Result
 from event.models_events import Event as EventModel
 from news.models import News
 from club.models import Club
@@ -164,6 +164,36 @@ class RiderDetail(generics.RetrieveAPIView):
     serializer_class = RiderSerializer
     lookup_field = "uci_id"
     permission_classes = [IsAuthenticated]
+
+
+class RiderResultsAPIView(APIView):
+    """Výsledky jezdce za posledních 365 dní."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, uci_id):
+        from datetime import date, timedelta
+        cutoff = date.today() - timedelta(days=365)
+        results = (
+            Result.objects
+            .filter(rider_id=uci_id, date__gte=cutoff, is_beginner=False)
+            .select_related("event")
+            .order_by("-date", "-id")
+        )
+        data = [
+            {
+                "event_id": r.event_id,
+                "event_name": r.event.name if r.event else (r.organizer or ""),
+                "date": r.date.isoformat() if r.date else None,
+                "category": r.category or "",
+                "place": r.place,
+                "points": r.points,
+                "is_20": r.is_20,
+                "marked_20": bool(r.marked_20),
+                "marked_24": bool(r.marked_24),
+            }
+            for r in results
+        ]
+        return Response(data)
 
 
 class RiderNewAPIView(generics.CreateAPIView):

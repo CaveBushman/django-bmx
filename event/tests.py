@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import zipfile
 from unittest.mock import patch
 
+import pikepdf
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
@@ -1771,6 +1772,117 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["entry_fee_total"], 4000)
         self.assertContains(response, "4 000 Kč")
+
+    def test_mcr_club_teams_admin_shows_ops_upload_fields(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        inactive_club = Club.objects.create(team_name="Inactive Club", is_active=False)
+        McrClubTeam.objects.create(year=2026, club=inactive_club, name="Hidden", manager_name="Manager H")
+
+        response = self.client.get(reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "MČR klubů Ops")
+        self.assertContains(response, "Stáhni startovní listinu")
+        self.assertContains(response, "Stáhnout bodovací tabulku")
+        self.assertContains(response, "Tisk výsledků")
+        self.assertContains(response, 'name="club_id"')
+        self.assertContains(response, self.club.team_name)
+        score_club_names = list(response.context["mcr_score_table_clubs"].values_list("team_name", flat=True))
+        self.assertEqual(score_club_names, [self.club.team_name])
+        self.assertNotIn(inactive_club.team_name, score_club_names)
+        self.assertContains(response, 'name="overall_results"')
+        self.assertNotContains(response, 'name="motos_results"')
+        self.assertNotContains(response, 'name="1_4_results"')
+
+    def test_mcr_club_teams_admin_uploads_ops_results_and_redirects_back(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        upload = SimpleUploadedFile(
+            "qf.html",
+            b"<html><body><table></table></body></html>",
+            content_type="text/html",
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.post(
+                    reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+                    {"overall_results": upload},
+                )
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(
+                    response["Location"],
+                    reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+                )
+                stats_dir = Path(media_root) / "event_stats" / str(self.event.id)
+                self.assertTrue((stats_dir / "overall_results__qf.html").exists())
+
+    def test_mcr_club_teams_score_table_downloads_roster_pdf(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+
+        response = self.client.get(
+            reverse("event:mcr-club-teams-score-table", kwargs={"pk": self.event.id}),
+            {"club_id": self.club.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn('filename="mcr-klubu-bodovaci-tabulka-', response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_mcr_club_teams_score_table_requires_selected_active_club(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+
+        response = self.client.get(reverse("event:mcr-club-teams-score-table", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+        )
+
+    def test_mcr_club_teams_results_pdf_downloads_latest_phase_pdf(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+        RaceRun.objects.create(
+            event=self.event,
+            rider=self.rider,
+            round_type="F2",
+            heat_code="SF 1",
+            plate=str(self.rider.plate_display),
+            is_20=True,
+            place="2",
+            qualified_to_next_round=True,
+        )
+
+        response = self.client.get(reverse("event:mcr-club-teams-results-pdf", kwargs={"pk": self.event.id}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn('filename="mcr-klubu-vysledky-', response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))
+        with pikepdf.Pdf.open(BytesIO(response.content)) as pdf:
+            media_box = pdf.pages[0].MediaBox
+            self.assertLess(float(media_box[2]), float(media_box[3]))
 
     def test_rem_exports_create_missing_media_directories(self):
         Entry.objects.create(

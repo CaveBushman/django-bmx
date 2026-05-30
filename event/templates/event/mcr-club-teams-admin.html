@@ -71,7 +71,8 @@
   }
 
   .mcr-roster-card,
-  .mcr-roster-empty {
+  .mcr-roster-empty,
+  .mcr-ops-card {
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(99, 102, 241, 0.14);
@@ -132,6 +133,57 @@
     color: #0f172a;
   }
 
+  .mcr-file-input {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    border-radius: 0.5rem;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.75rem;
+  }
+
+  .mcr-file-input::file-selector-button {
+    margin-right: 0.75rem;
+    border: 0;
+    border-right: 1px solid #cbd5e1;
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 0.55rem 0.8rem;
+    font-weight: 800;
+  }
+
+  .mcr-ops-upload-slot {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(248, 250, 252, 0.82);
+  }
+
+  .mcr-download-disabled {
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    background: #e2e8f0;
+    color: #64748b;
+  }
+
+  .mcr-score-table-picker summary {
+    list-style: none;
+  }
+
+  .mcr-score-table-picker summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mcr-score-table-panel {
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .mcr-select {
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    background: #ffffff;
+    color: #0f172a;
+  }
+
   .mcr-status-pill {
     display: inline-flex;
     align-items: center;
@@ -183,9 +235,10 @@
   }
 
   html.dark .mcr-roster-card,
-  html.dark .mcr-roster-empty {
-    border-color: rgba(51, 65, 85, 0.92);
-    background: rgba(15, 23, 42, 0.94);
+  html.dark .mcr-roster-empty,
+  html.dark .mcr-ops-card {
+    border-color: rgba(71, 85, 105, 0.74);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.82));
     box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
   }
 
@@ -230,6 +283,49 @@
     color: #fff;
   }
 
+  html.dark .mcr-file-input {
+    border-color: rgba(100, 116, 139, 0.85);
+    background: rgba(15, 23, 42, 0.96);
+    color: #e2e8f0;
+  }
+
+  html.dark .mcr-file-input::file-selector-button {
+    border-right-color: rgba(100, 116, 139, 0.85);
+    background: rgba(49, 46, 129, 0.68);
+    color: #e0e7ff;
+  }
+
+  html.dark .mcr-file-input:hover {
+    border-color: rgba(129, 140, 248, 0.7);
+  }
+
+  html.dark .mcr-file-input:hover::file-selector-button {
+    background: rgba(67, 56, 202, 0.8);
+    color: #ffffff;
+  }
+
+  html.dark .mcr-ops-upload-slot {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: rgba(15, 23, 42, 0.58);
+  }
+
+  html.dark .mcr-download-disabled {
+    border-color: rgba(71, 85, 105, 0.72);
+    background: rgba(30, 41, 59, 0.78);
+    color: #94a3b8;
+  }
+
+  html.dark .mcr-score-table-panel {
+    border-color: rgba(71, 85, 105, 0.86);
+    background: rgba(15, 23, 42, 0.98);
+  }
+
+  html.dark .mcr-select {
+    border-color: rgba(100, 116, 139, 0.85);
+    background: rgba(15, 23, 42, 0.96);
+    color: #e2e8f0;
+  }
+
   html.dark .mcr-status-pill[data-open="true"] {
     background: rgba(34, 197, 94, 0.18);
     color: #86efac;
@@ -254,7 +350,8 @@
     .ranking-hero,
     nav,
     .mcr-print-actions,
-    .mcr-roster-web-header {
+    .mcr-roster-web-header,
+    .mcr-ops-section {
       display: none !important;
     }
 
@@ -451,6 +548,77 @@
   </header>
 
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section class="mcr-web-only mcr-ops-section mb-8">
+      <div class="mcr-ops-card rounded-2xl p-5">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "MČR klubů Ops" %}</p>
+            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Startovka a výsledky jízd" %}</h2>
+          </div>
+          <div class="flex shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
+            {% if registration_open %}
+            <button type="button" disabled class="mcr-download-disabled inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
+              <i class="fas fa-file-download" aria-hidden="true"></i>
+              {% trans "Stáhni startovní listinu" %}
+            </button>
+            {% else %}
+            <a href="{% url 'event:mcr-club-teams-rem-entries' pk=event.pk %}" class="inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-500">
+              <i class="fas fa-file-download" aria-hidden="true"></i>
+              {% trans "Stáhni startovní listinu" %}
+            </a>
+            {% endif %}
+            <details class="mcr-score-table-picker relative">
+              <summary class="mcr-secondary-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold">
+                <i class="fas fa-table" aria-hidden="true"></i>
+                {% trans "Stáhnout bodovací tabulku" %}
+              </summary>
+              <form method="get" action="{% url 'event:mcr-club-teams-score-table' pk=event.pk %}" class="mcr-score-table-panel absolute right-0 z-20 mt-2 w-72 rounded-lg p-3 shadow-xl">
+                <label for="mcr-score-club" class="block text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Klub" %}</label>
+                <select id="mcr-score-club" name="club_id" required class="mcr-select mt-2 block w-full rounded-md px-3 py-2 text-sm">
+                  <option value="">{% trans "Vyber klub" %}</option>
+                  {% for club in mcr_score_table_clubs %}
+                  <option value="{{ club.id }}">{{ club.team_name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-500">
+                  <i class="fas fa-download" aria-hidden="true"></i>
+                  {% trans "Tisknout tabulku" %}
+                </button>
+              </form>
+            </details>
+            <a href="{% url 'event:mcr-club-teams-results-pdf' pk=event.pk %}" class="mcr-secondary-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold">
+              <i class="fas fa-print" aria-hidden="true"></i>
+              {% trans "Tisk výsledků" %}
+            </a>
+          </div>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="mt-6">
+          {% csrf_token %}
+          <div class="mcr-ops-upload-slot rounded-lg p-3">
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div>
+                <label for="mcr-ops-results" class="block text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                  {% trans "Nahrát výsledky" %}
+                </label>
+                {% if mcr_ops_results_file %}
+                <p class="mt-1 truncate text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  {% trans "Nahráno:" %} {{ mcr_ops_results_file.original_name }}
+                </p>
+                {% else %}
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "Soubor zatím není nahraný" %}</p>
+                {% endif %}
+                <input id="mcr-ops-results" class="mcr-file-input mt-2" name="overall_results" type="file" accept=".html">
+              </div>
+              <button type="submit" class="mcr-open-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
+                <i class="fas fa-upload" aria-hidden="true"></i>
+                {% trans "Nahrát výsledky" %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
     <header class="mcr-print-heading">
       <div class="mcr-print-heading-text">
         <p class="mcr-print-heading-label">{% trans "Soupis přihlášených družstev" %}</p>
