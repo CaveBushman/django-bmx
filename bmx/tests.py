@@ -58,6 +58,15 @@ class HealthEndpointTests(TestCase):
         self.assertIn("cache unavailable", payload["checks"]["cache"]["error"])
 
 
+class SitemapEndpointTests(TestCase):
+    @override_settings(YOUR_DOMAIN="https://czechbmx.cz")
+    def test_legacy_detailxmlk_redirects_to_current_sitemap(self):
+        response = self.client.get("/detailxmlk.xml")
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response["Location"], "https://czechbmx.cz/sitemap.xml")
+
+
 class SecurityEndpointTests(TestCase):
     @override_settings(CSP_REPORT_RATE_LIMIT_MAX_ATTEMPTS=1, CSP_REPORT_RATE_LIMIT_WINDOW_SECONDS=60)
     @patch("bmx.views.logger.info")

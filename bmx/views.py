@@ -3,7 +3,7 @@ import logging
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponsePermanentRedirect, JsonResponse
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
@@ -115,6 +115,10 @@ def readyz_view(request):
     payload = collect_readiness_checks()
     status_code = 200 if payload["status"] == "ok" else 503
     return JsonResponse(payload, status=status_code)
+
+
+def legacy_sitemap_redirect_view(request):
+    return HttpResponsePermanentRedirect(settings.YOUR_DOMAIN.rstrip("/") + reverse("sitemap"))
 
 
 def sitemap_view(request):
