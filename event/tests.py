@@ -31,10 +31,11 @@ from club.models import Club, McrClubTeam, McrClubTeamMember
 from event.forms import EventPropositionForm
 from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
 from event.credit import recalculate_all_balances
-from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, FinanceAuditLog, SeasonSettings, RaceRun, Result
+from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, EventProposition, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.entry import REMRiders
 from event.services.race_run_import import RaceRunImportService, _extract_tables
+from event.services.rem_tsv_import import RemTsvRaceRunImportService
 from event.services.unpaid_moto_report import build_unpaid_moto_report
 from event.services.uci_export import build_uci_export_rows, generate_uci_export_zip
 from event.services.checkout_refunds import apply_entry_checkout
@@ -1689,19 +1690,20 @@ class EventAdminViewTests(TestCase):
         self.assertContains(response, "Czech Rider")
         self.assertLess(response.content.decode().index("Alpha"), response.content.decode().index("Zeta"))
 
-    def test_mcr_club_teams_roster_route_redirects_to_admin_page(self):
+    def test_mcr_club_teams_roster_route_downloads_native_pdf(self):
         self.client.force_login(self.staff_user)
         self.event.type_for_ranking = "Mistrovství ČR družstev"
         self.event.date = date(2026, 6, 1)
         self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
 
         response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.id}))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response["Location"],
-            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn('filename="mcr-klubu-soupis-druzstev-', response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))
 
     def test_mcr_club_teams_control_rejects_non_team_championship(self):
         self.client.force_login(self.staff_user)
@@ -1786,7 +1788,7 @@ class EventAdminViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "MČR klubů Ops")
-        self.assertContains(response, "Stáhni startovní listinu")
+        self.assertContains(response, "Stáhnout přihlášené jezdce")
         self.assertContains(response, "Stáhnout bodovací tabulku")
         self.assertContains(response, "Tisk výsledků")
         self.assertContains(response, 'name="club_id"')
@@ -1824,23 +1826,61 @@ class EventAdminViewTests(TestCase):
                 stats_dir = Path(media_root) / "event_stats" / str(self.event.id)
                 self.assertTrue((stats_dir / "overall_results__qf.html").exists())
 
-    def test_mcr_club_teams_score_table_downloads_roster_pdf(self):
+    def test_mcr_club_teams_admin_uploads_rem_tsv_into_race_runs(self):
         self.client.force_login(self.staff_user)
         self.event.type_for_ranking = "Mistrovství ČR družstev"
         self.event.date = date(2026, 6, 1)
         self.event.save(update_fields=["type_for_ranking", "date"])
+        tsv = "\t".join([
+            "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "UCIID", "PLATE",
+            "MOTO1_GATE", "MOTO1_LANE", "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_TIME",
+        ])
+        tsv += "\n" + "\t".join([
+            self.event.name, self.rider.first_name, self.rider.last_name, self.club.team_name, "Boys 15-16",
+            str(self.rider.uci_id), self.rider.plate_display, "12", "3", "1st", "8", "1", "31.123",
+        ])
+        upload = SimpleUploadedFile("chip-results.txt", tsv.encode("utf-8"), content_type="text/plain")
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.post(
+                    reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.id}),
+                    {"overall_results": upload},
+                )
+
+                self.assertEqual(response.status_code, 302)
+                run = RaceRun.objects.get(event=self.event, rider=self.rider, round_type="MOTO", round_number=1)
+                self.assertEqual(run.category, "Boys 15-16")
+                self.assertEqual(run.gate, 12)
+                self.assertEqual(run.lane, 3)
+                self.assertEqual(run.place, "1st")
+                self.assertEqual(run.race_points, 8)
+                self.assertEqual(run.finish_time, 31.123)
+
+    def test_mcr_club_teams_score_table_downloads_roster_pdf(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.classes_and_fees_like = EntryClasses.objects.create(event_name="MČR score classes")
+        self.event.save(update_fields=["type_for_ranking", "date", "classes_and_fees_like"])
         team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
         McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+        second_team = McrClubTeam.objects.create(year=2026, club=self.club, name="Beta", manager_name="Manager B")
+        McrClubTeamMember.objects.create(team=second_team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_24, position=1)
 
-        response = self.client.get(
-            reverse("event:mcr-club-teams-score-table", kwargs={"pk": self.event.id}),
-            {"club_id": self.club.id},
-        )
+        with patch("event.views.views_admin.resolve_event_classes", return_value="MČR kategorie") as resolve_mock:
+            response = self.client.get(
+                reverse("event:mcr-club-teams-score-table", kwargs={"pk": self.event.id}),
+                {"club_id": self.club.id},
+            )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn('filename="mcr-klubu-bodovaci-tabulka-', response["Content-Disposition"])
         self.assertTrue(response.content.startswith(b"%PDF"))
+        self.assertEqual(sorted(call.kwargs["is_20"] for call in resolve_mock.call_args_list), [False, True])
+        with pikepdf.Pdf.open(BytesIO(response.content)) as pdf:
+            self.assertEqual(len(pdf.pages), 2)
 
     def test_mcr_club_teams_score_table_requires_selected_active_club(self):
         self.client.force_login(self.staff_user)
@@ -1866,12 +1906,37 @@ class EventAdminViewTests(TestCase):
         RaceRun.objects.create(
             event=self.event,
             rider=self.rider,
+            round_type="MOTO",
+            round_number=1,
+            heat_code="Moto 1",
+            plate=str(self.rider.plate_display),
+            is_20=True,
+            place="1st",
+            race_points=8,
+            qualified_to_next_round=True,
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            rider=self.rider,
+            round_type="MOTO",
+            round_number=2,
+            heat_code="Moto 2",
+            plate=str(self.rider.plate_display),
+            is_20=True,
+            place="2nd",
+            race_points=7,
+            qualified_to_next_round=True,
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            rider=self.rider,
             round_type="F2",
             heat_code="SF 1",
             plate=str(self.rider.plate_display),
             is_20=True,
-            place="2",
-            qualified_to_next_round=True,
+            place="5th",
+            race_points=8,
+            qualified_to_next_round=False,
         )
 
         response = self.client.get(reverse("event:mcr-club-teams-results-pdf", kwargs={"pk": self.event.id}))
@@ -1883,6 +1948,129 @@ class EventAdminViewTests(TestCase):
         with pikepdf.Pdf.open(BytesIO(response.content)) as pdf:
             media_box = pdf.pages[0].MediaBox
             self.assertLess(float(media_box[2]), float(media_box[3]))
+        from event.views.views_admin import _get_mcr_club_results_rows
+        rows = _get_mcr_club_results_rows(self.event, "F2")
+        self.assertEqual(rows[0]["points_total"], 23)
+        self.assertEqual(rows[0]["team"].manager_name, "Manager A")
+        rider_row = rows[0]["rider_results"][0]
+        self.assertEqual(rider_row["points"], 23)
+        self.assertEqual(rider_row["plate"], self.rider.plate_display)
+        self.assertIn("category", rider_row)
+        self.assertEqual(rider_row["runs"]["moto_1"], "1st / 8")
+        self.assertEqual(rider_row["runs"]["moto_2"], "2nd / 7")
+        self.assertEqual(rider_row["runs"]["f2"], "5th / 8")
+        self.assertEqual(rider_row["runs"]["final"], "")
+
+    def test_mcr_club_results_sort_tiebreaks_by_best_rider_points(self):
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        riders = [
+            self.rider,
+            Rider.objects.create(
+                uci_id=10000000011,
+                first_name="Second",
+                last_name="Rider",
+                gender="Muž",
+                date_of_birth=date(2010, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+                plate=34,
+                class_20="Boys 15",
+            ),
+            Rider.objects.create(
+                uci_id=10000000012,
+                first_name="Third",
+                last_name="Rider",
+                gender="Muž",
+                date_of_birth=date(2010, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+                plate=35,
+                class_20="Boys 15",
+            ),
+            Rider.objects.create(
+                uci_id=10000000013,
+                first_name="Fourth",
+                last_name="Rider",
+                gender="Muž",
+                date_of_birth=date(2010, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+                plate=36,
+                class_20="Boys 15",
+            ),
+        ]
+        alpha = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha", manager_name="Manager A")
+        beta = McrClubTeam.objects.create(year=2026, club=self.club, name="Beta", manager_name="Manager B")
+        for index, rider in enumerate(riders[:2], start=1):
+            McrClubTeamMember.objects.create(team=alpha, rider=rider, wheel=McrClubTeamMember.WHEEL_20, position=index)
+        for index, rider in enumerate(riders[2:], start=1):
+            McrClubTeamMember.objects.create(team=beta, rider=rider, wheel=McrClubTeamMember.WHEEL_20, position=index)
+        for rider, points in zip(riders, [6, 4, 5, 5]):
+            RaceRun.objects.create(
+                event=self.event,
+                rider=rider,
+                round_type="MOTO",
+                round_number=1,
+                plate=str(rider.plate_display),
+                is_20=True,
+                race_points=points,
+            )
+
+        from event.views.views_admin import _get_mcr_club_results_rows
+        rows = _get_mcr_club_results_rows(self.event, "MOTO")
+
+        self.assertEqual([row["team"].name for row in rows[:2]], ["Alpha", "Beta"])
+        self.assertEqual(rows[0]["points_total"], rows[1]["points_total"])
+        self.assertEqual(rows[0]["individual_points"], [6, 4])
+        self.assertEqual(rows[1]["individual_points"], [5, 5])
+
+    def test_mcr_club_results_include_four_member_team(self):
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Four Riders", manager_name="Manager A")
+        riders = [self.rider]
+        for index in range(2, 5):
+            riders.append(
+                Rider.objects.create(
+                    uci_id=10000000020 + index,
+                    first_name=f"Rider {index}",
+                    last_name="Test",
+                    gender="Muž",
+                    date_of_birth=date(2010, 1, 1),
+                    club=self.club,
+                    is_active=True,
+                    is_approved=True,
+                    valid_licence=True,
+                    plate=40 + index,
+                    class_20="Boys 15",
+                )
+            )
+        for index, rider in enumerate(riders, start=1):
+            McrClubTeamMember.objects.create(team=team, rider=rider, wheel=McrClubTeamMember.WHEEL_20, position=index)
+            RaceRun.objects.create(
+                event=self.event,
+                rider=rider,
+                round_type="MOTO",
+                round_number=1,
+                plate=str(rider.plate_display),
+                is_20=True,
+                race_points=index,
+            )
+
+        from event.views.views_admin import _get_mcr_club_results_rows
+        rows = _get_mcr_club_results_rows(self.event, "MOTO")
+
+        self.assertEqual(len(rows[0]["rider_results"]), 4)
+        self.assertEqual(rows[0]["points_total"], 10)
 
     def test_rem_exports_create_missing_media_directories(self):
         Entry.objects.create(
@@ -1909,6 +2097,40 @@ class EventAdminViewTests(TestCase):
 
                 entries_path = Path(media_root) / "rem_entries" / f"REM_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx"
                 self.assertTrue(entries_path.exists())
+
+    def test_mcr_club_teams_rem_entries_export_uses_team_name_column(self):
+        self.client.force_login(self.staff_user)
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.classes_and_fees_like = EntryClasses.objects.create(
+            event_name="MČR REM classes",
+            boys_16="MČR Boys 16",
+        )
+        self.event.save(update_fields=["type_for_ranking", "date", "classes_and_fees_like"])
+        self.rider.transponder_20 = "CHIP20"
+        self.rider.save(update_fields=["transponder_20"])
+        SeasonSettings.objects.create(year=2026, mcr_club_registration_open=False)
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha Team", manager_name="Manager A")
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                response = self.client.get(reverse("event:mcr-club-teams-rem-entries", kwargs={"pk": self.event.id}))
+
+                self.assertEqual(response.status_code, 200)
+                content = b"".join(response.streaming_content)
+
+        workbook = load_workbook(BytesIO(content))
+        sheet = workbook.active
+        self.rider.refresh_from_db()
+        self.assertEqual(sheet.cell(1, 6).value, "Team")
+        self.assertEqual(sheet.cell(2, 1).value, self.event.name)
+        self.assertEqual(sheet.cell(2, 5).value, self.club.team_name)
+        self.assertEqual(sheet.cell(2, 6).value, "Alpha Team")
+        self.assertEqual(sheet.cell(2, 10).value, self.rider.uci_id)
+        self.assertEqual(sheet.cell(2, 18).value, "MČR Boys 16")
+        self.assertEqual(sheet.cell(2, 19).value, self.rider.plate_display)
+        self.assertEqual(sheet.cell(2, 20).value, "CHIP20")
 
     def test_bem_exports_create_missing_media_directories(self):
         from event.views.views_admin import _handle_bem_entries, _handle_bem_riders
@@ -3601,6 +3823,83 @@ class RaceRunImportEncodingTests(TestCase):
         self.assertEqual(len(unmatched), 1)
 
 
+class RemTsvRaceRunImportTests(TestCase):
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="TSV Club")
+        self.event = Event.objects.create(
+            name="TSV Race",
+            date=date(2026, 8, 30),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Mistrovství ČR družstev",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10125224253,
+            first_name="Šimon",
+            last_name="Aksamit",
+            gender="Muž",
+            date_of_birth=date(2009, 8, 2),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Men Junior",
+            plate_text="868",
+        )
+
+    def _tsv(self):
+        headers = [
+            "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "TEAM",
+            "SEX", "BIRTHDATE", "UCIID", "PLATE", "TRANSPONDER",
+            "CLASS_RANKING",
+            "MOTO1_GATE", "MOTO1_LANE", "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_TIME",
+            "MOTO2_GATE", "MOTO2_LANE", "MOTO2_PLACE", "MOTO2_RACE_POINTS", "MOTO2_MOTO_POINTS", "MOTO2_TIME",
+            "F4_GATE", "F4_LANE", "F4_PLACE", "F4_RACE_POINTS", "F4_MOTO_POINTS", "F4_TIME",
+            "FINAL_GATE", "FINAL_LANE", "FINAL_PLACE", "FINAL_RACE_POINTS", "FINAL_MOTO_POINTS", "FINAL_TIME",
+        ]
+        values = [
+            self.event.name, "Šimon", "Aksamit", self.club.team_name, "Men Under 23", "Alpha",
+            "M", "02-08-2009", "10125224253", "868", "FP-09060",
+            "9",
+            "48", "6", "3rd", "6", "3", "33.941",
+            "97", "2", "5th", "4", "5", "32.743",
+            "16", "4", "2nd", "7", "2", "31.111",
+            "", "", "", "", "", "",
+        ]
+        return "\t".join(headers) + "\n" + "\t".join(values) + "\n"
+
+    def test_import_file_builds_race_runs_from_rem_tsv_snapshot(self):
+        path = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk), "overall_results__race.txt")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(self._tsv())
+
+        result = RemTsvRaceRunImportService().import_file(self.event, path)
+
+        self.assertEqual(result["created"], 3)
+        self.assertEqual(result["counts_by_round"], {"MOTO": 2, "F4": 1})
+        moto_1 = RaceRun.objects.get(event=self.event, rider=self.rider, round_type="MOTO", round_number=1)
+        self.assertEqual(moto_1.category, "Men Under 23")
+        self.assertEqual(moto_1.plate, "868")
+        self.assertEqual(moto_1.gate, 48)
+        self.assertEqual(moto_1.lane, 6)
+        self.assertEqual(moto_1.place, "3rd")
+        self.assertEqual(moto_1.race_points, 6)
+        self.assertEqual(moto_1.moto_points, 3)
+        self.assertEqual(moto_1.finish_time, 33.941)
+        self.assertTrue(moto_1.qualified_to_next_round)
+        f4 = RaceRun.objects.get(event=self.event, rider=self.rider, round_type="F4")
+        self.assertEqual(f4.place, "2nd")
+        self.assertEqual(f4.race_points, 5)
+        self.assertFalse(f4.qualified_to_next_round)
+
+
 class ImportStatsViewTests(TestCase):
     """Tests for the import_event_stats view (upload, delete, phase warnings)."""
 
@@ -3666,3 +3965,76 @@ class ImportStatsViewTests(TestCase):
         )
         msgs = [m.message for m in get_messages(response.wsgi_request)]
         self.assertTrue(any("Motos" in m for m in msgs))
+
+
+class EventStructuredDataTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(
+            team_name="BMX Klub Praha",
+            street="Dráhová 1",
+            city="Praha",
+            zip_code="10000",
+            web="https://praha.example.com/",
+        )
+        self.event = Event.objects.create(
+            name="Velká cena Prahy",
+            date=date(2026, 6, 20),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+        EventProposition.objects.create(
+            event=self.event,
+            venue_name="BMX dráha Praha",
+            venue_address="Dráhová 1, Praha",
+            summary="<p>Závod Českého poháru v BMX Racing.</p>",
+            is_published=True,
+        )
+
+    def _json_ld_graph(self, response):
+        html = response.content.decode()
+        start_marker = '<script type="application/ld+json">'
+        start = html.index(start_marker) + len(start_marker)
+        end = html.index("</script>", start)
+        data = json.loads(html[start:end].strip())
+        return data.get("@graph", [data])
+
+    def _sports_events(self, response):
+        events = []
+        for item in self._json_ld_graph(response):
+            if item.get("@type") == "SportsEvent":
+                events.append(item)
+            if item.get("@type") == "ItemList":
+                for element in item.get("itemListElement", []):
+                    event = element.get("item")
+                    if event and event.get("@type") == "SportsEvent":
+                        events.append(event)
+        return events
+
+    def assertRichSportsEvent(self, event_data):
+        self.assertEqual(event_data["location"]["@type"], "Place")
+        self.assertEqual(event_data["location"]["name"], "BMX dráha Praha")
+        self.assertEqual(event_data["location"]["address"]["addressCountry"], "CZ")
+        self.assertEqual(event_data["endDate"], "2026-06-20")
+        self.assertTrue(event_data["image"][0].endswith("/static/images/homepage/bmx.png"))
+        self.assertIn("Závod Českého poháru", event_data["description"])
+        self.assertIn("performer", event_data)
+        self.assertEqual(event_data["organizer"]["url"], "https://praha.example.com/")
+        self.assertEqual(event_data["offers"]["@type"], "Offer")
+
+    def test_event_detail_outputs_valid_sports_event_schema_fields(self):
+        response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRichSportsEvent(self._sports_events(response)[0])
+
+    def test_event_list_outputs_valid_sports_event_schema_fields(self):
+        response = self.client.get(reverse("event:events"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRichSportsEvent(self._sports_events(response)[0])
+
+    def test_results_outputs_valid_sports_event_schema_fields(self):
+        response = self.client.get(reverse("event:results", kwargs={"pk": self.event.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRichSportsEvent(self._sports_events(response)[0])

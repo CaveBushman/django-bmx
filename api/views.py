@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.db import transaction as db_tx
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -35,7 +36,7 @@ from event.models_events import Event as EventModel
 from news.models import News
 from club.models import Club
 from rider.serializers import RiderSerializer, ForeignRiderSerializer
-from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer
+from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer, ResultPublicSerializer
 from news.serializer import NewsSerializer
 from club.serializers import ClubSerializer, ClubPublicSerializer
 from accounts.models import Account, AccountActivationAuditLog, AvatarChangeRequest, FcmDevice, normalize_account_email
@@ -118,6 +119,17 @@ logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
 
 
+def _query_bool(value):
+    if value is None:
+        return None
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "y", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "off"}:
+        return False
+    return None
+
+
 def _user_payload(user):
     linked_rider = user.riders.filter(is_active=True).order_by("last_name", "first_name").first()
     return {
@@ -151,7 +163,7 @@ class RiderList(generics.ListAPIView):
         'club__team_name', 'search_text_normalized',
     )
     serializer_class = RiderSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, NormalizedSearchFilter, filters.OrderingFilter]
     filterset_fields = ["club", "class_20", "class_24", "is_20", "is_24", "is_elite", "gender"]
     search_fields = ["search_text_normalized", "=uci_id", "plate_text"]
@@ -160,19 +172,33 @@ class RiderList(generics.ListAPIView):
 
 
 class RiderDetail(generics.RetrieveAPIView):
-    queryset = Rider.objects.all()
+    queryset = Rider.objects.filter(is_active=True).select_related("club").only(
+        'id', 'uci_id', 'first_name', 'middle_name', 'last_name',
+        'nationality', 'gender', 'photo', 'club_id',
+        'is_20', 'is_24', 'is_elite', 'is_active', 'is_approved',
+        'class_20', 'class_24', 'plate_text',
+        'transponder_20', 'transponder_24',
+        'points_20', 'points_24', 'ranking_20', 'ranking_24',
+        'club__team_name',
+    )
     serializer_class = RiderSerializer
     lookup_field = "uci_id"
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 class RiderResultsAPIView(APIView):
-    """Výsledky jezdce za posledních 365 dní."""
-    permission_classes = [IsAuthenticated]
+    """Výsledky jezdce za posledních 12 kalendářních měsíců."""
+    permission_classes = [AllowAny]
 
     def get(self, request, uci_id):
-        from datetime import date, timedelta
-        cutoff = date.today() - timedelta(days=365)
+        from datetime import date
+        today = date.today()
+        try:
+            cutoff = today.replace(year=today.year - 1)
+        except ValueError:
+            # 29. února v přestupném roce → fallback na 28. února
+            cutoff = date(today.year - 1, today.month, 28)
+
         results = (
             Result.objects
             .filter(rider_id=uci_id, date__gte=cutoff, is_beginner=False)
@@ -1347,6 +1373,110 @@ class EventPublicDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.select_related("organizer").prefetch_related("photos")
     serializer_class = EventPublicSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class EventResultsAPIView(APIView):
+    """Výsledky závodu seřazené podle kategorie a místa."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        from event.models_results import Result
+
+        get_object_or_404(Event, pk=pk)
+
+        results = (
+            Result.objects
+            .filter(event_id=pk, is_beginner=False)
+            .order_by('category', 'place')
+        )
+
+        categories_map = {}
+        for r in results:
+            cat = r.category or 'Bez kategorie'
+            if cat not in categories_map:
+                categories_map[cat] = []
+            categories_map[cat].append({
+                'place': r.place,
+                'first_name': r.first_name or '',
+                'last_name': r.last_name or '',
+                'club': r.club or '',
+                'uci_id': r.rider_id,
+                'points': r.points,
+                'is_20': r.is_20,
+            })
+
+        return Response({
+            'event_id': pk,
+            'categories': [
+                {'category': cat, 'results': rows}
+                for cat, rows in categories_map.items()
+            ],
+        })
+
+
+class ResultListAPIView(generics.ListAPIView):
+    """Verzovaný výsledkový feed pro mobilní aplikaci a externí integrace."""
+    serializer_class = ResultPublicSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "club",
+        "category",
+        "event__name",
+        "event__organizer__team_name",
+    ]
+    ordering_fields = [
+        "date",
+        "place",
+        "points",
+        "category",
+        "last_name",
+        "event_id",
+    ]
+    ordering = ["-date", "-event_id", "category", "place", "last_name", "first_name", "id"]
+
+    def get_queryset(self):
+        queryset = (
+            Result.objects
+            .select_related("event", "event__organizer", "rider", "rider__club")
+        )
+
+        event_pk = self.kwargs.get("pk")
+        if event_pk is not None:
+            get_object_or_404(Event, pk=event_pk)
+            queryset = queryset.filter(event_id=event_pk)
+
+        params = self.request.query_params
+        if year := params.get("year"):
+            queryset = queryset.filter(Q(date__year=year) | Q(event__date__year=year))
+        if event_id := params.get("event"):
+            queryset = queryset.filter(event_id=event_id)
+        if uci_id := (params.get("uci_id") or params.get("rider")):
+            queryset = queryset.filter(rider_id=uci_id)
+        if category := params.get("category"):
+            queryset = queryset.filter(category__iexact=category)
+        if club := params.get("club"):
+            queryset = queryset.filter(club__icontains=club)
+        if event_type := (params.get("event_type") or params.get("type_for_ranking")):
+            queryset = queryset.filter(Q(event__type_for_ranking=event_type) | Q(event_type=event_type))
+
+        is_20 = _query_bool(params.get("is_20"))
+        if is_20 is not None:
+            queryset = queryset.filter(is_20=is_20)
+
+        is_24 = _query_bool(params.get("is_24"))
+        if is_24 is True:
+            queryset = queryset.filter(is_20=False, is_beginner=False)
+        elif is_24 is False:
+            queryset = queryset.exclude(is_20=False, is_beginner=False)
+
+        is_beginner = _query_bool(params.get("is_beginner"))
+        if is_beginner is not None:
+            queryset = queryset.filter(is_beginner=is_beginner)
+
+        return queryset
 
 
 class EventEntryRidersAPIView(APIView):

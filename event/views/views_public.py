@@ -5,9 +5,12 @@ Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg str�
 """
 
 import logging
+import json
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import Http404
+from django.urls import reverse
+from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
@@ -43,6 +46,115 @@ def _get_structured_proposition(event):
         return None
 
 
+def _absolute_url(path):
+    domain = django_settings.YOUR_DOMAIN.rstrip("/")
+    if not path:
+        return domain
+    if path.startswith(("http://", "https://")):
+        return path
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return f"{domain}{path}"
+
+
+def _event_end_date(event):
+    if not event.date:
+        return None
+    if getattr(event, "double_race", False):
+        return (event.date + date.resolution).isoformat()
+    return event.date.isoformat()
+
+
+def _event_description(event, proposition=None):
+    if proposition and proposition.summary:
+        description = strip_tags(str(proposition.summary)).strip()
+        if description:
+            return " ".join(description.split())[:320]
+
+    parts = [event.name]
+    if event.organizer:
+        parts.append(f"poradatel {event.organizer}")
+    if event.date:
+        parts.append(f"datum {event.date.strftime('%d.%m.%Y')}")
+    return ". ".join(parts) + ". Detail zavodu BMX Racing na Czech BMX."
+
+
+def _event_location(event, proposition=None):
+    organizer = event.organizer
+    venue_name = (getattr(proposition, "venue_name", "") or "").strip()
+    venue_address = (getattr(proposition, "venue_address", "") or "").strip()
+    location = {
+        "@type": "Place",
+        "name": venue_name or str(organizer or "Czech BMX"),
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "CZ",
+        },
+    }
+
+    if venue_address:
+        location["address"]["streetAddress"] = venue_address
+    elif organizer:
+        if organizer.street:
+            location["address"]["streetAddress"] = organizer.street
+        if organizer.city:
+            location["address"]["addressLocality"] = organizer.city
+        if organizer.zip_code:
+            location["address"]["postalCode"] = organizer.zip_code
+
+    if organizer and organizer.lon and organizer.lng:
+        location["geo"] = {
+            "@type": "GeoCoordinates",
+            "latitude": organizer.lng,
+            "longitude": organizer.lon,
+        }
+    return location
+
+
+def build_event_structured_data(event, *, url=None, proposition=None):
+    proposition = proposition if proposition is not None else _get_structured_proposition(event)
+    if proposition and not proposition.is_published:
+        proposition = None
+    event_url = url or _absolute_url(reverse("event:event-detail", kwargs={"pk": event.id}))
+    organizer = event.organizer
+    organizer_url = ""
+    if organizer:
+        organizer_url = organizer.web or _absolute_url(reverse("club:club-detail", kwargs={"pk": organizer.id}))
+
+    data = {
+        "@type": "SportsEvent",
+        "name": event.name,
+        "startDate": event.date.isoformat() if event.date else "",
+        "endDate": _event_end_date(event) or "",
+        "eventStatus": "https://schema.org/EventCancelled" if event.canceled else "https://schema.org/EventScheduled",
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "location": _event_location(event, proposition),
+        "image": [_absolute_url("/static/images/homepage/bmx.png")],
+        "description": _event_description(event, proposition),
+        "performer": {
+            "@type": "SportsOrganization",
+            "name": "BMX Racing Czech Republic",
+        },
+        "organizer": {
+            "@type": "SportsOrganization",
+            "name": str(organizer or "Czech BMX"),
+            "url": organizer_url or django_settings.YOUR_DOMAIN.rstrip("/"),
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": event_url,
+            "availability": "https://schema.org/InStock",
+            "category": "Registrace",
+        },
+        "url": event_url,
+    }
+    return {key: value for key, value in data.items() if value not in ("", None)}
+
+
+def _event_structured_data_json(event, *, url=None, proposition=None):
+    return json.dumps(build_event_structured_data(event, url=url, proposition=proposition), ensure_ascii=False)
+
+
 def _events_for_year(year):
     return (
         Event.objects.filter(date__year=year)
@@ -56,13 +168,24 @@ def _events_for_year(year):
             "reg_open_from",
             "reg_open_to",
             "canceled",
+            "double_race",
             "uec_link",
             "youtube_link",
             "proposition",
             "html_results",
             "series",
+            "structured_proposition__venue_name",
+            "structured_proposition__venue_address",
+            "structured_proposition__summary",
             "structured_proposition__is_published",
+            "organizer__id",
             "organizer__team_name",
+            "organizer__street",
+            "organizer__city",
+            "organizer__zip_code",
+            "organizer__web",
+            "organizer__lon",
+            "organizer__lng",
             "classes_and_fees_like__event_name",
         )
         .order_by("date")
@@ -93,6 +216,48 @@ def _decorate_events(events):
     return decorated
 
 
+def _event_item_list(events, list_id, name):
+    return {
+        "@type": "ItemList",
+        "@id": list_id,
+        "name": name,
+        "numberOfItems": len(events),
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "url": _absolute_url(reverse("event:event-detail", kwargs={"pk": event.id})),
+                "item": build_event_structured_data(event),
+            }
+            for index, event in enumerate(events, start=1)
+        ],
+    }
+
+
+def _event_list_structured_data_json(events, past_events, hero_description, canonical_url):
+    domain = django_settings.YOUR_DOMAIN.rstrip("/")
+    graph = [
+        {
+            "@type": "CollectionPage",
+            "@id": f"{canonical_url}#collection",
+            "name": "Kalendář závodů Czech BMX",
+            "url": canonical_url,
+            "description": hero_description,
+        },
+        _event_item_list(events, f"{canonical_url}#upcoming-events", "Nadcházející závody"),
+        _event_item_list(past_events, f"{canonical_url}#past-events", "Archiv závodů"),
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": domain},
+                {"@type": "ListItem", "position": 2, "name": "Závody", "item": canonical_url},
+            ],
+        },
+    ]
+    return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
+
+
 def events_list_view(request):
     """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
     year = date.today().year
@@ -120,6 +285,15 @@ def events_list_view(request):
             "season_context": _("Archiv"),
         }
         cache.set(cache_key, data, _CACHE_LONG)
+    data = {
+        **data,
+        "event_list_structured_data_json": _event_list_structured_data_json(
+            data["events"],
+            data["past_events"],
+            data["hero_description"],
+            _absolute_url(request.path),
+        ),
+    }
     return render(request, "event/events-list_new.html", data)
 
 
@@ -166,6 +340,12 @@ def events_list_by_year_view(request, pk):
         "archive_heading": archive_heading,
         "season_context": season_context,
     }
+    data["event_list_structured_data_json"] = _event_list_structured_data_json(
+        data["events"],
+        data["past_events"],
+        data["hero_description"],
+        _absolute_url(request.path),
+    )
     return render(request, "event/events-list_new.html", data)
 
 
@@ -189,6 +369,11 @@ def event_detail_views(request, pk):
         "has_public_proposition": bool(proposition and proposition.is_published),
         "public_proposition": proposition if proposition and proposition.is_published else None,
         "can_edit_proposition": can_manage_event_proposition(request.user, event),
+        "event_structured_data_json": _event_structured_data_json(
+            event,
+            url=_absolute_url(request.path),
+            proposition=proposition,
+        ),
     }
     return render(request, "event/event-detail.html", data)
 
@@ -198,7 +383,10 @@ def results_view(request, pk):
     cache_key = f"results_{pk}"
     data = cache.get(cache_key)
     if data is None:
-        event = get_object_or_404(Event, pk=pk)
+        event = get_object_or_404(
+            Event.objects.select_related("organizer", "structured_proposition"),
+            pk=pk,
+        )
         results = list(
             Result.objects
             .filter(event=pk)
@@ -207,6 +395,16 @@ def results_view(request, pk):
         )
         data = {"results": results, "event": event}
         cache.set(cache_key, data, _CACHE_MEDIUM)
+    event = data["event"]
+    proposition = _get_structured_proposition(event)
+    data = {
+        **data,
+        "event_structured_data_json": _event_structured_data_json(
+            event,
+            url=_absolute_url(reverse("event:event-detail", kwargs={"pk": event.id})),
+            proposition=proposition,
+        ),
+    }
     return render(request, "event/results.html", data)
 
 

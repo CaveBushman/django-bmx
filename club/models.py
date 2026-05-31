@@ -32,6 +32,7 @@ class Club(models.Model):
 
     is_active = models.BooleanField(default=True)
     have_track = models.BooleanField(default=False)
+    opening_hours = models.TextField(blank=True, default='')
     track_id = models.CharField(max_length=255, blank=True)
     mapy_cz_svg = models.CharField(max_length = 50000, null = True, blank=True) 
     lon = models.FloatField(default = 0, null=True, blank = True)

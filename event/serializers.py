@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from event.models import Event, Entry
+from event.models import Event, Entry, Result
 from event.models_events import EventPhoto
 from event.services.registration_status import can_register, can_unregister
 
@@ -79,6 +79,76 @@ class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializ
 
     def get_unregistration_open(self, obj) -> bool:
         return can_unregister(obj)
+
+
+class ResultPublicSerializer(serializers.ModelSerializer):
+    event_name = serializers.SerializerMethodField()
+    event_date = serializers.SerializerMethodField()
+    type_for_ranking = serializers.SerializerMethodField()
+    organizer_id = serializers.SerializerMethodField()
+    organizer_name = serializers.SerializerMethodField()
+    rider_uci_id = serializers.IntegerField(source="rider_id", read_only=True)
+    wheel = serializers.SerializerMethodField()
+    is_24 = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Result
+        fields = [
+            "id",
+            "event",
+            "event_name",
+            "event_date",
+            "event_type",
+            "type_for_ranking",
+            "organizer_id",
+            "organizer_name",
+            "rider_uci_id",
+            "first_name",
+            "last_name",
+            "club",
+            "country",
+            "category",
+            "place",
+            "points",
+            "wheel",
+            "is_20",
+            "is_24",
+            "is_beginner",
+            "marked_20",
+            "marked_24",
+        ]
+
+    def get_event_name(self, obj):
+        if obj.event_id and obj.event:
+            return obj.event.name
+        return obj.organizer or ""
+
+    def get_event_date(self, obj):
+        date_value = obj.event.date if obj.event_id and obj.event else obj.date
+        return date_value.isoformat() if date_value else None
+
+    def get_type_for_ranking(self, obj):
+        if obj.event_id and obj.event:
+            return obj.event.type_for_ranking or ""
+        return obj.event_type or ""
+
+    def get_organizer_id(self, obj):
+        if obj.event_id and obj.event:
+            return obj.event.organizer_id
+        return None
+
+    def get_organizer_name(self, obj):
+        if obj.event_id and obj.event and obj.event.organizer_id and obj.event.organizer:
+            return obj.event.organizer.team_name or ""
+        return obj.organizer or ""
+
+    def get_wheel(self, obj):
+        if obj.is_beginner:
+            return "beginner"
+        return "20" if obj.is_20 else "24"
+
+    def get_is_24(self, obj):
+        return not bool(obj.is_20) and not bool(obj.is_beginner)
 
 
 class EntrySerializer(serializers.ModelSerializer):

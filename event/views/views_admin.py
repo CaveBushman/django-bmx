@@ -69,6 +69,7 @@ from rider.rider import (
 from finance.invoices import generate_event_invoices, send_event_invoices
 from event.prize_money import PrizeMoneyPdfService
 from event.services.race_run_import import RaceRunImportService, START_KEYS, RESULT_KEYS
+from event.services.rem_tsv_import import RemTsvRaceRunImportService
 from event.services.uci_export import (
     generate_uci_export_zip,
     get_missing_uci_competition_codes,
@@ -83,9 +84,11 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Image, KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
@@ -94,6 +97,7 @@ MAX_RESULTS_PDF_SIZE_BYTES = 20 * 1024 * 1024
 CCF_API_TIMEOUT = (5, 20)
 PDF_FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
 PDF_FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
+PDF_LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 COMMISSAR_EXCLUDED_EVENT_TYPES = [
     "Evropský pohár",
@@ -692,6 +696,16 @@ def _handle_rem_entries(request, event):
     return event.rem_entries.path if event.rem_entries else None
 
 
+def _handle_mcr_club_rem_entries(request, event):
+    """Vygeneruje REM soubor s jezdci přihlášenými přes MČR družstva."""
+    all_entries = REMRiders()
+    all_entries.event = event
+    all_entries.create_mcr_club_entries_list()
+    logger.info(f"REM přihlášky MČR družstev vygenerovány pro závod {event.id}")
+    event.refresh_from_db(fields=["rem_entries"])
+    return event.rem_entries.path if event.rem_entries else None
+
+
 def _handle_rem_riders(request, event):
     """Vygeneruje REM soubor se seznamem všech aktivních jezdců."""
     all_riders = REMRiders()
@@ -928,7 +942,179 @@ def mcr_club_teams_roster_view(request, pk):
     event = get_object_or_404(Event.objects.select_related("organizer"), pk=pk)
     if not _is_mcr_club_teams_event(event):
         return _render_error_page(request, "Soupis družstev je dostupný pouze pro závod Mistrovství ČR družstev.", status=404)
-    return redirect("event:mcr-club-teams-admin", pk=event.pk)
+
+    _register_pdf_fonts()
+    teams = list(_get_mcr_club_teams_for_event(event).prefetch_related("members__rider"))
+    teams_count = len(teams)
+    riders_count = _get_mcr_club_teams_riders_count(event)
+    entry_fee_total = _get_mcr_club_team_entry_fee_total(teams_count)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=12 * mm,
+        rightMargin=12 * mm,
+        topMargin=12 * mm,
+        bottomMargin=12 * mm,
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "mcr_roster_title",
+        parent=styles["Heading1"],
+        fontName="DejaVuSans-Bold",
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor("#0f172a"),
+        spaceAfter=2,
+    )
+    subtitle_style = ParagraphStyle(
+        "mcr_roster_subtitle",
+        parent=styles["BodyText"],
+        fontName="DejaVuSans",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#475569"),
+    )
+    team_title_style = ParagraphStyle(
+        "mcr_roster_team_title",
+        parent=styles["BodyText"],
+        fontName="DejaVuSans-Bold",
+        fontSize=10,
+        leading=12,
+        textColor=colors.HexColor("#0f172a"),
+    )
+    cell_style = ParagraphStyle(
+        "mcr_roster_cell",
+        parent=styles["BodyText"],
+        fontName="DejaVuSans",
+        fontSize=7.5,
+        leading=9,
+    )
+    header_style = ParagraphStyle(
+        "mcr_roster_header",
+        parent=cell_style,
+        fontName="DejaVuSans-Bold",
+        textColor=colors.white,
+    )
+
+    story = []
+    header_data = []
+    if os.path.exists(PDF_LOGO_PATH):
+        header_data.append(Image(PDF_LOGO_PATH, width=20 * mm, height=18.3 * mm))
+    header_data.append(
+        [
+            Paragraph("Soupis přihlášených družstev", title_style),
+            Paragraph(f"{event.name} · {_get_mcr_club_teams_year(event)}", subtitle_style),
+        ]
+    )
+    story.append(
+        Table(
+            [header_data],
+            colWidths=[24 * mm, 150 * mm] if len(header_data) == 2 else [174 * mm],
+            style=TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]),
+        )
+    )
+    story.append(Spacer(1, 5 * mm))
+    story.append(
+        Table(
+            [[
+                Paragraph(f"<b>{teams_count}</b><br/>družstev", subtitle_style),
+                Paragraph(f"<b>{riders_count}</b><br/>jezdců", subtitle_style),
+                Paragraph(f"<b>{entry_fee_total:,} Kč</b><br/>startovné".replace(",", " "), subtitle_style),
+            ]],
+            colWidths=[58 * mm, 58 * mm, 58 * mm],
+            style=TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
+                ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor("#cbd5e1")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#cbd5e1")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]),
+        )
+    )
+    story.append(Spacer(1, 6 * mm))
+
+    if not teams:
+        story.append(Paragraph("Pro rok závodu zatím nejsou sestavená žádná družstva.", subtitle_style))
+    for team in teams:
+        team_rows = [[
+            Paragraph("Jezdec", header_style),
+            Paragraph("Kolo", header_style),
+            Paragraph("Číslo", header_style),
+            Paragraph("UCI ID", header_style),
+            Paragraph("Kategorie", header_style),
+            Paragraph("Startovné", header_style),
+        ]]
+        for member in team.members.all():
+            rider = member.rider
+            team_rows.append([
+                Paragraph(f"{rider.first_name} {rider.last_name}", cell_style),
+                Paragraph(f'{member.wheel}"', cell_style),
+                Paragraph(str(rider.plate_display or ""), cell_style),
+                Paragraph(str(rider.uci_id or ""), cell_style),
+                Paragraph(_mcr_member_category(event, member), cell_style),
+                Paragraph("□", cell_style),
+            ])
+
+        team_block = [
+            Table(
+                [[
+                    Paragraph(team.name, team_title_style),
+                    Paragraph(f"{team.club.team_name}<br/>Manager: {team.manager_name or '-'}", subtitle_style),
+                ]],
+                colWidths=[82 * mm, 92 * mm],
+                style=TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#e0f2fe")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#38bdf8")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]),
+            ),
+            Table(
+                team_rows,
+                colWidths=[48 * mm, 12 * mm, 18 * mm, 30 * mm, 44 * mm, 22 * mm],
+                repeatRows=1,
+                style=TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+                    ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#cbd5e1")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+                ]),
+            ),
+            Spacer(1, 4 * mm),
+        ]
+        story.append(KeepTogether(team_block))
+
+    doc.build(story)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="mcr-klubu-soupis-druzstev-{event.id}.pdf"'
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    audit_logger.info(
+        "mcr_club_teams_roster_pdf_downloaded admin_user_id=%s event_id=%s",
+        request.user.id,
+        event.id,
+    )
+    return response
 
 
 @staff_member_required(login_url="/bmx-admin/login/")
@@ -942,7 +1128,8 @@ def mcr_club_teams_rem_entries_view(request, pk):
         messages.warning(request, _("Startovní listinu pro REM lze stáhnout až po uzavření registrace."))
         return redirect("event:mcr-club-teams-admin", pk=event.pk)
 
-    return _download_generated_file(_handle_rem_entries(request, event))
+    audit_logger.info("mcr_club_teams_rem_entries_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
+    return _download_generated_file(_handle_mcr_club_rem_entries(request, event))
 
 
 def _register_pdf_fonts():
@@ -950,6 +1137,115 @@ def _register_pdf_fonts():
         pdfmetrics.registerFont(TTFont("DejaVuSans", PDF_FONT_REGULAR_PATH))
     if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", PDF_FONT_BOLD_PATH))
+
+
+def _mcr_member_category(event, member):
+    if event.classes_and_fees_like_id:
+        return resolve_event_classes(
+            event,
+            member.rider,
+            is_20=member.wheel != McrClubTeamMember.WHEEL_24,
+        ) or ""
+    return ""
+
+
+def _draw_mcr_score_table_page(pdf, event, team):
+    width, height = landscape(A4)
+    margin_x = 12 * mm
+    y = height - 16 * mm
+    table_x = margin_x
+    table_width = width - 2 * margin_x
+    col_widths = [36, 20, 78, 14, 14, 14, 16, 16, 18, 24]
+    scale = table_width / sum(col_widths)
+    col_widths = [value * scale for value in col_widths]
+    headers = ["Kategorie:", "číslo", "jméno", "1", "2", "3", "1/4", "1/2", "finále", "celkem"]
+    members = list(team.members.all())
+    row_heights = [12 * mm] + [15 * mm] * max(4, len(members))
+
+    if os.path.exists(PDF_LOGO_PATH):
+        logo = ImageReader(PDF_LOGO_PATH)
+        logo_width = 28 * mm
+        logo_height = 25.6 * mm
+        pdf.drawImage(
+            logo,
+            width - margin_x - logo_width,
+            height - 13 * mm - logo_height,
+            width=logo_width,
+            height=logo_height,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
+
+    pdf.setFont("DejaVuSans-Bold", 12)
+    pdf.drawString(margin_x, y, "MISTROVSTVÍ ČESKÉ REPUBLIKY KLUBŮ A DRUŽSTEV")
+    y -= 8 * mm
+    pdf.setFont("DejaVuSans-Bold", 11)
+    event_date = event.date.strftime("%-d.%-m.%Y") if event.date else ""
+    pdf.drawString(margin_x, y, f"{event.name.upper()} {event_date}".strip())
+
+    y -= 13 * mm
+    pdf.setFont("DejaVuSans-Bold", 10)
+    pdf.drawString(margin_x, y, "NÁZEV:")
+    pdf.setFont("DejaVuSans", 10)
+    pdf.drawString(margin_x + 24 * mm, y, team.name)
+
+    y -= 8 * mm
+    table_top = y
+    current_y = table_top
+    member_rows = []
+    for member in members:
+        rider = member.rider
+        member_rows.append([
+            _mcr_member_category(event, member),
+            rider.plate_display,
+            f"{rider.first_name} {rider.last_name}",
+            "", "", "", "", "", "", "",
+        ])
+    while len(member_rows) < 4:
+        member_rows.append(["", "", "", "", "", "", "", "", "", ""])
+
+    for row_index, row in enumerate([headers] + member_rows):
+        row_height = row_heights[row_index]
+        current_x = table_x
+        for col_index, value in enumerate(row):
+            col_width = col_widths[col_index]
+            pdf.rect(current_x, current_y - row_height, col_width, row_height, stroke=1, fill=0)
+            pdf.setFont("DejaVuSans-Bold" if row_index == 0 else "DejaVuSans", 8 if col_index >= 3 else 8.5)
+            text = str(value or "")
+            max_width = col_width - 4 * mm
+            while pdf.stringWidth(text, pdf._fontname, pdf._fontsize) > max_width and len(text) > 3:
+                text = text[:-4] + "..."
+            pdf.drawString(current_x + 2 * mm, current_y - row_height + row_height / 2 - 2.2, text)
+            current_x += col_width
+        current_y -= row_height
+
+    y = current_y - 10 * mm
+    pdf.setFont("DejaVuSans-Bold", 10)
+    pdf.drawString(margin_x, y, "MANAGER:")
+    pdf.setFont("DejaVuSans", 10)
+    pdf.drawString(margin_x + 24 * mm, y, team.manager_name)
+
+    y -= 18 * mm
+    key_rows = [
+        ("ROZJÍŽĎKY:", "1-8, 2-7, 3-6, 4-5, 5-4, 6-3, 7-2, 8-1"),
+        ("1/4", "1-5, 2-5, 3-5, 4-5, 5-4, 6-3, 7-2, 8-1"),
+        ("1/2", "1-0, 2-0, 3-0, 4-0, 5-8, 6-6, 7-4, 8-2"),
+        ("FINÁLE:", "1-22, 2-18, 3-15, 4-13, 5-12, 6-11, 7-10, 8-9"),
+    ]
+    for label, value in key_rows:
+        pdf.setFont("DejaVuSans-Bold", 9)
+        pdf.drawString(margin_x, y, label)
+        pdf.setFont("DejaVuSans", 9)
+        pdf.drawString(margin_x + 34 * mm, y, value)
+        y -= 8 * mm
+
+    y -= 3 * mm
+    pdf.setFont("DejaVuSans-Bold", 9)
+    pdf.drawString(margin_x, y, "Klíč:")
+    pdf.setFont("DejaVuSans", 9)
+    pdf.drawString(margin_x + 34 * mm, y, "první číslo je pořadí, v jakém jezdec dojel, za pomlčkou")
+    y -= 7 * mm
+    pdf.drawString(margin_x + 34 * mm, y, "je pak počet bodů, které za jízdu získal")
 
 
 @staff_member_required(login_url="/bmx-admin/login/")
@@ -965,109 +1261,19 @@ def mcr_club_teams_score_table_view(request, pk):
         return redirect("event:mcr-club-teams-admin", pk=event.pk)
 
     _register_pdf_fonts()
+    teams = list(
+        _get_mcr_club_teams_for_event(event)
+        .filter(club=club)
+        .select_related("club")
+        .prefetch_related("members__rider")
+    )
     buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        leftMargin=10 * mm,
-        rightMargin=10 * mm,
-        topMargin=10 * mm,
-        bottomMargin=10 * mm,
-    )
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "mcr_score_title",
-        parent=styles["Heading1"],
-        fontName="DejaVuSans-Bold",
-        fontSize=18,
-        leading=22,
-        textColor=colors.HexColor("#0f172a"),
-        spaceAfter=4,
-    )
-    meta_style = ParagraphStyle(
-        "mcr_score_meta",
-        parent=styles["BodyText"],
-        fontName="DejaVuSans",
-        fontSize=9,
-        leading=12,
-        textColor=colors.HexColor("#475569"),
-    )
-    cell_style = ParagraphStyle(
-        "mcr_score_cell",
-        parent=styles["BodyText"],
-        fontName="DejaVuSans",
-        fontSize=6.5,
-        leading=8,
-    )
-    header_style = ParagraphStyle(
-        "mcr_score_header",
-        parent=cell_style,
-        fontName="DejaVuSans-Bold",
-        textColor=colors.white,
-    )
-    table_data = [[
-        Paragraph(label, header_style)
-        for label in [
-            "Družstvo",
-            "Klub",
-            "Manager",
-            "Jezdec",
-            "Kolo",
-            "Číslo",
-            "UCI ID",
-            "Rozj.",
-            "QF",
-            "SF",
-            "F",
-            "Celkem",
-            "Pozn.",
-        ]
-    ]]
-    for team in _get_mcr_club_teams_for_event(event).filter(club=club).prefetch_related("members__rider"):
-        for member in team.members.all():
-            rider = member.rider
-            table_data.append([
-                Paragraph(str(value or ""), cell_style)
-                for value in [
-                    team.name,
-                    team.club.team_name,
-                    team.manager_name,
-                    f"{rider.first_name} {rider.last_name}",
-                    member.wheel,
-                    rider.plate_display,
-                    rider.uci_id,
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                ]
-            ])
-
-    story = [
-        Paragraph("Bodovací tabulka MČR klubů", title_style),
-        Paragraph(f"{event.name} · {_get_mcr_club_teams_year(event)} · {club.team_name}", meta_style),
-        Spacer(1, 6 * mm),
-        Table(
-            table_data,
-            colWidths=[value * mm for value in [30, 32, 23, 38, 12, 16, 23, 16, 12, 12, 12, 16, 20]],
-            repeatRows=1,
-            style=TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),
-                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#94a3b8")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans-Bold"),
-                ("FONTNAME", (0, 1), (-1, -1), "DejaVuSans"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-                ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]),
-        ),
-    ]
-    doc.build(story)
+    pdf = canvas.Canvas(buffer, pagesize=landscape(A4))
+    for index, team in enumerate(teams):
+        if index:
+            pdf.showPage()
+        _draw_mcr_score_table_page(pdf, event, team)
+    pdf.save()
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="mcr-klubu-bodovaci-tabulka-{event.id}-{club.id}.pdf"'
@@ -1092,6 +1298,15 @@ _MCR_RESULTS_ROUND_LABELS = {
 }
 
 
+def _mcr_result_included_rounds(round_type):
+    if not round_type:
+        return []
+    try:
+        return _MCR_RESULTS_ROUND_ORDER[: _MCR_RESULTS_ROUND_ORDER.index(round_type) + 1]
+    except ValueError:
+        return [round_type]
+
+
 def _get_latest_mcr_results_round(event):
     existing_rounds = set(
         RaceRun.objects.filter(event=event, round_type__in=_MCR_RESULTS_ROUND_ORDER)
@@ -1107,52 +1322,89 @@ def _get_latest_mcr_results_round(event):
 def _format_mcr_run_result(run, round_type):
     if not run:
         return ""
-    if round_type == "MOTO":
-        parts = []
-        if run.moto_points is not None:
-            parts.append(_("{points} b.").format(points=run.moto_points))
-        if run.qualified_to_next_round:
-            parts.append(_("postup"))
-        return ", ".join(parts)
     parts = []
     if run.place:
         parts.append(str(run.place))
+    if run.race_points is not None:
+        parts.append(_("{points} b.").format(points=run.race_points))
     if run.qualified_to_next_round and round_type != "FINAL":
         parts.append(_("postup"))
     return ", ".join(parts)
 
 
+def _format_mcr_run_points_cell(run):
+    if not run:
+        return ""
+    if run.place and run.race_points is not None:
+        return f"{run.place} / {run.race_points}"
+    if run.race_points is not None:
+        return str(run.race_points)
+    return str(run.place or "")
+
+
+def _mcr_runs_breakdown(rider_runs):
+    by_round = {}
+    for run in rider_runs:
+        if run.round_type == "MOTO":
+            key = f"moto_{run.round_number or 1}"
+        else:
+            key = run.round_type
+        by_round[key] = run
+
+    return {
+        "moto_1": _format_mcr_run_points_cell(by_round.get("moto_1")),
+        "moto_2": _format_mcr_run_points_cell(by_round.get("moto_2")),
+        "moto_3": _format_mcr_run_points_cell(by_round.get("moto_3")),
+        "f4": _format_mcr_run_points_cell(by_round.get("F4")),
+        "f2": _format_mcr_run_points_cell(by_round.get("F2")),
+        "final": _format_mcr_run_points_cell(by_round.get("FINAL")),
+    }
+
+
 def _get_mcr_club_results_rows(event, round_type):
-    run_map = {}
+    included_rounds = _mcr_result_included_rounds(round_type)
+    runs_by_rider = {}
+    latest_run_map = {}
     runs = (
-        RaceRun.objects.filter(event=event, round_type=round_type)
+        RaceRun.objects.filter(event=event, round_type__in=included_rounds)
         .select_related("rider")
-        .order_by("rider_id", "round_number", "id")
+        .order_by("rider_id", "round_type", "round_number", "id")
     )
     for run in runs:
         if run.rider_id:
-            run_map[(run.rider_id, bool(run.is_20))] = run
+            key = (run.rider_id, bool(run.is_20))
+            runs_by_rider.setdefault(key, []).append(run)
+            if run.round_type == round_type:
+                latest_run_map[key] = run
 
     rows = []
     for team in _get_mcr_club_teams_for_event(event).prefetch_related("members__rider"):
         rider_results = []
-        moto_points_total = 0
+        points_total = 0
+        individual_points = []
         qualified_count = 0
         active_count = 0
         for member in team.members.all():
             rider = member.rider
-            run = run_map.get((rider.id, member.wheel == McrClubTeamMember.WHEEL_20))
-            if run:
+            key = (rider.id, member.wheel == McrClubTeamMember.WHEEL_20)
+            rider_runs = runs_by_rider.get(key, [])
+            run = latest_run_map.get(key)
+            if rider_runs:
                 active_count += 1
-                if run.qualified_to_next_round:
+                if any(item.qualified_to_next_round for item in rider_runs if item.round_type == round_type):
                     qualified_count += 1
-                if run.moto_points is not None:
-                    moto_points_total += run.moto_points
+                rider_points = sum(item.race_points or 0 for item in rider_runs)
+                points_total += rider_points
+                individual_points.append(rider_points)
+            else:
+                rider_points = 0
             rider_results.append(
                 {
                     "rider": f"{rider.first_name} {rider.last_name}",
-                    "wheel": member.wheel,
                     "plate": rider.plate_display,
+                    "category": _mcr_member_category(event, member),
+                    "runs": _mcr_runs_breakdown(rider_runs),
+                    "points": rider_points,
                     "result": _format_mcr_run_result(run, round_type),
                 }
             )
@@ -1162,11 +1414,12 @@ def _get_mcr_club_results_rows(event, round_type):
                 "rider_results": rider_results,
                 "active_count": active_count,
                 "qualified_count": qualified_count,
-                "moto_points_total": moto_points_total,
+                "points_total": points_total,
+                "individual_points": sorted(individual_points, reverse=True),
             }
         )
 
-    return sorted(rows, key=lambda row: (-row["qualified_count"], row["moto_points_total"], row["team"].name))
+    return sorted(rows, key=lambda row: (-row["points_total"], [-points for points in row["individual_points"]], row["team"].name))
 
 
 @staff_member_required(login_url="/bmx-admin/login/")
@@ -1212,63 +1465,135 @@ def mcr_club_teams_results_pdf_view(request, pk):
         "mcr_results_cell",
         parent=styles["BodyText"],
         fontName="DejaVuSans",
-        fontSize=7,
-        leading=8.5,
+        fontSize=6.7,
+        leading=8,
+    )
+    center_cell_style = ParagraphStyle(
+        "mcr_results_center_cell",
+        parent=cell_style,
+        alignment=1,
+    )
+    points_cell_style = ParagraphStyle(
+        "mcr_results_points_cell",
+        parent=center_cell_style,
+        fontName="DejaVuSans-Bold",
     )
     header_style = ParagraphStyle(
         "mcr_results_header",
         parent=cell_style,
         fontName="DejaVuSans-Bold",
         textColor=colors.white,
+        alignment=1,
+    )
+    team_title_style = ParagraphStyle(
+        "mcr_results_team_title",
+        parent=styles["BodyText"],
+        fontName="DejaVuSans-Bold",
+        fontSize=10.5,
+        leading=12.5,
+        textColor=colors.HexColor("#0f172a"),
+    )
+    points_style = ParagraphStyle(
+        "mcr_results_points",
+        parent=styles["BodyText"],
+        fontName="DejaVuSans-Bold",
+        fontSize=14,
+        leading=16,
+        alignment=1,
+        textColor=colors.HexColor("#1d4ed8"),
     )
 
-    story = [
+    header_cells = []
+    if os.path.exists(PDF_LOGO_PATH):
+        header_cells.append(Image(PDF_LOGO_PATH, width=19 * mm, height=17.4 * mm))
+    header_cells.append([
         Paragraph(title, title_style),
         Paragraph(f"{event.name} · {_get_mcr_club_teams_year(event)} · {phase_label}", meta_style),
-        Spacer(1, 6 * mm),
+    ])
+    story = [
+        Table(
+            [header_cells],
+            colWidths=[23 * mm, 157 * mm] if len(header_cells) == 2 else [180 * mm],
+            style=TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]),
+        ),
+        Spacer(1, 7 * mm),
     ]
 
     if not round_type:
         story.append(Paragraph(_("Zatím nejsou nahrané žádné výsledky jízd."), meta_style))
     else:
-        table_data = [[
-            Paragraph(label, header_style)
-            for label in [_("Družstvo"), _("Klub"), _("Aktivní"), _("Postupuje"), _("Moto body"), _("Jezdci / výsledek fáze")]
-        ]]
-        for row in _get_mcr_club_results_rows(event, round_type):
-            riders_text = "<br/>".join(
-                f"{item['rider']} ({item['wheel']}&quot;, #{item['plate']})"
-                + (f" - {item['result']}" if item["result"] else "")
-                for item in row["rider_results"]
-            )
-            table_data.append([
-                Paragraph(row["team"].name, cell_style),
-                Paragraph(row["team"].club.team_name, cell_style),
-                Paragraph(str(row["active_count"]), cell_style),
-                Paragraph(str(row["qualified_count"]), cell_style),
-                Paragraph(str(row["moto_points_total"]) if round_type == "MOTO" else "", cell_style),
-                Paragraph(riders_text or "", cell_style),
-            ])
+        for position, row in enumerate(_get_mcr_club_results_rows(event, round_type), start=1):
+            rider_table = [[
+                Paragraph(_("Startovní<br/>číslo"), header_style),
+                Paragraph(_("Jméno a<br/>příjmení"), header_style),
+                Paragraph(_("Kategorie"), header_style),
+                Paragraph(_("1"), header_style),
+                Paragraph(_("2"), header_style),
+                Paragraph(_("3"), header_style),
+                Paragraph(_("QF"), header_style),
+                Paragraph(_("SF"), header_style),
+                Paragraph(_("F"), header_style),
+                Paragraph(_("Body"), header_style),
+            ]]
+            for item in row["rider_results"]:
+                runs_breakdown = item["runs"]
+                rider_table.append([
+                    Paragraph(str(item["plate"] or ""), center_cell_style),
+                    Paragraph(item["rider"], cell_style),
+                    Paragraph(item["category"] or "", cell_style),
+                    Paragraph(runs_breakdown["moto_1"], center_cell_style),
+                    Paragraph(runs_breakdown["moto_2"], center_cell_style),
+                    Paragraph(runs_breakdown["moto_3"], center_cell_style),
+                    Paragraph(runs_breakdown["f4"], center_cell_style),
+                    Paragraph(runs_breakdown["f2"], center_cell_style),
+                    Paragraph(runs_breakdown["final"], center_cell_style),
+                    Paragraph(str(item["points"]), points_cell_style),
+                ])
 
-        story.append(
-        Table(
-            table_data,
-            colWidths=[25 * mm, 28 * mm, 13 * mm, 17 * mm, 17 * mm, 80 * mm],
+            team_header = Table(
+                [[
+                    Paragraph(f"{position}. {row['team'].name}", team_title_style),
+                    Paragraph(
+                        f"{row['team'].club.team_name}<br/>Manager: {row['team'].manager_name or '-'}",
+                        meta_style,
+                    ),
+                    Paragraph(f"{row['points_total']}<br/><font size='7'>bodů</font>", points_style),
+                ]],
+                colWidths=[86 * mm, 68 * mm, 36 * mm],
+                style=TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#e0f2fe")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#38bdf8")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]),
+            )
+            members_table = Table(
+                rider_table,
+                colWidths=[20 * mm, 38 * mm, 35 * mm, 13 * mm, 13 * mm, 13 * mm, 14 * mm, 14 * mm, 14 * mm, 16 * mm],
                 repeatRows=1,
                 style=TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),
                     ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#94a3b8")),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans-Bold"),
                     ("FONTNAME", (0, 1), (-1, -1), "DejaVuSans"),
                     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                    ("TOPPADDING", (0, 0), (-1, -1), 4),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                    ("TOPPADDING", (0, 0), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
                 ]),
             )
-        )
+            story.append(KeepTogether([team_header, members_table, Spacer(1, 4 * mm)]))
 
     doc.build(story)
     buffer.seek(0)
@@ -2031,9 +2356,12 @@ def _handle_stats_file_upload(request, event, pk, redirect_to="event:import-stat
     count = 0
     uploaded_labels = []
     parseable_upload = False
+    tsv_upload = False
     for key in request.FILES:
         file = request.FILES[key]
-        if not file.name.lower().endswith(".html"):
+        lower_name = file.name.lower()
+        is_tsv_results = key == "overall_results" and lower_name.endswith(".txt")
+        if not lower_name.endswith(".html") and not is_tsv_results:
             continue
         if file.size > _MAX_STATS_FILE_SIZE:
             messages.warning(
@@ -2050,13 +2378,25 @@ def _handle_stats_file_upload(request, event, pk, redirect_to="event:import-stat
         count += 1
         uploaded_labels.append(_STATS_SECTION_LABELS.get(key, key))
         parseable_upload = parseable_upload or key in START_KEYS or key in RESULT_KEYS
+        tsv_upload = tsv_upload or is_tsv_results
 
     if count > 0:
         messages.success(
             request,
             _("Nahráno ({count}): {names}.").format(count=count, names=", ".join(uploaded_labels)),
         )
-        if parseable_upload:
+        if tsv_upload:
+            latest_tsv = _get_uploaded_stats_by_key(pk).get("overall_results")
+            import_result = {"created": 0, "counts_by_round": {}, "unmatched": []}
+            if latest_tsv:
+                import_result = RemTsvRaceRunImportService().import_file(event, latest_tsv["path"])
+            audit_logger.info(
+                "event_rem_tsv_stats_imported admin_user_id=%s event_id=%s uploaded_files=%s imported_runs=%s",
+                request.user.id, event.id, count, import_result["created"],
+            )
+            messages.info(request, _format_import_message(import_result))
+            _warn_unmatched_riders(request, import_result["unmatched"])
+        elif parseable_upload:
             results_count = Result.objects.filter(event=event).count()
             import_result = RaceRunImportService().import_event_runs(event)
             audit_logger.info(
@@ -2108,6 +2448,7 @@ def _get_uploaded_stats_by_key(pk):
                 "filename": f,
                 "original_name": original_name,
                 "label": _STATS_SECTION_LABELS.get(key, _("Neznámá kategorie")),
+                "path": file_path,
                 "url": f"{settings.MEDIA_URL}event_stats/{pk}/{f}",
                 "created": datetime.datetime.fromtimestamp(os.path.getctime(file_path)),
             }

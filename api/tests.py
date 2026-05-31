@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -10,8 +10,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from event.models import CreditTransaction
+from club.models import Club
+from event.models import CreditTransaction, Event, Result
 from news.models import News
+from rider.models import Rider
 
 User = get_user_model()
 
@@ -305,3 +307,113 @@ class NewsListAPITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, list)
         self.assertEqual([item["id"] for item in response.data[:2]], [newer.id, older.id])
+
+
+class ResultFeedAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.other_club = Club.objects.create(team_name="BMX Brno")
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 5, 10),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+        self.other_event = Event.objects.create(
+            name="Volný závod Brno",
+            date=date(2025, 6, 1),
+            organizer=self.other_club,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=100000001,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            class_20="Boys 14",
+        )
+        self.other_rider = Rider.objects.create(
+            uci_id=100000002,
+            first_name="Eva",
+            last_name="Svobodová",
+            gender="Žena",
+            date_of_birth=date(2011, 1, 1),
+            club=self.other_club,
+            is_active=True,
+            is_approved=True,
+            class_24="Girls 13-16",
+        )
+        self.result = Result.objects.create(
+            event=self.event,
+            date=self.event.date,
+            event_type=self.event.type_for_ranking,
+            organizer=self.club.team_name,
+            rider=self.rider,
+            first_name=self.rider.first_name,
+            last_name=self.rider.last_name,
+            club=self.club.team_name,
+            country="CZE",
+            category="Boys 14",
+            place=1,
+            points=100,
+            is_20=True,
+            marked_20=True,
+        )
+        self.cruiser_result = Result.objects.create(
+            event=self.other_event,
+            date=self.other_event.date,
+            event_type=self.other_event.type_for_ranking,
+            organizer=self.other_club.team_name,
+            rider=self.other_rider,
+            first_name=self.other_rider.first_name,
+            last_name=self.other_rider.last_name,
+            club=self.other_club.team_name,
+            country="CZE",
+            category="Girls 13-16 Cruiser",
+            place=2,
+            points=80,
+            is_20=False,
+            marked_24=True,
+        )
+
+    def test_v1_results_returns_paginated_feed(self):
+        response = self.client.get("/api/v1/results/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        item = response.data["results"][0]
+        self.assertIn("event_name", item)
+        self.assertIn("type_for_ranking", item)
+        self.assertIn("rider_uci_id", item)
+        self.assertIn("wheel", item)
+
+    def test_v1_results_filters_by_year_event_type_and_wheel(self):
+        response = self.client.get(
+            "/api/v1/results/",
+            {"year": "2026", "event_type": "Český pohár", "is_20": "true"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["id"], self.result.id)
+        self.assertEqual(response.data["results"][0]["wheel"], "20")
+
+    def test_v1_results_filters_cruiser_by_is_24(self):
+        response = self.client.get("/api/v1/results/", {"is_24": "true"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["id"], self.cruiser_result.id)
+        self.assertEqual(response.data["results"][0]["wheel"], "24")
+
+    def test_v1_event_results_limits_results_to_event(self):
+        response = self.client.get(f"/api/v1/events/{self.event.id}/results/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["event"], self.event.id)

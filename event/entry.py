@@ -433,3 +433,56 @@ class REMRiders:
         self.event.rem_entries = file_name
         self.event.rem_entries_created = timezone.now()
         self.event.save()
+
+    def create_mcr_club_entries_list(self):
+        from club.models import McrClubTeam, McrClubTeamMember
+
+        file_name = os.path.join(settings.MEDIA_ROOT, "rem_entries", f"REM_MCR_CLUB_ENTRIES_FOR_RACE_ID-{self.event.id}.xlsx")
+        self.first_line()
+        teams = (
+            McrClubTeam.objects
+            .filter(year=self.event.date.year if self.event.date else timezone.now().year)
+            .select_related("club")
+            .prefetch_related("members__rider")
+            .order_by("club__team_name", "name")
+        )
+
+        row = 2
+        for team in teams:
+            for member in team.members.all():
+                rider = member.rider
+                is_cruiser = member.wheel == McrClubTeamMember.WHEEL_24
+                self.ws.cell(row, 1, self.event.name)
+                self.ws.cell(row, 2, rider.first_name)
+                self.ws.cell(row, 3, rider.last_name)
+                self.ws.cell(row, 4, rider.email)
+                self.ws.cell(row, 5, team.club.team_name)
+                self.ws.cell(row, 6, team.name)
+                self.ws.cell(row, 7, rider.nationality)
+                self.ws.cell(row, 8, event.func.date_of_birth_resolve_rem_online(rider.date_of_birth))
+                self.ws.cell(row, 9, event.func.gender_resolve_small_letter(rider.gender))
+                self.ws.cell(row, 10, rider.uci_id)
+                self.ws.cell(row, 11, "E" if rider.is_elite else "C")
+                self.ws.cell(row, 12, "U")
+                self.ws.cell(row, 14, "true")
+                self.ws.cell(row, 15, 0)
+                category = (
+                    event.func.resolve_event_classes(self.event, rider, is_20=not is_cruiser)
+                    if self.event.classes_and_fees_like_id
+                    else ""
+                )
+                self.ws.cell(row, 18, category)
+                if is_cruiser:
+                    plate = ("W" + str(rider.plate_champ_24)) if rider.plate_champ_24 else rider.plate_display
+                    self.ws.cell(row, 21, plate)
+                    self.ws.cell(row, 22, rider.transponder_24)
+                else:
+                    plate = ("W" + str(rider.plate_champ_20)) if rider.plate_champ_20 else rider.plate_display
+                    self.ws.cell(row, 19, plate)
+                    self.ws.cell(row, 20, rider.transponder_20)
+                row += 1
+
+        self._save_workbook(file_name)
+        self.event.rem_entries = file_name
+        self.event.rem_entries_created = timezone.now()
+        self.event.save()

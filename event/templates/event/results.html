@@ -10,17 +10,7 @@
 {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "SportsEvent",
-      "name": "{{ event.name|escapejs }}",
-      "startDate": "{{ event.date|date:'Y-m-d' }}",
-      "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
-      "organizer": {
-        "@type": "SportsOrganization",
-        "name": "{{ event.organizer|default:''|escapejs }}"
-      },
-      "url": "{{ seo_domain }}{% url 'event:event-detail' event.id %}"
-    },
+    {{ event_structured_data_json|safe }},
     {
       "@type": "BreadcrumbList",
       "itemListElement": [

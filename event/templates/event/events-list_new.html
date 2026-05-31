@@ -9,69 +9,7 @@
 {% block twitter_title %}{% trans "Kalendář závodů Czech BMX" %}{% endblock %}
 {% block meta_tags %}
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "CollectionPage",
-      "@id": "{{ seo_canonical_url }}#collection",
-      "name": "{% trans 'Kalendář závodů Czech BMX' %}",
-      "url": "{{ seo_canonical_url }}",
-      "description": "{{ hero_description|escapejs }}"
-    },
-    {
-      "@type": "ItemList",
-      "@id": "{{ seo_canonical_url }}#upcoming-events",
-      "name": "{% trans 'Nadcházející závody' %}",
-      "numberOfItems": {{ events|length }},
-      "itemListOrder": "https://schema.org/ItemListOrderAscending",
-      "itemListElement": [
-        {% for event in events %}
-        {
-          "@type": "ListItem",
-          "position": {{ forloop.counter }},
-          "url": "{% url 'event:event-detail' event.id %}",
-          "item": {
-            "@type": "SportsEvent",
-            "name": "{{ event.name|escapejs }}",
-            "startDate": "{{ event.date|date:'Y-m-d' }}",
-            "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}"
-          }
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ]
-    },
-    {
-      "@type": "ItemList",
-      "@id": "{{ seo_canonical_url }}#past-events",
-      "name": "{% trans 'Archiv závodů' %}",
-      "numberOfItems": {{ past_events|length }},
-      "itemListOrder": "https://schema.org/ItemListOrderAscending",
-      "itemListElement": [
-        {% for event in past_events %}
-        {
-          "@type": "ListItem",
-          "position": {{ forloop.counter }},
-          "url": "{% url 'event:event-detail' event.id %}",
-          "item": {
-            "@type": "SportsEvent",
-            "name": "{{ event.name|escapejs }}",
-            "startDate": "{{ event.date|date:'Y-m-d' }}",
-            "eventStatus": "{% if event.canceled %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}"
-          }
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ]
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Czech BMX", "item": "{{ seo_domain }}"},
-        {"@type": "ListItem", "position": 2, "name": "Závody", "item": "{{ seo_canonical_url }}"}
-      ]
-    }
-  ]
-}
+{{ event_list_structured_data_json|safe }}
 </script>
 {% endblock %}
 

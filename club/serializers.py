@@ -18,7 +18,7 @@ class ClubPublicSerializer(serializers.ModelSerializer):
             'id', 'team_name', 'club_name', 'city', 'region',
             'web', 'facebook', 'instagram',
             'contact_person', 'contact_phone', 'contact_email',
-            'have_track', 'lat', 'lon',
+            'have_track', 'lat', 'lon', 'opening_hours',
         ]
 
     def get_lat(self, obj):

@@ -503,14 +503,14 @@
               </span>
             </div>
             <div class="mcr-print-actions mt-6 flex flex-wrap gap-3">
-              <button type="button" onclick="window.print()" class="mcr-print-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
+              <a href="{% url 'event:mcr-club-teams-roster' pk=event.pk %}" class="mcr-print-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
                 <svg class="mcr-print-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                   <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                   <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 {% trans "Tisk soupisu" %}
-              </button>
+              </a>
               <form method="post" class="inline-flex">
                 {% csrf_token %}
                 {% if registration_open %}
@@ -559,12 +559,12 @@
             {% if registration_open %}
             <button type="button" disabled class="mcr-download-disabled inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
               <i class="fas fa-file-download" aria-hidden="true"></i>
-              {% trans "Stáhni startovní listinu" %}
+              {% trans "Stáhnout přihlášené jezdce" %}
             </button>
             {% else %}
             <a href="{% url 'event:mcr-club-teams-rem-entries' pk=event.pk %}" class="inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-500">
               <i class="fas fa-file-download" aria-hidden="true"></i>
-              {% trans "Stáhni startovní listinu" %}
+              {% trans "Stáhnout přihlášené jezdce" %}
             </a>
             {% endif %}
             <details class="mcr-score-table-picker relative">
@@ -607,7 +607,7 @@
                 {% else %}
                 <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "Soubor zatím není nahraný" %}</p>
                 {% endif %}
-                <input id="mcr-ops-results" class="mcr-file-input mt-2" name="overall_results" type="file" accept=".html">
+                <input id="mcr-ops-results" class="mcr-file-input mt-2" name="overall_results" type="file" accept=".html,.txt">
               </div>
               <button type="submit" class="mcr-open-button inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-bold">
                 <i class="fas fa-upload" aria-hidden="true"></i>

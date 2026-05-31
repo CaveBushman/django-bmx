@@ -47,6 +47,7 @@ urlpatterns = [
     path("events/", views.EventList.as_view(), name="event-list"),
     path("events/<int:pk>/", views.EventPublicDetailAPIView.as_view(), name="event-detail"),
     path("events/<int:pk>/admin/", views.EventDetail.as_view(), name="event-detail-admin"),
+    path("events/<int:pk>/results/", views.EventResultsAPIView.as_view(), name="event-results"),
     path("events/<int:pk>/entry-riders/", views.EventEntryRidersAPIView.as_view(), name="event-entry-riders"),
     path("events/<int:pk>/entry-info/", views.EventEntryInfoAPIView.as_view(), name="event-entry-info"),
     path("events/<int:pk>/enter/", views.EventEnterAPIView.as_view(), name="event-enter"),
@@ -84,6 +85,10 @@ urlpatterns = [
     # Ranking
     path("ranking/categories/", views.RankingCategoryListAPIView.as_view(), name="ranking-category-list"),
     path("ranking/", views.RankingAPIView.as_view(), name="ranking"),
+
+    # API v1 - stable result feed for mobile and external consumers.
+    path("v1/results/", views.ResultListAPIView.as_view(), name="v1-result-list"),
+    path("v1/events/<int:pk>/results/", views.ResultListAPIView.as_view(), name="v1-event-results"),
 
     # OpenAPI schema + Swagger UI — pouze pro adminy
     path("schema/", SpectacularAPIView.as_view(permission_classes=[IsAdminUser]), name="schema"),
