@@ -60,6 +60,20 @@ class Tag(models.Model):
 logger = logging.getLogger(__name__)
 
 
+def _article_author_name(author) -> str:
+    if not author:
+        return "Czech BMX"
+    full_name = " ".join(
+        part.strip()
+        for part in [getattr(author, "first_name", ""), getattr(author, "last_name", "")]
+        if part and part.strip()
+    )
+    if full_name:
+        return full_name
+    username = getattr(author, "username", "") or getattr(author, "email", "")
+    return username or "Czech BMX"
+
+
 def _send_article_push_notification(article_id: int):
     """Odešle push notifikaci o novém článku všem zaregistrovaným zařízením."""
     try:
@@ -502,7 +516,7 @@ class News (models.Model):
             "dateModified": self.created_date.isoformat(),
             "author": [{
                 "@type": "Person",
-                "name": self.created.get_full_name() if self.created else "Czech BMX"
+                "name": _article_author_name(self.created)
             }],
             "description": strip_tags(self.get_localized("prefix", lang))[:160],
             "audio": self.get_audio_url(lang) if self.published_audio else None
@@ -554,6 +568,30 @@ class News (models.Model):
 
         def _enqueue():
             from news.tasks import delete_audio_task, send_push_task
+            translation_newly_publishable = creating or not old_published
+            translation_missing = any(
+                not (getattr(self, f"title_{lang}", "") or "").strip()
+                or not (getattr(self, f"prefix_{lang}", "") or "").strip()
+                or not (getattr(self, f"content_{lang}", "") or "").strip()
+                for lang in _AUDIO_LANGS
+            )
+            translation_content_changed = old_hash != new_hash
+
+            if self.published and (
+                translation_newly_publishable
+                or translation_content_changed
+                or translation_missing
+            ):
+                logger.info(
+                    "[TRANSLATE] Enqueue article %s (creating=%s, published_now=%s, hash_changed=%s, missing=%s)",
+                    self.pk,
+                    creating,
+                    not old_published,
+                    translation_content_changed,
+                    translation_missing,
+                )
+                enqueue_article_translation(self.pk)
+
             if not self.published_audio:
                 # audio vypnuto — smaž soubory pokud byl přechod True → False
                 if old_published_audio:
@@ -568,7 +606,6 @@ class News (models.Model):
                         self.pk, creating, old_hash != new_hash, audio_newly_enabled,
                     )
                     enqueue_article_tts(self.pk)
-                    enqueue_article_translation(self.pk)
 
             # Push notifikace — odešli při prvním publikování do app
             if self.published and self.publish_in_app:

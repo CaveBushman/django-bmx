@@ -1,10 +1,13 @@
 from datetime import date
+import json
 import tempfile
 from unittest.mock import patch
 
+from accounts.models import Account
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.translation import override
 from django_ckeditor_5.widgets import CKEditor5Widget
 from .admin import DownloadsAdminForm, NewsAdminForm
 from .models import Downloads, News
@@ -25,55 +28,7 @@ class RulesViewTests(TestCase):
 
 
 class NewsModelTests(TestCase):
-
-    @patch("news.models.enqueue_article_translation")
-    @patch("news.models.enqueue_article_tts")
-    def test_slug_and_tts_generation_on_save(self, mock_enqueue_tts, mock_enqueue_translation):
-        # 1. Vytvoření nového publikovaného článku
-        with self.captureOnCommitCallbacks(execute=True):
-            article = News.objects.create(
-                title="Testovací článek pro slug",
-                content="Nějaký obsah.",
-                published=True,
-                published_audio=True,
-            )
-
-        # Ověření, že se vygeneroval slug
-        self.assertEqual(article.slug, "testovaci-clanek-pro-slug")
-
-        # Ověření, že se při prvním uložení zaplánovalo generování TTS
-        mock_enqueue_tts.assert_called_once_with(article.pk)
-        mock_enqueue_translation.assert_called_once_with(article.pk)
-
-        # Reset mocku
-        mock_enqueue_tts.reset_mock()
-        mock_enqueue_translation.reset_mock()
-
-        # 2. Uložení článku bez změny obsahu
-        article.on_homepage = True
-        with self.captureOnCommitCallbacks(execute=True):
-            article.save()
-
-        # Ověření, že se TTS generování znovu spustilo, protože článek zatím nemá audio soubor
-        mock_enqueue_tts.assert_called_once_with(article.pk)
-        mock_enqueue_translation.assert_called_once_with(article.pk)
-
-        # Reset mocku
-        mock_enqueue_tts.reset_mock()
-        mock_enqueue_translation.reset_mock()
-
-        # 3. Změna obsahu a uložení
-        article.content = "Nový obsah článku."
-        with self.captureOnCommitCallbacks(execute=True):
-            article.save()
-
-        # Ověření, že se generování TTS spustilo, protože se změnil hash obsahu
-        mock_enqueue_tts.assert_called_once_with(article.pk)
-        mock_enqueue_translation.assert_called_once_with(article.pk)
-
-    @patch("news.tasks.translate_article_task.delay")
-    @patch("news.tasks.generate_audio_task.delay")
-    def test_get_absolute_url_uses_slug(self, mock_generate_audio, mock_translate_article):
+    def test_get_absolute_url_uses_slug(self):
         article = News.objects.create(
             title="Clanek se slugem",
             content="Obsah",
@@ -85,11 +40,57 @@ class NewsModelTests(TestCase):
             reverse("news:news-detail", kwargs={"slug": article.slug}),
         )
 
+    def test_get_structured_data_uses_account_name_without_get_full_name(self):
+        author = Account.objects.create_user(
+            first_name="Jan",
+            last_name="Novák",
+            username="jan.novak",
+            email="jan@example.com",
+            password="test12345",
+        )
+        article = News.objects.create(
+            title="Clanek se autorem",
+            content="Obsah",
+            published=True,
+            created=author,
+        )
+
+        structured_data = json.loads(article.get_structured_data())
+
+        self.assertEqual(structured_data["author"][0]["name"], "Jan Novák")
+
+    @patch("news.models.enqueue_article_translation")
+    @patch("news.models.enqueue_article_tts")
+    def test_save_enqueues_translations_for_published_article_without_audio(self, mock_enqueue_tts, mock_enqueue_translation):
+        with self.captureOnCommitCallbacks(execute=True):
+            article = News.objects.create(
+                title="Testovací článek pro překlad",
+                content="Nějaký obsah.",
+                published=True,
+                published_audio=False,
+            )
+
+        self.assertEqual(article.slug, "testovaci-clanek-pro-preklad")
+        mock_enqueue_translation.assert_called_once_with(article.pk)
+        mock_enqueue_tts.assert_not_called()
+
+    @patch("news.models.enqueue_article_translation")
+    @patch("news.models.enqueue_article_tts")
+    def test_save_enqueues_both_translation_and_tts_when_audio_enabled(self, mock_enqueue_tts, mock_enqueue_translation):
+        with self.captureOnCommitCallbacks(execute=True):
+            article = News.objects.create(
+                title="Publikovaný článek s audiem",
+                content="Nějaký obsah.",
+                published=True,
+                published_audio=True,
+            )
+
+        mock_enqueue_translation.assert_called_once_with(article.pk)
+        mock_enqueue_tts.assert_called_once_with(article.pk)
+
 
 class NewsDetailCanonicalUrlTests(TestCase):
-    @patch("news.tasks.translate_article_task.delay")
-    @patch("news.tasks.generate_audio_task.delay")
-    def test_numeric_legacy_url_redirects_to_slug(self, mock_generate_audio, mock_translate_article):
+    def test_numeric_legacy_url_redirects_to_slug(self):
         article = News.objects.create(
             title="Stary odkaz",
             content="Obsah",
@@ -118,9 +119,7 @@ class NewsAdminFormTests(TestCase):
 
 
 class RichTextSanitizationTests(TestCase):
-    @patch("news.tasks.translate_article_task.delay")
-    @patch("news.tasks.generate_audio_task.delay")
-    def test_news_save_sanitizes_dangerous_html_but_keeps_safe_link(self, mock_generate_audio, mock_translate_article):
+    def test_news_save_sanitizes_dangerous_html_but_keeps_safe_link(self):
         article = News.objects.create(
             title="Sanitized article",
             prefix='<p>Ok</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>',
@@ -146,9 +145,7 @@ class RichTextSanitizationTests(TestCase):
 
 
 class RichTextRenderSafetyTests(TestCase):
-    @patch("news.tasks.translate_article_task.delay")
-    @patch("news.tasks.generate_audio_task.delay")
-    def test_homepage_view_sanitizes_historical_news_prefix(self, mock_generate_audio, mock_translate_article):
+    def test_homepage_view_sanitizes_historical_news_prefix(self):
         article = News.objects.create(
             title="Unsafe homepage article",
             prefix="<p>safe</p>",
@@ -165,6 +162,24 @@ class RichTextRenderSafetyTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "<script>alert(1)</script>", html=False)
         self.assertNotContains(response, "javascript:alert(1)", html=False)
+
+    def test_news_detail_view_falls_back_to_czech_when_translation_is_missing(self):
+        article = News.objects.create(
+            title="Český titulek",
+            prefix="<p>Český perex</p>",
+            content="<p>Český obsah</p>",
+            published=True,
+            title_en="",
+            prefix_en="",
+            content_en="",
+        )
+
+        with override("en"):
+            response = self.client.get(article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Český titulek")
+        self.assertContains(response, "Český obsah")
 
 
 class DownloadsFileDownloadTests(TestCase):
@@ -190,9 +205,7 @@ class DownloadsFileDownloadTests(TestCase):
         document.refresh_from_db()
         self.assertEqual(document.downloads_count, 1)
 
-    @patch("news.tasks.translate_article_task.delay")
-    @patch("news.tasks.generate_audio_task.delay")
-    def test_news_detail_view_sanitizes_historical_news_content(self, mock_generate_audio, mock_translate_article):
+    def test_news_detail_view_sanitizes_historical_news_content(self):
         article = News.objects.create(
             title="Unsafe detail article",
             prefix="<p>prefix</p>",
