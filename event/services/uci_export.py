@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 
 from openpyxl import load_workbook
+from django.db.models import Q
 
 from event.models import RaceRun
 from rider.plates import display_plate
@@ -61,15 +62,21 @@ def build_uci_export_rows(event, rider_class_name):
     final_runs = (
         RaceRun.objects.filter(
             event=event,
-            category__iexact=rider_class_name,
             round_type="FINAL",
         )
+        .filter(
+            Q(category__iexact=rider_class_name)
+            | Q(result__category__iexact=rider_class_name)
+            | Q(rider__class_20__iexact=rider_class_name)
+            | Q(rider__class_24__iexact=rider_class_name)
+        )
         .select_related("rider__club", "result")
-        .exclude(place__isnull=True)
-        .exclude(place="")
     )
 
-    sorted_runs = sorted(final_runs, key=lambda run: _parse_place_int(run.place))
+    sorted_runs = sorted(
+        final_runs,
+        key=lambda run: _parse_place_int(run.place or (run.result.place if run.result else "")),
+    )
 
     rows = []
     subgroup_rank = 0

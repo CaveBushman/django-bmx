@@ -4,7 +4,7 @@ from .models import Rider, ForeignRider
 class RiderSerializer(serializers.ModelSerializer):
     club_name = serializers.SerializerMethodField()
 
-    def get_club_name(self, obj):
+    def get_club_name(self, obj) -> str | None:
         return obj.club.team_name if obj.club_id and obj.club else None
 
     class Meta:

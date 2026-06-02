@@ -1,3 +1,5 @@
+import hashlib
+
 from django.shortcuts import render
 from django.core.cache import cache
 from django.conf import settings as django_settings
@@ -86,12 +88,15 @@ def ranking_view(request):
         'categories_count': len(categories),
     })
 
-    cache_key = f"ranking_{category_value}"
-    cached = cache.get(cache_key)
+    category_cache_key = hashlib.sha256(category_value.encode("utf-8")).hexdigest()[:16]
+    cache_key = f"ranking:{category_cache_key}:{int(invalid_category)}"
+    use_cache = not django_settings.DEBUG
+    cached = cache.get(cache_key) if use_cache else None
     if cached is None:
         # Materializujeme queryset před uložením do cache
         data['results'] = list(data['results'])
-        cache.set(cache_key, data, _CACHE_MEDIUM)
+        if use_cache:
+            cache.set(cache_key, data, _CACHE_MEDIUM)
     else:
         data = cached
 

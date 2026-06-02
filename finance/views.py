@@ -28,8 +28,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
 
-# Create your views here.
-
 def _is_finance_admin(user):
     return user.is_authenticated and user.is_admin
 

@@ -116,7 +116,7 @@ class CommissionTaskViewTests(TestCase):
         response = self.client.get(reverse("todo:task-list"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Ukoly komise BMX")
+        self.assertContains(response, "Úkoly komise BMX")
         self.assertContains(response, self.mine_task.title)
 
     def test_regular_user_is_redirected_from_task_board(self):

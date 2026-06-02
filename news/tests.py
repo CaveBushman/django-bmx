@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django_ckeditor_5.widgets import CKEditor5Widget
 from .admin import DownloadsAdminForm, NewsAdminForm
-from .models import Downloads, News, _generate_audio
+from .models import Downloads, News
 from event.models import SeasonSettings
 
 
@@ -26,24 +26,28 @@ class RulesViewTests(TestCase):
 
 class NewsModelTests(TestCase):
 
-    @patch('news.models._EXECUTOR.submit')
-    def test_slug_and_tts_generation_on_save(self, mock_submit):
+    @patch("news.models.enqueue_article_translation")
+    @patch("news.models.enqueue_article_tts")
+    def test_slug_and_tts_generation_on_save(self, mock_enqueue_tts, mock_enqueue_translation):
         # 1. Vytvoření nového publikovaného článku
         with self.captureOnCommitCallbacks(execute=True):
             article = News.objects.create(
                 title="Testovací článek pro slug",
                 content="Nějaký obsah.",
-                published=True
+                published=True,
+                published_audio=True,
             )
 
         # Ověření, že se vygeneroval slug
         self.assertEqual(article.slug, "testovaci-clanek-pro-slug")
 
         # Ověření, že se při prvním uložení zaplánovalo generování TTS
-        mock_submit.assert_called_once_with(_generate_audio, article.pk)
+        mock_enqueue_tts.assert_called_once_with(article.pk)
+        mock_enqueue_translation.assert_called_once_with(article.pk)
 
         # Reset mocku
-        mock_submit.reset_mock()
+        mock_enqueue_tts.reset_mock()
+        mock_enqueue_translation.reset_mock()
 
         # 2. Uložení článku bez změny obsahu
         article.on_homepage = True
@@ -51,10 +55,12 @@ class NewsModelTests(TestCase):
             article.save()
 
         # Ověření, že se TTS generování znovu spustilo, protože článek zatím nemá audio soubor
-        mock_submit.assert_called_once_with(_generate_audio, article.pk)
+        mock_enqueue_tts.assert_called_once_with(article.pk)
+        mock_enqueue_translation.assert_called_once_with(article.pk)
 
         # Reset mocku
-        mock_submit.reset_mock()
+        mock_enqueue_tts.reset_mock()
+        mock_enqueue_translation.reset_mock()
 
         # 3. Změna obsahu a uložení
         article.content = "Nový obsah článku."
@@ -62,10 +68,12 @@ class NewsModelTests(TestCase):
             article.save()
 
         # Ověření, že se generování TTS spustilo, protože se změnil hash obsahu
-        mock_submit.assert_called_once_with(_generate_audio, article.pk)
+        mock_enqueue_tts.assert_called_once_with(article.pk)
+        mock_enqueue_translation.assert_called_once_with(article.pk)
 
-    @patch('news.models._EXECUTOR.submit')
-    def test_get_absolute_url_uses_slug(self, mock_submit):
+    @patch("news.tasks.translate_article_task.delay")
+    @patch("news.tasks.generate_audio_task.delay")
+    def test_get_absolute_url_uses_slug(self, mock_generate_audio, mock_translate_article):
         article = News.objects.create(
             title="Clanek se slugem",
             content="Obsah",
@@ -79,8 +87,9 @@ class NewsModelTests(TestCase):
 
 
 class NewsDetailCanonicalUrlTests(TestCase):
-    @patch('news.models._EXECUTOR.submit')
-    def test_numeric_legacy_url_redirects_to_slug(self, mock_submit):
+    @patch("news.tasks.translate_article_task.delay")
+    @patch("news.tasks.generate_audio_task.delay")
+    def test_numeric_legacy_url_redirects_to_slug(self, mock_generate_audio, mock_translate_article):
         article = News.objects.create(
             title="Stary odkaz",
             content="Obsah",
@@ -109,8 +118,9 @@ class NewsAdminFormTests(TestCase):
 
 
 class RichTextSanitizationTests(TestCase):
-    @patch('news.models._EXECUTOR.submit')
-    def test_news_save_sanitizes_dangerous_html_but_keeps_safe_link(self, mock_submit):
+    @patch("news.tasks.translate_article_task.delay")
+    @patch("news.tasks.generate_audio_task.delay")
+    def test_news_save_sanitizes_dangerous_html_but_keeps_safe_link(self, mock_generate_audio, mock_translate_article):
         article = News.objects.create(
             title="Sanitized article",
             prefix='<p>Ok</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>',
@@ -136,8 +146,9 @@ class RichTextSanitizationTests(TestCase):
 
 
 class RichTextRenderSafetyTests(TestCase):
-    @patch('news.models._EXECUTOR.submit')
-    def test_homepage_view_sanitizes_historical_news_prefix(self, mock_submit):
+    @patch("news.tasks.translate_article_task.delay")
+    @patch("news.tasks.generate_audio_task.delay")
+    def test_homepage_view_sanitizes_historical_news_prefix(self, mock_generate_audio, mock_translate_article):
         article = News.objects.create(
             title="Unsafe homepage article",
             prefix="<p>safe</p>",
@@ -179,8 +190,9 @@ class DownloadsFileDownloadTests(TestCase):
         document.refresh_from_db()
         self.assertEqual(document.downloads_count, 1)
 
-    @patch('news.models._EXECUTOR.submit')
-    def test_news_detail_view_sanitizes_historical_news_content(self, mock_submit):
+    @patch("news.tasks.translate_article_task.delay")
+    @patch("news.tasks.generate_audio_task.delay")
+    def test_news_detail_view_sanitizes_historical_news_content(self, mock_generate_audio, mock_translate_article):
         article = News.objects.create(
             title="Unsafe detail article",
             prefix="<p>prefix</p>",

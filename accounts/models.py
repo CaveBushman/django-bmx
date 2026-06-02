@@ -21,9 +21,6 @@ DEFAULT_ACCOUNT_PHOTO_PATHS = (
 )
 
 
-# Create your models here.
-
-
 def normalize_account_email(email):
     return (email or "").strip().lower()
 

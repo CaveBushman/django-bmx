@@ -243,10 +243,10 @@ class RiderListAPITests(TestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
-    def test_rider_list_requires_authentication(self):
+    def test_rider_list_is_public(self):
         self.client.credentials()
         response = self.client.get("/api/riders/")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 200)
 
     def test_authenticated_user_can_access_rider_list(self):
         response = self.client.get("/api/riders/")

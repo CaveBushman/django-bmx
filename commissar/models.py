@@ -3,9 +3,6 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 
-# Create your models here.
-
-
 class Commissar(models.Model):
     LEVEL = (('UCI rozhodčí', 'UCI rozhodčí'), ('Elite National Commissar', 'Elite National Commissar'),
              ('Národní rozhodčí', 'Národní rozhodčí'), ('', ''))

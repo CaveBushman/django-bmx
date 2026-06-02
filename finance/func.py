@@ -20,15 +20,15 @@ def calculate_stripe_fee(year):
     return STRIPE_MODEL.objects.filter(date__year=year).aggregate(total=Sum("fee"))["total"] or 0
 
 def czech_cup_avg(year):
-    """Průměrný počet jezdců na závodech Českého poháru — TODO."""
-    pass
+    """Průměrný počet jezdců na závodech Českého poháru."""
+    raise NotImplementedError("Výpočet průměru Českého poháru zatím není implementovaný.")
 
 
 def czech_league_avg(year):
-    """Průměrný počet jezdců na závodech České ligy — TODO."""
-    pass
+    """Průměrný počet jezdců na závodech České ligy."""
+    raise NotImplementedError("Výpočet průměru České ligy zatím není implementovaný.")
 
 
 def moravian_league_avg(year):
-    """Průměrný počet jezdců na závodech Moravské ligy — TODO."""
-    pass
+    """Průměrný počet jezdců na závodech Moravské ligy."""
+    raise NotImplementedError("Výpočet průměru Moravské ligy zatím není implementovaný.")

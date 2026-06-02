@@ -15,6 +15,7 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.core import mail
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
@@ -3969,6 +3970,7 @@ class ImportStatsViewTests(TestCase):
 
 class EventStructuredDataTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.club = Club.objects.create(
             team_name="BMX Klub Praha",
             street="Dráhová 1",
@@ -4010,6 +4012,12 @@ class EventStructuredDataTests(TestCase):
                         events.append(event)
         return events
 
+    def _sports_event_by_name(self, response, name):
+        return next(
+            event for event in self._sports_events(response)
+            if event.get("name") == name
+        )
+
     def assertRichSportsEvent(self, event_data):
         self.assertEqual(event_data["location"]["@type"], "Place")
         self.assertEqual(event_data["location"]["name"], "BMX dráha Praha")
@@ -4031,7 +4039,9 @@ class EventStructuredDataTests(TestCase):
         response = self.client.get(reverse("event:events"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertRichSportsEvent(self._sports_events(response)[0])
+        self.assertRichSportsEvent(
+            self._sports_event_by_name(response, self.event.name)
+        )
 
     def test_results_outputs_valid_sports_event_schema_fields(self):
         response = self.client.get(reverse("event:results", kwargs={"pk": self.event.pk}))

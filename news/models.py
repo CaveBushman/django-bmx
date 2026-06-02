@@ -50,9 +50,6 @@ TTS_SECTION_TITLE = "NADPIS."
 TTS_SECTION_BODY = "TEXT."
 
 
-
-# Create your models here.
-
 class Tag(models.Model):
     caption=models.CharField(max_length=20)
 

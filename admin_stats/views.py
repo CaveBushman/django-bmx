@@ -29,10 +29,10 @@ def visit_stats(request):
     visits_yesterday = Visit.objects.filter(timestamp__gte=yesterday_start, timestamp__lt=today_start).count()
 
     device_counts = list(
-        qs.values('device_type').annotate(count=Count('id')).order_by('-count')
+        qs.values('device_type').annotate(count=Count('id')).order_by('-count', 'device_type')
     )
     country_counts = list(
-        qs.values('location').annotate(count=Count('id')).order_by('-count')
+        qs.values('location').annotate(count=Count('id')).order_by('-count', 'location')
     )
     top_pages = list(
         qs.exclude(path__isnull=True).exclude(path='')

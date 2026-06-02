@@ -23,8 +23,6 @@ class AccountRiderLinkInline(admin.TabularInline):
     verbose_name = "Navázaný jezdec"
     verbose_name_plural = "Navázaní jezdci"
 
-# Register your models here.
-
 class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
     list_display = ('email', 'last_name', 'first_name', 'club', 'is_club_manager', 'is_trainer', 'last_login', 'date_joined', 'is_active')
     list_display_links = ('email',)

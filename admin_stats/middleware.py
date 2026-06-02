@@ -36,6 +36,10 @@ def _lookup_country(ip):
 
 class VisitMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        if settings.DEBUG:
+            return
+        if request.path.startswith("/admin-stats/"):
+            return
         if request.path.startswith("/csp-report/"):
             return
         if request.path.endswith(_IGNORED_EXTENSIONS):

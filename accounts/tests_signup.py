@@ -76,6 +76,7 @@ class SignUpTests(TestCase):
             email="existing@example.com",
             password="StrongPass123!",
         )
+        User.objects.filter(email="existing@example.com").update(is_active=True)
 
         response = self.client.post(
             reverse("accounts:signup"),

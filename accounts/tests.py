@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.cache import cache
 from django.core import mail
 from django.core.management import call_command
 from django.core.exceptions import ValidationError
@@ -29,6 +30,7 @@ User = get_user_model()
 
 class RememberMeLoginTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.password = "StrongPass123!"
         self.factory = RequestFactory()
         self.user = User.objects.create_user(
@@ -115,7 +117,7 @@ class RememberMeLoginTests(TestCase):
         )
 
         self.assertEqual(challenge_response.status_code, 400)
-        self.assertContains(challenge_response, "human_check_answer")
+        self.assertContains(challenge_response, "human_check_answer", status_code=400)
 
     def test_login_inactive_account_shows_activation_message(self):
         self.user.is_active = False
@@ -288,6 +290,7 @@ class AccountEmailNormalizationTests(TestCase):
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class PasswordResetTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.password = "StrongPass123!"
         self.user = User.objects.create_user(
             first_name="Reset",
@@ -335,7 +338,7 @@ class PasswordResetTests(TestCase):
         blocked = self.client.post(url, self.reset_payload())
 
         self.assertEqual(blocked.status_code, 400)
-        self.assertContains(blocked, "human_check_answer")
+        self.assertContains(blocked, "human_check_answer", status_code=400)
 
 
 class PendingActivationCleanupCommandTests(TestCase):

@@ -20,13 +20,14 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django_filters.rest_framework import DjangoFilterBackend
 from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError, features
-from rest_framework import generics, status, filters
+from rest_framework import generics, status, filters, serializers
 from bmx.search_filters import NormalizedSearchFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, inline_serializer
 
 from rider.models import Rider, ForeignRider
 from rider.rider import get_rider_data
@@ -53,6 +54,44 @@ from ranking.ranking import Categories
 
 _AVATAR_MAX_BYTES = 5 * 1024 * 1024
 _AVATAR_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+ErrorSerializer = inline_serializer(
+    name="ApiError",
+    fields={"error": serializers.CharField()},
+)
+DetailSerializer = inline_serializer(
+    name="ApiDetail",
+    fields={"detail": serializers.CharField()},
+)
+OkSerializer = inline_serializer(
+    name="ApiOk",
+    fields={"ok": serializers.BooleanField()},
+)
+BalanceSerializer = inline_serializer(
+    name="ApiBalance",
+    fields={
+        "ok": serializers.BooleanField(),
+        "new_balance": serializers.IntegerField(),
+    },
+)
+UserPayloadSerializer = inline_serializer(
+    name="ApiUserPayload",
+    fields={
+        "id": serializers.IntegerField(),
+        "email": serializers.EmailField(),
+        "first_name": serializers.CharField(allow_blank=True),
+        "last_name": serializers.CharField(allow_blank=True),
+        "credit": serializers.IntegerField(),
+        "is_staff": serializers.BooleanField(),
+        "is_rider": serializers.BooleanField(),
+        "is_commissar": serializers.BooleanField(),
+        "is_trainer": serializers.BooleanField(),
+        "is_club_manager": serializers.BooleanField(),
+        "photo_url": serializers.CharField(allow_blank=True, allow_null=True),
+        "rider_uci_id": serializers.IntegerField(allow_null=True),
+    },
+)
 
 
 def _validate_avatar_image(uploaded_file):
@@ -190,6 +229,23 @@ class RiderResultsAPIView(APIView):
     """Výsledky jezdce za posledních 12 kalendářních měsíců."""
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="RiderResult",
+            many=True,
+            fields={
+                "event_id": serializers.IntegerField(allow_null=True),
+                "event_name": serializers.CharField(allow_blank=True),
+                "date": serializers.DateField(allow_null=True),
+                "category": serializers.CharField(allow_blank=True),
+                "place": serializers.IntegerField(allow_null=True),
+                "points": serializers.IntegerField(allow_null=True),
+                "is_20": serializers.BooleanField(),
+                "marked_20": serializers.BooleanField(),
+                "marked_24": serializers.BooleanField(),
+            },
+        )
+    )
     def get(self, request, uci_id):
         from datetime import date
         today = date.today()
@@ -236,6 +292,7 @@ class RiderLicenseAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, uci_id):
         is_commissar = getattr(request.user, 'is_commissar', False)
         is_admin = (
@@ -356,6 +413,12 @@ class PlateRequestFreePlatesAPIView(APIView):
     """Returns the ordered list of currently available plate numbers."""
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="PlateRequestFreePlates",
+            fields={"free_plates": serializers.ListField(child=serializers.CharField())},
+        )
+    )
     def get(self, request):
         used = [
             display_plate(pt, p, fallback="")
@@ -368,6 +431,26 @@ class PlateRequestLookupAPIView(APIView):
     """Looks up a UCI ID against the Czech cycling federation and returns rider data."""
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("uci_id", OpenApiTypes.STR, OpenApiParameter.QUERY, required=True),
+        ],
+        responses={
+            200: inline_serializer(
+                name="PlateRequestLookup",
+                fields={
+                    "uci_id": serializers.CharField(),
+                    "first_name": serializers.CharField(allow_blank=True),
+                    "last_name": serializers.CharField(allow_blank=True),
+                    "date_of_birth": serializers.DateField(allow_null=True),
+                    "gender": serializers.CharField(),
+                },
+            ),
+            400: ErrorSerializer,
+            404: ErrorSerializer,
+            409: ErrorSerializer,
+        },
+    )
     def get(self, request):
         uci_id = (request.GET.get("uci_id") or "").strip()
         if not uci_id.isdigit() or len(uci_id) != 11:
@@ -401,6 +484,26 @@ class PlateRequestAPIView(APIView):
     """Creates a new plate-number request (Rider with is_approved=False)."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="PlateRequestCreateRequest",
+            fields={
+                "uci_id": serializers.CharField(),
+                "first_name": serializers.CharField(),
+                "last_name": serializers.CharField(),
+                "date_of_birth": serializers.DateField(),
+                "gender": serializers.CharField(default="Muž"),
+                "plate": serializers.CharField(),
+                "club_id": serializers.IntegerField(),
+                "is_20": serializers.BooleanField(default=False),
+                "is_24": serializers.BooleanField(default=False),
+                "is_elite": serializers.BooleanField(default=False),
+                "emergency_contact": serializers.CharField(),
+                "emergency_phone": serializers.CharField(),
+            },
+        ),
+        responses={201: RiderSerializer, 400: ErrorSerializer, 409: ErrorSerializer},
+    )
     def post(self, request):
         data = request.data
 
@@ -546,6 +649,29 @@ class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "login"
 
+    @extend_schema(
+        request=inline_serializer(
+            name="LoginRequest",
+            fields={
+                "email": serializers.EmailField(),
+                "password": serializers.CharField(write_only=True),
+            },
+        ),
+        responses={
+            200: inline_serializer(
+                name="LoginResponse",
+                fields={
+                    "access": serializers.CharField(),
+                    "refresh": serializers.CharField(),
+                    "expires_at": serializers.DateTimeField(),
+                    "user": UserPayloadSerializer,
+                },
+            ),
+            400: ErrorSerializer,
+            401: ErrorSerializer,
+            403: ErrorSerializer,
+        },
+    )
     def post(self, request):
         email = normalize_account_email(request.data.get("email", ""))
         password = request.data.get("password", "")
@@ -593,6 +719,13 @@ class LoginAPIView(APIView):
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="LogoutRequest",
+            fields={"refresh": serializers.CharField(required=False, allow_blank=True)},
+        ),
+        responses={204: OpenApiResponse(description="Odhlášeno.")},
+    )
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if refresh_token:
@@ -608,6 +741,13 @@ class FcmTokenAPIView(APIView):
     """Register or update the FCM push token for the calling user's device."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="FcmTokenRequest",
+            fields={"fcm_token": serializers.CharField()},
+        ),
+        responses={204: OpenApiResponse(description="Token uložen.")},
+    )
     def post(self, request):
         token = (request.data.get("fcm_token") or "").strip()
         if not token:
@@ -618,6 +758,13 @@ class FcmTokenAPIView(APIView):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="FcmTokenDeleteRequest",
+            fields={"fcm_token": serializers.CharField(required=False, allow_blank=True)},
+        ),
+        responses={204: OpenApiResponse(description="Token odstraněn.")},
+    )
     def delete(self, request):
         token = (request.data.get("fcm_token") or "").strip()
         if token:
@@ -628,9 +775,21 @@ class FcmTokenAPIView(APIView):
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=UserPayloadSerializer)
     def get(self, request):
         return Response(_user_payload(request.user))
 
+    @extend_schema(
+        request=inline_serializer(
+            name="MeUpdateRequest",
+            fields={
+                "first_name": serializers.CharField(required=False, allow_blank=True),
+                "last_name": serializers.CharField(required=False, allow_blank=True),
+                "photo": serializers.ImageField(required=False),
+            },
+        ),
+        responses={200: UserPayloadSerializer, 400: ErrorSerializer},
+    )
     def patch(self, request):
         user = request.user
         allowed = {"first_name", "last_name"}
@@ -657,6 +816,23 @@ class MeAPIView(APIView):
 class CreditTopUpAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="CreditTopUpRequest",
+            fields={"amount": serializers.IntegerField(min_value=100, max_value=10000)},
+        ),
+        responses={
+            201: inline_serializer(
+                name="CreditTopUpResponse",
+                fields={
+                    "checkout_url": serializers.URLField(),
+                    "session_id": serializers.CharField(),
+                },
+            ),
+            400: DetailSerializer,
+            502: DetailSerializer,
+        },
+    )
     def post(self, request):
         try:
             amount = int(request.data.get("amount", 0))
@@ -723,6 +899,16 @@ class CreditTopUpAPIView(APIView):
 class PasswordChangeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="PasswordChangeRequest",
+            fields={
+                "old_password": serializers.CharField(write_only=True),
+                "new_password": serializers.CharField(write_only=True, min_length=8),
+            },
+        ),
+        responses={204: OpenApiResponse(description="Heslo změněno."), 400: ErrorSerializer},
+    )
     def post(self, request):
         old_password = request.data.get("old_password", "")
         new_password = request.data.get("new_password", "")
@@ -762,6 +948,7 @@ class AvatarRequestAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         AvatarChangeRequest.expire_stale_requests()
         account_req = AvatarChangeRequest.objects.filter(
@@ -794,6 +981,17 @@ class AvatarRequestAPIView(APIView):
             ],
         })
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AvatarRequestCreateRequest",
+            fields={
+                "image": serializers.ImageField(),
+                "target_type": serializers.ChoiceField(choices=["account", "rider"], default="account"),
+                "target_rider_id": serializers.IntegerField(required=False),
+            },
+        ),
+        responses={201: DetailSerializer, 400: ErrorSerializer, 404: ErrorSerializer, 409: ErrorSerializer},
+    )
     def post(self, request):
         AvatarChangeRequest.expire_stale_requests()
 
@@ -893,6 +1091,18 @@ def _send_activation_email_api(request, user):
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="RegisterRequest",
+            fields={
+                "email": serializers.EmailField(),
+                "first_name": serializers.CharField(),
+                "last_name": serializers.CharField(),
+                "password": serializers.CharField(write_only=True, min_length=8),
+            },
+        ),
+        responses={201: DetailSerializer, 400: ErrorSerializer, 409: ErrorSerializer},
+    )
     def post(self, request):
         email_raw = request.data.get("email", "").strip()
         first_name = request.data.get("first_name", "").strip()
@@ -944,6 +1154,13 @@ class RegisterAPIView(APIView):
 class ActivationResendAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="ActivationResendRequest",
+            fields={"email": serializers.EmailField()},
+        ),
+        responses={200: DetailSerializer, 400: ErrorSerializer, 410: ErrorSerializer},
+    )
     def post(self, request):
         from django.conf import settings as django_settings
         email_raw = request.data.get("email", "").strip()
@@ -970,6 +1187,13 @@ class ActivationResendAPIView(APIView):
 class PasswordResetRequestAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="PasswordResetRequest",
+            fields={"email": serializers.EmailField()},
+        ),
+        responses={200: DetailSerializer, 400: ErrorSerializer},
+    )
     def post(self, request):
         from django.contrib.auth.forms import PasswordResetForm
         email = request.data.get("email", "").strip()
@@ -991,6 +1215,17 @@ class PasswordResetRequestAPIView(APIView):
 class PasswordResetConfirmAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="PasswordResetConfirmRequest",
+            fields={
+                "uidb64": serializers.CharField(),
+                "token": serializers.CharField(),
+                "new_password": serializers.CharField(write_only=True, min_length=8),
+            },
+        ),
+        responses={200: DetailSerializer, 400: ErrorSerializer},
+    )
     def post(self, request):
         uidb64 = request.data.get("uidb64", "")
         token = request.data.get("token", "")
@@ -1068,6 +1303,30 @@ class EshopProductDetailAPIView(generics.RetrieveAPIView):
 class EshopCartAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="EshopCart",
+            fields={
+                "items": inline_serializer(
+                    name="EshopCartItem",
+                    many=True,
+                    fields={
+                        "variant_id": serializers.IntegerField(),
+                        "product_id": serializers.IntegerField(),
+                        "product_name": serializers.CharField(),
+                        "product_slug": serializers.CharField(),
+                        "variant_label": serializers.CharField(),
+                        "price": serializers.DecimalField(max_digits=10, decimal_places=2),
+                        "quantity": serializers.IntegerField(),
+                        "stock": serializers.IntegerField(),
+                        "subtotal": serializers.DecimalField(max_digits=10, decimal_places=2),
+                    },
+                ),
+                "total": serializers.DecimalField(max_digits=10, decimal_places=2),
+                "count": serializers.IntegerField(),
+            },
+        )
+    )
     def get(self, request):
         cart = Cart(request)
         variant_ids = cart.variant_ids()
@@ -1104,6 +1363,27 @@ class EshopCartAPIView(APIView):
 
         return Response({"items": items, "total": str(total), "count": len(items)})
 
+    @extend_schema(
+        request=inline_serializer(
+            name="EshopCartUpdateRequest",
+            fields={
+                "variant_id": serializers.IntegerField(),
+                "quantity": serializers.IntegerField(default=1, min_value=0),
+                "action": serializers.ChoiceField(choices=["add", "set"], default="add"),
+            },
+        ),
+        responses={
+            200: inline_serializer(
+                name="EshopCartUpdateResponse",
+                fields={
+                    "ok": serializers.BooleanField(),
+                    "quantity": serializers.IntegerField(),
+                },
+            ),
+            400: ErrorSerializer,
+            404: ErrorSerializer,
+        },
+    )
     def post(self, request):
         try:
             variant_id = int(request.data.get("variant_id"))
@@ -1139,6 +1419,11 @@ class EshopCartAPIView(APIView):
 
         return Response({"ok": True, "quantity": cart.get_quantity(variant_id)})
 
+    @extend_schema(
+        operation_id="api_eshop_cart_clear",
+        request=None,
+        responses={204: OpenApiResponse(description="Košík vyprázdněn.")},
+    )
     def delete(self, request):
         Cart(request).clear()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -1147,6 +1432,11 @@ class EshopCartAPIView(APIView):
 class EshopCartItemAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        operation_id="api_eshop_cart_item_destroy",
+        request=None,
+        responses={204: OpenApiResponse(description="Položka odstraněna z košíku.")},
+    )
     def delete(self, request, variant_id):
         Cart(request).remove(variant_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -1159,6 +1449,23 @@ class EshopCartItemAPIView(APIView):
 class EshopCheckoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="EshopCheckoutRequest",
+            fields={
+                "first_name": serializers.CharField(),
+                "last_name": serializers.CharField(),
+                "email": serializers.EmailField(),
+                "phone": serializers.CharField(required=False, allow_blank=True),
+                "street": serializers.CharField(required=False, allow_blank=True),
+                "city": serializers.CharField(required=False, allow_blank=True),
+                "zip_code": serializers.CharField(required=False, allow_blank=True),
+                "note": serializers.CharField(required=False, allow_blank=True),
+                "event": serializers.IntegerField(),
+            },
+        ),
+        responses={201: OrderSerializer, 400: ErrorSerializer},
+    )
     def post(self, request):
         cart = Cart(request)
         if not cart:
@@ -1284,6 +1591,7 @@ class EshopOrderDetailAPIView(generics.RetrieveAPIView):
 class EshopOrderCancelAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OrderSerializer, 400: ErrorSerializer})
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk, user=request.user)
         try:
@@ -1300,6 +1608,12 @@ class EshopOrderCancelAPIView(APIView):
 class RankingCategoryListAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="RankingCategories",
+            fields={"categories": serializers.ListField(child=serializers.CharField())},
+        )
+    )
     def get(self, request):
         categories = Categories.get_categories()
         return Response({"categories": categories})
@@ -1308,6 +1622,12 @@ class RankingCategoryListAPIView(APIView):
 class RankingAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("category", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+        ],
+        responses=OpenApiTypes.OBJECT,
+    )
     def get(self, request):
         categories = Categories.get_categories()
         default_category = "Men Under 23"
@@ -1379,6 +1699,7 @@ class EventResultsAPIView(APIView):
     """Výsledky závodu seřazené podle kategorie a místa."""
     permission_classes = [AllowAny]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, pk):
         from event.models_results import Result
 
@@ -1483,6 +1804,7 @@ class EventEntryRidersAPIView(APIView):
     """Přihlášení jezdci na závod — JSON verze pro mobilní aplikaci."""
     permission_classes = [AllowAny]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, pk):
         from event.models import Entry, EntryForeign
         from event.views.entry_helpers import build_public_entry_rows
@@ -1523,6 +1845,12 @@ class EventEntryInfoAPIView(APIView):
     """Vrátí dostupné kategorie a poplatky pro konkrétního jezdce na daném závodě."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("rider_uci_id", OpenApiTypes.INT, OpenApiParameter.QUERY, required=True),
+        ],
+        responses={200: OpenApiTypes.OBJECT, 400: ErrorSerializer, 404: ErrorSerializer},
+    )
     def get(self, request, pk):
         event = get_object_or_404(
             Event.objects.select_related("classes_and_fees_like"), pk=pk
@@ -1608,6 +1936,31 @@ class EventEnterAPIView(APIView):
     """Přihlásí jezdce na závod a okamžitě strhne kredit."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="EventEnterRequest",
+            fields={
+                "rider_uci_id": serializers.IntegerField(),
+                "is_20": serializers.BooleanField(default=False),
+                "is_24": serializers.BooleanField(default=False),
+                "is_beginner": serializers.BooleanField(default=False),
+            },
+        ),
+        responses={
+            201: EntryDetailSerializer,
+            400: ErrorSerializer,
+            402: inline_serializer(
+                name="InsufficientCreditError",
+                fields={
+                    "error": serializers.CharField(),
+                    "required": serializers.IntegerField(),
+                    "balance": serializers.IntegerField(),
+                },
+            ),
+            404: ErrorSerializer,
+            409: ErrorSerializer,
+        },
+    )
     def post(self, request, pk):
         event = get_object_or_404(
             Event.objects.select_related("classes_and_fees_like"), pk=pk
@@ -1780,6 +2133,7 @@ class EntryCancelAPIView(APIView):
     """Storno přihlášky — odečtená částka se vrátí do kreditu."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: BalanceSerializer, 400: ErrorSerializer})
     def post(self, request, pk):
         from event.models import Entry as EventEntry, DebetTransaction
         from event.func import is_unregistration_open
@@ -1904,6 +2258,14 @@ class ForeignEventEntryInfoAPIView(APIView):
     """Vrátí info pro přihlášení zahraničního jezdce — lookup jezdce + dostupné kategorie."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("uci_id", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("dob", OpenApiTypes.DATE, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("gender", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+        ],
+        responses=OpenApiTypes.OBJECT,
+    )
     def get(self, request, pk):
         from event.func import is_registration_open
 
@@ -1941,6 +2303,51 @@ class ForeignEventEnterAPIView(APIView):
     """Přihlásí zahraničního jezdce na závod — strhne kredit přihlášenému uživateli."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="ForeignEventEnterRequest",
+            fields={
+                "uci_id": serializers.CharField(),
+                "first_name": serializers.CharField(),
+                "last_name": serializers.CharField(),
+                "date_of_birth": serializers.DateField(),
+                "gender": serializers.CharField(default="Muž"),
+                "nationality": serializers.CharField(required=False, allow_blank=True),
+                "plate": serializers.CharField(required=False, allow_blank=True),
+                "transponder_20": serializers.CharField(required=False, allow_blank=True),
+                "transponder_24": serializers.CharField(required=False, allow_blank=True),
+                "is_20": serializers.BooleanField(default=False),
+                "is_24": serializers.BooleanField(default=False),
+                "is_elite": serializers.BooleanField(default=False),
+            },
+        ),
+        responses={
+            201: inline_serializer(
+                name="ForeignEventEnterResponse",
+                fields={
+                    "id": serializers.IntegerField(),
+                    "event_name": serializers.CharField(),
+                    "rider_first_name": serializers.CharField(),
+                    "rider_last_name": serializers.CharField(),
+                    "uci_id": serializers.CharField(),
+                    "class_20": serializers.CharField(allow_blank=True),
+                    "class_24": serializers.CharField(allow_blank=True),
+                    "total_fee": serializers.IntegerField(),
+                    "new_balance": serializers.IntegerField(),
+                },
+            ),
+            400: ErrorSerializer,
+            402: inline_serializer(
+                name="ForeignInsufficientCreditError",
+                fields={
+                    "error": serializers.CharField(),
+                    "required": serializers.IntegerField(),
+                    "balance": serializers.IntegerField(),
+                },
+            ),
+            409: ErrorSerializer,
+        },
+    )
     def post(self, request, pk):
         from event.func import is_registration_open
         from event.models_entries import EntryForeign
@@ -2098,6 +2505,7 @@ class ForeignEntryCancelAPIView(APIView):
     """Storno přihlášky zahraničního jezdce — refundace kreditu."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: BalanceSerializer, 400: ErrorSerializer})
     def post(self, request, pk):
         from event.models_entries import EntryForeign
         from event.models import DebetTransaction

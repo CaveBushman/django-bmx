@@ -10,24 +10,24 @@ class OrganizerCoordinatesMixin(serializers.Serializer):
     organizer_name = serializers.SerializerMethodField()
     organizer_city = serializers.SerializerMethodField()
 
-    def get_organizer_lat(self, obj):
+    def get_organizer_lat(self, obj) -> float | None:
         if not obj.organizer_id or not obj.organizer:
             return None
         value = obj.organizer.lon
         return value if value not in (None, 0) else None
 
-    def get_organizer_lon(self, obj):
+    def get_organizer_lon(self, obj) -> float | None:
         if not obj.organizer_id or not obj.organizer:
             return None
         value = obj.organizer.lng
         return value if value not in (None, 0) else None
 
-    def get_organizer_name(self, obj):
+    def get_organizer_name(self, obj) -> str | None:
         if not obj.organizer_id or not obj.organizer:
             return None
         return obj.organizer.team_name or None
 
-    def get_organizer_city(self, obj):
+    def get_organizer_city(self, obj) -> str | None:
         if not obj.organizer_id or not obj.organizer:
             return None
         return obj.organizer.city or None
@@ -118,36 +118,36 @@ class ResultPublicSerializer(serializers.ModelSerializer):
             "marked_24",
         ]
 
-    def get_event_name(self, obj):
+    def get_event_name(self, obj) -> str:
         if obj.event_id and obj.event:
             return obj.event.name
         return obj.organizer or ""
 
-    def get_event_date(self, obj):
+    def get_event_date(self, obj) -> str | None:
         date_value = obj.event.date if obj.event_id and obj.event else obj.date
         return date_value.isoformat() if date_value else None
 
-    def get_type_for_ranking(self, obj):
+    def get_type_for_ranking(self, obj) -> str:
         if obj.event_id and obj.event:
             return obj.event.type_for_ranking or ""
         return obj.event_type or ""
 
-    def get_organizer_id(self, obj):
+    def get_organizer_id(self, obj) -> int | None:
         if obj.event_id and obj.event:
             return obj.event.organizer_id
         return None
 
-    def get_organizer_name(self, obj):
+    def get_organizer_name(self, obj) -> str:
         if obj.event_id and obj.event and obj.event.organizer_id and obj.event.organizer:
             return obj.event.organizer.team_name or ""
         return obj.organizer or ""
 
-    def get_wheel(self, obj):
+    def get_wheel(self, obj) -> str:
         if obj.is_beginner:
             return "beginner"
         return "20" if obj.is_20 else "24"
 
-    def get_is_24(self, obj):
+    def get_is_24(self, obj) -> bool:
         return not bool(obj.is_20) and not bool(obj.is_beginner)
 
 

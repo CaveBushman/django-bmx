@@ -27,8 +27,6 @@ def _strip_empty_paragraphs(html: str) -> str:
         return html
     return _EMPTY_P_RE.sub('', html)
 
-# Create your views here.
-
 
 def _sanitize_news_for_render(article):
     article.prefix = sanitize_rich_html(article.prefix)

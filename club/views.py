@@ -21,8 +21,6 @@ from .func import riders_on_events
 # import folium
 
 
-# Create your views here.
-
 def clubs_list_view(request):
     base_clubs = (
         Club.objects.filter(is_active=True)

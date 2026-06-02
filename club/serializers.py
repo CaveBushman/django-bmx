@@ -21,10 +21,10 @@ class ClubPublicSerializer(serializers.ModelSerializer):
             'have_track', 'lat', 'lon', 'opening_hours',
         ]
 
-    def get_lat(self, obj):
+    def get_lat(self, obj) -> float | None:
         v = obj.lon  # DB field 'lon' stores latitude
         return v if v not in (None, 0, 0.0) else None
 
-    def get_lon(self, obj):
+    def get_lon(self, obj) -> float | None:
         v = obj.lng  # DB field 'lng' stores longitude
         return v if v not in (None, 0, 0.0) else None

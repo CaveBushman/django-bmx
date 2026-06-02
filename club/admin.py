@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Club, McrClubTeam, McrClubTeamMember
-# Register your models here.
 
 class ClubAdmin(admin.ModelAdmin):
     list_display = ('id', 'team_name', 'contact_email', 'billing_email')

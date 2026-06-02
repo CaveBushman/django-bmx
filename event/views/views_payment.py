@@ -16,7 +16,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
-from event.models import Entry, CreditTransaction, DebetTransaction
+from event.models import Entry, Event, CreditTransaction, DebetTransaction
 from event.func import get_unregistration_deadline, is_unregistration_open, update_cart
 from event.credit import calculate_user_balance, recalculate_all_balances
 from event.services.payments import (

@@ -19,9 +19,6 @@ from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
 from event.utils import normalize_uci_id
 
 
-# Create your models here.
-
-
 class Rider(models.Model):
     """ Class for rider """
 

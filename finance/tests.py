@@ -413,6 +413,7 @@ class EventInvoiceGenerationTests(TestCase):
             is_approved=True,
         )
         Entry.objects.create(
+            user=self.admin_user,
             event=self.event,
             rider=self.rider,
             is_20=True,
@@ -485,6 +486,7 @@ class EventInvoiceGenerationTests(TestCase):
 
     def test_generate_event_invoices_excludes_checkout_entries(self):
         Entry.objects.create(
+            user=self.admin_user,
             event=self.event,
             rider=Rider.objects.create(
                 uci_id=100200301,

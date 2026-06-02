@@ -4,8 +4,6 @@ from django_ckeditor_5.widgets import CKEditor5Widget
 
 from .models import News, Tag, Downloads, DocumentTag
 
-# Register your models here.
-
 
 class NewsAdminForm(forms.ModelForm):
     RICH_TEXT_FIELDS = ("prefix", "content")

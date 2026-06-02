@@ -14,6 +14,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
+from django.db.models import Count, Max
 from event.models import Event, EventProposition, Result, Entry, EntryForeign
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import get_unregistration_deadline, is_registration_open
@@ -262,8 +263,20 @@ def events_list_view(request):
     """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
     year = date.today().year
     today = date.today()
-    cache_key = f"events_list_{year}_{today}"
-    data = cache.get(cache_key)
+    event_version = Event.objects.filter(date__year=year).aggregate(
+        count=Count("id"),
+        latest_updated=Max("updated"),
+        latest_id=Max("id"),
+    )
+    latest_updated = event_version["latest_updated"]
+    cache_key = (
+        f"events_list_{year}_{today}:"
+        f"{event_version['count']}:"
+        f"{event_version['latest_id'] or 'none'}:"
+        f"{latest_updated.isoformat() if latest_updated else 'none'}"
+    )
+    use_cache = not django_settings.DEBUG
+    data = cache.get(cache_key) if use_cache else None
     if data is None:
         all_events = list(_events_for_year(year))
         data = {
@@ -284,7 +297,8 @@ def events_list_view(request):
             "archive_heading": _("Ukončené závody"),
             "season_context": _("Archiv"),
         }
-        cache.set(cache_key, data, _CACHE_LONG)
+        if use_cache:
+            cache.set(cache_key, data, _CACHE_LONG)
     data = {
         **data,
         "event_list_structured_data_json": _event_list_structured_data_json(

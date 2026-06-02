@@ -564,9 +564,12 @@ class PublicPageSmokeTests(TestCase):
 
 class PublicDetailPageSmokeTests(TestCase):
     def setUp(self):
-        self.tts_submit_patcher = patch("news.models._EXECUTOR.submit")
-        self.tts_submit_patcher.start()
-        self.addCleanup(self.tts_submit_patcher.stop)
+        self.generate_audio_patcher = patch("news.tasks.generate_audio_task.delay")
+        self.translate_article_patcher = patch("news.tasks.translate_article_task.delay")
+        self.generate_audio_patcher.start()
+        self.translate_article_patcher.start()
+        self.addCleanup(self.generate_audio_patcher.stop)
+        self.addCleanup(self.translate_article_patcher.stop)
 
         self.club = Club.objects.create(team_name="Smoke Club", is_active=True)
         self.entry_classes = EntryClasses.objects.create(
