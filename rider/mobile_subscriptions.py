@@ -9,7 +9,7 @@ from event.models import SeasonSettings
 from rider.models import MobileAppCharge, MobileAppSubscription, PromoCode, PromoCodeUsage
 
 
-SUBSCRIPTION_PERIOD = timedelta(days=30)
+SUBSCRIPTION_PERIOD = timedelta(days=365)
 
 
 def get_current_season_settings(at_time=None):
@@ -43,9 +43,9 @@ def _get_mobile_price_for_current_season(at_time=None):
     season = get_current_season_settings(at_time=at_time)
     if season is None:
         raise ValueError("Pro aktuální rok není nastavená sezona.")
-    if season.mobile_app_monthly_price < 0:
+    if season.mobile_app_annual_price < 0:
         raise ValueError("Cena předplatného mobilní aplikace v sezoně není platná.")
-    return season, season.mobile_app_monthly_price
+    return season, season.mobile_app_annual_price
 
 
 def _record_charge(user, season, subscription, amount, period_start, period_end, reason):

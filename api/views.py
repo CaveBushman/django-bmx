@@ -2602,7 +2602,7 @@ class MobileAppSubscriptionAPIView(APIView):
         from rider.mobile_subscriptions import get_active_mobile_app_subscription, get_current_season_settings
         sub = get_active_mobile_app_subscription(request.user)
         season = get_current_season_settings()
-        price = season.mobile_app_monthly_price if season else 0
+        price = season.mobile_app_annual_price if season else 0
         return Response({
             "subscription": _serialize_mobile_subscription(sub),
             "price": price,

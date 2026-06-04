@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Správa promo kódů" %}{% endblock title %}
+
+{% block extra_head %}
+<style>
+  .promo-page { min-height: calc(100vh - 4rem); background: #f8fafc; }
+  html.dark .promo-page { background: #0f172a; }
+  .promo-card {
+    background: white; border: 1px solid #e2e8f0;
+    border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+  }
+  html.dark .promo-card { background: #1e293b; border-color: #334155; }
+  .promo-badge-active   { background: #dcfce7; color: #15803d; }
+  .promo-badge-inactive { background: #fee2e2; color: #dc2626; }
+  html.dark .promo-badge-active   { background: rgba(21,128,61,0.2);  color: #86efac; }
+  html.dark .promo-badge-inactive { background: rgba(220,38,38,0.2);  color: #fca5a5; }
+  input[type="text"], input[type="number"], input[type="date"], select {
+    background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+    padding: 0.6rem 0.9rem; font-size: 0.875rem; width: 100%;
+  }
+  html.dark input, html.dark select {
+    background: #0f172a; border-color: #475569; color: white;
+  }
+  input:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+  .form-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: #64748b; margin-bottom: 0.35rem; display: block; }
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="promo-page px-4 py-10">
+  <div class="mx-auto max-w-5xl">
+
+    <div class="mb-8 flex items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-400">{% trans "Admin" %}</p>
+        <h1 class="mt-1 text-3xl font-black text-slate-900 dark:text-white">{% trans "Promo kódy" %}</h1>
+      </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for msg in messages %}
+      <div class="rounded-xl px-4 py-3 text-sm font-medium
+        {% if msg.tags == 'error' %}bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300
+        {% elif msg.tags == 'success' %}bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300
+        {% else %}bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="promo-card p-6 mb-8">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-5">{% trans "Vygenerovat nový kód" %}</h2>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="generate">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div>
+            <label class="form-label">{% trans "Produkt" %}</label>
+            <select name="product">
+              {% for val, label in product_choices %}
+              <option value="{{ val }}" {% if val == "mobile_app" %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label">{% trans "Typ slevy" %}</label>
+            <select name="discount_type" id="discountType">
+              {% for val, label in discount_choices %}
+              <option value="{{ val }}" {% if val == "free" %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div id="discountValueWrap">
+            <label class="form-label">{% trans "Hodnota slevy" %} <span class="font-normal normal-case tracking-normal text-slate-400" id="discountUnit">{% trans "(% nebo Kč)" %}</span></label>
+            <input type="number" name="discount_value" value="100" min="1" max="100">
+          </div>
+
+          <div>
+            <label class="form-label">{% trans "Max. použití" %} <span class="font-normal normal-case tracking-normal text-slate-400">({% trans "prázdné = neomezeno" %})</span></label>
+            <input type="number" name="max_uses" min="1" value="1">
+          </div>
+
+          <div>
+            <label class="form-label">{% trans "Poznámka" %}</label>
+            <input type="text" name="description" placeholder="{% trans 'Interní popis kódu' %}">
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+          <p class="form-label mb-3">{% trans "Platnost kódu" %}</p>
+
+          <div class="mb-3 flex flex-wrap gap-2" id="presetBtns">
+            <button type="button" data-days="30"
+              class="preset-btn rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+              30 {% trans "dní" %}
+            </button>
+            <button type="button" data-days="90"
+              class="preset-btn rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+              90 {% trans "dní" %}
+            </button>
+            <button type="button" data-days="365"
+              class="preset-btn rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+              1 {% trans "rok" %}
+            </button>
+            <button type="button" data-days=""
+              class="preset-btn rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+              {% trans "Ručně" %}
+            </button>
+          </div>
+
+          <input type="hidden" name="preset_days" id="presetDaysInput">
+
+          <div class="grid gap-4 sm:grid-cols-2" id="manualDateWrap" style="display:none">
+            <div>
+              <label class="form-label">{% trans "Platný od" %} <span class="font-normal normal-case tracking-normal text-slate-400">({% trans "prázdné = ihned" %})</span></label>
+              <input type="date" name="valid_from" id="validFromInput">
+            </div>
+            <div>
+              <label class="form-label">{% trans "Platný do" %}</label>
+              <input type="date" name="valid_until" id="validUntilInput">
+            </div>
+          </div>
+
+          <p class="mt-2 text-xs text-slate-400" id="validitySummary">{% trans "Žádná platnost není nastavena — kód nevyprší." %}</p>
+        </div>
+
+        <div class="mt-5">
+          <button type="submit"
+            class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+            ＋ {% trans "Vygenerovat kód" %}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="promo-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="font-bold text-slate-900 dark:text-white">{% trans "Všechny kódy" %} <span class="ml-2 text-sm font-normal text-slate-400">({{ promo_codes|length }})</span></h2>
+        </div>
+        <form method="get" class="flex flex-wrap gap-2 items-end">
+          <div>
+            <label class="form-label">{% trans "Hledat" %}</label>
+            <input type="text" name="q" value="{{ filter_q }}" placeholder="{% trans 'Kód nebo poznámka' %}"
+              class="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-indigo-500" style="width:180px">
+          </div>
+          <div>
+            <label class="form-label">{% trans "Produkt" %}</label>
+            <select name="product" class="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-indigo-500">
+              <option value="">{% trans "Vše" %}</option>
+              {% for val, label in product_choices %}
+              <option value="{{ val }}" {% if val == filter_product %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">{% trans "Stav" %}</label>
+            <select name="status" class="rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-indigo-500">
+              <option value="">{% trans "Vše" %}</option>
+              <option value="active" {% if filter_status == "active" %}selected{% endif %}>{% trans "Aktivní" %}</option>
+              <option value="inactive" {% if filter_status == "inactive" %}selected{% endif %}>{% trans "Neaktivní" %}</option>
+            </select>
+          </div>
+          <button type="submit" class="rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500">{% trans "Filtrovat" %}</button>
+          {% if filter_q or filter_product or filter_status %}
+          <a href="{% url 'rider:promo-codes' %}" class="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">{% trans "Zrušit filtr" %}</a>
+          {% endif %}
+        </form>
+      </div>
+
+      {% if promo_codes %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-slate-700 text-left">
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Kód" %}</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Produkt" %}</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Sleva" %}</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Použití" %}</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Platnost" %}</th>
+              <th class="px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{% trans "Stav" %}</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            {% for promo in promo_codes %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+              <td class="px-4 py-3">
+                <span class="font-mono font-bold text-slate-900 dark:text-white tracking-widest">{{ promo.code }}</span>
+                {% if promo.description %}
+                <p class="text-xs text-slate-400 mt-0.5">{{ promo.description }}</p>
+                {% endif %}
+              </td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ promo.get_product_display }}</td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
+                {% if promo.discount_type == "free" %}
+                  {% trans "Zdarma" %}
+                {% elif promo.discount_type == "percent" %}
+                  {{ promo.discount_value }} %
+                {% else %}
+                  {{ promo.discount_value }} Kč
+                {% endif %}
+              </td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
+                {{ promo.used_count }}{% if promo.max_uses %} / {{ promo.max_uses }}{% endif %}
+              </td>
+              <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+                {% if promo.valid_from or promo.valid_until %}
+                  {% if promo.valid_from %}<span class="text-slate-400">od </span>{{ promo.valid_from|date:"d.m.Y" }}<br>{% endif %}
+                  {% if promo.valid_until %}<span class="text-slate-400">do </span>
+                    <span class="{% if not promo.is_valid %}text-red-500 dark:text-red-400 font-semibold{% endif %}">{{ promo.valid_until|date:"d.m.Y" }}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-slate-400">{% trans "nevyprší" %}</span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold
+                  {% if promo.is_active %}promo-badge-active{% else %}promo-badge-inactive{% endif %}">
+                  {% if promo.is_active %}{% trans "Aktivní" %}{% else %}{% trans "Neaktivní" %}{% endif %}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex flex-col items-end gap-1">
+                  <button type="button"
+                    class="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                    onclick="openEmailModal('{{ promo.pk }}', '{{ promo.code|escapejs }}')">
+                    ✉ {% trans "Odeslat e-mailem" %}
+                  </button>
+                  {% if promo.is_valid %}
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="promo_id" value="{{ promo.pk }}">
+                    <input type="hidden" name="action" value="expire">
+                    <button type="submit"
+                      class="text-xs font-semibold text-amber-600 hover:underline dark:text-amber-400"
+                      onclick="return confirm('{% trans "Okamžitě zrušit platnost tohoto kódu?" %}')">
+                      {% trans "Zrušit platnost" %}
+                    </button>
+                  </form>
+                  {% endif %}
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="promo_id" value="{{ promo.pk }}">
+                    {% if promo.is_active %}
+                    <input type="hidden" name="action" value="deactivate">
+                    <button type="submit" class="text-xs text-red-500 hover:underline dark:text-red-400">{% trans "Deaktivovat" %}</button>
+                    {% else %}
+                    <input type="hidden" name="action" value="activate">
+                    <button type="submit" class="text-xs text-indigo-600 hover:underline dark:text-indigo-400">{% trans "Aktivovat" %}</button>
+                    {% endif %}
+                  </form>
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="promo_id" value="{{ promo.pk }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit"
+                      class="text-xs text-slate-400 hover:text-red-500 hover:underline dark:hover:text-red-400"
+                      onclick="return confirm('{% trans "Smazat promo kód? Tato akce je nevratná." %}')">
+                      {% trans "Smazat" %}
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="px-6 py-10 text-center text-sm text-slate-400">{% trans "Zatím žádné promo kódy." %}</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{# ── Modal: Odeslat promo kód e-mailem ── #}
+<div id="emailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+  <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">✉ {% trans "Odeslat promo kód e-mailem" %}</h3>
+      <button type="button" onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl leading-none">&times;</button>
+    </div>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+      {% trans "Kód" %}: <span id="modalCode" class="font-mono font-bold text-slate-900 dark:text-white tracking-widest"></span>
+    </p>
+    <form method="post" id="emailModalForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="send_email">
+      <input type="hidden" name="promo_id" id="modalPromoId">
+      <div class="mb-4">
+        <label class="form-label mb-1.5">{% trans "Příjemce" %}</label>
+        <select name="recipient_email" id="modalRecipientSelect"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-indigo-500"
+          onchange="syncEmailInput(this.value)">
+          <option value="">— {% trans "vybrat uživatele" %} —</option>
+          {% for u in users_with_email %}
+          <option value="{{ u.email }}">{{ u.last_name }} {{ u.first_name }} ({{ u.email }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-5">
+        <label class="form-label mb-1.5">{% trans "Nebo zadat e-mail ručně" %}</label>
+        <input type="email" name="recipient_email" id="modalEmailInput" placeholder="jan@example.com"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div class="flex gap-3">
+        <button type="submit"
+          class="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+          {% trans "Odeslat" %}
+        </button>
+        <button type="button" onclick="closeEmailModal()"
+          class="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+          {% trans "Zrušit" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // ── Typ slevy ──
+  var select = document.getElementById("discountType");
+  var wrap = document.getElementById("discountValueWrap");
+  var unit = document.getElementById("discountUnit");
+  function updateDiscount() {
+    var val = select.value;
+    wrap.style.display = val === "free" ? "none" : "";
+    unit.textContent = val === "percent" ? "(0–100)" : "(Kč)";
+  }
+  select.addEventListener("change", updateDiscount);
+  updateDiscount();
+
+  // ── Platnost – presety ──
+  var presetInput   = document.getElementById("presetDaysInput");
+  var manualWrap    = document.getElementById("manualDateWrap");
+  var summary       = document.getElementById("validitySummary");
+  var validFromInput = document.getElementById("validFromInput");
+  var validUntilInput = document.getElementById("validUntilInput");
+  var presetBtns    = document.querySelectorAll(".preset-btn");
+
+  function formatDate(d) {
+    return d.getDate().toString().padStart(2,"0") + "." +
+           (d.getMonth()+1).toString().padStart(2,"0") + "." + d.getFullYear();
+  }
+
+  function updateSummary() {
+    var days = presetInput.value;
+    if (days) {
+      var from = new Date();
+      var until = new Date(from.getTime() + parseInt(days) * 86400000);
+      summary.textContent = "Platný od " + formatDate(from) + " do " + formatDate(until);
+      summary.className = "mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400";
+    } else {
+      var f = validFromInput.value;
+      var u = validUntilInput.value;
+      if (u) {
+        summary.textContent = (f ? "Od " + f.split("-").reverse().join(".") + " do " : "Do ") +
+                              u.split("-").reverse().join(".");
+        summary.className = "mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400";
+      } else if (f) {
+        summary.textContent = "Platný od " + f.split("-").reverse().join(".");
+        summary.className = "mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400";
+      } else {
+        summary.textContent = "Žádná platnost není nastavena — kód nevyprší.";
+        summary.className = "mt-2 text-xs text-slate-400";
+      }
+    }
+  }
+
+  presetBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var days = btn.getAttribute("data-days");
+      presetBtns.forEach(function (b) { b.classList.remove("border-indigo-500","bg-indigo-50","dark:bg-slate-800","text-indigo-700","dark:text-indigo-300"); });
+      btn.classList.add("border-indigo-500","bg-indigo-50","dark:bg-slate-800","text-indigo-700","dark:text-indigo-300");
+
+      if (days) {
+        presetInput.value = days;
+        manualWrap.style.display = "none";
+      } else {
+        presetInput.value = "";
+        manualWrap.style.display = "";
+      }
+      updateSummary();
+    });
+  });
+
+  validFromInput.addEventListener("input", updateSummary);
+  validUntilInput.addEventListener("input", updateSummary);
+  updateSummary();
+});
+
+// ── E-mail modal ──
+function openEmailModal(promoId, promoCode) {
+  document.getElementById("modalPromoId").value = promoId;
+  document.getElementById("modalCode").textContent = promoCode;
+  document.getElementById("modalRecipientSelect").value = "";
+  document.getElementById("modalEmailInput").value = "";
+  var modal = document.getElementById("emailModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeEmailModal() {
+  var modal = document.getElementById("emailModal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function syncEmailInput(val) {
+  document.getElementById("modalEmailInput").value = val;
+}
+
+document.getElementById("emailModal").addEventListener("click", function (e) {
+  if (e.target === this) closeEmailModal();
+});
+
+document.getElementById("emailModalForm").addEventListener("submit", function () {
+  var select = document.getElementById("modalRecipientSelect");
+  var input  = document.getElementById("modalEmailInput");
+  // Pokud je vyplněno manuální pole, odstraníme select z formu aby nepřepisoval hodnotu
+  if (input.value) {
+    select.disabled = true;
+  }
+});
+</script>
+{% endblock content %}

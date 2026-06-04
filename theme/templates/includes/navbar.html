@@ -351,6 +351,8 @@
                   role="menuitem" tabindex="-1" id="user-menu-item-stats">{% trans "Statistika webu" %}</a>
                 <a href="{% url 'accounts:ops_dashboard' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   role="menuitem" tabindex="-1" id="user-menu-item-ops-dashboard">{% trans "Provozní dashboard" %}</a>
+                <a href="{% url 'rider:promo-codes' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  role="menuitem" tabindex="-1" id="user-menu-item-promo-codes">{% trans "Promo kódy" %}</a>
                 <a href="{% url 'eshop:my-orders' %}" class="block rounded-xl px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   role="menuitem" tabindex="-1" id="user-menu-item-eshop-orders">{% trans "Moje objednávky e-shopu" %}</a>
 
@@ -609,6 +611,8 @@
           {% if user.is_admin %}
           <a href="{% url 'accounts:ops_dashboard' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-ops-dashboard-mobile">{% trans "Provozní dashboard" %}</a>
+          <a href="{% url 'rider:promo-codes' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
+            tabindex="-1" id="user-menu-item-promo-codes-mobile">{% trans "Promo kódy" %}</a>
           <a href="{% url 'eshop:my-orders' %}" class="flex items-center justify-between px-3 py-2 text-base font-medium text-gray-400" role="menuitem"
             tabindex="-1" id="user-menu-item-eshop-orders-mobile">{% trans "Moje objednávky e-shopu" %}{% if navbar_eshop_pending_count %}<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-white">{{ navbar_eshop_pending_count }}</span>{% endif %}</a>
           <a href="{% url 'eshop:shop' %}" class="block px-3 py-2 text-base font-medium text-gray-400" role="menuitem"

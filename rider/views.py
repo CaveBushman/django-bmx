@@ -49,7 +49,14 @@ from rider.subscriptions import (
     purchase_rider_stats_subscription,
     resume_rider_stats_subscription,
 )
-from rider.models import RiderStatsSubscription, TrainerClubSubscription
+from rider.models import MobileAppSubscription, RiderStatsSubscription, TrainerClubSubscription
+from rider.mobile_subscriptions import (
+    cancel_mobile_app_subscription,
+    get_active_mobile_app_subscription,
+    get_current_season_settings,
+    purchase_mobile_app_subscription,
+    resume_mobile_app_subscription,
+)
 from finance.models import EventInvoice, SubscriptionInvoice
 from finance.subscription_invoices import SubscriptionInvoiceService
 from rider.plates import display_plate, generate_available_plate_values, legacy_plate_int, normalize_plate_value
@@ -1872,6 +1879,7 @@ def account_settings_invoices_view(request):
             "club_event_invoices": club_event_invoices,
             "club_event_invoices_count": club_event_invoices_count,
             "club_event_invoices_page_obj": club_event_invoices_page_obj,
+            "mobile_app_subscription": get_active_mobile_app_subscription(request.user),
         },
     )
 
@@ -2591,3 +2599,217 @@ def plate_search_view(request):
         "has_search": bool(plate_query),
     }
     return render(request, "rider/plate-search.html", data)
+
+
+@login_required
+def mobile_app_subscription_view(request):
+    """Správa ročního předplatného mobilní aplikace — aktivace, zrušení, obnovení."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        promo_code = request.POST.get("promo_code", "").strip() or None
+
+        if action == "activate":
+            try:
+                subscription, created = purchase_mobile_app_subscription(
+                    request.user, promo_code_str=promo_code
+                )
+                if created:
+                    messages.success(
+                        request,
+                        _("Mobilní aplikace aktivována do %(date)s.") % {
+                            "date": timezone.localtime(subscription.expires_at).strftime("%d.%m.%Y")
+                        },
+                    )
+                else:
+                    messages.info(request, _("Předplatné mobilní aplikace je již aktivní."))
+            except ValueError as exc:
+                messages.error(request, str(exc))
+
+        elif action == "cancel":
+            sub = get_active_mobile_app_subscription(request.user)
+            if sub:
+                cancel_mobile_app_subscription(sub)
+                messages.success(request, _("Automatické obnovení předplatného bylo vypnuto."))
+            else:
+                messages.error(request, _("Nemáš aktivní předplatné."))
+
+        elif action == "resume":
+            sub = (
+                MobileAppSubscription.objects.filter(
+                    user=request.user,
+                    status__in=[MobileAppSubscription.STATUS_ACTIVE, MobileAppSubscription.STATUS_PAST_DUE],
+                )
+                .order_by("-expires_at")
+                .first()
+            )
+            if sub:
+                resume_mobile_app_subscription(sub)
+                messages.success(request, _("Automatické obnovení předplatného bylo zapnuto."))
+            else:
+                messages.error(request, _("Nemáš předplatné k obnovení."))
+
+        return redirect("rider:mobile-app-subscription")
+
+    season = get_current_season_settings()
+    subscription = get_active_mobile_app_subscription(request.user)
+    annual_price = season.mobile_app_annual_price if season else 0
+
+    return render(request, "rider/mobile-app-subscription.html", {
+        "subscription": subscription,
+        "annual_price": annual_price,
+        "balance": request.user.credit,
+        "has_enough_credit": request.user.credit >= annual_price,
+    })
+
+
+@staff_member_required
+def promo_codes_admin_view(request):
+    from rider.models import PromoCode, PromoCodeUsage
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "generate":
+            product = request.POST.get("product", PromoCode.PRODUCT_MOBILE_APP)
+            discount_type = request.POST.get("discount_type", PromoCode.DISCOUNT_FREE)
+            try:
+                discount_value = int(request.POST.get("discount_value", 100))
+            except (ValueError, TypeError):
+                discount_value = 100
+            max_uses_raw = request.POST.get("max_uses", "").strip()
+            max_uses = int(max_uses_raw) if max_uses_raw.isdigit() else None
+
+            import datetime as _dt
+            from django.utils.dateparse import parse_date
+
+            def _parse_date_field(field_name, end_of_day=False):
+                raw = request.POST.get(field_name, "").strip()
+                if not raw:
+                    return None
+                parsed = parse_date(raw)
+                if not parsed:
+                    return None
+                t = _dt.time(23, 59, 59) if end_of_day else _dt.time(0, 0, 0)
+                return timezone.make_aware(_dt.datetime.combine(parsed, t))
+
+            # Rychlý preset (počet dní od teď) má přednost před ručním zadáním
+            preset_days_raw = request.POST.get("preset_days", "").strip()
+            if preset_days_raw.isdigit():
+                preset_days = int(preset_days_raw)
+                valid_from = timezone.now()
+                valid_until = valid_from + _dt.timedelta(days=preset_days)
+            else:
+                valid_from = _parse_date_field("valid_from", end_of_day=False)
+                valid_until = _parse_date_field("valid_until", end_of_day=True)
+
+            note = request.POST.get("description", "").strip()
+
+            promo = PromoCode.objects.create(
+                product=product,
+                discount_type=discount_type,
+                discount_value=discount_value,
+                max_uses=max_uses,
+                valid_from=valid_from,
+                valid_until=valid_until,
+                description=note,
+                created_by=request.user,
+            )
+            messages.success(request, _("Vygenerován promo kód: %(code)s") % {"code": promo.code})
+
+        elif action == "deactivate":
+            pk = request.POST.get("promo_id")
+            PromoCode.objects.filter(pk=pk).update(is_active=False)
+            messages.success(request, _("Promo kód byl deaktivován."))
+
+        elif action == "activate":
+            pk = request.POST.get("promo_id")
+            PromoCode.objects.filter(pk=pk).update(is_active=True)
+            messages.success(request, _("Promo kód byl aktivován."))
+
+        elif action == "expire":
+            pk = request.POST.get("promo_id")
+            PromoCode.objects.filter(pk=pk).update(valid_until=timezone.now())
+            messages.success(request, _("Platnost promo kódu byla okamžitě zrušena."))
+
+        elif action == "delete":
+            pk = request.POST.get("promo_id")
+            promo = PromoCode.objects.filter(pk=pk).first()
+            if promo:
+                code = promo.code
+                promo.delete()
+                messages.success(request, _("Promo kód %(code)s byl smazán.") % {"code": code})
+
+        elif action == "send_email":
+            from django.core.mail import send_mail
+            pk = request.POST.get("promo_id")
+            recipient_email = request.POST.get("recipient_email", "").strip()
+            promo = PromoCode.objects.filter(pk=pk).first()
+            if not promo:
+                messages.error(request, _("Promo kód nenalezen."))
+            elif not recipient_email:
+                messages.error(request, _("Zadej e-mailovou adresu příjemce."))
+            else:
+                product_label = promo.get_product_display()
+                if promo.discount_type == PromoCode.DISCOUNT_FREE:
+                    discount_text = "zdarma"
+                elif promo.discount_type == PromoCode.DISCOUNT_PERCENT:
+                    discount_text = f"{promo.discount_value} % sleva"
+                else:
+                    discount_text = f"sleva {promo.discount_value} Kč"
+                validity = ""
+                if promo.valid_until:
+                    validity = f"\nPlatnost: do {timezone.localtime(promo.valid_until).strftime('%d.%m.%Y')}"
+
+                subject = f"Promo kód Czech BMX – {product_label}"
+                body = (
+                    f"Dobrý den,\n\n"
+                    f"zasíláme vám promo kód pro {product_label}.\n\n"
+                    f"Kód: {promo.code}\n"
+                    f"Sleva: {discount_text}{validity}\n\n"
+                    f"Kód zadejte při aktivaci předplatného na czechbmx.cz.\n\n"
+                    f"Czech BMX tým"
+                )
+                try:
+                    send_mail(subject, body, None, [recipient_email])
+                    messages.success(request, _("Promo kód byl odeslán na %(email)s.") % {"email": recipient_email})
+                except Exception as exc:
+                    messages.error(request, _("Odeslání e-mailu selhalo: %(err)s") % {"err": str(exc)})
+
+        return redirect("rider:promo-codes")
+
+    # Filtrace
+    filter_product = request.GET.get("product", "")
+    filter_status = request.GET.get("status", "")
+    filter_q = request.GET.get("q", "").strip()
+
+    promo_qs = (
+        PromoCode.objects.select_related("created_by")
+        .prefetch_related("usages")
+        .order_by("-created")
+    )
+    if filter_product:
+        promo_qs = promo_qs.filter(product=filter_product)
+    if filter_status == "active":
+        promo_qs = promo_qs.filter(is_active=True)
+    elif filter_status == "inactive":
+        promo_qs = promo_qs.filter(is_active=False)
+    if filter_q:
+        promo_qs = promo_qs.filter(code__icontains=filter_q) | promo_qs.filter(description__icontains=filter_q)
+
+    from accounts.models import Account
+    users_with_email = (
+        Account.objects.filter(is_active=True, email__isnull=False)
+        .exclude(email="")
+        .order_by("last_name", "first_name")
+        .values("id", "first_name", "last_name", "email")
+    )
+
+    return render(request, "rider/promo-codes-admin.html", {
+        "promo_codes": promo_qs,
+        "product_choices": PromoCode.PRODUCT_CHOICES,
+        "discount_choices": PromoCode.DISCOUNT_CHOICES,
+        "users_with_email": users_with_email,
+        "filter_product": filter_product,
+        "filter_status": filter_status,
+        "filter_q": filter_q,
+    })

@@ -80,28 +80,44 @@ def _event_description(event, proposition=None):
     return ". ".join(parts) + ". Detail zavodu BMX Racing na Czech BMX."
 
 
+_PLACEHOLDER_CLUB_NAMES = {"bez klubové příslušnosti", "bez klubu"}
+
+
 def _event_location(event, proposition=None):
     organizer = event.organizer
     venue_name = (getattr(proposition, "venue_name", "") or "").strip()
     venue_address = (getattr(proposition, "venue_address", "") or "").strip()
-    location = {
-        "@type": "Place",
-        "name": venue_name or str(organizer or "Czech BMX"),
-        "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "CZ",
-        },
+
+    # Smysluplný název místa — přeskočíme placeholder název klubu
+    organizer_name = str(organizer or "")
+    if organizer_name.lower() in _PLACEHOLDER_CLUB_NAMES:
+        organizer_name = ""
+    place_name = venue_name or organizer_name or "Czech BMX"
+
+    address = {
+        "@type": "PostalAddress",
+        "addressCountry": "CZ",
     }
 
     if venue_address:
-        location["address"]["streetAddress"] = venue_address
+        address["streetAddress"] = venue_address
     elif organizer:
         if organizer.street:
-            location["address"]["streetAddress"] = organizer.street
+            address["streetAddress"] = organizer.street
         if organizer.city:
-            location["address"]["addressLocality"] = organizer.city
+            address["addressLocality"] = organizer.city
         if organizer.zip_code:
-            location["address"]["postalCode"] = organizer.zip_code
+            address["postalCode"] = organizer.zip_code
+
+    # Fallback: Google vyžaduje alespoň jedno adresní pole nad rámec addressCountry
+    if not any(k in address for k in ("streetAddress", "addressLocality", "postalCode")):
+        address["addressLocality"] = "Czech Republic"
+
+    location = {
+        "@type": "Place",
+        "name": place_name,
+        "address": address,
+    }
 
     if organizer and organizer.lon and organizer.lng:
         location["geo"] = {

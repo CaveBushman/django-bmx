@@ -621,6 +621,32 @@
           </div>
         </div>
         {% endif %}
+
+        <div class="mt-6">
+          <p class="account-section-eyebrow">{% trans "Mobilní aplikace" %}</p>
+          <div class="mt-3">
+            <div class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-white">{% trans "Czech BMX – mobilní aplikace" %}</p>
+                  {% if mobile_app_subscription %}
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {% blocktrans with date=mobile_app_subscription.expires_at|date:"d.m.Y" %}Platné do {{ date }}{% endblocktrans %}
+                  </p>
+                  {% else %}
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "Není aktivní" %}</p>
+                  {% endif %}
+                </div>
+                <a href="{% url 'rider:mobile-app-subscription' %}"
+                  class="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold transition
+                    {% if mobile_app_subscription %}bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60
+                    {% else %}bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400{% endif %}">
+                  {% if mobile_app_subscription %}{% trans "Spravovat" %}{% else %}{% trans "Aktivovat" %}{% endif %}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="account-card rounded-[2rem] p-5 sm:p-6 lg:p-8">

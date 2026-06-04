@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Předplatné mobilní aplikace" %}{% endblock title %}
+
+{% block extra_head %}
+<style>
+  .sub-page { min-height: calc(100vh - 4rem); background: #f8fafc; }
+  html.dark .sub-page { background: #0f172a; }
+  .sub-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+  }
+  html.dark .sub-card { background: #1e293b; border-color: #334155; }
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="sub-page px-4 py-10">
+  <div class="mx-auto max-w-lg">
+
+    <div class="mb-8">
+      <a href="{% url 'rider:account' %}" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">← {% trans "Zpět na nastavení účtu" %}</a>
+      <h1 class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{% trans "Mobilní aplikace" %}</h1>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "Roční předplatné odemkne přístup k mobilní aplikaci Czech BMX." %}</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for msg in messages %}
+      <div class="rounded-xl px-4 py-3 text-sm font-medium
+        {% if msg.tags == 'error' %}bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300
+        {% elif msg.tags == 'success' %}bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300
+        {% else %}bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="sub-card p-6">
+
+      {% if subscription %}
+        {# ——— AKTIVNÍ PŘEDPLATNÉ ——— #}
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">{% trans "Stav" %}</p>
+            <p class="mt-1 text-xl font-black text-green-600 dark:text-green-400">{% trans "Aktivní" %}</p>
+          </div>
+          <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700 dark:bg-green-900/40 dark:text-green-300">
+            ✓ {% trans "Předplaceno" %}
+          </span>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-500">{% trans "Platí do" %}</p>
+            <p class="mt-1 font-semibold text-slate-900 dark:text-white">{{ subscription.expires_at|date:"d.m.Y" }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-500">{% trans "Roční cena" %}</p>
+            <p class="mt-1 font-semibold text-slate-900 dark:text-white">{{ annual_price }} Kč</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-500">{% trans "Auto-obnova" %}</p>
+            <p class="mt-1 font-semibold text-slate-900 dark:text-white">
+              {% if subscription.auto_renew %}{% trans "Zapnuta" %}{% else %}{% trans "Vypnuta" %}{% endif %}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-500">{% trans "Váš kredit" %}</p>
+            <p class="mt-1 font-semibold text-slate-900 dark:text-white">{{ balance }} Kč</p>
+          </div>
+        </div>
+
+        <div class="mt-6 border-t border-slate-100 pt-5 dark:border-slate-700">
+          {% if subscription.auto_renew %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel">
+            <button type="submit"
+              class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+              {% trans "Vypnout automatické obnovení" %}
+            </button>
+          </form>
+          <p class="mt-2 text-center text-xs text-slate-400">{% blocktrans with date=subscription.expires_at|date:"d.m.Y" %}Přístup zůstane aktivní do {{ date }}.{% endblocktrans %}</p>
+          {% else %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="resume">
+            <button type="submit"
+              class="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+              {% trans "Zapnout automatické obnovení" %}
+            </button>
+          </form>
+          {% endif %}
+        </div>
+
+      {% else %}
+        {# ——— PŘEDPLATNÉ NENÍ AKTIVNÍ ——— #}
+        <div class="text-center py-4">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/30">
+            <svg class="h-8 w-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 3h3m-3 3h.008v.015H10.5v-.015z" />
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Mobilní aplikace není aktivní" %}</h2>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {% blocktrans with price=annual_price %}Roční předplatné za {{ price }} Kč odemkne přístup na 365 dní.{% endblocktrans %}
+          </p>
+        </div>
+
+        <div class="mt-5 rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Cena" %}</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ annual_price }} Kč / {% trans "rok" %}</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-sm">
+            <span class="text-slate-600 dark:text-slate-300">{% trans "Váš kredit" %}</span>
+            <span class="font-bold {% if has_enough_credit %}text-green-600 dark:text-green-400{% else %}text-red-500 dark:text-red-400{% endif %}">{{ balance }} Kč</span>
+          </div>
+        </div>
+
+        {% if not has_enough_credit %}
+        <p class="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+          {% trans "Nemáš dostatek kreditu. Dobij si kredit v sekci Kredit." %}
+          <a href="{% url 'event:credit' %}" class="ml-1 underline">{% trans "Dobít kredit" %}</a>
+        </p>
+        {% endif %}
+
+        <form method="post" class="mt-5">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="activate">
+          <div class="mb-4">
+            <label class="block text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+              {% trans "Promo kód" %} <span class="font-normal normal-case tracking-normal text-slate-400">({% trans "nepovinné" %})</span>
+            </label>
+            <input type="text" name="promo_code" placeholder="XXXXXXXXXX"
+              class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm uppercase tracking-widest focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+          </div>
+          <button type="submit"
+            {% if not has_enough_credit %}disabled{% endif %}
+            class="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+            {% blocktrans with price=annual_price %}Aktivovat za {{ price }} Kč{% endblocktrans %}
+          </button>
+        </form>
+
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock content %}
