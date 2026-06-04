@@ -28,7 +28,7 @@ from finance.invoices import (
     _register_fonts,
 )
 from finance.models import SubscriptionInvoice
-from rider.models import RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
+from rider.models import MobileAppCharge, RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
 
 
 ET.register_namespace("", ISDOC_NS)
@@ -220,6 +220,9 @@ class SubscriptionInvoiceService:
             return f"Měsíční klubové předplatné trenéra pro klub {charge.club.team_name} za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
         return f"Měsíční rozšířené trenérské předplatné za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
 
+    def _build_mobile_description(self, charge):
+        return f"Měsíční předplatné mobilní aplikace za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
+
     @transaction.atomic
     def generate_for_rider_charge(self, charge):
         if not charge.payment_valid:
@@ -277,14 +280,41 @@ class SubscriptionInvoiceService:
         invoice.save()
         return invoice
 
+    @transaction.atomic
+    def generate_for_mobile_charge(self, charge):
+        if not charge.payment_valid:
+            return None
+        existing = SubscriptionInvoice.objects.filter(mobile_charge=charge).first()
+        if existing:
+            return existing
+        invoice = SubscriptionInvoice.objects.create(
+            number=self._build_invoice_number(),
+            issue_date=timezone.localdate(charge.transaction_date),
+            due_date=timezone.localdate(charge.transaction_date),
+            user=charge.user,
+            invoice_type=SubscriptionInvoice.TYPE_MOBILE_APP,
+            description=self._build_mobile_description(charge),
+            customer_name=f"{charge.user.first_name} {charge.user.last_name}".strip() or charge.user.username,
+            customer_email=charge.user.email or "",
+            total_price=_money(charge.amount),
+            mobile_charge=charge,
+        )
+        self._save_invoice_files(invoice)
+        invoice.save()
+        return invoice
+
     def ensure_for_user(self, user):
         for charge in RiderStatsCharge.objects.filter(user=user, payment_valid=True, invoice__isnull=True).select_related("rider", "user"):
             self.generate_for_rider_charge(charge)
         for charge in TrainerClubCharge.objects.filter(user=user, payment_valid=True, invoice__isnull=True).select_related("club", "user"):
             self.generate_for_trainer_charge(charge)
+        for charge in MobileAppCharge.objects.filter(user=user, payment_valid=True, invoice__isnull=True).select_related("user"):
+            self.generate_for_mobile_charge(charge)
 
     def ensure_for_all(self):
         for charge in RiderStatsCharge.objects.filter(payment_valid=True, invoice__isnull=True).select_related("rider", "user"):
             self.generate_for_rider_charge(charge)
         for charge in TrainerClubCharge.objects.filter(payment_valid=True, invoice__isnull=True).select_related("club", "user"):
             self.generate_for_trainer_charge(charge)
+        for charge in MobileAppCharge.objects.filter(payment_valid=True, invoice__isnull=True).select_related("user"):
+            self.generate_for_mobile_charge(charge)

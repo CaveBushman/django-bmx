@@ -16,6 +16,10 @@ from event.models import EntryForeign
 from ranking.ranking import get_ranking_recount_status
 from .models import (
     ForeignRider,
+    MobileAppCharge,
+    MobileAppSubscription,
+    PromoCode,
+    PromoCodeUsage,
     Rider,
     TrainerClubCharge,
     TrainerClubSubscription,
@@ -606,6 +610,38 @@ class RiderTransponderChangeAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+class MobileAppSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "season", "status", "expires_at", "monthly_price", "auto_renew")
+    list_filter = ("status", "auto_renew", "season")
+    search_fields = ("user__email", "user__last_name", "user__first_name")
+    list_select_related = ("user", "season")
+
+
+class MobileAppChargeAdmin(admin.ModelAdmin):
+    list_display = ("user", "amount", "reason", "period_start", "period_end", "payment_valid")
+    list_filter = ("reason", "payment_valid", "season")
+    search_fields = ("user__email", "user__last_name", "user__first_name")
+    list_select_related = ("user", "season", "subscription")
+
+
+class PromoCodeUsageInline(admin.TabularInline):
+    model = PromoCodeUsage
+    extra = 0
+    readonly_fields = ("user", "product", "discount_applied", "used_at")
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = ("code", "product", "discount_type", "discount_value", "used_count", "max_uses", "is_active", "valid_until", "created_by")
+    list_filter = ("product", "discount_type", "is_active")
+    search_fields = ("code", "description")
+    readonly_fields = ("used_count", "created", "updated")
+    inlines = [PromoCodeUsageInline]
+
+
 admin.site.register(Rider, RiderAdmin)
 admin.site.register(ForeignRider, ForeignRiderAdmin)
 admin.site.register(RiderStatsSubscription, RiderStatsSubscriptionAdmin)
@@ -613,3 +649,6 @@ admin.site.register(RiderStatsCharge, RiderStatsChargeAdmin)
 admin.site.register(TrainerClubSubscription, TrainerClubSubscriptionAdmin)
 admin.site.register(TrainerClubCharge, TrainerClubChargeAdmin)
 admin.site.register(RiderTransponderChange, RiderTransponderChangeAdmin)
+admin.site.register(MobileAppSubscription, MobileAppSubscriptionAdmin)
+admin.site.register(MobileAppCharge, MobileAppChargeAdmin)
+admin.site.register(PromoCode, PromoCodeAdmin)

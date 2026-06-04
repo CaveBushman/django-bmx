@@ -1,4 +1,13 @@
 
+function normalizeFilterText(str) {
+  if (!str) return "";
+  try {
+    return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
+  } catch (e) {
+    return str.toUpperCase().trim();
+  }
+}
+
 function applyEntryFilters() {
   var lastNameInput = document.getElementById("inputLastName");
   var clubInput = document.getElementById("inputClub");
@@ -6,14 +15,14 @@ function applyEntryFilters() {
   var desktopRows = document.querySelectorAll(".entry-desktop-row");
   var emptyState = document.getElementById("entry-empty-state");
 
-  var lastNameFilter = lastNameInput ? lastNameInput.value.toUpperCase().trim() : "";
-  var clubFilter = clubInput ? clubInput.value.toUpperCase().trim() : "";
+  var lastNameFilter = normalizeFilterText(lastNameInput ? lastNameInput.value : "");
+  var clubFilter = normalizeFilterText(clubInput ? clubInput.value : "");
   var visibleCount = 0;
 
   for (var i = 0; i < desktopRows.length; i++) {
     var row = desktopRows[i];
-    var lastNameText = (row.getAttribute("data-last-name") || "").toUpperCase();
-    var clubText = (row.getAttribute("data-club") || "").toUpperCase();
+    var lastNameText = normalizeFilterText(row.getAttribute("data-last-name") || "");
+    var clubText = normalizeFilterText(row.getAttribute("data-club") || "");
 
     var matchesLastName = !lastNameFilter || lastNameText.indexOf(lastNameFilter) > -1;
     var matchesClub = !clubFilter || clubText.indexOf(clubFilter) > -1;
@@ -24,15 +33,14 @@ function applyEntryFilters() {
 
   for (var j = 0; j < mobileCards.length; j++) {
     var card = mobileCards[j];
-    var nameNode = card.querySelector("h3");
-    var clubNode = card.querySelector("p");
-    var riderName = nameNode ? (nameNode.textContent || nameNode.innerText).toUpperCase() : "";
-    var riderClub = clubNode ? (clubNode.textContent || clubNode.innerText).toUpperCase() : "";
+    var lastNameText = normalizeFilterText(card.getAttribute("data-last-name") || "");
+    var clubText = normalizeFilterText(card.getAttribute("data-club") || "");
 
-    var cardMatchesLastName = !lastNameFilter || riderName.indexOf(lastNameFilter) > -1;
-    var cardMatchesClub = !clubFilter || riderClub.indexOf(clubFilter) > -1;
+    var cardMatchesLastName = !lastNameFilter || lastNameText.indexOf(lastNameFilter) > -1;
+    var cardMatchesClub = !clubFilter || clubText.indexOf(clubFilter) > -1;
 
     card.style.display = cardMatchesLastName && cardMatchesClub ? "" : "none";
+    if (cardMatchesLastName && cardMatchesClub) visibleCount += 1;
   }
 
   if (emptyState) {
@@ -290,6 +298,16 @@ function initializeEntryCategoryPopover() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  var lastNameInput = document.getElementById("inputLastName");
+  var clubInput = document.getElementById("inputClub");
+
+  if (lastNameInput) {
+    lastNameInput.addEventListener("input", applyEntryFilters);
+  }
+  if (clubInput) {
+    clubInput.addEventListener("input", applyEntryFilters);
+  }
+
   applyEntryFilters();
   syncEntryChoiceState();
   updateEntrySelectionSummary();

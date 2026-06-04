@@ -693,6 +693,7 @@ CRONJOBS = [
     ("0 */6 * * *", "bmx.cron.valid_licence_scheduled"),
     ("0 2 * * *", "bmx.cron.renew_rider_stats_subscriptions_scheduled"),
     ("15 2 * * *", "bmx.cron.renew_trainer_club_subscriptions_scheduled"),
+    ("30 2 * * *", "bmx.cron.renew_mobile_app_subscriptions_scheduled"),
     # AI agent – zpracuje čekající úkoly každý den ve 3:00
     ("0 3 * * *", "django.core.management.call_command", ["run_ai_agent"]),
 ]

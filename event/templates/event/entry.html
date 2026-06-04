@@ -975,7 +975,6 @@
                                 id="inputLastName"
                                 type="text"
                                 placeholder="{% trans 'Napiš příjmení jezdce' %}"
-                                onkeyup="searchByLastName()"
                                 class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                             />
                         </label>
@@ -988,7 +987,6 @@
                                 id="inputClub"
                                 type="text"
                                 placeholder="{% trans 'Napiš klub' %}"
-                                onkeyup="searchByClub()"
                                 class="entry-filter-input block w-full rounded-2xl border px-4 py-3 text-base shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                             />
                         </label>
@@ -996,7 +994,7 @@
 
                     <div class="md:hidden entry-mobile-list">
                         {% for rider in riders %}
-                        <article class="entry-mobile-card">
+                        <article class="entry-mobile-card" data-last-name="{{ rider.last_name|upper }}" data-club="{{ rider.club|upper }}">
                             <div class="entry-mobile-card__header">
                                 <div class="min-w-0">
                                     <h3 class="text-lg font-black text-slate-950 dark:text-white">{{ rider.first_name }} {{ rider.last_name }}</h3>
@@ -1420,7 +1418,51 @@
 </div>
 
 <a href="#" class="arrow" id="to-top"><i class="bi bi-arrow-up-square-fill"></i></a>
-<script src="{% static 'js/entry.js' %}?v=6"></script>
+<script src="{% static 'js/entry.js' %}?v=8"></script>
+<script>
+(function () {
+    function normalizeText(str) {
+        if (!str) return "";
+        try { return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim(); }
+        catch (e) { return str.toUpperCase().trim(); }
+    }
+
+    function runFilter() {
+        var lastNameVal = normalizeText((document.getElementById("inputLastName") || {}).value || "");
+        var clubVal     = normalizeText((document.getElementById("inputClub") || {}).value || "");
+        var visibleCount = 0;
+
+        document.querySelectorAll(".entry-desktop-row").forEach(function (row) {
+            var ln   = normalizeText(row.getAttribute("data-last-name") || "");
+            var club = normalizeText(row.getAttribute("data-club") || "");
+            var show = (!lastNameVal || ln.indexOf(lastNameVal) > -1) &&
+                       (!clubVal     || club.indexOf(clubVal) > -1);
+            row.style.display = show ? "" : "none";
+            if (show) visibleCount++;
+        });
+
+        document.querySelectorAll(".entry-mobile-card").forEach(function (card) {
+            var ln   = normalizeText(card.getAttribute("data-last-name") || "");
+            var club = normalizeText(card.getAttribute("data-club") || "");
+            var show = (!lastNameVal || ln.indexOf(lastNameVal) > -1) &&
+                       (!clubVal     || club.indexOf(clubVal) > -1);
+            card.style.display = show ? "" : "none";
+            if (show) visibleCount++;
+        });
+
+        var empty = document.getElementById("entry-empty-state");
+        if (empty) empty.classList.toggle("hidden", visibleCount > 0);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var ln = document.getElementById("inputLastName");
+        var cl = document.getElementById("inputClub");
+        if (ln) ln.addEventListener("input", runFilter);
+        if (cl) cl.addEventListener("input", runFilter);
+        runFilter();
+    });
+}());
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     var form = document.getElementById("entry-form");

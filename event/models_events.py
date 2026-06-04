@@ -23,6 +23,7 @@ class SeasonSettings(models.Model):
     rider_stats_monthly_price = models.IntegerField(default=50)
     trainer_club_stats_monthly_price = models.IntegerField(default=250)
     trainer_extended_monthly_price = models.IntegerField(default=500)
+    mobile_app_monthly_price = models.IntegerField(default=99)
     transponder_price = models.IntegerField(default=1900)
     bmx_rules_link = models.URLField(max_length=500, blank=True, null=True)
 

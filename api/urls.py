@@ -90,6 +90,14 @@ urlpatterns = [
     path("v1/results/", views.ResultListAPIView.as_view(), name="v1-result-list"),
     path("v1/events/<int:pk>/results/", views.ResultListAPIView.as_view(), name="v1-event-results"),
 
+    # Mobilní aplikace – předplatné
+    path("subscriptions/mobile/", views.MobileAppSubscriptionAPIView.as_view(), name="mobile-subscription"),
+    path("subscriptions/mobile/resume/", views.MobileAppSubscriptionResumeAPIView.as_view(), name="mobile-subscription-resume"),
+
+    # Promo kódy
+    path("promo-codes/validate/", views.PromoCodeValidateAPIView.as_view(), name="promo-code-validate"),
+    path("promo-codes/generate/", views.PromoCodeGenerateAPIView.as_view(), name="promo-code-generate"),
+
     # OpenAPI schema + Swagger UI — pouze pro adminy
     path("schema/", SpectacularAPIView.as_view(permission_classes=[IsAdminUser]), name="schema"),
     path("schema/swagger/", SpectacularSwaggerView.as_view(url_name="api:schema", permission_classes=[IsAdminUser]), name="swagger"),

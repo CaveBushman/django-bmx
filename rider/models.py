@@ -912,4 +912,201 @@ def set_class_foreign(sender, instance, *args, **kwargs):
     instance.class_24 = instance.set_class_24(instance.gender, age)
 
 
+# ---------------------------------------------------------------------------
+# Mobilní aplikace – předplatné
+# ---------------------------------------------------------------------------
+
+class MobileAppSubscription(models.Model):
+    STATUS_ACTIVE = "active"
+    STATUS_EXPIRED = "expired"
+    STATUS_CANCELED = "canceled"
+    STATUS_PAST_DUE = "past_due"
+    STATUS_CHOICES = (
+        (STATUS_ACTIVE, "Aktivní"),
+        (STATUS_EXPIRED, "Expirované"),
+        (STATUS_CANCELED, "Zrušené"),
+        (STATUS_PAST_DUE, "Neprodloužené"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="mobile_app_subscriptions")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="mobile_app_subscriptions")
+    starts_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE, db_index=True)
+    monthly_price = models.IntegerField(default=0)
+    auto_renew = models.BooleanField(default=True)
+    last_renewed_at = models.DateTimeField(null=True, blank=True)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Předplatné mobilní aplikace"
+        verbose_name_plural = "Předplatná mobilní aplikace"
+        indexes = [
+            models.Index(fields=["user", "status", "expires_at"], name="mobile_sub_user_status_exp"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(status="active"),
+                name="uniq_active_mobile_app_subscription",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} – mobilní app ({self.get_status_display()})"
+
+
+class MobileAppCharge(models.Model):
+    REASON_INITIAL = "initial"
+    REASON_RENEWAL = "renewal"
+    REASON_PROMO = "promo"
+    REASON_CHOICES = (
+        (REASON_INITIAL, "První aktivace"),
+        (REASON_RENEWAL, "Obnovení"),
+        (REASON_PROMO, "Promo kód"),
+    )
+
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="mobile_app_charges")
+    season = models.ForeignKey("event.SeasonSettings", on_delete=models.PROTECT, related_name="mobile_app_charges")
+    subscription = models.ForeignKey(
+        "rider.MobileAppSubscription",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="charges",
+    )
+    amount = models.IntegerField(default=0)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    reason = models.CharField(max_length=20, choices=REASON_CHOICES, default=REASON_INITIAL)
+    payment_valid = models.BooleanField(default=True)
+    transaction_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "Odečet za mobilní aplikaci"
+        verbose_name_plural = "Odečty za mobilní aplikaci"
+        indexes = [
+            models.Index(fields=["user", "payment_valid", "transaction_date"], name="mobile_charge_user_valid_date"),
+            models.Index(fields=["subscription"], name="mobile_charge_subscription"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} – mobilní app – {self.amount} Kč"
+
+
+@receiver(post_save, sender=MobileAppCharge)
+@receiver(post_delete, sender=MobileAppCharge)
+def update_user_balance_for_mobile_charge(sender, instance, **kwargs):
+    if not instance.user_id:
+        return
+    from accounts.models import Account
+    from event.credit import calculate_user_balance
+
+    new_balance = calculate_user_balance(instance.user_id)
+    Account.objects.filter(id=instance.user_id).update(credit=new_balance)
+
+
+# ---------------------------------------------------------------------------
+# Promo kódy
+# ---------------------------------------------------------------------------
+
+import secrets
+import string
+
+
+def _generate_promo_code():
+    alphabet = string.ascii_uppercase + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(10))
+
+
+class PromoCode(models.Model):
+    DISCOUNT_PERCENT = "percent"
+    DISCOUNT_FIXED = "fixed"
+    DISCOUNT_FREE = "free"
+    DISCOUNT_CHOICES = (
+        (DISCOUNT_PERCENT, "Procento ze ceny"),
+        (DISCOUNT_FIXED, "Pevná sleva (Kč)"),
+        (DISCOUNT_FREE, "Zdarma (100 %)"),
+    )
+
+    PRODUCT_MOBILE_APP = "mobile_app"
+    PRODUCT_RIDER_STATS = "rider_stats"
+    PRODUCT_TRAINER_CLUB = "trainer_club"
+    PRODUCT_TRAINER_EXTENDED = "trainer_extended"
+    PRODUCT_ALL = "all"
+    PRODUCT_CHOICES = (
+        (PRODUCT_MOBILE_APP, "Mobilní aplikace"),
+        (PRODUCT_RIDER_STATS, "Prémiové statistiky"),
+        (PRODUCT_TRAINER_CLUB, "Trenérské statistiky klubu"),
+        (PRODUCT_TRAINER_EXTENDED, "Rozšířené trenérské funkce"),
+        (PRODUCT_ALL, "Vše"),
+    )
+
+    code = models.CharField(max_length=32, unique=True, default=_generate_promo_code)
+    description = models.CharField(max_length=255, blank=True)
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_CHOICES, default=DISCOUNT_FREE)
+    discount_value = models.IntegerField(default=100, help_text="Procento (0–100) nebo pevná částka v Kč. U 'Zdarma' se ignoruje.")
+    product = models.CharField(max_length=30, choices=PRODUCT_CHOICES, default=PRODUCT_MOBILE_APP, db_index=True)
+    max_uses = models.IntegerField(null=True, blank=True, help_text="Prázdné = neomezeno")
+    used_count = models.IntegerField(default=0)
+    valid_from = models.DateTimeField(null=True, blank=True)
+    valid_until = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.SET_NULL, null=True, blank=True, related_name="created_promo_codes"
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Promo kód"
+        verbose_name_plural = "Promo kódy"
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"{self.code} ({self.get_product_display()}, {self.get_discount_type_display()})"
+
+    def is_valid(self, at_time=None):
+        now = at_time or timezone.now()
+        if not self.is_active:
+            return False
+        if self.valid_from and now < self.valid_from:
+            return False
+        if self.valid_until and now > self.valid_until:
+            return False
+        if self.max_uses is not None and self.used_count >= self.max_uses:
+            return False
+        return True
+
+    def calculate_discount(self, original_price):
+        if self.discount_type == self.DISCOUNT_FREE:
+            return original_price
+        if self.discount_type == self.DISCOUNT_PERCENT:
+            return int(original_price * self.discount_value / 100)
+        if self.discount_type == self.DISCOUNT_FIXED:
+            return min(self.discount_value, original_price)
+        return 0
+
+
+class PromoCodeUsage(models.Model):
+    promo_code = models.ForeignKey(PromoCode, on_delete=models.CASCADE, related_name="usages")
+    user = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="promo_code_usages")
+    product = models.CharField(max_length=30)
+    discount_applied = models.IntegerField(default=0)
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Použití promo kódu"
+        verbose_name_plural = "Použití promo kódů"
+        ordering = ["-used_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["promo_code", "user"], name="uniq_promo_usage_per_user"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} – {self.promo_code.code} ({self.used_at:%Y-%m-%d})"
+
+
 pre_save.connect(set_class_foreign, sender=ForeignRider)

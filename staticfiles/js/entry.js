@@ -1,27 +1,50 @@
 
+function normalizeFilterText(str) {
+  if (!str) return "";
+  try {
+    return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
+  } catch (e) {
+    return str.toUpperCase().trim();
+  }
+}
+
 function applyEntryFilters() {
   var lastNameInput = document.getElementById("inputLastName");
   var clubInput = document.getElementById("inputClub");
-  var table = document.getElementById("myTable");
+  var mobileCards = document.querySelectorAll(".entry-mobile-card");
+  var desktopRows = document.querySelectorAll(".entry-desktop-row");
+  var emptyState = document.getElementById("entry-empty-state");
 
-  if (!table) return;
+  var lastNameFilter = normalizeFilterText(lastNameInput ? lastNameInput.value : "");
+  var clubFilter = normalizeFilterText(clubInput ? clubInput.value : "");
+  var visibleCount = 0;
 
-  var lastNameFilter = lastNameInput ? lastNameInput.value.toUpperCase().trim() : "";
-  var clubFilter = clubInput ? clubInput.value.toUpperCase().trim() : "";
-  var rows = table.getElementsByTagName("tr");
-
-  for (var i = 0; i < rows.length; i++) {
-    var cells = rows[i].getElementsByTagName("td");
-
-    if (!cells.length) continue;
-
-    var lastNameText = cells[1] ? (cells[1].textContent || cells[1].innerText).toUpperCase() : "";
-    var clubText = cells[3] ? (cells[3].textContent || cells[3].innerText).toUpperCase() : "";
+  for (var i = 0; i < desktopRows.length; i++) {
+    var row = desktopRows[i];
+    var lastNameText = normalizeFilterText(row.getAttribute("data-last-name") || "");
+    var clubText = normalizeFilterText(row.getAttribute("data-club") || "");
 
     var matchesLastName = !lastNameFilter || lastNameText.indexOf(lastNameFilter) > -1;
     var matchesClub = !clubFilter || clubText.indexOf(clubFilter) > -1;
 
-    rows[i].style.display = matchesLastName && matchesClub ? "" : "none";
+    row.style.display = matchesLastName && matchesClub ? "" : "none";
+    if (matchesLastName && matchesClub) visibleCount += 1;
+  }
+
+  for (var j = 0; j < mobileCards.length; j++) {
+    var card = mobileCards[j];
+    var lastNameText = normalizeFilterText(card.getAttribute("data-last-name") || "");
+    var clubText = normalizeFilterText(card.getAttribute("data-club") || "");
+
+    var cardMatchesLastName = !lastNameFilter || lastNameText.indexOf(lastNameFilter) > -1;
+    var cardMatchesClub = !clubFilter || clubText.indexOf(clubFilter) > -1;
+
+    card.style.display = cardMatchesLastName && cardMatchesClub ? "" : "none";
+    if (cardMatchesLastName && cardMatchesClub) visibleCount += 1;
+  }
+
+  if (emptyState) {
+    emptyState.classList.toggle("hidden", visibleCount > 0);
   }
 }
 
@@ -74,37 +97,221 @@ function getEntrySelectionCounts(form) {
   };
 }
 
+function getRiderCountLabel(total, form) {
+  var singular = (form && form.dataset.riderSingular) || "jezdec";
+  var few = (form && form.dataset.riderFew) || "jezdci";
+  var many = (form && form.dataset.riderMany) || "jezdců";
+
+  if (total === 1) return singular;
+
+  var mod100 = total % 100;
+  if (mod100 >= 11 && mod100 <= 14) return many;
+
+  var mod10 = total % 10;
+  if (mod10 >= 2 && mod10 <= 4) return few;
+
+  return many;
+}
+
 function updateEntrySelectionSummary() {
   var form = document.getElementById("entry-form");
-  var submitButton = document.getElementById("entry-submit-btn");
-  var selectionLabel = document.getElementById("entry-selection-label");
-  var selectionBreakdown = document.getElementById("entry-selection-breakdown");
+  var submitButtons = document.querySelectorAll("[data-entry-submit]");
+  var submitTexts = document.querySelectorAll("[data-entry-submit-text]");
+  var selectionLabels = document.querySelectorAll("[data-entry-selection-label]");
+  var selectionBreakdowns = document.querySelectorAll("[data-entry-selection-breakdown]");
 
-  if (!form || !submitButton || !selectionLabel || !selectionBreakdown) {
+  if (!form || !submitButtons.length || !selectionLabels.length || !selectionBreakdowns.length) {
     return;
   }
 
   var counts = getEntrySelectionCounts(form);
   var selectedLabel = form.dataset.selectedLabel || "Vybráno";
-  var registrationsLabel = form.dataset.registrationsLabel || "registrací";
   var beginnerLabel = form.dataset.beginnerLabel || "Příchozí";
   var beginnerInputs = form.querySelectorAll('input[name="checkbox_beginner"]').length > 0;
+  var riderCountLabel = getRiderCountLabel(counts.total, form);
   var breakdown =
-    '20" ' + counts.count20 + ' | 24" ' + counts.count24 +
-    (beginnerInputs ? " | " + beginnerLabel + " " + counts.countBeginner : "");
+    '20": ' + counts.count20 + " • 24\": " + counts.count24 +
+    (beginnerInputs ? " • " + beginnerLabel + ": " + counts.countBeginner : "");
 
-  selectionLabel.textContent = selectedLabel + " " + counts.total + " " + registrationsLabel;
-  selectionBreakdown.textContent = breakdown;
+  for (var i = 0; i < selectionLabels.length; i++) {
+    selectionLabels[i].textContent = selectedLabel + " " + counts.total + " " + riderCountLabel;
+  }
 
-  submitButton.disabled = counts.total === 0;
-  submitButton.classList.toggle("opacity-60", counts.total === 0);
-  submitButton.classList.toggle("cursor-not-allowed", counts.total === 0);
+  for (var j = 0; j < selectionBreakdowns.length; j++) {
+    selectionBreakdowns[j].textContent = breakdown;
+  }
+
+  for (var k = 0; k < submitButtons.length; k++) {
+    submitButtons[k].disabled = counts.total === 0;
+    submitButtons[k].classList.toggle("opacity-60", counts.total === 0);
+    submitButtons[k].classList.toggle("cursor-not-allowed", counts.total === 0);
+    submitButtons[k].classList.toggle("entry-cta--active", counts.total > 0);
+  }
+
+  for (var l = 0; l < submitTexts.length; l++) {
+    submitTexts[l].textContent =
+      counts.total > 0
+        ? (form.dataset.buttonActive || "Přidat vybrané do košíku")
+        : (form.dataset.buttonIdle || "Přidat do košíku");
+  }
+}
+
+function initializeEntryCategoryPopover() {
+  var popover = document.getElementById("entry-category-popover");
+  if (!popover) return;
+
+  var title = document.getElementById("entry-category-popover-title");
+  var count = document.getElementById("entry-category-popover-count");
+  var list = document.getElementById("entry-category-popover-list");
+  var activeTrigger = null;
+  var hideTimer = null;
+
+  function clearHideTimer() {
+    if (hideTimer) {
+      window.clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+  }
+
+  function scheduleHide() {
+    clearHideTimer();
+    hideTimer = window.setTimeout(hidePopover, 120);
+  }
+
+  function renderParticipants(entries) {
+    list.innerHTML = "";
+    for (var i = 0; i < entries.length; i++) {
+      var item = document.createElement("li");
+      item.className = "flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900";
+
+      var plate = document.createElement("span");
+      plate.className = "shrink-0 rounded-full bg-indigo-100 px-2 py-1 text-xs font-bold uppercase tracking-[0.12em] text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300";
+      plate.textContent = entries[i].plate || "-";
+
+      var name = document.createElement("span");
+      name.className = "min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200";
+      if (entries[i].name) {
+        name.textContent = entries[i].name;
+      } else {
+        name.textContent = ((entries[i].first_name || "") + " " + (entries[i].last_name || "")).trim();
+      }
+
+      item.appendChild(plate);
+      item.appendChild(name);
+      list.appendChild(item);
+    }
+  }
+
+  function positionPopover(trigger) {
+    var rect = trigger.getBoundingClientRect();
+    var popoverRect = popover.getBoundingClientRect();
+    var top = rect.bottom + 10;
+    var left = rect.left + rect.width / 2 - popoverRect.width / 2;
+
+    if (left < 16) left = 16;
+    if (left + popoverRect.width > window.innerWidth - 16) {
+      left = window.innerWidth - popoverRect.width - 16;
+    }
+    if (top + popoverRect.height > window.innerHeight - 16) {
+      top = rect.top - popoverRect.height - 10;
+    }
+    if (top < 16) top = 16;
+
+    popover.style.top = top + "px";
+    popover.style.left = left + "px";
+  }
+
+  function showPopover(trigger) {
+    clearHideTimer();
+    activeTrigger = trigger;
+
+    var categoryName = trigger.getAttribute("data-category-name") || "";
+    var categoryCount = parseInt(trigger.getAttribute("data-category-count") || "0", 10);
+    var entries = [];
+
+    var template = trigger.nextElementSibling;
+    if (template && template.classList.contains("entry-category-template")) {
+      var items = template.querySelectorAll(".entry-category-template-item");
+      for (var i = 0; i < items.length; i++) {
+        entries.push({
+          plate: items[i].getAttribute("data-plate") || "-",
+          name: items[i].getAttribute("data-name") || "",
+        });
+      }
+    }
+
+    title.textContent = categoryName;
+    count.textContent = categoryCount + " přihlášených";
+    renderParticipants(entries);
+    popover.hidden = false;
+    positionPopover(trigger);
+  }
+
+  function hidePopover() {
+    clearHideTimer();
+    popover.hidden = true;
+    activeTrigger = null;
+  }
+
+  var triggers = document.querySelectorAll(".entry-category-trigger");
+  for (var i = 0; i < triggers.length; i++) {
+    triggers[i].addEventListener("mouseenter", function () {
+      showPopover(this);
+    });
+    triggers[i].addEventListener("focus", function () {
+      showPopover(this);
+    });
+    triggers[i].addEventListener("mouseleave", scheduleHide);
+    triggers[i].addEventListener("blur", scheduleHide);
+    triggers[i].addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (activeTrigger === this && !popover.hidden) {
+        hidePopover();
+        return;
+      }
+      showPopover(this);
+    });
+  }
+
+  popover.addEventListener("mouseenter", clearHideTimer);
+  popover.addEventListener("mouseleave", scheduleHide);
+
+  document.addEventListener("click", function (event) {
+    if (popover.hidden) return;
+    if (popover.contains(event.target)) return;
+    if (event.target.closest && event.target.closest(".entry-category-trigger")) return;
+    hidePopover();
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      hidePopover();
+    }
+  });
+
+  window.addEventListener("resize", function () {
+    if (!popover.hidden && activeTrigger) {
+      positionPopover(activeTrigger);
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  var lastNameInput = document.getElementById("inputLastName");
+  var clubInput = document.getElementById("inputClub");
+
+  if (lastNameInput) {
+    lastNameInput.addEventListener("input", applyEntryFilters);
+  }
+  if (clubInput) {
+    clubInput.addEventListener("input", applyEntryFilters);
+  }
+
   applyEntryFilters();
   syncEntryChoiceState();
   updateEntrySelectionSummary();
+  initializeEntryCategoryPopover();
 
   var form = document.getElementById("entry-form");
   if (form) {

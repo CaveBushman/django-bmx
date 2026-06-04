@@ -14,23 +14,27 @@ def _build_balance_components(*, user_id=None):
     debit_model = apps.get_model("event", "DebetTransaction")
     rider_stats_charge_model = apps.get_model("rider", "RiderStatsCharge")
     trainer_charge_model = apps.get_model("rider", "TrainerClubCharge")
+    mobile_charge_model = apps.get_model("rider", "MobileAppCharge")
 
     credit_qs = credit_model.objects.filter(payment_complete=True)
     debit_qs = debit_model.objects.filter(payment_valid=True)
     rider_stats_qs = rider_stats_charge_model.objects.filter(payment_valid=True)
     trainer_charge_qs = trainer_charge_model.objects.filter(payment_valid=True)
+    mobile_charge_qs = mobile_charge_model.objects.filter(payment_valid=True)
 
     if user_id is not None:
         credit_qs = credit_qs.filter(user_id=user_id)
         debit_qs = debit_qs.filter(user_id=user_id)
         rider_stats_qs = rider_stats_qs.filter(user_id=user_id)
         trainer_charge_qs = trainer_charge_qs.filter(user_id=user_id)
+        mobile_charge_qs = mobile_charge_qs.filter(user_id=user_id)
 
     return {
         "credit": _sum_amount(credit_qs, alias="total_credit"),
         "event_debit": _sum_amount(debit_qs, alias="total_debit"),
         "rider_stats_debit": _sum_amount(rider_stats_qs, alias="total_rider_stats_debit"),
         "trainer_charge_debit": _sum_amount(trainer_charge_qs, alias="total_trainer_charge_debit"),
+        "mobile_app_debit": _sum_amount(mobile_charge_qs, alias="total_mobile_app_debit"),
     }
 
 
@@ -41,6 +45,7 @@ def _calculate_balance(*, user_id=None):
         - components["event_debit"]
         - components["rider_stats_debit"]
         - components["trainer_charge_debit"]
+        - components["mobile_app_debit"]
     )
 
 

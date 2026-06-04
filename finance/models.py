@@ -102,10 +102,12 @@ class SubscriptionInvoice(models.Model):
     TYPE_RIDER_STATS = "rider_stats"
     TYPE_TRAINER_CLUB = "trainer_club_stats"
     TYPE_TRAINER_EXTENDED = "trainer_extended"
+    TYPE_MOBILE_APP = "mobile_app"
     TYPE_CHOICES = (
         (TYPE_RIDER_STATS, "Individuální předplatné"),
         (TYPE_TRAINER_CLUB, "Klubové předplatné trenéra"),
         (TYPE_TRAINER_EXTENDED, "Rozšířené předplatné trenéra"),
+        (TYPE_MOBILE_APP, "Předplatné mobilní aplikace"),
     )
 
     number = models.CharField(max_length=255, unique=True)
@@ -126,6 +128,13 @@ class SubscriptionInvoice(models.Model):
     )
     trainer_charge = models.OneToOneField(
         "rider.TrainerClubCharge",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invoice",
+    )
+    mobile_charge = models.OneToOneField(
+        "rider.MobileAppCharge",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
