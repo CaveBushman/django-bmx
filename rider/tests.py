@@ -210,7 +210,7 @@ class AccountSettingsLinkedRidersTests(TestCase):
     def test_account_page_shows_linked_rider(self):
         self.client.force_login(self.user)
 
-        response = self.client.get(reverse("rider:account"))
+        response = self.client.get(reverse("user:account"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Profily jezdců navázané na účet")
@@ -227,7 +227,7 @@ class AccountSettingsLinkedRidersTests(TestCase):
         self.client.force_login(self.user)
 
         response = self.client.post(
-            reverse("rider:account"),
+            reverse("user:account"),
             {
                 "action": "submit-avatar-request",
                 "target_type": "account",
@@ -246,7 +246,7 @@ class AccountSettingsLinkedRidersTests(TestCase):
         self.client.force_login(self.user)
 
         response = self.client.post(
-            reverse("rider:account"),
+            reverse("user:account"),
             {
                 "action": "submit-avatar-request",
                 "target_type": "rider",
@@ -276,7 +276,7 @@ class AccountSettingsLinkedRidersTests(TestCase):
         self.client.force_login(self.user)
 
         response = self.client.post(
-            reverse("rider:account"),
+            reverse("user:account"),
             {
                 "action": "submit-avatar-request",
                 "target_type": "rider",
@@ -330,7 +330,7 @@ class RiderAdminAvatarModerationTests(TestCase):
     def test_staff_user_sees_avatar_badge_in_navbar(self):
         self.client.force_login(self.staff_user)
 
-        response = self.client.get(reverse("rider:account"))
+        response = self.client.get(reverse("user:account"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "AVATAR")
@@ -1159,7 +1159,7 @@ class TrainerClubSubscriptionTests(TestCase):
 
         self.client.force_login(self.user)
         response = self.client.get(
-            reverse("rider:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "csv"})
+            reverse("user:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "csv"})
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1249,7 +1249,7 @@ class TrainerClubSubscriptionTests(TestCase):
 
         self.client.force_login(self.user)
         response = self.client.get(
-            reverse("rider:trainer-club-kpi-export", kwargs={"club_id": self.club.id, "export_format": "xlsx"})
+            reverse("user:trainer-club-kpi-export", kwargs={"club_id": self.club.id, "export_format": "xlsx"})
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1274,7 +1274,7 @@ class TrainerClubSubscriptionTests(TestCase):
 
         self.client.force_login(self.user)
         response = self.client.get(
-            reverse("rider:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "pdf"})
+            reverse("user:trainer-club-riders-export", kwargs={"club_id": self.club.id, "export_format": "pdf"})
         )
 
         self.assertEqual(response.status_code, 404)

@@ -695,8 +695,8 @@ class InternalPageSmokeTests(TestCase):
             reverse("event:fees-on-event", kwargs={"pk": self.event.pk}),
             reverse("event:commissar-assignments"),
             reverse("event:credit"),
-            reverse("rider:account"),
-            reverse("rider:trainer-dashboard"),
+            reverse("user:account"),
+            reverse("user:trainer-dashboard"),
         )
 
         for url in urls:
@@ -973,7 +973,7 @@ class AuthorizationBoundaryTests(TestCase):
     def test_anonymous_user_is_redirected_from_internal_pages(self):
         urls = (
             reverse("event:fees-on-event", kwargs={"pk": self.event.pk}),
-            reverse("rider:account"),
+            reverse("user:account"),
             reverse("finance:finance"),
         )
 

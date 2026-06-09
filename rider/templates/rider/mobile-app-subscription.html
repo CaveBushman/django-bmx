@@ -21,7 +21,7 @@
   <div class="mx-auto max-w-lg">
 
     <div class="mb-8">
-      <a href="{% url 'rider:account' %}" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">← {% trans "Zpět na nastavení účtu" %}</a>
+      <a href="{% url 'user:account' %}" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">← {% trans "Zpět na nastavení účtu" %}</a>
       <h1 class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{% trans "Mobilní aplikace" %}</h1>
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "Roční předplatné odemkne přístup k mobilní aplikaci Czech BMX." %}</p>
     </div>
@@ -137,6 +137,7 @@
               {% trans "Promo kód" %} <span class="font-normal normal-case tracking-normal text-slate-400">({% trans "nepovinné" %})</span>
             </label>
             <input type="text" name="promo_code" placeholder="XXXXXXXXXX"
+              value="{{ request.GET.promo|upper }}"
               class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm uppercase tracking-widest focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white">
           </div>
           <button type="submit"

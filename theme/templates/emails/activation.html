@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+{% block subject %}{% trans "Aktivace účtu Czech BMX" %}{% endblock %}
+{% block body %}
+<p class="greeting">{% blocktrans with name=user.first_name|default:user.email %}Ahoj {{ name }},{% endblocktrans %}</p>
+<div class="content">
+  <p>{% trans "Děkujeme za registraci na Czech BMX! Stačí jeden krok — potvrďte svůj e-mail kliknutím na tlačítko níže." %}</p>
+</div>
+<div class="btn-wrap">
+  <a href="{{ activation_url }}" class="btn">{% trans "Aktivovat účet" %}</a>
+</div>
+<hr class="divider">
+<p class="small">{% trans "Tlačítko nefunguje? Zkopírujte tento odkaz do prohlížeče:" %}<br>
+  <a href="{{ activation_url }}" style="color:#6366f1;word-break:break-all">{{ activation_url }}</a>
+</p>
+<p class="small">{% trans "Pokud jste registraci nevytvářeli, tento e-mail ignorujte." %}</p>
+{% endblock %}

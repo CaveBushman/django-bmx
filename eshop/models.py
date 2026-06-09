@@ -604,3 +604,29 @@ class FlexiExportSettings(models.Model):
     def get_solo(cls):
         obj, _ = cls.objects.get_or_create(pk=1, defaults={"name": "Výchozí nastavení"})
         return obj
+
+
+class EshopSettings(models.Model):
+    """Singleton s globálním nastavením e-shopu."""
+    is_public = models.BooleanField(
+        "E-shop viditelný všem",
+        default=False,
+        help_text="Zaškrtni pro zpřístupnění e-shopu všem návštěvníkům. Jinak je viditelný jen administrátorům.",
+    )
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Nastavení e-shopu"
+        verbose_name_plural = "Nastavení e-shopu"
+
+    def __str__(self):
+        return "Nastavení e-shopu"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @classmethod
+    def shop_is_public(cls):
+        return cls.get_solo().is_public

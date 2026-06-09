@@ -7,6 +7,7 @@ from accounts.models import Account
 from event.credit import calculate_user_balance
 from event.models import SeasonSettings
 from rider.models import MobileAppCharge, MobileAppSubscription, PromoCode, PromoCodeUsage
+from rider.subscriptions import cancel_subscription, resume_subscription
 
 
 SUBSCRIPTION_PERIOD = timedelta(days=365)
@@ -159,27 +160,11 @@ def _consume_promo_code(promo, user, product, discount_applied):
 
 
 def cancel_mobile_app_subscription(subscription, *, at_time=None):
-    current_time = at_time or timezone.now()
-    subscription.auto_renew = False
-    subscription.canceled_at = current_time
-    if subscription.expires_at <= current_time:
-        subscription.status = MobileAppSubscription.STATUS_CANCELED
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
-    else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
-    return subscription
+    return cancel_subscription(subscription, at_time=at_time)
 
 
 def resume_mobile_app_subscription(subscription, *, at_time=None):
-    current_time = at_time or timezone.now()
-    subscription.auto_renew = True
-    subscription.canceled_at = None
-    if subscription.expires_at > current_time:
-        subscription.status = MobileAppSubscription.STATUS_ACTIVE
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
-    else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
-    return subscription
+    return resume_subscription(subscription, at_time=at_time)
 
 
 def renew_due_mobile_app_subscriptions(*, at_time=None):

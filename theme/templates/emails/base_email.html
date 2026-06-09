@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block subject %}Czech BMX{% endblock %}</title>
+<style>
+  body{margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1e293b}
+  .wrapper{max-width:580px;margin:32px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,.08)}
+  .header{background:linear-gradient(135deg,#4f46e5 0%,#6366f1 100%);padding:32px 40px;text-align:center}
+  .header img{height:36px;margin-bottom:12px}
+  .header h1{margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .body{padding:36px 40px}
+  .greeting{font-size:16px;color:#334155;margin-bottom:20px}
+  .content{font-size:15px;line-height:1.7;color:#475569}
+  .btn-wrap{text-align:center;margin:32px 0}
+  .btn{display:inline-block;background:#4f46e5;color:#ffffff !important;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:700;letter-spacing:.01em}
+  .btn:hover{background:#4338ca}
+  .divider{border:none;border-top:1px solid #e2e8f0;margin:28px 0}
+  .small{font-size:13px;color:#94a3b8;line-height:1.6}
+  .highlight-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin:20px 0}
+  .highlight-box .code{font-family:monospace;font-size:22px;font-weight:900;letter-spacing:.18em;color:#4f46e5;text-align:center;display:block;padding:8px 0}
+  .footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center}
+  .footer p{margin:4px 0;font-size:12px;color:#94a3b8}
+  .footer a{color:#6366f1;text-decoration:none}
+  @media(max-width:600px){.body,.header,.footer{padding:24px 20px}.btn{display:block;text-align:center}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>Czech BMX</h1>
+  </div>
+  <div class="body">
+    {% block body %}{% endblock %}
+  </div>
+  <div class="footer">
+    <p>Czech BMX &mdash; <a href="{{ site_url }}">czechbmx.cz</a></p>
+    <p>Tento e-mail byl odeslán automaticky, neodpovídejte na něj.</p>
+  </div>
+</div>
+</body>
+</html>

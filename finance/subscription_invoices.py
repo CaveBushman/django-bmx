@@ -221,87 +221,76 @@ class SubscriptionInvoiceService:
         return f"Měsíční rozšířené trenérské předplatné za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
 
     def _build_mobile_description(self, charge):
-        return f"Měsíční předplatné mobilní aplikace za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
+        return f"Roční předplatné mobilní aplikace za období {timezone.localtime(charge.period_start):%d.%m.%Y} – {timezone.localtime(charge.period_end):%d.%m.%Y}"
+
+    def _user_customer(self, user):
+        return (
+            f"{user.first_name} {user.last_name}".strip() or user.username,
+            user.email or "",
+        )
 
     @transaction.atomic
-    def generate_for_rider_charge(self, charge):
+    def _create_invoice(self, charge, *, invoice_type, description, customer_name, customer_email, charge_field):
+        """Generické vytvoření faktury za odečet předplatného."""
         if not charge.payment_valid:
             return None
-        existing = SubscriptionInvoice.objects.filter(rider_charge=charge).first()
+        existing = SubscriptionInvoice.objects.filter(**{charge_field: charge}).first()
         if existing:
             return existing
-        invoice = SubscriptionInvoice.objects.create(
-            number=self._build_invoice_number(),
-            issue_date=timezone.localdate(charge.transaction_date),
-            due_date=timezone.localdate(charge.transaction_date),
-            user=charge.user,
-            invoice_type=SubscriptionInvoice.TYPE_RIDER_STATS,
-            description=self._build_rider_description(charge),
-            customer_name=f"{charge.user.first_name} {charge.user.last_name}".strip() or charge.user.username,
-            customer_email=charge.user.email or "",
-            total_price=_money(charge.amount),
-            rider_charge=charge,
-        )
-        self._save_invoice_files(invoice)
-        invoice.save()
-        return invoice
-
-    @transaction.atomic
-    def generate_for_trainer_charge(self, charge):
-        if not charge.payment_valid:
-            return None
-        existing = SubscriptionInvoice.objects.filter(trainer_charge=charge).first()
-        if existing:
-            return existing
-        invoice_type = (
-            SubscriptionInvoice.TYPE_TRAINER_CLUB
-            if charge.product == TrainerClubSubscription.PRODUCT_CLUB_STATS
-            else SubscriptionInvoice.TYPE_TRAINER_EXTENDED
-        )
-        if charge.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
-            customer_name = charge.club.team_name
-            customer_email = charge.club.billing_email or charge.club.contact_email or ""
-        else:
-            customer_name = f"{charge.user.first_name} {charge.user.last_name}".strip() or charge.user.username
-            customer_email = charge.user.email or ""
         invoice = SubscriptionInvoice.objects.create(
             number=self._build_invoice_number(),
             issue_date=timezone.localdate(charge.transaction_date),
             due_date=timezone.localdate(charge.transaction_date),
             user=charge.user,
             invoice_type=invoice_type,
-            description=self._build_trainer_description(charge),
+            description=description,
             customer_name=customer_name,
             customer_email=customer_email,
             total_price=_money(charge.amount),
-            trainer_charge=charge,
+            **{charge_field: charge},
         )
         self._save_invoice_files(invoice)
         invoice.save()
         return invoice
 
-    @transaction.atomic
+    def generate_for_rider_charge(self, charge):
+        customer_name, customer_email = self._user_customer(charge.user)
+        return self._create_invoice(
+            charge,
+            invoice_type=SubscriptionInvoice.TYPE_RIDER_STATS,
+            description=self._build_rider_description(charge),
+            customer_name=customer_name,
+            customer_email=customer_email,
+            charge_field="rider_charge",
+        )
+
+    def generate_for_trainer_charge(self, charge):
+        if charge.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+            invoice_type = SubscriptionInvoice.TYPE_TRAINER_CLUB
+            customer_name = charge.club.team_name
+            customer_email = charge.club.billing_email or charge.club.contact_email or ""
+        else:
+            invoice_type = SubscriptionInvoice.TYPE_TRAINER_EXTENDED
+            customer_name, customer_email = self._user_customer(charge.user)
+        return self._create_invoice(
+            charge,
+            invoice_type=invoice_type,
+            description=self._build_trainer_description(charge),
+            customer_name=customer_name,
+            customer_email=customer_email,
+            charge_field="trainer_charge",
+        )
+
     def generate_for_mobile_charge(self, charge):
-        if not charge.payment_valid:
-            return None
-        existing = SubscriptionInvoice.objects.filter(mobile_charge=charge).first()
-        if existing:
-            return existing
-        invoice = SubscriptionInvoice.objects.create(
-            number=self._build_invoice_number(),
-            issue_date=timezone.localdate(charge.transaction_date),
-            due_date=timezone.localdate(charge.transaction_date),
-            user=charge.user,
+        customer_name, customer_email = self._user_customer(charge.user)
+        return self._create_invoice(
+            charge,
             invoice_type=SubscriptionInvoice.TYPE_MOBILE_APP,
             description=self._build_mobile_description(charge),
-            customer_name=f"{charge.user.first_name} {charge.user.last_name}".strip() or charge.user.username,
-            customer_email=charge.user.email or "",
-            total_price=_money(charge.amount),
-            mobile_charge=charge,
+            customer_name=customer_name,
+            customer_email=customer_email,
+            charge_field="mobile_charge",
         )
-        self._save_invoice_files(invoice)
-        invoice.save()
-        return invoice
 
     def ensure_for_user(self, user):
         for charge in RiderStatsCharge.objects.filter(user=user, payment_valid=True, invoice__isnull=True).select_related("rider", "user"):

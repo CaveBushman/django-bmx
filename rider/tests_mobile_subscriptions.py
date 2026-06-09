@@ -470,7 +470,7 @@ class CreditBalanceWithMobileChargeTests(TestCase):
 class MobileAppSubscriptionViewTests(TestCase):
     def setUp(self):
         self.season = _make_season(price=499)
-        self.url = reverse("rider:mobile-app-subscription")
+        self.url = reverse("user:subscription-mobile")
 
     def test_get_requires_login(self):
         resp = self.client.get(self.url)

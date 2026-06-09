@@ -15,11 +15,13 @@ handler500 = "bmx.views.error_500_view"
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
-    path('api/', include('api.urls')),
+    path('api/', include('api.urls')),             # primární namespace "api" — existující klienti
+    path('api/v1/', include(('api.urls', 'api_v1'))),  # v1 namespace — nové mobilní klienty
     path('', include('news.urls')),
     path('accounts/', include('accounts.urls')),
     path('event/', include('event.urls')),
     path('rider/', include('rider.urls')),
+    path('user/', include('rider.user_urls')),
     path('club/', include('club.urls')),
     path('ranking/', include('ranking.urls')),
     path('api-auth/', include('rest_framework.urls')),

@@ -10,15 +10,20 @@ logger = logging.getLogger("bmx.context")
 
 def navbar_context(request):
     from accounts.models import AvatarChangeRequest
-    from eshop.models import Order
+    from eshop.models import EshopSettings, Order
     from rider.models import Rider
     from todo.models import CommissionTask
+
+    eshop_public = EshopSettings.shop_is_public()
 
     if request.user.is_authenticated:
         try:
             account = request.user
             is_task_user = getattr(request.user, "is_commission", False)
-            navbar_data = {"user_credit": getattr(account, "credit", 0)}
+            navbar_data = {
+                "user_credit": getattr(account, "credit", 0),
+                "navbar_eshop_visible": eshop_public or request.user.is_staff,
+            }
 
             if request.user.is_superuser:
                 pending_plate_count = Rider.objects.filter(is_approved=False).count()
@@ -69,15 +74,15 @@ def navbar_context(request):
 
             return navbar_data
         except AttributeError:
-            return {"user_credit": 0}
+            return {"user_credit": 0, "navbar_eshop_visible": eshop_public}
         except DatabaseError as error:
             logger.warning(
                 "Navbar context fallback due to database error for user_id=%s: %s",
                 getattr(request.user, "id", None),
                 error,
             )
-            return {"user_credit": getattr(request.user, "credit", 0)}
-    return {}
+            return {"user_credit": getattr(request.user, "credit", 0), "navbar_eshop_visible": eshop_public}
+    return {"navbar_eshop_visible": eshop_public}
 
 
 def seo_context(request):

@@ -1,0 +1,23 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+{% block subject %}{% blocktrans with product=product_label %}Promo kód Czech BMX – {{ product }}{% endblocktrans %}{% endblock %}
+{% block body %}
+<p class="greeting">{% trans "Dobrý den," %}</p>
+<div class="content">
+  <p>{% blocktrans with product=product_label %}Zasíláme vám promo kód pro <strong>{{ product }}</strong>.{% endblocktrans %}</p>
+</div>
+<div class="highlight-box">
+  <span class="code">{{ promo_code }}</span>
+  <p style="text-align:center;margin:8px 0 0;font-size:14px;color:#475569">
+    {{ discount_text }}{% if valid_until %} &mdash; {% blocktrans with date=valid_until %}platný do {{ date }}{% endblocktrans %}{% endif %}
+  </p>
+</div>
+<div class="content">
+  <p>{% trans "Kód zadejte při aktivaci předplatného v sekci Mobilní aplikace na svém účtu." %}</p>
+</div>
+<div class="btn-wrap">
+  <a href="{{ subscription_url }}" class="btn">{% trans "Aktivovat předplatné" %}</a>
+</div>
+<hr class="divider">
+<p class="small">{% trans "Czech BMX tým" %}</p>
+{% endblock %}

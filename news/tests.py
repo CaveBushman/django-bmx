@@ -109,7 +109,7 @@ class NewsAdminFormTests(TestCase):
     def test_news_admin_form_uses_ckeditor5_widgets(self):
         form = NewsAdminForm()
 
-        self.assertIsInstance(form.fields["prefix"].widget, CKEditor5Widget)
+        self.assertIsInstance(form.fields["perex"].widget, CKEditor5Widget)
         self.assertIsInstance(form.fields["content"].widget, CKEditor5Widget)
 
     def test_downloads_admin_form_uses_ckeditor5_widget(self):
@@ -122,13 +122,13 @@ class RichTextSanitizationTests(TestCase):
     def test_news_save_sanitizes_dangerous_html_but_keeps_safe_link(self):
         article = News.objects.create(
             title="Sanitized article",
-            prefix='<p>Ok</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>',
+            perex='<p>Ok</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>',
             content='<p>Video <a href="https://www.youtube.com/watch?v=abc" target="_blank">YouTube</a></p>',
             published=False,
         )
 
-        self.assertNotIn("<script", article.prefix)
-        self.assertNotIn("javascript:", article.prefix)
+        self.assertNotIn("<script", article.perex)
+        self.assertNotIn("javascript:", article.perex)
         self.assertIn('href="https://www.youtube.com/watch?v=abc"', article.content)
         self.assertIn('rel="noopener noreferrer"', article.content)
 
@@ -148,13 +148,13 @@ class RichTextRenderSafetyTests(TestCase):
     def test_homepage_view_sanitizes_historical_news_prefix(self):
         article = News.objects.create(
             title="Unsafe homepage article",
-            prefix="<p>safe</p>",
+            perex="<p>safe</p>",
             content="<p>body</p>",
             published=True,
             on_homepage=True,
         )
         News.objects.filter(pk=article.pk).update(
-            prefix='<p>safe</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>'
+            perex='<p>safe</p><script>alert(1)</script><a href="javascript:alert(1)">bad</a>'
         )
 
         response = self.client.get(reverse("news:homepage"))
@@ -166,11 +166,11 @@ class RichTextRenderSafetyTests(TestCase):
     def test_news_detail_view_falls_back_to_czech_when_translation_is_missing(self):
         article = News.objects.create(
             title="Český titulek",
-            prefix="<p>Český perex</p>",
+            perex="<p>Český perex</p>",
             content="<p>Český obsah</p>",
             published=True,
             title_en="",
-            prefix_en="",
+            perex_en="",
             content_en="",
         )
 
@@ -208,7 +208,7 @@ class DownloadsFileDownloadTests(TestCase):
     def test_news_detail_view_sanitizes_historical_news_content(self):
         article = News.objects.create(
             title="Unsafe detail article",
-            prefix="<p>prefix</p>",
+            perex="<p>prefix</p>",
             content="<p>body</p>",
             published=True,
         )

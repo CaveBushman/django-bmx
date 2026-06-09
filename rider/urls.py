@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
 
 app_name = 'rider'
@@ -6,13 +7,16 @@ app_name = 'rider'
 urlpatterns = [
 
     path('', views.riders_list_view, name='list'),
-    path('trainer-dashboard', views.trainer_dashboard_view, name='trainer-dashboard'),
-    path('trainer-dashboard/club/<int:club_id>/export/riders/<str:export_format>', views.trainer_club_riders_export_view, name='trainer-club-riders-export'),
-    path('trainer-dashboard/club/<int:club_id>/export/kpi/<str:export_format>', views.trainer_club_kpi_export_view, name='trainer-club-kpi-export'),
-    path('account', views.account_settings_invoices_view, name='account'),
-    path('mobile-app-subscription', views.mobile_app_subscription_view, name='mobile-app-subscription'),
     path('promo-codes', views.promo_codes_admin_view, name='promo-codes'),
-    path('premium-subscriptions', views.rider_premium_subscriptions_view, name='premium-subscriptions'),
+
+    # 301 přesměrování ze starých /rider/ cest na nové /user/ cesty
+    path('account', RedirectView.as_view(pattern_name='user:account', permanent=True), name='account'),
+    path('mobile-app-subscription', RedirectView.as_view(pattern_name='user:subscription-mobile', permanent=True), name='mobile-app-subscription'),
+    path('premium-subscriptions', RedirectView.as_view(pattern_name='user:subscriptions', permanent=True), name='premium-subscriptions'),
+    path('redeem-promo', RedirectView.as_view(pattern_name='user:redeem', permanent=True), name='redeem-promo'),
+    path('trainer-dashboard', RedirectView.as_view(pattern_name='user:trainer-dashboard', permanent=True), name='trainer-dashboard'),
+    path('trainer-dashboard/club/<int:club_id>/export/riders/<str:export_format>', RedirectView.as_view(pattern_name='user:trainer-club-riders-export', permanent=True), name='trainer-club-riders-export'),
+    path('trainer-dashboard/club/<int:club_id>/export/kpi/<str:export_format>', RedirectView.as_view(pattern_name='user:trainer-club-kpi-export', permanent=True), name='trainer-club-kpi-export'),
     path('<int:pk>/premium-stats', views.rider_premium_stats_view, name='premium-stats'),
     path('<int:pk>/premium-stats/export/pdf', views.rider_premium_stats_pdf_view, name='premium-stats-pdf'),
     path('<int:pk>/premium-stats/compare', views.rider_compare_view, name='premium-compare'),

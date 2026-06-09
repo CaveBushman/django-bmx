@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Administrace e-shopu" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.eshop-admin-wrapper {
+  --admin-bg:      #f1f5f9;
+  --admin-surface: #ffffff;
+  --admin-border:  rgba(15,23,42,.08);
+  --admin-text:    #0f172a;
+  --admin-muted:   #64748b;
+  --admin-divider: rgba(15,23,42,.07);
+  --admin-hover:   rgba(15,23,42,.03);
+}
+.dark .eshop-admin-wrapper {
+  --admin-bg:      #020617;
+  --admin-surface: #0f172a;
+  --admin-border:  rgba(255,255,255,.09);
+  --admin-text:    #f1f5f9;
+  --admin-muted:   #64748b;
+  --admin-divider: rgba(255,255,255,.07);
+  --admin-hover:   rgba(255,255,255,.04);
+}
+.eshop-admin-wrapper { background: var(--admin-bg); }
+.eshop-admin-card {
+  background: var(--admin-surface);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(15,23,42,.06);
+  outline: 1px solid var(--admin-border);
+}
+.eshop-admin-card-header {
+  border-bottom: 1px solid var(--admin-divider);
+  padding: 1.25rem 1.5rem;
+}
+.eshop-admin-text   { color: var(--admin-text); }
+.eshop-admin-muted  { color: var(--admin-muted); }
+.eshop-admin-divider { border-color: var(--admin-divider); }
+.eshop-admin-hover:hover { background: var(--admin-hover); }
+/* Inline flash messages */
+.eshop-admin-wrapper .msg-success { background:#f0fdf4; color:#15803d; outline:1px solid rgba(134,239,172,.4); }
+.dark .eshop-admin-wrapper .msg-success { background:rgba(22,101,52,.2); color:#86efac; outline:1px solid rgba(134,239,172,.18); }
+.eshop-admin-wrapper .msg-error   { background:#fef2f2; color:#b91c1c; outline:1px solid rgba(252,165,165,.4); }
+.dark .eshop-admin-wrapper .msg-error   { background:rgba(127,29,29,.22); color:#fca5a5; outline:1px solid rgba(252,165,165,.18); }
+.eshop-admin-wrapper .msg-warning { background:#fffbeb; color:#b45309; outline:1px solid rgba(253,230,138,.4); }
+.dark .eshop-admin-wrapper .msg-warning { background:rgba(120,53,15,.2); color:#fcd34d; outline:1px solid rgba(253,230,138,.18); }
+.eshop-admin-wrapper .msg-info    { background:#eff6ff; color:#1d4ed8; outline:1px solid rgba(147,197,253,.4); }
+.dark .eshop-admin-wrapper .msg-info    { background:rgba(30,64,175,.2); color:#93c5fd; outline:1px solid rgba(147,197,253,.18); }
+/* Buttons — explicitní definice s vyšší specificitou než Tailwind utility třídy */
+.eshop-admin-wrapper .btn-amber {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #f59e0b; color: #fff;
+  border-radius: .75rem; padding: .625rem 1.25rem;
+  font-size: .875rem; font-weight: 600;
+  border: none; cursor: pointer; transition: background 150ms;
+}
+.eshop-admin-wrapper .btn-amber:hover { background: #d97706; }
+.eshop-admin-wrapper .btn-green {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #16a34a; color: #fff;
+  border-radius: .75rem; padding: .625rem 1.25rem;
+  font-size: .875rem; font-weight: 600;
+  border: none; cursor: pointer; transition: background 150ms;
+}
+.eshop-admin-wrapper .btn-green:hover { background: #15803d; }
+</style>
+{% endblock %}
+
+{% block messages %}{% endblock %}
+
+{% block content %}
+<div class="eshop-admin-wrapper min-h-screen pb-20">
+  <div class="mx-auto max-w-5xl px-4 pt-10 sm:px-6 lg:px-8">
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for msg in messages %}
+      <div class="rounded-xl px-4 py-3 text-sm font-medium
+        {% if msg.tags == 'success' %}msg-success{% elif msg.tags == 'error' %}msg-error{% elif msg.tags == 'warning' %}msg-warning{% else %}msg-info{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-black tracking-tight eshop-admin-text">{% trans "Administrace e-shopu" %}</h1>
+        <p class="mt-1 text-sm eshop-admin-muted">{% trans "Přepínač viditelnosti a přehled statistik." %}</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <a href="{% url 'eshop:product-import' %}"
+           class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+           style="border:1px solid var(--admin-border);color:var(--admin-text)">
+          {% trans "Import produktů" %}
+        </a>
+        <a href="{% url 'eshop:index' %}"
+           class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+           style="border:1px solid var(--admin-border);color:var(--admin-text)">
+          {% trans "Správa objednávek" %}
+        </a>
+      </div>
+    </div>
+
+    <!-- Visibility toggle -->
+    <div class="mb-8 eshop-admin-card overflow-hidden">
+      <div class="px-6 py-6 sm:px-8">
+        <h2 class="mb-4 text-base font-bold eshop-admin-text">{% trans "Viditelnost e-shopu" %}</h2>
+        <div class="flex flex-wrap items-center justify-between gap-6">
+          <div>
+            {% if settings.is_public %}
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
+              <span class="text-sm font-semibold text-green-700 dark:text-green-400">{% trans "Veřejný – viditelný všem" %}</span>
+            </div>
+            <p class="mt-1 text-xs eshop-admin-muted">{% trans "E-shop je přístupný všem návštěvníkům webu." %}</p>
+            {% else %}
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+              <span class="text-sm font-semibold text-amber-700 dark:text-amber-400">{% trans "Skrytý – viditelný jen adminům" %}</span>
+            </div>
+            <p class="mt-1 text-xs eshop-admin-muted">{% trans "Běžní uživatelé vidí zavřenou stránku. Administrátoři mají přístup." %}</p>
+            {% endif %}
+          </div>
+          <form method="post" class="shrink-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_visibility">
+            {% if settings.is_public %}
+            <button type="submit" class="btn-amber">{% trans "Skrýt e-shop" %}</button>
+            {% else %}
+            <button type="submit" class="btn-green">{% trans "Zveřejnit e-shop" %}</button>
+            {% endif %}
+          </form>
+        </div>
+        <p class="mt-4 text-xs eshop-admin-muted">
+          {% trans "Naposledy změněno:" %} {{ settings.updated|date:"d.m.Y H:i" }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats grid -->
+    <div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div class="eshop-admin-card px-5 py-5">
+        <p class="text-xs font-semibold uppercase tracking-widest eshop-admin-muted">{% trans "Celkem objednávek" %}</p>
+        <p class="mt-2 text-3xl font-black eshop-admin-text">{{ total_orders }}</p>
+      </div>
+      <div class="eshop-admin-card px-5 py-5">
+        <p class="text-xs font-semibold uppercase tracking-widest eshop-admin-muted">{% trans "Aktivní produkty" %}</p>
+        <p class="mt-2 text-3xl font-black eshop-admin-text">{{ product_count }}</p>
+        <p class="text-xs eshop-admin-muted">{{ variant_count }} {% trans "variant" %}</p>
+      </div>
+      <div class="eshop-admin-card px-5 py-5">
+        <p class="text-xs font-semibold uppercase tracking-widest eshop-admin-muted">{% trans "Tržby (kredity)" %}</p>
+        <p class="mt-2 text-3xl font-black eshop-admin-text">{{ revenue_paid|default:0 }}</p>
+        <p class="text-xs eshop-admin-muted">Kč</p>
+      </div>
+      <div class="eshop-admin-card px-5 py-5">
+        <p class="text-xs font-semibold uppercase tracking-widest eshop-admin-muted">{% trans "Čeká na vyřízení" %}</p>
+        <p class="mt-2 text-3xl font-black {% if pending_count %}text-amber-600 dark:text-amber-400{% else %}eshop-admin-text{% endif %}">
+          {{ pending_count }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Orders by status -->
+    <div class="mb-8 eshop-admin-card overflow-hidden">
+      <div class="eshop-admin-card-header">
+        <h2 class="text-base font-bold eshop-admin-text">{% trans "Objednávky dle stavu" %}</h2>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-5">
+        {% for row in status_rows %}
+        <div class="px-5 py-4 text-center" style="border-right:1px solid var(--admin-divider)">
+          <p class="text-xs eshop-admin-muted">{{ row.label }}</p>
+          <p class="mt-1 text-2xl font-black eshop-admin-text">{{ row.count }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+      <!-- Top products -->
+      <div class="eshop-admin-card overflow-hidden">
+        <div class="eshop-admin-card-header">
+          <h2 class="text-base font-bold eshop-admin-text">{% trans "Nejprodávanější produkty" %}</h2>
+        </div>
+        <ul>
+          {% for item in top_products %}
+          <li class="eshop-admin-hover flex items-center justify-between px-6 py-3 transition"
+              style="border-bottom:1px solid var(--admin-divider)">
+            <span class="truncate text-sm eshop-admin-text">{{ item.variant__product__name }}</span>
+            <span class="ml-4 shrink-0 text-sm font-bold eshop-admin-text">{{ item.total_sold }}&nbsp;ks</span>
+          </li>
+          {% empty %}
+          <li class="px-6 py-4 text-sm eshop-admin-muted">{% trans "Zatím žádné prodeje." %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Recent orders -->
+      <div class="eshop-admin-card overflow-hidden">
+        <div class="eshop-admin-card-header">
+          <h2 class="text-base font-bold eshop-admin-text">{% trans "Poslední objednávky" %}</h2>
+        </div>
+        <ul>
+          {% for order in recent_orders %}
+          <li class="eshop-admin-hover flex items-center justify-between gap-4 px-6 py-3 transition"
+              style="border-bottom:1px solid var(--admin-divider)">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium eshop-admin-text">{{ order.first_name }} {{ order.last_name }}</p>
+              <p class="text-xs eshop-admin-muted">{{ order.created|date:"d.m.Y H:i" }}</p>
+            </div>
+            <a href="{% url 'eshop:admin-order-detail' order.pk %}"
+               class="shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold transition
+               {% if order.status == 'pending' %}bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300
+               {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300
+               {% elif order.status == 'shipped' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300
+               {% elif order.status == 'delivered' %}bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300
+               {% else %}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400{% endif %}">
+              {{ order.get_status_display }}
+            </a>
+          </li>
+          {% empty %}
+          <li class="px-6 py-4 text-sm eshop-admin-muted">{% trans "Zatím žádné objednávky." %}</li>
+          {% endfor %}
+        </ul>
+        {% if total_orders > 8 %}
+        <div class="px-6 py-3" style="border-top:1px solid var(--admin-divider)">
+          <a href="{% url 'eshop:index' %}" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
+            {% trans "Zobrazit všechny objednávky" %} →
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

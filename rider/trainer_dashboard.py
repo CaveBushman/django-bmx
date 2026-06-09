@@ -286,7 +286,7 @@ def handle_trainer_dashboard_post(request):
                     )
                 else:
                     messages.info(request, "Rozšířené trenérské předplatné už máš aktivní.")
-        return redirect("rider:trainer-dashboard")
+        return redirect("user:trainer-dashboard")
 
     if action in {"disable-extended-renew", "enable-extended-renew"}:
         subscription = get_object_or_404(
@@ -301,7 +301,7 @@ def handle_trainer_dashboard_post(request):
         else:
             resume_trainer_club_subscription(subscription)
             messages.success(request, "Automatické obnovování rozšířeného trenérského předplatného bylo zapnuto.")
-        return redirect("rider:trainer-dashboard")
+        return redirect("user:trainer-dashboard")
 
     if action == "purchase-stats":
         club = get_object_or_404(Club, pk=request.POST.get("club_id"), is_active=True)
@@ -321,7 +321,7 @@ def handle_trainer_dashboard_post(request):
                 )
             else:
                 messages.info(request, f"Klubové stats pro {club.team_name} už máš aktivní.")
-        return redirect("rider:trainer-dashboard")
+        return redirect("user:trainer-dashboard")
 
     if action in {"disable-stats-renew", "enable-stats-renew"}:
         subscription = get_object_or_404(
@@ -336,7 +336,7 @@ def handle_trainer_dashboard_post(request):
         else:
             resume_trainer_club_subscription(subscription)
             messages.success(request, f"Automatické obnovování stats pro {subscription.club.team_name} bylo zapnuto.")
-        return redirect("rider:trainer-dashboard")
+        return redirect("user:trainer-dashboard")
 
     return None
 

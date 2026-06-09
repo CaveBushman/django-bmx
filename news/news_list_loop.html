@@ -7,7 +7,7 @@
             <div class="article-meta mb-2 text-muted small">
                 <i class="bi bi-clock"></i> {{ article.audio_duration_estimate }} min. poslechu
             </div>
-            <p class="card-text">{{ article.display_prefix|safe|truncatewords:20 }}</p>
+            <p class="card-text">{{ article.display_perex|safe|truncatewords:20 }}</p>
             <a href="{{ article.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Číst více</a>
         </div>
     </div>

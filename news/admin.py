@@ -6,7 +6,7 @@ from .models import News, Tag, Downloads, DocumentTag
 
 
 class NewsAdminForm(forms.ModelForm):
-    RICH_TEXT_FIELDS = ("prefix", "content")
+    RICH_TEXT_FIELDS = ("perex", "content")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,7 +33,7 @@ class NewsAdmin(admin.ModelAdmin):
     list_display = ('title', 'on_homepage', 'published', 'publish_in_app', 'published_audio', "view_count")
     list_display_links = ('title',)
     list_editable = ('on_homepage', 'published', 'publish_in_app', 'published_audio')
-    search_fields = ('title', 'prefix', 'content')
+    search_fields = ('title', 'perex', 'content')
     list_filter = ('on_homepage', 'published', 'publish_in_app', 'published_audio', 'created_date')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_date', 'view_count')

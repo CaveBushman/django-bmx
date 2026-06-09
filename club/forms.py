@@ -58,9 +58,9 @@ class McrClubTeamForm(forms.Form):
     @staticmethod
     def _input_class():
         return (
-            "mt-2 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm "
-            "text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 "
-            "focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            "mt-2 block w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-input-bg)] "
+            "px-3 py-2 text-sm text-[var(--admin-text-main)] shadow-sm focus:border-indigo-500 "
+            "focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
         )
 
     @staticmethod

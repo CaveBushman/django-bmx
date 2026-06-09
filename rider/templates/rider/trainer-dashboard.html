@@ -213,10 +213,10 @@
       {% if trainer_clubs %}
       <div class="mt-6 grid gap-5 xl:grid-cols-2">
         {% for item in trainer_clubs %}
-        {% url 'rider:trainer-club-riders-export' item.club.id 'csv' as club_riders_csv_url %}
-        {% url 'rider:trainer-club-riders-export' item.club.id 'xlsx' as club_riders_xlsx_url %}
-        {% url 'rider:trainer-club-kpi-export' item.club.id 'csv' as club_kpi_csv_url %}
-        {% url 'rider:trainer-club-kpi-export' item.club.id 'xlsx' as club_kpi_xlsx_url %}
+        {% url 'user:trainer-club-riders-export' item.club.id 'csv' as club_riders_csv_url %}
+        {% url 'user:trainer-club-riders-export' item.club.id 'xlsx' as club_riders_xlsx_url %}
+        {% url 'user:trainer-club-kpi-export' item.club.id 'csv' as club_kpi_csv_url %}
+        {% url 'user:trainer-club-kpi-export' item.club.id 'xlsx' as club_kpi_xlsx_url %}
         <article class="dashboard-card rounded-[1.75rem] border p-6">
           <div class="space-y-2">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Klub" %}</p>

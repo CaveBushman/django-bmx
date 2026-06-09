@@ -1780,7 +1780,7 @@ def rider_premium_subscriptions_view(request):
                 request,
                 _("Předplatné jezdce %(name)s bylo smazáno z přehledu.") % {'name': rider_name}
             )
-        return redirect("rider:premium-subscriptions")
+        return redirect("user:subscriptions")
 
     current_time = timezone.now()
     subscriptions = list(
@@ -1887,7 +1887,7 @@ def account_settings_invoices_view(request):
 @login_required
 def submit_avatar_change_request_view(request):
     if request.method != "POST":
-        return redirect("rider:account")
+        return redirect("user:account")
 
     AvatarChangeRequest.expire_stale_requests()
 
@@ -1899,33 +1899,33 @@ def submit_avatar_change_request_view(request):
         _validate_avatar_upload(uploaded_file)
     except ValueError as exc:
         messages.error(request, str(exc))
-        return redirect("rider:account")
+        return redirect("user:account")
 
     if target_type == "account":
         if str(request.user.pk) != str(target_id):
             messages.error(request, _("Nemůžeš žádat změnu avataru pro jiný účet."))
-            return redirect("rider:account")
+            return redirect("user:account")
         pending_request = _get_pending_avatar_request_for_target(account=request.user)
         if pending_request:
             messages.error(request, _("Pro tvůj účet už čeká jedna žádost o změnu avataru na schválení."))
-            return redirect("rider:account")
+            return redirect("user:account")
         AvatarChangeRequest.objects.create(
             uploaded_by=request.user,
             target_account=request.user,
             image=uploaded_file,
         )
         messages.success(request, _("Nový avatar účtu byl odeslán ke schválení administrátorem."))
-        return redirect("rider:account")
+        return redirect("user:account")
 
     if target_type == "rider":
         rider = request.user.riders.filter(pk=target_id, is_active=True).first()
         if not rider:
             messages.error(request, _("Nemůžeš žádat změnu avataru pro cizího jezdce."))
-            return redirect("rider:account")
+            return redirect("user:account")
         pending_request = _get_pending_avatar_request_for_target(rider=rider)
         if pending_request:
             messages.error(request, _("Pro tohoto jezdce už čeká jedna žádost o změnu avataru na schválení."))
-            return redirect("rider:account")
+            return redirect("user:account")
         AvatarChangeRequest.objects.create(
             uploaded_by=request.user,
             target_rider=rider,
@@ -1936,10 +1936,10 @@ def submit_avatar_change_request_view(request):
             _("Nový avatar pro jezdce %(name)s byl odeslán ke schválení administrátorem.")
             % {"name": f"{rider.first_name} {rider.last_name}"},
         )
-        return redirect("rider:account")
+        return redirect("user:account")
 
     messages.error(request, _("Neplatný cíl změny avataru."))
-    return redirect("rider:account")
+    return redirect("user:account")
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -2648,7 +2648,7 @@ def mobile_app_subscription_view(request):
             else:
                 messages.error(request, _("Nemáš předplatné k obnovení."))
 
-        return redirect("rider:mobile-app-subscription")
+        return redirect("user:subscription-mobile")
 
     season = get_current_season_settings()
     subscription = get_active_mobile_app_subscription(request.user)
@@ -2740,7 +2740,8 @@ def promo_codes_admin_view(request):
                 messages.success(request, _("Promo kód %(code)s byl smazán.") % {"code": code})
 
         elif action == "send_email":
-            from django.core.mail import send_mail
+            from bmx.email import send_html_email
+            from django.urls import reverse as _reverse
             pk = request.POST.get("promo_id")
             recipient_email = request.POST.get("recipient_email", "").strip()
             promo = PromoCode.objects.filter(pk=pk).first()
@@ -2751,26 +2752,31 @@ def promo_codes_admin_view(request):
             else:
                 product_label = promo.get_product_display()
                 if promo.discount_type == PromoCode.DISCOUNT_FREE:
-                    discount_text = "zdarma"
+                    discount_text = _("Zdarma (100 % sleva)")
                 elif promo.discount_type == PromoCode.DISCOUNT_PERCENT:
                     discount_text = f"{promo.discount_value} % sleva"
                 else:
-                    discount_text = f"sleva {promo.discount_value} Kč"
-                validity = ""
-                if promo.valid_until:
-                    validity = f"\nPlatnost: do {timezone.localtime(promo.valid_until).strftime('%d.%m.%Y')}"
-
-                subject = f"Promo kód Czech BMX – {product_label}"
-                body = (
-                    f"Dobrý den,\n\n"
-                    f"zasíláme vám promo kód pro {product_label}.\n\n"
-                    f"Kód: {promo.code}\n"
-                    f"Sleva: {discount_text}{validity}\n\n"
-                    f"Kód zadejte při aktivaci předplatného na czechbmx.cz.\n\n"
-                    f"Czech BMX tým"
+                    discount_text = f"Sleva {promo.discount_value} Kč"
+                valid_until_str = (
+                    timezone.localtime(promo.valid_until).strftime("%d.%m.%Y")
+                    if promo.valid_until else ""
                 )
+                subject = f"Promo kód Czech BMX – {product_label}"
                 try:
-                    send_mail(subject, body, None, [recipient_email])
+                    send_html_email(
+                        subject=subject,
+                        template="emails/promo_code.html",
+                        context={
+                            "promo_code": promo.code,
+                            "product_label": product_label,
+                            "discount_text": discount_text,
+                            "valid_until": valid_until_str,
+                            "subscription_url": request.build_absolute_uri(
+                                _reverse("user:subscription-mobile")
+                            ),
+                        },
+                        to=[recipient_email],
+                    )
                     messages.success(request, _("Promo kód byl odeslán na %(email)s.") % {"email": recipient_email})
                 except Exception as exc:
                     messages.error(request, _("Odeslání e-mailu selhalo: %(err)s") % {"err": str(exc)})
@@ -2812,4 +2818,45 @@ def promo_codes_admin_view(request):
         "filter_product": filter_product,
         "filter_status": filter_status,
         "filter_q": filter_q,
+    })
+
+
+@login_required
+def redeem_promo_code_view(request):
+    """Uplatnění promo kódu uživatelem — přidá kredit nebo přesměruje na aktivaci předplatného."""
+    from rider.promo_codes import redeem_credit_promo_code
+    from rider.models import PromoCode
+
+    if request.method == "POST":
+        code_str = request.POST.get("code", "").strip().upper()
+        if not code_str:
+            messages.error(request, _("Zadej promo kód."))
+            return redirect("user:redeem")
+
+        try:
+            promo = PromoCode.objects.get(code=code_str)
+        except PromoCode.DoesNotExist:
+            messages.error(request, _("Promo kód neexistuje."))
+            return redirect("user:redeem")
+
+        if promo.discount_type == PromoCode.DISCOUNT_CREDIT:
+            try:
+                amount, _ = redeem_credit_promo_code(request.user, code_str)
+                messages.success(
+                    request,
+                    _("Promo kód uplatněn — na váš účet bylo připsáno %(amount)s Kč kreditu.") % {"amount": amount}
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            return redirect("user:redeem")
+
+        # Kód slouží ke slevě na předplatné — přesměruj na aktivaci
+        if promo.product == PromoCode.PRODUCT_MOBILE_APP or promo.product == PromoCode.PRODUCT_ALL:
+            return redirect(f"{reverse('user:subscription-mobile')}?promo={code_str}")
+
+        messages.info(request, _("Kód je platný. Zadej ho při aktivaci příslušného předplatného."))
+        return redirect("user:account")
+
+    return render(request, "rider/redeem-promo.html", {
+        "balance": request.user.credit,
     })

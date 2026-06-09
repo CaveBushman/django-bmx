@@ -6,6 +6,9 @@ app_name = "eshop"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("admin/", views.admin_dashboard, name="admin-dashboard"),
+    path("admin/import/", views.product_import, name="product-import"),
+    path("admin/import/template.csv", views.product_import_template, name="product-import-template"),
     path("orders/<int:order_id>/admin/", views.admin_order_detail, name="admin-order-detail"),
     path("pickup-export.csv", views.export_pickup_orders_csv, name="pickup-export"),
     path("accounting-export.csv", views.export_accounting_orders_csv, name="accounting-export"),

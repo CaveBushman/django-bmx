@@ -15,6 +15,7 @@ from eshop.cart import CART_SESSION_KEY
 from eshop.invoice import generate_credit_note, generate_invoice
 from eshop.models import (
     Category,
+    EshopSettings,
     FlexiExportSettings,
     Order,
     OrderHistory,
@@ -28,6 +29,7 @@ from eshop.models import (
 
 class EshopCheckoutTemplateTests(TestCase):
     def setUp(self):
+        EshopSettings.objects.update_or_create(pk=1, defaults={"is_public": True})
         self.user_model = get_user_model()
         self.category = Category.objects.create(name="Dresy", slug="dresy")
         self.product = Product.objects.create(

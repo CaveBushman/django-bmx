@@ -2361,7 +2361,8 @@ def _handle_stats_file_upload(request, event, pk, redirect_to="event:import-stat
         file = request.FILES[key]
         lower_name = file.name.lower()
         is_tsv_results = key == "overall_results" and lower_name.endswith(".txt")
-        if not lower_name.endswith(".html") and not is_tsv_results:
+        is_html = lower_name.endswith(".html") or lower_name.endswith(".htm")
+        if not is_html and not is_tsv_results:
             continue
         if file.size > _MAX_STATS_FILE_SIZE:
             messages.warning(

@@ -75,6 +75,7 @@ class CreditTransaction(models.Model):
         CHECKOUT_REFUND = "checkout_refund", "Vrácení startovného po checkoutu"
         ESHOP_PURCHASE = "eshop_purchase", "Nákup v e-shopu"
         ESHOP_REFUND = "eshop_refund", "Storno objednávky e-shopu"
+        PROMO = "promo", "Promo kód"
 
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     source_entry = models.ForeignKey(Entry, on_delete=models.CASCADE, null=True, blank=True, related_name="credit_transactions")

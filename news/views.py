@@ -29,7 +29,7 @@ def _strip_empty_paragraphs(html: str) -> str:
 
 
 def _sanitize_news_for_render(article):
-    article.prefix = sanitize_rich_html(article.prefix)
+    article.perex = sanitize_rich_html(article.perex)
     article.content = sanitize_rich_html(article.content)
     return article
 
@@ -93,7 +93,7 @@ def homepage_view(request):
         lang = "cs"
     for article in content.get("homepage_news", []):
         article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
-        article.display_prefix = article.get_localized("prefix", lang) # Přidáno pro konzistenci
+        article.display_perex = article.get_localized("perex", lang) # Přidáno pro konzistenci
 
     update_cart(request)
     update_plate_notify(request)
@@ -136,7 +136,7 @@ def news_list_view(request):
         
         query = request.GET.get('q')
         if query:
-            qs = qs.filter(Q(title__icontains=query) | Q(prefix__icontains=query))
+            qs = qs.filter(Q(title__icontains=query) | Q(perex__icontains=query))
             
         paginator = Paginator(qs, ARTICLES_PER_PAGE)
         news_page = paginator.get_page(page_number)
@@ -145,7 +145,7 @@ def news_list_view(request):
         # Jazykové zpracování titulků a prefixů pro články na stránce
         for article in news_page.object_list: # Přidáno pro konzistenci
             article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
-            article.display_prefix = article.get_localized("prefix", lang) # Přidáno pro konzistenci
+            article.display_perex = article.get_localized("perex", lang) # Přidáno pro konzistenci
         total_pages = news_page.paginator.num_pages
         start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
         end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
@@ -190,14 +190,14 @@ def news_detail_view(request, slug):
         lang = "cs"
 
     display_title = news.get_localized("title", lang)
-    display_prefix = _strip_empty_paragraphs(news.get_localized("prefix", lang))
+    display_perex = _strip_empty_paragraphs(news.get_localized("perex", lang))
     display_content = _strip_empty_paragraphs(news.get_localized("content", lang))
     display_audio_url = news.get_audio_url(lang)
 
     queryset = {
         'news': news,
         'display_title': display_title,
-        'display_prefix': display_prefix,
+        'display_perex': display_perex,
         'display_content': display_content,
         'display_audio_url': display_audio_url,
         'display_lang': lang,

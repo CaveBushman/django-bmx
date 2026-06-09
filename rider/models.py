@@ -1025,10 +1025,12 @@ class PromoCode(models.Model):
     DISCOUNT_PERCENT = "percent"
     DISCOUNT_FIXED = "fixed"
     DISCOUNT_FREE = "free"
+    DISCOUNT_CREDIT = "credit"
     DISCOUNT_CHOICES = (
         (DISCOUNT_PERCENT, "Procento ze ceny"),
         (DISCOUNT_FIXED, "Pevná sleva (Kč)"),
         (DISCOUNT_FREE, "Zdarma (100 %)"),
+        (DISCOUNT_CREDIT, "Kredit (Kč na účet)"),
     )
 
     PRODUCT_MOBILE_APP = "mobile_app"
@@ -1036,18 +1038,20 @@ class PromoCode(models.Model):
     PRODUCT_TRAINER_CLUB = "trainer_club"
     PRODUCT_TRAINER_EXTENDED = "trainer_extended"
     PRODUCT_ALL = "all"
+    PRODUCT_CREDIT = "credit"
     PRODUCT_CHOICES = (
         (PRODUCT_MOBILE_APP, "Mobilní aplikace"),
         (PRODUCT_RIDER_STATS, "Prémiové statistiky"),
         (PRODUCT_TRAINER_CLUB, "Trenérské statistiky klubu"),
         (PRODUCT_TRAINER_EXTENDED, "Rozšířené trenérské funkce"),
         (PRODUCT_ALL, "Vše"),
+        (PRODUCT_CREDIT, "Kredit"),
     )
 
     code = models.CharField(max_length=32, unique=True, default=_generate_promo_code)
     description = models.CharField(max_length=255, blank=True)
     discount_type = models.CharField(max_length=10, choices=DISCOUNT_CHOICES, default=DISCOUNT_FREE)
-    discount_value = models.IntegerField(default=100, help_text="Procento (0–100) nebo pevná částka v Kč. U 'Zdarma' se ignoruje.")
+    discount_value = models.IntegerField(default=100, help_text="Procento (0–100), pevná Kč sleva nebo výše kreditu v Kč.")
     product = models.CharField(max_length=30, choices=PRODUCT_CHOICES, default=PRODUCT_MOBILE_APP, db_index=True)
     max_uses = models.IntegerField(null=True, blank=True, help_text="Prázdné = neomezeno")
     used_count = models.IntegerField(default=0)

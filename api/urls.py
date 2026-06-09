@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAdminUser
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from api import views
 
-app_name = "api"
+app_name = "api"  # primární namespace pro reverse("api:...")
 
 urlpatterns = [
     # Auth
@@ -86,9 +86,9 @@ urlpatterns = [
     path("ranking/categories/", views.RankingCategoryListAPIView.as_view(), name="ranking-category-list"),
     path("ranking/", views.RankingAPIView.as_view(), name="ranking"),
 
-    # API v1 - stable result feed for mobile and external consumers.
-    path("v1/results/", views.ResultListAPIView.as_view(), name="v1-result-list"),
-    path("v1/events/<int:pk>/results/", views.ResultListAPIView.as_view(), name="v1-event-results"),
+    # Stabilní feed výsledků pro mobilní aplikaci a externí konzumenty
+    path("results/feed/", views.ResultListAPIView.as_view(), name="v1-result-list"),
+    path("events/<int:pk>/results/feed/", views.ResultListAPIView.as_view(), name="v1-event-results"),
 
     # Mobilní aplikace – předplatné
     path("subscriptions/mobile/", views.MobileAppSubscriptionAPIView.as_view(), name="mobile-subscription"),
@@ -97,6 +97,9 @@ urlpatterns = [
     # Promo kódy
     path("promo-codes/validate/", views.PromoCodeValidateAPIView.as_view(), name="promo-code-validate"),
     path("promo-codes/generate/", views.PromoCodeGenerateAPIView.as_view(), name="promo-code-generate"),
+
+    # Fulltextové hledání
+    path("search/", views.GlobalSearchAPIView.as_view(), name="search"),
 
     # OpenAPI schema + Swagger UI — pouze pro adminy
     path("schema/", SpectacularAPIView.as_view(permission_classes=[IsAdminUser]), name="schema"),

@@ -77,8 +77,8 @@
           </div>
 
           <div id="discountValueWrap">
-            <label class="form-label">{% trans "Hodnota slevy" %} <span class="font-normal normal-case tracking-normal text-slate-400" id="discountUnit">{% trans "(% nebo Kč)" %}</span></label>
-            <input type="number" name="discount_value" value="100" min="1" max="100">
+            <label class="form-label" id="discountValueLabel">{% trans "Hodnota" %} <span class="font-normal normal-case tracking-normal text-slate-400" id="discountUnit">{% trans "(% nebo Kč)" %}</span></label>
+            <input type="number" name="discount_value" id="discountValue" value="100" min="1">
           </div>
 
           <div>
@@ -331,10 +331,25 @@ document.addEventListener("DOMContentLoaded", function () {
   var select = document.getElementById("discountType");
   var wrap = document.getElementById("discountValueWrap");
   var unit = document.getElementById("discountUnit");
+  var productSelect = document.getElementById("id_product") || document.querySelector("select[name='product']");
+  var discountValue = document.getElementById("discountValue");
+
   function updateDiscount() {
     var val = select.value;
     wrap.style.display = val === "free" ? "none" : "";
-    unit.textContent = val === "percent" ? "(0–100)" : "(Kč)";
+    if (val === "percent") {
+      unit.textContent = "(0–100 %)";
+      if (discountValue) { discountValue.max = 100; discountValue.value = discountValue.value > 100 ? 50 : discountValue.value; }
+    } else if (val === "credit") {
+      unit.textContent = "(Kč na účet)";
+      if (discountValue) { discountValue.max = ""; discountValue.value = discountValue.value === "100" ? "500" : discountValue.value; }
+      // Kredit kódy — nastavit produkt na "credit"
+      var productSel = document.querySelector("select[name='product']");
+      if (productSel) productSel.value = "credit";
+    } else {
+      unit.textContent = "(Kč)";
+      if (discountValue) discountValue.max = "";
+    }
   }
   select.addEventListener("change", updateDiscount);
   updateDiscount();

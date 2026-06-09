@@ -24,6 +24,8 @@ from .cart import Cart
 from .forms import CheckoutForm, StockAlertRequestForm
 from .invoice import generate_credit_note, generate_invoice
 from .models import (
+    Category,
+    EshopSettings,
     FlexiExportSettings,
     Order,
     OrderHistory,
@@ -144,6 +146,58 @@ def index(request):
         "stock_alert_variant_rows": stock_alert_variant_rows,
     }
     return render(request, "eshop/index.html", context)
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@staff_member_required
+def admin_dashboard(request):
+    """Administrace e-shopu – přepínač viditelnosti + základní statistiky."""
+    settings_obj = EshopSettings.get_solo()
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "toggle_visibility":
+            settings_obj.is_public = not settings_obj.is_public
+            settings_obj.save(update_fields=["is_public", "updated"])
+            if settings_obj.is_public:
+                messages.success(request, "E-shop je nyní viditelný všem návštěvníkům.")
+            else:
+                messages.success(request, "E-shop je nyní dostupný pouze administrátorům.")
+        return redirect("eshop:admin-dashboard")
+
+    orders = Order.objects.all()
+    revenue_paid = orders.filter(
+        credits_charged__isnull=False
+    ).aggregate(total=Sum("credits_charged"))["total"] or 0
+
+    status_rows = [
+        {"label": s.label, "count": orders.filter(status=s).count()}
+        for s in Order.Status
+    ]
+    pending_count = sum(
+        r["count"] for r in status_rows
+        if r["label"] in (Order.Status.PENDING.label, Order.Status.CONFIRMED.label)
+    )
+
+    top_products = (
+        OrderItem.objects
+        .values("variant__product__name")
+        .annotate(total_sold=Sum("quantity"))
+        .order_by("-total_sold")[:5]
+    )
+
+    context = {
+        "settings": settings_obj,
+        "total_orders": orders.count(),
+        "status_rows": status_rows,
+        "pending_count": pending_count,
+        "revenue_paid": revenue_paid,
+        "product_count": Product.objects.filter(active=True).count(),
+        "variant_count": ProductVariant.objects.filter(active=True, product__active=True).count(),
+        "top_products": top_products,
+        "recent_orders": orders.select_related("user").order_by("-created")[:8],
+    }
+    return render(request, "eshop/admin-dashboard.html", context)
 
 
 def _pickup_orders_queryset():
@@ -507,6 +561,8 @@ def mark_pickup_order_delivered(request, order_id):
 
 
 def shop(request):
+    if not EshopSettings.shop_is_public() and not (request.user.is_authenticated and request.user.is_staff):
+        return render(request, "eshop/shop-closed.html", status=200)
     StockReservation.cleanup_expired()
     cart_obj = Cart(request)
     category_slug = request.GET.get("kategorie")
@@ -1128,3 +1184,181 @@ def _low_stock_variants():
         .filter(active=True, stock__lte=5)
         .order_by("stock", "product__name")
     )
+
+
+
+# ---------------------------------------------------------------------------
+# Product import
+# ---------------------------------------------------------------------------
+
+_IMPORT_MAX_SIZE = 2 * 1024 * 1024  # 2 MB
+
+
+def _parse_import_csv(file_obj):
+    """
+    Parsuje CSV/TSV soubor a vrátí seznam řádků jako dict.
+    Povinné sloupce: product_name, variant_label, price, stock
+    Volitelné: category_name, slug, description, subtitle, active (1/0)
+    """
+    import io
+    content = file_obj.read()
+    for encoding in ("utf-8-sig", "utf-8", "cp1250"):
+        try:
+            text = content.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise ValueError("Soubor nelze dekódovat (zkus UTF-8 nebo Windows-1250).")
+
+    dialect = csv.Sniffer().sniff(text[:4096], delimiters=",;\t")
+    reader = csv.DictReader(io.StringIO(text), dialect=dialect)
+    rows = list(reader)
+    if not rows:
+        raise ValueError("Soubor neobsahuje žádná data.")
+
+    required = {"product_name", "variant_label", "price", "stock"}
+    missing = required - {k.strip().lower() for k in rows[0].keys()}
+    if missing:
+        raise ValueError(f"Chybějící sloupce: {', '.join(sorted(missing))}. "
+                         "Povinné: product_name, variant_label, price, stock.")
+
+    # Normalize keys
+    return [{k.strip().lower(): v.strip() for k, v in row.items()} for row in rows]
+
+
+def _apply_import_rows(rows):
+    """Uloží produkty a varianty do DB. Vrátí statistiky."""
+    created_products = updated_products = created_variants = updated_variants = 0
+    errors = []
+
+    with db_tx.atomic():
+        for i, row in enumerate(rows, start=2):
+            try:
+                product_name = row["product_name"]
+                variant_label = row["variant_label"]
+                if not product_name or not variant_label:
+                    errors.append(f"Řádek {i}: prázdný název produktu nebo varianty.")
+                    continue
+
+                try:
+                    price = Decimal(str(row["price"]).replace(",", ".").replace(" ", ""))
+                    stock = int(row["stock"])
+                except (ValueError, KeyError):
+                    errors.append(f"Řádek {i}: neplatná cena nebo sklad.")
+                    continue
+
+                # Category
+                category = None
+                if row.get("category_name"):
+                    category, _ = Category.objects.get_or_create(
+                        name=row["category_name"],
+                        defaults={"slug": row["category_name"].lower()[:50]},
+                    )
+
+                # Product slug
+                from django.utils.text import slugify
+                slug = row.get("slug") or slugify(product_name)[:50]
+                if not slug:
+                    slug = f"produkt-{i}"
+
+                active_val = row.get("active", "1")
+                active = str(active_val).strip() not in ("0", "false", "ne", "no")
+
+                product, p_created = Product.objects.update_or_create(
+                    slug=slug,
+                    defaults={
+                        "name": product_name,
+                        "category": category,
+                        "description": row.get("description", ""),
+                        "subtitle": row.get("subtitle", ""),
+                        "active": active,
+                    },
+                )
+                if p_created:
+                    created_products += 1
+                else:
+                    updated_products += 1
+
+                # Variant
+                sort_order = int(row.get("sort_order", 0) or 0)
+                variant, v_created = ProductVariant.objects.update_or_create(
+                    product=product,
+                    label=variant_label,
+                    defaults={
+                        "price": price,
+                        "stock": stock,
+                        "active": active,
+                        "sort_order": sort_order,
+                    },
+                )
+                if v_created:
+                    created_variants += 1
+                else:
+                    updated_variants += 1
+
+            except Exception as exc:
+                errors.append(f"Řádek {i}: {exc}")
+
+    return {
+        "created_products": created_products,
+        "updated_products": updated_products,
+        "created_variants": created_variants,
+        "updated_variants": updated_variants,
+        "errors": errors,
+    }
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@staff_member_required
+def product_import(request):
+    """Import produktů z CSV souboru."""
+    result = None
+    if request.method == "POST":
+        upload = request.FILES.get("import_file")
+        if not upload:
+            messages.error(request, "Nebyl vybrán žádný soubor.")
+        elif upload.size > _IMPORT_MAX_SIZE:
+            messages.error(request, f"Soubor je příliš velký ({upload.size // 1024} kB), maximum je 2 MB.")
+        else:
+            try:
+                rows = _parse_import_csv(upload)
+                result = _apply_import_rows(rows)
+                msg = (
+                    f"Import dokončen: {result['created_products']} nových produktů, "
+                    f"{result['updated_products']} aktualizovaných, "
+                    f"{result['created_variants']} nových variant, "
+                    f"{result['updated_variants']} aktualizovaných."
+                )
+                messages.success(request, msg)
+            except ValueError as exc:
+                messages.error(request, str(exc))
+
+    columns = [
+        {"name": "product_name", "required": True,  "desc": "Název produktu"},
+        {"name": "variant_label","required": True,  "desc": "Označení varianty (např. XS, M, L, červená)"},
+        {"name": "price",        "required": True,  "desc": "Cena v Kč (číslo, des. tečka nebo čárka)"},
+        {"name": "stock",        "required": True,  "desc": "Počet kusů skladem"},
+        {"name": "category_name","required": False, "desc": "Název kategorie (vytvoří se pokud neexistuje)"},
+        {"name": "slug",         "required": False, "desc": "URL slug (generuje se z názvu pokud chybí)"},
+        {"name": "description",  "required": False, "desc": "Popis produktu"},
+        {"name": "subtitle",     "required": False, "desc": "Krátký štítek"},
+        {"name": "active",       "required": False, "desc": "Aktivní: 1=ano, 0=ne (výchozí: 1)"},
+        {"name": "sort_order",   "required": False, "desc": "Pořadí varianty (číslo, výchozí: 0)"},
+    ]
+    return render(request, "eshop/product-import.html", {"result": result, "columns": columns})
+
+
+@staff_member_required
+def product_import_template(request):
+    """Stažení vzorového CSV souboru pro import produktů."""
+    header = "product_name,variant_label,price,stock,category_name,slug,description,subtitle,active,sort_order\r\n"
+    rows = [
+        'Závodní dres,XS,1290,5,Dresy,zavodni-dres,"Prodyšný polyester",Race fit,1,1\r\n',
+        'Závodní dres,S,1290,8,Dresy,zavodni-dres,"Prodyšný polyester",Race fit,1,2\r\n',
+        'Závodní dres,M,1290,3,Dresy,zavodni-dres,"Prodyšný polyester",Race fit,1,3\r\n',
+        'Přilba Race,M,3490,3,Přilby,prilba-race,"Homologace UCI","",1,1\r\n',
+    ]
+    response = HttpResponse("".join([header] + rows), content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="import-produkty-vzor.csv"'
+    return response

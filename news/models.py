@@ -127,7 +127,15 @@ def enqueue_article_tts(article_id: int):
 def enqueue_article_translation(article_id: int):
     from news.tasks import translate_article_task
     for lang in _AUDIO_LANGS:
-        translate_article_task.delay(article_id, lang)
+        try:
+            translate_article_task.delay(article_id, lang)
+        except Exception:
+            logger.exception(
+                "[TRANSLATE] Nepodařilo se zařadit překlad článku %s do jazyka %s — "
+                "běží Celery worker a Redis? (CELERY_TASK_ALWAYS_EAGER=%s)",
+                article_id, lang,
+                __import__("django.conf", fromlist=["settings"]).settings.CELERY_TASK_ALWAYS_EAGER,
+            )
 
 
 def _html_to_blocks(html: str) -> list[str]:
@@ -160,16 +168,16 @@ def _translate_article_content(article_id: int, lang: str):
             return "\n".join(parts)
 
         title_t = _translate_text(article.title or "", lang) if article.title else ""
-        prefix_t = _translate_html(article.prefix or "")
+        perex_t = _translate_html(article.perex or "")
         content_t = _translate_html(article.content or "")
 
-        if not (title_t or prefix_t or content_t):
+        if not (title_t or perex_t or content_t):
             logger.warning("[TRANSLATE] Article %s lang=%s: překlad selhal.", article_id, lang)
             return
 
         NewsModel.objects.filter(pk=article_id).update(**{
             f"title_{lang}": title_t,
-            f"prefix_{lang}": prefix_t,
+            f"perex_{lang}": perex_t,
             f"content_{lang}": content_t,
         })
         logger.info("[TRANSLATE] Article %s lang=%s: přeloženo.", article_id, lang)
@@ -252,7 +260,7 @@ def _split_text(text: str, max_len: int = 4500):
 def _article_parts_plain(article):
     """Vrátí (title, prefix, content) bez HTML/script/style značek a se znormalizovanými mezerami."""
     raw_title = article.title or ""
-    raw_prefix = getattr(article, "prefix", "") or ""
+    raw_perex = getattr(article, "perex", "") or ""
     raw_content = article.content or ""
 
     def _clean_html(s: str) -> str:
@@ -264,14 +272,14 @@ def _article_parts_plain(article):
         return s.strip()
 
     title = _clean_html(raw_title)
-    prefix = _clean_html(raw_prefix)
+    perex = _clean_html(raw_perex)
     content = _clean_html(raw_content)
-    return title, prefix, content
+    return title, perex, content
 
 def _article_text_plain(article) -> str:
     """Poskládá text článku (title + prefix + content) a odstraní HTML / skripty / styly."""
-    title, prefix, content = _article_parts_plain(article)
-    text = " ".join(p for p in ("NADPIS:     ",title, "TEXT:      ", prefix, content) if p)
+    title, perex, content = _article_parts_plain(article)
+    text = " ".join(p for p in ("NADPIS:     ", title, "TEXT:      ", perex, content) if p)
     return text.strip()
 
 # Neural voice mapping for edge-tts (Microsoft Azure voices via Edge endpoint).
@@ -353,8 +361,8 @@ def _generate_audio(article_id: int, lang: str = "cs"):
         NewsModel = apps.get_model("news", "News")
         article = NewsModel.objects.get(pk=article_id)
 
-        title_plain, prefix_plain, content_plain = _article_parts_plain(article)
-        body_plain = " ".join(p for p in (prefix_plain, content_plain) if p).strip()
+        title_plain, perex_plain, content_plain = _article_parts_plain(article)
+        body_plain = " ".join(p for p in (perex_plain, content_plain) if p).strip()
 
         if not (title_plain or body_plain):
             logger.info("[TTS] Article %s lang=%s: prázdný text, nic negeneruji.", article_id, lang)
@@ -405,7 +413,7 @@ class News (models.Model):
 
     title = models.CharField(max_length=255, default="")
     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text=_("Automaticky generováno z titulku pro hezké URL"))
-    prefix = RichTextField(max_length=4000, default="", blank=True, null=True)
+    perex = RichTextField(max_length=4000, default="", blank=True, null=True)
     content = RichTextField(max_length=30000, blank=True, null=True)
     tags = models.ManyToManyField(Tag)
 
@@ -426,14 +434,14 @@ class News (models.Model):
     title_fr = models.CharField(max_length=255, blank=True, default="")
     title_pl = models.CharField(max_length=255, blank=True, default="")
     title_hu = models.CharField(max_length=255, blank=True, default="")
-    prefix_en = models.TextField(blank=True, default="")
-    prefix_de = models.TextField(blank=True, default="")
-    prefix_sk = models.TextField(blank=True, default="")
-    prefix_es = models.TextField(blank=True, default="")
-    prefix_it = models.TextField(blank=True, default="")
-    prefix_fr = models.TextField(blank=True, default="")
-    prefix_pl = models.TextField(blank=True, default="")
-    prefix_hu = models.TextField(blank=True, default="")
+    perex_en = models.TextField(blank=True, default="")
+    perex_de = models.TextField(blank=True, default="")
+    perex_sk = models.TextField(blank=True, default="")
+    perex_es = models.TextField(blank=True, default="")
+    perex_it = models.TextField(blank=True, default="")
+    perex_fr = models.TextField(blank=True, default="")
+    perex_pl = models.TextField(blank=True, default="")
+    perex_hu = models.TextField(blank=True, default="")
     content_en = models.TextField(blank=True, default="")
     content_de = models.TextField(blank=True, default="")
     content_sk = models.TextField(blank=True, default="")
@@ -518,7 +526,7 @@ class News (models.Model):
                 "@type": "Person",
                 "name": _article_author_name(self.created)
             }],
-            "description": strip_tags(self.get_localized("prefix", lang))[:160],
+            "description": strip_tags(self.get_localized("perex", lang))[:160],
             "audio": self.get_audio_url(lang) if self.published_audio else None
         }, ensure_ascii=False)
 
@@ -530,12 +538,12 @@ class News (models.Model):
     @property
     def audio_duration_estimate(self):
         """Odhad délky audia v minutách pro UI."""
-        title, prefix, content = _article_parts_plain(self)
-        total_chars = len(title) + len(prefix) + len(content)
+        title, perex, content = _article_parts_plain(self)
+        total_chars = len(title) + len(perex) + len(content)
         return max(1, round(total_chars / 900)) # průměrně 900 znaků za minutu
 
     def save(self, *args, **kwargs):
-        self.prefix = sanitize_rich_html(self.prefix)
+        self.perex = sanitize_rich_html(self.perex)
         self.content = sanitize_rich_html(self.content)
 
         if not self.slug and self.title:
@@ -571,7 +579,7 @@ class News (models.Model):
             translation_newly_publishable = creating or not old_published
             translation_missing = any(
                 not (getattr(self, f"title_{lang}", "") or "").strip()
-                or not (getattr(self, f"prefix_{lang}", "") or "").strip()
+                or not (getattr(self, f"perex_{lang}", "") or "").strip()
                 or not (getattr(self, f"content_{lang}", "") or "").strip()
                 for lang in _AUDIO_LANGS
             )

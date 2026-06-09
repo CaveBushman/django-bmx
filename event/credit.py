@@ -49,26 +49,25 @@ def _calculate_balance(*, user_id=None):
     )
 
 
-def calculate_account_balance(user_id):
+def calculate_user_balance(user_id):
     """Spočítá zůstatek konkrétního uživatele."""
     return _calculate_balance(user_id=user_id)
 
 
+# Alias pro zpětnou kompatibilitu s finance/tests.py
+calculate_account_balance = calculate_user_balance
+
+
 def calculate_system_balance():
-    """Spočítá globální kredit systému ze stejné logiky jako uživatelský kredit."""
+    """Spočítá globální kredit systému."""
     return _calculate_balance()
 
 
 def get_system_balance_components():
-    """Vrátí rozpad globálního kreditu systému po jednotlivých složkách."""
+    """Vrátí rozpad globálního kreditu systému po složkách."""
     components = _build_balance_components()
     components["net_balance"] = calculate_system_balance()
     return components
-
-
-def calculate_user_balance(user_id):
-    """Zpětně kompatibilní alias pro výpočet zůstatku uživatele."""
-    return calculate_account_balance(user_id)
 
 def recalculate_all_balances():
     """Hromadně přepočítá zůstatky pro všechny aktivní uživatele."""

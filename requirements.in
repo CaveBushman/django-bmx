@@ -1,0 +1,73 @@
+# Primární závislosti — spusť `make deps` pro regeneraci requirements.txt
+# pip-tools: pip install pip-tools && pip-compile requirements.in
+
+# Framework
+Django>=6.0
+
+# REST API
+djangorestframework
+djangorestframework-simplejwt
+django-filter
+drf-spectacular
+django-cors-headers
+
+# Async & cache
+celery[redis]
+django-celery-results
+django-redis
+redis
+
+# Auth & bezpečnost
+stripe
+
+# Storage & statické soubory
+whitenoise
+pillow
+pikepdf
+
+# E-mail & notifikace
+firebase-admin
+
+# Admin & UI
+django-jazzmin
+django-tailwind
+pytailwindcss
+django-ckeditor-5
+django-ckeditor
+
+# Dokumenty & export
+reportlab
+openpyxl
+pandas
+tablib
+xlrd
+odfpy
+lxml
+
+# Překlady
+deepl
+
+# Monitoring & logging
+sentry-sdk
+
+# Utility
+python-decouple
+python-dotenv
+python-dateutil
+python-slugify
+Unidecode
+arrow
+requests
+pytz
+
+# Cron
+django-crontab
+
+# Ostatní
+django-import-export
+django-cleanup
+django-ical
+django-recurrence
+django-analytical
+django-js-asset
+edge-tts

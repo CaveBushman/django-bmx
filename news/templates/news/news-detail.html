@@ -3,10 +3,10 @@
 {{ display_title }}
 {% endblock title %}
 
-{% block meta_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block meta_description %}{{ display_perex|striptags|truncatechars:155 }}{% endblock %}
 {% block og_type %}article{% endblock %}
-{% block og_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
-{% block twitter_description %}{{ display_prefix|striptags|truncatechars:155 }}{% endblock %}
+{% block og_description %}{{ display_perex|striptags|truncatechars:155 }}{% endblock %}
+{% block twitter_description %}{{ display_perex|striptags|truncatechars:155 }}{% endblock %}
 {% block og_title %}{{ display_title }} | Czech BMX{% endblock %}
 {% block og_image %}{% if absolute_image_url %}{{ absolute_image_url }}{% else %}{{ seo_og_image_url }}{% endif %}{% endblock %}
 {% block twitter_title %}{{ display_title }} | Czech BMX{% endblock %}
@@ -353,7 +353,7 @@
           </div>
           {% endif %}
           <div class="text-base font-medium leading-7 text-slate-700 [&_*]:bg-transparent [&_a]:text-indigo-700 [&_p]:m-0 [&_p]:text-slate-700 [&_strong]:text-slate-900 dark:text-slate-100 dark:[&_a]:text-indigo-300 dark:[&_p]:text-slate-100 dark:[&_strong]:text-white dark:[&_span]:text-slate-100 dark:[&_div]:text-slate-100">
-            {{ display_prefix|safe }}
+            {{ display_perex|safe }}
           </div>
           {% if news.tags.all %}
           <div class="mt-6 flex flex-wrap gap-2">

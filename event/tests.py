@@ -3967,6 +3967,94 @@ class ImportStatsViewTests(TestCase):
         msgs = [m.message for m in get_messages(response.wsgi_request)]
         self.assertTrue(any("Motos" in m for m in msgs))
 
+    def test_upload_accepts_htm_extension(self):
+        htm_file = SimpleUploadedFile("start.htm", b"<html><body></body></html>", content_type="text/html")
+        response = self.client.post(self.url, {"motos": htm_file}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("Motos" in m for m in msgs), f"No success message, got: {msgs}")
+
+    def test_upload_rejects_non_html_file_with_warning(self):
+        pdf_file = SimpleUploadedFile("results.pdf", b"%PDF-1.4 content", content_type="application/pdf")
+        response = self.client.post(self.url, {"motos": pdf_file}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("html" in m.lower() or "nahrán" in m.lower() for m in msgs))
+
+    def test_upload_overall_results_txt_file_accepted(self):
+        txt_file = SimpleUploadedFile("results.txt", b"uci_id\tname\ttime\n12345\tNovak\t30.0", content_type="text/plain")
+        response = self.client.post(self.url, {"overall_results": txt_file}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertFalse(
+            any("html" in m.lower() and "povoleny" in m.lower() for m in msgs),
+            f"TXT should be accepted for overall_results, got: {msgs}",
+        )
+
+    def test_empty_form_post_redirects_without_error(self):
+        response = self.client.post(self.url, {}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_upload_multiple_sections_counts_correctly(self):
+        response = self.client.post(
+            self.url,
+            {
+                "motos": self._html_file("motos.html"),
+                "final": self._html_file("final.html"),
+            },
+            follow=True,
+        )
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        success_msgs = [m for m in msgs if "Nahráno" in m or "Motos" in m or "Finále" in m]
+        self.assertTrue(len(success_msgs) > 0)
+
+    def test_upload_saves_file_to_media_dir(self):
+        response = self.client.post(
+            self.url, {"final": self._html_file("final.html")}, follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        saved = os.listdir(stats_dir) if os.path.isdir(stats_dir) else []
+        self.assertTrue(any("final__" in f for f in saved))
+
+    def test_delete_all_removes_all_files(self):
+        self.client.post(self.url, {"motos": self._html_file("motos.html")}, follow=True)
+        self.client.post(self.url, {"final": self._html_file("final.html")}, follow=True)
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        self.assertTrue(len(os.listdir(stats_dir)) > 0)
+
+        response = self.client.post(self.url, {"delete_all": "true"}, follow=True)
+
+        msgs = [m.message for m in get_messages(response.wsgi_request)]
+        self.assertTrue(any("smazán" in m.lower() for m in msgs))
+        remaining = os.listdir(stats_dir) if os.path.isdir(stats_dir) else []
+        self.assertEqual(remaining, [])
+
+    def test_delete_key_removes_specific_file(self):
+        self.client.post(self.url, {"motos": self._html_file("motos.html")}, follow=True)
+        self.client.post(self.url, {"final": self._html_file("final.html")}, follow=True)
+
+        response = self.client.post(self.url, {"delete_key": "motos"}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        stats_dir = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk))
+        remaining = os.listdir(stats_dir)
+        self.assertFalse(any("motos__" in f for f in remaining))
+        self.assertTrue(any("final__" in f for f in remaining))
+
+    def test_requires_staff_login(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_get_shows_upload_form(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("upload_sections", response.context)
+        self.assertIn("overall_results_field", response.context)
+
 
 class EventStructuredDataTests(TestCase):
     def setUp(self):

@@ -16,6 +16,39 @@ from rider.models import (
 
 SUBSCRIPTION_PERIOD = timedelta(days=30)
 
+_STATUS_CANCELED = "canceled"
+_STATUS_ACTIVE = "active"
+
+
+# ---------------------------------------------------------------------------
+# Generické cancel / resume — fungují s jakýmkoliv subscription modelem
+# ---------------------------------------------------------------------------
+
+def cancel_subscription(subscription, *, at_time=None):
+    """Vypne auto-obnovu. Pokud již vypršelo, nastaví stav canceled."""
+    current_time = at_time or timezone.now()
+    subscription.auto_renew = False
+    subscription.canceled_at = current_time
+    if subscription.expires_at <= current_time:
+        subscription.status = _STATUS_CANCELED
+        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    else:
+        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    return subscription
+
+
+def resume_subscription(subscription, *, at_time=None):
+    """Zapne auto-obnovu. Pokud ještě platí, nastaví stav active."""
+    current_time = at_time or timezone.now()
+    subscription.auto_renew = True
+    subscription.canceled_at = None
+    if subscription.expires_at > current_time:
+        subscription.status = _STATUS_ACTIVE
+        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    else:
+        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    return subscription
+
 
 def get_current_season_settings(at_time=None):
     current_time = at_time or timezone.now()
@@ -176,27 +209,11 @@ def purchase_rider_stats_subscription(user, rider, *, at_time=None):
 
 
 def cancel_rider_stats_subscription(subscription, *, at_time=None):
-    current_time = at_time or timezone.now()
-    subscription.auto_renew = False
-    subscription.canceled_at = current_time
-    if subscription.expires_at <= current_time:
-        subscription.status = RiderStatsSubscription.STATUS_CANCELED
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
-    else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
-    return subscription
+    return cancel_subscription(subscription, at_time=at_time)
 
 
 def resume_rider_stats_subscription(subscription, *, at_time=None):
-    current_time = at_time or timezone.now()
-    subscription.auto_renew = True
-    subscription.canceled_at = None
-    if subscription.expires_at > current_time:
-        subscription.status = RiderStatsSubscription.STATUS_ACTIVE
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
-    else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
-    return subscription
+    return resume_subscription(subscription, at_time=at_time)
 
 
 def renew_due_rider_stats_subscriptions(*, at_time=None):
@@ -500,13 +517,7 @@ def purchase_trainer_club_subscription(user, club, product, *, at_time=None):
 
 def cancel_trainer_club_subscription(subscription, *, at_time=None):
     current_time = at_time or timezone.now()
-    subscription.auto_renew = False
-    subscription.canceled_at = current_time
-    if subscription.expires_at <= current_time:
-        subscription.status = TrainerClubSubscription.STATUS_CANCELED
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
-    else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
+    cancel_subscription(subscription, at_time=current_time)
     if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
         _disable_extended_auto_renew_if_no_stats_auto_renew(subscription.user, at_time=current_time)
         _deactivate_extended_if_no_stats_access(subscription.user, at_time=current_time)
@@ -514,15 +525,43 @@ def cancel_trainer_club_subscription(subscription, *, at_time=None):
 
 
 def resume_trainer_club_subscription(subscription, *, at_time=None):
-    current_time = at_time or timezone.now()
-    subscription.auto_renew = True
-    subscription.canceled_at = None
-    if subscription.expires_at > current_time:
-        subscription.status = TrainerClubSubscription.STATUS_ACTIVE
-        subscription.save(update_fields=["status", "auto_renew", "canceled_at", "updated"])
+    return resume_subscription(subscription, at_time=at_time)
+
+
+def _expire_trainer_subscription(subscription, *, side_effect=None):
+    """Nastaví subscription jako expired a volitelně spustí side effect."""
+    subscription.status = TrainerClubSubscription.STATUS_EXPIRED
+    subscription.auto_renew = False
+    subscription.save(update_fields=["status", "auto_renew", "updated"])
+    if side_effect:
+        side_effect()
+
+
+def _check_trainer_eligibility(subscription, account, current_time):
+    """
+    Ověří, zda je předplatné způsobilé k obnovení.
+    Vrátí True pokud ano; False a rovnou expired/upraví subscription pokud ne.
+    """
+    if not account.is_trainer:
+        _expire_trainer_subscription(subscription)
+        return False
+
+    if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
+        if not account.trainer_clubs.filter(pk=subscription.club_id).exists():
+            _expire_trainer_subscription(
+                subscription,
+                side_effect=lambda: _deactivate_extended_if_no_stats_access(account, at_time=current_time),
+            )
+            return False
     else:
-        subscription.save(update_fields=["auto_renew", "canceled_at", "updated"])
-    return subscription
+        anchor = _get_any_active_trainer_stats_subscription(account, at_time=current_time)
+        if anchor is None:
+            _expire_trainer_subscription(subscription)
+            return False
+        if subscription.club_id != anchor.club_id:
+            subscription.club = anchor.club
+
+    return True
 
 
 def renew_due_trainer_club_subscriptions(*, at_time=None):
@@ -551,34 +590,13 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
                 continue
 
             account = Account.objects.select_for_update().prefetch_related("trainer_clubs").get(pk=subscription.user_id)
-            if not account.is_trainer:
-                subscription.status = TrainerClubSubscription.STATUS_EXPIRED
-                subscription.auto_renew = False
-                subscription.save(update_fields=["status", "auto_renew", "updated"])
+
+            if not _check_trainer_eligibility(subscription, account, current_time):
                 expired += 1
                 continue
-            if subscription.product == TrainerClubSubscription.PRODUCT_CLUB_STATS:
-                if not account.trainer_clubs.filter(pk=subscription.club_id).exists():
-                    subscription.status = TrainerClubSubscription.STATUS_EXPIRED
-                    subscription.auto_renew = False
-                    subscription.save(update_fields=["status", "auto_renew", "updated"])
-                    _deactivate_extended_if_no_stats_access(account, at_time=current_time)
-                    expired += 1
-                    continue
-            else:
-                anchor_subscription = _get_any_active_trainer_stats_subscription(account, at_time=current_time)
-                if anchor_subscription is None:
-                    subscription.status = TrainerClubSubscription.STATUS_EXPIRED
-                    subscription.auto_renew = False
-                    subscription.save(update_fields=["status", "auto_renew", "updated"])
-                    expired += 1
-                    continue
-                if subscription.club_id != anchor_subscription.club_id:
-                    subscription.club = anchor_subscription.club
 
             season, price = _get_trainer_price_for_current_season(subscription.product, at_time=current_time)
-            current_balance = calculate_user_balance(account.pk)
-            if price > current_balance:
+            if price > calculate_user_balance(account.pk):
                 subscription.status = TrainerClubSubscription.STATUS_PAST_DUE
                 subscription.save(update_fields=["status", "updated"])
                 failed += 1
@@ -596,14 +614,8 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
 
             if price > 0:
                 _charge_trainer_subscription(
-                    account,
-                    subscription.club,
-                    season,
-                    subscription,
-                    subscription.product,
-                    price,
-                    period_start,
-                    period_end,
+                    account, subscription.club, season, subscription,
+                    subscription.product, price, period_start, period_end,
                     TrainerClubCharge.REASON_RENEWAL,
                 )
 
@@ -614,9 +626,4 @@ def renew_due_trainer_club_subscriptions(*, at_time=None):
                 _disable_extended_auto_renew_if_no_stats_auto_renew(account, at_time=current_time)
             renewed += 1
 
-    return {
-        "renewed": renewed,
-        "expired": expired,
-        "failed": failed,
-        "processed": len(due_ids),
-    }
+    return {"renewed": renewed, "expired": expired, "failed": failed, "processed": len(due_ids)}

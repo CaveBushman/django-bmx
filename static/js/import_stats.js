@@ -22,18 +22,14 @@ document.addEventListener("DOMContentLoaded", function () {
     form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
       btn.disabled = true;
     });
-    form.querySelectorAll('input[type="file"]').forEach(function (inp) {
-      inp.disabled = true;
-    });
+    // NOTE: file inputs must NOT be disabled — disabled inputs are excluded
+    // from form submission, which would cause files to be silently dropped.
   }
 
   function scheduleUnlock() {
     setTimeout(function () {
       form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
         btn.disabled = false;
-      });
-      form.querySelectorAll('input[type="file"]').forEach(function (inp) {
-        inp.disabled = false;
       });
     }, 30000);
   }

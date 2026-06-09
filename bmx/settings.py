@@ -258,6 +258,9 @@ CELERY_ACCEPT_CONTENT     = ["json"]
 CELERY_TIMEZONE           = "Europe/Prague"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_ACKS_LATE     = True
+# Ve vývoji bez Redis brokeru spouštíme tasky synchronně (eager mode).
+# V produkci nastav CELERY_TASK_ALWAYS_EAGER=False nebo jen nechej default.
+CELERY_TASK_ALWAYS_EAGER  = config("CELERY_TASK_ALWAYS_EAGER", default=not bool(REDIS_URL), cast=bool)
 
 # DeepL překlad článků
 # Nastav DEEPL_API_KEY v .env — bez klíče se použije Google Translate záloha
@@ -767,3 +770,6 @@ if not DEBUG and not REDIS_URL:
         RuntimeWarning,
         stacklevel=2,
     )
+
+# api/v1/ je backward-compat alias — namespace kolize je záměrná
+SILENCED_SYSTEM_CHECKS = ["urls.W005"]

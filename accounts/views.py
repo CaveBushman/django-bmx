@@ -76,20 +76,26 @@ def create_activation_audit_log(*, user, action, request=None, source="system", 
 
 
 def send_activation_email(request, user, *, action=AccountActivationAuditLog.Action.SENT, source="signup"):
+    from bmx.email import send_html_email
     current_site = get_current_site(request)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     activation_path = reverse("accounts:activate", kwargs={"uidb64": uid, "token": token})
-    context = {
+    protocol = "https" if request.is_secure() else "http"
+    activation_url = f"{protocol}://{current_site.domain}{activation_path}"
+    subject = render_to_string("accounts/account_activation_subject.txt", {
         "user": user,
         "domain": current_site.domain,
         "site_name": current_site.name or current_site.domain,
-        "protocol": "https" if request.is_secure() else "http",
+        "protocol": protocol,
         "activation_path": activation_path,
-    }
-    subject = render_to_string("accounts/account_activation_subject.txt", context).strip()
-    body = render_to_string("accounts/account_activation_email.txt", context)
-    send_mail(subject, body, None, [user.email])
+    }).strip()
+    send_html_email(
+        subject=subject,
+        template="emails/activation.html",
+        context={"user": user, "activation_url": activation_url},
+        to=[user.email],
+    )
     create_activation_audit_log(user=user, action=action, request=request, source=source)
 
 
