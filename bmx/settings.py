@@ -343,6 +343,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+WHITENOISE_AUTOREFRESH = True
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -711,6 +712,10 @@ CRONJOBS = [
     ("30 2 * * *", "bmx.cron.renew_mobile_app_subscriptions_scheduled"),
     # AI agent – zpracuje čekající úkoly každý den ve 3:00
     ("0 3 * * *", "django.core.management.call_command", ["run_ai_agent"]),
+    # SQLite záloha každý den ve 4:00
+    ("0 4 * * *", "bmx.cron.backup_sqlite_scheduled"),
+    # SQLite integrity check každou neděli ve 4:30
+    ("30 4 * * 0", "bmx.cron.check_sqlite_integrity_scheduled"),
 ]
 
 # ---------------------------------------------------------------------------

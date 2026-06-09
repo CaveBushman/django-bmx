@@ -1,7 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
+  var statsPage = document.querySelector(".premium-stats-page");
+
   document.querySelectorAll("[data-auto-submit]").forEach(function (field) {
     field.addEventListener("change", function () {
       if (field.form) {
+        if (statsPage) {
+          statsPage.style.transition = "opacity 0.15s";
+          statsPage.style.opacity = "0.45";
+          statsPage.style.pointerEvents = "none";
+          statsPage.style.cursor = "wait";
+        }
         field.form.submit();
       }
     });

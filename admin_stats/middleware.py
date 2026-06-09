@@ -9,7 +9,8 @@ from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
 
-_IGNORED_EXTENSIONS = ('.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.map')
+_IGNORED_EXTENSIONS = ('.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.map', '.webp', '.avif', '.mp4', '.webm')
+_IGNORED_PREFIXES = ('/static/', '/media/')
 
 _geoip = None
 
@@ -41,6 +42,8 @@ class VisitMiddleware(MiddlewareMixin):
         if request.path.startswith("/admin-stats/"):
             return
         if request.path.startswith("/csp-report/"):
+            return
+        if request.path.startswith(_IGNORED_PREFIXES):
             return
         if request.path.endswith(_IGNORED_EXTENSIONS):
             return
