@@ -212,7 +212,8 @@ class ContextProcessorResilienceTests(TestCase):
 
         context = navbar_context(request)
 
-        self.assertEqual(context, {"user_credit": 125})
+        self.assertEqual(context["user_credit"], 125)
+        self.assertIn("navbar_eshop_visible", context)
 
 
 class SecurityFlowTests(TestCase):
