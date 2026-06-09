@@ -1171,8 +1171,24 @@ class PaymentServiceTests(TestCase):
         self.assertIn("Zobrazit", template)
         self.assertIn("Smazat", template)
         self.assertIn("data-confirm-message", template)
+        self.assertIn("bmx-page-surface", template)
+        self.assertIn("bmx-card", template)
+        self.assertIn("bmx-file-input", template)
+        self.assertIn("import-stats-fade-up", template)
         self.assertNotIn("onclick=", template)
         self.assertNotIn("<script>", template)
+        self.assertNotIn("<style>", template)
+        self.assertNotIn("style=", template)
+
+    def test_import_stats_dark_mode_styles_are_in_shared_stylesheet(self):
+        stylesheet = (
+            Path(settings.BASE_DIR) / "theme" / "static_src" / "src" / "styles.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(".bmx-page-surface", stylesheet)
+        self.assertIn(".dark .bmx-card", stylesheet)
+        self.assertIn(".dark .bmx-file-input", stylesheet)
+        self.assertIn("@keyframes importStatsFadeUp", stylesheet)
 
     def test_event_admin_ec_template_uses_external_script_and_no_inline_script(self):
         template = (

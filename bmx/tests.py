@@ -344,6 +344,40 @@ class SettingsSecuritySourceTests(TestCase):
         self.assertIn('LOG_AS_JSON = config_bool("LOG_AS_JSON", default=not DEBUG)', source)
         self.assertIn('initialize_sentry(', source)
 
+    def test_settings_source_keeps_production_cache_warning_out_of_tests(self):
+        source = (
+            Path(settings.BASE_DIR) / "bmx" / "settings.py"
+        ).read_text(encoding="utf-8")
+        env_example = (
+            Path(settings.BASE_DIR) / "bmx" / ".env.example"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("RUNNING_TESTS =", source)
+        self.assertIn("SUPPRESS_LOCMEM_CACHE_WARNING_COMMANDS", source)
+        self.assertIn("ALLOW_LOCMEM_CACHE_IN_PRODUCTION", source)
+        self.assertIn("not SUPPRESS_LOCMEM_CACHE_WARNING", source)
+        self.assertIn("LocMemCache nezajišťuje sdílené rate limity", source)
+        self.assertIn("REDIS_URL=redis://127.0.0.1:6379/1", env_example)
+        self.assertIn("ALLOW_LOCMEM_CACHE_IN_PRODUCTION=false", env_example)
+
+    def test_static_build_source_of_truth_is_documented(self):
+        settings_source = (
+            Path(settings.BASE_DIR) / "bmx" / "settings.py"
+        ).read_text(encoding="utf-8")
+        makefile = (Path(settings.BASE_DIR) / "Makefile").read_text(encoding="utf-8")
+        tailwind_source = (
+            Path(settings.BASE_DIR) / "theme" / "static_src" / "src" / "styles.css"
+        ).read_text(encoding="utf-8")
+        package_json = (
+            Path(settings.BASE_DIR) / "theme" / "static_src" / "package.json"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('TAILWIND_APP_NAME = "theme"', settings_source)
+        self.assertIn('TAILWIND_CSS_PATH = "css/dist/styles.css"', settings_source)
+        self.assertIn("npm run build --prefix theme/static_src", makefile)
+        self.assertIn('@source "../../../**/*.html";', tailwind_source)
+        self.assertIn('"build:tailwind": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify"', package_json)
+
     def test_observability_helper_falls_back_without_sentry_sdk(self):
         from bmx.observability import start_span
 

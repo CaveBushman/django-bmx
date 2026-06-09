@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 import logging
 from django.utils.translation import gettext_lazy as _
 from bmx.logging_config import build_logging_config
@@ -72,6 +73,17 @@ def config_first(names, default=""):
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config_bool("DEBUG", default=False)
+MANAGEMENT_COMMAND = sys.argv[1] if len(sys.argv) > 1 else ""
+SUPPRESS_LOCMEM_CACHE_WARNING_COMMANDS = {
+    "check",
+    "collectstatic",
+    "makemigrations",
+    "migrate",
+    "shell",
+    "test",
+}
+RUNNING_TESTS = MANAGEMENT_COMMAND == "test" or any(arg.endswith("pytest") for arg in sys.argv)
+SUPPRESS_LOCMEM_CACHE_WARNING = MANAGEMENT_COMMAND in SUPPRESS_LOCMEM_CACHE_WARNING_COMMANDS
 
 DEFAULT_ALLOWED_HOSTS = [
     "localhost",
@@ -762,7 +774,8 @@ GOOGLE_ANALYTICS_GTAG_PROPERTY_ID = "G-6VFMEQ1EVX"  # GA4 measurement ID
 
 # Varování: LocMemCache nesdílí rate limity mezi Gunicorn workery.
 # V produkci nastav REDIS_URL=redis://127.0.0.1:6379/1 v .env
-if not DEBUG and not REDIS_URL:
+ALLOW_LOCMEM_CACHE_IN_PRODUCTION = config_bool("ALLOW_LOCMEM_CACHE_IN_PRODUCTION", default=False)
+if not DEBUG and not REDIS_URL and not SUPPRESS_LOCMEM_CACHE_WARNING and not ALLOW_LOCMEM_CACHE_IN_PRODUCTION:
     import warnings
     warnings.warn(
         "BEZPEČNOSTNÍ VAROVÁNÍ: LocMemCache nezajišťuje sdílené rate limity mezi "

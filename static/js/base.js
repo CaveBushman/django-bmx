@@ -22,6 +22,10 @@ function initFlashMessages(documentRef, windowRef) {
 
 function initConfirmButtons(documentRef, windowRef) {
   documentRef.addEventListener("click", function (event) {
+    if (!event.target || typeof event.target.closest !== "function") {
+      return;
+    }
+
     var confirmButton = event.target.closest("[data-confirm-message]");
     if (!confirmButton) {
       return;
@@ -29,6 +33,9 @@ function initConfirmButtons(documentRef, windowRef) {
 
     if (!windowRef.confirm(confirmButton.dataset.confirmMessage || "Are you sure?")) {
       event.preventDefault();
+      if (typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
     }
   });
 }

@@ -38,6 +38,13 @@ class FakeElement {
     this.eventListeners[type].push(handler);
   }
 
+  hasAttribute(name) {
+    if (name === "data-flash-persist") {
+      return Object.prototype.hasOwnProperty.call(this.dataset, "flashPersist");
+    }
+    return false;
+  }
+
   dispatchEvent(type, event = {}) {
     (this.eventListeners[type] || []).forEach((handler) => handler(event));
   }
@@ -92,13 +99,18 @@ assert.equal(flashMessage.removed, true);
 assert.deepEqual(timeoutCalls, [5000, 500]);
 
 let prevented = false;
+let stopped = false;
 documentRef.dispatchEvent("click", {
   target: confirmButton,
   preventDefault() {
     prevented = true;
   },
+  stopImmediatePropagation() {
+    stopped = true;
+  },
 });
 assert.deepEqual(windowRef.confirmCalls, ["Opravdu smazat?"]);
 assert.equal(prevented, true);
+assert.equal(stopped, true);
 
 console.log("base smoke test passed");
