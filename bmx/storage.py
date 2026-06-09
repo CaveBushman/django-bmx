@@ -6,6 +6,17 @@ class RobustManifestStorage(CompressedManifestStaticFilesStorage):
     # soubor v něm není (např. před prvním collectstatic).
     manifest_strict = False
 
+    def stored_name(self, name):
+        # Když referencovaný soubor fyzicky neexistuje (např. obrázek vyloučený
+        # z gitu přes .gitignore a chybějící na disku), hashed_name() vyhodí
+        # ValueError. Bez zachycení to shodí *celou* stránku přes {% static %}
+        # (typicky favicon v base.html). Vrátíme původní název — výsledkem je
+        # běžná (nehashovaná) URL, která dá 404 jen na ten jeden asset.
+        try:
+            return super().stored_name(name)
+        except ValueError:
+            return name
+
     def url_converter(self, name, hashed_files, template=None):
         # WhiteNoise prochází JS/CSS a přepisuje URL reference na hašované verze.
         # Pokud odkazovaný soubor neexistuje (typicky *.map source mapy třetích
