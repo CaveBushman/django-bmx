@@ -1,10 +1,13 @@
 import logging
 
+from django.core.cache import cache
 from django.conf import settings
 from django.db import OperationalError
 
 from .models import Visit
 from django.utils.deprecation import MiddlewareMixin
+
+_VISIT_COOLDOWN_SECONDS = 300  # jedna IP se zaznamená max jednou za 5 minut
 
 
 logger = logging.getLogger(__name__)
@@ -51,6 +54,11 @@ class VisitMiddleware(MiddlewareMixin):
         ip = self.get_client_ip(request)
         if not ip:
             return
+
+        cache_key = f"visit_cd_{ip}"
+        if cache.get(cache_key):
+            return
+        cache.set(cache_key, 1, _VISIT_COOLDOWN_SECONDS)
 
         ua = request.META.get('HTTP_USER_AGENT', '') or ''
         device_type = self._detect_device(ua)

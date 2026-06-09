@@ -351,7 +351,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "bmx.storage.RobustManifestStorage",
     },
 }
 
@@ -728,6 +728,8 @@ CRONJOBS = [
     ("30 4 * * 0", "bmx.cron.check_sqlite_integrity_scheduled"),
     # Smazání Visit záznamů starších než 1 rok — 1. každého měsíce ve 3:45
     ("45 3 1 * *", "bmx.cron.prune_old_visits_scheduled"),
+    # SQLite PRAGMA optimize každý den ve 5:00
+    ("0 5 * * *", "bmx.cron.optimize_sqlite_scheduled"),
 ]
 
 # ---------------------------------------------------------------------------

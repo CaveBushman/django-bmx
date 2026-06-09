@@ -135,3 +135,20 @@ def check_sqlite_integrity_scheduled():
             )
         except Exception:
             logger.exception("SQLite integrity check: nepodařilo se odeslat e-mail")
+
+
+def optimize_sqlite_scheduled():
+    """Denní PRAGMA optimize — aktualizuje statistiky query planneru pro lepší výběr indexů."""
+    import sqlite3 as _sqlite3
+
+    db_path = Path(settings.DATABASES["default"]["NAME"])
+    if not db_path.exists():
+        return
+
+    try:
+        conn = _sqlite3.connect(str(db_path), timeout=30)
+        conn.execute("PRAGMA optimize;")
+        conn.close()
+        logger.info("SQLite optimize: OK")
+    except Exception:
+        logger.exception("SQLite optimize: neočekávaná chyba")
