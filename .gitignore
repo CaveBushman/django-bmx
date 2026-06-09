@@ -85,8 +85,12 @@ static/js/checkout.js
 static/results/*
 static/images/*
 static/videos/*
-staticfiles/videos/*
 media/*
+
+# staticfiles/ je generovaný výstup `collectstatic` (ManifestStaticFilesStorage).
+# Hashe v manifestu musí odpovídat souborům na DANÉM stroji — commitování
+# způsobuje mismatch mezi dev a produkcí (404 na hashovaná jména).
+staticfiles/
 node_modules/*
 theme_2/static_src/*
 theme/static/*
