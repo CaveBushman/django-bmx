@@ -59,6 +59,34 @@ def backup_sqlite_scheduled():
         logger.exception("SQLite backup: neočekávaná chyba")
 
 
+def prune_old_visits_scheduled():
+    """Smaže Visit záznamy starší než 1 rok a uvolní místo na disku přes VACUUM."""
+    import sqlite3 as _sqlite3
+    from datetime import timedelta
+    from django.utils import timezone
+    from admin_stats.models import Visit
+
+    cutoff = timezone.now() - timedelta(days=365)
+    try:
+        deleted, _ = Visit.objects.filter(timestamp__lt=cutoff).delete()
+        logger.info("Visit prune: smazáno %d záznamů starších než %s", deleted, cutoff.date())
+    except Exception:
+        logger.exception("Visit prune: neočekávaná chyba")
+        return
+
+    if deleted == 0:
+        return
+
+    db_path = Path(settings.DATABASES["default"]["NAME"])
+    try:
+        conn = _sqlite3.connect(str(db_path), timeout=60)
+        conn.execute("VACUUM;")
+        conn.close()
+        logger.info("Visit prune: VACUUM dokončen")
+    except Exception:
+        logger.exception("Visit prune: VACUUM selhal")
+
+
 def _prune_old_backups(directory: Path, keep: int = 7):
     backups = sorted(directory.glob("db.sqlite3.bak-*"))
     for old in backups[:-keep]:

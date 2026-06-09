@@ -287,6 +287,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "CONN_MAX_AGE": 0,  # SQLite: musí být 0 (nepodporuje sdílené persistent connections). Při migraci na Postgres nastavit 300.
         "OPTIONS": {
             # Při zamčení DB čeká až 20 s místo okamžitého selhání.
             # Řeší OperationalError: database is locked při souběžných
@@ -344,6 +345,15 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 WHITENOISE_AUTOREFRESH = True
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -716,6 +726,8 @@ CRONJOBS = [
     ("0 4 * * *", "bmx.cron.backup_sqlite_scheduled"),
     # SQLite integrity check každou neděli ve 4:30
     ("30 4 * * 0", "bmx.cron.check_sqlite_integrity_scheduled"),
+    # Smazání Visit záznamů starších než 1 rok — 1. každého měsíce ve 3:45
+    ("45 3 1 * *", "bmx.cron.prune_old_visits_scheduled"),
 ]
 
 # ---------------------------------------------------------------------------

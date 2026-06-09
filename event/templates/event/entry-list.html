@@ -235,7 +235,7 @@
                 <div class="flex items-center">
                   <div class="relative">
                     {% if entry.photo_url %}
-                    <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="">
+                    <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="" loading="lazy">
                     {% else %}
                     <div class="entry-list-avatar-fallback flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white">
                       {{ entry.first_name|slice:":1" }}{{ entry.last_name|slice:":1" }}
@@ -312,7 +312,7 @@
                   <div class="flex items-center">
                     <div class="relative">
                       {% if entry.photo_url %}
-                      <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="">
+                      <img class="h-10 w-10 rounded-full object-cover" src="{{ entry.photo_url }}" alt="" loading="lazy">
                       {% else %}
                       <div class="entry-list-avatar-fallback flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white">
                         {{ entry.first_name|slice:":1" }}{{ entry.last_name|slice:":1" }}

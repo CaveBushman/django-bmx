@@ -195,7 +195,7 @@
           <div class="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200 dark:!ring-slate-500">
             <img src="{% if article.created and article.created.photo_url %}{{ article.created.photo_url }}{% else %}{% static 'images/users/blank-avatar-200x200.jpg' %}{% endif %}" alt="{{ article.created }}"
               onerror="this.onerror=null;this.src='{% static 'images/users/blank-avatar-200x200.jpg' %}';"
-              class="h-full w-full object-cover">
+              class="h-full w-full object-cover" loading="lazy">
           </div>
           <div class="text-sm leading-5">
             <p class="font-semibold text-slate-900 dark:text-white">{{article.created}}</p>

@@ -198,7 +198,7 @@
           <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
             <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center lg:w-[26rem]">
               {% if avatar_request.image_url %}
-              <img src="{{ avatar_request.image_url }}" alt="" class="avatar-preview">
+              <img src="{{ avatar_request.image_url }}" alt="" class="avatar-preview" loading="lazy">
               {% else %}
               <div class="avatar-preview"></div>
               {% endif %}

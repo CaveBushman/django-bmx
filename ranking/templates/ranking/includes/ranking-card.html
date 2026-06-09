@@ -10,7 +10,7 @@
       <span class="ranking-position is-default shrink-0">{% if cruiser %}{{ result.ranking_24 }}{% else %}{{ result.ranking_20 }}{% endif %}</span>
     {% endif %}
     {% if result.photo_url %}
-      <img class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" src="{{ result.photo_url }}" alt="{{ result.first_name }} {{ result.last_name }}">
+      <img class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" src="{{ result.photo_url }}" alt="{{ result.first_name }} {{ result.last_name }}" loading="lazy">
     {% else %}
       <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-black uppercase tracking-[0.08em] text-slate-700 ring-2 ring-white dark:bg-slate-700 dark:text-white dark:ring-slate-800">
         {{ result.initials|default:"?" }}

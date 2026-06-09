@@ -778,7 +778,7 @@
                 </div>
                 <div class="homepage-news-author relative flex items-center gap-4 px-6 py-4 sm:px-7">
                     {% if article.created.photo_url %}
-                    <img src="{{ article.created.photo_url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800">
+                    <img src="{{ article.created.photo_url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800" loading="lazy">
                     {% else %}
                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 ring-2 ring-white/80 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-800">
                         N/A
