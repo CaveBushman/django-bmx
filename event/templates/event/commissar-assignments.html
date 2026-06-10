@@ -99,6 +99,19 @@
     color: #f8fafc;
   }
 
+  html.dark .commissar-edit-select {
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    color-scheme: dark;
+  }
+
+  html.dark .commissar-edit-select option {
+    background-color: #1e293b;
+    color: #f8fafc;
+  }
+
   @media (min-width: 640px) {
     .commissar-stats-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -237,7 +250,7 @@
                     name="pcp_{{ event.id }}"
                     data-initial-value="{{ event.pcp_id|default:'' }}"
                     data-commissar-edit-input="1"
-                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                    class="commissar-edit-select block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                   >
                     <option value="">Bez nasazení</option>
                     {% for commissar in active_commissars %}
@@ -255,7 +268,7 @@
                     name="pcp_assist_{{ event.id }}"
                     data-initial-value="{{ event.pcp_assist_id|default:'' }}"
                     data-commissar-edit-input="1"
-                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                    class="commissar-edit-select block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                   >
                     <option value="">Bez nasazení</option>
                     {% for commissar in active_commissars %}
@@ -273,7 +286,7 @@
                     name="start_commissar_{{ event.id }}"
                     data-initial-value="{{ event.start_commissar_id|default:'' }}"
                     data-commissar-edit-input="1"
-                    class="block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                    class="commissar-edit-select block w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                   >
                     <option value="">Bez nasazení</option>
                     {% for commissar in active_commissars %}
