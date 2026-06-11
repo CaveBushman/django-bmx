@@ -1353,3 +1353,64 @@ class BackupCronTests(TestCase):
     def test_upload_offsite_handles_missing_rclone_gracefully(self):
         with patch("bmx.cron.subprocess.run", side_effect=FileNotFoundError):
             bmx_cron._upload_backup_offsite(Path("/tmp/db.sqlite3.bak-20260101-000000.gz"))
+
+    @override_settings(DATABASES={"default": {**settings.DATABASES["default"], "ENGINE": "django.db.backends.sqlite3"}})
+    def test_backup_database_scheduled_dispatches_to_sqlite(self):
+        with patch("bmx.cron.backup_sqlite_scheduled") as sqlite_mock, \
+                patch("bmx.cron.backup_postgres_scheduled") as postgres_mock:
+            bmx_cron.backup_database_scheduled()
+
+        sqlite_mock.assert_called_once()
+        postgres_mock.assert_not_called()
+
+    @override_settings(DATABASES={"default": {**settings.DATABASES["default"], "ENGINE": "django.db.backends.postgresql"}})
+    def test_backup_database_scheduled_dispatches_to_postgres(self):
+        with patch("bmx.cron.backup_sqlite_scheduled") as sqlite_mock, \
+                patch("bmx.cron.backup_postgres_scheduled") as postgres_mock:
+            bmx_cron.backup_database_scheduled()
+
+        postgres_mock.assert_called_once()
+        sqlite_mock.assert_not_called()
+
+    @override_settings(DATABASES={"default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "bmx_prod",
+        "USER": "bmx",
+        "PASSWORD": "secret",
+        "HOST": "localhost",
+        "PORT": "5432",
+    }})
+    def test_backup_postgres_scheduled_dumps_compresses_and_uploads(self):
+        backup_dir = Path(self.temp_dir.name)
+
+        def fake_pg_dump(cmd, **kwargs):
+            dump_path = Path(cmd[cmd.index("--file") + 1])
+            dump_path.write_text("-- pg dump content")
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        with override_settings(BASE_DIR=backup_dir):
+            with patch("bmx.cron.subprocess.run", side_effect=fake_pg_dump) as run_mock, \
+                    patch("bmx.cron._upload_backup_offsite") as upload_mock:
+                bmx_cron.backup_postgres_scheduled()
+
+        cmd = run_mock.call_args.args[0]
+        self.assertEqual(cmd[0], "pg_dump")
+        self.assertIn("bmx_prod", cmd)
+        for flag, value in (("--username", "bmx"), ("--host", "localhost"), ("--port", "5432")):
+            self.assertIn(flag, cmd)
+            self.assertEqual(cmd[cmd.index(flag) + 1], value)
+
+        env = run_mock.call_args.kwargs["env"]
+        self.assertEqual(env["PGPASSWORD"], "secret")
+
+        backups = list(backup_dir.glob("db-bmx_prod.bak-*.gz"))
+        self.assertEqual(len(backups), 1)
+        upload_mock.assert_called_once_with(backups[0])
+
+    @override_settings(DATABASES={"default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "bmx_prod",
+    }})
+    def test_backup_postgres_scheduled_handles_missing_pg_dump_gracefully(self):
+        with patch("bmx.cron.subprocess.run", side_effect=FileNotFoundError):
+            bmx_cron.backup_postgres_scheduled()

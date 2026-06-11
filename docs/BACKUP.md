@@ -35,8 +35,13 @@ Script používá `sqlite3 .backup`, takže je bezpečnější než prosté `cp 
 
 ## Produkční záloha (django-crontab) + offsite na Google Drive
 
-Na produkci běží `bmx.cron.backup_sqlite_scheduled` přes `django-crontab` (viz
-`CRONJOBS` v `bmx/settings.py`, denně ve 4:00). Tato úloha:
+Na produkci běží `bmx.cron.backup_database_scheduled` přes `django-crontab`
+(viz `CRONJOBS` v `bmx/settings.py`, denně ve 4:00). Tato úloha podle
+`DATABASES['default']['ENGINE']` zavolá buď `backup_sqlite_scheduled`, nebo
+`backup_postgres_scheduled` (připraveno pro budoucí migraci na PostgreSQL —
+po přepnutí enginu stačí mít na serveru `pg_dump` a přihlašovací údaje v
+`DATABASES['default']`, nic dalšího se měnit nemusí). Aktuálně se používá
+SQLite varianta, která:
 
 1. vytvoří konzistentní zálohu přes `sqlite3 .backup`,
 2. zkomprimuje ji do `db.sqlite3.bak-YYYYMMDD-HHMMSS.gz`,

@@ -731,8 +731,8 @@ CRONJOBS = [
     ("30 2 * * *", "bmx.cron.renew_mobile_app_subscriptions_scheduled"),
     # AI agent – zpracuje čekající úkoly každý den ve 3:00
     ("0 3 * * *", "django.core.management.call_command", ["run_ai_agent"]),
-    # SQLite záloha každý den ve 4:00
-    ("0 4 * * *", "bmx.cron.backup_sqlite_scheduled"),
+    # Záloha databáze každý den ve 4:00 (SQLite, nebo PostgreSQL po budoucí migraci)
+    ("0 4 * * *", "bmx.cron.backup_database_scheduled"),
     # SQLite integrity check každou neděli ve 4:30
     ("30 4 * * 0", "bmx.cron.check_sqlite_integrity_scheduled"),
     # Smazání Visit záznamů starších než 1 rok — 1. každého měsíce ve 3:45

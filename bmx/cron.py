@@ -1,5 +1,6 @@
 import gzip
 import logging
+import os
 import shutil
 import subprocess
 from datetime import datetime
@@ -34,6 +35,16 @@ def renew_mobile_app_subscriptions_scheduled():
     return renew_due_mobile_app_subscriptions()
 
 
+def backup_database_scheduled():
+    """Spustí zálohu podle aktuálně nakonfigurovaného DB enginu (SQLite nebo PostgreSQL)."""
+    engine = settings.DATABASES["default"]["ENGINE"]
+    if engine == "django.db.backends.sqlite3":
+        return backup_sqlite_scheduled()
+    if engine == "django.db.backends.postgresql":
+        return backup_postgres_scheduled()
+    logger.error("Záloha DB: nepodporovaný DB engine %s", engine)
+
+
 def backup_sqlite_scheduled():
     """Záloha SQLite databáze pomocí .backup příkazu (konzistentní kopie za běhu),
     komprese gzip a kopie do offsite úložiště (Google Drive přes rclone), pokud je nastavené."""
@@ -60,10 +71,61 @@ def backup_sqlite_scheduled():
         size_mb = gz_path.stat().st_size / 1024 / 1024
         logger.info("SQLite backup OK → %s (%.1f MB)", gz_path.name, size_mb)
 
-        _prune_old_backups(db_path.parent, keep=7)
+        _prune_old_backups(db_path.parent, "db.sqlite3.bak-*", keep=7)
         _upload_backup_offsite(gz_path)
     except Exception:
         logger.exception("SQLite backup: neočekávaná chyba")
+
+
+def backup_postgres_scheduled():
+    """Záloha PostgreSQL databáze pomocí pg_dump, komprese gzip a kopie do
+    offsite úložiště (Google Drive přes rclone), pokud je nastavené.
+
+    Připraveno pro budoucí migraci z SQLite na PostgreSQL — stačí v
+    DATABASES['default']['ENGINE'] nastavit 'django.db.backends.postgresql'
+    a mít na serveru dostupný binárku pg_dump."""
+    db = settings.DATABASES["default"]
+    db_name = db["NAME"]
+    backup_dir = Path(settings.BASE_DIR)
+
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    pattern = f"db-{db_name}.bak-*"
+    dump_path = backup_dir / f"db-{db_name}.bak-{stamp}.sql"
+
+    cmd = ["pg_dump", "--no-owner", "--format=plain", "--file", str(dump_path), db_name]
+    if db.get("USER"):
+        cmd += ["--username", db["USER"]]
+    if db.get("HOST"):
+        cmd += ["--host", db["HOST"]]
+    if db.get("PORT"):
+        cmd += ["--port", str(db["PORT"])]
+
+    env = os.environ.copy()
+    if db.get("PASSWORD"):
+        env["PGPASSWORD"] = db["PASSWORD"]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=1800,
+            env=env,
+        )
+        if result.returncode != 0:
+            logger.error("PostgreSQL backup selhal: %s", result.stderr)
+            return
+
+        gz_path = _gzip_backup(dump_path)
+        size_mb = gz_path.stat().st_size / 1024 / 1024
+        logger.info("PostgreSQL backup OK → %s (%.1f MB)", gz_path.name, size_mb)
+
+        _prune_old_backups(backup_dir, pattern, keep=7)
+        _upload_backup_offsite(gz_path)
+    except FileNotFoundError:
+        logger.error("PostgreSQL backup: pg_dump není nainstalován")
+    except Exception:
+        logger.exception("PostgreSQL backup: neočekávaná chyba")
 
 
 def _gzip_backup(backup_path: Path) -> Path:
@@ -143,14 +205,14 @@ def prune_old_visits_scheduled():
         logger.exception("Visit prune: VACUUM selhal")
 
 
-def _prune_old_backups(directory: Path, keep: int = 7):
-    backups = sorted(directory.glob("db.sqlite3.bak-*"))
+def _prune_old_backups(directory: Path, pattern: str, keep: int = 7):
+    backups = sorted(directory.glob(pattern))
     for old in backups[:-keep]:
         try:
             old.unlink()
-            logger.info("SQLite backup smazán (prune): %s", old.name)
+            logger.info("Záloha smazána (prune): %s", old.name)
         except Exception:
-            logger.warning("SQLite backup nelze smazat: %s", old.name)
+            logger.warning("Zálohu nelze smazat: %s", old.name)
 
 
 def check_sqlite_integrity_scheduled():
