@@ -1,4 +1,6 @@
+import gzip
 import logging
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +35,8 @@ def renew_mobile_app_subscriptions_scheduled():
 
 
 def backup_sqlite_scheduled():
-    """Záloha SQLite databáze pomocí .backup příkazu (konzistentní kopie za běhu)."""
+    """Záloha SQLite databáze pomocí .backup příkazu (konzistentní kopie za běhu),
+    komprese gzip a kopie do offsite úložiště (Google Drive přes rclone), pokud je nastavené."""
     db_path = Path(settings.DATABASES["default"]["NAME"])
     if not db_path.exists():
         logger.error("SQLite backup: databáze nenalezena na %s", db_path)
@@ -49,14 +52,67 @@ def backup_sqlite_scheduled():
             text=True,
             timeout=300,
         )
-        if result.returncode == 0:
-            size_mb = backup_path.stat().st_size / 1024 / 1024
-            logger.info("SQLite backup OK → %s (%.1f MB)", backup_path.name, size_mb)
-            _prune_old_backups(db_path.parent, keep=7)
-        else:
+        if result.returncode != 0:
             logger.error("SQLite backup selhal: %s", result.stderr)
+            return
+
+        gz_path = _gzip_backup(backup_path)
+        size_mb = gz_path.stat().st_size / 1024 / 1024
+        logger.info("SQLite backup OK → %s (%.1f MB)", gz_path.name, size_mb)
+
+        _prune_old_backups(db_path.parent, keep=7)
+        _upload_backup_offsite(gz_path)
     except Exception:
         logger.exception("SQLite backup: neočekávaná chyba")
+
+
+def _gzip_backup(backup_path: Path) -> Path:
+    """Zkomprimuje záložní soubor do .gz a originál smaže."""
+    gz_path = backup_path.with_name(backup_path.name + ".gz")
+    with open(backup_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    backup_path.unlink()
+    return gz_path
+
+
+def _upload_backup_offsite(backup_path: Path):
+    """Nahraje zazipovanou zálohu na Google Drive přes rclone (pokud je remote nastaven)."""
+    remote = settings.OFFSITE_BACKUP_RCLONE_REMOTE
+    if not remote:
+        return
+
+    try:
+        result = subprocess.run(
+            ["rclone", "copy", str(backup_path), remote, "--quiet"],
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        if result.returncode == 0:
+            logger.info("SQLite backup: offsite upload OK → %s", remote)
+            _prune_offsite_backups(remote)
+        else:
+            logger.error("SQLite backup: offsite upload selhal: %s", result.stderr)
+    except FileNotFoundError:
+        logger.error("SQLite backup: rclone není nainstalován, offsite upload přeskočen")
+    except Exception:
+        logger.exception("SQLite backup: offsite upload neočekávaná chyba")
+
+
+def _prune_offsite_backups(remote: str):
+    """Smaže offsite zálohy starší než OFFSITE_BACKUP_RETENTION_DAYS dní."""
+    keep_days = settings.OFFSITE_BACKUP_RETENTION_DAYS
+    try:
+        result = subprocess.run(
+            ["rclone", "delete", remote, "--min-age", f"{keep_days}d", "--quiet"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        if result.returncode != 0:
+            logger.warning("SQLite backup: prune offsite záloh selhal: %s", result.stderr)
+    except Exception:
+        logger.exception("SQLite backup: prune offsite záloh neočekávaná chyba")
 
 
 def prune_old_visits_scheduled():

@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 from io import BytesIO
 from types import SimpleNamespace
+import gzip
+import sqlite3
 import tempfile
 from unittest.mock import patch
 from pathlib import Path
@@ -17,6 +19,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 import pandas as pd
 
+from bmx import cron as bmx_cron
 from bmx.context_processors import navbar_context
 from bmx import views as bmx_views
 from club.models import Club
@@ -1262,3 +1265,91 @@ class AuthorizationBoundaryTests(TestCase):
         for response in responses:
             self.assertNotEqual(response.status_code, 500)
             self.assertLess(response.status_code, 600)
+
+
+class BackupCronTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+
+        self.db_path = Path(self.temp_dir.name) / "db.sqlite3"
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("CREATE TABLE t (id INTEGER PRIMARY KEY)")
+        conn.commit()
+        conn.close()
+
+    def test_gzip_backup_compresses_and_removes_original(self):
+        src = Path(self.temp_dir.name) / "db.sqlite3.bak-20260101-000000"
+        src.write_bytes(b"hello world")
+
+        gz_path = bmx_cron._gzip_backup(src)
+
+        self.assertEqual(gz_path.name, "db.sqlite3.bak-20260101-000000.gz")
+        self.assertFalse(src.exists())
+        with gzip.open(gz_path, "rb") as f:
+            self.assertEqual(f.read(), b"hello world")
+
+    def test_backup_scheduled_creates_compressed_file_and_skips_offsite_by_default(self):
+        db_settings = {**settings.DATABASES["default"], "NAME": str(self.db_path)}
+        with override_settings(DATABASES={"default": db_settings}, OFFSITE_BACKUP_RCLONE_REMOTE=""):
+            with patch("bmx.cron.subprocess.run", wraps=bmx_cron.subprocess.run) as run_mock:
+                bmx_cron.backup_sqlite_scheduled()
+
+        backups = list(Path(self.temp_dir.name).glob("db.sqlite3.bak-*.gz"))
+        self.assertEqual(len(backups), 1)
+        with gzip.open(backups[0], "rb") as f:
+            self.assertEqual(f.read(16)[:6], b"SQLite")
+
+        # rclone never invoked when no offsite remote is configured.
+        for call in run_mock.call_args_list:
+            self.assertNotEqual(call.args[0][0], "rclone")
+
+    def test_backup_scheduled_uploads_offsite_when_remote_configured(self):
+        db_settings = {**settings.DATABASES["default"], "NAME": str(self.db_path)}
+        with override_settings(DATABASES={"default": db_settings}, OFFSITE_BACKUP_RCLONE_REMOTE="gdrive:bmx-zalohy"):
+            with patch("bmx.cron._upload_backup_offsite") as upload_mock:
+                bmx_cron.backup_sqlite_scheduled()
+
+        upload_mock.assert_called_once()
+        uploaded_path = upload_mock.call_args[0][0]
+        self.assertTrue(uploaded_path.name.startswith("db.sqlite3.bak-"))
+        self.assertTrue(uploaded_path.name.endswith(".gz"))
+
+    @override_settings(OFFSITE_BACKUP_RCLONE_REMOTE="")
+    def test_upload_offsite_skipped_when_remote_not_configured(self):
+        with patch("bmx.cron.subprocess.run") as run_mock:
+            bmx_cron._upload_backup_offsite(Path("/tmp/db.sqlite3.bak-20260101-000000.gz"))
+
+        run_mock.assert_not_called()
+
+    @override_settings(OFFSITE_BACKUP_RCLONE_REMOTE="gdrive:bmx-zalohy", OFFSITE_BACKUP_RETENTION_DAYS=30)
+    def test_upload_offsite_copies_and_prunes_via_rclone(self):
+        backup_path = Path(self.temp_dir.name) / "db.sqlite3.bak-20260101-000000.gz"
+        backup_path.write_bytes(b"data")
+
+        with patch(
+            "bmx.cron.subprocess.run",
+            return_value=SimpleNamespace(returncode=0, stdout="", stderr=""),
+        ) as run_mock:
+            bmx_cron._upload_backup_offsite(backup_path)
+
+        self.assertEqual(run_mock.call_count, 2)
+        copy_args = run_mock.call_args_list[0].args[0]
+        delete_args = run_mock.call_args_list[1].args[0]
+        self.assertEqual(copy_args, ["rclone", "copy", str(backup_path), "gdrive:bmx-zalohy", "--quiet"])
+        self.assertEqual(delete_args, ["rclone", "delete", "gdrive:bmx-zalohy", "--min-age", "30d", "--quiet"])
+
+    @override_settings(OFFSITE_BACKUP_RCLONE_REMOTE="gdrive:bmx-zalohy")
+    def test_upload_offsite_failure_does_not_prune(self):
+        with patch(
+            "bmx.cron.subprocess.run",
+            return_value=SimpleNamespace(returncode=1, stdout="", stderr="auth error"),
+        ) as run_mock:
+            bmx_cron._upload_backup_offsite(Path("/tmp/db.sqlite3.bak-20260101-000000.gz"))
+
+        run_mock.assert_called_once()
+
+    @override_settings(OFFSITE_BACKUP_RCLONE_REMOTE="gdrive:bmx-zalohy")
+    def test_upload_offsite_handles_missing_rclone_gracefully(self):
+        with patch("bmx.cron.subprocess.run", side_effect=FileNotFoundError):
+            bmx_cron._upload_backup_offsite(Path("/tmp/db.sqlite3.bak-20260101-000000.gz"))

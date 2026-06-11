@@ -715,6 +715,15 @@ CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "event:proposition-editor-upload"
 CKEDITOR_5_UPLOAD_FILE_TYPES = ["jpg", "jpeg", "png", "gif", "webp"]
 CKEDITOR_5_MAX_FILE_SIZE = 8
 
+# ---------------------------------------------------------------------------
+# Offsite záloha SQLite na Google Drive (přes rclone)
+# ---------------------------------------------------------------------------
+# Cíl ve formátu "remote:cesta", např. "gdrive:bmx-zalohy". Prázdné = upload
+# se přeskočí (výchozí pro lokální vývoj a CI).
+OFFSITE_BACKUP_RCLONE_REMOTE = config("OFFSITE_BACKUP_RCLONE_REMOTE", default="")
+# Kolik dní zůstanou zálohy na Google Drive, než se smažou.
+OFFSITE_BACKUP_RETENTION_DAYS = config("OFFSITE_BACKUP_RETENTION_DAYS", default=30, cast=int)
+
 CRONJOBS = [
     ("0 */6 * * *", "bmx.cron.valid_licence_scheduled"),
     ("0 2 * * *", "bmx.cron.renew_rider_stats_subscriptions_scheduled"),
