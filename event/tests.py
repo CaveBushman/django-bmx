@@ -4152,3 +4152,42 @@ class EventStructuredDataTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertRichSportsEvent(self._sports_events(response)[0])
+
+
+class EventFeedTests(TestCase):
+    def setUp(self):
+        self.club = Club.objects.create(
+            team_name="BMX Klub Praha",
+            street="Dráhová 1",
+            city="Praha",
+            zip_code="10000",
+            lon=50.072386,
+            lng=14.320108,
+        )
+        self.event = Event.objects.create(
+            name="Velká cena Prahy",
+            date=date(2026, 6, 20),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+
+    def test_feed_includes_address_and_geo_for_navigation(self):
+        response = self.client.get(reverse("event:feed"))
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+        self.assertIn("LOCATION:Dráhová 1\\, 10000 Praha", content)
+        self.assertIn("GEO:50.072386;14.320108", content)
+
+    def test_published_venue_address_takes_precedence_over_organizer(self):
+        EventProposition.objects.create(
+            event=self.event,
+            venue_address="Jiná dráha 2, Praha",
+            is_published=True,
+        )
+
+        response = self.client.get(reverse("event:feed"))
+
+        content = response.content.decode("utf-8")
+        self.assertIn("Jiná dráha 2", content)
+        self.assertNotIn("LOCATION:Dráhová 1", content)
