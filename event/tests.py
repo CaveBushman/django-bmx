@@ -32,7 +32,7 @@ from club.models import Club, McrClubTeam, McrClubTeamMember
 from event.forms import EventPropositionForm
 from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
 from event.credit import recalculate_all_balances
-from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, EventProposition, FinanceAuditLog, SeasonSettings, RaceRun, Result
+from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, EventPhoto, EventProposition, FinanceAuditLog, SeasonSettings, RaceRun, Result
 from event.func import SetResults
 from event.entry import REMRiders
 from event.services.race_run_import import RaceRunImportService, _extract_tables
@@ -4200,6 +4200,47 @@ class EventStructuredDataTests(TestCase):
         offers = self._sports_event_by_name(response, self.event.name)["offers"]
         self.assertEqual(offers["price"], 250)
         self.assertEqual(offers["priceCurrency"], "CZK")
+
+    def _make_event_photo(self, event, name="event-photo.png", order=0, color=(200, 50, 50)):
+        buffer = BytesIO()
+        Image.new("RGB", (16, 16), color=color).save(buffer, format="PNG")
+        upload = SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+        return EventPhoto.objects.create(event=event, photo=upload, order=order)
+
+    def test_image_uses_event_photo_when_available(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                photo = self._make_event_photo(self.event)
+
+                response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+                images = self._sports_events(response)[0]["image"]
+                self.assertEqual(len(images), 1)
+                self.assertTrue(images[0].endswith(photo.photo.url))
+                self.assertTrue(images[0].startswith("http"))
+
+    def test_image_includes_all_event_photos_in_order(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                first = self._make_event_photo(self.event, name="first.png", order=0)
+                second = self._make_event_photo(self.event, name="second.png", order=1)
+
+                response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+                images = self._sports_events(response)[0]["image"]
+                self.assertEqual(len(images), 2)
+                self.assertTrue(images[0].endswith(first.photo.url))
+                self.assertTrue(images[1].endswith(second.photo.url))
+
+    def test_image_in_event_list_uses_event_photo(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                photo = self._make_event_photo(self.event)
+
+                response = self.client.get(reverse("event:events"))
+
+                images = self._sports_event_by_name(response, self.event.name)["image"]
+                self.assertTrue(images[0].endswith(photo.photo.url))
 
 
 class EventFeedTests(TestCase):

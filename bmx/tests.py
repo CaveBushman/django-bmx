@@ -323,6 +323,17 @@ class LanguageSelectorTests(TestCase):
         self.assertContains(response, 'action="/i18n/setlang/"')
 
 
+class HomepageMetaTagsTests(TestCase):
+    def test_homepage_has_no_duplicate_og_or_twitter_tags(self):
+        response = self.client.get(reverse("news:homepage"))
+        html = response.content.decode()
+
+        for prop in ('"og:title"', '"og:image"', '"twitter:title"', '"twitter:image"'):
+            self.assertEqual(html.count(prop), 1, f"{prop} should appear exactly once")
+
+        self.assertNotIn('content="Czech BMX – "', html)
+
+
 class SettingsSecuritySourceTests(TestCase):
     def test_settings_source_contains_explicit_security_toggles(self):
         source = (

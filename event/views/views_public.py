@@ -141,6 +141,13 @@ def _event_min_fee(entry_classes):
     return min(positive_fees) if positive_fees else None
 
 
+def _event_images(event):
+    photos = list(event.photos.all())
+    if photos:
+        return [_absolute_url(photo.photo.url) for photo in photos]
+    return [_absolute_url("/static/images/homepage/bmx.png")]
+
+
 def _event_offers(event, event_url):
     offers = {
         "@type": "Offer",
@@ -174,7 +181,7 @@ def build_event_structured_data(event, *, url=None, proposition=None):
         "eventStatus": "https://schema.org/EventCancelled" if event.canceled else "https://schema.org/EventScheduled",
         "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
         "location": _event_location(event, proposition),
-        "image": [_absolute_url("/static/images/homepage/bmx.png")],
+        "image": _event_images(event),
         "description": _event_description(event, proposition),
         "performer": {
             "@type": "SportsOrganization",
@@ -229,6 +236,7 @@ def _events_for_year(year):
             "classes_and_fees_like__event_name",
             *(f"classes_and_fees_like__{field_name}" for field_name in ENTRY_CLASSES_FEE_FIELDS),
         )
+        .prefetch_related("photos")
         .order_by("date")
     )
 
