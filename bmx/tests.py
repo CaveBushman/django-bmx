@@ -37,7 +37,8 @@ class HealthEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
-    def test_readyz_returns_readiness_checks(self):
+    @patch("bmx.health.check_celery", return_value={"status": "ok", "mode": "eager"})
+    def test_readyz_returns_readiness_checks(self, _check_celery_mock):
         response = self.client.get(reverse("readyz"))
 
         self.assertEqual(response.status_code, 200)
@@ -45,9 +46,11 @@ class HealthEndpointTests(TestCase):
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["checks"]["database"]["status"], "ok")
         self.assertEqual(payload["checks"]["cache"]["status"], "ok")
+        self.assertEqual(payload["checks"]["celery"]["status"], "ok")
 
+    @patch("bmx.health.check_celery", return_value={"status": "ok", "mode": "eager"})
     @patch("bmx.health.check_cache", side_effect=RuntimeError("cache unavailable"))
-    def test_readyz_returns_503_when_a_check_fails(self, _check_cache_mock):
+    def test_readyz_returns_503_when_a_check_fails(self, _check_cache_mock, _check_celery_mock):
         response = self.client.get(reverse("readyz"))
 
         self.assertEqual(response.status_code, 503)
@@ -56,6 +59,16 @@ class HealthEndpointTests(TestCase):
         self.assertEqual(payload["checks"]["database"]["status"], "ok")
         self.assertEqual(payload["checks"]["cache"]["status"], "error")
         self.assertIn("cache unavailable", payload["checks"]["cache"]["error"])
+
+    @patch("bmx.health.check_celery", side_effect=RuntimeError("No Celery worker responded to ping."))
+    def test_readyz_returns_503_when_celery_worker_is_down(self, _check_celery_mock):
+        response = self.client.get(reverse("readyz"))
+
+        self.assertEqual(response.status_code, 503)
+        payload = response.json()
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["checks"]["celery"]["status"], "error")
+        self.assertIn("No Celery worker", payload["checks"]["celery"]["error"])
 
 
 class SitemapEndpointTests(TestCase):

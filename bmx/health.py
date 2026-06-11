@@ -29,6 +29,20 @@ def check_cache():
     return {"status": "ok"}
 
 
+def check_celery():
+    from django.conf import settings
+
+    if settings.CELERY_TASK_ALWAYS_EAGER:
+        return {"status": "ok", "mode": "eager"}
+
+    from bmx.celery import app
+
+    pings = app.control.inspect(timeout=1).ping()
+    if not pings:
+        raise RuntimeError("No Celery worker responded to ping.")
+    return {"status": "ok", "workers": list(pings.keys())}
+
+
 def collect_readiness_checks():
     checks = {}
     overall_status = "ok"
@@ -36,6 +50,7 @@ def collect_readiness_checks():
     for name, checker in (
         ("database", check_database),
         ("cache", check_cache),
+        ("celery", check_celery),
     ):
         try:
             checks[name] = checker()
