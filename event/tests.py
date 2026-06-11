@@ -4153,6 +4153,54 @@ class EventStructuredDataTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertRichSportsEvent(self._sports_events(response)[0])
 
+    def test_offers_default_to_zero_price_without_classes_and_fees(self):
+        response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+        offers = self._sports_events(response)[0]["offers"]
+        self.assertEqual(offers["priceCurrency"], "CZK")
+        self.assertEqual(offers["price"], 0)
+        self.assertNotIn("validFrom", offers)
+
+    def test_offers_price_is_lowest_positive_fee(self):
+        classes = EntryClasses.objects.create(
+            event_name="Velká cena Prahy",
+            boys_8_fee=300,
+            girls_8_fee=250,
+            men_elite_fee=400,
+        )
+        self.event.classes_and_fees_like = classes
+        self.event.save()
+
+        response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+        offers = self._sports_events(response)[0]["offers"]
+        self.assertEqual(offers["price"], 250)
+
+    def test_offers_include_valid_from_when_registration_opens(self):
+        self.event.reg_open_from = timezone.make_aware(timezone.datetime(2026, 5, 1, 8, 0))
+        self.event.save()
+        self.event.refresh_from_db()
+
+        response = self.client.get(reverse("event:event-detail", kwargs={"pk": self.event.pk}))
+
+        offers = self._sports_events(response)[0]["offers"]
+        self.assertEqual(offers["validFrom"], self.event.reg_open_from.isoformat())
+
+    def test_offers_in_event_list_use_lowest_positive_fee(self):
+        classes = EntryClasses.objects.create(
+            event_name="Velká cena Prahy",
+            boys_8_fee=300,
+            girls_8_fee=250,
+        )
+        self.event.classes_and_fees_like = classes
+        self.event.save()
+
+        response = self.client.get(reverse("event:events"))
+
+        offers = self._sports_event_by_name(response, self.event.name)["offers"]
+        self.assertEqual(offers["price"], 250)
+        self.assertEqual(offers["priceCurrency"], "CZK")
+
 
 class EventFeedTests(TestCase):
     def setUp(self):

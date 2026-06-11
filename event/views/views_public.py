@@ -15,7 +15,7 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
 from django.db.models import Count, Max
-from event.models import Event, EventProposition, Result, Entry, EntryForeign
+from event.models import Event, EventProposition, Result, Entry, EntryForeign, EntryClasses
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import get_unregistration_deadline, is_registration_open
 
@@ -26,6 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like", "structured_proposition")
+
+ENTRY_CLASSES_FEE_FIELDS = tuple(
+    field.name for field in EntryClasses._meta.get_fields() if field.name.endswith("_fee")
+)
 
 EVENT_TYPE_STYLES = {
     "Český pohár": {"color": "#3b82f6", "abbr": "ČP"},
@@ -128,6 +132,30 @@ def _event_location(event, proposition=None):
     return location
 
 
+def _event_min_fee(entry_classes):
+    """Vrátí nejnižší kladné startovné z EntryClasses, nebo None pokud žádné není nastaveno."""
+    if not entry_classes:
+        return None
+    fees = (getattr(entry_classes, field_name) for field_name in ENTRY_CLASSES_FEE_FIELDS)
+    positive_fees = [fee for fee in fees if fee > 0]
+    return min(positive_fees) if positive_fees else None
+
+
+def _event_offers(event, event_url):
+    offers = {
+        "@type": "Offer",
+        "url": event_url,
+        "availability": "https://schema.org/InStock",
+        "category": "Registrace",
+        "priceCurrency": "CZK",
+    }
+    min_fee = _event_min_fee(getattr(event, "classes_and_fees_like", None))
+    offers["price"] = min_fee if min_fee is not None else 0
+    if event.reg_open_from:
+        offers["validFrom"] = event.reg_open_from.isoformat()
+    return offers
+
+
 def build_event_structured_data(event, *, url=None, proposition=None):
     proposition = proposition if proposition is not None else _get_structured_proposition(event)
     if proposition and not proposition.is_published:
@@ -157,12 +185,7 @@ def build_event_structured_data(event, *, url=None, proposition=None):
             "name": str(organizer or "Czech BMX"),
             "url": organizer_url or django_settings.YOUR_DOMAIN.rstrip("/"),
         },
-        "offers": {
-            "@type": "Offer",
-            "url": event_url,
-            "availability": "https://schema.org/InStock",
-            "category": "Registrace",
-        },
+        "offers": _event_offers(event, event_url),
         "url": event_url,
     }
     return {key: value for key, value in data.items() if value not in ("", None)}
@@ -204,6 +227,7 @@ def _events_for_year(year):
             "organizer__lon",
             "organizer__lng",
             "classes_and_fees_like__event_name",
+            *(f"classes_and_fees_like__{field_name}" for field_name in ENTRY_CLASSES_FEE_FIELDS),
         )
         .order_by("date")
     )
