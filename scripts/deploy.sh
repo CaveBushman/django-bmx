@@ -8,5 +8,6 @@ git pull
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 sudo systemctl restart gunicorn.service
+sudo systemctl restart celery-worker.service
 
 echo "Deploy dokončen."

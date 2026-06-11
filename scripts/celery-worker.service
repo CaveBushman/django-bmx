@@ -1,0 +1,15 @@
+[Unit]
+Description=BMX Celery worker (news translations, TTS audio, push notifications)
+After=network.target redis-server.service
+
+[Service]
+Type=simple
+User=david
+Group=david
+WorkingDirectory=/home/david/django-bmx
+ExecStart=/home/david/django-bmx/env313/bin/celery -A bmx worker --loglevel=info --concurrency=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
