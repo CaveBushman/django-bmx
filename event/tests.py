@@ -266,6 +266,31 @@ class EventEntryWorkflowTests(TestCase):
         self.assertTrue(self.rider.is_qualify_to_cn_20)
         self.assertFalse(self.rider.is_qualify_to_cn_24)
 
+    def test_qualify_to_cn_counts_starts_even_without_ranking_points(self):
+        """Jezdec mimo bodované pozice (přeplněná kategorie) se kvalifikuje podle počtu startů."""
+        current_year = date.today().year
+        SeasonSettings.objects.create(year=current_year, qualify_to_cn=4)
+
+        for i in range(4):
+            cup = Event.objects.create(
+                name=f"ČP {i + 1}",
+                date=date(current_year, 4, 1 + i),
+                organizer=self.club,
+                type_for_ranking="Český pohár",
+            )
+            Result.objects.create(
+                event=cup, date=cup.date, rider=self.rider,
+                first_name=self.rider.first_name, last_name=self.rider.last_name,
+                category="Boys 13-14", place=40, points=0,
+                is_20=True, is_beginner=False, marked_20=False, marked_24=False,
+            )
+
+        self.assertFalse(self.rider.is_qualify_to_cn_20)
+        RiderQualifyToCNThread().run()
+        self.rider.refresh_from_db()
+        self.assertTrue(self.rider.is_qualify_to_cn_20)
+        self.assertFalse(self.rider.is_qualify_to_cn_24)
+
 
 class Custom404Tests(TestCase):
     @override_settings(DEBUG=False)

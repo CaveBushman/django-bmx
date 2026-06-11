@@ -532,18 +532,22 @@ class RiderQualifyToCNThread(threading.Thread):
         logger.info(f"Přepočítávám kvalifikaci na MČR pro rok {year}")
 
         for rider in riders:
+            # Kvalifikace je podmíněna účastí (počtem startů), nikoliv bodováním —
+            # marked_20/marked_24 odráží jen bodované výsledky (umístění do 32.
+            # místa), takže by jezdce z přeplněných kategorií nikdy nekvalifikovalo.
             results_20 = Result.objects.filter(
                 event__type_for_ranking="Český pohár",
                 event__date__year=year,
                 rider=rider,
-                marked_20=True,
+                is_20=True,
                 is_beginner=False,
             ).count()
             results_24 = Result.objects.filter(
                 event__type_for_ranking="Český pohár",
                 event__date__year=year,
                 rider=rider,
-                marked_24=True,
+                is_20=False,
+                is_beginner=False,
             ).count()
 
             rider.is_qualify_to_cn_20 = results_20 >= settings.qualify_to_cn
