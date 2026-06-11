@@ -121,6 +121,27 @@ def legacy_sitemap_redirect_view(request):
     return HttpResponsePermanentRedirect(settings.YOUR_DOMAIN.rstrip("/") + reverse("sitemap"))
 
 
+def robots_txt_view(request):
+    """Vrátí robots.txt s odkazem na sitemap.xml podle aktuální domény."""
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "",
+        "# Disallow admin and sensitive areas",
+        "Disallow: /admin/",
+        "Disallow: /bmx-admin/",
+        "Disallow: /api/",
+        "Disallow: /accounts/login/",
+        "Disallow: /accounts/register/",
+        "Disallow: /media/",
+        "",
+        f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",
+        "",
+        "Crawl-delay: 1",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
 def sitemap_view(request):
     """Dynamicky generuje sitemap.xml s URL adresami."""
     try:

@@ -40,6 +40,7 @@ urlpatterns = [
     path('csp-report/', bmx_views.csp_report_view, name='csp-report'),
     path('detailxmlk.xml', bmx_views.legacy_sitemap_redirect_view, name='legacy-sitemap'),
     path('sitemap.xml', bmx_views.sitemap_view, name='sitemap'),
+    path('robots.txt', bmx_views.robots_txt_view, name='robots'),
     ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

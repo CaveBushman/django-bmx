@@ -83,6 +83,17 @@ class SitemapEndpointTests(TestCase):
         self.assertEqual(response["Location"], "https://czechbmx.cz/sitemap.xml")
 
 
+class RobotsTxtEndpointTests(TestCase):
+    def test_robots_txt_points_to_sitemap_on_current_host(self):
+        response = self.client.get("/robots.txt")
+        content = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/plain")
+        self.assertIn("Disallow: /bmx-admin/", content)
+        self.assertIn(f"Sitemap: http://testserver{reverse('sitemap')}", content)
+
+
 class SecurityEndpointTests(TestCase):
     @override_settings(CSP_REPORT_RATE_LIMIT_MAX_ATTEMPTS=1, CSP_REPORT_RATE_LIMIT_WINDOW_SECONDS=60)
     @patch("bmx.views.logger.info")
