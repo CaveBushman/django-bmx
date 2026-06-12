@@ -2545,6 +2545,58 @@ class EventAdminAuditPanelTests(TestCase):
         self.assertIn(reverse("admin:event_result_changelist"), str(links))
 
 
+class ResultAdminSearchTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Result",
+            last_name="Admin",
+            username="result_search_admin",
+            email="result_search_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Result Search Club")
+        self.event = Event.objects.create(
+            name="Result Search Race",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000212345,
+            first_name="Tomáš",
+            last_name="Jenyš",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+        Result.objects.create(
+            event=self.event,
+            rider=self.rider,
+            date=self.event.date,
+            first_name="Tomáš",
+            last_name="Jenyš",
+            event_type="Volný závod",
+        )
+
+    def test_searching_results_by_rider_name_does_not_500(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("admin:event_result_changelist"), {"q": "Jenyš"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Jenyš")
+
+
 class FinanceAdminAuditTests(TestCase):
     def setUp(self):
         self.staff_user = User.objects.create_user(

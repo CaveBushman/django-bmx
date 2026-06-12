@@ -53,7 +53,7 @@ class BaseAdmin(admin.ModelAdmin):
 class ResultAdmin(BaseAdmin):
     list_display = ('event', 'rider','last_name',)
     list_display_links = ('event', 'rider',)
-    search_fields = ('event__name', 'rider','last_name',)
+    search_fields = ('event__name', 'rider__uci_id', 'rider__first_name', 'rider__last_name', 'last_name')
     list_filter = ('event__name',)
 
 
