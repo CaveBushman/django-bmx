@@ -614,7 +614,7 @@
 {% endif %}
 
 <div class="homepage-hero-mobile relative w-full overflow-hidden">
-    <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted playsinline preload="auto" data-homepage-video>
+    <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted playsinline preload="auto" poster="{% static 'images/homepage/hero-poster.jpg' %}" data-homepage-video>
         <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
         {% trans "Váš prohlížeč nepodporuje video tag." %}
     </video>
@@ -782,7 +782,7 @@
                     {% if article.created.photo_url %}
                     <img src="{{ article.created.photo_url }}" alt="{{ article.created }}" class="h-12 w-12 rounded-full bg-slate-100 object-cover ring-2 ring-white/80 dark:bg-slate-700 dark:ring-slate-800" loading="lazy">
                     {% else %}
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 ring-2 ring-white/80 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-800">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 ring-2 ring-white/80 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-800">
                         N/A
                     </div>
                     {% endif %}
