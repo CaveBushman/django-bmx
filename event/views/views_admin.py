@@ -1950,23 +1950,27 @@ def export_event_results(request, event_id):
         category_code = resolve_api_category_code(
             rider=rider, is_20=res.is_20, is_24=cruiser, is_beginner=res.is_beginner
         )
+
+        # U Českého poháru se do API ČSC odesílá vypsaná (sloučená) kategorie
+        # podle classes_and_fees_like tohoto závodu (např. "Girls 16+" pro
+        # Girls 16 + Women 17-24 + Women 25 a starší), nikoliv věkový API kód
+        # ČSC (např. "WOMEN 17+").
+        if event.type_for_ranking == "Český pohár" and event.classes_and_fees_like_id:
+            category_code = resolve_event_classes(
+                event, rider, is_20=res.is_20, is_beginner=res.is_beginner
+            ) or category_code
+
         result_entries.append((res, rider, category_code))
 
     # U Českého poháru se kategorie často slučují (např. "Girls 11-12" nebo
-    # "Boys 13-14" včetně dívek). Do API ČSC se ale odesílá umístění ve vlastní
-    # (vypsané) kategorii jezdce podle classes_and_fees_like tohoto závodu,
-    # proto se zde přepočítá pořadí v rámci každé vypsané kategorie podle
-    # dosaženého place ve sloučené kategorii.
+    # "Boys 13-14" včetně dívek). Pořadí pro API ČSC se počítá v rámci vlastní
+    # (vypsané) kategorie jezdce, proto se zde přepočítá pořadí podle
+    # dosaženého place ve sloučené kategorii, ve které jezdec reálně závodil.
     category_rank = {}
     if event.type_for_ranking == "Český pohár":
         groups = {}
         for res, rider, category_code in result_entries:
-            listed_category = None
-            if event.classes_and_fees_like_id:
-                listed_category = resolve_event_classes(
-                    event, rider, is_20=res.is_20, is_beginner=res.is_beginner
-                )
-            groups.setdefault(listed_category or category_code, []).append(res)
+            groups.setdefault(category_code, []).append(res)
         for group_results in groups.values():
             ordered = sorted(
                 group_results,

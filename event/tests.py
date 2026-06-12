@@ -2752,12 +2752,14 @@ class ExportEventResultsToCcfTests(TestCase):
         payload = post_mock.call_args.kwargs["json"]
         by_uci = {item["uciid"]: item for item in payload}
 
-        # API kód kategorie zůstává podle věku (G 13 / G 14 / G 15).
-        self.assertEqual(by_uci[str(rider_g13.uci_id)]["category"], "G 13")
-        self.assertEqual(by_uci[str(rider_g14.uci_id)]["category"], "G 14")
-        self.assertEqual(by_uci[str(rider_g15.uci_id)]["category"], "G 15")
+        # Odesílaná kategorie je vypsaná (sloučená) kategorie podle
+        # classes_and_fees_like ("Girls 13-15"), nikoliv věkový API kód
+        # ČSC (G 13 / G 14 / G 15).
+        self.assertEqual(by_uci[str(rider_g13.uci_id)]["category"], "Girls 13-15")
+        self.assertEqual(by_uci[str(rider_g14.uci_id)]["category"], "Girls 13-15")
+        self.assertEqual(by_uci[str(rider_g15.uci_id)]["category"], "Girls 13-15")
 
-        # Pořadí se ale počítá společně za vypsanou kategorii "Girls 13-15"
+        # Pořadí se počítá společně za vypsanou kategorii "Girls 13-15"
         # (classes_and_fees_like), podle dosaženého place ve sloučené
         # kategorii "Boys 13-14": Adela (2.) -> 1., Tereza (5.) -> 2.,
         # Klara (8.) -> 3.
