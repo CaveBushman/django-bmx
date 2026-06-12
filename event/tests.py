@@ -2597,6 +2597,105 @@ class ResultAdminSearchTests(TestCase):
         self.assertContains(response, "Jenyš")
 
 
+class ExportEventResultsToCcfTests(TestCase):
+    """U Českého poháru se umístění pro API ČSC počítá ve vlastní kategorii jezdce,
+    nikoliv ve sloučené kategorii, ve které reálně závodil."""
+
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Export",
+            last_name="Admin",
+            username="export_ccf_admin",
+            email="export_ccf_admin@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.is_superuser = True
+        self.staff_user.save(update_fields=["is_active", "is_staff", "is_superuser"])
+
+        self.club = Club.objects.create(team_name="Export CCF Club")
+        self.event = Event.objects.create(
+            name="Český pohár Export Test",
+            date=date.today() + timedelta(days=10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Český pohár",
+            ccf_id=123,
+        )
+
+        # class_20 se přepočítává podle věku (pre_save signál), proto se odvozuje
+        # z data narození: rok narození = aktuální rok - věk.
+        current_year = date.today().year
+
+        def make_rider(uci_id, first_name, age):
+            return Rider.objects.create(
+                uci_id=uci_id,
+                first_name=first_name,
+                last_name="Testovací",
+                gender="Žena",
+                date_of_birth=date(current_year - age, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+            )
+
+        self.rider_g11 = make_rider(10000300001, "Denisa", 11)
+        self.rider_g12_first = make_rider(10000300002, "Zoe", 12)
+        self.rider_g12_second = make_rider(10000300003, "Aneta", 12)
+
+        # Sloučená kategorie "Girls 11-12" — Denisa (G11) skončí celkově 13.,
+        # ale je jedinou G11 jezdkyní, takže ve své kategorii vyhrává (1.).
+        Result.objects.create(
+            event=self.event, rider=self.rider_g11, date=self.event.date,
+            first_name=self.rider_g11.first_name, last_name=self.rider_g11.last_name,
+            event_type="Český pohár", category="Girls 11-12", place=13, is_20=True,
+        )
+        Result.objects.create(
+            event=self.event, rider=self.rider_g12_first, date=self.event.date,
+            first_name=self.rider_g12_first.first_name, last_name=self.rider_g12_first.last_name,
+            event_type="Český pohár", category="Girls 11-12", place=1, is_20=True,
+        )
+        Result.objects.create(
+            event=self.event, rider=self.rider_g12_second, date=self.event.date,
+            first_name=self.rider_g12_second.first_name, last_name=self.rider_g12_second.last_name,
+            event_type="Český pohár", category="Girls 11-12", place=6, is_20=True,
+        )
+
+    def _export(self):
+        self.client.force_login(self.staff_user)
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                with patch("event.views.views_admin.get_api_token", return_value="fake-token") as token_mock, \
+                        patch("event.views.views_admin.requests.post") as post_mock:
+                    response = self.client.get(
+                        reverse("event:export_event_results", kwargs={"event_id": self.event.id})
+                    )
+        return response, token_mock, post_mock
+
+    def test_results_use_rank_within_own_category_not_merged_category(self):
+        response, _token_mock, post_mock = self._export()
+
+        self.assertEqual(response.status_code, 200)
+        payload = post_mock.call_args.kwargs["json"]
+        by_uci = {item["uciid"]: item for item in payload}
+
+        # Denisa (G11) byla 13. ve sloučené kategorii, ale ve své (G11) je jediná -> 1.
+        self.assertEqual(by_uci[str(self.rider_g11.uci_id)]["category"], "G 11")
+        self.assertEqual(by_uci[str(self.rider_g11.uci_id)]["rank"], 1)
+        self.assertEqual(by_uci[str(self.rider_g11.uci_id)]["result"], "1")
+        self.assertEqual(by_uci[str(self.rider_g11.uci_id)]["sortOrder"], 1)
+
+        # Zoe (G12) byla celkově 1. a v G12 je také 1.
+        self.assertEqual(by_uci[str(self.rider_g12_first.uci_id)]["category"], "G 12")
+        self.assertEqual(by_uci[str(self.rider_g12_first.uci_id)]["rank"], 1)
+
+        # Aneta (G12) byla celkově 6., ale v G12 je 2. (za Zoe).
+        self.assertEqual(by_uci[str(self.rider_g12_second.uci_id)]["category"], "G 12")
+        self.assertEqual(by_uci[str(self.rider_g12_second.uci_id)]["rank"], 2)
+
+
 class FinanceAdminAuditTests(TestCase):
     def setUp(self):
         self.staff_user = User.objects.create_user(

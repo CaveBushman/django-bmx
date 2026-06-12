@@ -1938,6 +1938,7 @@ def export_event_results(request, event_id):
     category_breakdown = Counter()
     skipped_results = 0
 
+    result_entries = []
     for res in results:
         rider = res.rider
         if not rider:
@@ -1949,11 +1950,32 @@ def export_event_results(request, event_id):
         category_code = resolve_api_category_code(
             rider=rider, is_20=res.is_20, is_24=cruiser, is_beginner=res.is_beginner
         )
+        result_entries.append((res, rider, category_code))
+
+    # U Českého poháru se kategorie často slučují (např. "Girls 11-12" nebo
+    # "Boys 13-14" včetně dívek). Do API ČSC se ale odesílá umístění ve vlastní
+    # kategorii jezdce (category_code), proto se zde přepočítá pořadí v rámci
+    # každé vlastní kategorie podle dosaženého place ve sloučené kategorii.
+    category_rank = {}
+    if event.type_for_ranking == "Český pohár":
+        groups = {}
+        for res, rider, category_code in result_entries:
+            groups.setdefault(category_code, []).append(res)
+        for group_results in groups.values():
+            ordered = sorted(
+                group_results,
+                key=lambda r: r.place if r.place > 0 else float("inf"),
+            )
+            for rank, ordered_res in enumerate(ordered, start=1):
+                category_rank[ordered_res.pk] = rank
+
+    for res, rider, category_code in result_entries:
         category_breakdown[category_code or _("Bez kódu")] += 1
+        place = category_rank.get(res.pk, res.place)
 
         payload.append({
             "category": category_code,
-            "rank": res.place,
+            "rank": place,
             "bib": rider.plate_display,
             "uciid": str(rider.uci_id or ""),
             "lastName": rider.last_name,
@@ -1963,9 +1985,9 @@ def export_event_results(request, event_id):
             "gender": "F" if rider.gender == "Žena" else "M",
             "phase": "",
             "heat": "",
-            "result": str(res.place),
+            "result": str(place),
             "irm": "",
-            "sortOrder": res.place,
+            "sortOrder": place,
         })
 
     api_url = (
