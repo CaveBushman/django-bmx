@@ -1954,13 +1954,19 @@ def export_event_results(request, event_id):
 
     # U Českého poháru se kategorie často slučují (např. "Girls 11-12" nebo
     # "Boys 13-14" včetně dívek). Do API ČSC se ale odesílá umístění ve vlastní
-    # kategorii jezdce (category_code), proto se zde přepočítá pořadí v rámci
-    # každé vlastní kategorie podle dosaženého place ve sloučené kategorii.
+    # (vypsané) kategorii jezdce podle classes_and_fees_like tohoto závodu,
+    # proto se zde přepočítá pořadí v rámci každé vypsané kategorie podle
+    # dosaženého place ve sloučené kategorii.
     category_rank = {}
     if event.type_for_ranking == "Český pohár":
         groups = {}
         for res, rider, category_code in result_entries:
-            groups.setdefault(category_code, []).append(res)
+            listed_category = None
+            if event.classes_and_fees_like_id:
+                listed_category = resolve_event_classes(
+                    event, rider, is_20=res.is_20, is_beginner=res.is_beginner
+                )
+            groups.setdefault(listed_category or category_code, []).append(res)
         for group_results in groups.values():
             ordered = sorted(
                 group_results,

@@ -2695,6 +2695,76 @@ class ExportEventResultsToCcfTests(TestCase):
         self.assertEqual(by_uci[str(self.rider_g12_second.uci_id)]["category"], "G 12")
         self.assertEqual(by_uci[str(self.rider_g12_second.uci_id)]["rank"], 2)
 
+    def test_results_grouped_by_classes_and_fees_like_across_age_categories(self):
+        """Pokud classes_and_fees_like slučuje různé věkové kategorie do jedné
+        vypsané kategorie (např. G13+G14+G15 -> "Girls 13-15"), počítá se
+        pořadí společně za tuto vypsanou kategorii, nikoliv samostatně podle
+        věkového API kódu (G 13 / G 14 / G 15)."""
+        self.event.classes_and_fees_like = EntryClasses.objects.create(
+            event_name="2026 Český pohár",
+            girls_13="Girls 13-15",
+            girls_14="Girls 13-15",
+            girls_15="Girls 13-15",
+        )
+        self.event.save(update_fields=["classes_and_fees_like"])
+
+        current_year = date.today().year
+
+        def make_rider(uci_id, first_name, age):
+            return Rider.objects.create(
+                uci_id=uci_id,
+                first_name=first_name,
+                last_name="Testovací",
+                gender="Žena",
+                date_of_birth=date(current_year - age, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+            )
+
+        rider_g13 = make_rider(10000300011, "Tereza", 13)
+        rider_g14 = make_rider(10000300012, "Adela", 14)
+        rider_g15 = make_rider(10000300013, "Klara", 15)
+
+        # Sloučená kategorie "Boys 13-14" - všechny tři jezdkyně závodily
+        # společně s chlapci, jejich umístění (place) odráží pořadí v této
+        # sloučené kategorii.
+        Result.objects.create(
+            event=self.event, rider=rider_g13, date=self.event.date,
+            first_name=rider_g13.first_name, last_name=rider_g13.last_name,
+            event_type="Český pohár", category="Boys 13-14", place=5, is_20=True,
+        )
+        Result.objects.create(
+            event=self.event, rider=rider_g14, date=self.event.date,
+            first_name=rider_g14.first_name, last_name=rider_g14.last_name,
+            event_type="Český pohár", category="Boys 13-14", place=2, is_20=True,
+        )
+        Result.objects.create(
+            event=self.event, rider=rider_g15, date=self.event.date,
+            first_name=rider_g15.first_name, last_name=rider_g15.last_name,
+            event_type="Český pohár", category="Boys 13-14", place=8, is_20=True,
+        )
+
+        response, _token_mock, post_mock = self._export()
+
+        self.assertEqual(response.status_code, 200)
+        payload = post_mock.call_args.kwargs["json"]
+        by_uci = {item["uciid"]: item for item in payload}
+
+        # API kód kategorie zůstává podle věku (G 13 / G 14 / G 15).
+        self.assertEqual(by_uci[str(rider_g13.uci_id)]["category"], "G 13")
+        self.assertEqual(by_uci[str(rider_g14.uci_id)]["category"], "G 14")
+        self.assertEqual(by_uci[str(rider_g15.uci_id)]["category"], "G 15")
+
+        # Pořadí se ale počítá společně za vypsanou kategorii "Girls 13-15"
+        # (classes_and_fees_like), podle dosaženého place ve sloučené
+        # kategorii "Boys 13-14": Adela (2.) -> 1., Tereza (5.) -> 2.,
+        # Klara (8.) -> 3.
+        self.assertEqual(by_uci[str(rider_g14.uci_id)]["rank"], 1)
+        self.assertEqual(by_uci[str(rider_g13.uci_id)]["rank"], 2)
+        self.assertEqual(by_uci[str(rider_g15.uci_id)]["rank"], 3)
+
 
 class FinanceAdminAuditTests(TestCase):
     def setUp(self):
