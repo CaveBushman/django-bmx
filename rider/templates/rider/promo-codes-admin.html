@@ -354,6 +354,16 @@ document.addEventListener("DOMContentLoaded", function () {
   select.addEventListener("change", updateDiscount);
   updateDiscount();
 
+  // Produkt "Kredit" — nastavit i typ slevy na "credit"
+  if (productSelect) {
+    productSelect.addEventListener("change", function () {
+      if (productSelect.value === "credit" && select.value !== "credit") {
+        select.value = "credit";
+        updateDiscount();
+      }
+    });
+  }
+
   // ── Platnost – presety ──
   var presetInput   = document.getElementById("presetDaysInput");
   var manualWrap    = document.getElementById("manualDateWrap");
