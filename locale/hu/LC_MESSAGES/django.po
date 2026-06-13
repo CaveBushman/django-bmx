@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 16:03+0200\n"
+"POT-Creation-Date: 2026-06-13 19:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -498,7 +498,6 @@ msgstr "Egyedi IP"
 msgid "Návštěvy po dnech"
 msgstr "Látogatások napok szerint"
 
-#| msgid "Nejžádanější varianty"
 msgid "Nejnavštěvovanější stránky"
 msgstr "Leggyakrabban látogatott oldalak"
 
@@ -713,7 +712,6 @@ msgstr ""
 msgid "Zobrazit všechny kluby"
 msgstr "Az összes klub megjelenítése"
 
-#| msgid "klubů"
 msgid "Mapa klubů"
 msgstr "A klubok térképe"
 
@@ -2132,15 +2130,12 @@ msgstr "Szerverhiba nincs, csak hiányos fizetés"
 msgid "Uložit a přegenerovat PDF"
 msgstr "Mentse és generálja újra a PDF-fájlt"
 
-#| msgid "Zpět na administraci"
 msgid "Zpět na faktury"
 msgstr "Vissza a számlákhoz"
 
-#| msgid "Přidat produkt"
 msgid "Přidat pokladní doklad"
 msgstr "Nyugta hozzáadása"
 
-#| msgid "Poslední kusy skladem"
 msgid "Pokladní doklady"
 msgstr "Pénztárbizonylatok"
 
@@ -2156,11 +2151,9 @@ msgstr "Összeg"
 msgid "Soubory a úpravy"
 msgstr "Fájlok és szerkesztések"
 
-#| msgid "Pro tento závod zatím nejsou nahrané žádné výsledky."
 msgid "Pro tento závod zatím nebyl vystaven žádný pokladní doklad."
 msgstr "Erről a versenyről még nem adtak ki nyugtát."
 
-#| msgid "Přidat kus"
 msgid "Přidat"
 msgstr "Hozzáadás"
 
@@ -2196,30 +2189,45 @@ msgstr "PCP telepítés"
 msgid "Bez nasazení"
 msgstr "Bevetés nélkül"
 
-#| msgid "Nasazení rozhodčích"
 msgid "Aktivní rozhodčí"
 msgstr "Aktív játékvezető"
 
-#| msgid "Rozhodnuto"
 msgid "Rozhodčí"
 msgstr "Játékvezető"
 
-#| msgid "Aktuální stav"
 msgid "Aktuální zůstatek"
 msgstr "Jelenlegi egyenleg"
 
-#| msgid "posledních"
 msgid "za poslední rok"
 msgstr "az elmúlt évre"
 
-#| msgid "Kreditní transakce"
 msgid "Debetní transakce"
 msgstr "Betéti tranzakciók"
 
 msgid "Částka pro dobití"
 msgstr "Feltöltés összege"
 
-#| msgid "Výdej na závodě"
+#| msgid "Správa promo kódů"
+msgid "Mám promo kód"
+msgstr "Van egy promóciós kódom"
+
+#| msgid ""
+#| "Zadejte promo kód ze soutěže nebo akce. Kódy s kreditem přidají částku přímo"
+#| " na váš účet."
+msgid "Kódy s kreditem přidají částku přímo na váš účet."
+msgstr "A hitelkódok közvetlenül hozzáadják az összeget a számlájához."
+
+msgid "Promo kód"
+msgstr "Promóciós kód"
+
+#| msgid "Zadej promo kód."
+msgid "Zadej promo kód"
+msgstr "Adja meg a promóciós kódot"
+
+#| msgid "Uplatnit kód"
+msgid "Uplatnit"
+msgstr "Alkalmazni"
+
 msgid "Jezdec a závod"
 msgstr "A lovas és a verseny"
 
@@ -2361,25 +2369,21 @@ msgstr "Biztosítás"
 msgid "XLS soubor pro pojišťovnu"
 msgstr "XLS fájl egy biztosítótársaság számára"
 
-#| msgid "Medián výsledků"
 msgid "Zveřejnění výsledků"
 msgstr "Az eredmények közzététele"
 
 msgid "Spojení více výsledkových PDF"
 msgstr "Több eredmény PDF egyesítése"
 
-#| msgid "Výsledky"
 msgid "Výsledkové bloky"
 msgstr "Eredményblokkok"
 
-#| msgid "Soubor s celkovými výsledky"
 msgid "PDF soubory s výsledky"
 msgstr "PDF fájlok eredményekkel"
 
 msgid "První pole je povinné. Další přidej tlačítkem +."
 msgstr "Az első mező kitöltése kötelező. Adjon hozzá egy másikat a + gombbal."
 
-#| msgid "Tisk výsledků"
 msgid "PDF výsledků 1"
 msgstr "PDF az eredményekről 1"
 
@@ -2389,7 +2393,6 @@ msgstr "Nyilvános kimenet"
 msgid "Sloučené PDF"
 msgstr "Egyesített PDF"
 
-#| msgid "Stáhnout fakturu PDF"
 msgid "stáhnout PDF"
 msgstr "töltse le a PDF-et"
 
@@ -2662,27 +2665,21 @@ msgstr "Az idei évre még nincs regisztrálva verseny."
 msgid "Rozesílání faktur klubům"
 msgstr "Számlák küldése kluboknak"
 
-#| msgid "Vygenerovat nový kód"
 msgid "Vygenerované faktury"
 msgstr "Generált számlák"
 
-#| msgid "Pro tento závod zatím nejsou nahrané žádné výsledky."
 msgid "Pro tento závod zatím nebyly vygenerovány žádné faktury."
 msgstr "Erről az üzemről még nem készült számla."
 
-#| msgid "Admin přehled"
 msgid "Přehled"
 msgstr "Áttekintés"
 
-#| msgid "Vybrané startovné"
 msgid "Vybrané startovné po klubech"
 msgstr "Válogatott nevezési díjak klubok szerint"
 
-#| msgid "Žádné aktivní registrace"
 msgid "Žádná zaplacená registrace"
 msgstr "Nincs fizetett regisztráció"
 
-#| msgid "Pro tento rok zatím nejsou evidované žádné závody."
 msgid "Pro tento závod zatím nejsou evidované uhrazené položky."
 msgstr "Erre a versenyre még nem regisztráltak fizetett tételeket."
 
@@ -2727,25 +2724,21 @@ msgstr "A fájlok már feltöltve"
 msgid "Úprava faktury"
 msgstr "Számla szerkesztése"
 
-#| msgid "Položky"
 msgid "Položka"
 msgstr "Tétel"
 
 msgid "Celková částka faktury"
 msgstr "A számla teljes összege"
 
-#| msgid "Přidat do košíku"
 msgid "Přidat položku"
 msgstr "Elem hozzáadása"
 
-#| msgid "Aktivní položky"
 msgid "Obnovit výchozí položky"
 msgstr "Az alapértelmezett elemek visszaállítása"
 
 msgid "Uložit a přegenerovat"
 msgstr "Mentés és újragenerálás"
 
-#| msgid "Zpět na profil jezdce"
 msgid "Zpět na přehled"
 msgstr "Vissza az áttekintéshez"
 
@@ -2818,7 +2811,6 @@ msgstr "A versenyévre még nem alakult csapat."
 msgid "Soupis družstev"
 msgstr "Szövetkezetek listája"
 
-#| msgid "Přihlášení do závodu"
 msgid "Přihlášení vyžadováno"
 msgstr "Bejelentkezés szükséges"
 
@@ -2903,15 +2895,12 @@ msgstr ""
 "Nincs elég hitele a regisztráció befejezéséhez. Vagy növelje a jóváírást, "
 "vagy törölje az egyik regisztrációt."
 
-#| msgid "Propozice"
 msgid "Propozice závodu"
 msgstr "Javaslat a növényről"
 
-#| msgid "Místo:"
 msgid "Místo"
 msgstr "Hely"
 
-#| msgid "Kalendář závodů"
 msgid "Kancelář závodu"
 msgstr "Üzemi iroda"
 
@@ -2921,44 +2910,36 @@ msgstr "Alapvető információk"
 msgid "Časový harmonogram"
 msgstr "Időbeosztás"
 
-#| msgid "Registrace na UEC"
 msgid "Registrace a podmínky"
 msgstr "Regisztráció és feltételek"
 
-#| msgid "Vyhledávání a akce"
 msgid "Vyhlašování a ceny"
 msgstr "Hirdetmények és árak"
 
 msgid "Ubytování"
 msgstr "Szálláshelyek"
 
-#| msgid "Další akce"
 msgid "Další informace"
 msgstr "További információ"
 
-#| msgid "Kalendář závodů"
 msgid "Formulář závodu"
 msgstr "Versenyforma"
 
 msgid "Základní údaje a strukturovaný obsah"
 msgstr "Alapadatok és strukturált tartalom"
 
-#| msgid "Systém závodu"
 msgid "Místo závodu"
 msgstr "Verseny helyszíne"
 
-#| msgid "Adresář klubů"
 msgid "Adresa areálu"
 msgstr "Webhely címe"
 
-#| msgid "Kalendář závodů"
 msgid "Kancelář závodu / otevřeno"
 msgstr "Üzemi iroda / nyitva"
 
 msgid "Zveřejnit formulářovou propozici"
 msgstr "Tegyen közzé egy űrlapjavaslatot"
 
-#| msgid "Pravidla výpočtu"
 msgid "Tabulka výpočtu"
 msgstr "Számítási táblázat"
 
@@ -2980,7 +2961,6 @@ msgstr "Elhelyezkedés"
 msgid "FINÁLE"
 msgstr "VÉGSŐ"
 
-#| msgid "Místo:"
 msgid "1. místo"
 msgstr "1. hely"
 
@@ -2990,22 +2970,18 @@ msgstr "A versenyre jelenleg nem lehet jelentkezni."
 msgid "Řádků"
 msgstr "Vonalak"
 
-#| msgid "Soubory"
 msgid "Soubor"
 msgstr "Fájl"
 
-#| msgid "Tisk výsledků"
 msgid "PDF výsledků"
 msgstr "PDF az eredményekről"
 
-#| msgid "Otevřít seznam"
 msgid "Otevřít"
 msgstr "Nyitott"
 
 msgid "PDF"
 msgstr "PDF"
 
-#| msgid "Zatím bez lídra"
 msgid "Zatím není"
 msgstr "Még nem"
 
@@ -3015,18 +2991,15 @@ msgstr "Egy feladatot hajtok végre"
 msgid "Inicializuji exportní úlohu"
 msgstr "Inicializálom az exportálási feladatot"
 
-#| msgid "Expirováno"
 msgid "Zpracováno"
 msgstr "Feldolgozott"
 
 msgid "Připraveno k odeslání"
 msgstr "Szállításra kész"
 
-#| msgid "Dokončeno:"
 msgid "Přeskočeno"
 msgstr "Kihagyva"
 
-#| msgid "Odeslat žádost"
 msgid "Odesláno"
 msgstr "Küldött"
 
@@ -3039,18 +3012,15 @@ msgstr "egyedi API kódok"
 msgid "týmů v exportu"
 msgstr "csapatok az exportban"
 
-#| msgid "Datum závodu"
 msgid "ID závodu v ČSC"
 msgstr "Üzemazonosító a ČSC-ben"
 
-#| msgid "Typ zásahu"
 msgid "Typ závodu"
 msgstr "Verseny típus"
 
 msgid "Složení exportu"
 msgstr "Export összetétel"
 
-#| msgid "Kontrola výsledků"
 msgid "Rozpad odeslaných výsledků"
 msgstr "A benyújtott eredmények bontása"
 
@@ -3439,31 +3409,24 @@ msgstr "Még nem áll rendelkezésre fizetési visszatérítés."
 msgid "Zůstatek"
 msgstr "Egyensúly"
 
-#| msgid "Žádné záznamy"
 msgid "Kreditní záznamy"
 msgstr "Hitel nyilvántartás"
 
-#| msgid "Žádné záznamy"
 msgid "Debetní záznamy"
 msgstr "Terhelési nyilvántartások"
 
-#| msgid "vybrat uživatele"
 msgid "Vyhledat uživatele"
 msgstr "Felhasználók keresése"
 
-#| msgid "Kreditní transakce"
 msgid "Žádné kreditní transakce."
 msgstr "Nincs hiteltranzakció."
 
-#| msgid "Předplatná"
 msgid "Platná"
 msgstr "Érvényes"
 
-#| msgid "Předplatná"
 msgid "Neplatná"
 msgstr "Érvénytelen"
 
-#| msgid "Žádné aktivní registrace"
 msgid "Žádné debetní transakce."
 msgstr "Nincsenek beszedési tranzakciók."
 
@@ -3946,26 +3909,21 @@ msgstr "Helyek"
 msgid "Pro tuto tabulku zatím nejsou dostupná data."
 msgstr "Ehhez a táblázathoz még nem állnak rendelkezésre adatok."
 
-#| msgid "Napiš startovní číslo"
 msgid "Překlopit startovní čísla do textu"
 msgstr "Konvertálja a kezdő számokat szöveggé"
 
-#| msgid "Přepočet rankingu"
 msgid "Stav přepočtu rankingu"
 msgstr "A rangsor újraszámításának állapota"
 
 msgid "Běží"
 msgstr "Ő fut"
 
-#| msgid "Čeká na zveřejnění"
 msgid "Čeká ve frontě"
 msgstr "Vár a sorban"
 
-#| msgid "posledních"
 msgid "Poslední běh OK"
 msgstr "Utolsó futás rendben"
 
-#| msgid "Poslední kusy skladem"
 msgid "Poslední běh selhal"
 msgstr "Az utolsó menet nem sikerült"
 
@@ -4099,19 +4057,6 @@ msgstr "Érvényes: %(date)s"
 
 msgid "Trenérská předplatná"
 msgstr "Coach előfizetés"
-
-msgid "Promo kód"
-msgstr "Promóciós kód"
-
-msgid ""
-"Máš promo kód ze soutěže? Uplatni ho a získej kredit nebo slevu na "
-"předplatné."
-msgstr ""
-"Van promóciós kódod a versenyről? Váltsd be, és kapsz jóváírást vagy "
-"kedvezményt az előfizetésedből."
-
-msgid "Uplatnit kód"
-msgstr "Váltsd be a kódot"
 
 msgid "Mobilní aplikace"
 msgstr "Mobil alkalmazás"
@@ -4365,17 +4310,6 @@ msgstr "Vagy írja be kézzel az e-mail címet"
 msgid "Odeslat"
 msgstr "Elküld"
 
-msgid "Uplatnit promo kód"
-msgstr "Promóciós kód alkalmazása"
-
-msgid ""
-"Zadejte promo kód ze soutěže nebo akce. Kódy s kreditem přidají částku přímo"
-" na váš účet."
-msgstr ""
-"Adja meg a verseny vagy esemény promóciós kódját. A hitelkódok közvetlenül "
-"hozzáadják az összeget a számlájához."
-
-#| msgid "Přepočet rankingu"
 msgid "Přepočítej ranking"
 msgstr "Számolja újra a rangsort"
 
@@ -4391,14 +4325,12 @@ msgstr "Ellenőrizze az engedélyek érvényességét"
 msgid "Ověření stavu licence napříč databází"
 msgstr "Adatbázisok közötti licenc állapotának ellenőrzése"
 
-#| msgid "Účast na závodech"
 msgid "Účast jezdců na závodech"
 msgstr "A lovasok részvétele a versenyeken"
 
 msgid "Přehled startů a zapojení jezdců"
 msgstr "Az indulások és a versenyzők bevonásának áttekintése"
 
-#| msgid "Statistika webu"
 msgid "Statistika účasti"
 msgstr "Részvételi statisztikák"
 
@@ -4408,13 +4340,9 @@ msgstr "A versenyzők számának alakulása MČR, ČP, ČL, ML és szabad versen
 msgid "Volná startovní čísla"
 msgstr "Szabad rajtszámok"
 
-#| msgid ""
-#| "Přehled všech neobsazených startovních čísel pro aktivní databázi českých "
-#| "jezdců."
 msgid "Přehled neobsazených čísel pro nové jezdce"
 msgstr "Az új versenyzők szabad létszámának áttekintése"
 
-#| msgid "Počty kategorií"
 msgid "Přepočítej kategorie"
 msgstr "Számolja újra a kategóriákat"
 
@@ -4424,7 +4352,6 @@ msgstr "Az órák újragenerálása a jelenlegi szabályok szerint"
 msgid "Přepočítej medián cruiserů"
 msgstr "Számítsa újra a cirkáló mediánját"
 
-#| msgid "Jezdců v kategorii"
 msgid "Jezdci dle klubů a kategorií"
 msgstr "Lovasok klubok és kategóriák szerint"
 
@@ -4434,14 +4361,12 @@ msgstr "A rendszerben lévő versenyzők strukturált áttekintése"
 msgid "Ruční kontrola nových avatarů účtů a navázaných jezdců"
 msgstr "Az új fiók avatarok és a kapcsolódó versenyzők kézi áttekintése"
 
-#| msgid "Kvalifikace na MČR"
 msgid "Přepočítej kvalifikaci na MČR"
 msgstr "Számolja újra az MČR minősítését"
 
 msgid "Kontrola kvalifikačního stavu jezdců"
 msgstr "A versenyzők kvalifikációs állapotának ellenőrzése"
 
-#| msgid "Seznam kvalifikovaných"
 msgid "Seznam kvalifikovaných na MČR"
 msgstr "Az MČR-re jogosultak listája"
 
@@ -4670,7 +4595,6 @@ msgstr "értem én"
 msgid "Medián kategorie Cruiser"
 msgstr "Cruiser kategória mediánja"
 
-#| msgid "Výsledek importu"
 msgid "Výsledek výpočtu"
 msgstr "Számítási eredmény"
 
@@ -4792,36 +4716,30 @@ msgstr "Lovas részvételi statisztikák"
 msgid "Vývoj počtu jezdců na závodech dle typu série"
 msgstr "A versenyzők számának alakulása a versenyeken sorozattípusonként"
 
-#| msgid "KPI období"
 msgid "Období:"
 msgstr "Időszak:"
 
 msgid "Celá historie"
 msgstr "Az egész történelem"
 
-#| msgid "Načítám..."
 msgid "načítám…"
 msgstr "terhelés…"
 
-#| msgid "Nahrát vybrané soubory"
 msgid "Souhrn za vybrané období"
 msgstr "Összefoglaló a kiválasztott időszakról"
 
 msgid "Série"
 msgstr "Sorozat"
 
-#| msgid "Závod"
 msgid "Závodů"
 msgstr "Versenyek"
 
 msgid "Ø jezdců / závod"
 msgstr "Ø versenyzők / verseny"
 
-#| msgid "Seznam jezdců"
 msgid "Max jezdců"
 msgstr "Max lovasok"
 
-#| msgid "Načítám..."
 msgid "Načítám…"
 msgstr "Terhelés…"
 
@@ -5294,7 +5212,6 @@ msgstr ""
 msgid "Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z tratí."
 msgstr "Ehhez a versenyzőhöz még nincsenek elmentve részletes pályaidők."
 
-#| msgid "Předplatná"
 msgid "Moje předplatná"
 msgstr "Az én előfizetésem"
 
@@ -5961,7 +5878,6 @@ msgstr "A %(name)s automatikus frissítése be van kapcsolva."
 msgid "Předplatné jezdce %(name)s bylo smazáno z přehledu."
 msgstr "A %(name)s Rider előfizetést töröltük az áttekintésből."
 
-#| msgid "Objednávku se nepodařilo potvrdit."
 msgid "Požadavek se nepodařilo zpracovat"
 msgstr "A kérést nem sikerült feldolgozni"
 
@@ -5972,11 +5888,9 @@ msgstr ""
 "A szerver érvénytelen vagy hiányos kérést kapott. Próbálja meg ismételni a "
 "műveletet, vagy térjen vissza a kezdőoldalra, és küldje be újra az űrlapot."
 
-#| msgid "Zpět na hlavní stránku"
 msgid "Zpět na úvodní stránku"
 msgstr "Vissza a kezdőlapra"
 
-#| msgid "Přístup omezen"
 msgid "Přístup byl zamítnut"
 msgstr "A hozzáférés megtagadva"
 
@@ -5984,7 +5898,6 @@ msgid "Požadovaná akce není pro tento účet nebo tento požadavek povolena."
 msgstr ""
 "A kért művelet nem engedélyezett ehhez a fiókhoz vagy ehhez a kérelemhez."
 
-#| msgid "Licence nebyla nalezena."
 msgid "Stránka nebyla nalezena"
 msgstr "Az oldal nem található"
 
@@ -6285,7 +6198,6 @@ msgstr "Értesítések megtekintése"
 msgid "Jazyk"
 msgstr "Nyelv"
 
-#| msgid "České kluby BMX Racing"
 msgid "České ligy"
 msgstr "cseh ligák"
 
@@ -6341,7 +6253,6 @@ msgstr ""
 "Szezononkénti költségek áttekintése. Az újraindításhoz engedély szükséges; "
 "az első versenyen néha nem szükséges."
 
-#| msgid "Licence ČSC"
 msgid "Roční licence ČSC"
 msgstr "ČSC éves licenc"
 
@@ -6351,7 +6262,6 @@ msgstr "A ČSC minden fordulóján kötelező, a teljes szezonra érvényes"
 msgid "cca 1 500 Kč"
 msgstr "kb. 1500 CZK"
 
-#| msgid "Start závodu"
 msgid "Startovné na závod"
 msgstr "A verseny nevezési díja"
 
@@ -6361,7 +6271,6 @@ msgstr "Az ár a verseny típusától és a rendezőtől függően változik"
 msgid "200–600 Kč"
 msgstr "200-600 CZK"
 
-#| msgid "Transponder Check"
 msgid "Transponder (čip)"
 msgstr "Transzponder (chip)"
 
@@ -6382,7 +6291,6 @@ msgstr ""
 msgid "od 5 000 Kč"
 msgstr "5000 CZK-tól"
 
-#| msgid "Lze se přihlásit"
 msgid "Jak se přihlásit na závod?"
 msgstr "Hogyan lehet regisztrálni a versenyre?"
 
@@ -6393,7 +6301,6 @@ msgstr ""
 "Hozzon létre egy fiókot, és töltse ki a versenyzői profilt – név, születési "
 "dátum, UCI azonosító (ha van)."
 
-#| msgid "Vyber závod"
 msgid "Vyberte závod v Kalendáři"
 msgstr "Válasszon egy versenyt a naptárban"
 
@@ -6434,15 +6341,12 @@ msgstr "nyílt képzések"
 msgid "Máte otázky?"
 msgstr "Kérdései vannak?"
 
-#| msgid "Naposledy změněno:"
 msgid "Heslo bylo změněno"
 msgstr "A jelszó megváltozott"
 
-#| msgid "Nastavit nové heslo"
 msgid "Nové heslo"
 msgstr "Új jelszó"
 
-#| msgid "Potvrzení storna"
 msgid "Potvrzení hesla"
 msgstr "Jelszó megerősítése"
 
@@ -6474,7 +6378,6 @@ msgstr ""
 msgid "Pravidla"
 msgstr "Szabályok"
 
-#| msgid "Úkoly komise"
 msgid "Úkoly komise BMX"
 msgstr "A BMX szakbizottság feladatai"
 
@@ -6487,19 +6390,15 @@ msgstr "A határidő lejárta után"
 msgid "Splněné"
 msgstr "Megvalósult"
 
-#| msgid "otevřených"
 msgid "Moje otevřené"
 msgstr "Az én nyitottam"
 
-#| msgid "Všechny kraje"
 msgid "Všechny"
 msgstr "Mindegyiket"
 
-#| msgid "otevřených"
 msgid "Jen otevřené"
 msgstr "Csak nyisd ki"
 
-#| msgid "Všechny závody"
 msgid "Všechny stavy"
 msgstr "Minden állam"
 
@@ -6520,3 +6419,13 @@ msgstr "Nincs hozzárendelve"
 
 msgid "Bez termínu"
 msgstr "Nincs határidő"
+
+#~ msgid ""
+#~ "Máš promo kód ze soutěže? Uplatni ho a získej kredit nebo slevu na "
+#~ "předplatné."
+#~ msgstr ""
+#~ "Van promóciós kódod a versenyről? Váltsd be, és kapsz jóváírást vagy "
+#~ "kedvezményt az előfizetésedből."
+
+#~ msgid "Uplatnit promo kód"
+#~ msgstr "Promóciós kód alkalmazása"

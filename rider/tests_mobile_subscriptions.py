@@ -808,3 +808,34 @@ class PromoCodeValidateAPITests(TestCase):
         resp = self.client.post(self.url, {"code": promo.code, "product": "mobile_app"})
 
         self.assertTrue(resp.data["valid"])
+
+
+class RedeemPromoCodeViewTests(TestCase):
+    """Uplatnění promo kódu — vstupní bod přesunut na stránku dobíjení kreditu
+    (event:credit), kam směřují i přesměrování po zpracování."""
+
+    def setUp(self):
+        self.user = _make_user("redeemer")
+        self.url = reverse("user:redeem")
+        self.client.force_login(self.user)
+
+    def test_credit_promo_adds_credit_and_redirects_to_credit_page(self):
+        PromoCode.objects.create(
+            code="KREDIT200",
+            discount_type=PromoCode.DISCOUNT_CREDIT,
+            discount_value=200,
+            product=PromoCode.PRODUCT_CREDIT,
+            is_active=True,
+        )
+        resp = self.client.post(self.url, {"code": "kredit200"})  # case-insensitive
+        self.assertRedirects(resp, reverse("event:credit"), fetch_redirect_response=False)
+        self.assertEqual(calculate_user_balance(self.user), 200)
+
+    def test_get_redirects_to_credit_page(self):
+        resp = self.client.get(self.url)
+        self.assertRedirects(resp, reverse("event:credit"), fetch_redirect_response=False)
+
+    def test_invalid_code_redirects_to_credit_page_without_credit(self):
+        resp = self.client.post(self.url, {"code": "NEEXISTUJE"})
+        self.assertRedirects(resp, reverse("event:credit"), fetch_redirect_response=False)
+        self.assertEqual(calculate_user_balance(self.user), 0)

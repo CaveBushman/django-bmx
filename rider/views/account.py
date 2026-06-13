@@ -589,43 +589,43 @@ def promo_codes_admin_view(request):
 
 @login_required
 def redeem_promo_code_view(request):
-    """Uplatnění promo kódu uživatelem — přidá kredit nebo přesměruje na aktivaci předplatného."""
+    """Uplatnění promo kódu uživatelem (vstupní bod je na stránce dobíjení kreditu,
+    event:credit) — přidá kredit nebo přesměruje na aktivaci předplatného."""
     from rider.promo_codes import redeem_credit_promo_code
     from rider.models import PromoCode
 
-    if request.method == "POST":
-        code_str = request.POST.get("code", "").strip().upper()
-        if not code_str:
-            messages.error(request, _("Zadej promo kód."))
-            return redirect("user:redeem")
+    # Vstupní formulář žije na stránce kreditu; GET sem jen přesměruje zpět.
+    if request.method != "POST":
+        return redirect("event:credit")
 
+    code_str = request.POST.get("code", "").strip().upper()
+    if not code_str:
+        messages.error(request, _("Zadej promo kód."))
+        return redirect("event:credit")
+
+    try:
+        promo = PromoCode.objects.get(code=code_str)
+    except PromoCode.DoesNotExist:
+        messages.error(request, _("Promo kód neexistuje."))
+        return redirect("event:credit")
+
+    if promo.discount_type == PromoCode.DISCOUNT_CREDIT:
         try:
-            promo = PromoCode.objects.get(code=code_str)
-        except PromoCode.DoesNotExist:
-            messages.error(request, _("Promo kód neexistuje."))
-            return redirect("user:redeem")
+            amount, _ok = redeem_credit_promo_code(request.user, code_str)
+            messages.success(
+                request,
+                _("Promo kód uplatněn — na váš účet bylo připsáno %(amount)s Kč kreditu.") % {"amount": amount}
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        return redirect("event:credit")
 
-        if promo.discount_type == PromoCode.DISCOUNT_CREDIT:
-            try:
-                amount, _ = redeem_credit_promo_code(request.user, code_str)
-                messages.success(
-                    request,
-                    _("Promo kód uplatněn — na váš účet bylo připsáno %(amount)s Kč kreditu.") % {"amount": amount}
-                )
-            except ValueError as exc:
-                messages.error(request, str(exc))
-            return redirect("user:redeem")
+    # Kód slouží ke slevě na předplatné — přesměruj na aktivaci
+    if promo.product == PromoCode.PRODUCT_MOBILE_APP or promo.product == PromoCode.PRODUCT_ALL:
+        return redirect(f"{reverse('user:subscription-mobile')}?promo={code_str}")
 
-        # Kód slouží ke slevě na předplatné — přesměruj na aktivaci
-        if promo.product == PromoCode.PRODUCT_MOBILE_APP or promo.product == PromoCode.PRODUCT_ALL:
-            return redirect(f"{reverse('user:subscription-mobile')}?promo={code_str}")
-
-        messages.info(request, _("Kód je platný. Zadej ho při aktivaci příslušného předplatného."))
-        return redirect("user:account")
-
-    return render(request, "rider/redeem-promo.html", {
-        "balance": request.user.credit,
-    })
+    messages.info(request, _("Kód je platný. Zadej ho při aktivaci příslušného předplatného."))
+    return redirect("user:account")
 
 
 __all__ = [

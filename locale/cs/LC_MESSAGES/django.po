@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 16:03+0200\n"
+"POT-Creation-Date: 2026-06-13 19:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2065,6 +2065,21 @@ msgstr ""
 msgid "Částka pro dobití"
 msgstr ""
 
+msgid "Mám promo kód"
+msgstr ""
+
+msgid "Kódy s kreditem přidají částku přímo na váš účet."
+msgstr ""
+
+msgid "Promo kód"
+msgstr ""
+
+msgid "Zadej promo kód"
+msgstr ""
+
+msgid "Uplatnit"
+msgstr ""
+
 msgid "Jezdec a závod"
 msgstr ""
 
@@ -3800,17 +3815,6 @@ msgstr ""
 msgid "Trenérská předplatná"
 msgstr ""
 
-msgid "Promo kód"
-msgstr ""
-
-msgid ""
-"Máš promo kód ze soutěže? Uplatni ho a získej kredit nebo slevu na "
-"předplatné."
-msgstr ""
-
-msgid "Uplatnit kód"
-msgstr ""
-
 msgid "Mobilní aplikace"
 msgstr ""
 
@@ -4055,14 +4059,6 @@ msgid "Nebo zadat e-mail ručně"
 msgstr ""
 
 msgid "Odeslat"
-msgstr ""
-
-msgid "Uplatnit promo kód"
-msgstr ""
-
-msgid ""
-"Zadejte promo kód ze soutěže nebo akce. Kódy s kreditem přidají částku přímo "
-"na váš účet."
 msgstr ""
 
 msgid "Přepočítej ranking"

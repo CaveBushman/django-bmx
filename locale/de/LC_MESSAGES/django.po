@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 16:03+0200\n"
+"POT-Creation-Date: 2026-06-13 19:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -506,7 +506,6 @@ msgstr "Eindeutige IP"
 msgid "Návštěvy po dnech"
 msgstr "Besuche nach Tagen"
 
-#| msgid "Nejžádanější varianty"
 msgid "Nejnavštěvovanější stránky"
 msgstr "Am häufigsten besuchte Seiten"
 
@@ -728,7 +727,6 @@ msgstr ""
 msgid "Zobrazit všechny kluby"
 msgstr "Alle Vereine anzeigen"
 
-#| msgid "klubů"
 msgid "Mapa klubů"
 msgstr "Karte der Vereine"
 
@@ -1769,7 +1767,6 @@ msgid "Odeslat notifikaci"
 msgstr "Senden Sie eine Benachrichtigung"
 
 #, python-format
-#| msgid "Přihlášení"
 msgid "%(n)d přihlášených uživatelů"
 msgstr "%(n)d angemeldete Benutzer"
 
@@ -2166,15 +2163,12 @@ msgstr "Kein Serverfehler, nur unvollständige Zahlung"
 msgid "Uložit a přegenerovat PDF"
 msgstr "PDF speichern und neu generieren"
 
-#| msgid "Zpět na administraci"
 msgid "Zpět na faktury"
 msgstr "Zurück zu Rechnungen"
 
-#| msgid "Přidat produkt"
 msgid "Přidat pokladní doklad"
 msgstr "Quittung hinzufügen"
 
-#| msgid "Poslední kusy skladem"
 msgid "Pokladní doklady"
 msgstr "Kassenbelege"
 
@@ -2190,11 +2184,9 @@ msgstr "Menge"
 msgid "Soubory a úpravy"
 msgstr "Dateien und Bearbeitungen"
 
-#| msgid "Pro tento závod zatím nejsou nahrané žádné výsledky."
 msgid "Pro tento závod zatím nebyl vystaven žádný pokladní doklad."
 msgstr "Für dieses Rennen wurde noch keine Quittung ausgestellt."
 
-#| msgid "Přidat kus"
 msgid "Přidat"
 msgstr "Hinzufügen"
 
@@ -2230,30 +2222,46 @@ msgstr "PCP-Bereitstellung"
 msgid "Bez nasazení"
 msgstr "Ohne Einsatz"
 
-#| msgid "Nasazení rozhodčích"
 msgid "Aktivní rozhodčí"
 msgstr "Aktiver Schiedsrichter"
 
-#| msgid "Rozhodnuto"
 msgid "Rozhodčí"
 msgstr "Schiedsrichter"
 
-#| msgid "Aktuální stav"
 msgid "Aktuální zůstatek"
 msgstr "Aktueller Kontostand"
 
-#| msgid "posledních"
 msgid "za poslední rok"
 msgstr "für das letzte Jahr"
 
-#| msgid "Kreditní transakce"
 msgid "Debetní transakce"
 msgstr "Lastschrifttransaktionen"
 
 msgid "Částka pro dobití"
 msgstr "Aufladebetrag"
 
-#| msgid "Výdej na závodě"
+#| msgid "Správa promo kódů"
+msgid "Mám promo kód"
+msgstr "Ich habe einen Promo-Code"
+
+#| msgid ""
+#| "Zadejte promo kód ze soutěže nebo akce. Kódy s kreditem přidají částku přímo"
+#| " na váš účet."
+msgid "Kódy s kreditem přidají částku přímo na váš účet."
+msgstr ""
+"Mit Gutschriftscodes wird der Betrag direkt Ihrem Konto gutgeschrieben."
+
+msgid "Promo kód"
+msgstr "Aktionscode"
+
+#| msgid "Zadej promo kód."
+msgid "Zadej promo kód"
+msgstr "Geben Sie den Promo-Code ein"
+
+#| msgid "Uplatnit kód"
+msgid "Uplatnit"
+msgstr "Anwenden"
+
 msgid "Jezdec a závod"
 msgstr "Der Fahrer und das Rennen"
 
@@ -2396,18 +2404,15 @@ msgstr "Versicherung"
 msgid "XLS soubor pro pojišťovnu"
 msgstr "XLS-Datei für eine Versicherungsgesellschaft"
 
-#| msgid "Medián výsledků"
 msgid "Zveřejnění výsledků"
 msgstr "Veröffentlichung der Ergebnisse"
 
 msgid "Spojení více výsledkových PDF"
 msgstr "Kombinieren mehrerer Ergebnis-PDFs"
 
-#| msgid "Výsledky"
 msgid "Výsledkové bloky"
 msgstr "Ergebnisblöcke"
 
-#| msgid "Soubor s celkovými výsledky"
 msgid "PDF soubory s výsledky"
 msgstr "PDF-Dateien mit Ergebnissen"
 
@@ -2416,7 +2421,6 @@ msgstr ""
 "Das erste Feld ist erforderlich. Fügen Sie mit der Schaltfläche „+“ ein "
 "weiteres hinzu."
 
-#| msgid "Tisk výsledků"
 msgid "PDF výsledků 1"
 msgstr "PDF der Ergebnisse 1"
 
@@ -2426,7 +2430,6 @@ msgstr "Öffentliche Ausgabe"
 msgid "Sloučené PDF"
 msgstr "Zusammengeführtes PDF"
 
-#| msgid "Stáhnout fakturu PDF"
 msgid "stáhnout PDF"
 msgstr "Laden Sie das PDF herunter"
 
@@ -2702,27 +2705,21 @@ msgstr "Für dieses Jahr sind noch keine Rennen angemeldet."
 msgid "Rozesílání faktur klubům"
 msgstr "Versenden von Rechnungen an Vereine"
 
-#| msgid "Vygenerovat nový kód"
 msgid "Vygenerované faktury"
 msgstr "Rechnungen erstellt"
 
-#| msgid "Pro tento závod zatím nejsou nahrané žádné výsledky."
 msgid "Pro tento závod zatím nebyly vygenerovány žádné faktury."
 msgstr "Für diese Anlage wurden noch keine Rechnungen erstellt."
 
-#| msgid "Admin přehled"
 msgid "Přehled"
 msgstr "Überblick"
 
-#| msgid "Vybrané startovné"
 msgid "Vybrané startovné po klubech"
 msgstr "Ausgewählte Eintrittsgelder nach Vereinen"
 
-#| msgid "Žádné aktivní registrace"
 msgid "Žádná zaplacená registrace"
 msgstr "Keine kostenpflichtige Registrierung"
 
-#| msgid "Pro tento rok zatím nejsou evidované žádné závody."
 msgid "Pro tento závod zatím nejsou evidované uhrazené položky."
 msgstr ""
 "Für dieses Rennen sind noch keine kostenpflichtigen Artikel registriert."
@@ -2770,25 +2767,21 @@ msgstr "Dateien bereits hochgeladen"
 msgid "Úprava faktury"
 msgstr "Bearbeiten einer Rechnung"
 
-#| msgid "Položky"
 msgid "Položka"
 msgstr "Artikel"
 
 msgid "Celková částka faktury"
 msgstr "Der Gesamtbetrag der Rechnung"
 
-#| msgid "Přidat do košíku"
 msgid "Přidat položku"
 msgstr "Artikel hinzufügen"
 
-#| msgid "Aktivní položky"
 msgid "Obnovit výchozí položky"
 msgstr "Standardelemente wiederherstellen"
 
 msgid "Uložit a přegenerovat"
 msgstr "Speichern und neu generieren"
 
-#| msgid "Zpět na profil jezdce"
 msgid "Zpět na přehled"
 msgstr "Zurück zur Übersicht"
 
@@ -2861,7 +2854,6 @@ msgstr "Für das Rennjahr wurden noch keine Teams gebildet."
 msgid "Soupis družstev"
 msgstr "Liste der Genossenschaften"
 
-#| msgid "Přihlášení do závodu"
 msgid "Přihlášení vyžadováno"
 msgstr "Anmeldung erforderlich"
 
@@ -2947,15 +2939,12 @@ msgstr ""
 "Ihr Guthaben reicht nicht aus, um Ihre Registrierung abzuschließen. Erhöhen "
 "Sie entweder Ihr Guthaben oder löschen Sie eine der Registrierungen."
 
-#| msgid "Propozice"
 msgid "Propozice závodu"
 msgstr "Vorschlag der Anlage"
 
-#| msgid "Místo:"
 msgid "Místo"
 msgstr "Ort"
 
-#| msgid "Kalendář závodů"
 msgid "Kancelář závodu"
 msgstr "Werksbüro"
 
@@ -2965,44 +2954,36 @@ msgstr "Grundlegende Informationen"
 msgid "Časový harmonogram"
 msgstr "Zeitplan"
 
-#| msgid "Registrace na UEC"
 msgid "Registrace a podmínky"
 msgstr "Registrierung und Bedingungen"
 
-#| msgid "Vyhledávání a akce"
 msgid "Vyhlašování a ceny"
 msgstr "Ankündigungen und Preise"
 
 msgid "Ubytování"
 msgstr "Unterkünfte"
 
-#| msgid "Další akce"
 msgid "Další informace"
 msgstr "Weitere Informationen"
 
-#| msgid "Kalendář závodů"
 msgid "Formulář závodu"
 msgstr "Rennform"
 
 msgid "Základní údaje a strukturovaný obsah"
 msgstr "Basisdaten und strukturierte Inhalte"
 
-#| msgid "Systém závodu"
 msgid "Místo závodu"
 msgstr "Renngelände"
 
-#| msgid "Adresář klubů"
 msgid "Adresa areálu"
 msgstr "Site-Adresse"
 
-#| msgid "Kalendář závodů"
 msgid "Kancelář závodu / otevřeno"
 msgstr "Werksbüro / geöffnet"
 
 msgid "Zveřejnit formulářovou propozici"
 msgstr "Veröffentlichen Sie einen Formularvorschlag"
 
-#| msgid "Pravidla výpočtu"
 msgid "Tabulka výpočtu"
 msgstr "Berechnungstabelle"
 
@@ -3024,7 +3005,6 @@ msgstr "Standort"
 msgid "FINÁLE"
 msgstr "FINALE"
 
-#| msgid "Místo:"
 msgid "1. místo"
 msgstr "1. Platz"
 
@@ -3034,22 +3014,18 @@ msgstr "Eine Anmeldung für dieses Rennen ist derzeit nicht möglich."
 msgid "Řádků"
 msgstr "Linien"
 
-#| msgid "Soubory"
 msgid "Soubor"
 msgstr "Datei"
 
-#| msgid "Tisk výsledků"
 msgid "PDF výsledků"
 msgstr "PDF der Ergebnisse"
 
-#| msgid "Otevřít seznam"
 msgid "Otevřít"
 msgstr "Offen"
 
 msgid "PDF"
 msgstr "PDF"
 
-#| msgid "Zatím bez lídra"
 msgid "Zatím není"
 msgstr "Noch nicht"
 
@@ -3059,18 +3035,15 @@ msgstr "Ich führe eine Aufgabe aus"
 msgid "Inicializuji exportní úlohu"
 msgstr "Ich initialisiere den Exportauftrag"
 
-#| msgid "Expirováno"
 msgid "Zpracováno"
 msgstr "Verarbeitet"
 
 msgid "Připraveno k odeslání"
 msgstr "Bereit zum Versand"
 
-#| msgid "Dokončeno:"
 msgid "Přeskočeno"
 msgstr "Übersprungen"
 
-#| msgid "Odeslat žádost"
 msgid "Odesláno"
 msgstr "Gesendet"
 
@@ -3083,18 +3056,15 @@ msgstr "einzigartige API-Codes"
 msgid "týmů v exportu"
 msgstr "Teams im Export"
 
-#| msgid "Datum závodu"
 msgid "ID závodu v ČSC"
 msgstr "Werks-ID in ČSC"
 
-#| msgid "Typ zásahu"
 msgid "Typ závodu"
 msgstr "Renntyp"
 
 msgid "Složení exportu"
 msgstr "Komposition exportieren"
 
-#| msgid "Kontrola výsledků"
 msgid "Rozpad odeslaných výsledků"
 msgstr "Aufschlüsselung der eingereichten Ergebnisse"
 
@@ -3488,31 +3458,24 @@ msgstr "Es sind noch keine Rückerstattungen an der Kasse möglich."
 msgid "Zůstatek"
 msgstr "Gleichgewicht"
 
-#| msgid "Žádné záznamy"
 msgid "Kreditní záznamy"
 msgstr "Kreditunterlagen"
 
-#| msgid "Žádné záznamy"
 msgid "Debetní záznamy"
 msgstr "Belastungsunterlagen"
 
-#| msgid "vybrat uživatele"
 msgid "Vyhledat uživatele"
 msgstr "Nach Benutzern suchen"
 
-#| msgid "Kreditní transakce"
 msgid "Žádné kreditní transakce."
 msgstr "Keine Kreditgeschäfte."
 
-#| msgid "Předplatná"
 msgid "Platná"
 msgstr "Gültig"
 
-#| msgid "Předplatná"
 msgid "Neplatná"
 msgstr "Ungültig"
 
-#| msgid "Žádné aktivní registrace"
 msgid "Žádné debetní transakce."
 msgstr "Keine Lastschrifttransaktionen."
 
@@ -3997,26 +3960,21 @@ msgstr "Orte"
 msgid "Pro tuto tabulku zatím nejsou dostupná data."
 msgstr "Für diese Tabelle sind noch keine Daten verfügbar."
 
-#| msgid "Napiš startovní číslo"
 msgid "Překlopit startovní čísla do textu"
 msgstr "Konvertieren Sie Startzahlen in Text"
 
-#| msgid "Přepočet rankingu"
 msgid "Stav přepočtu rankingu"
 msgstr "Status der Neuberechnung des Rankings"
 
 msgid "Běží"
 msgstr "Er rennt"
 
-#| msgid "Čeká na zveřejnění"
 msgid "Čeká ve frontě"
 msgstr "Er wartet in der Schlange"
 
-#| msgid "posledních"
 msgid "Poslední běh OK"
 msgstr "Letzter Lauf OK"
 
-#| msgid "Poslední kusy skladem"
 msgid "Poslední běh selhal"
 msgstr "Der letzte Lauf schlug fehl"
 
@@ -4151,19 +4109,6 @@ msgstr "Gültig bis %(date)s"
 
 msgid "Trenérská předplatná"
 msgstr "Coach-Abonnement"
-
-msgid "Promo kód"
-msgstr "Aktionscode"
-
-msgid ""
-"Máš promo kód ze soutěže? Uplatni ho a získej kredit nebo slevu na "
-"předplatné."
-msgstr ""
-"Haben Sie einen Promo-Code vom Wettbewerb? Lösen Sie es ein und erhalten Sie"
-" eine Gutschrift oder einen Rabatt auf Ihr Abonnement."
-
-msgid "Uplatnit kód"
-msgstr "Lösen Sie den Code ein"
 
 msgid "Mobilní aplikace"
 msgstr "Mobile Anwendung"
@@ -4424,17 +4369,6 @@ msgstr "Oder geben Sie die E-Mail manuell ein"
 msgid "Odeslat"
 msgstr "Schicken"
 
-msgid "Uplatnit promo kód"
-msgstr "Promo-Code anwenden"
-
-msgid ""
-"Zadejte promo kód ze soutěže nebo akce. Kódy s kreditem přidají částku přímo"
-" na váš účet."
-msgstr ""
-"Geben Sie einen Promo-Code von einem Wettbewerb oder einer Veranstaltung "
-"ein. Mit Gutschriftscodes wird der Betrag direkt Ihrem Konto gutgeschrieben."
-
-#| msgid "Přepočet rankingu"
 msgid "Přepočítej ranking"
 msgstr "Berechnen Sie das Ranking neu"
 
@@ -4450,15 +4384,12 @@ msgstr "Überprüfen Sie die Gültigkeit der Lizenzen"
 msgid "Ověření stavu licence napříč databází"
 msgstr "Datenbankübergreifende Überprüfung des Lizenzstatus"
 
-#| msgid "Účast na závodech"
 msgid "Účast jezdců na závodech"
 msgstr "Teilnahme der Fahrer an Rennen"
 
-#| msgid "Přihlášení jezdců"
 msgid "Přehled startů a zapojení jezdců"
 msgstr "Übersicht über Starts und Fahrerbeteiligung"
 
-#| msgid "Statistika webu"
 msgid "Statistika účasti"
 msgstr "Teilnahmestatistik"
 
@@ -4468,13 +4399,9 @@ msgstr "Entwicklung der Fahrerzahl bei MČR, ČP, ČL, ML und freien Rennen"
 msgid "Volná startovní čísla"
 msgstr "Freie Startnummern"
 
-#| msgid ""
-#| "Přehled všech neobsazených startovních čísel pro aktivní databázi českých "
-#| "jezdců."
 msgid "Přehled neobsazených čísel pro nové jezdce"
 msgstr "Übersicht der freien Nummern für neue Fahrer"
 
-#| msgid "Počty kategorií"
 msgid "Přepočítej kategorie"
 msgstr "Berechnen Sie die Kategorien neu"
 
@@ -4484,7 +4411,6 @@ msgstr "Neugenerierung der Klassen nach den aktuellen Regeln"
 msgid "Přepočítej medián cruiserů"
 msgstr "Berechnen Sie den Kreuzer-Median neu"
 
-#| msgid "Jezdců v kategorii"
 msgid "Jezdci dle klubů a kategorií"
 msgstr "Fahrer nach Vereinen und Kategorien"
 
@@ -4494,14 +4420,12 @@ msgstr "Strukturierte Übersicht der Fahrer im System"
 msgid "Ruční kontrola nových avatarů účtů a navázaných jezdců"
 msgstr "Manuelle Überprüfung neuer Konto-Avatare und verknüpfter Fahrer"
 
-#| msgid "Kvalifikace na MČR"
 msgid "Přepočítej kvalifikaci na MČR"
 msgstr "Berechnen Sie die Qualifikation für MČR neu"
 
 msgid "Kontrola kvalifikačního stavu jezdců"
 msgstr "Überprüfung des Qualifikationsstatus der Fahrer"
 
-#| msgid "Seznam kvalifikovaných"
 msgid "Seznam kvalifikovaných na MČR"
 msgstr "Liste der für den MČR qualifizierten Personen"
 
@@ -4732,7 +4656,6 @@ msgstr "Ich verstehe"
 msgid "Medián kategorie Cruiser"
 msgstr "Durchschnitt der Cruiser-Kategorie"
 
-#| msgid "Výsledek importu"
 msgid "Výsledek výpočtu"
 msgstr "Berechnungsergebnis"
 
@@ -4856,36 +4779,30 @@ msgstr "Statistiken zur Fahrerbeteiligung"
 msgid "Vývoj počtu jezdců na závodech dle typu série"
 msgstr "Entwicklung der Fahrerzahlen bei Rennen nach Serientyp"
 
-#| msgid "KPI období"
 msgid "Období:"
 msgstr "Zeitraum:"
 
 msgid "Celá historie"
 msgstr "Die ganze Geschichte"
 
-#| msgid "Načítám..."
 msgid "načítám…"
 msgstr "Laden…"
 
-#| msgid "Nahrát vybrané soubory"
 msgid "Souhrn za vybrané období"
 msgstr "Zusammenfassung für den ausgewählten Zeitraum"
 
 msgid "Série"
 msgstr "Serie"
 
-#| msgid "Závod"
 msgid "Závodů"
 msgstr "Rennen"
 
 msgid "Ø jezdců / závod"
 msgstr "Ø der Fahrer / Rennen"
 
-#| msgid "jezdců"
 msgid "Max jezdců"
 msgstr "Max-Fahrer"
 
-#| msgid "Načítám..."
 msgid "Načítám…"
 msgstr "Laden…"
 
@@ -4955,7 +4872,6 @@ msgid "Jezdec je porovnáván s jezdci kategorie %(label)s"
 msgstr "Fahrer wird mit Fahrern der Kategorie %(label)s verglichen"
 
 #, python-format
-#| msgid "Statistika webu"
 msgid "Statistiky pro %(wheel)s\""
 msgstr "Statistiken für %(wheel)s\""
 
@@ -5374,7 +5290,6 @@ msgid "Pro tohoto jezdce zatím nejsou uložené žádné detailní časy z trat
 msgstr ""
 "Für diesen Fahrer sind noch keine detaillierten Streckenzeiten gespeichert."
 
-#| msgid "Předplatná"
 msgid "Moje předplatná"
 msgstr "Mein Abonnement"
 
@@ -6068,7 +5983,6 @@ msgstr "Die automatische Aktualisierung für %(name)s wurde aktiviert."
 msgid "Předplatné jezdce %(name)s bylo smazáno z přehledu."
 msgstr "Das Fahrerabonnement %(name)s wurde aus der Übersicht gelöscht."
 
-#| msgid "Objednávku se nepodařilo potvrdit."
 msgid "Požadavek se nepodařilo zpracovat"
 msgstr "Die Anfrage konnte nicht bearbeitet werden"
 
@@ -6080,11 +5994,9 @@ msgstr ""
 "Versuchen Sie, den Vorgang zu wiederholen, oder kehren Sie zur Startseite "
 "zurück und senden Sie das Formular erneut ab."
 
-#| msgid "Zpět na hlavní stránku"
 msgid "Zpět na úvodní stránku"
 msgstr "Zurück zur Startseite"
 
-#| msgid "Přístup omezen"
 msgid "Přístup byl zamítnut"
 msgstr "Der Zugriff wurde verweigert"
 
@@ -6093,7 +6005,6 @@ msgstr ""
 "Die angeforderte Aktion ist für dieses Konto oder diese Anfrage nicht "
 "zulässig."
 
-#| msgid "Licence nebyla nalezena."
 msgid "Stránka nebyla nalezena"
 msgstr "Seite nicht gefunden"
 
@@ -6396,7 +6307,6 @@ msgstr "Benachrichtigungen anzeigen"
 msgid "Jazyk"
 msgstr "Sprache"
 
-#| msgid "České kluby BMX Racing"
 msgid "České ligy"
 msgstr "Tschechische Ligen"
 
@@ -6454,7 +6364,6 @@ msgstr ""
 "Kostenübersicht pro Saison. Für den Relaunch ist eine Lizenz erforderlich; "
 "Beim ersten Rennen ist es manchmal nicht notwendig."
 
-#| msgid "Licence ČSC"
 msgid "Roční licence ČSC"
 msgstr "ČSC-Jahreslizenz"
 
@@ -6466,7 +6375,6 @@ msgstr ""
 msgid "cca 1 500 Kč"
 msgstr "ca. 1.500 CZK"
 
-#| msgid "Start závodu"
 msgid "Startovné na závod"
 msgstr "Teilnahmegebühr für das Rennen"
 
@@ -6476,7 +6384,6 @@ msgstr "Der Preis variiert je nach Art des Rennens und Veranstalter"
 msgid "200–600 Kč"
 msgstr "200–600 CZK"
 
-#| msgid "Transponder Check"
 msgid "Transponder (čip)"
 msgstr "Transponder (Chip)"
 
@@ -6499,7 +6406,6 @@ msgstr ""
 msgid "od 5 000 Kč"
 msgstr "ab 5.000 CZK"
 
-#| msgid "Lze se přihlásit"
 msgid "Jak se přihlásit na závod?"
 msgstr "Wie melde ich mich für das Rennen an?"
 
@@ -6510,7 +6416,6 @@ msgstr ""
 "Erstellen Sie ein Konto und vervollständigen Sie das Fahrerprofil – Name, "
 "Geburtsdatum, UCI-ID (falls vorhanden)."
 
-#| msgid "Vyber závod"
 msgid "Vyberte závod v Kalendáři"
 msgstr "Wählen Sie im Kalender ein Rennen aus"
 
@@ -6551,15 +6456,12 @@ msgstr "offene Schulungen"
 msgid "Máte otázky?"
 msgstr "Haben Sie Fragen?"
 
-#| msgid "Naposledy změněno:"
 msgid "Heslo bylo změněno"
 msgstr "Das Passwort wurde geändert"
 
-#| msgid "Nastavit nové heslo"
 msgid "Nové heslo"
 msgstr "Neues Passwort"
 
-#| msgid "Potvrzení storna"
 msgid "Potvrzení hesla"
 msgstr "Passwortbestätigung"
 
@@ -6592,7 +6494,6 @@ msgstr ""
 msgid "Pravidla"
 msgstr "Regeln"
 
-#| msgid "Úkoly komise"
 msgid "Úkoly komise BMX"
 msgstr "Aufgaben der BMX-Kommission"
 
@@ -6605,19 +6506,15 @@ msgstr "Nach Ablauf der Frist"
 msgid "Splněné"
 msgstr "Vollendet"
 
-#| msgid "otevřených"
 msgid "Moje otevřené"
 msgstr "Mein offenes"
 
-#| msgid "Všechny kraje"
 msgid "Všechny"
 msgstr "Alle von ihnen"
 
-#| msgid "otevřených"
 msgid "Jen otevřené"
 msgstr "Einfach öffnen"
 
-#| msgid "Všechny závody"
 msgid "Všechny stavy"
 msgstr "Alle Staaten"
 
@@ -6638,3 +6535,13 @@ msgstr "Nicht zugewiesen"
 
 msgid "Bez termínu"
 msgstr "Keine Frist"
+
+#~ msgid ""
+#~ "Máš promo kód ze soutěže? Uplatni ho a získej kredit nebo slevu na "
+#~ "předplatné."
+#~ msgstr ""
+#~ "Haben Sie einen Promo-Code vom Wettbewerb? Lösen Sie es ein und erhalten Sie"
+#~ " eine Gutschrift oder einen Rabatt auf Ihr Abonnement."
+
+#~ msgid "Uplatnit promo kód"
+#~ msgstr "Promo-Code anwenden"
