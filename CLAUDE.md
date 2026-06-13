@@ -161,8 +161,10 @@ builtins; `{% load %}` doesn't propagate into `{% include %}`). After adding str
 
 Bulk translation: `python manage.py translate_po` (in `news`) auto-translates untranslated/fuzzy
 `.po` entries from Czech via the project's translator (DeepL when `DEEPL_API_KEY` is set, else
-Google fallback) — same infra as article translation. Threaded (`--workers`), skips format strings
-(`%(x)s`, `{x}`) to protect interpolation; `--include-fuzzy` and `--compile` flags available.
+Google fallback) — same infra as article translation. Threaded (`--workers`). By default skips
+format strings to protect interpolation; `--include-format` masks placeholders (`%(x)s`, `{x}`)
+with `@@i@@` sentinels, translates, then restores them (leaves a string untranslated if a
+sentinel is lost). Flags: `--include-fuzzy`, `--include-format`, `--compile`, `--limit`.
 
 ### View packages
 

@@ -21,8 +21,43 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 DEFAULT_LANGS = ["en", "de", "es", "fr", "hu", "it", "pl", "sk"]
-# Řetězce s interpolací necháváme na ruční překlad (stroj by rozbil placeholdery).
+# Detekce interpolace (rozhoduje, zda je entry "formátovací").
 FORMAT_RE = re.compile(r"%\(|%[sd]|%\d|\{\w*\}|\{\{")
+# Jednotlivé placeholdery k zamaskování při překladu format-stringů.
+TOKEN_RE = re.compile(r"%\([^)]*\)[a-zA-Z]|%[a-zA-Z]|\{[^{}]*\}|\{\{|\}\}")
+
+
+def _mask(text):
+    """Nahradí placeholdery sentinely @@i@@; vrátí (maskovaný text, seznam tokenů)."""
+    tokens = []
+
+    def repl(m):
+        tokens.append(m.group(0))
+        return f"@@{len(tokens) - 1}@@"
+
+    return TOKEN_RE.sub(repl, text), tokens
+
+
+def _unmask(text, tokens):
+    """Obnoví placeholdery. Vrátí None, pokud některý sentinel v překladu chybí
+    (radši nechat nepřeložené než rozbít interpolaci)."""
+    for i, tok in enumerate(tokens):
+        sentinel = f"@@{i}@@"
+        if sentinel not in text:
+            return None
+        text = text.replace(sentinel, tok)
+    return text
+
+
+def _match_edge_newlines(msgid, msgstr):
+    """Sjednotí vedoucí/koncové \\n msgstr s msgid (gettext to vyžaduje, jinak
+    msgfmt hlásí fatal error)."""
+    msgstr = msgstr.strip("\n")
+    if msgid.startswith("\n"):
+        msgstr = "\n" + msgstr
+    if msgid.endswith("\n"):
+        msgstr = msgstr + "\n"
+    return msgstr
 
 
 class Command(BaseCommand):
@@ -35,6 +70,8 @@ class Command(BaseCommand):
                             help="Max počet přeložených entries na jazyk (0 = bez limitu).")
         parser.add_argument("--include-fuzzy", action="store_true",
                             help="Přeložit i fuzzy entries (jinak jen prázdné).")
+        parser.add_argument("--include-format", action="store_true",
+                            help="Přeložit i řetězce s placeholdery (maskuje je sentinely @@i@@).")
         parser.add_argument("--workers", type=int, default=8,
                             help="Počet paralelních překladových requestů. Výchozí 8.")
         parser.add_argument("--compile", action="store_true",
@@ -52,6 +89,7 @@ class Command(BaseCommand):
         langs = [l.strip() for l in options["lang"].split(",") if l.strip()]
         limit = options["limit"]
         include_fuzzy = options["include_fuzzy"]
+        include_format = options["include_format"]
         workers = max(1, options["workers"])
         locale_root = settings.LOCALE_PATHS[0]
 
@@ -71,7 +109,7 @@ class Command(BaseCommand):
                 needs = entry.msgstr.strip() == "" or (include_fuzzy and "fuzzy" in entry.flags)
                 if not needs:
                     continue
-                if FORMAT_RE.search(entry.msgid):
+                if FORMAT_RE.search(entry.msgid) and not include_format:
                     skipped += 1
                     continue
                 targets.append(entry)
@@ -81,7 +119,13 @@ class Command(BaseCommand):
             done = failed = processed = 0
 
             def _translate(entry):
-                return entry, _translate_text(entry.msgid, lang)
+                masked, tokens = _mask(entry.msgid)
+                result = _translate_text(masked, lang)
+                if tokens:
+                    result = _unmask(result, tokens) if result else result
+                if result:
+                    result = _match_edge_newlines(entry.msgid, result)
+                return entry, result
 
             with ThreadPoolExecutor(max_workers=workers) as pool:
                 for entry, translated in pool.map(_translate, targets):

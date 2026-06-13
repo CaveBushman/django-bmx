@@ -20,7 +20,7 @@ msgstr ""
 
 #, python-format
 msgid "Aktivační e-mail znovu odeslán pro %(count)s účtů."
-msgstr ""
+msgstr "E-mail aktywacyjny wysłany ponownie dla kont %(count)s."
 
 msgid "Uživatel nebyl nalezen."
 msgstr "Nie znaleziono użytkownika."
@@ -30,7 +30,7 @@ msgstr "Konto jest już aktywne."
 
 #, python-format
 msgid "Aktivační e-mail byl znovu odeslán na %(email)s."
-msgstr ""
+msgstr "E-mail aktywacyjny został ponownie wysłany na adres %(email)s."
 
 msgid "Aktivní"
 msgstr "Aktywny"
@@ -57,7 +57,7 @@ msgstr ""
 
 #, python-format
 msgid "Ahoj %(name)s,"
-msgstr ""
+msgstr "Cześć %(name)s,"
 
 msgid "dokončete registraci účtu na Czech BMX kliknutím na tento odkaz:"
 msgstr "dokończ rejestrację czeskiego konta BMX, klikając ten link:"
@@ -120,6 +120,8 @@ msgid ""
 "Žádosti čekají na ruční posouzení. Nevyřízené návrhy automaticky expirují po"
 " %(days)s dnech."
 msgstr ""
+"Żądania oczekują na ręczne sprawdzenie. Oczekujące propozycje automatycznie "
+"wygasają po %(days)s dniach."
 
 msgid "Čeká"
 msgstr "On czeka"
@@ -150,7 +152,7 @@ msgstr "Typ: jeździec"
 
 #, python-format
 msgid "Nahrál %(user)s dne %(created)s."
-msgstr ""
+msgstr "Przesłane przez %(user)s na %(created)s."
 
 msgid "Schválit a zveřejnit"
 msgstr "Zatwierdź i opublikuj"
@@ -341,7 +343,7 @@ msgstr "Weryfikacja"
 
 #, python-format
 msgid "Kolik je %(human_check_question)s?"
-msgstr ""
+msgstr "Ile kosztuje %(human_check_question)s?"
 
 msgid "Poslat nový odkaz"
 msgstr "Wyślij nowy link"
@@ -567,7 +569,7 @@ msgstr ""
 
 #, python-format
 msgid "%(rider)s už je v jiném družstvu přihlášený na %(wheel)s\"."
-msgstr ""
+msgstr "%(rider)s jest już zarejestrowany w %(wheel)s” w innym zespole."
 
 msgid "Detail klubu"
 msgstr "Szczegóły klubu"
@@ -586,6 +588,8 @@ msgid ""
 "Účast na závodech v roce %(year)s s přehledem počtu jezdců a vybraných "
 "částek za jednotlivé termíny."
 msgstr ""
+"Udział w wyścigach w %(year)s z podglądem ilości zawodników i wybranych kwot"
+" dla poszczególnych terminów."
 
 msgid "Rok"
 msgstr "Rok"
@@ -769,7 +773,7 @@ msgstr "Dostęp ograniczony"
 
 #, python-format
 msgid "Registrace družstev MČR pro rok %(year)s je momentálně uzavřená."
-msgstr ""
+msgstr "Rejestracja spółdzielni MČR na rok %(year)s jest obecnie zamknięta."
 
 msgid ""
 "Pokud potřebuješ ještě upravit soupisku, kontaktuj administrátora závodu."
@@ -983,6 +987,7 @@ msgid ""
 "%(count)s položek čeká na objednání. Zkontroluj množství a pokračuj na "
 "checkout."
 msgstr ""
+"%(count)s produkty czekają na zamówienie. Sprawdź ilość i przejdź do kasy."
 
 msgid "Žádné položky v košíku."
 msgstr "Brak produktów w koszyku."
@@ -1114,6 +1119,8 @@ msgstr "Zamówienie zostanie opłacone z środków na koncie po potwierdzeniu."
 #, python-format
 msgid "Kusy jsou rezervované od vložení do košíku přibližně do %(expires)s."
 msgstr ""
+"Kawałki są zarezerwowane od momentu ich dodania do koszyka do około "
+"%(expires)s."
 
 msgid "Nedostatečný kredit"
 msgstr "Niewystarczający kredyt"
@@ -1224,7 +1231,7 @@ msgstr "Przesłane dzisiaj"
 
 #, python-format
 msgid "Objednávky uzavřené během dne %(day)s."
-msgstr ""
+msgstr "Zamówienia zamknięte podczas %(day)s."
 
 msgid "předáno dnes"
 msgstr "przesłane dzisiaj"
@@ -1418,10 +1425,12 @@ msgid ""
 "Objednávka č. %(num)s byla rovnou uhrazena kredity z účtu a předána ke "
 "zpracování."
 msgstr ""
+"Zamówienie nr %(num)s zostało natychmiast opłacone środkami z konta i "
+"przekazane do realizacji."
 
 #, python-format
 msgid "Objednávka č. %(num)s byla přijata a čeká na dokončení úhrady."
-msgstr ""
+msgstr "Zamówienie #%(num)s zostało przyjęte i oczekuje na płatność."
 
 msgid "Objednané položky"
 msgstr "Zamówione produkty"
@@ -1435,6 +1444,7 @@ msgstr "Kredyt potrącony automatycznie"
 #, python-format
 msgid "Z účtu bylo odečteno %(amount)s Kč a objednávka je potvrzená."
 msgstr ""
+"%(amount)s CZK został pobrany z konta i zamówienie zostało potwierdzone."
 
 msgid "Kontaktní údaje"
 msgstr "Dane kontaktowe"
@@ -1458,7 +1468,7 @@ msgstr "Wydrukować"
 
 #, python-format
 msgid "Vygenerováno %(generated)s"
-msgstr ""
+msgstr "Wygenerowane przez %(generated)s"
 
 msgid "Objednávky"
 msgstr "Święcenia"
@@ -1569,7 +1579,7 @@ msgstr "W magazynie do natychmiastowej rezerwacji"
 
 #, python-format
 msgid "Aktuálně dostupné kusy: %(count)s"
-msgstr ""
+msgstr "Aktualnie dostępne sztuki: %(count)s"
 
 msgid "Otevřít tabulku velikostí"
 msgstr "Otwórz tabelę rozmiarów"
@@ -1671,7 +1681,7 @@ msgstr "Zobacz szczegóły"
 
 #, python-format
 msgid "Skladem %(count)s ks"
-msgstr ""
+msgstr "W magazynie %(count)s szt"
 
 msgid "Vybrat"
 msgstr "Wybierać"
@@ -1718,7 +1728,7 @@ msgstr "Wpisz nazwę i treść powiadomienia."
 
 #, python-format
 msgid "Notifikace odeslána na %(n)d zařízení."
-msgstr ""
+msgstr "Powiadomienie wysłane na urządzenie %(n)d."
 
 msgid "Push notifikace"
 msgstr "Powiadomienia push"
@@ -1728,7 +1738,7 @@ msgstr "Wyślij powiadomienie"
 
 #, python-format
 msgid "%(n)d přihlášených uživatelů"
-msgstr ""
+msgstr "%(n)d zalogowani użytkownicy"
 
 msgid "Přihlášeno"
 msgstr "Zalogowany"
@@ -1828,11 +1838,12 @@ msgstr "Potwierdzenie zwrotu wpisowego"
 
 #, python-format
 msgid "Checkout byl zapnut u %(count)s registrací."
-msgstr ""
+msgstr "Realizacja transakcji została włączona dla rejestracji %(count)s."
 
 #, python-format
 msgid "%(count)s registrací bylo přeskočeno kvůli nevalidnímu stavu."
 msgstr ""
+"Rejestracje %(count)s zostały pominięte z powodu nieprawidłowego statusu."
 
 msgid "Vypnout checkout a smazat vratku startovného"
 msgstr "Wyłącz opcję kasowania i usuń zwrot opłaty wpisowej"
@@ -1842,7 +1853,7 @@ msgstr "Potwierdzenie rezygnacji ze zwrotu wpisowego"
 
 #, python-format
 msgid "Checkout byl vypnut u %(count)s registrací."
-msgstr ""
+msgstr "Zamówienie zostało wyłączone dla rejestracji %(count)s."
 
 msgid "Vratka kreditu"
 msgstr "Zwrot kredytu"
@@ -1883,6 +1894,8 @@ msgstr "Nie są jeszcze dostępne żadne zapisy z audytu."
 #, python-format
 msgid "Checkout nelze změnit — Stripe refund byl již vydán (%(refund_id)s)."
 msgstr ""
+"Nie można zmienić kasy — zwrot pieniędzy za paski został już przyznany "
+"(%(refund_id)s)."
 
 msgid "Automatickou checkout refund transakci nelze ručně upravovat."
 msgstr ""
@@ -1952,11 +1965,11 @@ msgstr "Nieznana rasa"
 
 #, python-format
 msgid "Vrácení startovného za závod %(event_name)s"
-msgstr ""
+msgstr "Zwrot opłaty startowej %(event_name)s"
 
 #, python-format
 msgid "Checkout refund vytvořen: %(event_name)s"
-msgstr ""
+msgstr "Utworzono zwrot środków za zamówienie: %(event_name)s"
 
 #, python-format
 msgid ""
@@ -1968,10 +1981,13 @@ msgid ""
 "Registrace ID: %(entry_id)s\n"
 "Transakce: %(payment_intent)s\n"
 msgstr ""
+"Utworzono zwrot opłaty startowej za wyścig %(event_name)s. Pasażer: "
+"%(rider)s Użytkownik: %(user)s Kwota: %(amount)s Identyfikator rejestracji "
+"CZK: %(entry_id)s Transakcja: %(payment_intent)s\n"
 
 #, python-format
 msgid "Checkout refund zrušen: %(event_name)s"
-msgstr ""
+msgstr "Zwrot środków za zamówienie anulowany: %(event_name)s"
 
 #, python-format
 msgid ""
@@ -1983,18 +1999,22 @@ msgid ""
 "Registrace ID: %(entry_id)s\n"
 "Transakce: %(payment_intent)s\n"
 msgstr ""
+"Zwrot wpisowego za wyścig %(event_name)s został anulowany. Pasażer: "
+"%(rider)s Użytkownik: %(user)s Kwota: %(amount)s Identyfikator rejestracji "
+"CZK: %(entry_id)s Transakcja: %(payment_intent)s\n"
 
 #, python-format
 msgid "Změna částky refundu: %(old_amount)s -> %(new_amount)s Kč"
-msgstr ""
+msgstr "Zmiana kwoty zwrotu: %(old_amount)s -> %(new_amount)s CZK"
 
 #, python-format
 msgid "Změna uživatele refundu: %(old_user_id)s -> %(new_user_id)s"
 msgstr ""
+"Zwrot pieniędzy za zmianę użytkownika: %(old_user_id)s -> %(new_user_id)s"
 
 #, python-format
 msgid "Změna závodu refundu: %(old_event_id)s -> %(new_event_id)s"
-msgstr ""
+msgstr "Zmiana rasy zwrotu środków: %(old_event_id)s -> %(new_event_id)s"
 
 msgid "Kontrola startovného podle MOTO"
 msgstr "Sprawdź opłatę startową zgodnie z MOTO"
@@ -2012,6 +2032,8 @@ msgid ""
 "Jezdci v MOTO: %(moto)s | Uhrazené online registrace: %(paid)s | Podezřelé "
 "neshody: %(flagged)s"
 msgstr ""
+"Kierowcy w MOTO: %(moto)s | Płatna rejestracja on-line: %(paid)s | "
+"Podejrzane niedopasowania: %(flagged)s"
 
 msgid "Jezdci bez uhrazeného startovného"
 msgstr "Zawodnicy bez uiszczonej opłaty startowej"
@@ -2072,6 +2094,8 @@ msgid ""
 "      Notifikace bude odeslána <strong>%(count)s uživatelům</strong> s dokončenou registrací (platba potvrzena).\n"
 "    "
 msgstr ""
+"\n"
+"Powiadomienie zostanie wysłane do użytkowników <strong>%(count)s</strong>, którzy ukończyli rejestrację (potwierdzono płatność)."
 
 msgid "Žádný uživatel zatím nemá dokončenou registraci na tento závod."
 msgstr "Żaden użytkownik nie zakończył jeszcze rejestracji na ten wyścig."
@@ -2445,6 +2469,8 @@ msgid ""
 "Kompletní přehled termínu, pořadatele, registrace a organizačních informací "
 "pro závod %(organizer)s v režimu %(type)s."
 msgstr ""
+"Pełny przegląd daty, organizatora, rejestracji i informacji organizacyjnych "
+"dla wyścigu %(organizer)s w trybie %(type)s."
 
 msgid "Datum závodu"
 msgstr "Data wyścigu"
@@ -2659,6 +2685,8 @@ msgid ""
 "Nahrání souborů pro jednotlivé fáze závodu <span class=\"font-semibold text-"
 "slate-900 dark:text-white\">%(event_name)s</span>."
 msgstr ""
+"Prześlij pliki dla poszczególnych etapów wyścigu <span class=\"font-semibold"
+" text-slate-900 dark:text-white\">%(event_name)s</span>."
 
 msgid "Nahráno:"
 msgstr "Przesłane przez:"
@@ -2822,6 +2850,8 @@ msgid ""
 "%(last_name)s %(first_name)s ze závodu %(event_name)s v kategorii "
 "%(category)s, v košíku uživatele: %(user_name)s"
 msgstr ""
+"%(last_name)s %(first_name)s z fabryki %(event_name)s w kategorii "
+"%(category)s, w koszyku użytkownika: %(user_name)s"
 
 msgid "Beru na vědomí"
 msgstr "Przyjmuję do wiadomości"
@@ -3083,14 +3113,14 @@ msgstr ""
 
 #, python-format
 msgid "Prémiové statistiky: %(name)s (%(reason)s)"
-msgstr ""
+msgstr "Statystyki premium: %(name)s (%(reason)s)"
 
 msgid "Prémiové statistiky jezdce"
 msgstr "Statystyki pasażerów premium"
 
 #, python-format
 msgid "Trenérské předplatné: %(club)s (%(product)s, %(reason)s)"
-msgstr ""
+msgstr "Subskrypcja trenera: %(club)s (%(product)s, %(reason)s)"
 
 msgid "Trenérské předplatné klubu"
 msgstr "Abonament na coaching klubowy"
@@ -3130,7 +3160,7 @@ msgstr "finał"
 
 #, python-brace-format
 msgid "{points} b."
-msgstr ""
+msgstr "{points} b."
 
 msgid "postup"
 msgstr "procedura"
@@ -3173,11 +3203,14 @@ msgid ""
 "Závod %(event)s mezitím upravil někdo jiný. Obnov stránku a zkontroluj "
 "aktuální nasazení."
 msgstr ""
+"Wyścig %(event)s został od tego czasu zmodyfikowany przez kogoś innego. "
+"Odśwież stronę, aby sprawdzić bieżące wdrożenie."
 
 #, python-format
 msgid ""
 "V závodu %(event)s nemůže být jeden rozhodčí nasazen do více rolí současně."
 msgstr ""
+"W wyścigu %(event)s jeden sędzia nie może pełnić jednocześnie kilku ról."
 
 msgid "Nasazení rozhodčích bylo uloženo."
 msgstr "Rozmieszczenie sędziów zostało zapisane."
@@ -3205,7 +3238,7 @@ msgstr "Brakuje UCI_EVENT_CODE na wyścig."
 
 #, python-format
 msgid "U závodu chybí některé UCI kódy kategorií: %(fields)s."
-msgstr ""
+msgstr "W wyścigu brakuje niektórych kodów kategorii UCI: %(fields)s."
 
 msgid "Pro tento závod zatím nejsou nahrané žádné MOTO jízdy v RaceRun."
 msgstr ""
@@ -3214,14 +3247,14 @@ msgstr ""
 
 #, python-brace-format
 msgid "RaceRun aktualizován, zapsáno {count} jízd"
-msgstr ""
+msgstr "RaceRun zaktualizowany, {count} biegi zarejestrowane"
 
 msgid "Tito závodníci nebyli nalezeni v databázi: "
 msgstr "W bazie danych nie odnaleziono następujących konkurentów:"
 
 #, python-brace-format
 msgid " (a {n} dalších)"
-msgstr ""
+msgstr "(i {n} inni)"
 
 msgid "Neplatný klíč pro smazání."
 msgstr "Nieprawidłowy klucz usuwania."
@@ -3240,11 +3273,11 @@ msgstr "Brak plików do usunięcia."
 
 #, python-brace-format
 msgid "Soubor {name} je příliš velký ({size} kB), maximum je 2 MB."
-msgstr ""
+msgstr "Plik {name} jest za duży ({size} kB), maksymalny rozmiar to 2 MB."
 
 #, python-brace-format
 msgid "Nahráno ({count}): {names}."
-msgstr ""
+msgstr "Przesłano ({count}): {names}."
 
 msgid ""
 "Pro tento závod nejsou v databázi žádné výsledky (Result), takže statistické"
@@ -3295,15 +3328,15 @@ msgstr "Plik z wynikami całkowitymi"
 
 #, python-format
 msgid "%(section)s - %(label)s"
-msgstr ""
+msgstr "%(section)s - ​​​​%(label)s"
 
 #, python-brace-format
 msgid "{section}: nahrána startovní listina, chybí výsledky"
-msgstr ""
+msgstr "{section}: lista startowa przesłana, brak wyników"
 
 #, python-brace-format
 msgid "{section}: nahrány výsledky, chybí startovní listina"
-msgstr ""
+msgstr "{section}: wyniki przesłane, brak listy startowej"
 
 msgid ""
 "Pro dokončení registrace nemáte dostatečný kredit. Dobijte kredit nebo "
@@ -3320,6 +3353,8 @@ msgid ""
 "Přehled plánovaných závodů, otevřených registrací a archivních termínů pro "
 "sezonu %(year)s."
 msgstr ""
+"Przegląd zaplanowanych wyścigów, otwartych rejestracji i dat archiwalnych na"
+" sezon %(year)s."
 
 msgid "Následující závody"
 msgstr "Kolejne wyścigi"
@@ -3332,7 +3367,7 @@ msgstr "Najbliższe wyścigi"
 
 #, python-format
 msgid "Přehled archivních závodů a uzavřených termínů pro sezonu %(year)s."
-msgstr ""
+msgstr "Przegląd archiwalnych wyścigów i dat zamknięcia sezonu %(year)s."
 
 msgid "Budoucí závody"
 msgstr "Przyszłe wyścigi"
@@ -3342,18 +3377,18 @@ msgstr "Wyścigi zniknęły"
 
 #, python-format
 msgid "Archiv %(year)s"
-msgstr ""
+msgstr "Archiwum %(year)s"
 
 #, python-format
 msgid "Přehled plánovaných závodů a budoucích termínů pro sezonu %(year)s."
-msgstr ""
+msgstr "Przegląd planowanych wyścigów i przyszłych dat sezonu %(year)s."
 
 msgid "Plánované závody"
 msgstr "Zaplanowane wyścigi"
 
 #, python-format
 msgid "Sezona %(year)s"
-msgstr ""
+msgstr "Sezon %(year)s"
 
 msgid "Sezona"
 msgstr "Sezon"
@@ -3419,7 +3454,7 @@ msgstr "Żadnych transakcji debetowych."
 
 #, python-format
 msgid "Ověřeno %(count)d plateb za kredity za poslední 2 dny."
-msgstr ""
+msgstr "Zweryfikowano płatności kredytowe %(count)d w ciągu ostatnich 2 dni."
 
 msgid "Email"
 msgstr "E-mail"
@@ -3822,30 +3857,30 @@ msgstr "Jeździec"
 
 #, python-format
 msgid "Jméno: %(value)s"
-msgstr ""
+msgstr "Imię: %(value)s"
 
 #, python-format
 msgid "UCI ID: %(value)s"
-msgstr ""
+msgstr "Identyfikator UCI: %(value)s"
 
 #, python-format
 msgid "Klub: %(value)s"
-msgstr ""
+msgstr "Klub: %(value)s"
 
 msgid "Export"
 msgstr "Eksport"
 
 #, python-format
 msgid "Trať: %(value)s"
-msgstr ""
+msgstr "Utwór: %(value)s"
 
 #, python-format
 msgid "Disciplína: %(value)s"
-msgstr ""
+msgstr "Dyscyplina: %(value)s"
 
 #, python-format
 msgid "KPI období: %(value)s"
-msgstr ""
+msgstr "Okres KPI: %(value)s"
 
 msgid ""
 "Tento report obsahuje souhrn vybrané tratě a tři trendové grafy z premium "
@@ -3877,11 +3912,11 @@ msgstr "Podział 1 według rasy"
 
 #, python-format
 msgid "%(title)s (%(page)s)"
-msgstr ""
+msgstr "%(title)s (%(page)s)"
 
 #, python-format
 msgid "Rozsah %(min)s s až %(max)s s"
-msgstr ""
+msgstr "Zakres %(min)s s do %(max)s s"
 
 msgid "Premium statistics report"
 msgstr "Raport statystyk premium"
@@ -4030,7 +4065,7 @@ msgstr "Nieaktywni jeźdźcy"
 
 #, python-format
 msgid "Přístup k deaktivaci neaktivních profilů v klubu %(team_name)s."
-msgstr ""
+msgstr "Dostęp do dezaktywacji nieaktywnych profili w klubie %(team_name)s."
 
 msgid "Přístup k administrativnímu seznamu neaktivních jezdců."
 msgstr "Dostęp do listy administracyjnej nieaktywnych zawodników."
@@ -4043,7 +4078,7 @@ msgstr "Abonament indywidualny"
 
 #, python-format
 msgid "Platné do %(date)s"
-msgstr ""
+msgstr "Ważne do %(date)s"
 
 msgid "Trenérská předplatná"
 msgstr "Abonament trenerski"
@@ -4090,11 +4125,11 @@ msgstr "Pobierać"
 
 #, python-format
 msgid "Zobrazeno %(current)s z %(total)s faktur."
-msgstr ""
+msgstr "Wyświetlono %(current)s z %(total)s faktur."
 
 #, python-format
 msgid "Strana %(num)s / %(total)s"
-msgstr ""
+msgstr "Strona %(num)s / %(total)s"
 
 msgid "Zatím tu nemáš žádné faktury za předplatné."
 msgstr "Nie masz jeszcze żadnych faktur za subskrypcję."
@@ -4110,10 +4145,12 @@ msgid ""
 "Zobrazené jsou pouze faktury za startovné vztahující se ke klubu "
 "%(team_name)s."
 msgstr ""
+"Wyświetlane są tylko faktury za opłaty wpisowe związane z klubem "
+"%(team_name)s."
 
 #, python-format
 msgid "Zobrazeno %(current)s z %(total)s klubových faktur."
-msgstr ""
+msgstr "Wyświetlono %(current)s z %(total)s faktur klubowych."
 
 msgid "K tomuto klubu zatím nejsou vystavené žádné faktury za startovné."
 msgstr "Na ten klub nie zostały jeszcze wystawione żadne faktury za wpisowe."
@@ -4157,7 +4194,7 @@ msgstr "Wyłącz automatyczne odnawianie"
 
 #, python-format
 msgid "Přístup zůstane aktivní do %(date)s."
-msgstr ""
+msgstr "Dostęp pozostanie aktywny do %(date)s."
 
 msgid "Zapnout automatické obnovení"
 msgstr "Włącz automatyczne odzyskiwanie"
@@ -4167,7 +4204,7 @@ msgstr "Aplikacja mobilna nie jest aktywna"
 
 #, python-format
 msgid "Roční předplatné za %(price)s Kč odemkne přístup na 365 dní."
-msgstr ""
+msgstr "Roczna subskrypcja %(price)s CZK odblokowuje dostęp na 365 dni."
 
 msgid "rok"
 msgstr "rok"
@@ -4184,7 +4221,7 @@ msgstr "fakultatywny"
 
 #, python-format
 msgid "Aktivovat za %(price)s Kč"
-msgstr ""
+msgstr "Aktywuj za %(price)s CZK"
 
 msgid "Rider Search"
 msgstr "Wyszukiwanie zawodnika"
@@ -4581,7 +4618,7 @@ msgstr ""
 
 #, python-format
 msgid "Společné jízdy %(shared)s"
-msgstr ""
+msgstr "Wspólne przejażdżki %(shared)s"
 
 msgid "Nápověda k finálovým soubojům"
 msgstr "Pomoc w ostatnich walkach"
@@ -4608,7 +4645,7 @@ msgstr ""
 
 #, python-format
 msgid "Společné závody %(shared)s"
-msgstr ""
+msgstr "Wspólne wyścigi %(shared)s"
 
 msgid "Kontextová nápověda"
 msgstr "Pomoc kontekstowa"
@@ -4780,11 +4817,11 @@ msgstr "Statystyki premium"
 
 #, python-format
 msgid "Aktivní do %(date)s"
-msgstr ""
+msgstr "Aktywny do %(date)s"
 
 #, python-format
 msgid "Trenérský přístup přes klub aktivní do %(date)s."
-msgstr ""
+msgstr "Dostęp trenerski przez klub aktywny do %(date)s."
 
 msgid "Administrátorský přístup bez omezení předplatným."
 msgstr "Dostęp administratora bez ograniczeń subskrypcji."
@@ -4816,10 +4853,12 @@ msgid ""
 "%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd | Nejlépe "
 "#%(best)s"
 msgstr ""
+"%(name)s | %(starts)s wyścigi | KPI %(runs)s zmierzonych podróży | Najlepszy"
+" #%(best)s"
 
 #, python-format
 msgid "%(name)s | %(starts)s závodů | KPI %(runs)s měřených jízd"
-msgstr ""
+msgstr "%(name)s | %(starts)s wyścigi | KPI %(runs)s zmierzonych podróży"
 
 msgid "Porovnat s jezdcem"
 msgstr "Porównaj z jeźdźcem"
@@ -4836,11 +4875,11 @@ msgstr "Profil ścieżki"
 
 #, python-format
 msgid "Jezdec je porovnáván s jezdci kategorie %(label)s"
-msgstr ""
+msgstr "Zawodnik porównywany jest z zawodnikami kategorii %(label)s"
 
 #, python-format
 msgid "Statistiky pro %(wheel)s\""
-msgstr ""
+msgstr "Statystyki dla %(wheel)s\""
 
 msgid "Prémiové KPI a trend výkonu jezdce na této konkrétní trati."
 msgstr "Premium KPI i trend wydajności rowerzysty na tym konkretnym torze."
@@ -4850,6 +4889,8 @@ msgid ""
 "KPI a srovnání počítáme pro vybrané období %(label)s, od %(date)s. Graf a "
 "tabulka zůstávají za celou historii."
 msgstr ""
+"Obliczamy KPI i porównania dla wybranego okresu %(label)s, od %(date)s. "
+"Wykres i tabela pozostają przez całą historię."
 
 msgid ""
 "KPI a srovnání počítáme z celé historie. Graf i tabulka zůstávají za celou "
@@ -5121,7 +5162,7 @@ msgstr ""
 
 #, python-format
 msgid "%(count)s postupů z motos"
-msgstr ""
+msgstr "%(count)s procedury z motos"
 
 msgid "Nápověda k čistým jízdám"
 msgstr "Pomoc dla czystych dysków"
@@ -5135,7 +5176,7 @@ msgstr ""
 
 #, python-format
 msgid "%(count)sx DNF/DNS/DSQ/REL"
-msgstr ""
+msgstr "%(count)sx DNF/DNS/DSQ/REL"
 
 msgid "Nápověda k Trendu"
 msgstr "Pomoc dla Trendu"
@@ -5630,11 +5671,11 @@ msgstr "Stagnuje"
 
 #, python-format
 msgid "čas o %(delta)s s rychlejší"
-msgstr ""
+msgstr "czas %(delta)s s szybciej"
 
 #, python-format
 msgid "čas o %(delta)s s pomalejší"
-msgstr ""
+msgstr "czas o %(delta)s wolniej"
 
 msgid "čas beze změny"
 msgstr "czas bez zmian"
@@ -5669,17 +5710,20 @@ msgstr ""
 msgid ""
 "Nový avatar pro jezdce %(name)s byl odeslán ke schválení administrátorem."
 msgstr ""
+"Nowy awatar dla kierowcy %(name)s został przesłany do zatwierdzenia przez "
+"administratora."
 
 msgid "Neplatný cíl změny avataru."
 msgstr "Nieprawidłowy cel zmiany awatara."
 
 #, python-format
 msgid "Pole %(label)s je povinné."
-msgstr ""
+msgstr "Pole %(label)s jest wymagane."
 
 #, python-format
 msgid "Jezdec/jezdkyně %(name)s, UCI ID %(uci_id)s, již má přidělené číslo."
 msgstr ""
+"Zawodnik %(name)s, identyfikator UCI %(uci_id)s, ma już przypisany numer."
 
 msgid "Licence UCI ID nebyla nalezena."
 msgstr "Nie znaleziono licencji UCI ID."
@@ -5695,7 +5739,7 @@ msgstr "Nie znaleziono wybranego klubu."
 
 #, python-format
 msgid "Mobilní aplikace aktivována do %(date)s."
-msgstr ""
+msgstr "Aplikacja mobilna aktywowana na %(date)s."
 
 msgid "Předplatné mobilní aplikace je již aktivní."
 msgstr "Subskrypcja aplikacji mobilnej jest już aktywna."
@@ -5714,7 +5758,7 @@ msgstr "Nie masz subskrypcji do odnowienia."
 
 #, python-format
 msgid "Vygenerován promo kód: %(code)s"
-msgstr ""
+msgstr "Wygenerowano kod promocyjny: %(code)s"
 
 msgid "Promo kód byl deaktivován."
 msgstr "Kod promocyjny został dezaktywowany."
@@ -5727,7 +5771,7 @@ msgstr "Kod promocyjny został natychmiast anulowany."
 
 #, python-format
 msgid "Promo kód %(code)s byl smazán."
-msgstr ""
+msgstr "Kod promocyjny %(code)s został usunięty."
 
 msgid "Promo kód nenalezen."
 msgstr "Nie znaleziono kodu promocyjnego."
@@ -5740,11 +5784,11 @@ msgstr "Bezpłatnie (100% zniżki)"
 
 #, python-format
 msgid "Promo kód byl odeslán na %(email)s."
-msgstr ""
+msgstr "Kod promocyjny wysłany na adres %(email)s."
 
 #, python-format
 msgid "Odeslání e-mailu selhalo: %(err)s"
-msgstr ""
+msgstr "Nie udało się wysłać e-maila: %(err)s"
 
 msgid "Zadej promo kód."
 msgstr "Wpisz kod promocyjny."
@@ -5755,6 +5799,8 @@ msgstr "Kod promocyjny nie istnieje."
 #, python-format
 msgid "Promo kód uplatněn — na váš účet bylo připsáno %(amount)s Kč kreditu."
 msgstr ""
+"Zastosowano kod promocyjny — %(amount)s Kredyt w CZK został dodany do "
+"Twojego konta."
 
 msgid "Kód je platný. Zadej ho při aktivaci příslušného předplatného."
 msgstr ""
@@ -5765,7 +5811,7 @@ msgstr "Jeźdźców nie można dezaktywować poza listą nieaktywnych pasażeró
 
 #, python-format
 msgid "Jezdec %(name)s byl označen jako neaktivní."
-msgstr ""
+msgstr "Jeździec %(name)s został oznaczony jako nieaktywny."
 
 msgid "Kontrola licencí byla spuštěna"
 msgstr "Rozpoczęto sprawdzanie licencji"
@@ -5809,6 +5855,8 @@ msgstr ""
 msgid ""
 "Při naplánování přepočtu rankingu došlo k následující chybě: %(message)s"
 msgstr ""
+"Wystąpił następujący błąd podczas planowania ponownego obliczenia rankingu: "
+"%(message)s"
 
 msgid "Přepočet kategorií byl spuštěn"
 msgstr "Rozpoczęło się przeliczanie kategorii"
@@ -5842,7 +5890,7 @@ msgstr ""
 
 #, python-format
 msgid "Jezdec %(name)s už má přidělené startovní číslo."
-msgstr ""
+msgstr "Zawodnik %(name)s ma już przydzielony numer startowy."
 
 msgid "Žena"
 msgstr "Kobieta"
@@ -5858,7 +5906,7 @@ msgstr "Historyczny chip"
 
 #, python-format
 msgid "Prémiové statistiky jezdce %(name)s jsou aktivní do %(date)s."
-msgstr ""
+msgstr "Statystyki premium jeźdźca %(name)s są aktywne do %(date)s."
 
 msgid "Prémiové statistiky tohoto jezdce už máš aktivní."
 msgstr "Masz już aktywne statystyki premium tego pasażera."
@@ -5900,15 +5948,15 @@ msgstr ""
 
 #, python-format
 msgid "Automatické obnovování pro %(name)s bylo vypnuto."
-msgstr ""
+msgstr "Automatyczne odświeżanie dla %(name)s zostało wyłączone."
 
 #, python-format
 msgid "Automatické obnovování pro %(name)s bylo zapnuto."
-msgstr ""
+msgstr "Włączono automatyczne odświeżanie dla %(name)s."
 
 #, python-format
 msgid "Předplatné jezdce %(name)s bylo smazáno z přehledu."
-msgstr ""
+msgstr "Subskrypcja pasażera %(name)s została usunięta z przeglądu."
 
 #| msgid "Objednávku se nepodařilo potvrdit."
 msgid "Požadavek se nepodařilo zpracovat"
@@ -6046,18 +6094,18 @@ msgstr ""
 
 #, python-format
 msgid "Promo kód Czech BMX – %(product)s"
-msgstr ""
+msgstr "Kod promocyjny Czeski BMX – %(product)s"
 
 msgid "Dobrý den,"
 msgstr "Dzień dobry,"
 
 #, python-format
 msgid "Zasíláme vám promo kód pro <strong>%(product)s</strong>."
-msgstr ""
+msgstr "Wysyłamy Ci kod promocyjny na <strong>%(product)s</strong>."
 
 #, python-format
 msgid "platný do %(date)s"
-msgstr ""
+msgstr "ważne do %(date)s"
 
 msgid ""
 "Kód zadejte při aktivaci předplatného v sekci Mobilní aplikace na svém účtu."
