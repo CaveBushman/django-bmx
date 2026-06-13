@@ -375,6 +375,12 @@ STORAGES = {
     },
 }
 
+# V testech používej ne-manifest storage, aby {% static %} vracel nehashované
+# názvy deterministicky (nezávisle na tom, zda lokálně existuje staticfiles.json).
+# Bez toho šablonové testy (assertContains "js/base.js") selžou po collectstatic.
+if RUNNING_TESTS:
+    STORAGES["staticfiles"]["BACKEND"] = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
