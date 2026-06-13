@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block title %}Ukoly komise{% endblock title %}
 
@@ -186,7 +187,7 @@
       <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">BMX komise</p>
-          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">Úkoly komise BMX</h1>
+          <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Úkoly komise BMX" %}</h1>
           <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
             Přehled rozpracovaných úkolů, přidělení na členy komise a hlídání termínů.
           </p>
@@ -196,19 +197,19 @@
         </div>
         <div class="page-stats-grid">
           <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Otevřené úkoly</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Otevřené úkoly" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ open_count }}</p>
           </div>
           <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 dark:text-amber-200">Po termínu</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-700 dark:text-amber-200">{% trans "Po termínu" %}</p>
             <p class="mt-2 text-3xl font-black text-amber-900 dark:text-amber-100">{{ overdue_count }}</p>
           </div>
           <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-200">Splněné</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-200">{% trans "Splněné" %}</p>
             <p class="mt-2 text-3xl font-black text-emerald-900 dark:text-emerald-100">{{ done_count }}</p>
           </div>
           <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-200">Moje otevřené</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo-700 dark:text-indigo-200">{% trans "Moje otevřené" %}</p>
             <p class="mt-2 text-3xl font-black text-indigo-900 dark:text-indigo-100">{{ my_open_count }}</p>
           </div>
         </div>
@@ -224,25 +225,25 @@
         <div>
           <label for="scope" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Pohled</label>
           <select id="scope" name="scope" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
-            <option value="all" {% if selected_scope == "all" %}selected{% endif %}>Všechny</option>
+            <option value="all" {% if selected_scope == "all" %}selected{% endif %}>{% trans "Všechny" %}</option>
             <option value="mine" {% if selected_scope == "mine" %}selected{% endif %}>Moje</option>
-            <option value="open" {% if selected_scope == "open" %}selected{% endif %}>Jen otevřené</option>
-            <option value="overdue" {% if selected_scope == "overdue" %}selected{% endif %}>Po termínu</option>
+            <option value="open" {% if selected_scope == "open" %}selected{% endif %}>{% trans "Jen otevřené" %}</option>
+            <option value="overdue" {% if selected_scope == "overdue" %}selected{% endif %}>{% trans "Po termínu" %}</option>
           </select>
         </div>
         <div>
           <label for="status" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Stav</label>
           <select id="status" name="status" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
-            <option value="">Všechny stavy</option>
+            <option value="">{% trans "Všechny stavy" %}</option>
             {% for value, label in status_choices %}
               <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
         <div>
-          <label for="assignee" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Řešitel</label>
+          <label for="assignee" class="task-board-label mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">{% trans "Řešitel" %}</label>
           <select id="assignee" name="assignee" class="task-board-input w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white">
-            <option value="">Všichni členové</option>
+            <option value="">{% trans "Všichni členové" %}</option>
             {% for assignee in assignees %}
               <option value="{{ assignee.id }}" {% if selected_assignee == assignee.id|stringformat:"s" %}selected{% endif %}>{{ assignee.first_name }} {{ assignee.last_name }}</option>
             {% endfor %}
@@ -264,11 +265,11 @@
         <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
           <thead class="bg-slate-50 dark:bg-slate-950/70">
             <tr class="task-board-table-head text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <th class="px-6 py-4">Úkol</th>
-              <th class="px-6 py-4">Řešitel</th>
+              <th class="px-6 py-4">{% trans "Úkol" %}</th>
+              <th class="px-6 py-4">{% trans "Řešitel" %}</th>
               <th class="px-6 py-4">Stav</th>
               <th class="px-6 py-4">Priorita</th>
-              <th class="px-6 py-4">Termín</th>
+              <th class="px-6 py-4">{% trans "Termín" %}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
@@ -289,7 +290,7 @@
                   {% if task.assignee %}
                     {{ task.assignee.first_name }} {{ task.assignee.last_name }}
                   {% else %}
-                    <span class="text-slate-400">Nepřiděleno</span>
+                    <span class="text-slate-400">{% trans "Nepřiděleno" %}</span>
                   {% endif %}
                 </td>
                 <td class="px-6 py-5">
@@ -320,7 +321,7 @@
                   {% if task.due_date %}
                     {% if task.is_overdue %}
                       <span class="font-semibold text-rose-700 dark:text-rose-300">{{ task.due_date|date:"j. n. Y" }}</span>
-                      <div class="mt-1 text-xs text-rose-600 dark:text-rose-300">Po termínu</div>
+                      <div class="mt-1 text-xs text-rose-600 dark:text-rose-300">{% trans "Po termínu" %}</div>
                     {% elif task.due_date == today %}
                       <span class="font-semibold text-amber-700 dark:text-amber-300">{{ task.due_date|date:"j. n. Y" }}</span>
                       <div class="mt-1 text-xs text-amber-600 dark:text-amber-300">Dnes</div>
@@ -328,7 +329,7 @@
                       <span class="text-slate-700 dark:text-slate-200">{{ task.due_date|date:"j. n. Y" }}</span>
                     {% endif %}
                   {% else %}
-                    <span class="text-slate-400">Bez termínu</span>
+                    <span class="text-slate-400">{% trans "Bez termínu" %}</span>
                   {% endif %}
                 </td>
               </tr>

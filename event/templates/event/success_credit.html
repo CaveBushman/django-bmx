@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}Potvrzení o nabytí kreditu{% endblock title %}
 {% block extra_head %}
 {% if not request.user.is_staff and ga4_value %}

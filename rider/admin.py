@@ -1,3 +1,5 @@
+"""Django admin pro jezdce, transpondéry, předplatná a promo kódy."""
+
 from django.contrib import admin, messages
 from django.db import transaction
 from django.db.models import Q

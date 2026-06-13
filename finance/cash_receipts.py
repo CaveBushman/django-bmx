@@ -1,3 +1,5 @@
+"""Generování a správa pokladních dokladů (EventCashReceipt) k závodům."""
+
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import os

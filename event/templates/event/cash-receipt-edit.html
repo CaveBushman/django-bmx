@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block title %}Upravit pokladní doklad{% endblock title %}
 
@@ -112,8 +113,8 @@
         </div>
         <textarea class="receipt-textarea" name="note" placeholder="Poznámka k dokladu">{{ receipt.note }}</textarea>
         <div class="receipt-action-row">
-          <button type="submit" class="invoice-action-primary">Uložit a přegenerovat PDF</button>
-          <a href="{% url 'event:cash-receipts-on-event' event.id %}" class="invoice-action-secondary">Zpět</a>
+          <button type="submit" class="invoice-action-primary">{% trans "Uložit a přegenerovat PDF" %}</button>
+          <a href="{% url 'event:cash-receipts-on-event' event.id %}" class="invoice-action-secondary">{% trans "Zpět" %}</a>
         </div>
       </form>
     </section>

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %} Dobití kreditu {% endblock title %}
 
 {% block extra_head %}
@@ -182,18 +183,18 @@
           </div>
           <div class="page-stats-grid">
             <div class="page-stat-card">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktuální zůstatek</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktuální zůstatek" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ user.credit|default:0|floatformat:0 }}&nbsp;<span class="text-lg font-semibold">CZK</span></p>
             </div>
             <div class="page-stat-card">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kreditní transakce</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kreditní transakce" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ credits|length }}</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">za poslední rok</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "za poslední rok" %}</p>
             </div>
             <div class="page-stat-card">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Debetní transakce</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Debetní transakce" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ debets|length }}</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">za poslední rok</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{% trans "za poslední rok" %}</p>
             </div>
           </div>
         </div>
@@ -233,7 +234,7 @@
           <form action="#" method="POST" class="credit-form w-full">
             {% csrf_token %}
             <label class="block flex-1">
-              <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Částka pro dobití</span>
+              <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{% trans "Částka pro dobití" %}</span>
               <div class="relative">
                 <input
                   type="text"
@@ -276,7 +277,7 @@
               <tr>
                 <th class="py-3.5 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Datum</th>
                 <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Typ</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Částka</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">{% trans "Částka" %}</th>
                 <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">ID transakce</th>
               </tr>
             </thead>
@@ -328,8 +329,8 @@
             <thead>
               <tr>
                 <th class="py-3.5 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Datum</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Částka</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Jezdec a závod</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">{% trans "Částka" %}</th>
+                <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">{% trans "Jezdec a závod" %}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">

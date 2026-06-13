@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}
 {{ display_title }}
 {% endblock title %}
@@ -398,7 +399,7 @@
       <div class="mt-4">
         <audio class="article-audio-player" controls preload="none">
           <source src="{{ display_audio_url }}" type="audio/mpeg">
-          Tvůj prohlížeč nepodporuje přehrávání audia.
+          {% trans "Tvůj prohlížeč nepodporuje přehrávání audia." %}
         </audio>
       </div>
     </div>

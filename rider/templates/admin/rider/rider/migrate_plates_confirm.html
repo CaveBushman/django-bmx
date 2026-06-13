@@ -1,8 +1,9 @@
 {% extends "admin/base_site.html" %}
+{% load i18n %}
 
 {% block content %}
   <div id="content-main">
-    <h1>Překlopení startovních čísel do textového pole</h1>
+    <h1>{% trans "Překlopení startovních čísel do textového pole" %}</h1>
     <p>
       Tato akce jednorázově zkopíruje stávající číselné hodnoty z polí <strong>plate</strong>
       do pomocného textového pole <strong>plate_text</strong> u domácích i zahraničních jezdců.
@@ -15,7 +16,7 @@
       {% csrf_token %}
       <div class="submit-row">
         <input type="submit" value="Spustit překlopení" class="default">
-        <a href="{% url 'admin:rider_rider_changelist' %}" class="button cancel-link">Zpět</a>
+        <a href="{% url 'admin:rider_rider_changelist' %}" class="button cancel-link">{% trans "Zpět" %}</a>
       </div>
     </form>
   </div>

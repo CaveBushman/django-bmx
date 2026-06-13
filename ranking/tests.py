@@ -222,7 +222,7 @@ class RankingRecountViewTests(TestCase):
             class_20="Men Junior",
         )
 
-    @patch("rider.views.schedule_ranking_recount")
+    @patch("rider.views.admin.schedule_ranking_recount")
     def test_staff_recount_view_schedules_background_recount(self, schedule_mock):
         self.client.force_login(self.staff_user)
         response = self.client.get(reverse("rider:ranking"), follow=True)

@@ -143,15 +143,32 @@ meaningful for foreign/unregistered riders even with no `Rider` row.
 
 Tailwind CSS 4.x, built from `theme/static_src/`. Compiled output goes to
 `theme/static/css/dist/styles.css`. Templates live in `{app}/templates/{app}/` with a shared
-base in `theme/templates/`. Dark mode is toggled via a CSS class (`html.dark`). Rich text uses
-CKEditor 5 (`django_ckeditor_5`); the local `ckeditor/` package is a plain-textarea
-compatibility shim kept only for legacy `RichTextField` migrations. No jQuery — site JS is
-vanilla (the admin/DRF bundle their own `django.jQuery`).
+base in `theme/templates/`. Dark mode is toggled via a CSS class (`html.dark`). The core palette
+lives in CSS design tokens at the top of `theme/static_src/src/styles.css` (`:root` + `.dark`
+override `--bmx-*`); change colors there, not per-rule. Rich text uses CKEditor 5
+(`django_ckeditor_5`); the local `ckeditor/` package is a plain-textarea compatibility shim kept
+only for legacy `RichTextField` migrations. No jQuery — site JS is vanilla (the admin/DRF bundle
+their own `django.jQuery`).
 
-### API views
+### i18n / translations
 
-`api/views/` is a package split by domain (`auth`, `riders`, `clubs`, `plates`, `news`,
-`events`, `foreign_entries`, `eshop`, `ranking`, `subscriptions`, `search`) with shared
-serializers/helpers in `_common.py`. `api/views/__init__.py` re-exports everything, so
-`from api import views; views.X` and `from api.views import X` keep working. When mocking in
-tests, patch the submodule where the name is resolved (e.g. `api.views.auth.stripe`).
+Source language is Czech (`LANGUAGE_CODE="cs"`); 8 target locales (en, de, es, fr, hu, it, pl, sk).
+**`.mo` files are gitignored** and must be compiled — the site falls back to Czech source if they
+aren't. `docker-entrypoint.sh` runs `compilemessages` on start (needs `gettext`, in the dockerfile);
+locally use `make i18n`. Each template using `{% trans %}` must `{% load i18n %}` itself (no
+builtins; `{% load %}` doesn't propagate into `{% include %}`). After adding strings:
+`make i18n-make` (extract) → translate → `make i18n` (compile).
+
+Bulk translation: `python manage.py translate_po` (in `news`) auto-translates untranslated/fuzzy
+`.po` entries from Czech via the project's translator (DeepL when `DEEPL_API_KEY` is set, else
+Google fallback) — same infra as article translation. Threaded (`--workers`), skips format strings
+(`%(x)s`, `{x}`) to protect interpolation; `--include-fuzzy` and `--compile` flags available.
+
+### View packages
+
+Both `api/views/` and `rider/views/` are packages split by domain, with shared
+imports/helpers/decorators in `_common.py` and `__init__.py` re-exporting everything (so
+`from rider import views; views.X` and `from api.views import X` keep working). When mocking in
+tests, patch the submodule where the name is resolved, e.g. `api.views.auth.stripe` or
+`rider.views.admin.schedule_ranking_recount`.
+

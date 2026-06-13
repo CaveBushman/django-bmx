@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Mapa klubů{% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Mapa klubů" %}{% endblock title %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>

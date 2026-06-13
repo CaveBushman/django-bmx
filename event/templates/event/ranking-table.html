@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Tabulka výpočtu{% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Tabulka výpočtu" %}{% endblock title %}
 {% block extra_head %}
 <style>
   .ranking-table-page {
@@ -102,19 +103,19 @@
       </div>
       <div class="ranking-table-stats-grid">
         <div class="ranking-table-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">MČR</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "MČR" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">350</p>
-          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">bodů za 1. místo</p>
+          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">{% trans "bodů za 1. místo" %}</p>
         </div>
         <div class="ranking-table-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">ČP</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "ČP" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">150</p>
-          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">bodů za 1. místo</p>
+          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">{% trans "bodů za 1. místo" %}</p>
         </div>
         <div class="ranking-table-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Ostatní</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Ostatní" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">60</p>
-          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">bodů za 1. místo</p>
+          <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-300">{% trans "bodů za 1. místo" %}</p>
         </div>
       </div>
     </div>
@@ -129,16 +130,16 @@
           <thead class="bg-slate-50 dark:bg-slate-950">
             <tr>
               <th scope="col" class="py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300 sm:pl-6"></th>
-              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Umístění</th>
-              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">MČR</th>
-              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">ČP</th>
-              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Ostatní</th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{% trans "Umístění" %}</th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{% trans "MČR" %}</th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{% trans "ČP" %}</th>
+              <th scope="col" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{% trans "Ostatní" %}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
             <tr class="dark:bg-slate-900">
-              <td rowspan="8" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-slate-100 sm:pl-6">FINÁLE</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-200">1. místo</td>
+              <td rowspan="8" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 dark:text-slate-100 sm:pl-6">{% trans "FINÁLE" %}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-200">{% trans "1. místo" %}</td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-200">350</td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-200">150</td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 dark:text-slate-200">60</td>

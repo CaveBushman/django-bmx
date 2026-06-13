@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Statistika návštěvnosti{% endblock title %}
@@ -112,7 +113,7 @@
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ total_visits }}</p>
           </div>
           <div class="page-stat-card">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Unikátní IP</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Unikátní IP" %}</p>
             <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ unique_visits }}</p>
           </div>
           <div class="page-stat-card">
@@ -132,7 +133,7 @@
     {% if daily_stats %}
     <div class="analytics-card mb-6 rounded-[1.75rem] p-6">
       <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Trend</p>
-      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Návštěvy po dnech</h2>
+      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Návštěvy po dnech" %}</h2>
       <div class="mt-6 overflow-x-auto">
         <div class="flex items-end gap-1.5 border-b border-slate-100 dark:border-slate-700" style="height:7rem">
           {% for day in daily_stats %}
@@ -158,7 +159,7 @@
     {% if top_pages %}
     <div class="analytics-card mb-6 rounded-[1.75rem] p-6">
       <p class="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-600 dark:text-emerald-300">Pages</p>
-      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Nejnavštěvovanější stránky</h2>
+      <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Nejnavštěvovanější stránky" %}</h2>
       <div class="mt-6 space-y-2">
         {% with top_pages.0.count as page_max %}
         {% for page in top_pages %}

@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -35,6 +36,7 @@ def make_user(**kwargs):
 
 class LoginAPITests(TestCase):
     def setUp(self):
+        cache.clear()  # reset login rate-limit bucket (sdílený throttle scope mezi testy)
         self.client = APIClient()
         self.user = make_user()
         self.url = "/api/v1/auth/login/"
@@ -845,3 +847,27 @@ class MobileAppSubscriptionResumeAPITests(TestCase):
     def test_unauthenticated_returns_401(self):
         response = APIClient().post(self.url)
         self.assertEqual(response.status_code, 401)
+
+
+class APIErrorFormatTests(TestCase):
+    """Ověřuje, že každá chybová odpověď API má konzistentní klíč 'error'
+    (přidává ho api.exceptions.api_exception_handler), bez ztráty 'detail'/field chyb."""
+
+    def setUp(self):
+        cache.clear()  # reset rate-limit bucketů mezi testy
+
+    def test_unauthenticated_error_has_error_key(self):
+        # 401 z auth (DRF detail) → handler doplní 'error'
+        response = APIClient().get("/api/v1/auth/me/")
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("error", response.data)
+        self.assertIsInstance(response.data["error"], str)
+        # původní detail zůstává zachován (aditivně)
+        self.assertIn("detail", response.data)
+
+    def test_validation_error_has_error_key_and_keeps_fields(self):
+        # Špatný login → validační/auth chyba; musí mít 'error' string
+        response = APIClient().post("/api/v1/auth/login/", {"email": "x@y.cz", "password": "bad"})
+        self.assertGreaterEqual(response.status_code, 400)
+        self.assertIn("error", response.data)
+        self.assertIsInstance(response.data["error"], str)

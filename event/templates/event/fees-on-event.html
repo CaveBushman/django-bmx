@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block title %}Přehled vybraného startovného{% endblock title %}
 
@@ -291,7 +292,7 @@
     <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
       <div class="max-w-3xl">
         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Fakturace</p>
-        <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Rozesílání faktur klubům</h2>
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{% trans "Rozesílání faktur klubům" %}</h2>
         <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
           Odtud se vygenerují PDF faktury za uhrazené registrace, uloží se do <code>media/invoices</code>,
           odešlou se na fakturační e-mail klubu a zároveň vznikne XML export pro ABRA Flexi.
@@ -333,7 +334,7 @@
       </div>
 
       <div class="mt-8">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Vygenerované faktury</h3>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">{% trans "Vygenerované faktury" %}</h3>
         {% if invoices %}
         <div class="mt-4 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700">
           <div class="overflow-x-auto">
@@ -341,9 +342,9 @@
               <thead class="bg-slate-100 dark:bg-slate-900">
                 <tr>
                   <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Klub</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Číslo</th>
-                  <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Částka</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Soubory a úpravy</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Číslo" %}</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Částka" %}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Soubory a úpravy" %}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
@@ -402,7 +403,7 @@
           </div>
         </div>
         {% else %}
-        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nebyly vygenerovány žádné faktury.</p>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">{% trans "Pro tento závod zatím nebyly vygenerovány žádné faktury." %}</p>
         {% endif %}
       </div>
 
@@ -411,8 +412,8 @@
     <section class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
       <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přehled</p>
-          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Vybrané startovné po klubech</h2>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přehled" %}</p>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{% trans "Vybrané startovné po klubech" %}</h2>
         </div>
       </div>
 
@@ -447,8 +448,8 @@
       </div>
       {% else %}
       <div class="rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
-        <p class="text-lg font-semibold text-slate-900 dark:text-white">Žádná zaplacená registrace</p>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nejsou evidované uhrazené položky.</p>
+        <p class="text-lg font-semibold text-slate-900 dark:text-white">{% trans "Žádná zaplacená registrace" %}</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "Pro tento závod zatím nejsou evidované uhrazené položky." %}</p>
       </div>
       {% endif %}
     </section>

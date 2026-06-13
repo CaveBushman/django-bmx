@@ -7,6 +7,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    gettext \
     libjpeg-dev \
     libpq-dev \
     zlib1g-dev \

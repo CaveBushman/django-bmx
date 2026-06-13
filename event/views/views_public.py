@@ -16,6 +16,7 @@ from django.core.cache import cache
 from django.conf import settings as django_settings
 from django.db.models import Count, Max
 from event.models import Event, EventProposition, EventType, Result, Entry, EntryForeign, EntryClasses
+from event.constants import EVENT_TYPE_STYLES, DEFAULT_EVENT_TYPE_STYLE
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import get_unregistration_deadline, is_registration_open
 
@@ -30,19 +31,6 @@ EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like", "structured_proposit
 ENTRY_CLASSES_FEE_FIELDS = tuple(
     field.name for field in EntryClasses._meta.get_fields() if field.name.endswith("_fee")
 )
-
-EVENT_TYPE_STYLES = {
-    EventType.CESKY_POHAR: {"color": "#3b82f6", "abbr": "ČP"},
-    EventType.CESKA_LIGA: {"color": "#10b981", "abbr": "ČL"},
-    EventType.EVROPSKY_POHAR: {"color": "#8b5cf6", "abbr": "EP"},
-    EventType.MCR_JEDNOTLIVCU: {"color": "#ef4444", "abbr": "MR"},
-    EventType.MCR_DRUZSTEV: {"color": "#ef4444", "abbr": "MR"},
-    EventType.MISTROVSTVI_SVETA: {"color": "#06b6d4", "abbr": "MS"},
-    EventType.SVETOVY_POHAR: {"color": "#334155", "abbr": "WC"},
-    EventType.MORAVSKA_LIGA: {"color": "#a16207", "abbr": "ML"},
-    EventType.MISTROVSTVI_EVROPY: {"color": "#0891b2", "abbr": "ME"},
-}
-
 
 def _get_structured_proposition(event):
     try:
@@ -257,7 +245,7 @@ def _decorate_events(events):
         event.has_public_proposition = bool(proposition and proposition.is_published)
         
         # Add type styling
-        style = EVENT_TYPE_STYLES.get(event.type_for_ranking, {"color": "#f97316", "abbr": "VZ"})
+        style = EVENT_TYPE_STYLES.get(event.type_for_ranking, DEFAULT_EVENT_TYPE_STYLE)
         event.type_color = style["color"]
         event.type_abbr = style["abbr"]
         

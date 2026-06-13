@@ -1,11 +1,12 @@
 {% extends 'base.html' %} {% block title %} Medián {% endblock title %}
+{% load i18n %}
 {% block content %}
 
 <header class="shadow dark:dark">
   <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-header">Medián kategorie Cruiser</h1>
+        <h1 class="text-3xl font-bold text-header">{% trans "Medián kategorie Cruiser" %}</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
           Celkem {{ sum }} jezdců, kteří jeli alespoň {{ minimum_participations }} z {{ cup_events }} závodů Českého poháru v roce {{ selected_year }}.
         </p>
@@ -34,7 +35,7 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="mt-8 rounded-xl bg-indigo-50 px-6 py-5 shadow-sm dark:bg-gray-700">
-    <p class="text-sm font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">Výsledek výpočtu</p>
+    <p class="text-sm font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">{% trans "Výsledek výpočtu" %}</p>
     <p class="mt-2 text-3xl font-extrabold text-gray-900 dark:text-gray-100">
       {% if median_age is not None %}
         Medián věku: {{ median_age }}
@@ -51,10 +52,10 @@
           <thead>
             <tr>
               <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Pozice</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Příjmení</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Jméno</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Věk</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Účasti</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{% trans "Příjmení" %}</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{% trans "Jméno" %}</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{% trans "Věk" %}</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{% trans "Účasti" %}</th>
             </tr>
           </thead>
           <tbody class="bg-white">
@@ -68,7 +69,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="5" class="px-3 py-6 text-sm text-gray-500">Pro vybraný rok neexistují žádní jezdci splňující podmínku minimální účasti.</td>
+              <td colspan="5" class="px-3 py-6 text-sm text-gray-500">{% trans "Pro vybraný rok neexistují žádní jezdci splňující podmínku minimální účasti." %}</td>
             </tr>
           {% endfor %}
           </tbody>

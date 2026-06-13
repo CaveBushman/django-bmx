@@ -1,3 +1,5 @@
+"""Logika prémiových předplatných jezdců a trenér-klub (Stripe, obnovy, fakturace)."""
+
 from datetime import timedelta
 
 from django.db import transaction

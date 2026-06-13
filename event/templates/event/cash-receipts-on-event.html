@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block title %}Pokladní doklady{% endblock title %}
 
@@ -219,11 +220,11 @@
         </div>
 
         <div class="receipt-action-row">
-          <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-action-secondary">Zpět na faktury</a>
+          <a href="{% url 'event:fees-on-event' event.id %}" class="invoice-action-secondary">{% trans "Zpět na faktury" %}</a>
           <a href="{% url 'event:cash-receipts-export' event.id %}" class="invoice-action-secondary{% if not receipts %} is-disabled{% endif %}" {% if receipts %}download{% endif %}>
             Export ABRA Flexi
           </a>
-          <a href="#receipt-form" class="invoice-action-primary">Přidat pokladní doklad</a>
+          <a href="#receipt-form" class="invoice-action-primary">{% trans "Přidat pokladní doklad" %}</a>
         </div>
       </div>
     </header>
@@ -232,7 +233,7 @@
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Seznam</p>
-          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Pokladní doklady</h2>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{% trans "Pokladní doklady" %}</h2>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
           Dokladů: {{ receipts|length }}
@@ -245,13 +246,13 @@
           <table class="fees-table min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead class="bg-slate-100 dark:bg-slate-900">
               <tr>
-                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Číslo</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Odběratel</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Číslo" %}</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Odběratel" %}</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Jezdec</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Kategorie</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Adresa</th>
-                <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Částka</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Soubory a úpravy</th>
+                <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Částka" %}</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Soubory a úpravy" %}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950/40">
@@ -299,13 +300,13 @@
         </div>
       </div>
       {% else %}
-      <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">Pro tento závod zatím nebyl vystaven žádný pokladní doklad.</p>
+      <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">{% trans "Pro tento závod zatím nebyl vystaven žádný pokladní doklad." %}</p>
       {% endif %}
     </section>
 
     <section id="receipt-form" class="dashboard-panel rounded-[2rem] border p-6 sm:p-8">
-      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přidat</p>
-      <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Nový pokladní doklad</h2>
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přidat" %}</p>
+      <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{% trans "Nový pokladní doklad" %}</h2>
       <form method="post" class="mt-6 space-y-5">
         {% csrf_token %}
         <div class="receipt-form-grid">
@@ -321,7 +322,7 @@
         </div>
         <textarea class="receipt-textarea" name="note" placeholder="Poznámka k dokladu"></textarea>
         <div class="receipt-action-row">
-          <button type="submit" class="invoice-action-primary">Vystavit pokladní doklad</button>
+          <button type="submit" class="invoice-action-primary">{% trans "Vystavit pokladní doklad" %}</button>
         </div>
       </form>
     </section>

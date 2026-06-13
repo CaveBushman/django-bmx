@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block title %}Úprava propozic{% endblock title %}
 
@@ -126,11 +127,11 @@
       </div>
       <div class="proposition-stats-grid">
         <div class="proposition-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Pořadatel</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pořadatel" %}</p>
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.organizer.team_name|default:"-" }}</p>
         </div>
         <div class="proposition-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datum závodu</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</p>
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.date|date:"j. n. Y"|default:"-" }}</p>
         </div>
         <div class="proposition-stat rounded-2xl px-5 py-4">
@@ -148,8 +149,8 @@
   <div class="proposition-shell">
     <div class="proposition-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="max-w-3xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Formulář závodu</p>
-        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Základní údaje a strukturovaný obsah</h2>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Formulář závodu" %}</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Základní údaje a strukturovaný obsah" %}</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
           Hero i rozvržení editoru jsou sjednocené s přehledovými stránkami webu. Textové bloky používají `django-ckeditor-5`.
         </p>
@@ -165,22 +166,22 @@
         {% csrf_token %}
         <div class="grid gap-6 sm:grid-cols-2">
           <div>
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Místo závodu</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Místo závodu" %}</label>
             {{ form.venue_name }}
             {% if form.venue_name.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.venue_name.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Adresa areálu</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Adresa areálu" %}</label>
             {{ form.venue_address }}
             {% if form.venue_address.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.venue_address.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kancelář závodu / otevřeno</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Kancelář závodu / otevřeno" %}</label>
             {{ form.office_hours }}
             {% if form.office_hours.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.office_hours.errors|join:", " }}</p>{% endif %}
           </div>
           <div>
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kontaktní osoba</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Kontaktní osoba" %}</label>
             {{ form.contact_name }}
             {% if form.contact_name.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.contact_name.errors|join:", " }}</p>{% endif %}
           </div>
@@ -198,12 +199,12 @@
 
         <div class="proposition-form-grid">
           <div class="proposition-rich-field">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Základní informace</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Základní informace" %}</label>
             {{ form.summary }}
             {% if form.summary.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.summary.errors|join:", " }}</p>{% endif %}
           </div>
           <div class="proposition-rich-field">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Časový harmonogram</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Časový harmonogram" %}</label>
             {{ form.schedule }}
             {% if form.schedule.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.schedule.errors|join:", " }}</p>{% endif %}
           </div>
@@ -213,22 +214,22 @@
             {% if form.categories.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.categories.errors|join:", " }}</p>{% endif %}
           </div>
           <div class="proposition-rich-field">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Registrace a podmínky</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Registrace a podmínky" %}</label>
             {{ form.registration_info }}
             {% if form.registration_info.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.registration_info.errors|join:", " }}</p>{% endif %}
           </div>
           <div class="proposition-rich-field">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Vyhlašování a ceny</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Vyhlašování a ceny" %}</label>
             {{ form.awards }}
             {% if form.awards.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.awards.errors|join:", " }}</p>{% endif %}
           </div>
           <div class="proposition-rich-field">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Ubytování</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Ubytování" %}</label>
             {{ form.accommodation }}
             {% if form.accommodation.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.accommodation.errors|join:", " }}</p>{% endif %}
           </div>
           <div class="proposition-rich-field lg:col-span-2">
-            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Další informace</label>
+            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Další informace" %}</label>
             {{ form.additional_info }}
             {% if form.additional_info.errors %}<p class="mt-2 text-sm text-rose-600 dark:text-rose-300">{{ form.additional_info.errors|join:", " }}</p>{% endif %}
           </div>
@@ -236,7 +237,7 @@
 
         <label class="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 dark:border-slate-800">
           {{ form.is_published }}
-          <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Zveřejnit formulářovou propozici</span>
+          <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Zveřejnit formulářovou propozici" %}</span>
         </label>
 
         <div class="flex flex-wrap gap-3">

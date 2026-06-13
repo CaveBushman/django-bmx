@@ -171,7 +171,7 @@ class FcmTokenAPIView(APIView):
     def post(self, request):
         token = (request.data.get("fcm_token") or "").strip()
         if not token:
-            return Response({"detail": "fcm_token required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "fcm_token required."}, status=status.HTTP_400_BAD_REQUEST)
         FcmDevice.objects.update_or_create(
             token=token,
             defaults={"user": request.user},

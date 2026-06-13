@@ -406,6 +406,8 @@ REST_FRAMEWORK = {
     },
 
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Jednotný tvar chyb: ke každé chybové odpovědi přidá klíč "error" (string).
+    "EXCEPTION_HANDLER": "api.exceptions.api_exception_handler",
 }
 
 from datetime import timedelta

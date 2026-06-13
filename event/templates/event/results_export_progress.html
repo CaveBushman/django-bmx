@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}Odesílání výsledků{% endblock title %}
 
 {% block extra_head %}
@@ -79,15 +80,15 @@
         </div>
         <div class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
           <span id="export-status-dot" class="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
-          <span id="export-status-label">Spouštím úlohu</span>
+          <span id="export-status-label">{% trans "Spouštím úlohu" %}</span>
         </div>
       </div>
 
       <div class="mt-10">
         <div class="flex items-end justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Průběh</p>
-            <p id="export-message" class="mt-2 text-xl font-bold text-slate-900 dark:text-white">Inicializuji exportní úlohu</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{% trans "Průběh" %}</p>
+            <p id="export-message" class="mt-2 text-xl font-bold text-slate-900 dark:text-white">{% trans "Inicializuji exportní úlohu" %}</p>
           </div>
           <p id="export-percent" class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">0 %</p>
         </div>
@@ -99,15 +100,15 @@
 
       <div class="mt-8 grid gap-4 sm:grid-cols-3">
         <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zpracováno</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Zpracováno" %}</p>
           <p id="export-processed" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0 / 0</p>
         </div>
         <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Připraveno k odeslání</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Připraveno k odeslání" %}</p>
           <p id="export-sent" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0</p>
         </div>
         <div class="results-export-stat rounded-[1.4rem] px-5 py-5">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přeskočeno</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přeskočeno" %}</p>
           <p id="export-skipped" class="mt-3 text-3xl font-black text-slate-900 dark:text-white">0</p>
         </div>
       </div>

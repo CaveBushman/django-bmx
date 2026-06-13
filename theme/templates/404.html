@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -115,8 +116,8 @@
 <body>
   <main>
     <p class="code">404</p>
-    <h1>Stránka nebyla nalezena</h1>
-    <p>Požadovaná adresa na webu Czech BMX neexistuje nebo už byla přesunuta. Zkontrolujte URL, případně pokračujte zpět na úvodní stránku.</p>
+    <h1>{% trans "Stránka nebyla nalezena" %}</h1>
+    <p>{% trans "Požadovaná adresa na webu Czech BMX neexistuje nebo už byla přesunuta. Zkontrolujte URL, případně pokračujte zpět na úvodní stránku." %}</p>
     <div class="actions">
       <a class="primary" href="/">Zpět na úvodní stránku</a>
       <a class="secondary" href="javascript:history.back()">Zpět na předchozí stránku</a>

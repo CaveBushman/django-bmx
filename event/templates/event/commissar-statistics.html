@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Statistika nasazení rozhodčích{% endblock title %}
 {% block extra_head %}
@@ -130,7 +131,7 @@
       </div>
       <div class="commissar-stats-grid">
         <div class="commissar-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Aktivní rozhodčí</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Aktivní rozhodčí" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ active_commissars_count }}</p>
         </div>
         <div class="commissar-stat rounded-2xl px-5 py-4">
@@ -180,7 +181,7 @@
           <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead class="bg-slate-50 dark:bg-slate-950">
               <tr>
-                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Rozhodčí</th>
+                <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">{% trans "Rozhodčí" %}</th>
                 <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">PCP</th>
                 <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">PCP asist.</th>
                 <th class="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">Start Commissar</th>

@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -106,10 +107,10 @@
 <body>
   <main>
     <p class="code">500</p>
-    <h1>Na serveru došlo k chybě</h1>
-    <p>Požadavek se nepodařilo dokončit kvůli interní chybě aplikace. Zkuste stránku načíst znovu za chvíli. Pokud problém přetrvá, je potřeba zkontrolovat logy aplikace.</p>
+    <h1>{% trans "Na serveru došlo k chybě" %}</h1>
+    <p>{% trans "Požadavek se nepodařilo dokončit kvůli interní chybě aplikace. Zkuste stránku načíst znovu za chvíli. Pokud problém přetrvá, je potřeba zkontrolovat logy aplikace." %}</p>
     <div class="actions">
-      <a href="/">Zpět na úvodní stránku</a>
+      <a href="/">{% trans "Zpět na úvodní stránku" %}</a>
     </div>
   </main>
 </body>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block content %}
 <h2>Chyba</h2>
@@ -6,5 +7,5 @@
 {% if detail %}
 <pre>{{ detail }}</pre>
 {% endif %}
-<a href="/">Zpět na hlavní stránku</a>
+<a href="/">{% trans "Zpět na hlavní stránku" %}</a>
 {% endblock %}

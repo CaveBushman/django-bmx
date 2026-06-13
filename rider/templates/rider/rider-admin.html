@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}Administrace jezdců{% endblock title %}
 {% load static %}
 
@@ -199,8 +200,8 @@
             <i class="fas fa-arrow-trend-up text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Přepočítej ranking</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace pořadí a bodového přehledu</span>
+            <span class="block text-lg font-semibold">{% trans "Přepočítej ranking" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Aktualizace pořadí a bodového přehledu" %}</span>
           </span>
         </a>
 
@@ -209,8 +210,8 @@
             <i class="fas fa-user-slash text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Neaktivní jezdci</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Seznam a správa neaktivních profilů</span>
+            <span class="block text-lg font-semibold">{% trans "Neaktivní jezdci" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Seznam a správa neaktivních profilů" %}</span>
           </span>
         </a>
 
@@ -219,8 +220,8 @@
             <i class="fas fa-certificate text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Zkontroluj platnost licencí</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Ověření stavu licence napříč databází</span>
+            <span class="block text-lg font-semibold">{% trans "Zkontroluj platnost licencí" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Ověření stavu licence napříč databází" %}</span>
           </span>
         </a>
 
@@ -229,8 +230,8 @@
             <i class="fas fa-clipboard-list text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Účast jezdců na závodech</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Přehled startů a zapojení jezdců</span>
+            <span class="block text-lg font-semibold">{% trans "Účast jezdců na závodech" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Přehled startů a zapojení jezdců" %}</span>
           </span>
         </a>
 
@@ -239,8 +240,8 @@
             <i class="fas fa-chart-line text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Statistika účasti</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Vývoj počtu jezdců na MČR, ČP, ČL, ML a volných závodech</span>
+            <span class="block text-lg font-semibold">{% trans "Statistika účasti" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Vývoj počtu jezdců na MČR, ČP, ČL, ML a volných závodech" %}</span>
           </span>
         </a>
 
@@ -249,8 +250,8 @@
             <i class="fas fa-hashtag text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Volná startovní čísla</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Přehled neobsazených čísel pro nové jezdce</span>
+            <span class="block text-lg font-semibold">{% trans "Volná startovní čísla" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Přehled neobsazených čísel pro nové jezdce" %}</span>
           </span>
         </a>
 
@@ -259,8 +260,8 @@
             <i class="fas fa-chart-column text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Přepočítej kategorie</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Přegenerování tříd podle aktuálních pravidel</span>
+            <span class="block text-lg font-semibold">{% trans "Přepočítej kategorie" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Přegenerování tříd podle aktuálních pravidel" %}</span>
           </span>
         </a>
 
@@ -269,7 +270,7 @@
             <i class="fas fa-person-biking text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Přepočítej medián cruiserů</span>
+            <span class="block text-lg font-semibold">{% trans "Přepočítej medián cruiserů" %}</span>
             <span class="mt-1 block text-sm text-indigo-100/80">Aktualizace metrik pro cruiser kategorii</span>
           </span>
         </a>
@@ -279,8 +280,8 @@
             <i class="fas fa-trophy text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Jezdci dle klubů a kategorií</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Strukturovaný přehled jezdců v systému</span>
+            <span class="block text-lg font-semibold">{% trans "Jezdci dle klubů a kategorií" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Strukturovaný přehled jezdců v systému" %}</span>
           </span>
         </a>
 
@@ -290,12 +291,12 @@
           </span>
           <span class="min-w-0 flex-1">
             <span class="flex items-center gap-3">
-              <span class="block text-lg font-semibold">Schvalování avatarů</span>
+              <span class="block text-lg font-semibold">{% trans "Schvalování avatarů" %}</span>
               {% if pending_avatar_count %}
               <span class="rider-admin-action-badge">{{ pending_avatar_count }}</span>
               {% endif %}
             </span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Ruční kontrola nových avatarů účtů a navázaných jezdců</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Ruční kontrola nových avatarů účtů a navázaných jezdců" %}</span>
           </span>
         </a>
 
@@ -304,8 +305,8 @@
             <i class="fas fa-ticket text-lg"></i>
           </span>
           <span>
-            <span class="block text-lg font-semibold">Přepočítej kvalifikaci na MČR</span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Kontrola kvalifikačního stavu jezdců</span>
+            <span class="block text-lg font-semibold">{% trans "Přepočítej kvalifikaci na MČR" %}</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Kontrola kvalifikačního stavu jezdců" %}</span>
           </span>
         </a>
 
@@ -315,10 +316,10 @@
           </span>
           <span class="min-w-0 flex-1">
             <span class="flex items-center gap-3">
-              <span class="block text-lg font-semibold">Seznam kvalifikovaných na MČR</span>
+              <span class="block text-lg font-semibold">{% trans "Seznam kvalifikovaných na MČR" %}</span>
               <span class="rider-admin-action-badge">{{ qualified_to_mcr_count }}</span>
             </span>
-            <span class="mt-1 block text-sm text-indigo-100/80">Přehled jezdců s aktivní kvalifikací na MČR</span>
+            <span class="mt-1 block text-sm text-indigo-100/80">{% trans "Přehled jezdců s aktivní kvalifikací na MČR" %}</span>
           </span>
         </a>
       </div>

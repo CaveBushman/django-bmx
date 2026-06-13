@@ -1,4 +1,4 @@
-.PHONY: deps deps-upgrade install migrate test lint run
+.PHONY: deps deps-upgrade install migrate test lint run i18n i18n-make
 
 # Závislosti
 deps:
@@ -34,3 +34,11 @@ css-watch:
 # Statické soubory
 static:
 	python manage.py collectstatic --noinput
+
+# Překlady (.mo nejsou ve verzování — je nutné je zkompilovat)
+i18n:
+	python manage.py compilemessages
+
+# Extrakce nových řetězců do .po (po přidání {% trans %} / gettext)
+i18n-make:
+	python manage.py makemessages -a --no-location

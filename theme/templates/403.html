@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -104,13 +105,13 @@
 <body>
   <main>
     <p class="code">403</p>
-    <h1>Přístup byl zamítnut</h1>
-    <p>Požadovaná akce není pro tento účet nebo tento požadavek povolena.</p>
+    <h1>{% trans "Přístup byl zamítnut" %}</h1>
+    <p>{% trans "Požadovaná akce není pro tento účet nebo tento požadavek povolena." %}</p>
     {% if csrf_reason %}
       <p>Důvod zamítnutí bezpečnostní kontroly: {{ csrf_reason }}</p>
     {% endif %}
     <div class="actions">
-      <a href="/">Zpět na úvodní stránku</a>
+      <a href="/">{% trans "Zpět na úvodní stránku" %}</a>
     </div>
   </main>
 </body>

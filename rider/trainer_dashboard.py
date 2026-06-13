@@ -1,3 +1,5 @@
+"""Data a XLS exporty trenérského dashboardu (přehled jezdců klubu, KPI)."""
+
 import csv
 import datetime
 import re

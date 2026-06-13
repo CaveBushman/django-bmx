@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block title %}Administrace závodu{% endblock title %}
 {% block extra_head %}
@@ -155,11 +156,11 @@
       </div>
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="ec-admin-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přihlášení jezdci</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přihlášení jezdci" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum_entries }}</p>
         </div>
         <div class="ec-admin-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Vybrané startovné</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Vybrané startovné" %}</p>
           <p id="payment-amount" class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ payments }}</p>
         </div>
         <a href="{% url 'event:ec_by_club_xls' event.id %}"
@@ -178,8 +179,8 @@
   <div class="ec-admin-shell">
     <div class="ec-admin-card rounded-[2rem] p-5 sm:p-6 lg:p-8">
       <div class="max-w-3xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Soubory a výstupy</p>
-        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Evropský pohár na jednom místě</h2>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Soubory a výstupy" %}</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Evropský pohár na jednom místě" %}</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
           Exporty pro UEC, pojišťovnu i veřejné zveřejnění výsledků ve stejném vizuálním režimu jako přehled klubů.
         </p>
@@ -209,8 +210,8 @@
 
         <article class="ec-admin-file-card flex flex-col gap-4 rounded-[1.5rem] p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Pojištění</p>
-            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">XLS soubor pro pojišťovnu</h3>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{% trans "Pojištění" %}</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{% trans "XLS soubor pro pojišťovnu" %}</h3>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Aktuální ke dni
               {% if event.ec_insurance_file_created %}{{ event.ec_insurance_file_created }}{% else %}-{% endif %}
@@ -230,8 +231,8 @@
       </div>
 
       <div class="mt-8 max-w-3xl">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Zveřejnění výsledků</p>
-        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Spojení více výsledkových PDF</h2>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Zveřejnění výsledků" %}</p>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Spojení více výsledkových PDF" %}</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
           Nahraj libovolný počet PDF souborů s výsledky. Systém je spojí do jednoho veřejného souboru a publikuje ho v přehledu závodů.
         </p>
@@ -243,9 +244,9 @@
           <article class="ec-admin-file-card rounded-[1.5rem] p-5">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Výsledkové bloky</p>
-                <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">PDF soubory s výsledky</h3>
-                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">První pole je povinné. Další přidej tlačítkem +.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{% trans "Výsledkové bloky" %}</p>
+                <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{% trans "PDF soubory s výsledky" %}</h3>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">{% trans "První pole je povinné. Další přidej tlačítkem +." %}</p>
               </div>
               <button
                 type="button"
@@ -260,7 +261,7 @@
             <div id="ec-results-inputs" class="mt-4 space-y-4">
               <div class="ec-results-input-row">
                 <div class="ec-results-input-header">
-                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">PDF výsledků 1</label>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "PDF výsledků 1" %}</label>
                 </div>
                 <input
                   type="file"
@@ -274,12 +275,12 @@
 
           <article class="ec-admin-file-card rounded-[1.5rem] p-5 flex flex-col justify-between">
             <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Veřejný výstup</p>
-              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">Sloučené PDF</h3>
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{% trans "Veřejný výstup" %}</p>
+              <h3 class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{% trans "Sloučené PDF" %}</h3>
               <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 {% if event.full_results %}
                 Aktuálně zveřejněno:
-                <a href="{{ event.full_results_url }}" target="_blank" class="font-semibold text-indigo-600 dark:text-indigo-300">stáhnout PDF</a>
+                <a href="{{ event.full_results_url }}" target="_blank" class="font-semibold text-indigo-600 dark:text-indigo-300">{% trans "stáhnout PDF" %}</a>
                 {% else %}
                 Zatím není zveřejněný žádný výsledkový PDF soubor.
                 {% endif %}

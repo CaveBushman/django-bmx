@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Volná startovní čísla{% endblock title %}
+{% block title %}{% trans "Volná startovní čísla" %}{% endblock title %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
@@ -113,18 +113,18 @@
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
       <div>
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
-          Rider Admin
+          {% trans "Rider Admin" %}
         </p>
         <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-          Volná startovní čísla
+          {% trans "Volná startovní čísla" %}
         </h1>
         <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Přehled všech neobsazených startovních čísel pro aktivní databázi českých jezdců.
+          {% trans "Přehled všech neobsazených startovních čísel pro aktivní databázi českých jezdců." %}
         </p>
       </div>
       <div class="free-plates-stats-grid">
         <div class="free-plates-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Volná čísla</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Volná čísla" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ free_plates_count }}</p>
           <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">v rozsahu 10–999</p>
         </div>
@@ -146,8 +146,8 @@
       </div>
       {% else %}
       <div class="rounded-[1.5rem] border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
-        <p class="text-lg font-semibold text-slate-900 dark:text-white">Žádná volná startovní čísla</p>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">V aktuálním rozsahu nejsou k dispozici žádná neobsazená čísla.</p>
+        <p class="text-lg font-semibold text-slate-900 dark:text-white">{% trans "Žádná volná startovní čísla" %}</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{% trans "V aktuálním rozsahu nejsou k dispozici žádná neobsazená čísla." %}</p>
       </div>
       {% endif %}
     </section>

@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -106,10 +107,10 @@
 <body>
   <main>
     <p class="code">400</p>
-    <h1>Požadavek se nepodařilo zpracovat</h1>
-    <p>Server dostal neplatný nebo neúplný požadavek. Zkuste akci zopakovat, případně se vraťte na úvodní stránku a odešlete formulář znovu.</p>
+    <h1>{% trans "Požadavek se nepodařilo zpracovat" %}</h1>
+    <p>{% trans "Server dostal neplatný nebo neúplný požadavek. Zkuste akci zopakovat, případně se vraťte na úvodní stránku a odešlete formulář znovu." %}</p>
     <div class="actions">
-      <a href="/">Zpět na úvodní stránku</a>
+      <a href="/">{% trans "Zpět na úvodní stránku" %}</a>
     </div>
   </main>
 </body>

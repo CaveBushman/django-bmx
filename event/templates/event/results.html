@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Výsledky závodu{% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Výsledky závodu" %}{% endblock title %}
 {% block meta_description %}Vysledky zavodu {{ event.name }}. Kompletní prehled kategorii, umisteni a klubu na Czech BMX.{% endblock %}
 {% block og_title %}Výsledky – {{ event.name }} | Czech BMX{% endblock %}
 {% block og_description %}Kompletní výsledky závodu {{ event.name }} na Czech BMX. Přehled kategorií, umístění a klubů.{% endblock %}
@@ -82,7 +83,7 @@
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Výsledky závodu</p>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Výsledky závodu" %}</p>
         <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{{ event.name }}</h1>
         <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
           Kompletní přehled umístění, kategorií a klubů pro zvolený závod.
@@ -90,23 +91,23 @@
       </div>
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="results-hero-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datum</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum" %}</p>
           <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ event.date|date:"j. n. Y"|default:"-" }}</p>
         </div>
         <div class="results-hero-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Řádků</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Řádků" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ results|length }}</p>
         </div>
         {% if event.full_results %}
         <a href="{{ event.full_results_url }}" target="_blank" rel="noopener noreferrer" class="results-hero-stat inline-flex flex-col justify-center rounded-2xl px-5 py-4 transition hover:bg-white/90 dark:hover:bg-slate-900/80">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Soubor</p>
-          <p class="mt-2 text-base font-black text-slate-900 dark:text-white">PDF výsledků</p>
-          <span class="mt-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">Otevřít</span>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Soubor" %}</p>
+          <p class="mt-2 text-base font-black text-slate-900 dark:text-white">{% trans "PDF výsledků" %}</p>
+          <span class="mt-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">{% trans "Otevřít" %}</span>
         </a>
         {% else %}
         <div class="results-hero-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">PDF</p>
-          <p class="mt-2 text-base font-black text-slate-900 dark:text-white">Zatím není</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "PDF" %}</p>
+          <p class="mt-2 text-base font-black text-slate-900 dark:text-white">{% trans "Zatím není" %}</p>
         </div>
         {% endif %}
       </div>
@@ -121,10 +122,10 @@
         <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
           <thead class="bg-slate-50/90 dark:bg-slate-900/70">
             <tr>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Místo</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Kategorie</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Jméno</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Příjmení</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Místo" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Kategorie" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Jméno" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Příjmení" %}</th>
               <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">UCI ID</th>
               <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Klub</th>
             </tr>

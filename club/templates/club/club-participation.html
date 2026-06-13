@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Účast na závodech{% endblock title %}
+{% load i18n %}
+{% block title %}{% trans "Účast na závodech" %}{% endblock title %}
 
 {% block extra_head %}
 <style>
@@ -58,25 +59,25 @@
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">Klubová statistika</p>
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "Klubová statistika" %}</p>
         <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
           {{ club.team_name|upper }}
         </h1>
         <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-          Účast na závodech v roce {{ year }} s přehledem počtu jezdců a vybraných částek za jednotlivé termíny.
+          {% blocktrans %}Účast na závodech v roce {{ year }} s přehledem počtu jezdců a vybraných částek za jednotlivé termíny.{% endblocktrans %}
         </p>
       </div>
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="club-participation-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Rok</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Rok" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ year }}</p>
         </div>
         <div class="club-participation-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Závody</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Závody" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ participations|length }}</p>
         </div>
         <div class="club-participation-stat rounded-2xl px-5 py-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Celkem</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celkem" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum }} CZK</p>
         </div>
       </div>
@@ -91,10 +92,10 @@
         <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
           <thead class="bg-slate-50/90 dark:bg-slate-900/70">
             <tr>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Datum</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Název</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Počet jezdců</th>
-              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">Vybraná částka</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Datum" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Název" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Počet jezdců" %}</th>
+              <th class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white">{% trans "Vybraná částka" %}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 bg-white/90 dark:divide-slate-800 dark:bg-slate-950/80">
@@ -107,11 +108,11 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="4" class="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Pro tento klub zatím v daném roce nejsou žádné závodní účasti.</td>
+              <td colspan="4" class="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">{% trans "Pro tento klub zatím v daném roce nejsou žádné závodní účasti." %}</td>
             </tr>
             {% endfor %}
             <tr class="bg-slate-100/80 font-bold dark:bg-slate-800/70">
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white">Celkem</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white">{% trans "Celkem" %}</td>
               <td class="px-3 py-4"></td>
               <td class="px-3 py-4"></td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white">{{ sum }} CZK</td>

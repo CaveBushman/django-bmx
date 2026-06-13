@@ -58,8 +58,8 @@
     <a href="{% url 'rider:admin' %}" class="mb-4 inline-flex items-center gap-2 text-sm text-indigo-200 hover:text-white">
       <i class="fas fa-arrow-left"></i> Administrace jezdců
     </a>
-    <h1 class="text-3xl font-black tracking-tight">Statistika účasti jezdců</h1>
-    <p class="mt-2 text-indigo-100">Vývoj počtu jezdců na závodech dle typu série</p>
+    <h1 class="text-3xl font-black tracking-tight">{% trans "Statistika účasti jezdců" %}</h1>
+    <p class="mt-2 text-indigo-100">{% trans "Vývoj počtu jezdců na závodech dle typu série" %}</p>
   </div>
 </section>
 
@@ -67,12 +67,12 @@
 
   <!-- Filtr časového období -->
   <div class="mb-8 flex flex-wrap items-center gap-2">
-    <span class="mr-2 text-sm font-medium text-slate-500 dark:text-slate-400">Období:</span>
+    <span class="mr-2 text-sm font-medium text-slate-500 dark:text-slate-400">{% trans "Období:" %}</span>
     <div class="flex gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-800">
       <button class="period-btn active" data-years="1">1 rok</button>
       <button class="period-btn" data-years="2">2 roky</button>
       <button class="period-btn" data-years="5">5 let</button>
-      <button class="period-btn" data-years="0">Celá historie</button>
+      <button class="period-btn" data-years="0">{% trans "Celá historie" %}</button>
     </div>
   </div>
 
@@ -83,7 +83,7 @@
       <div class="mb-4 flex items-start justify-between">
         <div>
           <div class="chart-label">{{ label }}</div>
-          <div class="chart-meta" id="meta-{{ forloop.counter }}">načítám…</div>
+          <div class="chart-meta" id="meta-{{ forloop.counter }}">{% trans "načítám…" %}</div>
         </div>
         <span id="avg-badge-{{ forloop.counter }}"
           class="inline-flex items-center rounded-full px-3 py-1 text-sm font-bold text-white"
@@ -96,19 +96,19 @@
 
   <!-- Souhrnná tabulka -->
   <div class="mt-10">
-    <h2 class="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">Souhrn za vybrané období</h2>
+    <h2 class="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">{% trans "Souhrn za vybrané období" %}</h2>
     <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
       <table class="w-full text-sm">
         <thead class="bg-slate-50 dark:bg-slate-800">
           <tr>
-            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Série</th>
-            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">Závodů</th>
-            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">Ø jezdců / závod</th>
-            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">Max jezdců</th>
+            <th class="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">{% trans "Série" %}</th>
+            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">{% trans "Závodů" %}</th>
+            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">{% trans "Ø jezdců / závod" %}</th>
+            <th class="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300">{% trans "Max jezdců" %}</th>
           </tr>
         </thead>
         <tbody id="summary-table" class="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-900">
-          <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">Načítám…</td></tr>
+          <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">{% trans "Načítám…" %}</td></tr>
         </tbody>
       </table>
     </div>

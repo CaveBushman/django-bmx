@@ -1,3 +1,5 @@
+"""Generování PDF reportu s prémiovými statistikami jezdce (reportlab)."""
+
 from io import BytesIO
 import os
 import re

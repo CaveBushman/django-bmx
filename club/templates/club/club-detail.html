@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %} Detail klubu {% endblock title %}
+{% block title %}{% trans "Detail klubu" %}{% endblock title %}
 {% block extra_head %}
 <style>
   .clubs-page {
@@ -347,7 +347,7 @@
       </div>
 
       <div class="club-detail-primary-card rounded-[2rem] p-6 sm:p-8">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Přímý kontakt</p>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přímý kontakt" %}</p>
         <h2 class="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Spojení na klub</h2>
         <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
           E-mail, telefon a adresa na jednom místě. Vhodné pro rychlou domluvu i orientaci v regionu.

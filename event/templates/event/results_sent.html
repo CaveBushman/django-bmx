@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block title %}Výsledky odeslány{% endblock title %}
 
 {% block content %}
@@ -25,19 +26,19 @@
 
           <div class="mt-8 grid gap-4 sm:grid-cols-3">
             <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Odesláno</p>
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Odesláno" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.sent_count }}</p>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">záznamů do ČSC</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "záznamů do ČSC" %}</p>
             </article>
             <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
               <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.unique_categories_count }}</p>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">unikátních API kódů</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "unikátních API kódů" %}</p>
             </article>
             <article class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/70">
               <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kluby</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ export_summary.unique_teams_count }}</p>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">týmů v exportu</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% trans "týmů v exportu" %}</p>
             </article>
           </div>
 
@@ -70,19 +71,19 @@
           <p class="text-xs font-black uppercase tracking-[0.26em] text-slate-500 dark:text-slate-400">Metadata exportu</p>
           <dl class="mt-5 space-y-4">
             <div>
-              <dt class="text-sm text-slate-500 dark:text-slate-400">ID závodu v ČSC</dt>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">{% trans "ID závodu v ČSC" %}</dt>
               <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.ccf_id|default:"-" }}</dd>
             </div>
             <div>
-              <dt class="text-sm text-slate-500 dark:text-slate-400">Odesláno</dt>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">{% trans "Odesláno" %}</dt>
               <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.ccf_created|date:"d.m.Y H:i:s" }}</dd>
             </div>
             <div>
-              <dt class="text-sm text-slate-500 dark:text-slate-400">Datum závodu</dt>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</dt>
               <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.date|date:"d.m.Y"|default:"-" }}</dd>
             </div>
             <div>
-              <dt class="text-sm text-slate-500 dark:text-slate-400">Typ závodu</dt>
+              <dt class="text-sm text-slate-500 dark:text-slate-400">{% trans "Typ závodu" %}</dt>
               <dd class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{{ event.type_for_ranking|default:"-" }}</dd>
             </div>
           </dl>
@@ -103,7 +104,7 @@
       <article class="rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Datová kvalita</p>
+            <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datová kvalita" %}</p>
             <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Coverage payloadu</h2>
           </div>
           <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
@@ -128,8 +129,8 @@
       </article>
 
       <article class="rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
-        <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Složení exportu</p>
-        <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Rozpad odeslaných výsledků</h2>
+        <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Složení exportu" %}</p>
+        <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{% trans "Rozpad odeslaných výsledků" %}</h2>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2">
           <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
@@ -141,11 +142,11 @@
             <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.cruiser_count }}</p>
           </div>
           <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Ženy</p>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Ženy" %}</p>
             <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.women_count }}</p>
           </div>
           <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Muži</p>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Muži" %}</p>
             <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.men_count }}</p>
           </div>
           <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
@@ -153,7 +154,7 @@
             <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.czech_count }}</p>
           </div>
           <div class="rounded-[1.35rem] border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Zahraničí</p>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{% trans "Zahraničí" %}</p>
             <p class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{{ export_summary.foreign_count }}</p>
           </div>
         </div>
@@ -169,7 +170,7 @@
     {% if export_summary.top_categories %}
     <section class="mt-6 rounded-[1.75rem] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/85">
       <p class="text-xs font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Kategorie</p>
-      <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">Nejčastější API kódy v exportu</h2>
+      <h2 class="mt-2 text-2xl font-black text-slate-900 dark:text-white">{% trans "Nejčastější API kódy v exportu" %}</h2>
 
       <div class="mt-6 grid gap-4 lg:grid-cols-5">
         {% for item in export_summary.top_categories %}
