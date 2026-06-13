@@ -126,10 +126,7 @@
 
   <!-- Scripty -->
   <!-- Note: These scripts are loaded in order for navbar and theme functionality.
-       jQuery is loaded without defer as it's a dependency for other scripts.
        Other scripts use cache busting (?v=N) to prevent stale assets. -->
-  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
-    crossorigin="anonymous"></script>
   <script src="{% static 'js/base.js' %}?v=1"></script>
   <script src="{% static 'js/theme.js' %}?v=4"></script>
   <script src="{% static 'js/navbar.js' %}?v=3"></script>

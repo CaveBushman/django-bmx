@@ -18,7 +18,7 @@ from event.func import (
     resolve_event_classes,
     resolve_event_fee,
 )
-from event.models import Entry, EntryForeign, Event, SeasonSettings, normalize_uci_id
+from event.models import Entry, EntryForeign, Event, EventType, SeasonSettings, normalize_uci_id
 from rider.models import ForeignRider, Rider
 from rider.plates import display_plate, legacy_plate_int, normalize_plate_value
 
@@ -92,7 +92,7 @@ def _resolve_rider_event_data(event, rider, *, beginners_enabled=False):
     data["allow_beginner"] = data["is_beginner"] and event.is_beginners_event()
     data["allow_20"] = (
         not (
-            event.type_for_ranking == "Mistrovství ČR jednotlivců"
+            event.type_for_ranking == EventType.MCR_JEDNOTLIVCU
             and not (rider.is_qualify_to_cn_20 or rider.mcr_wild_card_20)
         )
         and data["class_20"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}
@@ -100,7 +100,7 @@ def _resolve_rider_event_data(event, rider, *, beginners_enabled=False):
     data["allow_24"] = (
         not rider.is_elite
         and not (
-            event.type_for_ranking == "Mistrovství ČR jednotlivců"
+            event.type_for_ranking == EventType.MCR_JEDNOTLIVCU
             and not (rider.is_qualify_to_cn_24 or rider.mcr_wild_card_24)
         )
         and data["class_24"] not in {"", "NENÍ VYPSÁNO", "NELZE PŘIHLÁSIT"}

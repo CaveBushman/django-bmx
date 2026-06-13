@@ -1,4 +1,15 @@
 services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   web:
     build:
       context: .
@@ -8,6 +19,13 @@ services:
     environment:
       DJANGO_COLLECTSTATIC: "1"
       DJANGO_MIGRATE: "0"
+      # V kontejneru je Redis dostupný pod hostname "redis"
+      REDIS_URL: "redis://redis:6379/1"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
     volumes:
@@ -27,3 +45,48 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: dockerfile
+    command: celery -A bmx worker -l info --concurrency=2
+    env_file:
+      - ./bmx/.env
+    environment:
+      DJANGO_COLLECTSTATIC: "0"
+      REDIS_URL: "redis://redis:6379/1"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./media:/app/media
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: dockerfile
+    command: celery -A bmx beat -l info
+    env_file:
+      - ./bmx/.env
+    environment:
+      DJANGO_COLLECTSTATIC: "0"
+      # Beat řídí periodiku přes Celery → settings vyprázdní django-crontab CRONJOBS
+      USE_CELERY_BEAT: "1"
+      REDIS_URL: "redis://redis:6379/1"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./media:/app/media
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  redis-data:

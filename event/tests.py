@@ -4528,3 +4528,83 @@ class EventFeedTests(TestCase):
         content = response.content.decode("utf-8")
         self.assertIn("Jiná dráha 2", content)
         self.assertNotIn("LOCATION:Dráhová 1", content)
+
+
+class EntryIntegrityCommandTests(TestCase):
+    """Pokrývá příkaz check_entry_integrity: detekci osiřelých referencí na
+    jezdce a klíčovou garanci, že --fix vynuluje pouze Entry, nikdy Result."""
+
+    BOGUS_RIDER_PK = 999_999_999
+    BOGUS_UCI_ID = 88_888_888_888
+
+    def setUp(self):
+        from django.core.management import call_command  # noqa: F401
+
+        self.club = Club.objects.create(team_name="Integrity Club")
+        self.rider = Rider.objects.create(
+            uci_id=12345678901,
+            first_name="A",
+            last_name="B",
+            gender="Muž",
+            date_of_birth=date(2018, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 6",
+            class_24="Boys 12 and under",
+            class_beginner="Beginners 1",
+        )
+        self.event = Event.objects.create(name="Integrity race", type_for_ranking="Volný závod")
+
+        # Zdravá registrace na existujícího jezdce.
+        self.healthy_entry = Entry.objects.create(event=self.event, rider=self.rider)
+        # Osiřelá registrace — rider_id míří na neexistujícího jezdce (bypass ORM).
+        self.orphan_entry = Entry.objects.create(event=self.event, rider=self.rider)
+        Entry.objects.filter(pk=self.orphan_entry.pk).update(rider_id=self.BOGUS_RIDER_PK)
+        # Osiřelý výsledek — rider_id (uci_id) bez odpovídajícího jezdce (zahraniční).
+        self.orphan_result = Result.objects.create(event=self.event, last_name="Foreign")
+        Result.objects.filter(pk=self.orphan_result.pk).update(rider_id=self.BOGUS_UCI_ID)
+
+    def _run(self, *args):
+        from io import StringIO
+        from django.core.management import call_command
+
+        out = StringIO()
+        call_command("check_entry_integrity", *args, stdout=out, stderr=out)
+        return out.getvalue()
+
+    def test_report_detects_orphans_without_modifying_data(self):
+        report = self._run()
+
+        self.assertIn("Entry: 1 osiřelých", report)
+        self.assertIn("Result: 1 osiřelých", report)
+        # Bez --fix se nic nemění.
+        self.assertEqual(
+            Entry.objects.get(pk=self.orphan_entry.pk).rider_id, self.BOGUS_RIDER_PK
+        )
+        self.assertEqual(
+            Result.objects.get(pk=self.orphan_result.pk).rider_id, self.BOGUS_UCI_ID
+        )
+
+    def test_fix_nulls_orphan_entry_but_never_result(self):
+        self._run("--fix")
+
+        # Osiřelá Entry vynulována.
+        self.assertIsNone(Entry.objects.get(pk=self.orphan_entry.pk).rider_id)
+        # Zdravá Entry zůstává nedotčená.
+        self.assertEqual(
+            Entry.objects.get(pk=self.healthy_entry.pk).rider_id, self.rider.pk
+        )
+        # Osiřelý Result se NIKDY nevynuluje (uci_id má smysl pro zahraniční jezdce).
+        self.assertEqual(
+            Result.objects.get(pk=self.orphan_result.pk).rider_id, self.BOGUS_UCI_ID
+        )
+
+    def test_clean_database_reports_ok(self):
+        Entry.objects.filter(pk=self.orphan_entry.pk).update(rider_id=self.rider.pk)
+        Result.objects.filter(pk=self.orphan_result.pk).update(rider_id=self.rider.uci_id)
+
+        report = self._run()
+
+        self.assertIn("Referenční integrita OK", report)

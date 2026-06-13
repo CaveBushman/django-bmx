@@ -61,8 +61,13 @@ The `event` app splits its models across files re-exported from `event/models.py
 
 ### Event types (`Event.type_for_ranking`)
 
-The string values are used throughout logic and must match exactly:
-`"Český pohár"`, `"Mistrovství ČR jednotlivců"`, `"Mistrovství ČR družstev"`, `"Česká liga"`, `"Moravská liga"`, `"Volný závod"`, `"Evropský pohár"`, `"Mistrovství Evropy"`, `"Mistrovství světa"`, `"Světový pohár"`, `"Nebodovaný závod"`
+Use the `EventType` TextChoices enum from `event/models_events.py` (re-exported via
+`event.models`), e.g. `EventType.CESKY_POHAR`, `EventType.MCR_JEDNOTLIVCU`. The enum
+values are the Czech strings stored in the DB and compared across the logic — always
+reference the constants, never the string literals. Members: `MCR_JEDNOTLIVCU`,
+`MCR_DRUZSTEV`, `CESKY_POHAR`, `CESKA_LIGA`, `MORAVSKA_LIGA`, `VOLNY_ZAVOD`,
+`EVROPSKY_POHAR`, `MISTROVSTVI_EVROPY`, `MISTROVSTVI_SVETA`, `SVETOVY_POHAR`,
+`NEBODOVANY_ZAVOD`.
 
 ### Entry and payment flow
 
@@ -74,13 +79,25 @@ The string values are used throughout logic and must match exactly:
 
 ### MČR qualification
 
-`RiderQualifyToCNThread` (in `rider/rider.py`) recalculates `Rider.is_qualify_to_cn_20/24` by counting `Result` records (not `Entry`), so riders who compete without online registration are included. Threshold is `SeasonSettings.qualify_to_cn` for the current year.
+`perform_cn_qualification_recount(year)` (in `rider/rider.py`) recalculates
+`Rider.is_qualify_to_cn_20/24` by counting `Result` records (not `Entry`), so riders who
+compete without online registration are included. Threshold is `SeasonSettings.qualify_to_cn`
+for the current year. It runs via the Celery task `rider.tasks.recount_cn_qualification_task`
+or, without a broker, the `RiderQualifyToCNThread` fallback (see Background tasks).
 
-Auto-trigger: after each result file upload (`event/func.py → SetResults.run()`), `trigger_cn_qualification_recount_if_needed()` fires if a championship event exists for the year and enough cup races have occurred. Manual trigger: `/rider/qualify` (admin only).
+Auto-trigger: after each result file upload (`event/func.py → SetResults.run()`),
+`trigger_cn_qualification_recount_if_needed()` → `start_cn_qualification_recount()` fires if a
+championship event exists for the year and enough cup races have occurred. Manual trigger:
+`/rider/qualify` (admin only).
 
 ### Ranking engine
 
-`ranking/ranking.py → SetRanking` thread. Uses Django cache keys (`RANKING_RECOUNT_RUNNING_KEY`, `RANKING_RECOUNT_STATUS_KEY`) to prevent concurrent runs and report status. `schedule_ranking_recount()` in `event/func.py` queues a recount after results are imported.
+Core recount is `_ranking_recount_once()` / `_ranking_recount_should_rerun()` in
+`ranking/ranking.py`, shared by the Celery task `ranking.tasks.recount_ranking_task` and the
+`SetRanking` thread fallback. Uses Django cache keys (`RANKING_RECOUNT_RUNNING_KEY`,
+`RANKING_RECOUNT_PENDING_KEY`, `RANKING_RECOUNT_STATUS_KEY`) to prevent concurrent runs, queue
+a re-run when a change arrives mid-recount, and report status. `schedule_ranking_recount()`
+queues a recount after results are imported.
 
 ### Result import
 
@@ -92,10 +109,31 @@ Results are uploaded as REM TSV files via the admin. `SetResults` (thread in `ev
 
 ### Background tasks
 
-- `rider/rider.py → RiderQualifyToCNThread` — MČR qualification recalc
-- `ranking/ranking.py → SetRanking` — ranking recalc
+Recounts run on Celery when a broker is configured, with a daemon-thread fallback when not.
+`bmx/background.py → should_use_celery()` decides (True unless `CELERY_TASK_ALWAYS_EAGER`,
+i.e. no Redis). Dispatch helpers route to either path:
+
+- Ranking: `ranking.tasks.recount_ranking_task` ↔ `SetRanking` thread (`schedule_ranking_recount()`)
+- MČR qualification: `rider.tasks.recount_cn_qualification_task` ↔ `RiderQualifyToCNThread` (`start_cn_qualification_recount()`)
 - `rider/rider.py → CheckValidLicenceThread` — licence validity from Czech Cycling API
-- Cron (django-crontab): licence check every 6 hours, subscription renewals at 02:00/02:15
+- News: Celery tasks for audio/translation/push (`news/tasks.py`)
+
+Periodic jobs run via **either** django-crontab (default) **or** Celery beat, never both:
+when `USE_CELERY_BEAT=True`, settings empties `CRONJOBS` and `CELERY_BEAT_SCHEDULE`
+(thin wrappers in `bmx/tasks.py` around `bmx/cron.py`) owns the schedule. Jobs: licence
+check (6 h), subscription renewals (02:00–02:30), AI agent (03:00), DB backup (04:00),
+SQLite integrity (Sun 04:30), visit prune (monthly), SQLite optimize (05:00), and
+Entry/Result integrity check (Sun 05:15, see below).
+
+`docker-compose.yml` provides `redis`, `celery-worker`, and `celery-beat` services.
+
+### Referential integrity check
+
+`Entry.rider` and `Result.rider` use `db_constraint=False`. The
+`check_entry_integrity` management command (cron: Sun 05:15, `bmx.cron.check_entry_integrity_scheduled`)
+finds orphaned references. `--fix` nulls orphaned **Entry** rows only — orphaned **Result**
+rows are reported but never nulled, because `Result.rider` stores a `uci_id` that is
+meaningful for foreign/unregistered riders even with no `Rider` row.
 
 ### Custom user model
 
@@ -103,4 +141,17 @@ Results are uploaded as REM TSV files via the admin. `SetResults` (thread in `ev
 
 ### Frontend
 
-Tailwind CSS 4.x, built from `theme/static_src/`. Compiled output goes to `theme/static/css/dist/styles.css`. Templates live in `{app}/templates/{app}/` with a shared base in `theme/templates/`. Dark mode is toggled via a CSS class (`html.dark`).
+Tailwind CSS 4.x, built from `theme/static_src/`. Compiled output goes to
+`theme/static/css/dist/styles.css`. Templates live in `{app}/templates/{app}/` with a shared
+base in `theme/templates/`. Dark mode is toggled via a CSS class (`html.dark`). Rich text uses
+CKEditor 5 (`django_ckeditor_5`); the local `ckeditor/` package is a plain-textarea
+compatibility shim kept only for legacy `RichTextField` migrations. No jQuery — site JS is
+vanilla (the admin/DRF bundle their own `django.jQuery`).
+
+### API views
+
+`api/views/` is a package split by domain (`auth`, `riders`, `clubs`, `plates`, `news`,
+`events`, `foreign_entries`, `eshop`, `ranking`, `subscriptions`, `search`) with shared
+serializers/helpers in `_common.py`. `api/views/__init__.py` re-exports everything, so
+`from api import views; views.X` and `from api.views import X` keep working. When mocking in
+tests, patch the submodule where the name is resolved (e.g. `api.views.auth.stripe`).

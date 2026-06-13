@@ -16,7 +16,7 @@ from club.models import Club
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-from event.models import EntryClasses, Event, Entry, SeasonSettings
+from event.models import EntryClasses, Event, EventType, Entry, SeasonSettings
 from accounts.models import Account
 from ranking.ranking import schedule_ranking_recount
 from .entry import EntryClass
@@ -509,7 +509,7 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
     elif is_20:
         fee: int = resolve_event_fee(event, rider, is_20=True)
         # Odečtení pojištění u Evropského poháru pro pojištěné jezdce
-        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+        if event.type_for_ranking == EventType.EVROPSKY_POHAR and rider.have_valid_insurance:
             fee = fee - event.price_of_insurance
         rider.class_20 = resolve_event_classes(event, rider, is_20=True)
         line_item = {
@@ -528,7 +528,7 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
 
     else:  # Cruiser (24")
         fee: int = resolve_event_fee(event, rider, is_20=False)
-        if event.type_for_ranking == "Evropský pohár" and rider.have_valid_insurance:
+        if event.type_for_ranking == EventType.EVROPSKY_POHAR and rider.have_valid_insurance:
             fee = fee - event.price_of_insurance
         rider.class_24 = resolve_event_classes(event, rider, is_20=False)
         line_item = {
@@ -693,7 +693,7 @@ def qualify_riders_to_cn(year, rider):
     qualify_threshold = settings.qualify_to_cn if settings else 2
 
     qualify_20 = Entry.objects.filter(
-        event__type_for_ranking="Český pohár",
+        event__type_for_ranking=EventType.CESKY_POHAR,
         event__date__year=year,
         checkout=False,
         is_20=True,
@@ -704,7 +704,7 @@ def qualify_riders_to_cn(year, rider):
     ).count()
 
     qualify_24 = Entry.objects.filter(
-        event__type_for_ranking="Český pohár",
+        event__type_for_ranking=EventType.CESKY_POHAR,
         event__date__year=year,
         checkout=False,
         is_24=True,

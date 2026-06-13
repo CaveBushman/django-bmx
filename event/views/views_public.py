@@ -15,7 +15,7 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
 from django.db.models import Count, Max
-from event.models import Event, EventProposition, Result, Entry, EntryForeign, EntryClasses
+from event.models import Event, EventProposition, EventType, Result, Entry, EntryForeign, EntryClasses
 from event.views.views_proposition import can_manage_event_proposition
 from event.func import get_unregistration_deadline, is_registration_open
 
@@ -32,15 +32,15 @@ ENTRY_CLASSES_FEE_FIELDS = tuple(
 )
 
 EVENT_TYPE_STYLES = {
-    "Český pohár": {"color": "#3b82f6", "abbr": "ČP"},
-    "Česká liga": {"color": "#10b981", "abbr": "ČL"},
-    "Evropský pohár": {"color": "#8b5cf6", "abbr": "EP"},
-    "Mistrovství ČR jednotlivců": {"color": "#ef4444", "abbr": "MR"},
-    "Mistrovství ČR družstev": {"color": "#ef4444", "abbr": "MR"},
-    "Mistrovství světa": {"color": "#06b6d4", "abbr": "MS"},
-    "Světový pohár": {"color": "#334155", "abbr": "WC"},
-    "Moravská liga": {"color": "#a16207", "abbr": "ML"},
-    "Mistrovství Evropy": {"color": "#0891b2", "abbr": "ME"},
+    EventType.CESKY_POHAR: {"color": "#3b82f6", "abbr": "ČP"},
+    EventType.CESKA_LIGA: {"color": "#10b981", "abbr": "ČL"},
+    EventType.EVROPSKY_POHAR: {"color": "#8b5cf6", "abbr": "EP"},
+    EventType.MCR_JEDNOTLIVCU: {"color": "#ef4444", "abbr": "MR"},
+    EventType.MCR_DRUZSTEV: {"color": "#ef4444", "abbr": "MR"},
+    EventType.MISTROVSTVI_SVETA: {"color": "#06b6d4", "abbr": "MS"},
+    EventType.SVETOVY_POHAR: {"color": "#334155", "abbr": "WC"},
+    EventType.MORAVSKA_LIGA: {"color": "#a16207", "abbr": "ML"},
+    EventType.MISTROVSTVI_EVROPY: {"color": "#0891b2", "abbr": "ME"},
 }
 
 

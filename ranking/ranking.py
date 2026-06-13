@@ -7,7 +7,7 @@ from django.utils import timezone
 from rider.models import Rider
 
 logger = logging.getLogger(__name__)
-from event.models import Result, Entry, Event, SeasonSettings
+from event.models import Result, Entry, Event, EventType, SeasonSettings
 from django.db.models import Q
 import threading
 
@@ -43,73 +43,87 @@ def sort_24(self, classes):
     pass
 
 
+def _ranking_recount_once():
+    """Jeden průchod přepočtu rankingu se status updaty v cache.
+    Sdílí ho daemon vlákno (SetRanking) i Celery task (recount_ranking_task)."""
+    cache.delete(RANKING_RECOUNT_PENDING_KEY)
+    started_at = timezone.now()
+    cache.set(
+        RANKING_RECOUNT_STATUS_KEY,
+        {
+            **(cache.get(RANKING_RECOUNT_STATUS_KEY, {}) or {}),
+            "last_started_at": started_at,
+            "last_message": "Přepočet rankingu právě běží.",
+        },
+        timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+    )
+    try:
+        rider_count = RankingCount.set_ranking_points()
+        RankPositionCount().count_ranking_position()
+        logger.info("Ranking přepočítán")
+        finished_at = timezone.now()
+        cache.set(
+            RANKING_RECOUNT_STATUS_KEY,
+            {
+                "last_started_at": started_at,
+                "last_finished_at": finished_at,
+                "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
+                "last_success": True,
+                "last_message": "Poslední přepočet rankingu doběhl úspěšně.",
+                "last_rider_count": rider_count,
+            },
+            timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+        )
+    except Exception:
+        logger.exception("Přepočet rankingu selhal")
+        finished_at = timezone.now()
+        cache.set(
+            RANKING_RECOUNT_STATUS_KEY,
+            {
+                "last_started_at": started_at,
+                "last_finished_at": finished_at,
+                "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
+                "last_success": False,
+                "last_message": "Poslední přepočet rankingu skončil chybou. Zkontroluj log.",
+                "last_rider_count": None,
+            },
+            timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
+        )
+
+
+def _ranking_recount_should_rerun():
+    """Finally logika po jednom průchodu: vrátí True, pokud během přepočtu
+    přišla další změna a má se spustit znovu (lock RUNNING zůstává držený)."""
+    if cache.get(RANKING_RECOUNT_PENDING_KEY):
+        logger.info("Během přepočtu přišla další změna, ranking se přepočítá znovu.")
+        return True
+
+    cache.delete(RANKING_RECOUNT_RUNNING_KEY)
+    if cache.get(RANKING_RECOUNT_PENDING_KEY):
+        if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
+            logger.info("Po uvolnění locku je naplánovaný další přepočet rankingu.")
+            return True
+    return False
+
+
 class SetRanking (threading.Thread):
-    """ Class for setting ranking """
+    """Daemon vlákno pro přepočet rankingu (fallback, když neběží Celery)."""
 
     def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
-    
+
     def run(self):
         while True:
-            cache.delete(RANKING_RECOUNT_PENDING_KEY)
-            started_at = timezone.now()
-            cache.set(
-                RANKING_RECOUNT_STATUS_KEY,
-                {
-                    **(cache.get(RANKING_RECOUNT_STATUS_KEY, {}) or {}),
-                    "last_started_at": started_at,
-                    "last_message": "Přepočet rankingu právě běží.",
-                },
-                timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
-            )
-            try:
-                rider_count = RankingCount.set_ranking_points()
-                RankPositionCount().count_ranking_position()
-                logger.info("Ranking přepočítán")
-                finished_at = timezone.now()
-                cache.set(
-                    RANKING_RECOUNT_STATUS_KEY,
-                    {
-                        "last_started_at": started_at,
-                        "last_finished_at": finished_at,
-                        "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
-                        "last_success": True,
-                        "last_message": "Poslední přepočet rankingu doběhl úspěšně.",
-                        "last_rider_count": rider_count,
-                    },
-                    timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
-                )
-            except Exception:
-                logger.exception("Přepočet rankingu selhal")
-                finished_at = timezone.now()
-                cache.set(
-                    RANKING_RECOUNT_STATUS_KEY,
-                    {
-                        "last_started_at": started_at,
-                        "last_finished_at": finished_at,
-                        "last_duration_seconds": round((finished_at - started_at).total_seconds(), 2),
-                        "last_success": False,
-                        "last_message": "Poslední přepočet rankingu skončil chybou. Zkontroluj log.",
-                        "last_rider_count": None,
-                    },
-                    timeout=RANKING_RECOUNT_LOCK_TIMEOUT,
-                )
-            finally:
-                if cache.get(RANKING_RECOUNT_PENDING_KEY):
-                    logger.info("Během přepočtu přišla další změna, ranking se přepočítá znovu.")
-                    continue
-
-                cache.delete(RANKING_RECOUNT_RUNNING_KEY)
-                if cache.get(RANKING_RECOUNT_PENDING_KEY):
-                    if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
-                        logger.info("Po uvolnění locku je naplánovaný další přepočet rankingu.")
-                        continue
-                break
+            _ranking_recount_once()
+            if _ranking_recount_should_rerun():
+                continue
+            break
 
 
 def schedule_ranking_recount():
-    """Naplánuje přepočet rankingu po dokončení aktuální DB transakce."""
+    """Naplánuje přepočet rankingu po dokončení aktuální DB transakce.
+    Při dostupném Celery brokeru použije task, jinak spadne zpět na vlákno."""
     cache.set(RANKING_RECOUNT_PENDING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT)
     cache.set(
         RANKING_RECOUNT_STATUS_KEY,
@@ -121,11 +135,19 @@ def schedule_ranking_recount():
     )
 
     def _start():
-        if cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
-            SetRanking().start()
-            logger.info("Přepočet rankingu byl spuštěn na pozadí.")
-        else:
+        if not cache.add(RANKING_RECOUNT_RUNNING_KEY, True, timeout=RANKING_RECOUNT_LOCK_TIMEOUT):
             logger.info("Přepočet rankingu už běží, další průchod je zařazen do fronty.")
+            return
+
+        from bmx.background import should_use_celery
+
+        if should_use_celery():
+            from ranking.tasks import recount_ranking_task
+            recount_ranking_task.delay()
+            logger.info("Přepočet rankingu zařazen do Celery.")
+        else:
+            SetRanking().start()
+            logger.info("Přepočet rankingu byl spuštěn na pozadí (vlákno).")
 
     transaction.on_commit(_start)
 
@@ -182,15 +204,15 @@ class RankingCount:
         self.resolve_category()
         if self.rider.is_20:
             Result.objects.filter(rider_id=self.uci_id).update(marked_20=False)
-            self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=1)
-            self.set_points(["Český pohár"], self.CZECH_CUP, is_20=1)
-            self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=1)
+            self.set_points([EventType.MCR_JEDNOTLIVCU], 1, is_20=1)
+            self.set_points([EventType.CESKY_POHAR], self.CZECH_CUP, is_20=1)
+            self.set_points([EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD], self.LIGA, is_20=1)
 
         if self.rider.is_24:
             Result.objects.filter(rider_id=self.uci_id).update(marked_24=False)
-            self.set_points(["Mistrovství ČR jednotlivců"], 1, is_20=0)
-            self.set_points(["Český pohár"], self.CZECH_CUP, is_20=0)
-            self.set_points(["Česká liga", "Moravská liga", "Volný závod"], self.LIGA, is_20=0)
+            self.set_points([EventType.MCR_JEDNOTLIVCU], 1, is_20=0)
+            self.set_points([EventType.CESKY_POHAR], self.CZECH_CUP, is_20=0)
+            self.set_points([EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD], self.LIGA, is_20=0)
 
     @staticmethod
     def set_ranking_points():

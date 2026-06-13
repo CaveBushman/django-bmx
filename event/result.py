@@ -1,5 +1,5 @@
 import logging
-from .models import Result
+from .models import EventType, Result
 import re
 import unidecode
 
@@ -234,13 +234,13 @@ class GetResult:
 
     @staticmethod
     def ranking_code_resolve(type):
-        if type == "Mistrovství ČR jednotlivců":
+        if type == EventType.MCR_JEDNOTLIVCU:
             return 1
-        elif type == "Český pohár":
+        elif type == EventType.CESKY_POHAR:
             return 2
-        elif type == "Česká liga" or type == "Moravská liga":
+        elif type == EventType.CESKA_LIGA or type == EventType.MORAVSKA_LIGA:
             return 3
-        elif type == "Volný závod":
+        elif type == EventType.VOLNY_ZAVOD:
             return 3 # Pokud bude Česká liga, změnit na 4
         else:
             return 0

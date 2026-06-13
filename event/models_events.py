@@ -173,20 +173,25 @@ class EntryClasses(models.Model):
         verbose_name_plural = "Kategorie a startovné"
 
 
+class EventType(models.TextChoices):
+    """Typ závodu pro ranking. Hodnoty jsou české názvy uložené v DB
+    a porovnávané napříč logikou — vždy používej tyto konstanty, ne literály."""
+
+    MCR_JEDNOTLIVCU = "Mistrovství ČR jednotlivců"
+    MCR_DRUZSTEV = "Mistrovství ČR družstev"
+    CESKY_POHAR = "Český pohár"
+    CESKA_LIGA = "Česká liga"
+    MORAVSKA_LIGA = "Moravská liga"
+    VOLNY_ZAVOD = "Volný závod"
+    EVROPSKY_POHAR = "Evropský pohár"
+    MISTROVSTVI_EVROPY = "Mistrovství Evropy"
+    MISTROVSTVI_SVETA = "Mistrovství světa"
+    SVETOVY_POHAR = "Světový pohár"
+    NEBODOVANY_ZAVOD = "Nebodovaný závod"
+
+
 class Event(models.Model):
-    EVENT_TYPE = (
-        ("Mistrovství ČR jednotlivců", "Mistrovství ČR jednotlivců"),
-        ("Mistrovství ČR družstev", "Mistrovství ČR družstev"),
-        ("Český pohár", "Český pohár"),
-        ("Česká liga", "Česká liga"),
-        ("Moravská liga", "Moravská liga"),
-        ("Volný závod", "Volný závod"),
-        ("Evropský pohár", "Evropský pohár"),
-        ("Mistrovství Evropy", "Mistrovství Evropy"),
-        ("Mistrovství světa", "Mistrovství světa"),
-        ("Světový pohár", "Světový pohár"),
-        ("Nebodovaný závod", "Nebodovaný závod"),
-    )
+    EVENT_TYPE = EventType.choices
 
     RACE_SYSTEM = (
         ("3 základní rozjíždky a KO system", "3 základní rozjíždky a KO system"),
@@ -198,7 +203,7 @@ class Event(models.Model):
     date = models.DateField(null=True, blank=True, db_index=True)
     double_race = models.BooleanField(default=False)
     organizer = models.ForeignKey(Club, related_name="club", null=True, on_delete=models.SET_NULL)
-    type_for_ranking = models.CharField(max_length=100, choices=EVENT_TYPE, default="Volný závod")
+    type_for_ranking = models.CharField(max_length=100, choices=EventType.choices, default=EventType.VOLNY_ZAVOD)
     classes_and_fees_like = models.ForeignKey(EntryClasses, on_delete=models.SET_NULL, blank=True, null=True)
     is_uci_race = models.BooleanField(default=False)
     pcp = models.ForeignKey(
@@ -334,13 +339,13 @@ class Event(models.Model):
 
     def is_beginners_event(self):
         if self.type_for_ranking in {
-            "Mistrovství ČR jednotlivců",
-            "Mistrovství ČR družstev",
-            "Český pohár",
-            "Evropský pohár",
-            "Mistrovství Evropy",
-            "Mistrovství světa",
-            "Světový pohár",
+            EventType.MCR_JEDNOTLIVCU,
+            EventType.MCR_DRUZSTEV,
+            EventType.CESKY_POHAR,
+            EventType.EVROPSKY_POHAR,
+            EventType.MISTROVSTVI_EVROPY,
+            EventType.MISTROVSTVI_SVETA,
+            EventType.SVETOVY_POHAR,
         }:
             return False
         if not self.classes_and_fees_like:

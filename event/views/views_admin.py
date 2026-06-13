@@ -46,7 +46,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_control
 from django.utils.translation import gettext as _
-from event.models import Event, Entry, EntryForeign, Result, RaceRun, SeasonSettings
+from event.models import Event, EventType, Entry, EntryForeign, Result, RaceRun, SeasonSettings
 from club.models import Club, McrClubTeam, McrClubTeamMember
 from commissar.models import Commissar
 from rider.models import Rider
@@ -100,10 +100,10 @@ PDF_FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bo
 PDF_LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 COMMISSAR_EXCLUDED_EVENT_TYPES = [
-    "Evropský pohár",
-    "Mistrovství Evropy",
-    "Mistrovství světa",
-    "Světový pohár",
+    EventType.EVROPSKY_POHAR,
+    EventType.MISTROVSTVI_EVROPY,
+    EventType.MISTROVSTVI_SVETA,
+    EventType.SVETOVY_POHAR,
 ]
 
 COMMISSAR_PLACEHOLDER_LAST_NAME = "Bude upřesněno"
@@ -134,7 +134,7 @@ def _resolve_selected_year(selected_year, year_options):
 
 
 def _is_mcr_club_teams_event(event):
-    return event.type_for_ranking == "Mistrovství ČR družstev"
+    return event.type_for_ranking == EventType.MCR_DRUZSTEV
 
 
 def _get_mcr_club_teams_year(event):
@@ -330,7 +330,7 @@ def _generate_ec_file(event):
         settings.MEDIA_ROOT,
         "ec-files",
         "Entries example - UEC.xlsx"
-        if event.type_for_ranking == "Evropský pohár"
+        if event.type_for_ranking == EventType.EVROPSKY_POHAR
         else "Entries_upload_UEC_Champ_2024.xlsx",
     )
     target_path = os.path.join(
@@ -784,7 +784,7 @@ def event_admin_view(request, pk):
     event = get_object_or_404(Event.objects.select_related("organizer"), id=pk)
 
     # Evropský pohár a Mistrovství Evropy mají vlastní admin stránku
-    if event.type_for_ranking in ["Evropský pohár", "Mistrovství Evropy"]:
+    if event.type_for_ranking in [EventType.EVROPSKY_POHAR, EventType.MISTROVSTVI_EVROPY]:
         return _handle_ec_event(request, event)
 
     # Dispatch POST akcí — každý blok vrátí response nebo None
@@ -1955,7 +1955,7 @@ def export_event_results(request, event_id):
         # podle classes_and_fees_like tohoto závodu (např. "Girls 16+" pro
         # Girls 16 + Women 17-24 + Women 25 a starší), nikoliv věkový API kód
         # ČSC (např. "WOMEN 17+").
-        if event.type_for_ranking == "Český pohár" and event.classes_and_fees_like_id:
+        if event.type_for_ranking == EventType.CESKY_POHAR and event.classes_and_fees_like_id:
             category_code = resolve_event_classes(
                 event, rider, is_20=res.is_20, is_beginner=res.is_beginner
             ) or category_code
@@ -1967,7 +1967,7 @@ def export_event_results(request, event_id):
     # (vypsané) kategorie jezdce, proto se zde přepočítá pořadí podle
     # dosaženého place ve sloučené kategorii, ve které jezdec reálně závodil.
     category_rank = {}
-    if event.type_for_ranking == "Český pohár":
+    if event.type_for_ranking == EventType.CESKY_POHAR:
         groups = {}
         for res, rider, category_code in result_entries:
             groups.setdefault(category_code, []).append(res)

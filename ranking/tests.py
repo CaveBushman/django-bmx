@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -291,3 +291,60 @@ class RankingRecountStatusTests(TestCase):
         self.assertEqual(status["last_duration_seconds"], 1.25)
         self.assertTrue(status["last_success"])
         self.assertEqual(status["last_rider_count"], 12)
+
+
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+)
+class RecountDispatchTests(TestCase):
+    """Ověřuje volbu mezi Celery taskem a vláknem podle should_use_celery().
+    Cache je přepnutá na LocMem, aby test nezávisel na běžícím Redisu."""
+
+    def setUp(self):
+        cache.clear()
+
+    @patch("ranking.ranking.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("bmx.background.should_use_celery", return_value=True)
+    def test_ranking_recount_dispatches_celery_when_broker_available(self, _celery, _commit):
+        from ranking.ranking import schedule_ranking_recount
+
+        with patch("ranking.tasks.recount_ranking_task.delay") as delay_mock:
+            with patch("ranking.ranking.SetRanking") as thread_mock:
+                schedule_ranking_recount()
+
+        delay_mock.assert_called_once()
+        thread_mock.assert_not_called()
+
+    @patch("ranking.ranking.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("bmx.background.should_use_celery", return_value=False)
+    def test_ranking_recount_falls_back_to_thread_without_broker(self, _celery, _commit):
+        from ranking.ranking import schedule_ranking_recount
+
+        with patch("ranking.tasks.recount_ranking_task.delay") as delay_mock:
+            with patch("ranking.ranking.SetRanking") as thread_mock:
+                schedule_ranking_recount()
+
+        thread_mock.assert_called_once()
+        delay_mock.assert_not_called()
+
+    @patch("bmx.background.should_use_celery", return_value=True)
+    def test_cn_qualification_dispatches_celery(self, _celery):
+        from rider.rider import start_cn_qualification_recount
+
+        with patch("rider.tasks.recount_cn_qualification_task.delay") as delay_mock:
+            with patch("rider.rider.RiderQualifyToCNThread") as thread_mock:
+                start_cn_qualification_recount(year=2026)
+
+        delay_mock.assert_called_once_with(2026)
+        thread_mock.assert_not_called()
+
+    @patch("bmx.background.should_use_celery", return_value=False)
+    def test_cn_qualification_falls_back_to_thread(self, _celery):
+        from rider.rider import start_cn_qualification_recount
+
+        with patch("rider.tasks.recount_cn_qualification_task.delay") as delay_mock:
+            with patch("rider.rider.RiderQualifyToCNThread") as thread_mock:
+                start_cn_qualification_recount(year=2026)
+
+        thread_mock.assert_called_once_with(year=2026)
+        delay_mock.assert_not_called()

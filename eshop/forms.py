@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from event.models_events import Event
+from event.models_events import Event, EventType
 from .models import Order, ProductVariant, StockAlertRequest
 
 _INPUT = (
@@ -45,10 +45,10 @@ class CheckoutForm(forms.ModelForm):
             eshop_pickup_enabled=True,
         ).exclude(
             type_for_ranking__in=[
-                "Evropský pohár",
-                "Světový pohár",
-                "Mistrovství Evropy",
-                "Mistrovství světa",
+                EventType.EVROPSKY_POHAR,
+                EventType.SVETOVY_POHAR,
+                EventType.MISTROVSTVI_EVROPY,
+                EventType.MISTROVSTVI_SVETA,
             ]
         ).order_by("date")
         if not self.is_bound and not self.initial.get("event"):

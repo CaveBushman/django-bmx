@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from event.models import CreditTransaction, Entry, EntryForeign, Event, Result
+from event.models import CreditTransaction, Entry, EntryForeign, Event, EventType, Result
 from rider.models import Rider
 
 
@@ -54,7 +54,7 @@ def delete_old_event_files(sender, instance, **kwargs):
 @receiver(pre_save, sender=Event)
 def commission_fee(sender, instance, **kwargs):
     if instance.commission_fee == 0:
-        if instance.type_for_ranking in {"Český pohár", "Česká liga", "Moravská liga"}:
+        if instance.type_for_ranking in {EventType.CESKY_POHAR, EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA}:
             instance.commission_fee = 20
         else:
             instance.commission_fee = 5

@@ -274,6 +274,26 @@ CELERY_TASK_ACKS_LATE     = True
 # V produkci nastav CELERY_TASK_ALWAYS_EAGER=False nebo jen nechej default.
 CELERY_TASK_ALWAYS_EAGER  = config("CELERY_TASK_ALWAYS_EAGER", default=not bool(REDIS_URL), cast=bool)
 
+# Periodické úlohy: buď systémový cron (django-crontab, výchozí), nebo Celery beat.
+# Když je USE_CELERY_BEAT=True, vyprázdníme CRONJOBS (níže), aby úlohy neběžely
+# dvakrát. Beat schedule je v CELERY_BEAT_SCHEDULE.
+USE_CELERY_BEAT = config("USE_CELERY_BEAT", default=False, cast=bool)
+
+from celery.schedules import crontab as _celery_crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "valid-licence": {"task": "bmx.valid_licence", "schedule": _celery_crontab(minute=0, hour="*/6")},
+    "renew-rider-stats": {"task": "bmx.renew_rider_stats_subscriptions", "schedule": _celery_crontab(minute=0, hour=2)},
+    "renew-trainer-club": {"task": "bmx.renew_trainer_club_subscriptions", "schedule": _celery_crontab(minute=15, hour=2)},
+    "renew-mobile-app": {"task": "bmx.renew_mobile_app_subscriptions", "schedule": _celery_crontab(minute=30, hour=2)},
+    "run-ai-agent": {"task": "bmx.run_ai_agent", "schedule": _celery_crontab(minute=0, hour=3)},
+    "backup-database": {"task": "bmx.backup_database", "schedule": _celery_crontab(minute=0, hour=4)},
+    "check-sqlite-integrity": {"task": "bmx.check_sqlite_integrity", "schedule": _celery_crontab(minute=30, hour=4, day_of_week=0)},
+    "prune-old-visits": {"task": "bmx.prune_old_visits", "schedule": _celery_crontab(minute=45, hour=3, day_of_month=1)},
+    "optimize-sqlite": {"task": "bmx.optimize_sqlite", "schedule": _celery_crontab(minute=0, hour=5)},
+    "check-entry-integrity": {"task": "bmx.check_entry_integrity", "schedule": _celery_crontab(minute=15, hour=5, day_of_week=0)},
+}
+
 # DeepL překlad článků
 # Nastav DEEPL_API_KEY v .env — bez klíče se použije Google Translate záloha
 DEEPL_API_KEY = config("DEEPL_API_KEY", default="")
@@ -739,7 +759,13 @@ CRONJOBS = [
     ("45 3 1 * *", "bmx.cron.prune_old_visits_scheduled"),
     # SQLite PRAGMA optimize každý den ve 5:00
     ("0 5 * * *", "bmx.cron.optimize_sqlite_scheduled"),
+    # Kontrola osiřelých referencí Entry.rider / Result.rider každou neděli v 5:15
+    ("15 5 * * 0", "bmx.cron.check_entry_integrity_scheduled"),
 ]
+
+# Když periodiku řídí Celery beat, vyprázdni CRONJOBS, ať úlohy neběží dvakrát.
+if USE_CELERY_BEAT:
+    CRONJOBS = []
 
 # ---------------------------------------------------------------------------
 # AI Agent – LLM integrace (Ollama / OpenAI-compatible API)
@@ -811,6 +837,3 @@ if not DEBUG and not REDIS_URL and not SUPPRESS_LOCMEM_CACHE_WARNING and not ALL
         RuntimeWarning,
         stacklevel=2,
     )
-
-# api/v1/ je backward-compat alias — namespace kolize je záměrná
-SILENCED_SYSTEM_CHECKS = ["urls.W005"]

@@ -12,7 +12,7 @@ from django.urls import path, reverse
 from django.urls import NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.shortcuts import redirect
-from .models import Event, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
+from .models import Event, EventType, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from .models_events import EventPhoto
 from rider.models import ForeignRider
 from django.utils.timezone import now
@@ -342,7 +342,7 @@ class EventAdmin(BaseAdmin):
         missing_event_type = results.filter(Q(event_type__isnull=True) | Q(event_type="")).count()
         zero_points_ranking = results.filter(
             points=0,
-            event_type__in=["Mistrovství ČR jednotlivců", "Český pohár", "Česká liga", "Moravská liga", "Volný závod"],
+            event_type__in=[EventType.MCR_JEDNOTLIVCU, EventType.CESKY_POHAR, EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD],
         ).count()
         marked_zero_points = results.filter(points=0).filter(Q(marked_20=True) | Q(marked_24=True)).count()
 

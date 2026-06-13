@@ -270,3 +270,44 @@ def optimize_sqlite_scheduled():
         logger.info("SQLite optimize: OK")
     except Exception:
         logger.exception("SQLite optimize: neočekávaná chyba")
+
+
+def check_entry_integrity_scheduled():
+    """Najde osiřelé reference Entry.rider / Result.rider (db_constraint=False).
+    Pouze report — záznamy nevynuluje. E-mail pošle jen při osiřelých Entry
+    (skutečný viselec); osiřelé Result jsou obvykle zahraniční jezdci, ty
+    se jen zalogují, aby týdenní běh nespamoval."""
+    import re
+    from io import StringIO
+    from django.core.management import call_command
+
+    out = StringIO()
+    try:
+        call_command("check_entry_integrity", stdout=out, stderr=out)
+    except Exception:
+        logger.exception("Entry integrity check: neočekávaná chyba")
+        return
+
+    report = out.getvalue()
+    logger.info("Entry integrity check:\n%s", report)
+
+    # Alert jen pokud existují osiřelé Entry (akční problém).
+    if not re.search(r"Entry: \d+ osiřelých", report):
+        return
+
+    logger.error("Entry integrity check nalezl osiřelé Entry:\n%s", report)
+
+    recipients = [e.strip() for e in settings.AI_AGENT_NOTIFY_EMAILS if e.strip()]
+    if recipients:
+        from django.core.mail import send_mail
+        try:
+            send_mail(
+                subject="[CzechBMX] Nalezeny osiřelé registrace (Entry.rider)",
+                message=f"Kontrola integrity našla osiřelé Entry záznamy:\n\n{report}\n\n"
+                        f"Pro vynulování spusť: python manage.py check_entry_integrity --fix",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=recipients,
+                fail_silently=True,
+            )
+        except Exception:
+            logger.exception("Entry integrity check: nepodařilo se odeslat e-mail")

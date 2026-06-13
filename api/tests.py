@@ -37,7 +37,7 @@ class LoginAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = make_user()
-        self.url = "/api/auth/login/"
+        self.url = "/api/v1/auth/login/"
 
     def test_login_returns_access_and_refresh_tokens(self):
         response = self.client.post(self.url, {"email": "test@example.com", "password": "StrongPass123!"})
@@ -74,12 +74,12 @@ class TokenRefreshTests(TestCase):
 
     def test_refresh_returns_new_access_token(self):
         refresh = RefreshToken.for_user(self.user)
-        response = self.client.post("/api/auth/token/refresh/", {"refresh": str(refresh)})
+        response = self.client.post("/api/v1/auth/token/refresh/", {"refresh": str(refresh)})
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)
 
     def test_invalid_refresh_token_returns_401(self):
-        response = self.client.post("/api/auth/token/refresh/", {"refresh": "invalid.token.here"})
+        response = self.client.post("/api/v1/auth/token/refresh/", {"refresh": "invalid.token.here"})
         self.assertEqual(response.status_code, 401)
 
 
@@ -95,17 +95,17 @@ class LogoutAPITests(TestCase):
 
     def test_logout_with_refresh_token_returns_204(self):
         refresh_str = self._auth()
-        response = self.client.post("/api/auth/logout/", {"refresh": refresh_str})
+        response = self.client.post("/api/v1/auth/logout/", {"refresh": refresh_str})
         self.assertEqual(response.status_code, 204)
 
     def test_logout_blacklists_refresh_token(self):
         refresh_str = self._auth()
-        self.client.post("/api/auth/logout/", {"refresh": refresh_str})
-        response = self.client.post("/api/auth/token/refresh/", {"refresh": refresh_str})
+        self.client.post("/api/v1/auth/logout/", {"refresh": refresh_str})
+        response = self.client.post("/api/v1/auth/token/refresh/", {"refresh": refresh_str})
         self.assertEqual(response.status_code, 401)
 
     def test_unauthenticated_logout_returns_401(self):
-        response = self.client.post("/api/auth/logout/")
+        response = self.client.post("/api/v1/auth/logout/")
         self.assertEqual(response.status_code, 401)
 
 
@@ -117,19 +117,19 @@ class MeAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
     def test_get_me_returns_user_data(self):
-        response = self.client.get("/api/auth/me/")
+        response = self.client.get("/api/v1/auth/me/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["email"], "me@example.com")
 
     def test_patch_me_updates_name(self):
-        response = self.client.patch("/api/auth/me/", {"first_name": "Nové", "last_name": "Jméno"})
+        response = self.client.patch("/api/v1/auth/me/", {"first_name": "Nové", "last_name": "Jméno"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["first_name"], "Nové")
         self.assertEqual(response.data["last_name"], "Jméno")
 
     def test_patch_me_ignores_disallowed_fields(self):
         original_email = self.user.email
-        response = self.client.patch("/api/auth/me/", {"email": "hacker@evil.com"})
+        response = self.client.patch("/api/v1/auth/me/", {"email": "hacker@evil.com"})
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, original_email)
@@ -146,7 +146,7 @@ class MeAPITests(TestCase):
         )
 
         response = self.client.patch(
-            "/api/auth/me/",
+            "/api/v1/auth/me/",
             {"photo": upload},
             format="multipart",
         )
@@ -162,7 +162,7 @@ class MeAPITests(TestCase):
 
     def test_unauthenticated_me_returns_401(self):
         self.client.credentials()
-        response = self.client.get("/api/auth/me/")
+        response = self.client.get("/api/v1/auth/me/")
         self.assertEqual(response.status_code, 401)
 
 
@@ -173,14 +173,14 @@ class CreditTopUpAPITests(TestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
-    @patch("api.views.stripe.checkout.Session.create")
+    @patch("api.views.auth.stripe.checkout.Session.create")
     def test_credit_topup_creates_stripe_checkout_session(self, create_mock):
         create_mock.return_value = SimpleNamespace(
             id="cs_test_mobile_credit",
             url="https://checkout.stripe.com/c/pay/cs_test_mobile_credit",
         )
 
-        response = self.client.post("/api/credit/topup/", {"amount": 500})
+        response = self.client.post("/api/v1/credit/topup/", {"amount": 500})
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
@@ -195,13 +195,13 @@ class CreditTopUpAPITests(TestCase):
         create_mock.assert_called_once()
 
     def test_credit_topup_rejects_low_amount(self):
-        response = self.client.post("/api/credit/topup/", {"amount": 99})
+        response = self.client.post("/api/v1/credit/topup/", {"amount": 99})
         self.assertEqual(response.status_code, 400)
         self.assertFalse(CreditTransaction.objects.exists())
 
     def test_credit_topup_requires_authentication(self):
         self.client.credentials()
-        response = self.client.post("/api/credit/topup/", {"amount": 500})
+        response = self.client.post("/api/v1/credit/topup/", {"amount": 500})
         self.assertEqual(response.status_code, 401)
 
 
@@ -214,7 +214,7 @@ class PasswordChangeAPITests(TestCase):
 
     def test_password_change_success(self):
         response = self.client.post(
-            "/api/auth/password/change/",
+            "/api/v1/auth/password/change/",
             {"old_password": "StrongPass123!", "new_password": "NewPass456!"},
         )
         self.assertEqual(response.status_code, 204)
@@ -223,14 +223,14 @@ class PasswordChangeAPITests(TestCase):
 
     def test_wrong_old_password_returns_400(self):
         response = self.client.post(
-            "/api/auth/password/change/",
+            "/api/v1/auth/password/change/",
             {"old_password": "wrong", "new_password": "NewPass456!"},
         )
         self.assertEqual(response.status_code, 400)
 
     def test_short_new_password_returns_400(self):
         response = self.client.post(
-            "/api/auth/password/change/",
+            "/api/v1/auth/password/change/",
             {"old_password": "StrongPass123!", "new_password": "short"},
         )
         self.assertEqual(response.status_code, 400)
@@ -245,15 +245,15 @@ class RiderListAPITests(TestCase):
 
     def test_rider_list_is_public(self):
         self.client.credentials()
-        response = self.client.get("/api/riders/")
+        response = self.client.get("/api/v1/riders/")
         self.assertEqual(response.status_code, 200)
 
     def test_authenticated_user_can_access_rider_list(self):
-        response = self.client.get("/api/riders/")
+        response = self.client.get("/api/v1/riders/")
         self.assertEqual(response.status_code, 200)
 
     def test_response_is_paginated(self):
-        response = self.client.get("/api/riders/")
+        response = self.client.get("/api/v1/riders/")
         self.assertIn("count", response.data)
         self.assertIn("results", response.data)
 
@@ -278,7 +278,7 @@ class NewsListAPITests(TestCase):
             publish_in_app=False,
         )
 
-        response = self.client.get("/api/news/")
+        response = self.client.get("/api/v1/news/")
 
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, list)
@@ -302,7 +302,7 @@ class NewsListAPITests(TestCase):
         News.objects.filter(pk=older.pk).update(created_date=timezone.now() - timedelta(days=2))
         News.objects.filter(pk=newer.pk).update(created_date=timezone.now() - timedelta(days=1))
 
-        response = self.client.get("/api/news/")
+        response = self.client.get("/api/v1/news/")
 
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, list)

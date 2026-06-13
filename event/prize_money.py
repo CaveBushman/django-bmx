@@ -15,7 +15,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from event.models import Result
+from event.models import EventType, Result
 
 FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
 FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
@@ -37,7 +37,7 @@ class PrizeMoneyScheme:
 
 
 PRIZE_MONEY_SCHEMES = {
-    "Mistrovství ČR jednotlivců": PrizeMoneyScheme(
+    EventType.MCR_JEDNOTLIVCU: PrizeMoneyScheme(
         categories=(
             PrizeMoneyCategoryConfig("EM", "Elite Men", (5000, 3000, 2000, 1400, 1200, 1000, 800, 600), ("Men Elite", "Elite Men", "EM")),
             PrizeMoneyCategoryConfig("EW", "Elite Women", (5000, 3000, 2000, 1400, 1200, 1000, 800, 600), ("Women Elite", "Elite Women", "EW")),
@@ -48,7 +48,7 @@ PRIZE_MONEY_SCHEMES = {
         ),
         allow_amount_toggle=True,
     ),
-    "Český pohár": PrizeMoneyScheme(
+    EventType.CESKY_POHAR: PrizeMoneyScheme(
         categories=(
             PrizeMoneyCategoryConfig("EM", "Elite Men", (3750, 3125, 2500), ("Men Elite", "Elite Men", "EM")),
             PrizeMoneyCategoryConfig("EW", "Elite Women", (3750, 3125, 2500), ("Women Elite", "Elite Women", "EW")),
@@ -62,14 +62,14 @@ PRIZE_MONEY_SCHEMES = {
         ),
         allow_amount_toggle=True,
     ),
-    "Česká liga": PrizeMoneyScheme(
+    EventType.CESKA_LIGA: PrizeMoneyScheme(
         categories=(
             PrizeMoneyCategoryConfig("B15/16", "Boys 15/16", (800, 500, 300), ("Boys 15 and 16", "Boys 15-16", "B15/16")),
             PrizeMoneyCategoryConfig("M17+", "Men 17+", (800, 500, 300), ("Men 17+", "M17+")),
         ),
         allow_amount_toggle=False,
     ),
-    "Moravská liga": PrizeMoneyScheme(
+    EventType.MORAVSKA_LIGA: PrizeMoneyScheme(
         categories=(
             PrizeMoneyCategoryConfig("B15/16", "Boys 15/16", (800, 500, 300), ("Boys 15 and 16", "Boys 15-16", "B15/16")),
             PrizeMoneyCategoryConfig("M17+", "Men 17+", (800, 500, 300), ("Men 17+", "M17+")),
@@ -371,7 +371,7 @@ class PrizeMoneyPdfService:
         results_by_category = self._results_by_category(event)
         results_by_rider_class = None
         use_category_order = False
-        if event.type_for_ranking == "Mistrovství ČR jednotlivců":
+        if event.type_for_ranking == EventType.MCR_JEDNOTLIVCU:
             results_by_rider_class = self._results_by_mcr_prize_category(event, scheme)
             use_category_order = True
 

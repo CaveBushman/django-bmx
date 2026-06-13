@@ -15,7 +15,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
 from django.conf import settings
-from event.models import Event, Entry, EntryForeign
+from event.models import Event, EventType, Entry, EntryForeign
 from event.func import update_cart
 from event.services.checkout_sessions import (
     create_entry_checkout_session,
@@ -60,7 +60,7 @@ audit_logger = logging.getLogger("audit")
 
 
 def _redirect_european_cup_registration(event):
-    if event.type_for_ranking == "Evropský pohár" and event.uec_link:
+    if event.type_for_ranking == EventType.EVROPSKY_POHAR and event.uec_link:
         return redirect(event.uec_link)
     return None
 

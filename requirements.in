@@ -33,7 +33,6 @@ django-jazzmin
 django-tailwind
 pytailwindcss
 django-ckeditor-5
-django-ckeditor
 
 # Dokumenty & export
 reportlab

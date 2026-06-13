@@ -24,7 +24,7 @@ from decouple import config
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from rider.models import Rider
-from event.models import Result, Event, Entry, SeasonSettings
+from event.models import Result, Event, EventType, Entry, SeasonSettings
 import threading
 from django.db.models import Q, Exists, OuterRef
 from datetime import datetime, date, timedelta
@@ -365,9 +365,9 @@ class Participation:
             others: int = 0
             participation = Result.objects.filter(rider_id=rider.uci_id, date__year=now)
             for part in participation:
-                if part.event_type == "Mistrovství ČR jednotlivců":
+                if part.event_type == EventType.MCR_JEDNOTLIVCU:
                     mcr = 1
-                elif part.event_type == "Český pohár":
+                elif part.event_type == EventType.CESKY_POHAR:
                     cp += 1
                 else:
                     others += 1
@@ -403,7 +403,7 @@ class Cruiser:
 
     def calculate_median(self):
         cup_events = Event.objects.filter(
-            type_for_ranking="Český pohár",
+            type_for_ranking=EventType.CESKY_POHAR,
             date__year=self.year,
             canceled=False,
         ).count()
@@ -411,7 +411,7 @@ class Cruiser:
 
         entries = (
             Entry.objects.filter(
-                event__type_for_ranking="Český pohár",
+                event__type_for_ranking=EventType.CESKY_POHAR,
                 event__date__year=self.year,
                 event__canceled=False,
                 is_24=True,
@@ -435,7 +435,7 @@ class Cruiser:
             participations = (
                 Entry.objects.filter(
                     rider=cruiser,
-                    event__type_for_ranking="Český pohár",
+                    event__type_for_ranking=EventType.CESKY_POHAR,
                     event__date__year=self.year,
                     event__canceled=False,
                     is_24=True,
@@ -504,60 +504,66 @@ def first_line_riders_by_club_and_class(ws):
     ws.cell(1, 34, 'WOMEN ELITE')
 
 
+def perform_cn_qualification_recount(year=None):
+    """Přepočte is_qualify_to_cn_20/24 pro daný rok podle počtu startů na ČP.
+    Sdílí ho daemon vlákno (RiderQualifyToCNThread) i Celery task."""
+    current_year = datetime.today().year
+    year = year or current_year
+    if year != current_year:
+        logger.info(
+            "Přepočet kvalifikace na MČR pro rok %s přeskočen. "
+            "Pole is_qualify_to_cn_* reprezentují pouze aktuální rok %s.",
+            year,
+            current_year,
+        )
+        return
+
+    settings = SeasonSettings.objects.filter(year=year).first()
+    if not settings:
+        logger.warning(f"Chybí SeasonSettings pro rok {year}, kvalifikace na MČR nebyla přepočítána.")
+        return
+
+    riders = Rider.objects.filter(is_active=True, is_approved=True)
+    logger.info(f"Přepočítávám kvalifikaci na MČR pro rok {year}")
+
+    for rider in riders:
+        # Kvalifikace je podmíněna účastí (počtem startů), nikoliv bodováním —
+        # marked_20/marked_24 odráží jen bodované výsledky (umístění do 32.
+        # místa), takže by jezdce z přeplněných kategorií nikdy nekvalifikovalo.
+        results_20 = Result.objects.filter(
+            event__type_for_ranking=EventType.CESKY_POHAR,
+            event__date__year=year,
+            rider=rider,
+            is_20=True,
+            is_beginner=False,
+        ).count()
+        results_24 = Result.objects.filter(
+            event__type_for_ranking=EventType.CESKY_POHAR,
+            event__date__year=year,
+            rider=rider,
+            is_20=False,
+            is_beginner=False,
+        ).count()
+
+        rider.is_qualify_to_cn_20 = results_20 >= settings.qualify_to_cn
+        rider.is_qualify_to_cn_24 = results_24 >= settings.qualify_to_cn
+        rider.save(update_fields=["is_qualify_to_cn_20", "is_qualify_to_cn_24"])
+
+
 class RiderQualifyToCNThread(threading.Thread):
-    """Class for set qualify to CN rider's status."""
+    """Daemon vlákno pro přepočet kvalifikace na MČR (fallback bez Celery)."""
 
     def __init__(self, year=None):
         threading.Thread.__init__(self)
         self.year = year
 
     def run(self):
-        current_year = datetime.today().year
-        year = self.year or current_year
-        if year != current_year:
-            logger.info(
-                "Přepočet kvalifikace na MČR pro rok %s přeskočen. "
-                "Pole is_qualify_to_cn_* reprezentují pouze aktuální rok %s.",
-                year,
-                current_year,
-            )
-            return
-
-        settings = SeasonSettings.objects.filter(year=year).first()
-        if not settings:
-            logger.warning(f"Chybí SeasonSettings pro rok {year}, kvalifikace na MČR nebyla přepočítána.")
-            return
-
-        riders = Rider.objects.filter(is_active=True, is_approved=True)
-        logger.info(f"Přepočítávám kvalifikaci na MČR pro rok {year}")
-
-        for rider in riders:
-            # Kvalifikace je podmíněna účastí (počtem startů), nikoliv bodováním —
-            # marked_20/marked_24 odráží jen bodované výsledky (umístění do 32.
-            # místa), takže by jezdce z přeplněných kategorií nikdy nekvalifikovalo.
-            results_20 = Result.objects.filter(
-                event__type_for_ranking="Český pohár",
-                event__date__year=year,
-                rider=rider,
-                is_20=True,
-                is_beginner=False,
-            ).count()
-            results_24 = Result.objects.filter(
-                event__type_for_ranking="Český pohár",
-                event__date__year=year,
-                rider=rider,
-                is_20=False,
-                is_beginner=False,
-            ).count()
-
-            rider.is_qualify_to_cn_20 = results_20 >= settings.qualify_to_cn
-            rider.is_qualify_to_cn_24 = results_24 >= settings.qualify_to_cn
-            rider.save(update_fields=["is_qualify_to_cn_20", "is_qualify_to_cn_24"])
+        perform_cn_qualification_recount(self.year)
 
 
 def should_recount_cn_qualification_for_event(event):
     """Vrátí True, pokud nahrání výsledků tohoto závodu má automaticky spustit přepočet kvalifikace na MČR."""
-    if not event or event.type_for_ranking != "Český pohár" or not event.date:
+    if not event or event.type_for_ranking != EventType.CESKY_POHAR or not event.date:
         return False
 
     year = event.date.year
@@ -570,7 +576,7 @@ def should_recount_cn_qualification_for_event(event):
         return False
 
     championship = (
-        Event.objects.filter(type_for_ranking="Mistrovství ČR jednotlivců", date__year=year)
+        Event.objects.filter(type_for_ranking=EventType.MCR_JEDNOTLIVCU, date__year=year)
         .exclude(date__isnull=True)
         .order_by("date")
         .first()
@@ -580,7 +586,7 @@ def should_recount_cn_qualification_for_event(event):
 
     cup_events_before_championship = list(
         Event.objects.filter(
-            type_for_ranking="Český pohár",
+            type_for_ranking=EventType.CESKY_POHAR,
             date__year=year,
             date__lt=championship.date,
         )
@@ -599,10 +605,21 @@ def should_recount_cn_qualification_for_event(event):
     return current_index >= first_decisive_index
 
 
+def start_cn_qualification_recount(year=None):
+    """Spustí přepočet kvalifikace na MČR — přes Celery, nebo vláknem jako fallback."""
+    from bmx.background import should_use_celery
+
+    if should_use_celery():
+        from rider.tasks import recount_cn_qualification_task
+        recount_cn_qualification_task.delay(year)
+    else:
+        RiderQualifyToCNThread(year=year).start()
+
+
 def trigger_cn_qualification_recount_if_needed(event):
     """Spustí automatický přepočet kvalifikace na MČR na pozadí, pokud je závod v rozhodném okně."""
     if should_recount_cn_qualification_for_event(event):
-        RiderQualifyToCNThread(year=event.date.year).start()
+        start_cn_qualification_recount(year=event.date.year)
         logger.info(
             "Automatický přepočet kvalifikace na MČR spuštěn po uploadu výsledků závodu %s (%s).",
             event.id,

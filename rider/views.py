@@ -2275,14 +2275,14 @@ def participation_stats_view(request):
     import json
     from collections import defaultdict
     from django.db.models import Count
-    from event.models import Event, Result
+    from event.models import Event, EventType, Result
 
     EVENT_GROUPS = {
-        "MČR":          ["Mistrovství ČR jednotlivců"],
-        "Český pohár":  ["Český pohár"],
-        "Česká liga":   ["Česká liga"],
-        "Moravská liga": ["Moravská liga"],
-        "Volné závody": ["Volný závod"],
+        "MČR":          [EventType.MCR_JEDNOTLIVCU],
+        "Český pohár":  [EventType.CESKY_POHAR],
+        "Česká liga":   [EventType.CESKA_LIGA],
+        "Moravská liga": [EventType.MORAVSKA_LIGA],
+        "Volné závody": [EventType.VOLNY_ZAVOD],
     }
     COLORS = {
         "MČR":          "#6366f1",
