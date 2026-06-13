@@ -802,6 +802,78 @@ def _build_head_to_head(base_results, opponent_results, base_runs, opponent_runs
 
 
 
+def _collect_track_run_metrics(timed_recent_track_runs, event_metrics):
+    """Projde rozjížďky na dané dráhě a posbírá časy, místa a počty.
+
+    Mutuje ``event_metrics`` (per-event moto/final places a bad_runs). Vrací dict
+    s akumulátory (časy do cíle, časy/místa po moto a finále, jízdy po dráhách,
+    počty čistých/diskvalifikovaných jízd) — vstup pro výpočet KPI a skóre."""
+    finish_times, hill_times, split_times = [], [], []
+    lane_hill_times = defaultdict(list)
+    lane_result_places = defaultdict(list)
+    moto_finish_times, final_finish_times = [], []
+    moto_places, final_places = [], []
+    bad_status_count = clean_runs = eligible_clean_runs = 0
+
+    for run in timed_recent_track_runs:
+        if run.lane and run.hill_time is not None:
+            lane_hill_times[run.lane].append(float(run.hill_time))
+
+        parsed_place = _parse_numeric_place(run.place)
+        finish_time = run.finish_time
+        run_metrics = event_metrics[run.event_id]
+
+        if finish_time is not None:
+            finish_times.append(float(finish_time))
+            clean_runs += 1
+
+        if run.hill_time is not None:
+            hill_times.append(float(run.hill_time))
+
+        if run.split_1 is not None:
+            split_times.append(float(run.split_1))
+
+        place_text = (run.place or "").upper()
+        is_bad_status = any(flag in place_text for flag in ("DNF", "DNS", "DSQ", "REL"))
+        if is_bad_status:
+            bad_status_count += 1
+            run_metrics["bad_runs"] += 1
+            eligible_clean_runs += 1
+        elif finish_time is not None:
+            eligible_clean_runs += 1
+
+        if run.round_type == "MOTO":
+            if parsed_place is not None:
+                moto_places.append(parsed_place)
+                run_metrics["moto_places"].append(parsed_place)
+            if finish_time is not None:
+                moto_finish_times.append(float(finish_time))
+        elif run.round_type in FINAL_ROUND_TYPES:
+            if parsed_place is not None:
+                final_places.append(parsed_place)
+                run_metrics["final_places"].append(parsed_place)
+            if finish_time is not None:
+                final_finish_times.append(float(finish_time))
+
+        if run.lane and parsed_place is not None:
+            lane_result_places[run.lane].append(parsed_place)
+
+    return {
+        "finish_times": finish_times,
+        "hill_times": hill_times,
+        "split_times": split_times,
+        "lane_hill_times": lane_hill_times,
+        "lane_result_places": lane_result_places,
+        "moto_finish_times": moto_finish_times,
+        "final_finish_times": final_finish_times,
+        "moto_places": moto_places,
+        "final_places": final_places,
+        "bad_status_count": bad_status_count,
+        "clean_runs": clean_runs,
+        "eligible_clean_runs": eligible_clean_runs,
+    }
+
+
 def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None, kpi_cutoff=None, kpi_label="2 roky"):
     """Sestaví kompletní statistiky jezdce pro jednu vybranou dráhu (prémiové statistiky).
 
@@ -866,64 +938,24 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
         if result.event_id:
             event_metrics[result.event_id]["result_place"] = result.place
 
-    finish_times = []
-    hill_times = []
-    split_times = []
+    _m = _collect_track_run_metrics(timed_recent_track_runs, event_metrics)
+    finish_times = _m["finish_times"]
+    hill_times = _m["hill_times"]
+    split_times = _m["split_times"]
+    lane_hill_times = _m["lane_hill_times"]
+    lane_result_places = _m["lane_result_places"]
+    moto_finish_times = _m["moto_finish_times"]
+    final_finish_times = _m["final_finish_times"]
+    moto_places = _m["moto_places"]
+    final_places = _m["final_places"]
+    bad_status_count = _m["bad_status_count"]
+    clean_runs = _m["clean_runs"]
+    eligible_clean_runs = _m["eligible_clean_runs"]
+
+    # Tyto plní až smyčka hill-rankingu níže.
     hill_ranks = []
     hill_rankable_runs = 0
     positions_gained_after_hill = []
-    lane_hill_times = defaultdict(list)
-    lane_result_places = defaultdict(list)
-    moto_finish_times = []
-    final_finish_times = []
-    moto_places = []
-    final_places = []
-    bad_status_count = 0
-    clean_runs = 0
-    eligible_clean_runs = 0
-
-    for run in timed_recent_track_runs:
-        if run.lane and run.hill_time is not None:
-            lane_hill_times[run.lane].append(float(run.hill_time))
-
-        parsed_place = _parse_numeric_place(run.place)
-        finish_time = run.finish_time
-        run_metrics = event_metrics[run.event_id]
-
-        if finish_time is not None:
-            finish_times.append(float(finish_time))
-            clean_runs += 1
-
-        if run.hill_time is not None:
-            hill_times.append(float(run.hill_time))
-
-        if run.split_1 is not None:
-            split_times.append(float(run.split_1))
-
-        place_text = (run.place or "").upper()
-        is_bad_status = any(flag in place_text for flag in ("DNF", "DNS", "DSQ", "REL"))
-        if is_bad_status:
-            bad_status_count += 1
-            run_metrics["bad_runs"] += 1
-            eligible_clean_runs += 1
-        elif finish_time is not None:
-            eligible_clean_runs += 1
-
-        if run.round_type == "MOTO":
-            if parsed_place is not None:
-                moto_places.append(parsed_place)
-                run_metrics["moto_places"].append(parsed_place)
-            if finish_time is not None:
-                moto_finish_times.append(float(finish_time))
-        elif run.round_type in FINAL_ROUND_TYPES:
-            if parsed_place is not None:
-                final_places.append(parsed_place)
-                run_metrics["final_places"].append(parsed_place)
-            if finish_time is not None:
-                final_finish_times.append(float(finish_time))
-
-        if run.lane and parsed_place is not None:
-            lane_result_places[run.lane].append(parsed_place)
 
     heat_runs = defaultdict(list)
     if recent_track_event_ids:

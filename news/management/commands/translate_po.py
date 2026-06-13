@@ -106,7 +106,11 @@ class Command(BaseCommand):
             for entry in po:
                 if entry.obsolete:
                     continue
-                needs = entry.msgstr.strip() == "" or (include_fuzzy and "fuzzy" in entry.flags)
+                if entry.msgid_plural:
+                    empty = not any(v.strip() for v in entry.msgstr_plural.values())
+                else:
+                    empty = entry.msgstr.strip() == ""
+                needs = empty or (include_fuzzy and "fuzzy" in entry.flags)
                 if not needs:
                     continue
                 if FORMAT_RE.search(entry.msgid) and not include_format:
@@ -118,19 +122,36 @@ class Command(BaseCommand):
 
             done = failed = processed = 0
 
-            def _translate(entry):
-                masked, tokens = _mask(entry.msgid)
+            def _translate_one(text):
+                masked, tokens = _mask(text)
                 result = _translate_text(masked, lang)
-                if tokens:
-                    result = _unmask(result, tokens) if result else result
+                if tokens and result:
+                    result = _unmask(result, tokens)
                 if result:
-                    result = _match_edge_newlines(entry.msgid, result)
-                return entry, result
+                    result = _match_edge_newlines(text, result)
+                return result
+
+            def _translate(entry):
+                if entry.msgid_plural:
+                    # Plurál: přelož singulár i plurálový tvar a vyplň všechny formy
+                    # (msgstr_plural má dle .po hlavičky N tvarů; 0=singulár, 1+=plurál).
+                    sing = _translate_one(entry.msgid)
+                    plur = _translate_one(entry.msgid_plural)
+                    if not (sing and plur):
+                        return entry, None
+                    forms = {i: (sing if i == 0 else plur) for i in entry.msgstr_plural}
+                    return entry, forms
+                return entry, _translate_one(entry.msgid)
 
             with ThreadPoolExecutor(max_workers=workers) as pool:
                 for entry, translated in pool.map(_translate, targets):
                     processed += 1
-                    if translated and translated.strip():
+                    if isinstance(translated, dict):
+                        entry.msgstr_plural = translated
+                        if "fuzzy" in entry.flags:
+                            entry.flags.remove("fuzzy")
+                        done += 1
+                    elif translated and translated.strip():
                         entry.msgstr = translated
                         if "fuzzy" in entry.flags:
                             entry.flags.remove("fuzzy")
