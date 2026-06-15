@@ -1339,4 +1339,205 @@
   .dark .eshop-summary-item + .eshop-summary-item {
     border-top-color: rgba(51, 65, 85, 0.8);
   }
+
+  /* === eshop/product_detail.html (přesunuto z inline <style>) === */
+  /* Variant buttons – dark mode (JS adds/removes bg-white via classList so Tailwind dark: loses) */
+  .dark .variant-button:not([data-stock="0"]):not([aria-pressed="true"]) {
+    background-color: #020617;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  .dark .variant-button[data-stock="0"] {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
+  }
+  .dark .variant-button[data-stock="0"]:hover {
+    border-color: #fbbf24;
+    background-color: rgba(245, 158, 11, 0.16);
+  }
+  .dark .variant-button[aria-pressed="true"] {
+    background-color: #4f46e5;
+    border-color: #4338ca;
+    color: #fff;
+  }
+  .dark .variant-button[aria-pressed="true"] span {
+    color: #fff !important;
+  }
+  /* Quantity stepper */
+  .dark .qty-stepper {
+    background-color: #1e293b;
+    border-color: #475569;
+  }
+  .dark .qty-stepper input {
+    border-color: #475569;
+    color: #fff;
+  }
+  /* Payment info card */
+  .dark .payment-info-card {
+    background-color: #0f172a;
+    border-color: #334155;
+  }
+
+  @keyframes pd-fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pd-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .pd-anim-1 { animation: pd-fade-up 400ms ease both; }
+  .pd-anim-2 { animation: pd-fade-up 400ms 80ms ease both; }
+  .pd-anim-3 { animation: pd-fade-up 400ms 160ms ease both; }
+
+  .product-media-frame img {
+    transition: transform 400ms ease;
+  }
+  .product-media-frame:hover img {
+    transform: scale(1.03);
+  }
+  .product-purchase-panel {
+    transition: box-shadow 220ms ease, transform 220ms ease;
+  }
+  .product-purchase-panel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 32px 80px rgba(15, 23, 42, 0.12);
+  }
+  .dark .product-purchase-panel:hover {
+    box-shadow: 0 32px 80px rgba(2, 6, 23, 0.45);
+  }
+  .product-gallery-thumb {
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+  .product-gallery-thumb:hover {
+    transform: translateY(-2px);
+  }
+
+  .product-gallery-thumb[aria-pressed="true"] {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+  .product-media-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.1), transparent 26%),
+      #f8fafc;
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.1);
+  }
+  .product-media-frame::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.25rem 1.25rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.45), transparent);
+  }
+  .product-purchase-panel {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 1.85rem;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent 32%),
+      rgba(255, 255, 255, 0.96);
+    box-shadow: 0 22px 64px rgba(15, 23, 42, 0.08);
+  }
+  .product-availability-card {
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    border-radius: 1.35rem;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.84));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  .product-gallery-thumb {
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88));
+  }
+  .dark .product-gallery-thumb {
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.82));
+    border-color: #334155;
+  }
+  .dark .product-gallery-thumb:hover {
+    border-color: #6366f1;
+  }
+  .dark .product-gallery-thumb[aria-pressed="true"] {
+    background:
+      radial-gradient(circle at top right, rgba(99, 102, 241, 0.22), transparent 44%),
+      rgba(15, 23, 42, 0.96);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.28);
+  }
+  .dark .product-media-frame {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 28%),
+      #0f172a;
+    box-shadow: 0 26px 70px rgba(2, 6, 23, 0.42);
+  }
+  .dark .product-purchase-panel {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 32%),
+      rgba(15, 23, 42, 0.96);
+    box-shadow: 0 24px 68px rgba(2, 6, 23, 0.36);
+  }
+  .dark .product-availability-card {
+    border-color: rgba(71, 85, 105, 0.9);
+    background:
+      linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.78));
+  }
+
+  .dark .stock-alert-modal-card,
+  .dark .stock-alert-modal-card {
+    border-color: rgba(245, 158, 11, 0.34) !important;
+    background:
+      radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+      rgba(15, 23, 42, 0.98) !important;
+    color: #e2e8f0 !important;
+  }
+
+  .dark .stock-alert-modal-card input,
+  .dark .stock-alert-modal-card select,
+  .dark .stock-alert-modal-card textarea,
+  .dark .stock-alert-modal-card input,
+  .dark .stock-alert-modal-card select,
+  .dark .stock-alert-modal-card textarea {
+    border-color: rgba(71, 85, 105, 0.96) !important;
+    background-color: rgba(2, 6, 23, 0.82) !important;
+    color: #f8fafc !important;
+  }
+
+  .dark .stock-alert-modal-card input::placeholder,
+  .dark .stock-alert-modal-card textarea::placeholder,
+  .dark .stock-alert-modal-card input::placeholder,
+  .dark .stock-alert-modal-card textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  .dark .stock-alert-modal-card input:focus,
+  .dark .stock-alert-modal-card select:focus,
+  .dark .stock-alert-modal-card textarea:focus,
+  .dark .stock-alert-modal-card input:focus,
+  .dark .stock-alert-modal-card select:focus,
+  .dark .stock-alert-modal-card textarea:focus {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18) !important;
+  }
+
+  .dark .stock-alert-variant-pill,
+  .dark .stock-alert-variant-pill {
+    background-color: rgba(245, 158, 11, 0.13) !important;
+    color: #fde68a !important;
+  }
+
+  .dark .continue-shopping-btn {
+    background-color: #020617;
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+  .dark .continue-shopping-btn:hover {
+    background-color: #0f172a;
+  }
 }
