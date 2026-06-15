@@ -5,7 +5,7 @@
 
 {% block extra_head %}
 <style>
-  .eshop-checkout-page {
+.eshop-checkout-page {
     background:
       radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 22%),
       radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 20%),
@@ -73,13 +73,6 @@
     text-transform: uppercase;
   }
 
-  .eshop-stat-card {
-    border: 1px solid rgba(226, 232, 240, 0.92);
-    border-radius: 1.35rem;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
-  }
-
   .eshop-summary-card {
     border: 1px solid rgba(99, 102, 241, 0.14);
     border-radius: 1.75rem;
@@ -142,22 +135,11 @@
       #0f172a;
   }
 
-  html.dark .eshop-checkout-card,
-  html.dark .eshop-stat-card,
-  html.dark .eshop-summary-card,
-  html.dark .eshop-summary-band {
-    border-color: rgba(51, 65, 85, 0.92);
-  }
-
   html.dark .eshop-checkout-card {
     background:
       radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 24%),
       rgba(15, 23, 42, 0.94);
     box-shadow: 0 22px 60px rgba(2, 6, 23, 0.3);
-  }
-
-  html.dark .eshop-stat-card {
-    background: rgba(15, 23, 42, 0.82);
   }
 
   html.dark .eshop-summary-card {
@@ -217,7 +199,7 @@
   html.dark .eshop-summary-item + .eshop-summary-item {
     border-top-color: rgba(51, 65, 85, 0.8);
   }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}

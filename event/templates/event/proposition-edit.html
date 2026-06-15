@@ -6,44 +6,15 @@
 {% block extra_head %}
 {{ form.media }}
 <style>
-  .proposition-page {
+.proposition-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
-  }
-
-  .proposition-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .proposition-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
   .proposition-shell {
     max-width: 88rem;
     margin: 0 auto;
     padding: 2rem 1.5rem 3rem;
-  }
-
-  .proposition-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .proposition-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
   }
 
   .proposition-card {
@@ -72,19 +43,6 @@
     background: #0f172a;
   }
 
-  html.dark .proposition-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
-  html.dark .proposition-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
-
   html.dark .proposition-card {
     border-color: rgba(71, 85, 105, 0.55);
     background:
@@ -92,26 +50,16 @@
     box-shadow: 0 24px 54px rgba(2, 6, 23, 0.38);
   }
 
-  @media (min-width: 640px) {
-    .proposition-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
   @media (min-width: 960px) {
-    .proposition-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
 
     .proposition-form-grid {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-  }
-</style>
+    }}
+  </style>
 {% endblock %}
 
 {% block content %}
-<header class="proposition-hero">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] lg:items-end">
       <div>
@@ -125,16 +73,16 @@
           Formulářová propozice pro pořadatele a administrátory. Strukturovaný obsah se publikuje přímo na detailu závodu.
         </p>
       </div>
-      <div class="proposition-stats-grid">
-        <div class="proposition-stat rounded-2xl px-5 py-4">
+      <div class="page-stats-grid">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Pořadatel" %}</p>
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.organizer.team_name|default:"-" }}</p>
         </div>
-        <div class="proposition-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Datum závodu" %}</p>
           <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ event.date|date:"j. n. Y"|default:"-" }}</p>
         </div>
-        <div class="proposition-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Stav</p>
           <p class="mt-2 text-lg font-black {% if form.instance.is_published %}text-emerald-700 dark:text-emerald-300{% else %}text-amber-700 dark:text-amber-300{% endif %}">
             {% if form.instance.is_published %}Zveřejněno{% else %}Rozpracováno{% endif %}
