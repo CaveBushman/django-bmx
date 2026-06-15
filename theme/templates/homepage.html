@@ -52,7 +52,7 @@
 {% endblock %}
 {% block extra_head %}
 <style>
-  html.dark body,
+html.dark body,
   html.dark .homepage-dark-surface,
   html.dark .homepage-dark-section {
     background-color: #0f172a !important;
@@ -276,11 +276,6 @@
     transform: translateY(-4px);
     border-color: rgba(59, 130, 246, 0.22);
     box-shadow: 0 26px 56px rgba(15, 23, 42, 0.12);
-  }
-
-  .homepage-news-featured {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.9));
   }
 
   .homepage-news-media {
@@ -552,7 +547,7 @@
   html.dark .homepage-footer-social:hover {
     color: #ffffff;
   }
-</style>
+  </style>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     if (!document.documentElement.classList.contains("dark")) return;

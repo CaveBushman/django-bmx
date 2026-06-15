@@ -5,44 +5,9 @@
 
 {% block extra_head %}
 <style>
-  .trainer-dashboard-page {
+.trainer-dashboard-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
-  }
-
-  .trainer-dashboard-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .trainer-dashboard-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
-  }
-
-  .trainer-dashboard-shell {
-    max-width: 88rem;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 3rem;
-  }
-
-  .trainer-dashboard-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  .trainer-dashboard-hero-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
   }
 
   @media (min-width: 640px) {
@@ -73,7 +38,7 @@
     background: rgba(15, 23, 42, 0.72);
     box-shadow: none;
   }
-</style>
+  </style>
 {% endblock extra_head %}
 
 {% block content %}
