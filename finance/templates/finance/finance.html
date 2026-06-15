@@ -6,26 +6,9 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
-  .finance-page {
+.finance-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
-  }
-
-  .finance-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .finance-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
   .finance-shell {
@@ -92,13 +75,6 @@
     background: #0f172a;
   }
 
-  html.dark .finance-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
   html.dark .finance-hero-stat {
     border-color: rgba(99, 102, 241, 0.24);
     background: rgba(15, 23, 42, 0.72);
@@ -141,7 +117,7 @@
   html.dark table thead {
     background-color: #020617;
   }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}

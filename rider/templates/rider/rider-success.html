@@ -5,26 +5,9 @@
 
 {% block extra_head %}
 <style>
-  .rider-status-page {
+.rider-status-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
-  }
-
-  .rider-status-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .rider-status-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
   .rider-status-card {
@@ -55,13 +38,6 @@
     background: #0f172a;
   }
 
-  html.dark .rider-status-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
   html.dark .rider-status-card {
     border-color: rgba(71, 85, 105, 0.55);
     background:
@@ -79,12 +55,12 @@
     border-color: rgba(245, 158, 11, 0.32);
     background: rgba(120, 53, 15, 0.22);
   }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}
 <div class="rider-status-page">
-  <header class="rider-status-hero">
+  <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="max-w-4xl">
         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">
