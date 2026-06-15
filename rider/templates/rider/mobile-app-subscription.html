@@ -2,22 +2,8 @@
 {% load i18n %}
 {% block title %}{% trans "Předplatné mobilní aplikace" %}{% endblock title %}
 
-{% block extra_head %}
-<style>
-  .sub-page { min-height: calc(100vh - 4rem); background: #f8fafc; }
-  html.dark .sub-page { background: #0f172a; }
-  .sub-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 24px rgba(15,23,42,0.06);
-  }
-  html.dark .sub-card { background: #1e293b; border-color: #334155; }
-</style>
-{% endblock extra_head %}
-
 {% block content %}
-<div class="sub-page px-4 py-10">
+<div class="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-10 dark:bg-slate-900">
   <div class="mx-auto max-w-lg">
 
     <div class="mb-8">
@@ -39,7 +25,7 @@
     </div>
     {% endif %}
 
-    <div class="sub-card p-6">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_24px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-800">
 
       {% if subscription %}
         {# ——— AKTIVNÍ PŘEDPLATNÉ ——— #}

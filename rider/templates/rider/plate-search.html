@@ -6,42 +6,6 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <script src="{% static 'js/rider_search_forms.js' %}?v=1" defer></script>
-<style>
-  .plate-search-input {
-    background: #ffffff;
-    color: #334155;
-    caret-color: #334155;
-  }
-
-  .plate-search-input::placeholder {
-    color: #94a3b8;
-  }
-
-  .plate-results-row {
-    background: rgba(255, 255, 255, 0.96);
-    color: #334155;
-  }
-
-  html.dark .plate-search-input {
-    background: rgba(15, 23, 42, 0.92) !important;
-    color: #f8fafc !important;
-    caret-color: #f8fafc !important;
-    -webkit-text-fill-color: #f8fafc !important;
-  }
-
-  html.dark .plate-search-input::placeholder {
-    color: #94a3b8 !important;
-  }
-
-  html.dark .plate-results-row {
-    background: rgba(15, 23, 42, 0.72) !important;
-    color: #e2e8f0 !important;
-  }
-
-  html.dark .plate-results-row div {
-    color: inherit !important;
-  }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -84,7 +48,7 @@
             spellcheck="false"
             data-plate-search-input
             placeholder="{% trans 'Zadej startovní číslo' %}"
-            class="plate-search-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-indigo-950"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-700 caret-slate-700 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-900/90 dark:text-white dark:caret-white dark:focus:ring-indigo-950"
           >
         </label>
         <button
@@ -101,7 +65,7 @@
       {% if results %}
       <div class="space-y-4">
         {% for result in results %}
-        <div class="plate-results-row overflow-hidden rounded-[1.5rem] border border-slate-200 px-5 py-5 dark:border-slate-700">
+        <div class="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white/95 px-5 py-5 text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 border-b border-slate-200 pb-3 md:block md:border-b-0 md:pb-0 dark:border-slate-700">
               <span class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{% trans "Startovní číslo" %}</span>
