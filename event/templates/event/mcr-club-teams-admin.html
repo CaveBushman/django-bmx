@@ -6,68 +6,9 @@
 {% block extra_head %}
 {{ block.super }}
 <style>
-  .mcr-admin-page {
+.mcr-admin-page {
     min-height: 100vh;
     background: #f8fafc;
-  }
-
-  .ranking-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.2), transparent 24%),
-      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.14), transparent 22%),
-      linear-gradient(135deg, #eef2ff 0%, #f8fafc 46%, #e0f2fe 100%);
-  }
-
-  .ranking-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
-  }
-
-  .ranking-hero-frame {
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    border-radius: 2.2rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
-    box-shadow:
-      0 36px 90px rgba(15, 23, 42, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(18px);
-  }
-
-  .ranking-hero-frame::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background:
-      radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 28%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 48%);
-  }
-
-  .ranking-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1rem;
-  }
-
-  @media (min-width: 640px) {
-    .ranking-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .ranking-stat {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
   }
 
   .mcr-roster-card,
@@ -78,14 +19,6 @@
     border: 1px solid rgba(99, 102, 241, 0.14);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84));
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-  }
-
-  .ranking-stat::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: linear-gradient(180deg, #4338ca, #0ea5e9);
   }
 
   .mcr-roster-member {
@@ -213,27 +146,6 @@
     color: #e5e7eb;
   }
 
-  html.dark .ranking-hero {
-    background:
-      radial-gradient(circle at 12% 18%, rgba(79, 70, 229, 0.26), transparent 24%),
-      radial-gradient(circle at 86% 14%, rgba(14, 165, 233, 0.16), transparent 22%),
-      linear-gradient(135deg, #111827 0%, #0f172a 48%, #082f49 100%);
-  }
-
-  html.dark .ranking-hero-frame {
-    border-color: rgba(148, 163, 184, 0.32);
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.62), rgba(30, 41, 59, 0.50));
-    box-shadow:
-      0 36px 90px rgba(2, 6, 23, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  html.dark .ranking-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72));
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
-
   html.dark .mcr-roster-card,
   html.dark .mcr-roster-empty,
   html.dark .mcr-ops-card {
@@ -347,13 +259,6 @@
   }
 
   @media print {
-    .ranking-hero,
-    nav,
-    .mcr-print-actions,
-    .mcr-roster-web-header,
-    .mcr-ops-section {
-      display: none !important;
-    }
 
     @page { margin: 14mm 14mm 12mm; }
 
@@ -479,17 +384,15 @@
     .mcr-rider-name-print { font-size: 8.5pt; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mcr-rider-meta-print { font-size: 7.5pt; color: #64748b !important; white-space: nowrap; }
     .mcr-web-only { display: none !important; }
-    .space-y-4 > * + * { margin-top: 0 !important; }
-  }
-
-</style>
+    .space-y-4 > * + * { margin-top: 0 !important; }}
+  </style>
 {% endblock extra_head %}
 
 {% block content %}
 <div class="mcr-admin-page">
-  <header class="ranking-hero">
+  <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="ranking-hero-frame px-8 py-8 sm:px-10 sm:py-10">
+      <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
         <div class="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,32rem)] lg:items-end">
           <div>
             <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "MČR družstev" %}</p>
@@ -528,16 +431,16 @@
               </a>
             </div>
           </div>
-          <div class="ranking-stats-grid">
-            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+          <div class="page-stats-grid">
+            <div class="page-stat-card rounded-2xl px-5 py-4 pl-7">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Přihlášených týmů" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ teams_count }}</p>
             </div>
-            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <div class="page-stat-card rounded-2xl px-5 py-4 pl-7">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Jezdců v soupisech" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ riders_count }}</p>
             </div>
-            <div class="ranking-stat rounded-2xl px-5 py-4 pl-7">
+            <div class="page-stat-card rounded-2xl px-5 py-4 pl-7">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Vybrané startovné" %}</p>
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ entry_fee_total_display }} Kč</p>
             </div>
