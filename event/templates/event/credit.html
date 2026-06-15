@@ -22,6 +22,27 @@
     padding: 2rem 1.5rem 3rem;
   }
 
+  .credit-hero-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .credit-hero-stats {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .credit-hero-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
+  .credit-hero-value {
+    font-variant-numeric: tabular-nums;
+  }
+
   .credit-submit {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(79, 70, 229, 0.88));
     border: 1px solid rgba(99, 102, 241, 0.22);

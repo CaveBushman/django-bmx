@@ -3,7 +3,18 @@
 {% block title %}{% trans "Detail klubu" %}{% endblock title %}
 {% block extra_head %}
 <style>
-.clubs-stat-value {
+.clubs-page {
+    min-height: calc(100vh - 4rem);
+    background: #f8fafc;
+  }
+
+  .clubs-shell {
+    max-width: 88rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 2.5rem;
+  }
+
+  .clubs-stat-value {
     overflow-wrap: anywhere;
     word-break: break-word;
     line-height: 1.05;
@@ -105,6 +116,47 @@
     align-items: center;
     justify-content: center;
     border-radius: 999px;
+  }
+
+  .club-detail-social-link {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(255, 255, 255, 0.82);
+    padding: 0.95rem 1rem;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .club-detail-social-link:hover {
+    transform: translateY(-1px);
+    border-color: rgba(99, 102, 241, 0.28);
+    box-shadow: 0 16px 28px -22px rgba(79, 70, 229, 0.45);
+  }
+
+  .club-detail-social-icon {
+    display: inline-flex;
+    height: 2.8rem;
+    width: 2.8rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(248, 250, 252, 0.94);
+  }
+
+  .clubs-card {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  }
+
+  .club-detail-pane {
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.98);
   }
 
   html.dark .club-detail-surface {

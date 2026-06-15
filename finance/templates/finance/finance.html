@@ -17,6 +17,18 @@
     padding: 2rem 1.5rem 3rem;
   }
 
+  .finance-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .finance-hero-stat {
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  }
+
   @media (min-width: 640px) {
     .finance-hero-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -32,6 +44,11 @@
   .finance-stat-accent {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(59, 130, 246, 0.16));
     color: #4338ca;
+  }
+
+  .finance-stat-accent-rose {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.14), rgba(249, 115, 22, 0.14));
+    color: #e11d48;
   }
 
   .finance-action-card {

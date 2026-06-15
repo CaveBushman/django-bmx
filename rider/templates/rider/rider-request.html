@@ -4,7 +4,7 @@
 
 {% block extra_head %}
 <style>
-.rider-request-surface {
+  .rider-request-surface {
     background:
       radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 28rem),
       radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 24rem),
@@ -46,6 +46,11 @@
     display: grid;
     grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: 1.25rem;
+  }
+
+  .rider-request-fieldset {
+    border: none;
+    background: transparent;
   }
 
   .rider-request-step {
@@ -237,7 +242,7 @@
   .animate-fade-in {
     animation: fade-in 0.35s ease-out;
   }
-  </style>
+</style>
 {% endblock %}
 
 {% block content %}

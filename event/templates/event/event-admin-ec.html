@@ -5,7 +5,7 @@
 {% block extra_head %}
 <script src="{% static 'js/event_admin_ec.js' %}?v=1" defer></script>
 <style>
-.ec-admin-page {
+  .ec-admin-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
   }
@@ -108,6 +108,24 @@
     gap: 1rem;
   }
 
+  .ec-results-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    color: #64748b;
+    transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+  }
+
+  .ec-results-remove:hover {
+    border-color: rgba(244, 63, 94, 0.35);
+    color: #e11d48;
+    background: rgba(254, 226, 226, 0.7);
+  }
+
   html.dark .ec-results-remove {
     border-color: rgba(71, 85, 105, 0.9);
     color: #cbd5e1;
@@ -119,7 +137,7 @@
     color: #fda4af;
     background: rgba(127, 29, 29, 0.3);
   }
-  </style>
+</style>
 {% endblock %}
 {% block content %}
 <header class="ec-admin-hero">
