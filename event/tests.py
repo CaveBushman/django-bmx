@@ -3260,7 +3260,16 @@ class EuropeanCupAdminTests(TestCase):
     def test_ec_admin_generate_ec_file_runs_only_on_explicit_post(self):
         self.client.force_login(self.staff_user)
 
-        with patch("event.views.views_admin._generate_ec_file") as generate_ec_file_mock:
+        # _generate_ec_file musí vrátit reálnou cestu — view ji otevírá přes
+        # open(path, "rb") do FileResponse. MagicMock by tu vytvořil FileIO nad
+        # neplatným fd (closefd=True), který by při shutdownu zavřel cizí fd
+        # (stdout) → "Bad file descriptor" a exit 120.
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+            tmp.write(b"dummy-ec-file")
+            tmp_path = tmp.name
+        self.addCleanup(lambda: os.path.exists(tmp_path) and os.unlink(tmp_path))
+
+        with patch("event.views.views_admin._generate_ec_file", return_value=tmp_path) as generate_ec_file_mock:
             response = self.client.post(
                 reverse("event:event-admin", kwargs={"pk": self.event.id}),
                 {"btn-generate-ec-file": "1"},
