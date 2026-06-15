@@ -5,56 +5,15 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
 <style>
-  .clubs-page {
+.clubs-page {
     min-height: calc(100vh - 4rem);
     background: #f8fafc;
-  }
-
-  .clubs-hero {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 26%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  }
-
-  .clubs-hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
   }
 
   .clubs-shell {
     max-width: 88rem;
     margin: 0 auto;
     padding: 1rem 1.5rem 3rem;
-  }
-
-  .clubs-stat {
-    border: 1px solid rgba(99, 102, 241, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
-  }
-
-  .clubs-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .clubs-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 960px) {
-    .clubs-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
   }
 
   .clubs-card {
@@ -127,19 +86,6 @@
     background: #0f172a;
   }
 
-  html.dark .clubs-hero {
-    background:
-      radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
-      linear-gradient(180deg, #111827 0%, #0f172a 100%);
-  }
-
-  html.dark .clubs-stat {
-    border-color: rgba(99, 102, 241, 0.24);
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.35);
-  }
-
   html.dark .clubs-card {
     border-color: rgba(71, 85, 105, 0.55);
     background:
@@ -169,11 +115,11 @@
     background: rgba(99, 102, 241, 0.18);
     color: #c7d2fe;
   }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}
-<header class="clubs-hero">
+<header class="page-hero">
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(36rem,40rem)] lg:items-end">
       <div>
@@ -187,16 +133,16 @@
           {% trans "Zkontroluj nezaplacené přihlášky, odstraň nepotřebné položky a potvrď je odečtením kreditu." %}
         </p>
       </div>
-      <div class="clubs-stats-grid">
-        <div class="clubs-stat rounded-2xl px-5 py-4">
+      <div class="page-stats-grid">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Položky v košíku" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ sum|default:0 }}</p>
         </div>
-        <div class="clubs-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celková platba" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ price }} CZK</p>
         </div>
-        <div class="clubs-stat rounded-2xl px-5 py-4">
+        <div class="page-stat-card rounded-2xl px-5 py-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Potvrzení" %}</p>
           <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{% trans "Kreditem" %}</p>
         </div>
