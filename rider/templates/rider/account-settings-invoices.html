@@ -186,6 +186,9 @@
     display: grid;
     gap: 1.25rem;
     align-items: start;
+    /* 2 sloupce jen když je dost místa (≥ ~32rem), jinak stack — jinak se
+       v úzkém PROFIL sloupci na širokých displejích text láme po znaku. */
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   }
 
   .profile-info-card {
@@ -230,12 +233,6 @@
 
     .avatar-upload-grid {
       grid-template-columns: 1fr;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .profile-split-card {
-      grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
     }
   }
 
