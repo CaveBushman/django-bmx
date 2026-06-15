@@ -37,6 +37,28 @@
   /* brand tokeny zůstávají v dark stejné */
 }
 
+/*
+ * Registrace tokenů jako Tailwind barvy → generuje utility bg-bmx-card,
+ * text-bmx-text, border-bmx-border, bg-bmx-brand atd. `inline` zajistí, že
+ * utility referencují proměnnou (ne hodnotu), takže .dark override funguje
+ * automaticky bez dark: variant. V markupu se pak píše `bg-bmx-card` a barva
+ * se mění podle režimu sama.
+ */
+@theme inline {
+  --color-bmx-bg: var(--bmx-bg);
+  --color-bmx-surface: var(--bmx-surface);
+  --color-bmx-card: var(--bmx-card);
+  --color-bmx-border: var(--bmx-border);
+  --color-bmx-border-strong: var(--bmx-border-strong);
+  --color-bmx-text: var(--bmx-text);
+  --color-bmx-text-soft: var(--bmx-text-soft);
+  --color-bmx-text-muted: var(--bmx-text-muted);
+  --color-bmx-brand: var(--bmx-brand);
+  --color-bmx-brand-hover: var(--bmx-brand-hover);
+  --color-bmx-brand-ink: var(--bmx-brand-ink);
+  --color-bmx-brand-tint: var(--bmx-brand-tint);
+}
+
 @layer components {
   /* Body background — token přepíná .dark, není potřeba samostatné .dark pravidlo */
   body { background-color: var(--bmx-bg); }
