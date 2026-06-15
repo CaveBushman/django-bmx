@@ -57,15 +57,19 @@ def backup_sqlite_scheduled():
     backup_path = db_path.with_name(f"db.sqlite3.bak-{stamp}")
 
     try:
-        result = subprocess.run(
-            ["sqlite3", str(db_path), f".backup {backup_path}"],
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-        if result.returncode != 0:
-            logger.error("SQLite backup selhal: %s", result.stderr)
-            return
+        # Online záloha přes vestavěné sqlite3 (konzistentní kopie za běhu).
+        # Dříve volalo `sqlite3` CLI, které ale v produkčním image (python:3.13-slim)
+        # ani v CI není nainstalované → záloha tiše selhávala.
+        import sqlite3 as _sqlite3
+
+        source_conn = _sqlite3.connect(str(db_path), timeout=300)
+        dest_conn = _sqlite3.connect(str(backup_path))
+        try:
+            with dest_conn:
+                source_conn.backup(dest_conn)
+        finally:
+            dest_conn.close()
+            source_conn.close()
 
         gz_path = _gzip_backup(backup_path)
         size_mb = gz_path.stat().st_size / 1024 / 1024

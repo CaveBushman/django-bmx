@@ -205,6 +205,9 @@ def riders_on_events_export_view(request, pk):
         (club.riders_on_events.storage if club.riders_on_events else None or Club._meta.get_field("riders_on_events").storage).open(str(relative_path), "rb"),
         as_attachment=True,
         filename=os.path.basename(file_path),
+        # Explicitně — mimetypes.guess_type na minimálním Linuxu (slim/CI) nezná
+        # .xlsx a vrátil by application/octet-stream.
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 class Participation:
