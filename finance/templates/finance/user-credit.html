@@ -5,19 +5,10 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
-<style>
-  .finance-page { min-height: calc(100vh - 4rem); background: #f8fafc; }
-  html.dark .finance-page { background: #0f172a; }
-
-  html.dark table tbody { background-color: #0f172a; }
-  html.dark table tbody tr { color: #e2e8f0; }
-  html.dark table tbody td { border-color: #1e293b; }
-  html.dark table thead { background-color: #020617; }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="finance-page pb-12">
+<div class="min-h-[calc(100vh-4rem)] bg-slate-50 pb-12 dark:bg-slate-900">
   <header class="page-hero">
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="page-hero-frame px-8 py-8 sm:px-10 sm:py-10">
