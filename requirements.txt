@@ -43,6 +43,7 @@ packaging==26.0
 pandas==2.3.3
 pikepdf==10.0.2
 pillow==12.1.1
+polib==1.2.0
 Pygments==2.19.2
 pytailwindcss==0.3.0
 python-dateutil==2.9.0.post0

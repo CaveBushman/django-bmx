@@ -45,6 +45,7 @@ lxml
 
 # Překlady
 deepl
+polib
 
 # Monitoring & logging
 sentry-sdk
