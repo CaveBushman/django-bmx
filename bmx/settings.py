@@ -530,7 +530,9 @@ CSRF_TRUSTED_ORIGINS = config_list(
     default=",".join(DEFAULT_CSRF_TRUSTED_ORIGINS),
 )
 
-ENABLE_HTTPS_SECURITY = config_bool("ENABLE_HTTPS_SECURITY", default=not DEBUG)
+# V testech vypnuto — testovací klient běží přes HTTP, jinak by SECURE_SSL_REDIRECT
+# vracel 301 u všech requestů (a secure cookies by nešly přenést).
+ENABLE_HTTPS_SECURITY = config_bool("ENABLE_HTTPS_SECURITY", default=not DEBUG) and not RUNNING_TESTS
 
 if ENABLE_HTTPS_SECURITY:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
