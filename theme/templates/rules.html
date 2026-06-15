@@ -2,29 +2,6 @@
 {% load i18n %}
 {% block title %}{% trans "Pravidla BMX" %}{% endblock title %}
 {% block extra_head %}
-<style>
-.rules-shell {
-    max-width: 88rem;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 3rem;
-  }
-
-  .rules-panel {
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
-    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
-  }
-
-  .rules-prose p {
-    line-height: 1.8;
-  }
-
-  html.dark .rules-panel {
-    border-color: rgba(51, 65, 85, 0.9);
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.88));
-    box-shadow: 0 24px 54px rgba(2, 6, 23, 0.32);
-  }
-  </style>
 {% endblock %}
 {% block content %}
 
@@ -64,9 +41,9 @@
 </header>
 
 <section class="rules-page-surface min-h-screen bg-slate-50 pb-10 pt-8 dark:bg-slate-900">
-  <div class="rules-shell dark:text-slate-200">
+  <div class="mx-auto max-w-[88rem] px-6 pt-8 pb-12 dark:text-slate-200">
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-      <div class="rules-panel rules-prose rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
+      <div class="page-content-card [&_p]:leading-[1.8] rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
         <p class="dark:text-slate-200">Pravidla BMX RACING stanovuje Mezinárodní cyklistická unie UCI, která je
           pravidelně aktualizuje a
           zveřejňuje na svých webových stránkách www.uci.ch v sekci BMX RACING -> Rules and regulation v části Part. VI:
@@ -83,7 +60,7 @@
           pravidla měli zažitá.
         </p>
       </div>
-      <div class="rules-panel rounded-[2rem] p-6 sm:p-7">
+      <div class="page-content-card rounded-[2rem] p-6 sm:p-7">
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Rychlá
           orientace</p>
         <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -94,7 +71,7 @@
       </div>
     </div>
 
-    <div class="rules-panel rules-prose mt-8 rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
+    <div class="page-content-card [&_p]:leading-[1.8] mt-8 rounded-[2rem] p-6 sm:p-8 text-slate-700 dark:text-slate-200">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h5 class="text-2xl font-black tracking-tight text-gray-800 dark:!text-slate-100">Základní pravidla</h5>
         <span
