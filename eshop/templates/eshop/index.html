@@ -323,7 +323,7 @@
         </form>
         <div class="mt-4 space-y-2">
           {% for order in pickup_orders %}
-            <div class="eshop-admin-subcard px-4 py-3">
+            <div class="eshop-admin-subcard px-4 py-3 dark:border-slate-600/80 dark:bg-slate-900">
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
@@ -387,7 +387,7 @@
         </div>
         <div class="mt-4 space-y-2">
           {% for order in delivered_today %}
-            <div class="eshop-admin-subcard px-4 py-3">
+            <div class="eshop-admin-subcard px-4 py-3 dark:border-slate-600/80 dark:bg-slate-900">
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
@@ -451,7 +451,7 @@
         <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           <div class="space-y-2">
             {% for reservation in active_reservations %}
-              <div class="eshop-admin-subcard px-4 py-3">
+              <div class="eshop-admin-subcard px-4 py-3 dark:border-slate-600/80 dark:bg-slate-900">
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
@@ -520,7 +520,7 @@
         <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <div class="space-y-2">
             {% for alert in open_stock_alerts %}
-              <div class="eshop-admin-subcard px-4 py-3">
+              <div class="eshop-admin-subcard px-4 py-3 dark:border-slate-600/80 dark:bg-slate-900">
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
@@ -544,13 +544,13 @@
             {% endfor %}
           </div>
           <div class="space-y-2">
-            <div class="eshop-admin-subcard p-4">
+            <div class="eshop-admin-subcard p-4 dark:border-slate-600/80 dark:bg-slate-900">
               <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 {% trans "Nejžádanější varianty" %}
               </p>
               <div class="mt-3 space-y-2">
                 {% for row in stock_alert_variant_rows %}
-                  <div class="eshop-admin-subcard flex items-center justify-between gap-3 px-3 py-2">
+                  <div class="eshop-admin-subcard flex items-center justify-between gap-3 px-3 py-2 dark:border-slate-600/80 dark:bg-slate-900">
                     <div class="min-w-0">
                       <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">{{ row.variant__product__name }}</p>
                       <p class="text-xs text-slate-500 dark:text-slate-400">
@@ -578,7 +578,7 @@
         <div class="mt-4 space-y-2">
           {% for order in recent_orders %}
           <a href="{% url 'admin:eshop_order_change' order.pk %}"
-             class="eshop-admin-subcard flex items-center justify-between px-4 py-3 transition hover:bg-slate-100 dark:hover:bg-slate-700">
+             class="eshop-admin-subcard flex items-center justify-between px-4 py-3 transition hover:bg-slate-100 dark:hover:bg-slate-700 dark:border-slate-600/80 dark:bg-slate-900">
             <div>
               <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ order.first_name }} {{ order.last_name }}</p>
               <p class="text-xs text-slate-500 dark:text-slate-400">{{ order.created|date:"d.m.Y H:i" }}</p>
@@ -606,7 +606,7 @@
         <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{% trans "Varianty se skladem ≤ 5 ks" %}</p>
         <div class="mt-4 space-y-2">
           {% for variant in low_stock_variants %}
-          <div class="eshop-admin-subcard flex items-center justify-between px-4 py-3">
+          <div class="eshop-admin-subcard flex items-center justify-between px-4 py-3 dark:border-slate-600/80 dark:bg-slate-900">
             <div>
               <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ variant.product.name }}</p>
               <p class="text-xs text-slate-500 dark:text-slate-400">{% trans "Velikost" %}: {{ variant.label }}</p>

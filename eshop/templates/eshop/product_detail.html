@@ -344,7 +344,7 @@
               {% trans "Můžeš pokračovat v nákupu, nebo přejít do košíku a zkontrolovat objednávku před checkoutem." %}
             </p>
             <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-              <a href="{% url 'eshop:shop' %}" class="continue-shopping-btn inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
+              <a href="{% url 'eshop:shop' %}" class="continue-shopping-btn inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-slate-950 dark:text-emerald-300">
                 {% trans "Pokračovat v nákupu" %}
               </a>
               <a href="{% url 'eshop:cart' %}" class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
