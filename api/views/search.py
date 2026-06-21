@@ -34,7 +34,6 @@ from rider.rider import get_rider_data
 from rider.plates import generate_available_plate_values, normalize_plate_value, legacy_plate_int, display_plate
 from event.models import CreditTransaction, Event, Entry, Result
 from event.models_events import Event as EventModel
-from news.models import News
 from club.models import Club
 from rider.serializers import RiderSerializer, ForeignRiderSerializer
 from event.serializers import EventSerializer, EntrySerializer, EventPublicSerializer, EntryDetailSerializer, ResultPublicSerializer

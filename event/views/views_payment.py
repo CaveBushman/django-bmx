@@ -377,7 +377,6 @@ def success_credit_view(request):
 
     # Uložit GA4 data do session pro potvrzovací stránku
     try:
-        from event.models import CreditTransaction
         ct = (
             CreditTransaction.objects
             .filter(user=request.user, transaction_id=session_id, payment_complete=True)

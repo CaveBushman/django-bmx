@@ -176,7 +176,7 @@ class RiderLicenseAPIView(APIView):
         if not (is_commissar or is_admin):
             return Response({"error": "Permission denied."}, status=403)
 
-        from rider.rider import get_api_token, get_rider_data
+        from rider.rider import get_api_token
         import requests as req_lib
         from datetime import date
 

@@ -596,8 +596,6 @@ def shop(request):
         p.available_stock = sum(v.available_stock for v in active_variants)
 
     featured_product = products[0] if products else None
-
-    from .models import Category
     categories = Category.objects.filter(products__active=True).distinct().order_by("sort_order", "name")
 
     product_count = Product.objects.filter(active=True).count()

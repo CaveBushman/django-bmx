@@ -212,7 +212,7 @@ class EventEntryRidersAPIView(APIView):
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, pk):
-        from event.models import Entry, EntryForeign
+        from event.models import EntryForeign
         from event.views.entry_helpers import build_public_entry_rows
 
         get_object_or_404(Event, pk=pk)

@@ -22,8 +22,8 @@ Obsah:
     - _write_bem_rider_row   — pomocný zápis jednoho jezdce do BEM XLS řádku
 """
 
-import logging
 import json
+import logging
 
 from bmx.json_utils import html_safe_json
 import datetime
@@ -1651,7 +1651,6 @@ def ec_by_club_xls(request, pk):
 @login_required(login_url="/login/")
 def summary_riders_in_event(request, pk):
     """Přehled počtu jezdců v každé třídě na závodě."""
-    import json
     from collections import defaultdict
     event = get_object_or_404(Event, id=pk)
     category_counts = Counter()

@@ -528,7 +528,6 @@ def _update_foreign_rider_from_entry(foreign_rider, paid_entry):
 
 def sync_entry_to_foreign_rider_registry(entry):
     """Vytvoří nebo aktualizuje záznam ForeignRider z EntryForeign vytvořeného přes kredit."""
-    from rider.models import ForeignRider
     from event.func import normalize_uci_id
 
     try:
