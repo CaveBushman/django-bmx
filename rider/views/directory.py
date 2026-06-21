@@ -36,7 +36,8 @@ from rider.rider import (
     RiderQualifyToCNThread,
 )
 from club.models import Club
-from event.models import Event, RaceRun, Result
+from event.models import Event, EventType, RaceRun, Result
+from event.constants import event_type_color
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
@@ -296,11 +297,6 @@ def participation_riders_on_event(request):
 @staff_member_required
 def participation_stats_view(request):
     """Statistika účasti jezdců na závodech – grafy vývoje po letech."""
-    from collections import defaultdict
-    from django.db.models import Count
-    from event.models import Event, EventType, Result
-    from event.constants import event_type_color
-
     EVENT_GROUPS = {
         "MČR":          [EventType.MCR_JEDNOTLIVCU],
         "Český pohár":  [EventType.CESKY_POHAR],

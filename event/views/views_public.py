@@ -17,9 +17,9 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
 from django.db.models import Count, Max
-from event.models import Event, EventProposition, EventType, Result, Entry, EntryForeign, EntryClasses
+from event.models import Event, EventType, Result, Entry, EntryForeign, EntryClasses
 from event.constants import EVENT_TYPE_STYLES, DEFAULT_EVENT_TYPE_STYLE
-from event.views.views_proposition import can_manage_event_proposition
+from event.views.views_proposition import can_manage_event_proposition, _get_structured_proposition
 from event.func import get_unregistration_deadline, is_registration_open
 
 _CACHE_LONG   = getattr(django_settings, "CACHE_TTL_LONG",   30 * 60)
@@ -33,12 +33,6 @@ EVENT_LIST_RELATED = ("organizer", "classes_and_fees_like", "structured_proposit
 ENTRY_CLASSES_FEE_FIELDS = tuple(
     field.name for field in EntryClasses._meta.get_fields() if field.name.endswith("_fee")
 )
-
-def _get_structured_proposition(event):
-    try:
-        return event.structured_proposition
-    except EventProposition.DoesNotExist:
-        return None
 
 
 def _absolute_url(path):
