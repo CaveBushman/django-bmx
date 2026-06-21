@@ -1,4 +1,6 @@
 import logging
+
+from bmx.json_utils import html_safe_json
 import os
 import re
 from collections import defaultdict
@@ -294,7 +296,6 @@ def participation_riders_on_event(request):
 @staff_member_required
 def participation_stats_view(request):
     """Statistika účasti jezdců na závodech – grafy vývoje po letech."""
-    import json
     from collections import defaultdict
     from django.db.models import Count
     from event.models import Event, EventType, Result
@@ -356,7 +357,7 @@ def participation_stats_view(request):
         }
 
     return render(request, "rider/rider-participation-stats.html", {
-        "charts_json": json.dumps(charts),
+        "charts_json": html_safe_json(charts),
         "chart_labels": list(EVENT_GROUPS.keys()),
     })
 

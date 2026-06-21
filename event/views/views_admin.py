@@ -24,6 +24,8 @@ Obsah:
 
 import logging
 import json
+
+from bmx.json_utils import html_safe_json
 import datetime
 import os
 from collections import Counter
@@ -1713,7 +1715,7 @@ def summary_riders_in_event(request, pk):
             "event": event,
             "count_riders": count_20_24,
             "total_riders": total_riders,
-            "riders_data_json": json.dumps(riders_data, ensure_ascii=False),
+            "riders_data_json": html_safe_json(riders_data),
         },
     )
 

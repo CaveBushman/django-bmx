@@ -6,6 +6,8 @@ Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg str�
 
 import logging
 import json
+
+from bmx.json_utils import html_safe_json
 from datetime import date
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import Http404
@@ -187,7 +189,7 @@ def build_event_structured_data(event, *, url=None, proposition=None):
 
 
 def _event_structured_data_json(event, *, url=None, proposition=None):
-    return json.dumps(build_event_structured_data(event, url=url, proposition=proposition), ensure_ascii=False)
+    return html_safe_json(build_event_structured_data(event, url=url, proposition=proposition))
 
 
 def _events_for_year(year):
@@ -292,7 +294,7 @@ def _event_list_structured_data_json(events, past_events, hero_description, cano
             ],
         },
     ]
-    return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
+    return html_safe_json({"@context": "https://schema.org", "@graph": graph})
 
 
 def events_list_view(request):
