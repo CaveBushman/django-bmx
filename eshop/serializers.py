@@ -1,4 +1,3 @@
-from decimal import Decimal
 from rest_framework import serializers
 from .models import Category, Product, ProductVariant, Order, OrderItem
 

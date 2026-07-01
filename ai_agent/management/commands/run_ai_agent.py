@@ -25,7 +25,6 @@ Použití:
   # Jen zkontrolovat dostupnost LLM serveru
   python manage.py run_ai_agent --check
 """
-import json
 import logging
 
 from django.core.management.base import BaseCommand, CommandError

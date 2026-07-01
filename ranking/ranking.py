@@ -8,7 +8,6 @@ from rider.models import Rider
 
 logger = logging.getLogger(__name__)
 from event.models import Result, Entry, Event, EventType, SeasonSettings
-from django.db.models import Q
 import threading
 
 RANKING_RECOUNT_PENDING_KEY = "ranking_recount_pending"

@@ -5,7 +5,6 @@ Obsah: seznam závodů, detail závodu, výsledky, ranking tabulka, not-reg str�
 """
 
 import logging
-import json
 
 from bmx.json_utils import html_safe_json
 from datetime import date
@@ -17,7 +16,7 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
 from django.db.models import Count, Max
-from event.models import Event, EventType, Result, Entry, EntryForeign, EntryClasses
+from event.models import Event, Result, Entry, EntryForeign, EntryClasses
 from event.constants import EVENT_TYPE_STYLES, DEFAULT_EVENT_TYPE_STYLE
 from event.views.views_proposition import can_manage_event_proposition, _get_structured_proposition
 from event.func import get_unregistration_deadline, is_registration_open

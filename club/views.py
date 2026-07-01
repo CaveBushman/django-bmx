@@ -9,7 +9,6 @@ from django.db.models import Sum, Count, F, Q
 from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from .forms import McrClubTeamForm

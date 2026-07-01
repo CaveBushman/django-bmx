@@ -8,7 +8,6 @@ Bezpečnostní opatření:
   - Soubory v PROTECTED_FILES jsou vždy zachovány.
 """
 
-import os
 from pathlib import Path
 
 from django.apps import apps

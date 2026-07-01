@@ -22,7 +22,6 @@ from ranking.ranking import schedule_ranking_recount
 from .entry import EntryClass
 from .result import GetResult
 from rider.models import Rider
-from django.utils import timezone
 from event.services.registration_status import (
     can_register,
     can_unregister,

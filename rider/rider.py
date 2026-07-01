@@ -27,7 +27,7 @@ from rider.models import Rider
 from event.models import Result, Event, EventType, Entry, SeasonSettings
 import threading
 from django.db.models import Q, Exists, OuterRef
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from concurrent.futures import ThreadPoolExecutor
 from openpyxl import Workbook
