@@ -255,7 +255,7 @@ class RankingViewTemplateTests(TestCase):
         response = self.client.get(reverse("ranking:ranking"), {"category": "Women 17-24"})
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "ranking-results-grid")
+        self.assertContains(response, "ranking-card")
         self.assertContains(response, "LEADER")
         self.assertContains(response, "Alice")
         self.assertContains(response, "120 b.")
