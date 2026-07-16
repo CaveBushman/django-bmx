@@ -2,7 +2,7 @@ import json
 
 from django.db import models, transaction
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.db.models import F
 from django.apps import apps
 from ckeditor.fields import RichTextField
@@ -627,6 +627,15 @@ class News (models.Model):
     class Meta:
         verbose_name = _("Článek")
         verbose_name_plural = _('Články')
+
+
+@receiver(post_save, sender=News)
+@receiver(post_delete, sender=News)
+def invalidate_homepage_cache_after_news_change(sender, **kwargs):
+    """Zneplatní homepage až po úspěšném uložení transakce."""
+    from news.cache import invalidate_homepage_data_cache
+
+    transaction.on_commit(invalidate_homepage_data_cache)
 
 # nastavení time_to_read při ukládání článku
 @receiver(pre_save, sender=News)

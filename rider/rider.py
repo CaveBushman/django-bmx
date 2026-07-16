@@ -191,6 +191,49 @@ def get_rider_data(uci_id):
         return None, "Neočekávaná chyba při komunikaci s API ČSC."
 
 
+def check_valid_uci_id(uci_id, year=None, token=None):
+    """Ověří platnost UCI ID pro daný rok bez načítání detailu licence."""
+    token = token or get_api_token()
+    if not token:
+        logger.warning("Nelze ověřit UCI ID %s – token se nezískal.", uci_id)
+        return None, "Nepodařilo se získat token k API ČSC."
+
+    try:
+        response = requests.get(
+            "https://portal.api.czechcyclingfederation.com/api/services/validuciid",
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+            params={"year": year or date.today().year, "uciId": str(uci_id)},
+            verify=True,
+            timeout=API_TIMEOUT,
+        )
+
+        if response.status_code == 404:
+            return False, None
+        if not response.ok:
+            logger.warning(
+                "Neočekávaná odpověď při ověřování UCI ID %s: %s",
+                uci_id,
+                response.status_code,
+            )
+            return None, f"Nastala chyba: {response.status_code}"
+
+        data = response.json()
+        if not isinstance(data.get("valid"), bool):
+            logger.error("API ČSC vrátilo neplatnou odpověď pro UCI ID %s.", uci_id)
+            return None, "API ČSC vrátilo neplatná data."
+        return data["valid"], None
+
+    except requests.Timeout:
+        logger.error("Timeout při ověřování UCI ID %s.", uci_id)
+        return None, "API ČSC neodpovědělo včas."
+    except requests.RequestException as exc:
+        logger.error("HTTP chyba při ověřování UCI ID %s: %s", uci_id, exc)
+        return None, "Chyba při komunikaci s API ČSC."
+    except ValueError as exc:
+        logger.error("Neplatná JSON odpověď při ověřování UCI ID %s: %s", uci_id, exc)
+        return None, "API ČSC vrátilo neplatná data."
+
+
 def valid_licence(rider, token=None):
     """Ověření platnosti licence pomocí správného endpointu + access tokenu."""
     token = token or get_api_token()

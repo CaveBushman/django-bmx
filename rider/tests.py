@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -31,6 +32,7 @@ from rider.subscriptions import (
     has_active_trainer_club_stats_access,
     purchase_trainer_club_subscription,
 )
+from rider.rider import check_valid_uci_id
 
 
 User = get_user_model()
@@ -107,6 +109,66 @@ class RiderRequestProtectionTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Rider.objects.filter(uci_id="12345678901").exists())
+
+    @patch("rider.views.account.check_valid_uci_id", return_value=(True, None))
+    @patch("rider.views.account.get_rider_data", return_value=(None, "Nastala chyba: 500"))
+    def test_rider_request_accepts_valid_licence_when_detail_endpoint_fails(
+        self, _get_rider_data, _check_valid_uci_id
+    ):
+        response = self.client.post(
+            reverse("rider:new"),
+            self.rider_request_payload(),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Rider.objects.filter(uci_id="12345678901").exists())
+
+
+class RiderLicenceLookupTests(TestCase):
+    @patch("rider.views.directory.check_valid_uci_id", return_value=(True, None))
+    @patch("rider.views.directory.get_rider_data", return_value=(None, "Nastala chyba: 500"))
+    def test_lookup_allows_manual_details_for_valid_uci_id(
+        self, _get_rider_data, _check_valid_uci_id
+    ):
+        response = self.client.get(
+            reverse("rider:new-licence-lookup"),
+            {"uci_id": "10046761357"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["ok"])
+        self.assertTrue(payload["rider"]["manual_details"])
+        self.assertEqual(payload["rider"]["uci_id"], "10046761357")
+
+    @patch("rider.views.directory.check_valid_uci_id", return_value=(False, None))
+    @patch("rider.views.directory.get_rider_data", return_value=(None, "Licence nebyla nalezena"))
+    def test_lookup_rejects_invalid_uci_id(self, _get_rider_data, _check_valid_uci_id):
+        response = self.client.get(
+            reverse("rider:new-licence-lookup"),
+            {"uci_id": "10046761357"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(response.json()["ok"])
+
+
+class CzechCyclingLicenceApiTests(TestCase):
+    @patch("rider.rider.requests.get")
+    @patch("rider.rider.get_api_token", return_value="token")
+    def test_check_valid_uci_id_uses_current_year_endpoint(self, _get_token, request_get):
+        api_response = Mock(status_code=200, ok=True)
+        api_response.json.return_value = {"valid": True}
+        request_get.return_value = api_response
+
+        is_valid, error = check_valid_uci_id("10046761357", year=2026)
+
+        self.assertTrue(is_valid)
+        self.assertIsNone(error)
+        self.assertEqual(
+            request_get.call_args.kwargs["params"],
+            {"year": 2026, "uciId": "10046761357"},
+        )
 
 
 class RiderListTemplateSafetyTests(TestCase):

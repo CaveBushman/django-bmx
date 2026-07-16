@@ -38,7 +38,7 @@ from event.models import Event, RaceRun, Result
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
-from rider.rider import get_rider_data
+from rider.rider import check_valid_uci_id, get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
@@ -264,6 +264,7 @@ def rider_new_view(request):
             gender=request.POST.get("gender", ""),
             uci_id=request.POST.get("uci_id", ""),
             lookup_confirmed=request.POST.get("lookup_confirmed", ""),
+            manual_details=request.POST.get("manual_details", ""),
             selected_plate=request.POST.get("plate", ""),
             selected_club=request.POST.get("club", ""),
             is20_checked="is20" in request.POST,
@@ -307,6 +308,10 @@ def rider_new_view(request):
             messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
             return _render_rider_request(request, context)
 
+        if request.POST.get("gender") not in {"Muž", "Žena", "Ostatní"}:
+            messages.error(request, _("Vyber platnou hodnotu pohlaví."))
+            return _render_rider_request(request, context)
+
         existing = Rider.objects.filter(uci_id=uci_id).first()
         if existing:
             messages.error(
@@ -317,8 +322,15 @@ def rider_new_view(request):
 
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
-            messages.error(request, error_msg or _("Licence UCI ID nebyla nalezena."))
-            return _render_rider_request(request, context)
+            is_valid, validation_error = check_valid_uci_id(uci_id)
+            if is_valid is not True:
+                messages.error(
+                    request,
+                    _("Ověření licence je dočasně nedostupné. Zkus to prosím později.")
+                    if validation_error
+                    else _("Licence UCI ID nebyla nalezena."),
+                )
+                return _render_rider_request(request, context)
 
         if "is20" not in request.POST and "is24" not in request.POST:
             messages.error(request, _('Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.'))

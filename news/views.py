@@ -8,6 +8,7 @@ from event.func import update_cart
 from rider.rider import update_plate_notify
 from rider.models import Rider
 from news.models import News, Downloads, _AUDIO_LANGS
+from news.cache import homepage_data_cache_key
 from club.models import Club
 from datetime import date
 from django.http import FileResponse, Http404
@@ -46,7 +47,7 @@ def get_image_dimensions(image_field):
 def homepage_view(request):
     this_year = date.today().year
     today = date.today()
-    cache_key = f"homepage:view-data:{this_year}:{today.isoformat()}"
+    cache_key = homepage_data_cache_key(today)
     content = cache.get(cache_key)
 
     if content is None:

@@ -30,7 +30,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, inline_serializer
 
 from rider.models import Rider, ForeignRider
-from rider.rider import get_rider_data
+from rider.rider import check_valid_uci_id, get_rider_data
 from rider.plates import generate_available_plate_values, normalize_plate_value, legacy_plate_int, display_plate
 from event.models import CreditTransaction, Event, Entry, Result
 from event.models_events import Event as EventModel
@@ -99,6 +99,7 @@ class PlateRequestLookupAPIView(APIView):
                     "last_name": serializers.CharField(allow_blank=True),
                     "date_of_birth": serializers.DateField(allow_null=True),
                     "gender": serializers.CharField(),
+                    "manual_details": serializers.BooleanField(),
                 },
             ),
             400: ErrorSerializer,
@@ -121,10 +122,29 @@ class PlateRequestLookupAPIView(APIView):
             )
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
-            return Response(
-                {"error": "Licence nebyla nalezena v databázi ČSC."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            is_valid, validation_error = check_valid_uci_id(uci_id)
+            if is_valid is not True:
+                return Response(
+                    {
+                        "error": "Ověření licence je dočasně nedostupné. Zkuste to později."
+                        if validation_error
+                        else "Licence nebyla nalezena v databázi ČSC."
+                    },
+                    status=(
+                        status.HTTP_502_BAD_GATEWAY
+                        if validation_error
+                        else status.HTTP_404_NOT_FOUND
+                    ),
+                )
+            return Response({
+                "uci_id": uci_id,
+                "first_name": "",
+                "last_name": "",
+                "date_of_birth": None,
+                "gender": "",
+                "manual_details": True,
+                "message": "Licence byla ověřena, ale ČSC neposkytlo osobní údaje. Doplňte je ručně.",
+            })
         gender_code = data_json.get("sex", {}).get("code", "M")
         return Response({
             "uci_id": uci_id,
@@ -132,6 +152,7 @@ class PlateRequestLookupAPIView(APIView):
             "last_name": (data_json.get("lastName", "") or "").strip().capitalize(),
             "date_of_birth": (data_json.get("birth", "") or "")[:10],
             "gender": "Žena" if gender_code == "F" else "Muž",
+            "manual_details": False,
         })
 
 

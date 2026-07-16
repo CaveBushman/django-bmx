@@ -34,6 +34,23 @@ def make_user(**kwargs):
     return user
 
 
+class PlateRequestLookupAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/v1/riders/plate-request/lookup/"
+
+    @patch("api.views.plates.check_valid_uci_id", return_value=(True, None))
+    @patch("api.views.plates.get_rider_data", return_value=(None, "Nastala chyba: 500"))
+    def test_valid_uci_id_can_continue_with_manual_details(
+        self, _get_rider_data, _check_valid_uci_id
+    ):
+        response = self.client.get(self.url, {"uci_id": "10046761357"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["manual_details"])
+        self.assertEqual(response.data["uci_id"], "10046761357")
+
+
 class LoginAPITests(TestCase):
     def setUp(self):
         cache.clear()  # reset login rate-limit bucket (sdílený throttle scope mezi testy)

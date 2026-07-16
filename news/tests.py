@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from accounts.models import Account
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.translation import override
@@ -73,6 +74,46 @@ class NewsModelTests(TestCase):
         self.assertEqual(article.slug, "testovaci-clanek-pro-preklad")
         mock_enqueue_translation.assert_called_once_with(article.pk)
         mock_enqueue_tts.assert_not_called()
+
+    @patch("news.models.enqueue_article_translation")
+    def test_publishing_homepage_article_invalidates_homepage_cache(self, _enqueue_translation):
+        cache.clear()
+        first_response = self.client.get(reverse("news:homepage"))
+        self.assertNotContains(first_response, "Čerstvá zpráva")
+
+        with self.captureOnCommitCallbacks(execute=True):
+            News.objects.create(
+                title="Čerstvá zpráva",
+                perex="Nový obsah",
+                content="Text článku",
+                published=True,
+                on_homepage=True,
+            )
+
+        second_response = self.client.get(reverse("news:homepage"))
+        self.assertContains(second_response, "Čerstvá zpráva")
+
+    @patch("news.models.enqueue_article_translation")
+    def test_enabling_existing_article_on_homepage_invalidates_cache(self, _enqueue_translation):
+        with self.captureOnCommitCallbacks(execute=True):
+            article = News.objects.create(
+                title="Dodatečně připnutý článek",
+                perex="Nový obsah",
+                content="Text článku",
+                published=True,
+                on_homepage=False,
+            )
+
+        cache.clear()
+        first_response = self.client.get(reverse("news:homepage"))
+        self.assertNotContains(first_response, "Dodatečně připnutý článek")
+
+        article.on_homepage = True
+        with self.captureOnCommitCallbacks(execute=True):
+            article.save(update_fields=["on_homepage"])
+
+        second_response = self.client.get(reverse("news:homepage"))
+        self.assertContains(second_response, "Dodatečně připnutý článek")
 
     @patch("news.models.enqueue_article_translation")
     @patch("news.models.enqueue_article_tts")

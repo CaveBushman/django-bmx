@@ -41,7 +41,7 @@ from event.constants import event_type_color
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
-from rider.rider import get_rider_data
+from rider.rider import check_valid_uci_id, get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
@@ -252,7 +252,23 @@ def rider_licence_lookup_view(request):
         )
 
     data_json, error_msg = get_rider_data(uci_id)
+    manual_details = False
     if error_msg or not data_json:
+        is_valid, validation_error = check_valid_uci_id(uci_id)
+        if is_valid is not True:
+            if validation_error:
+                return JsonResponse(
+                    {"ok": False, "message": _("Ověření licence je dočasně nedostupné. Zkus to prosím později.")},
+                    status=502,
+                )
+            return JsonResponse(
+                {"ok": False, "message": _("Licence nebyla nalezena.")},
+                status=404,
+            )
+        data_json = {}
+        manual_details = True
+
+    if not data_json and not manual_details:
         return JsonResponse(
             {"ok": False, "message": _("Licence nebyla nalezena.")},
             status=404,
@@ -262,7 +278,7 @@ def rider_licence_lookup_view(request):
     last_name = data_json.get("lastName", "").strip()
     birth = (data_json.get("birth", "") or "")[:10]
     gender_code = data_json.get("sex", {}).get("code", "M")
-    gender = _("Žena") if gender_code == "F" else _("Muž")
+    gender = "" if manual_details else ("Žena" if gender_code == "F" else "Muž")
 
     return JsonResponse(
         {
@@ -273,7 +289,9 @@ def rider_licence_lookup_view(request):
                 "last_name": last_name.capitalize() if last_name else "",
                 "date_of_birth": birth,
                 "gender": gender,
+                "manual_details": manual_details,
             },
+            "message": _("Licence byla ověřena, ale ČSC neposkytlo osobní údaje. Doplň je prosím ručně.") if manual_details else "",
         }
     )
 
