@@ -30,7 +30,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, inline_serializer
 
 from rider.models import Rider, ForeignRider
-from rider.rider import check_valid_uci_id, get_rider_data
+from rider.rider import extract_licence_identity, get_rider_data
 from rider.plates import generate_available_plate_values, normalize_plate_value, legacy_plate_int, display_plate
 from event.models import CreditTransaction, Event, Entry, Result
 from event.models_events import Event as EventModel
@@ -99,7 +99,6 @@ class PlateRequestLookupAPIView(APIView):
                     "last_name": serializers.CharField(allow_blank=True),
                     "date_of_birth": serializers.DateField(allow_null=True),
                     "gender": serializers.CharField(),
-                    "manual_details": serializers.BooleanField(),
                 },
             ),
             400: ErrorSerializer,
@@ -122,37 +121,28 @@ class PlateRequestLookupAPIView(APIView):
             )
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
-            is_valid, validation_error = check_valid_uci_id(uci_id)
-            if is_valid is not True:
-                return Response(
-                    {
-                        "error": "Ověření licence je dočasně nedostupné. Zkuste to později."
-                        if validation_error
-                        else "Licence nebyla nalezena v databázi ČSC."
-                    },
-                    status=(
-                        status.HTTP_502_BAD_GATEWAY
-                        if validation_error
-                        else status.HTTP_404_NOT_FOUND
-                    ),
-                )
-            return Response({
-                "uci_id": uci_id,
-                "first_name": "",
-                "last_name": "",
-                "date_of_birth": None,
-                "gender": "",
-                "manual_details": True,
-                "message": "Licence byla ověřena, ale ČSC neposkytlo osobní údaje. Doplňte je ručně.",
-            })
-        gender_code = data_json.get("sex", {}).get("code", "M")
+            not_found = bool(error_msg and "nebyla nalezena" in error_msg)
+            return Response(
+                {
+                    "error": "Licence nebyla nalezena v databázi ČSC."
+                    if not_found
+                    else "Údaje licence se nepodařilo načíst z ČSC. Zkuste to později."
+                },
+                status=(
+                    status.HTTP_404_NOT_FOUND
+                    if not_found
+                    else status.HTTP_502_BAD_GATEWAY
+                ),
+            )
+        identity = extract_licence_identity(data_json)
+        if identity is None:
+            return Response(
+                {"error": "ČSC vrátilo neúplné údaje licence. Bez úplné identity nelze pokračovat."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
         return Response({
             "uci_id": uci_id,
-            "first_name": data_json.get("firstName", "").strip(),
-            "last_name": (data_json.get("lastName", "") or "").strip().capitalize(),
-            "date_of_birth": (data_json.get("birth", "") or "")[:10],
-            "gender": "Žena" if gender_code == "F" else "Muž",
-            "manual_details": False,
+            **identity,
         })
 
 

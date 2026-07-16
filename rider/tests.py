@@ -25,6 +25,7 @@ from rider.models import (
     TrainerClubSubscription,
 )
 from rider.admin import RiderAdmin
+from rider.rider import get_rider_data
 from rider.subscriptions import (
     cancel_trainer_club_subscription,
     get_active_trainer_extended_subscription,
@@ -32,7 +33,6 @@ from rider.subscriptions import (
     has_active_trainer_club_stats_access,
     purchase_trainer_club_subscription,
 )
-from rider.rider import check_valid_uci_id
 
 
 User = get_user_model()
@@ -110,10 +110,9 @@ class RiderRequestProtectionTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Rider.objects.filter(uci_id="12345678901").exists())
 
-    @patch("rider.views.account.check_valid_uci_id", return_value=(True, None))
     @patch("rider.views.account.get_rider_data", return_value=(None, "Nastala chyba: 500"))
-    def test_rider_request_accepts_valid_licence_when_detail_endpoint_fails(
-        self, _get_rider_data, _check_valid_uci_id
+    def test_rider_request_rejects_valid_licence_when_detail_endpoint_fails(
+        self, _get_rider_data
     ):
         response = self.client.post(
             reverse("rider:new"),
@@ -121,29 +120,84 @@ class RiderRequestProtectionTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(Rider.objects.filter(uci_id="12345678901").exists())
+        self.assertFalse(Rider.objects.filter(uci_id="12345678901").exists())
+        self.assertContains(response, "Údaje licence se nepodařilo načíst z ČSC")
+
+    @patch("rider.views.account.get_rider_data")
+    def test_rider_request_uses_complete_identity_returned_by_licence(self, get_rider_data):
+        get_rider_data.return_value = (
+            {
+                "firstName": "Jan",
+                "lastName": "NOVÁK",
+                "birth": "2011-05-06T00:00:00",
+                "sex": {"code": "M"},
+            },
+            None,
+        )
+
+        response = self.client.post(
+            reverse("rider:new"),
+            self.rider_request_payload(first_name="Podvržené", last_name="Jméno"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        rider = Rider.objects.get(uci_id="12345678901")
+        self.assertEqual(rider.first_name, "Jan")
+        self.assertEqual(rider.last_name, "Novák")
+        self.assertEqual(str(rider.date_of_birth), "2011-05-06")
+        self.assertEqual(rider.gender, "Muž")
 
 
 class RiderLicenceLookupTests(TestCase):
-    @patch("rider.views.directory.check_valid_uci_id", return_value=(True, None))
     @patch("rider.views.directory.get_rider_data", return_value=(None, "Nastala chyba: 500"))
-    def test_lookup_allows_manual_details_for_valid_uci_id(
-        self, _get_rider_data, _check_valid_uci_id
-    ):
+    def test_lookup_rejects_when_personal_details_endpoint_fails(self, _get_rider_data):
+        response = self.client.get(
+            reverse("rider:new-licence-lookup"),
+            {"uci_id": "10046761357"},
+        )
+
+        self.assertEqual(response.status_code, 502)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+
+    @patch("rider.views.directory.get_rider_data")
+    def test_lookup_returns_all_required_personal_details(self, get_rider_data):
+        get_rider_data.return_value = (
+            {
+                "firstName": "Jana",
+                "lastName": "NOVÁKOVÁ",
+                "birth": "2012-04-03T00:00:00",
+                "sex": {"code": "F"},
+            },
+            None,
+        )
+
         response = self.client.get(
             reverse("rider:new-licence-lookup"),
             {"uci_id": "10046761357"},
         )
 
         self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertTrue(payload["ok"])
-        self.assertTrue(payload["rider"]["manual_details"])
-        self.assertEqual(payload["rider"]["uci_id"], "10046761357")
+        rider = response.json()["rider"]
+        self.assertEqual(rider["first_name"], "Jana")
+        self.assertEqual(rider["last_name"], "Nováková")
+        self.assertEqual(rider["date_of_birth"], "2012-04-03")
+        self.assertEqual(rider["gender"], "Žena")
 
-    @patch("rider.views.directory.check_valid_uci_id", return_value=(False, None))
+    @patch("rider.views.directory.get_rider_data", return_value=(None, "ČSC chyba záznamu (500)"))
+    def test_lookup_reports_record_error_directs_to_admin(self, _get_rider_data):
+        response = self.client.get(
+            reverse("rider:new-licence-lookup"),
+            {"uci_id": "10046761357"},
+        )
+
+        self.assertEqual(response.status_code, 502)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertIn("administraci", payload["message"])
+
     @patch("rider.views.directory.get_rider_data", return_value=(None, "Licence nebyla nalezena"))
-    def test_lookup_rejects_invalid_uci_id(self, _get_rider_data, _check_valid_uci_id):
+    def test_lookup_rejects_invalid_uci_id(self, _get_rider_data):
         response = self.client.get(
             reverse("rider:new-licence-lookup"),
             {"uci_id": "10046761357"},
@@ -153,22 +207,47 @@ class RiderLicenceLookupTests(TestCase):
         self.assertFalse(response.json()["ok"])
 
 
-class CzechCyclingLicenceApiTests(TestCase):
+class CzechCyclingLicenceInfoApiTests(TestCase):
     @patch("rider.rider.requests.get")
     @patch("rider.rider.get_api_token", return_value="token")
-    def test_check_valid_uci_id_uses_current_year_endpoint(self, _get_token, request_get):
+    def test_personal_details_lookup_uses_licenseinfo_without_year(
+        self, _get_token, request_get
+    ):
         api_response = Mock(status_code=200, ok=True)
-        api_response.json.return_value = {"valid": True}
+        api_response.text = ""
+        api_response.json.return_value = {
+            "firstName": "Jan",
+            "lastName": "Novák",
+            "birth": "2010-01-02T00:00:00",
+            "sex": {"code": "M"},
+        }
         request_get.return_value = api_response
 
-        is_valid, error = check_valid_uci_id("10046761357", year=2026)
+        data, error = get_rider_data("10046761357")
 
-        self.assertTrue(is_valid)
         self.assertIsNone(error)
+        self.assertEqual(data["firstName"], "Jan")
+        request_url = request_get.call_args.args[0]
         self.assertEqual(
-            request_get.call_args.kwargs["params"],
-            {"year": 2026, "uciId": "10046761357"},
+            request_url,
+            "https://portal.api.czechcyclingfederation.com/api/services/licenseinfo?uciId=10046761357",
         )
+        self.assertNotIn("year", request_url.lower())
+
+    @patch("rider.rider.requests.get")
+    @patch("rider.rider.get_api_token", return_value="token")
+    def test_server_error_reported_as_record_error(self, _get_token, request_get):
+        # ČSC licenseinfo umí pro konkrétní (rozbitý) záznam vracet trvalé 500,
+        # i když validuciid hlásí platnou licenci – musí být odlišené od 404.
+        api_response = Mock(status_code=500, ok=False)
+        api_response.text = '{"error":{"message":"An internal error occurred"}}'
+        request_get.return_value = api_response
+
+        data, error = get_rider_data("10046761357")
+
+        self.assertIsNone(data)
+        self.assertIn("chyba záznamu", error)
+        self.assertNotIn("nebyla nalezena", error)
 
 
 class RiderListTemplateSafetyTests(TestCase):

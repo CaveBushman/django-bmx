@@ -38,7 +38,7 @@ from event.models import Event, RaceRun, Result
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
-from rider.rider import check_valid_uci_id, get_rider_data
+from rider.rider import extract_licence_identity, get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
@@ -264,7 +264,6 @@ def rider_new_view(request):
             gender=request.POST.get("gender", ""),
             uci_id=request.POST.get("uci_id", ""),
             lookup_confirmed=request.POST.get("lookup_confirmed", ""),
-            manual_details=request.POST.get("manual_details", ""),
             selected_plate=request.POST.get("plate", ""),
             selected_club=request.POST.get("club", ""),
             is20_checked="is20" in request.POST,
@@ -322,15 +321,26 @@ def rider_new_view(request):
 
         data_json, error_msg = get_rider_data(uci_id)
         if error_msg or not data_json:
-            is_valid, validation_error = check_valid_uci_id(uci_id)
-            if is_valid is not True:
-                messages.error(
-                    request,
-                    _("Ověření licence je dočasně nedostupné. Zkus to prosím později.")
-                    if validation_error
-                    else _("Licence UCI ID nebyla nalezena."),
+            if error_msg and "nebyla nalezena" in error_msg:
+                message = _("Licence UCI ID nebyla nalezena.")
+            elif error_msg and "chyba záznamu" in error_msg:
+                message = _(
+                    "ČSC vrací u tohoto UCI ID chybu záznamu, i když licence je platná. "
+                    "Jezdce nelze přidat automaticky – přidej ho prosím přes administraci "
+                    "nebo kontaktuj správce."
                 )
-                return _render_rider_request(request, context)
+            else:
+                message = _("Údaje licence se nepodařilo načíst z ČSC. Zkus to prosím později.")
+            messages.error(request, message)
+            return _render_rider_request(request, context)
+
+        identity = extract_licence_identity(data_json)
+        if identity is None:
+            messages.error(
+                request,
+                _("ČSC vrátilo neúplné údaje licence. Bez jména, příjmení, data narození a pohlaví nelze pokračovat."),
+            )
+            return _render_rider_request(request, context)
 
         if "is20" not in request.POST and "is24" not in request.POST:
             messages.error(request, _('Musíš vybrat, zda budeš jezdit 20" nebo 24" kolo.'))
@@ -338,7 +348,7 @@ def rider_new_view(request):
 
         try:
             date_of_birth = datetime.datetime.strptime(
-                request.POST["date_of_birth"], "%Y-%m-%d"
+                identity["date_of_birth"], "%Y-%m-%d"
             )
         except (TypeError, ValueError):
             messages.error(request, _("Datum narození není ve správném formátu."))
@@ -355,10 +365,10 @@ def rider_new_view(request):
             return render(request, "rider/rider-request.html", context)
 
         Rider.objects.create(
-            first_name=request.POST["first_name"].strip(),
-            last_name=request.POST["last_name"].strip(),
+            first_name=identity["first_name"],
+            last_name=identity["last_name"],
             date_of_birth=date_of_birth,
-            gender=request.POST.get("gender", "Muž"),
+            gender=identity["gender"],
             uci_id=uci_id,
             is_20="is20" in request.POST,
             is_24="is24" in request.POST,

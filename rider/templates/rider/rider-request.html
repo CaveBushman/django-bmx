@@ -332,7 +332,6 @@
             <input id="{{ honeypot_field_name }}" name="{{ honeypot_field_name }}" type="text" tabindex="-1" autocomplete="off">
           </div>
           <input type="hidden" name="lookup_confirmed" id="lookup_confirmed" value="{{ lookup_confirmed|default:'' }}">
-          <input type="hidden" name="manual_details" id="manual_details" value="{{ manual_details|default:'' }}">
 
           <div class="rider-request-step" role="group" aria-labelledby="step1-label">
             <div class="flex items-center gap-2.5 mb-5">
@@ -398,12 +397,7 @@
               </div>
               <div>
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">{% trans "Pohlaví" %}</label>
-                <input type="text" name="gender" id="gender" value="{{ gender|default:'' }}" list="gender-options" placeholder="{% trans 'Vyber...' %}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" readonly>
-                <datalist id="gender-options">
-                  <option value="Muž">
-                  <option value="Žena">
-                  <option value="Ostatní">
-                </datalist>
+                <input type="text" name="gender" id="gender" value="{{ gender|default:'' }}" class="rider-request-readonly mt-2 w-full rounded-xl px-4 py-3 shadow-sm" readonly>
               </div>
             </div>
             <input type="hidden" name="uci_id" id="uci_id" value="{{ uci_id|default:'' }}">
@@ -518,6 +512,6 @@
   </div>
 </section>
 
-<script src="{% static 'js/rider_request.js' %}?v=1"></script>
+<script src="{% static 'js/rider_request.js' %}?v=2"></script>
 <script src="{% static 'js/alert_timeout.js' %}?v=2"></script>
 {% endblock content %}

@@ -41,7 +41,7 @@ from event.constants import event_type_color
 from ranking.ranking import RANKING_RECOUNT_RUNNING_KEY, schedule_ranking_recount
 import datetime
 from datetime import date
-from rider.rider import check_valid_uci_id, get_rider_data
+from rider.rider import extract_licence_identity, get_rider_data
 from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
@@ -252,46 +252,35 @@ def rider_licence_lookup_view(request):
         )
 
     data_json, error_msg = get_rider_data(uci_id)
-    manual_details = False
     if error_msg or not data_json:
-        is_valid, validation_error = check_valid_uci_id(uci_id)
-        if is_valid is not True:
-            if validation_error:
-                return JsonResponse(
-                    {"ok": False, "message": _("Ověření licence je dočasně nedostupné. Zkus to prosím později.")},
-                    status=502,
-                )
-            return JsonResponse(
-                {"ok": False, "message": _("Licence nebyla nalezena.")},
-                status=404,
-            )
-        data_json = {}
-        manual_details = True
+        not_found = bool(error_msg and "nebyla nalezena" in error_msg)
+        record_error = bool(error_msg and "chyba záznamu" in error_msg)
+        if not_found:
+            message, status = _("Licence nebyla nalezena."), 404
+        elif record_error:
+            message, status = _(
+                "ČSC vrací u tohoto UCI ID chybu záznamu, i když licence je platná. "
+                "Jezdce nelze přidat automaticky – přidej ho prosím přes administraci "
+                "nebo kontaktuj správce."
+            ), 502
+        else:
+            message, status = _("Údaje licence se nepodařilo načíst z ČSC. Zkus to prosím později."), 502
+        return JsonResponse({"ok": False, "message": message}, status=status)
 
-    if not data_json and not manual_details:
+    identity = extract_licence_identity(data_json)
+    if identity is None:
         return JsonResponse(
-            {"ok": False, "message": _("Licence nebyla nalezena.")},
-            status=404,
+            {"ok": False, "message": _("ČSC vrátilo neúplné údaje licence. Bez jména, příjmení, data narození a pohlaví nelze pokračovat.")},
+            status=502,
         )
-
-    first_name = data_json.get("firstName", "").strip()
-    last_name = data_json.get("lastName", "").strip()
-    birth = (data_json.get("birth", "") or "")[:10]
-    gender_code = data_json.get("sex", {}).get("code", "M")
-    gender = "" if manual_details else ("Žena" if gender_code == "F" else "Muž")
 
     return JsonResponse(
         {
             "ok": True,
             "rider": {
                 "uci_id": uci_id,
-                "first_name": first_name,
-                "last_name": last_name.capitalize() if last_name else "",
-                "date_of_birth": birth,
-                "gender": gender,
-                "manual_details": manual_details,
+                **identity,
             },
-            "message": _("Licence byla ověřena, ale ČSC neposkytlo osobní údaje. Doplň je prosím ručně.") if manual_details else "",
         }
     )
 

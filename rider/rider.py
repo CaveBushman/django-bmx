@@ -169,6 +169,16 @@ def get_rider_data(uci_id):
             logger.warning(f"Licence UCI ID: {uci_id} nebyla nalezena v databázi ČSC.")
             return None, f"Licence UCI ID: {uci_id} nebyla nalezena."
 
+        # 5xx = interní chyba serveru ČSC pro konkrétní UCI ID (rozbitý záznam
+        # licence). Endpoint validuciid u takového jezdce vrací valid=true, ale
+        # licenseinfo trvale 500-uje — jezdce nelze auto-načíst, jen ručně přes admin.
+        if response.status_code >= 500:
+            logger.warning(
+                "ČSC licenseinfo vrátilo %s pro UCI ID %s – chyba záznamu na straně ČSC.",
+                response.status_code, uci_id,
+            )
+            return None, f"ČSC chyba záznamu ({response.status_code})"
+
         if not response.ok:
             logger.warning(f"Neočekávaná odpověď: {response.status_code}")
             return None, f"Nastala chyba: {response.status_code}"
@@ -191,47 +201,31 @@ def get_rider_data(uci_id):
         return None, "Neočekávaná chyba při komunikaci s API ČSC."
 
 
-def check_valid_uci_id(uci_id, year=None, token=None):
-    """Ověří platnost UCI ID pro daný rok bez načítání detailu licence."""
-    token = token or get_api_token()
-    if not token:
-        logger.warning("Nelze ověřit UCI ID %s – token se nezískal.", uci_id)
-        return None, "Nepodařilo se získat token k API ČSC."
+def extract_licence_identity(data):
+    """Vrátí úplnou identitu z licence, nebo None při chybějícím údaji."""
+    if not isinstance(data, dict):
+        return None
+
+    first_name = str(data.get("firstName") or "").strip()
+    last_name = str(data.get("lastName") or "").strip()
+    birth = str(data.get("birth") or "")[:10]
+    sex = data.get("sex") or {}
+    gender = {"M": "Muž", "F": "Žena"}.get(sex.get("code"))
 
     try:
-        response = requests.get(
-            "https://portal.api.czechcyclingfederation.com/api/services/validuciid",
-            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-            params={"year": year or date.today().year, "uciId": str(uci_id)},
-            verify=True,
-            timeout=API_TIMEOUT,
-        )
+        date.fromisoformat(birth)
+    except (TypeError, ValueError):
+        return None
 
-        if response.status_code == 404:
-            return False, None
-        if not response.ok:
-            logger.warning(
-                "Neočekávaná odpověď při ověřování UCI ID %s: %s",
-                uci_id,
-                response.status_code,
-            )
-            return None, f"Nastala chyba: {response.status_code}"
+    if not first_name or not last_name or not gender:
+        return None
 
-        data = response.json()
-        if not isinstance(data.get("valid"), bool):
-            logger.error("API ČSC vrátilo neplatnou odpověď pro UCI ID %s.", uci_id)
-            return None, "API ČSC vrátilo neplatná data."
-        return data["valid"], None
-
-    except requests.Timeout:
-        logger.error("Timeout při ověřování UCI ID %s.", uci_id)
-        return None, "API ČSC neodpovědělo včas."
-    except requests.RequestException as exc:
-        logger.error("HTTP chyba při ověřování UCI ID %s: %s", uci_id, exc)
-        return None, "Chyba při komunikaci s API ČSC."
-    except ValueError as exc:
-        logger.error("Neplatná JSON odpověď při ověřování UCI ID %s: %s", uci_id, exc)
-        return None, "API ČSC vrátilo neplatná data."
+    return {
+        "first_name": first_name,
+        "last_name": last_name.capitalize(),
+        "date_of_birth": birth,
+        "gender": gender,
+    }
 
 
 def valid_licence(rider, token=None):

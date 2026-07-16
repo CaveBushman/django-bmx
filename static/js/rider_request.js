@@ -83,36 +83,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function setPersonalDetailsEditable(editable) {
-    var manualDetails = document.getElementById("manual_details");
-    if (manualDetails) {
-      manualDetails.value = editable ? "1" : "";
-    }
-    ["first_name", "last_name", "date_of_birth", "gender"].forEach(function (id) {
-      var element = document.getElementById(id);
-      if (!element) {
-        return;
-      }
-      element.readOnly = !editable;
-      element.required = editable;
-      element.classList.toggle("rider-request-readonly", !editable);
-      element.classList.toggle("rider-request-input", editable);
-    });
-  }
-
   function fillRiderData(rider) {
     document.getElementById("uci_id").value = rider.uci_id || "";
     document.getElementById("first_name").value = rider.first_name || "";
     document.getElementById("last_name").value = rider.last_name || "";
     document.getElementById("date_of_birth").value = rider.date_of_birth || "";
     document.getElementById("gender").value = rider.gender || "";
-    setPersonalDetailsEditable(Boolean(rider.manual_details));
     lookupInput.value = rider.uci_id || "";
   }
-
-  setPersonalDetailsEditable(
-    document.getElementById("manual_details").value === "1"
-  );
 
   async function lookupLicence() {
     var uciId = lookupInput.value.trim();
