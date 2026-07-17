@@ -348,7 +348,8 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
         issues = self._collect_data_issues(obj)
         if not issues:
             return format_html(
-                '<div style="padding:12px 14px; border:1px solid #bbf7d0; border-radius:16px; background:#f0fdf4; color:#166534; font-weight:600;">Profil je konzistentní. Nenašel jsem žádný zjevný datový problém.</div>'
+                '<div style="padding:12px 14px; border:1px solid #bbf7d0; border-radius:16px; background:#f0fdf4; color:#166534; font-weight:600;">{}</div>',
+                "Profil je konzistentní. Nenašel jsem žádný zjevný datový problém.",
             )
         rows = "".join(f'<li style="margin:0 0 8px 0;">{label}</li>' for label, _ in issues)
         return format_html(

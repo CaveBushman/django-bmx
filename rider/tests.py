@@ -585,6 +585,26 @@ class RiderAdminSearchTests(TestCase):
         self.assertIn('Chybí čip 20"', str(summary))
         self.assertIn('Body 24" bez aktivní disciplíny', str(summary))
 
+    def test_rider_admin_change_view_renders_for_profile_without_data_issues(self):
+        rider = Rider.objects.create(
+            uci_id=12345670094,
+            first_name="Detail",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2012, 5, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            photo="images/riders/detail.jpg",
+        )
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("admin:rider_rider_change", args=[rider.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detail Rider")
+
 
 class RiderPremiumSubscriptionTests(TestCase):
     def setUp(self):
