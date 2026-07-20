@@ -2516,6 +2516,23 @@ class EventAdminAuditPanelTests(TestCase):
         self.assertIn("Změna checkout", str(timeline))
         self.assertIn("event audit timeline", str(timeline))
 
+    def test_event_admin_timeline_escapes_user_controlled_content(self):
+        payload = '<img src=x onerror=alert(1)>'
+        EntryAuditLog.objects.create(
+            entry=self.entry,
+            actor=self.staff_user,
+            action=EntryAuditLog.Action.CHECKOUT_CHANGED,
+            source=payload,
+            note=payload,
+            rider_name_snapshot=payload,
+        )
+        admin_instance = admin.site._registry[Event]
+
+        rendered = str(admin_instance.event_checkout_audit_timeline(self.event))
+
+        self.assertNotIn(payload, rendered)
+        self.assertIn("&lt;img src=x onerror=alert(1)&gt;", rendered)
+
     def test_event_admin_results_quality_overview_counts_data_issues(self):
         Result.objects.create(
             event=self.event,

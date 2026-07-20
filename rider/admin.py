@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
 from import_export import resources
@@ -269,12 +269,12 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
             changed_by = str(change.changed_by) if change.changed_by else '-'
             rows.append(
                 f'<tr>'
-                f'<td style="padding:8px 12px;">{change.get_slot_display()}</td>'
-                f'<td style="padding:8px 12px;">{change.old_transponder or "-"}</td>'
-                f'<td style="padding:8px 12px;">{change.new_transponder or "-"}</td>'
+                f'<td style="padding:8px 12px;">{escape(change.get_slot_display())}</td>'
+                f'<td style="padding:8px 12px;">{escape(change.old_transponder or "-")}</td>'
+                f'<td style="padding:8px 12px;">{escape(change.new_transponder or "-")}</td>'
                 f'<td style="padding:8px 12px;">{change.changed_at:%d.%m.%Y %H:%M}</td>'
                 f'<td style="padding:8px 12px;">{change.battery_expected_until:%d.%m.%Y}</td>'
-                f'<td style="padding:8px 12px;">{changed_by}</td>'
+                f'<td style="padding:8px 12px;">{escape(changed_by)}</td>'
                 f'</tr>'
             )
 
@@ -549,9 +549,9 @@ class ForeignRiderAdmin(PlateAwareSearchAdminMixin, admin.ModelAdmin):
             entry_url = reverse('admin:event_entryforeign_change', args=[entry.pk])
             rows.append(
                 f'<tr>'
-                f'<td style="padding:8px 12px;"><a href="{entry_url}">{event_label}</a></td>'
-                f'<td style="padding:8px 12px;">{category}</td>'
-                f'<td style="padding:8px 12px;">{status}</td>'
+                f'<td style="padding:8px 12px;"><a href="{entry_url}">{escape(event_label)}</a></td>'
+                f'<td style="padding:8px 12px;">{escape(category)}</td>'
+                f'<td style="padding:8px 12px;">{escape(status)}</td>'
                 f'<td style="padding:8px 12px;">{entry.transaction_date:%d.%m.%Y %H:%M}</td>'
                 f'</tr>'
             )
