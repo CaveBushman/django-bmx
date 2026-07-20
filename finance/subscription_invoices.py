@@ -12,20 +12,22 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 
-from finance.invoices import (
-    COST_CENTER_CODE,
-    ISDOC_NS,
-    LOGO_PATH,
-    NumberedCanvas,
-    SCHEMA_INSTANCE_NS,
+from bmx.pdf_utils import (
     SUPPLIER_CITY,
     SUPPLIER_COUNTRY,
     SUPPLIER_ICO,
     SUPPLIER_NAME,
     SUPPLIER_STREET,
+    NumberedCanvas,
     draw_pdf_footer,
+    register_fonts,
+)
+from finance.invoices import (
+    COST_CENTER_CODE,
+    ISDOC_NS,
+    SCHEMA_INSTANCE_NS,
+    LOGO_PATH,
     _money,
-    _register_fonts,
 )
 from finance.models import SubscriptionInvoice
 from rider.models import MobileAppCharge, RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
@@ -48,7 +50,7 @@ class SubscriptionInvoiceLine:
 
 class SubscriptionInvoiceService:
     def __init__(self):
-        _register_fonts()
+        register_fonts()
 
     def _build_invoice_number(self):
         year = timezone.localdate().year
