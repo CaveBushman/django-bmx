@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db.models import Q, Count
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.core.exceptions import ValidationError
 from django.core.exceptions import MultipleObjectsReturned
@@ -68,8 +68,9 @@ class EventPhotoInline(admin.TabularInline):
     def photo_preview(self, obj):
         if obj.pk and obj.photo:
             try:
-                return mark_safe(
-                    f'<img src="{obj.photo.url}" style="height:80px;border-radius:4px;" />'
+                return format_html(
+                    '<img src="{}" style="height:80px;border-radius:4px;" />',
+                    obj.photo.url,
                 )
             except (ValueError, OSError):
                 pass
@@ -412,12 +413,12 @@ class EventAdmin(BaseAdmin):
             rows.append(
                 f"<tr>"
                 f"<td style='padding:8px 12px;'>{log.created_at:%d.%m.%Y %H:%M}</td>"
-                f"<td style='padding:8px 12px;'>{log.rider_name_snapshot or '-'}</td>"
-                f"<td style='padding:8px 12px;'>{log.get_action_display()}</td>"
-                f"<td style='padding:8px 12px;'>{log.source}</td>"
+                f"<td style='padding:8px 12px;'>{escape(log.rider_name_snapshot or '-')}</td>"
+                f"<td style='padding:8px 12px;'>{escape(log.get_action_display())}</td>"
+                f"<td style='padding:8px 12px;'>{escape(log.source or '-')}</td>"
                 f"<td style='padding:8px 12px;'>{'Ano' if log.old_checkout else 'Ne'} → {'Ano' if log.new_checkout else 'Ne'}</td>"
-                f"<td style='padding:8px 12px;'>{actor}</td>"
-                f"<td style='padding:8px 12px;'>{log.note or '-'}</td>"
+                f"<td style='padding:8px 12px;'>{escape(actor)}</td>"
+                f"<td style='padding:8px 12px;'>{escape(log.note or '-')}</td>"
                 f"</tr>"
             )
 
@@ -657,11 +658,11 @@ class EntryAdmin(BaseAdmin):
                 _("Transakce:"),
                 refund_link,
                 _("Intent:"),
-                refund.payment_intent or "-",
+                escape(refund.payment_intent or "-"),
                 _("Dokončeno:"),
                 _("Ano") if refund.payment_complete else _("Ne"),
                 _("Závod:"),
-                event_name,
+                escape(event_name),
             )
         )
 
@@ -834,7 +835,7 @@ class EntryForeignAdmin(BaseAdmin):
             url = reverse('admin:rider_rider_change', args=[obj.rider_id])
         except NoReverseMatch:
             return str(obj.rider)
-        return mark_safe('<a href="{}" style="color:#16a34a; font-weight:bold;">✔ {}</a>'.format(url, obj.rider))
+        return format_html('<a href="{}" style="color:#16a34a; font-weight:bold;">✔ {}</a>', url, obj.rider)
 
     @admin.display(description='Zahraniční jezdec')
     def foreign_rider_link(self, obj):
