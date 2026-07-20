@@ -11,9 +11,9 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from PIL import Image, ImageOps, ImageFile, UnidentifiedImageError, features
-from io import BytesIO
+from PIL import UnidentifiedImageError
 import uuid
+from bmx.image_utils import normalize_avatar_image
 from bmx.text_normalization import normalize_search_text
 
 DEFAULT_ACCOUNT_PHOTO_PATHS = (
@@ -373,50 +373,21 @@ class AvatarChangeRequest(models.Model):
         return self.status == self.STATUS_PENDING and self.created < self.pending_cutoff()
 
     def _build_normalized_avatar(self):
-        final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
-        output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
-        preferred_format = "WEBP" if features.check("webp") else "JPEG"
-        extension = "webp" if preferred_format == "WEBP" else "jpg"
-        original_truncated_setting = ImageFile.LOAD_TRUNCATED_IMAGES
-
         try:
-            ImageFile.LOAD_TRUNCATED_IMAGES = True
             with self.image.open("rb") as image_file:
-                image = Image.open(image_file)
-                image.load()
-                image = ImageOps.exif_transpose(image).convert("RGB")
-                image = ImageOps.fit(
-                    image,
-                    (final_size, final_size),
-                    method=Image.Resampling.LANCZOS,
-                    centering=(0.5, 0.5),
-                )
-                output = BytesIO()
-                try:
-                    if preferred_format == "WEBP":
-                        image.save(output, format="WEBP", quality=output_quality, method=6)
-                    else:
-                        image.save(output, format="JPEG", quality=90, optimize=True)
-                except (OSError, KeyError):
-                    output = BytesIO()
-                    image.save(output, format="JPEG", quality=90, optimize=True)
-                    preferred_format = "JPEG"
-                    extension = "jpg"
+                content, extension = normalize_avatar_image(image_file)
         except FileNotFoundError as exc:
             raise ValidationError("Nahraný avatar nebyl na serveru nalezen.") from exc
         except UnidentifiedImageError as exc:
             raise ValidationError("Nahraný soubor není platný obrázek.") from exc
         except OSError as exc:
             raise ValidationError(f"Nahraný avatar se nepodařilo zpracovat: {exc}") from exc
-        finally:
-            ImageFile.LOAD_TRUNCATED_IMAGES = original_truncated_setting
 
-        output.seek(0)
         if self.target_account_id:
             filename = f"account-avatar-{self.target_account_id}-{uuid.uuid4().hex[:12]}.{extension}"
         else:
             filename = f"rider-avatar-{self.target_rider_id}-{uuid.uuid4().hex[:12]}.{extension}"
-        return filename, ContentFile(output.read())
+        return filename, ContentFile(content)
 
     def _cleanup_request_image(self):
         if not self.image:

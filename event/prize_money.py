@@ -11,14 +11,11 @@ from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from bmx.pdf_utils import register_fonts
 from event.models import EventType, Result
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 
@@ -77,13 +74,6 @@ PRIZE_MONEY_SCHEMES = {
         allow_amount_toggle=False,
     ),
 }
-
-
-def _register_fonts():
-    if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 def _normalize_category(value):
@@ -169,7 +159,7 @@ def _resolve_rider_class_20_for_event(rider, event_date):
 
 class PrizeMoneyPdfService:
     def __init__(self):
-        _register_fonts()
+        register_fonts()
         styles = getSampleStyleSheet()
         self.styles = {
             "meta": ParagraphStyle(

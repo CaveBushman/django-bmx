@@ -30,6 +30,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, inline_serializer
 
+from bmx.image_utils import normalize_avatar_image
 from rider.models import Rider, ForeignRider
 from rider.rider import get_rider_data
 from rider.plates import generate_available_plate_values, normalize_plate_value, legacy_plate_int, display_plate
@@ -139,41 +140,14 @@ def _validate_avatar_image(uploaded_file):
 
 
 def _build_normalized_account_avatar(user, uploaded_file):
-    final_size = int(getattr(settings, "AVATAR_FINAL_IMAGE_SIZE", 512))
-    output_quality = int(getattr(settings, "AVATAR_FINAL_IMAGE_QUALITY", 86))
-    preferred_format = "WEBP" if features.check("webp") else "JPEG"
-    extension = "webp" if preferred_format == "WEBP" else "jpg"
-    original_truncated_setting = ImageFile.LOAD_TRUNCATED_IMAGES
-
+    uploaded_file.seek(0)
     try:
-        ImageFile.LOAD_TRUNCATED_IMAGES = True
-        uploaded_file.seek(0)
-        image = Image.open(uploaded_file)
-        image.load()
-        image = ImageOps.exif_transpose(image).convert("RGB")
-        image = ImageOps.fit(
-            image,
-            (final_size, final_size),
-            method=Image.Resampling.LANCZOS,
-            centering=(0.5, 0.5),
-        )
-        output = BytesIO()
-        try:
-            if preferred_format == "WEBP":
-                image.save(output, format="WEBP", quality=output_quality, method=6)
-            else:
-                image.save(output, format="JPEG", quality=90, optimize=True)
-        except (OSError, KeyError):
-            output = BytesIO()
-            image.save(output, format="JPEG", quality=90, optimize=True)
-            extension = "jpg"
+        content, extension = normalize_avatar_image(uploaded_file)
     finally:
-        ImageFile.LOAD_TRUNCATED_IMAGES = original_truncated_setting
         uploaded_file.seek(0)
 
-    output.seek(0)
     filename = f"account-avatar-{user.pk}-{uuid.uuid4().hex[:12]}.{extension}"
-    return filename, ContentFile(output.read())
+    return filename, ContentFile(content)
 
 
 logger = logging.getLogger(__name__)
