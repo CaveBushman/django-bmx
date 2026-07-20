@@ -658,7 +658,9 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
                 if old_photo and old_name not in default_paths and old_name != new_name:
                     old_photo.delete(save=False)
             except Exception:
-                pass
+                logger.exception(
+                    "Nepodařilo se smazat starou fotku jezdce pk=%s", instance.pk
+                )
 
 
 pre_save.connect(delete_file_on_change_extension, sender=Rider)

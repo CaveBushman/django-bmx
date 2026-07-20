@@ -216,7 +216,10 @@ class RiderLicenseAPIView(APIView):
                 if resp.ok:
                     is_valid = resp.json().get("valid", False)
             except Exception:
-                pass
+                logger.warning(
+                    "Ověření platnosti licence u API ČSC selhalo pro UCI ID %s",
+                    uci_id, exc_info=True,
+                )
 
         return Response({
             "uci_id":         uci_id,

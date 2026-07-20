@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from io import BytesIO
@@ -30,6 +31,8 @@ from finance.invoices import (
 from finance.models import SubscriptionInvoice
 from rider.models import MobileAppCharge, RiderStatsCharge, TrainerClubCharge, TrainerClubSubscription
 
+
+logger = logging.getLogger(__name__)
 
 ET.register_namespace("", ISDOC_NS)
 ET.register_namespace("xsi", SCHEMA_INSTANCE_NS)
@@ -105,7 +108,10 @@ class SubscriptionInvoiceService:
                     mask="auto",
                 )
             except Exception:
-                pass
+                logger.warning(
+                    "Nepodařilo se vykreslit logo do faktury %s z %s",
+                    invoice.number, LOGO_PATH, exc_info=True,
+                )
 
         top_y = height - 24 * mm
         pdf.setFont("DejaVuSans-Bold", 18)
