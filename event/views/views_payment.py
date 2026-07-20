@@ -91,14 +91,14 @@ def success_view(request, pk):
             qs = qs.filter(user=request.user)
         ga4_value = sum(get_entry_amount(e) for e in qs[:50])
     except Exception:
-        pass
+        logger.debug("Nepodařilo se spočítat GA4 hodnotu pro event_id=%s", pk, exc_info=True)
 
     event_name = ""
     try:
         ev = Event.objects.filter(pk=pk).values_list("name", flat=True).first()
         event_name = ev or ""
     except Exception:
-        pass
+        logger.debug("Nepodařilo se načíst název eventu pro GA4, event_id=%s", pk, exc_info=True)
 
     return render(request, "event/success.html", {
         "event_id": pk,
@@ -218,8 +218,8 @@ def check_order_payments(request):
     if session_id:
         try:
             finalize_entry_checkout_session(session_id)
-        except (stripe.error.StripeError, Exception) as e:
-            logger.error(f"Chyba při ověřování transakce: {e}")
+        except (stripe.error.StripeError, DatabaseError) as error:
+            logger.exception("Chyba při ověřování transakce %s: %s", session_id, error)
     else:
         transactions = get_recent_pending_entries()
 
@@ -227,8 +227,10 @@ def check_order_payments(request):
             try:
                 confirm = stripe.checkout.Session.retrieve(t.transaction_id)
                 mark_entry_paid(t, confirm)
-            except (stripe.error.StripeError, Exception) as e:
-                logger.error(f"Chyba při ověřování transakce: {e}")
+            except stripe.error.StripeError as error:
+                logger.exception("Stripe chyba při ověřování transakce %s: %s", t.transaction_id, error)
+            except DatabaseError as error:
+                logger.exception("Databázová chyba při ověřování transakce %s: %s", t.transaction_id, error)
 
     update_cart(request)
     messages.success(request, _("Vaše přihláška byla úspěšně přijata."))
@@ -387,7 +389,7 @@ def success_credit_view(request):
             request.session["ga4_credit_amount"] = int(ct)
             request.session["ga4_credit_session"] = session_id
     except Exception:
-        pass
+        logger.debug("Nepodařilo se připravit GA4 data pro kredit, session_id=%s", session_id, exc_info=True)
 
     return redirect("event:success-credit-update")
 
