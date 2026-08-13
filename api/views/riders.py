@@ -1,3 +1,9 @@
+"""API profily jezdců, adresář, startovní čísla a avatarové operace.
+
+Veřejné identifikátory jezdců jsou UCI ID. Změny profilu navíc vyžadují
+ověřenou vazbu přihlášeného účtu na daného jezdce.
+"""
+
 import logging
 import re
 import uuid

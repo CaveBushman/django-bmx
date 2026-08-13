@@ -1,8 +1,14 @@
+"""Kluby a klubová družstva pro MČR.
+
+``Club`` je sdílená organizační entita pro jezdce, účty, závody a fakturaci.
+Mazání nebo slučování klubů proto vyžaduje kontrolu všech těchto vazeb.
+"""
+
 from django.db import models
 
 
 class Club(models.Model):
-    """ Class for Club """
+    """Organizace sdružující jezdce a pořádající závody."""
 
     REGION = (('hlavní město Praha', 'hlavní město Praha'), ('Středočeský kraj', 'Středočeský kraj'), ('Jihočeský kraj', 'Jihočeský kraj'), ('Plzeňský kraj', 'Plzeňský kraj'), ('Ústecký kraj', 'Ústecký kraj'), ('Liberecký kraj', 'Liberecký kraj'),
               ('Královéhradecký kraj', 'Královéhradecký kraj'), ('Pardubický kraj', 'Pardubický kraj'), ('Kraj Vysočina', 'Kraj Vysočina'), ('Jihomoravský kraj', 'Jihomoravský kraj'), ('Olomoucký kraj', 'Olomoucký kraj'), ('Zlínský kraj', 'Zlínský kraj'), ('Moravskoslezský kraj', 'Moravskoslezský kraj'))

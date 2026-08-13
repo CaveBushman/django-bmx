@@ -1,3 +1,10 @@
+"""Konfigurace sezony a závodů.
+
+``EventType`` je jediný podporovaný zdroj hodnot ``Event.type_for_ranking``.
+Hodnoty enumu jsou české texty uložené v databázi; aplikační logika proto nemá
+vytvářet další ručně psané varianty těchto řetězců.
+"""
+
 from datetime import date
 
 from django.core.exceptions import ValidationError
@@ -190,6 +197,12 @@ class EventType(models.TextChoices):
 
 
 class Event(models.Model):
+    """Závod v kalendáři včetně registrace, dokumentů a sportovní konfigurace.
+
+    Ceny a dostupné třídy přebírá z ``EntryClasses``. ``type_for_ranking``
+    ovlivňuje ranking i kvalifikaci a musí používat hodnotu z ``EventType``.
+    """
+
     EVENT_TYPE = EventType.choices
 
     RACE_SYSTEM = (

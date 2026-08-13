@@ -1,3 +1,9 @@
+"""Finanční stopa registrací na závody.
+
+Debet reprezentuje zaplacenou registraci, kredit vrácení nebo uživatelský kredit.
+Změny zůstatku musí zachovat vazbu na zdrojovou přihlášku a auditní záznam.
+"""
+
 import datetime
 import uuid
 

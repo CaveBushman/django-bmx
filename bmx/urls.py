@@ -1,3 +1,9 @@
+"""Kořenové URL projektu a globální error handlery.
+
+Doménové routy patří do ``<app>/urls.py``. Tento modul pouze skládá jejich
+namespaces, publikuje provozní endpointy a připojuje Django admin.
+"""
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static

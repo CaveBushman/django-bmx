@@ -1,3 +1,9 @@
+"""Lehký session-backed košík.
+
+Košík ukládá pouze ID variant a počty kusů. Ceny, dostupnost a skutečná
+rezervace se vždy znovu ověřují proti databázi při checkoutu.
+"""
+
 CART_SESSION_KEY = "eshop_cart"
 
 

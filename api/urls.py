@@ -1,3 +1,10 @@
+"""Verzované REST API pro mobilní aplikaci.
+
+Všechny cesty jsou pod ``/api/v1/`` a namespace ``api``. Endpointy zde pouze
+mapují view; autorizace a doménová validace patří do příslušného modulu v
+``api.views`` nebo do sdílené doménové služby.
+"""
+
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAdminUser

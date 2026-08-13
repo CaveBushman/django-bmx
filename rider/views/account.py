@@ -1,3 +1,9 @@
+"""Uživatelské nastavení, avatary, mobilní předplatné a promo kódy.
+
+Vazbu uživatele na sportovní profil ověřuje ``AccountRiderLink``; citlivé akce
+se nesmí povolit jen na základě UCI ID dodaného klientem.
+"""
+
 import logging
 import os
 import re

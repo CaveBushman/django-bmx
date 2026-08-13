@@ -1,3 +1,10 @@
+"""Uživatelské identity, role a bezpečnostní/auditní vazby.
+
+``Account`` je projektový ``AUTH_USER_MODEL``. Role jsou nezávislé příznaky a
+vazba na sportovní profil vede explicitně přes ``AccountRiderLink``; jméno ani
+e-mail nejsou bezpečným klíčem pro spojení uživatele s jezdcem.
+"""
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
@@ -61,6 +68,12 @@ class MyAccountManager(BaseUserManager):
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
+    """Přihlašovací identita a soubor nezávislých aplikačních rolí.
+
+    ``credit`` je denormalizovaný rychlý zůstatek; finanční historii uchovávají
+    transakce v aplikaci ``event``. Uživatel může mít více rolí současně.
+    """
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     username = models.CharField(max_length=50, unique=True)
@@ -68,12 +81,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     search_text_normalized = models.CharField(max_length=255, default="", blank=True, db_index=True)
     phone_number = models.CharField(max_length=50, default="", null=True, blank=True)
 
-    # credit
-
+    # Rychlý disponibilní zůstatek. Každá změna musí odpovídat transakční stopě.
     credit = models.IntegerField(default=0)
 
-    # required
-
+    # Django auth stav a kombinovatelné doménové role.
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)

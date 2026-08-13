@@ -304,17 +304,21 @@ AUTH_USER_MODEL = "accounts.Account"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+SQLITE_OPTIONS = {"timeout": 20}
+if not RUNNING_TESTS:
+    SQLITE_OPTIONS["init_command"] = (
+        "PRAGMA journal_mode=WAL; "
+        "PRAGMA synchronous=NORMAL; "
+        "PRAGMA cache_size=-64000; "
+        "PRAGMA temp_store=MEMORY;"
+    )
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
         "CONN_MAX_AGE": 0,  # SQLite: musí být 0 (nepodporuje sdílené persistent connections). Při migraci na Postgres nastavit 300.
-        "OPTIONS": {
-            # Při zamčení DB čeká až 20 s místo okamžitého selhání.
-            # Řeší OperationalError: database is locked při souběžných
-            # zápisech z HTTP workerů a TTS background threadů.
-            "timeout": 20,
-        },
+        "OPTIONS": SQLITE_OPTIONS,
     }
 }
 

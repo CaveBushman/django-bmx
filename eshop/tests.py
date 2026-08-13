@@ -1536,3 +1536,117 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertContains(response, "Historie objednávky")
         self.assertContains(response, "Faktura 003202604007")
         self.assertContains(response, "Race Jersey")
+
+
+class EshopPublicAccessTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            "Regular",
+            "User",
+            "regularuser",
+            "regular@example.com",
+            "Password123!",
+        )
+        self.staff = self.user_model.objects.create_user(
+            "Staff",
+            "User",
+            "staffuser",
+            "staff@example.com",
+            "Password123!",
+        )
+        self.staff.is_staff = True
+        self.staff.is_active = True
+        self.staff.save(update_fields=["is_staff", "is_active"])
+        self.category = Category.objects.create(name="Helmets", slug="helmets")
+        self.product = Product.objects.create(
+            name="Helmet Alpha",
+            slug="helmet-alpha",
+            category=self.category,
+            active=True,
+        )
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            label="L",
+            price=2500,
+            stock=10,
+            active=True,
+        )
+
+    def test_closed_shop_blocks_regular_user_on_all_views(self):
+        settings_obj = EshopSettings.get_solo()
+        settings_obj.is_public = False
+        settings_obj.save()
+
+        routes = [
+            ("eshop:shop", {}),
+            ("eshop:product-detail", {"slug": self.product.slug}),
+            ("eshop:cart", {}),
+            ("eshop:checkout", {}),
+        ]
+        for route, kwargs in routes:
+            url = reverse(route, kwargs=kwargs)
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, 200)
+            self.assertTemplateUsed(res, "eshop/shop-closed.html")
+
+        # Test POST endpoints as well
+        res_post_cart = self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 1})
+        self.assertEqual(res_post_cart.status_code, 200)
+        self.assertTemplateUsed(res_post_cart, "eshop/shop-closed.html")
+
+        res_post_alert = self.client.post(
+            reverse("eshop:request-stock-alert", kwargs={"slug": self.product.slug}),
+            {"variant": self.variant.pk, "email": "test@example.com"}
+        )
+        self.assertEqual(res_post_alert.status_code, 200)
+        self.assertTemplateUsed(res_post_alert, "eshop/shop-closed.html")
+
+    def test_closed_shop_allows_staff_user(self):
+        settings_obj = EshopSettings.get_solo()
+        settings_obj.is_public = False
+        settings_obj.save()
+
+        self.client.force_login(self.staff)
+        res = self.client.get(reverse("eshop:shop"))
+        self.assertEqual(res.status_code, 200)
+        self.assertTemplateUsed(res, "eshop/shop.html")
+
+        res_detail = self.client.get(reverse("eshop:product-detail", kwargs={"slug": self.product.slug}))
+        self.assertEqual(res_detail.status_code, 200)
+        self.assertTemplateUsed(res_detail, "eshop/product_detail.html")
+
+
+class HTMXCartTests(TestCase):
+    def setUp(self):
+        settings_obj = EshopSettings.get_solo()
+        settings_obj.is_public = True
+        settings_obj.save()
+        self.product = Product.objects.create(name="Pro Helmet", slug="pro-helmet", active=True)
+        self.variant = ProductVariant.objects.create(product=self.product, label="M", price=1500, stock=5, active=True)
+
+    def test_htmx_add_to_cart_renders_cart_count_partial(self):
+        url = reverse("eshop:add-to-cart")
+        response = self.client.post(
+            url,
+            {"variant_id": self.variant.pk, "quantity": 2},
+            HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "eshop/partials/cart_count.html")
+        self.assertContains(response, "2")
+
+    def test_htmx_cart_update_renders_cart_table_partial(self):
+        self.client.post(reverse("eshop:add-to-cart"), {"variant_id": self.variant.pk, "quantity": 1})
+
+        url = reverse("eshop:cart")
+        response = self.client.post(
+            url,
+            {"action": "update", "variant_id": self.variant.pk, "quantity": 3},
+            HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "eshop/partials/cart_table.html")
+        self.assertContains(response, "Pro Helmet")
+
+

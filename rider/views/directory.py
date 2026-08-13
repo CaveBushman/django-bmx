@@ -1,3 +1,9 @@
+"""Veřejný adresář jezdců, profily a vyhledávací nástroje.
+
+Detail jezdce přijímá UCI ID, nikoli interní primární klíč. Složité
+statistiky skládají helpery z ``rider.views._common``.
+"""
+
 import logging
 
 from bmx.json_utils import html_safe_json

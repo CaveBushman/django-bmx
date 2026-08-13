@@ -1,3 +1,9 @@
+"""Malé projektové endpointy, které nepatří jedné doménové aplikaci.
+
+Obsahuje error pages, CSP report, health/readiness, sitemap a robots.txt.
+Doménové stránky jezdců, závodů apod. patří do jejich vlastních apps.
+"""
+
 import json
 import logging
 

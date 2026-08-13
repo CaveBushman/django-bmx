@@ -1,3 +1,9 @@
+"""API kalendáře, detailů, registrací a výsledků závodů.
+
+Mutace registrací musí používat stejná pravidla kategorií, cen a kvalifikace
+jako server-rendered flow v ``event.views``.
+"""
+
 import logging
 import re
 import uuid

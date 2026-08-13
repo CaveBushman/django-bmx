@@ -1,5 +1,38 @@
 # Vylepšení aplikace BMX Website
 
+## Dokončené úkoly (31. července 2026)
+
+### 1. Složené Databázové Indexy pro Výsledky & Měřené Jízdy (Performance) ✅
+
+**Problém:** Modely `Result` a `RaceRun` neměly v `Meta.indexes` definované složené databázové indexy. Dotazy na výsledky závodů, kategorie nebo statistiky jezdce vyžadovaly Full Table Scan nad velkým množstvím databázových záznamů.
+
+**Řešení:**
+- Přidány složené indexy do `event/models_results.py`:
+  - `Result`: `["event", "category", "place"]`, `["rider", "date"]`, `["event_type", "date"]`.
+  - `RaceRun`: `["event", "round_type"]`, `["rider", "category"]`.
+- Vytvořena a aplikována Django migrace `0102_racerun_event_racerun_evt_round_and_more.py`.
+
+---
+
+### 2. Responsivní Sticky Tabulky Výsledků (UX/UI) ✅
+
+**Problém:** Na mobilních zařízeních s úzkým displejem docházelo při posunu vpravo k přetékání a ztrátě přehledu o tom, kterému jezdci dané umístění patří.
+
+**Řešení:**
+- V `event/templates/event/results.html` přidána CSS třída `sticky left-0 z-10` a stínové oddělení pro první sloupec "Místo".
+- Na mobilních telefonech se první sloupec ukotví při horizontálním posunu vpravo.
+
+---
+
+### 3. ARIA Live Region pro Flash Zprávy (Accessibility) ✅
+
+**Problém:** Dynamicky se objevující systémové zprávy (success/error/warning toasty) nebyly automaticky oznamovány čtečkám obrazovky.
+
+**Řešení:**
+- Přidány atributy `aria-live="polite"` a `aria-atomic="true"` do prvku `#flash-messages` v `theme/templates/base.html`.
+
+---
+
 ## Dokončené úkoly (17. dubna 2026)
 
 ### 1. Radikální optimalizace CSS (z 6 MB na 201 KB) ✅

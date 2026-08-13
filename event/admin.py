@@ -801,7 +801,8 @@ class EntryForeignAdmin(BaseAdmin):
             return format_html(
                 '<span style="display:inline-flex;padding:3px 8px;border-radius:999px;'
                 'background:#fef3c7;color:#92400e;font-size:0.75rem;font-weight:600;">'
-                '⏳ čeká</span>'
+                '⏳ {}</span>',
+                _('čeká'),
             )
         return '—'
 

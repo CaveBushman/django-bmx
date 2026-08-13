@@ -1,3 +1,9 @@
+"""Roční předplatné mobilní aplikace placené uživatelským kreditem.
+
+Charge model je finanční stopa každého pokusu. Obnova musí v jedné transakci
+ověřit kredit, odečíst ho a posunout expiraci; promo kód se smí spotřebovat jednou.
+"""
+
 from datetime import timedelta
 
 from django.db import transaction

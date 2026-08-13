@@ -1,3 +1,9 @@
+"""Webový e-shop: katalog, košík, checkout a interní správa objednávek.
+
+View vrstva koordinuje formuláře a doménové modely. Před vytvořením objednávky
+musí znovu ověřit cenu, rezervovat sklad a odečíst kredit v jedné transakci.
+"""
+
 import csv
 import hashlib
 import logging
@@ -560,9 +566,16 @@ def mark_pickup_order_delivered(request, order_id):
     return redirect(redirect_url)
 
 
-def shop(request):
+def _check_shop_public(request):
     if not EshopSettings.shop_is_public() and not (request.user.is_authenticated and request.user.is_staff):
         return render(request, "eshop/shop-closed.html", status=200)
+    return None
+
+
+def shop(request):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     StockReservation.cleanup_expired()
     cart_obj = Cart(request)
     category_slug = request.GET.get("kategorie")
@@ -617,6 +630,9 @@ def shop(request):
 
 
 def product_detail(request, slug):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     StockReservation.cleanup_expired()
     product = get_object_or_404(
         Product.objects.select_related("category").prefetch_related("variants"),
@@ -645,6 +661,9 @@ def product_detail(request, slug):
 
 @require_POST
 def request_stock_alert(request, slug):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     product = get_object_or_404(
         Product.objects.prefetch_related("variants"),
         slug=slug,
@@ -717,6 +736,9 @@ def admin_order_detail(request, order_id):
 
 @require_POST
 def add_to_cart(request):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     StockReservation.cleanup_expired()
     variant_id = request.POST.get("variant_id")
     try:
@@ -752,6 +774,9 @@ def add_to_cart(request):
 
 
 def cart(request):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     StockReservation.cleanup_expired()
     cart_obj = Cart(request)
     if request.method == "POST" and request.POST.get("action") in {"remove", "update"}:
@@ -797,6 +822,9 @@ def cart(request):
 
 
 def checkout(request):
+    closed_response = _check_shop_public(request)
+    if closed_response:
+        return closed_response
     StockReservation.cleanup_expired()
     cart_obj = Cart(request)
     if not cart_obj:

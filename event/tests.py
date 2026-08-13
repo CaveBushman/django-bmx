@@ -48,6 +48,7 @@ from event.services.payments import (
 from event.views.entry_helpers import (
     build_public_entry_rows,
     enrich_foreign_summary_rows,
+    foreign_summary_session_key,
     sync_paid_foreign_riders,
     validate_foreign_summary_payload,
 )
@@ -1138,7 +1139,7 @@ class PaymentServiceTests(TestCase):
             url="https://payments.example.test/checkout",
         )
         session = self.client.session
-        session["foreign_summary_payload"] = json.dumps(
+        session[foreign_summary_session_key(self.event.pk)] = json.dumps(
             {
                 "customer_email": "foreign@example.com",
                 "rows": [
@@ -1285,7 +1286,7 @@ class PaymentServiceTests(TestCase):
 
     def test_cancel_view_redirects_foreign_checkout_back_to_summary(self):
         session = self.client.session
-        session["foreign_summary_payload"] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
+        session[foreign_summary_session_key(self.event.pk)] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
         session.save()
 
         response = self.client.get(
@@ -1300,7 +1301,7 @@ class PaymentServiceTests(TestCase):
 
     def test_cancel_view_foreign_follow_redirect_keeps_summary_payload(self):
         session = self.client.session
-        session["foreign_summary_payload"] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
+        session[foreign_summary_session_key(self.event.pk)] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
         session.save()
 
         response = self.client.get(
@@ -1311,6 +1312,31 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "foreign@example.com")
         self.assertContains(response, "Foreign")
+
+    def test_foreign_entry_form_ignores_summary_payload_of_other_event(self):
+        session = self.client.session
+        session[foreign_summary_session_key(self.second_event.pk)] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":false,"championship":true,"cruiser":false}]}'
+        session.save()
+
+        response = self.client.get(
+            reverse("event:entry-foreign", kwargs={"pk": self.event.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "foreign@example.com")
+        self.assertNotContains(response, "12345678901")
+
+    def test_foreign_entry_form_prefills_summary_payload_of_same_event(self):
+        session = self.client.session
+        session[foreign_summary_session_key(self.event.pk)] = '{"customer_email":"foreign@example.com","rows":[{"uci_id":"12345678901","first_name":"Foreign","last_name":"Rider","date_of_birth":"2010-01-01","sex":"Muž","plate":"11","nationality":"CZE","transponder_20":"123","transponder_24":"","challenge":true,"championship":false,"cruiser":false}]}'
+        session.save()
+
+        response = self.client.get(
+            reverse("event:entry-foreign", kwargs={"pk": self.event.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "12345678901")
 
 
 class ForeignEntryHelperTests(TestCase):
@@ -2263,6 +2289,40 @@ class EntryForeignAdminTests(TestCase):
         response.render()
 
         self.assertEqual(response.status_code, 200)
+
+    def test_changelist_renders_entry_waiting_for_stripe_refund(self):
+        staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Refund",
+            username="foreign_refund_admin",
+            email="foreign_refund_admin@example.com",
+            password="StrongPass123!",
+        )
+        staff_user.is_staff = True
+        staff_user.is_superuser = True
+        staff_user.save(update_fields=["is_staff", "is_superuser"])
+        EntryForeign.objects.create(
+            transaction_id="sess_waiting_for_refund",
+            first_name="Foreign",
+            last_name="Refund",
+            gender="Muž",
+            nationality="GER",
+            club="Foreign Club",
+            transponder="TR-20",
+            is_20=True,
+            class_20="Boys 15",
+            fee_20=400,
+            payment_complete=True,
+            checkout=True,
+        )
+        request = RequestFactory().get("/bmx-admin/event/entryforeign/")
+        request.user = staff_user
+
+        response = EntryForeignAdmin(EntryForeign, admin.site).changelist_view(request)
+        response.render()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "čeká")
 
 
 class EntryAdminActionTests(TestCase):

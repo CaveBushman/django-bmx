@@ -1,3 +1,9 @@
+"""Veřejné a sportovně-administrační routy jezdců.
+
+Uživatelské nastavení má kanonické cesty pod namespace ``user`` v
+``rider.user_urls``; staré cesty zde zůstávají pouze jako permanentní redirecty.
+"""
+
 from django.urls import path
 from django.views.generic import RedirectView
 from . import views

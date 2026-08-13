@@ -1,3 +1,9 @@
+"""Implementace periodických provozních úloh.
+
+Funkce volá django-crontab nebo tenké Celery tasky z ``bmx.tasks``. Plán je
+definovaný v settings; logika úlohy zůstává zde, aby oba schedulery dělaly totéž.
+"""
+
 import gzip
 import logging
 import os

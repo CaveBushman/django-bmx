@@ -1,3 +1,9 @@
+"""Vystavené faktury, pokladní doklady a faktury za předplatné.
+
+Zdroj pravdy pro zaplacení leží v transakcích doménových aplikací. Modely
+zde uchovávají výsledné účetní doklady a jejich exportní metadata.
+"""
+
 from django.db import models
 from event.models import Event
 from club.models import Club

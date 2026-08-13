@@ -1,3 +1,10 @@
+"""Veřejná fasáda modelů aplikace ``event``.
+
+Modely jsou kvůli velikosti domény rozdělené do ``models_events``,
+``models_entries``, ``models_results`` a ``models_finance``. Ostatní kód má
+importovat z ``event.models``, aby fyzické rozdělení zůstalo implementační detail.
+"""
+
 from event.models_entries import Entry, EntryAuditLog, EntryForeign
 from event.models_events import EntryClasses, Event, EventPhoto, EventProposition, EventType, SeasonSettings
 from event.models_finance import CreditTransaction, DebetTransaction, FinanceAuditLog, StripeFee

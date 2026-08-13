@@ -1,3 +1,5 @@
+"""Veřejný filtrovaný pohled nad materializovaným rankingem."""
+
 import hashlib
 
 from django.shortcuts import render

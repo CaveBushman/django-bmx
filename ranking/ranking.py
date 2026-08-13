@@ -1,3 +1,10 @@
+"""Výpočet a koordinace materializovaného rankingu.
+
+Cache klíče fungují jako jednoduchý distribuovaný stav PENDING/RUNNING. Pokud
+během výpočtu přijde další požadavek, aktuální běh se neduplikuje; po dokončení se
+provede ještě jeden přepočet nad novými daty.
+"""
+
 import logging
 import datetime
 from datetime import timedelta
@@ -176,7 +183,7 @@ class RankingCount:
         all_results = Result.objects.filter(
             event_type__in=event_types,
             is_20=is_20,
-            date__gte=datetime.datetime.now() - timedelta(days=365),
+            date__gte=timezone.localdate() - timedelta(days=365),
             rider_id=self.uci_id,
         )
         results = (

@@ -1,3 +1,9 @@
+"""Nízkoúrovňové helpery platebních callbacků a kreditních operací.
+
+Kód zde překládá externí Stripe stav do interní finanční stopy. Zápisy
+musí být idempotentní, atomické a nesmí odečíst nebo připsat kredit dvakrát.
+"""
+
 import datetime
 import logging
 from datetime import date

@@ -1,3 +1,9 @@
+"""Interní finanční dashboardy, exporty, faktury a refund operace.
+
+Pohledy agregují transakce z aplikace ``event`` a doklady z ``finance``. Ruční
+zásahy musí být atomické a zapsat ``FinanceAuditLog``.
+"""
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages

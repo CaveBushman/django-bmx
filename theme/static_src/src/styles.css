@@ -3136,3 +3136,51 @@
         box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.14), 0 8px 18px rgba(79, 70, 229, 0.16) !important;
     }
 }
+
+/* ==========================================================================
+   UX & Performance Enhancements (Phase 2 & 3)
+   ========================================================================== */
+
+/* Glassmorphism utility */
+.bmx-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+.dark .bmx-glass {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(30, 41, 59, 0.8);
+}
+
+/* Skeleton Loading shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.skeleton-loader {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+.dark .skeleton-loader {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 37%, #1e293b 63%);
+  background-size: 200% 100%;
+}
+
+/* Mobile Card View fallback styling */
+@media (max-width: 639px) {
+  .mobile-table-card {
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--bmx-card);
+    border: 1px solid var(--bmx-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+}

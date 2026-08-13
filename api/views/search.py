@@ -153,7 +153,7 @@ class GlobalSearchAPIView(APIView):
             news_qs = (
                 News.objects.filter(published=True)
                 .filter(DQ(title__icontains=q) | DQ(perex__icontains=q))
-                .order_by("-created_date")[:limit]
+                .order_by("-publish_date", "-id")[:limit]
             )
             results["news"] = [
                 {

@@ -1,3 +1,10 @@
+"""Interní sportovní administrativa mimo standardní Django admin.
+
+Obsahuje ruční přepočty, kontrolu licencí, deaktivaci profilů a provozní
+přehledy. Mutace jsou omezené na administrátory nebo explicitně povolené klubové
+správce a mají zanechat auditovatelný log.
+"""
+
 import logging
 import os
 import re

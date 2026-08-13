@@ -318,6 +318,17 @@ def _resolve_kpi_period(period_value):
 
 
 def _build_rider_premium_stats_context(request, rider, premium_access_context):
+    cache_key = f"bmx_rider_premium_ctx_{rider.uci_id}_{request.GET.get('track', '')}_{request.GET.get('wheel', '')}_{request.GET.get('years', '')}"
+    cached_ctx = cache.get(cache_key)
+    if cached_ctx is not None:
+        cached_ctx["rider"] = rider
+        cached_ctx["subscription"] = premium_access_context["active_subscription"]
+        cached_ctx["trainer_club_subscription"] = premium_access_context["trainer_club_subscription"]
+        cached_ctx["has_admin_access"] = premium_access_context["premium_access_via_admin"]
+        cached_ctx["has_trainer_club_access"] = premium_access_context["premium_access_via_trainer_club"]
+        cached_ctx["premium_pdf_export_enabled"] = _can_export_rider_premium_stats_pdf(request.user, rider)
+        return cached_ctx
+
     runs = list(
         RaceRun.objects.filter(rider=rider, is_beginner=False)
         .select_related("event", "event__organizer", "result")
@@ -370,7 +381,7 @@ def _build_rider_premium_stats_context(request, rider, premium_access_context):
             kpi_cutoff=kpi_period["cutoff"],
         )["candidates"]
     premium_runs_count = len([run for run in runs if run.finish_time is not None])
-    return {
+    ctx = {
         "rider": rider,
         "runs": runs,
         "premium_runs_count": premium_runs_count,
@@ -389,6 +400,11 @@ def _build_rider_premium_stats_context(request, rider, premium_access_context):
         "compare_candidates": compare_candidates,
         "premium_pdf_export_enabled": _can_export_rider_premium_stats_pdf(request.user, rider),
     }
+    try:
+        cache.set(cache_key, ctx, 300)
+    except Exception:
+        pass
+    return ctx
 
 
 

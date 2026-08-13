@@ -58,7 +58,7 @@ def homepage_view(request):
             News.objects.filter(published=True, on_homepage=True)
             .select_related("created")
             .prefetch_related("tags")
-            .order_by("-publish_date")
+            .order_by("-publish_date", "-id")
         )
         homepage_news = [_sanitize_news_for_render(article) for article in homepage_news]
         sponsors = list(
@@ -133,7 +133,7 @@ def news_list_view(request):
 
     if data is None:
         # Stránkujeme v DB, sanitizujeme jen aktuální stránku (ne celý seznam)
-        qs = News.objects.filter(published=True).order_by('-publish_date')
+        qs = News.objects.filter(published=True).order_by('-publish_date', '-id')
         
         query = request.GET.get('q')
         if query:

@@ -1,3 +1,10 @@
+"""Produktový katalog, objednávky, rezervace a audit skladových pohybů.
+
+Sklad není jen hodnota ``stock`` na variantě: dostupnost ovlivňují aktivní
+rezervace a každá potvrzená změna má odpovídající ``StockMovement``. Operace,
+které mění sklad, musí být atomické.
+"""
+
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import F
@@ -19,6 +26,8 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+    """Prodejní produkt; konkrétní cena a sklad patří jeho variantám."""
+
     class VariantType(models.TextChoices):
         SIZE = "size", "Velikost"
         COLOR = "color", "Barva"
@@ -131,6 +140,12 @@ class StockReservation(models.Model):
 
 
 class Order(models.Model):
+    """Neměnný zákaznický snapshot a životní cyklus jedné objednávky.
+
+    Položky ukládají cenu platnou při nákupu. ``credits_charged`` musí být
+    vráceno právě jednou při stornu; skladové změny eviduje ``StockMovement``.
+    """
+
     class Status(models.TextChoices):
         PENDING = "pending", "Čeká na zpracování"
         CONFIRMED = "confirmed", "Potvrzena"

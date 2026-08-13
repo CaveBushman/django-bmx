@@ -65,13 +65,13 @@ from api.views._common import (  # explicitní helpery (import * je nepřenáš�
 
 
 class NewsListAPIView(generics.ListAPIView):
-    queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-created_date", "-id")
+    queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-publish_date", "-id")
     serializer_class = NewsSerializer
     permission_classes = [AllowAny]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["title"]
-    ordering_fields = ["created_date", "publish_date", "id"]
-    ordering = ["-created_date", "-id"]
+    ordering_fields = ["publish_date", "id"]
+    ordering = ["-publish_date", "-id"]
 
 __all__ = ['NewsListAPIView']

@@ -1,3 +1,9 @@
+"""API autentizace, registrace, reset hesla a profil přihlášeného uživatele.
+
+Bezpečnostní ochrany (rate limit, human check, aktivace) mají odpovídat webovému
+flow v ``accounts``; API nesmí vytvořit slabší alternativní vstup.
+"""
+
 import logging
 import re
 import uuid

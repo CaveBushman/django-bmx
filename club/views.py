@@ -1,3 +1,5 @@
+"""Veřejné profily klubů a workflow klubových družstev MČR."""
+
 import os
 from pathlib import Path
 from datetime import date

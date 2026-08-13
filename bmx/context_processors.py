@@ -1,3 +1,9 @@
+"""Globální kontext sdílený hlavní navigací webu.
+
+Context processor běží při renderu velké části stránek. Dotazy zde musí zůstat
+levné a databázová chyba nesmí shodit jinak funkční veřejnou stránku.
+"""
+
 import logging
 
 from django.conf import settings

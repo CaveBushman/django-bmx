@@ -1,3 +1,9 @@
+"""Sdílená doménová logika pro sestavení přihlášky.
+
+Helpery určují povolené disciplíny, ceny, stav registrace a Stripe položky.
+Používá je webový flow; obdobné API chování musí zachovat stejné invarianty.
+"""
+
 import json
 import logging
 from datetime import date
@@ -181,12 +187,19 @@ def build_foreign_entry_summary(request):
     return {"customer_email": customer_email, "rows": rows}
 
 
-def build_foreign_entry_summary_from_payload(request):
-    payload = (
-        request.POST.get("summary_payload")
-        or request.GET.get("summary_payload")
-        or request.session.get("foreign_summary_payload", "")
-    )
+def foreign_summary_session_key(event_id):
+    """Klíč session s rozpracovaným souhrnem — vždy vázaný na konkrétní závod.
+
+    Bez vazby na závod by nedokončená přihláška z jednoho závodu předvyplnila
+    formulář jiného závodu (cizí jezdci i jejich kategorie).
+    """
+    return f"foreign_summary_payload_{event_id}"
+
+
+def build_foreign_entry_summary_from_payload(request, event_id=None):
+    payload = request.POST.get("summary_payload") or request.GET.get("summary_payload") or ""
+    if not payload and event_id is not None:
+        payload = request.session.get(foreign_summary_session_key(event_id), "")
     if not payload:
         return None
 

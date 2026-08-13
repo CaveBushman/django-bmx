@@ -1,3 +1,10 @@
+"""Přihlášky domácích a zahraničních jezdců na závod.
+
+``Entry.rider`` odkazuje na interní ``Rider.pk`` a má z historických důvodů
+vypnutý databázový constraint. Nezaměňovat s ``Result.rider``, který používá
+UCI ID. ``checkout`` značí odbavení/refund, nikoli prvotní zaplacení.
+"""
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -10,6 +17,13 @@ from event.utils import normalize_uci_id
 
 
 class Entry(models.Model):
+    """Jedna registrace domácího jezdce na jeden závod.
+
+    Disciplíny a jejich poplatky jsou uložené jako snapshot v okamžiku registrace.
+    ``payment_complete`` potvrzuje platbu; ``checkout`` potvrzuje pozdější
+    odbavení/refund a smí být zapnutý jen pro zaplacenou registraci.
+    """
+
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True)
     transaction_id = models.CharField(max_length=255, default="", null=True, blank=True)
@@ -89,6 +103,12 @@ class EntryAuditLog(models.Model):
 
 
 class EntryForeign(models.Model):
+    """Samostatná registrace zahraničního jezdce bez povinného domácího profilu.
+
+    Identifikační a kontaktní data jsou snapshot platby. Volitelná vazba na
+    ``ForeignRider``/``Rider`` nesmí přepsat historický obsah registrace.
+    """
+
     transaction_id = models.CharField(max_length=255, default="")
     event = models.ForeignKey(Event, to_field="id", db_column="event", on_delete=models.SET_NULL, null=True)
     first_name = models.CharField(max_length=100)

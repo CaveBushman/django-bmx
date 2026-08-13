@@ -1,3 +1,5 @@
+"""Kanonické routy uživatelského účtu, předplatných a trenérského portálu."""
+
 from django.urls import path
 from . import views
 

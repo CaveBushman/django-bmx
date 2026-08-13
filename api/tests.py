@@ -299,13 +299,14 @@ class NewsListAPITests(TestCase):
         self.assertIsInstance(response.data, list)
         self.assertEqual([item["id"] for item in response.data], [visible.id])
 
-    def test_news_list_is_not_paginated_and_orders_by_created_date_desc(self):
+    def test_news_list_is_not_paginated_and_orders_by_publish_date_desc(self):
         older = News.objects.create(
             title="Older article",
             perex="prefix",
             content="content",
             published=True,
             publish_in_app=True,
+            publish_date=date(2026, 7, 20),
         )
         newer = News.objects.create(
             title="Newer article",
@@ -313,8 +314,11 @@ class NewsListAPITests(TestCase):
             content="content",
             published=True,
             publish_in_app=True,
+            publish_date=date(2026, 7, 21),
         )
-        News.objects.filter(pk=older.pk).update(created_date=timezone.now() - timedelta(days=2))
+
+        # Opačné pořadí created_date hlídá, že API skutečně používá publish_date.
+        News.objects.filter(pk=older.pk).update(created_date=timezone.now())
         News.objects.filter(pk=newer.pk).update(created_date=timezone.now() - timedelta(days=1))
 
         response = self.client.get("/api/v1/news/")
@@ -548,6 +552,28 @@ class GlobalSearchAPITests(TestCase):
         self.assertEqual(response.status_code, 200)
         news_titles = [n["title"] for n in response.data["news"]]
         self.assertIn("Novák wins race", news_titles)
+
+    def test_news_results_are_ordered_by_publish_date_desc(self):
+        older_by_publish_date = News.objects.create(
+            title="Novák older publication",
+            slug="novak-older-publication",
+            perex="Test perex",
+            published=True,
+            publish_date=date(2026, 7, 19),
+        )
+        News.objects.filter(pk=older_by_publish_date.pk).update(created_date=timezone.now())
+        News.objects.filter(pk=self.news.pk).update(
+            created_date=timezone.now() - timedelta(days=1),
+            publish_date=date(2026, 7, 20),
+        )
+
+        response = self.client.get("/api/v1/search/", {"q": "Novák", "types": "news"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item["id"] for item in response.data["news"][:2]],
+            [self.news.id, older_by_publish_date.id],
+        )
 
     def test_types_filter_excludes_other_types(self):
         response = self.client.get("/api/v1/search/", {"q": "Novák", "types": "riders"})

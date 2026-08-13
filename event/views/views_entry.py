@@ -38,6 +38,7 @@ from event.views.entry_helpers import (
     calculate_selected_fee,
     collect_fees_by_club,
     enrich_foreign_summary_rows,
+    foreign_summary_session_key,
     get_active_riders,
     hydrate_checkout_riders,
     is_event_open_for_entries,
@@ -240,7 +241,7 @@ def entry_foreign_view(request, pk):
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
-    initial_payload = build_foreign_entry_summary_from_payload(request) or {"customer_email": "", "rows": []}
+    initial_payload = build_foreign_entry_summary_from_payload(request, event_id=event.pk) or {"customer_email": "", "rows": []}
     return render(
         request,
         "event/entry-foreign.html",
@@ -258,7 +259,7 @@ def entry_foreign_summary_view(request, pk):
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
-    summary_payload = build_foreign_entry_summary_from_payload(request) or build_foreign_entry_summary(request)
+    summary_payload = build_foreign_entry_summary_from_payload(request, event_id=event.pk) or build_foreign_entry_summary(request)
     if not validate_foreign_summary_payload(summary_payload):
         return redirect("event:entry-foreign", pk=pk)
     summary_rows, total_fee = enrich_foreign_summary_rows(event, summary_payload["rows"])
@@ -266,7 +267,7 @@ def entry_foreign_summary_view(request, pk):
         "customer_email": summary_payload.get("customer_email", ""),
         "rows": summary_rows,
     }
-    request.session["foreign_summary_payload"] = json.dumps(normalized_payload)
+    request.session[foreign_summary_session_key(event.pk)] = json.dumps(normalized_payload)
     return render(
         request,
         "event/entry-foreign-summary.html",
@@ -291,7 +292,7 @@ def entry_foreign_pay_view(request, pk):
     registration_redirect = _redirect_european_cup_registration(event)
     if registration_redirect:
         return registration_redirect
-    payload = build_foreign_entry_summary_from_payload(request)
+    payload = build_foreign_entry_summary_from_payload(request, event_id=event.pk)
     if not payload:
         return redirect("event:entry-foreign", pk=pk)
     if not validate_foreign_summary_payload(payload):
@@ -351,7 +352,7 @@ def entry_foreign_success_view(request, pk):
                 is_foreign=True,
             )
             sync_paid_foreign_riders(event, session_id)
-            request.session.pop("foreign_summary_payload", None)
+            request.session.pop(foreign_summary_session_key(event.pk), None)
         except (stripe.error.StripeError, DatabaseError) as error:
             logger.exception("Chyba při potvrzení foreign Stripe platby %s: %s", session_id, error)
 

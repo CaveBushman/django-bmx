@@ -1,3 +1,10 @@
+"""Importované výsledky a jednotlivé měřené jízdy.
+
+Vazba ``Result.rider`` cílí na ``Rider.uci_id`` a nemá DB constraint. UCI ID je
+hodnotné i pro zahraničního nebo dosud neznámého jezdce, proto se osiřelé
+výsledky při integrity checku automaticky nemažou ani nenulují.
+"""
+
 from django.db import models
 
 from event.models_events import Event
@@ -5,6 +12,12 @@ from rider.models import Rider
 
 
 class Result(models.Model):
+    """Konečné umístění jezdce v jedné kategorii závodu.
+
+    Jméno, klub a kategorie jsou historický snapshot z importu. Nemají se
+    zpětně synchronizovat z aktuálního profilu jezdce.
+    """
+
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True)
     date = models.DateField(null=True, blank=True)
     event_type = models.CharField(max_length=255, null=True, blank=True)
@@ -25,6 +38,11 @@ class Result(models.Model):
     class Meta:
         verbose_name = "Výsledek"
         verbose_name_plural = "Výsledky"
+        indexes = [
+            models.Index(fields=["event", "category", "place"], name="event_result_evt_cat_place"),
+            models.Index(fields=["rider", "date"], name="event_result_rider_date"),
+            models.Index(fields=["event_type", "date"], name="event_result_evttype_date"),
+        ]
 
     def __str__(self):
         event_name = self.event.name if self.event else "Bez závodu"
@@ -32,6 +50,12 @@ class Result(models.Model):
 
 
 class RaceRun(models.Model):
+    """Jedna měřená rozjížďka nebo vyřazovací/finalová jízda.
+
+    ``result`` je volitelný, protože timing lze importovat dříve nebo nezávisle
+    na konečném pořadí. ``round_type`` a časy napájejí prémiové statistiky.
+    """
+
     result = models.ForeignKey(Result, on_delete=models.SET_NULL, related_name="runs", null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     rider = models.ForeignKey(Rider, on_delete=models.SET_NULL, null=True, blank=True)
@@ -60,6 +84,10 @@ class RaceRun(models.Model):
     class Meta:
         verbose_name = "Jízda závodníka"
         verbose_name_plural = "Jízdy závodníka"
+        indexes = [
+            models.Index(fields=["event", "round_type"], name="event_racerun_evt_round"),
+            models.Index(fields=["rider", "category"], name="event_racerun_rider_cat"),
+        ]
 
     def __str__(self):
         label = self.result or self.rider or self.plate or "RaceRun"

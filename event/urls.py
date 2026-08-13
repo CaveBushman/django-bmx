@@ -1,3 +1,9 @@
+"""Webové routy závodů: veřejné stránky, registrace, platby a admin akce.
+
+Pořadí dynamických ``<int:pk>`` cest je významné; nové statické prefixy patří
+před obecné detailové routy.
+"""
+
 from django.urls import path
 from . import views
 from .feeds import EventFeed

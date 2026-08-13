@@ -1,3 +1,9 @@
+"""Mobilní API katalogu, košíku a e-shop checkoutu.
+
+Klientské ceny a dostupnost jsou pouze informativní; při vytvoření objednávky se
+vždy znovu ověřují a sklad/kredit se mění atomicky na serveru.
+"""
+
 import logging
 import re
 import uuid

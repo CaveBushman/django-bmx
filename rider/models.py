@@ -1,3 +1,10 @@
+"""Sportovní profily jezdců, transpondéry a placené produkty.
+
+``Rider.pk`` je interní databázový klíč, zatímco ``Rider.uci_id`` je stabilní
+veřejná/svazová identita používaná v URL a importech. Model obsahuje také
+odvozené sportovní stavy; jejich hromadné přepočty patří do ``rider.rider``.
+"""
+
 import logging
 import os
 from django.db import models
@@ -20,7 +27,12 @@ from event.utils import normalize_uci_id
 
 
 class Rider(models.Model):
-    """ Class for rider """
+    """Domácí sportovní profil identifikovaný UCI ID.
+
+    Kontaktní data a sportovní stav žijí na jednom historickém modelu. Třídy,
+    body, ranking a kvalifikační příznaky jsou odvozené hodnoty a hromadně je
+    aktualizují specializované přepočty.
+    """
 
     CLASS_BEGINNERS = (
         ("Beginners 1", "Beginners 1"),
@@ -671,7 +683,11 @@ def invalidate_active_riders_cache(sender, **kwargs):
 
 
 class ForeignRider(models.Model):
-    """ Class for foreign rider """
+    """Opakovaně použitelný profil zahraničního jezdce.
+
+    Na rozdíl od ``EntryForeign`` jde o adresářovou identitu, ne snapshot jedné
+    konkrétní registrace a platby.
+    """
 
     CLASS_20 = (
         ("Boys 6", "Boys 6"),

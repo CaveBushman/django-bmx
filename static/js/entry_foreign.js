@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCardTitles();
   }
 
-  function syncCategoryRules(target) {
+  function syncCategoryRules(target, changedInput) {
     var card = target && target.classList && target.classList.contains("riderCard")
       ? target
       : target && target.closest(".riderCard");
@@ -44,14 +44,32 @@ document.addEventListener("DOMContentLoaded", function () {
     var challenge = card.querySelector('[name="challenge[]"]');
     var championship = card.querySelector('[name="championship[]"]');
     var cruiser = card.querySelector('[name="cruiser[]"]');
-
-    if (championship && championship.checked) {
-      challenge.checked = false;
-      cruiser.checked = false;
+    if (!challenge || !championship || !cruiser) {
+      return;
     }
 
-    if ((challenge && challenge.checked) || (cruiser && cruiser.checked)) {
-      championship.checked = false;
+    // Championship jede samostatně, Challenge lze kombinovat s Cruiserem.
+    // Rozhoduje políčko, které uživatel právě přepnul — jinak by zaškrtnuté
+    // Championship trvale vracelo Challenge/Cruiser zpět na nezaškrtnuté.
+    if (changedInput === championship) {
+      if (championship.checked) {
+        challenge.checked = false;
+        cruiser.checked = false;
+      }
+      return;
+    }
+
+    if (changedInput === challenge || changedInput === cruiser) {
+      if (changedInput.checked) {
+        championship.checked = false;
+      }
+      return;
+    }
+
+    // Bez konkrétní změny (první vykreslení, klonovaná karta) má přednost Championship.
+    if (championship.checked) {
+      challenge.checked = false;
+      cruiser.checked = false;
     }
   }
 
@@ -291,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("change", function (event) {
     if (event.target.matches("[data-category-toggle]")) {
-      syncCategoryRules(event.target);
+      syncCategoryRules(event.target, event.target);
     }
   });
 
