@@ -63,6 +63,49 @@
   /* Body background — token přepíná .dark, není potřeba samostatné .dark pravidlo */
   body { background-color: var(--bmx-bg); }
 
+  /*
+   * Checkbox / radio — základní vzhled.
+   * Flowbite (obsahuje @tailwindcss/forms) je importovaný do `layer(flowbite)`,
+   * takže má nižší prioritu než Tailwind preflight, který políčkům nastaví
+   * `border-width: 0` a průhledné pozadí. Bez tohoto pravidla je políčko
+   * neviditelné (appearance:none + bílá fajfka na průhledném pozadí) a uživatel
+   * nepozná, že je zaškrtnuté. Utility (border-slate-300, text-indigo-600, h-5…)
+   * jsou v pozdější layer, takže je tohle pravidlo nepřebíjí.
+   */
+  input[type="checkbox"],
+  input[type="radio"] {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--bmx-border-strong);
+    background-color: #ffffff;
+    color: var(--bmx-brand);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    border-color: transparent;
+    background-color: currentColor;
+  }
+
+  /* Fajfka / tečka vlastní, ať vzhled nezávisí na tom, že se flowbite načte */
+  input[type="checkbox"]:checked {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 16 16' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0z'/%3E%3C/svg%3E");
+  }
+
+  input[type="radio"]:checked {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 16 16' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='3'/%3E%3C/svg%3E");
+  }
+
+  .dark input[type="checkbox"],
+  .dark input[type="radio"] {
+    border-color: var(--bmx-border-strong);
+    background-color: var(--bmx-card);
+    color: var(--bmx-brand-hover);
+  }
+
   /* Flash messages — explicitní dark mode přes .dark selektor (vyšší specificita než utility) */
   .flash-msg-success {
     background: #f0fdf4;

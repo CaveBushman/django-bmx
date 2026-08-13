@@ -45,6 +45,20 @@
   accent-color: #4f46e5;
   flex: 0 0 auto;
   margin-top: 0.15rem;
+  /* Políčko musí být vidět i bez flowbite (to je v nižší @layer než Tailwind
+     preflight, který jinak sebere okraj i pozadí a checkbox zmizí). */
+  border: 1px solid #94a3b8;
+  border-radius: 0.3rem;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  cursor: pointer;
+}
+
+.foreign-entry-checkbox:checked {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
 }
 
 .foreign-entry-category-option {
@@ -62,6 +76,13 @@
   transform: translateY(-1px);
   border-color: rgba(99, 102, 241, 0.38) !important;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+/* Zvýrazněná celá dlaždice — potvrzení volby je vidět i bez míření na políčko. */
+.foreign-entry-category-option:has(.foreign-entry-checkbox:checked) {
+  border-color: #818cf8 !important;
+  background: #eef2ff !important;
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.18);
 }
 
 .foreign-entry-category-option .foreign-entry-category-title {
@@ -221,6 +242,11 @@ html.dark .riderCard .foreign-entry-category-option {
   background: rgba(15, 23, 42, 0.92) !important;
   border-color: rgba(71, 85, 105, 0.92) !important;
   color: #f8fafc !important;
+}
+
+html.dark .riderCard .foreign-entry-category-option:has(.foreign-entry-checkbox:checked) {
+  background: rgba(49, 46, 129, 0.38) !important;
+  border-color: #6366f1 !important;
 }
 
 html.dark .foreign-entry-category-option .foreign-entry-category-title {
