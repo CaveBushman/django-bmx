@@ -8,26 +8,17 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from bmx.pdf_utils import register_fonts
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
+
 ASSOCIATION_LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
-
-
-def _register_fonts():
-    if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 class UnpaidMotoReportPdfService:
     def build_pdf(self, event, report):
-        _register_fonts()
+        register_fonts()
         buffer = BytesIO()
         doc = SimpleDocTemplate(
             buffer,

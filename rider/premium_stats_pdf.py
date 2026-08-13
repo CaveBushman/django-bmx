@@ -11,13 +11,11 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
+from bmx.pdf_utils import register_fonts
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
+
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 PAGE_WIDTH, PAGE_HEIGHT = landscape(A4)
@@ -117,13 +115,6 @@ DETAIL_SECTIONS = [
 ]
 
 
-def _register_fonts():
-    if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
-
-
 def _get_logo_reader():
     if os.path.exists(LOGO_PATH):
         return ImageReader(LOGO_PATH)
@@ -146,7 +137,7 @@ def _format_value(value, digits=2, suffix=""):
 
 
 def build_rider_premium_stats_pdf(rider, track, track_stats, kpi_period):
-    _register_fonts()
+    register_fonts()
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=landscape(A4))
     pdf.setTitle(f"Premium statistiky {rider.first_name} {rider.last_name}")

@@ -21,8 +21,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 from decouple import config
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
+from bmx.excel_utils import CENTER_ALIGNMENT, THIN_BORDER, set_column_widths, write_styled_header
 from rider.models import Rider
 from event.models import Result, Event, EventType, Entry, SeasonSettings
 import threading
@@ -674,27 +673,8 @@ def generate_insurance_file(event):
     ws = wb.active
     ws.title = "INSURANCE"
 
-    # Styl záhlaví
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F46E5")  # indigo
-    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    border = Border(
-        left=Side(style="thin"),
-        right=Side(style="thin"),
-        top=Side(style="thin"),
-        bottom=Side(style="thin"),
-    )
-
     headers = ["Kategorie", "Jméno", "Příjmení", "Datum narození", "Adresa"]
-    ws.append(headers)
-
-    # Styluj záhlaví
-    for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col_num)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = center_align
-        cell.border = border
+    write_styled_header(ws, headers)
 
     def process_entry(entry):
         rider = entry.rider
@@ -734,14 +714,10 @@ def generate_insurance_file(event):
             ws.append(row)
             for col_idx, _ in enumerate(row, start=1):
                 cell = ws.cell(row=row_idx, column=col_idx)
-                cell.alignment = center_align
-                cell.border = border
+                cell.alignment = CENTER_ALIGNMENT
+                cell.border = THIN_BORDER
 
-    # Nastav šířky sloupců
-    column_widths = [18, 16, 18, 16, 40]
-    for i, width in enumerate(column_widths, start=1):
-        col_letter = get_column_letter(i)
-        ws.column_dimensions[col_letter].width = width
+    set_column_widths(ws, [18, 16, 18, 16, 40])
 
     # Ulož soubor
     file_path = os.path.join(

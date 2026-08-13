@@ -17,23 +17,15 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import cm
+
+from bmx.pdf_utils import register_fonts as _register_fonts
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
 
 # Shared konstanty pro PDF
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
-
-
-def _register_fonts():
-    """Zaregistruje DejaVu fonty pro ReportLab (volá se jednou na začátku view)."""
-    pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 def _draw_logo_and_title(p, width, height, margin, title_text, subtitle_text):

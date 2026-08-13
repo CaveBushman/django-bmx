@@ -15,24 +15,26 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
 from bmx.observability import set_tag, start_span
-from event.models import Event
-from finance.invoices import (
-    COST_CENTER_CODE,
-    LOGO_PATH,
+from bmx.pdf_utils import (
     SUPPLIER_CITY,
     SUPPLIER_COUNTRY_EN,
     SUPPLIER_ICO,
     SUPPLIER_NAME,
     SUPPLIER_STREET,
+    register_fonts,
+)
+from event.models import Event
+from finance.invoices import (
+    COST_CENTER_CODE,
+    LOGO_PATH,
     _money,
-    _register_fonts,
 )
 from finance.models import EventCashReceipt
 
 
 class EventCashReceiptService:
     def __init__(self):
-        _register_fonts()
+        register_fonts()
 
     def _build_receipt_number(self):
         year = timezone.localdate().year

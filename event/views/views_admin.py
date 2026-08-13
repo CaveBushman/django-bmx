@@ -87,18 +87,16 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image, KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+from bmx.pdf_utils import register_fonts as _register_pdf_fonts
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
 MAX_RESULTS_PDF_SIZE_BYTES = 20 * 1024 * 1024
 CCF_API_TIMEOUT = (5, 20)
-PDF_FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-PDF_FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 PDF_LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 COMMISSAR_EXCLUDED_EVENT_TYPES = [
@@ -1132,13 +1130,6 @@ def mcr_club_teams_rem_entries_view(request, pk):
 
     audit_logger.info("mcr_club_teams_rem_entries_exported admin_user_id=%s event_id=%s", request.user.id, event.id)
     return _download_generated_file(_handle_mcr_club_rem_entries(request, event))
-
-
-def _register_pdf_fonts():
-    if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans", PDF_FONT_REGULAR_PATH))
-    if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", PDF_FONT_BOLD_PATH))
 
 
 def _mcr_member_category(event, member):
