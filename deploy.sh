@@ -175,13 +175,21 @@ if ! git diff --quiet -- "$CSS_DIST" 2>/dev/null; then
   run git checkout -- "$CSS_DIST"
 fi
 
-DIRTY="$(git status --porcelain)"
+# Netrackované soubory (zálohy DB, ruční exporty…) pull nijak neblokují,
+# takže je jen vypíšeme. Blokovat může jen změna ve verzovaném souboru.
+UNTRACKED_COUNT="$(git ls-files --others --exclude-standard | wc -l | tr -d ' ')"
+if [ "$UNTRACKED_COUNT" != "0" ]; then
+  info "netrackovaných souborů: $UNTRACKED_COUNT (pull neblokují, ignoruji)"
+  git ls-files --others --exclude-standard | head -5 | sed 's/^/      ?? /'
+fi
+
+DIRTY="$(git status --porcelain --untracked-files=no)"
 if [ -n "$DIRTY" ]; then
   printf '%s\n' "$DIRTY"
   if [ "$FORCE" = "1" ]; then
-    warn "pracovní strom není čistý, pokračuji kvůli FORCE=1"
+    warn "verzované soubory jsou změněné, pokračuji kvůli FORCE=1"
   else
-    die "Pracovní strom není čistý. Ukliď změny (git checkout/stash), nebo spusť s FORCE=1."
+    die "Změny ve verzovaných souborech. Ukliď je (git checkout/stash), nebo spusť s FORCE=1."
   fi
 fi
 
