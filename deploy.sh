@@ -35,6 +35,7 @@
 #   DEPLOY_I18N=0          přeskočí compilemessages
 #   DEPLOY_CRON=0          přeskočí přeregistrování django-crontab úloh
 #   CLEAR_STATIC=1         collectstatic --clear (smaže staré hashované soubory)
+#   DEPLOY_NGINX=0         přeskočí restart nginx (spravuje ho někdo jiný)
 #   HEALTH_URL=…           default http://127.0.0.1:8000/healthz; prázdné = vypnuto
 #
 # Poznámka k CSS: theme/static/css/dist/styles.css je verzovaný, takže se
@@ -113,6 +114,31 @@ restart_unit() {
   else
     info "přeskočeno (unit neexistuje): $unit"
   fi
+}
+
+restart_nginx() {
+  # Nginx se restartuje, ne reloaduje: reload nechává staré worker procesy
+  # dobíhat s otevřenými spojeními, takže po nasazení nové statiky část
+  # requestů ještě chvíli obsluhuje proces s nakešovanými hashovanými jmény,
+  # která už na disku nejsou — a prohlížeč dostane 404 na CSS.
+  #
+  # Konfigurace se ověřuje předem. `systemctl restart` s rozbitým configem
+  # nginx zastaví a znovu nespustí, takže by web zůstal celý dole; proto je
+  # tenhle krok kritický (`run`, ne `soft`) až za kontrolou, ne před ní.
+  if [ "${DEPLOY_NGINX:-1}" = "0" ]; then
+    info "přeskočeno (DEPLOY_NGINX=0)"
+    return 0
+  fi
+  if ! have nginx; then
+    info "přeskočeno (nginx na tomhle stroji není)"
+    return 0
+  fi
+  if ! $SUDO nginx -t; then
+    warn "nginx -t hlásí chybu v konfiguraci — nginx se nerestartoval"
+    warn "→ oprav config a spusť: $SUDO nginx -t && $SUDO systemctl restart nginx"
+    return 0
+  fi
+  restart_unit nginx.service
 }
 
 http_status() {
@@ -325,6 +351,7 @@ step "Restart služeb"
 restart_unit gunicorn.service 1
 restart_unit celery-worker.service
 restart_unit celery-beat.service
+restart_nginx
 
 # --- health check -----------------------------------------------------------
 
