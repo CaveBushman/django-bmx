@@ -1,4 +1,5 @@
 import logging
+from django.conf import settings
 from django.contrib import admin
 from django.db.models import Q, Count
 from django.utils.translation import gettext_lazy as _
@@ -12,7 +13,7 @@ from django.urls import path, reverse
 from django.urls import NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.shortcuts import redirect
-from .models import Event, EventType, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
+from .models import Event, EventControlSyncLog, EventType, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from .models_events import EventPhoto
 from rider.models import ForeignRider
 from django.utils.timezone import now
@@ -21,6 +22,7 @@ from django.contrib import messages
 
 from event.services.checkout_refunds import apply_entry_checkout
 from accounts.push_notifications import send_to_users
+from bmx.admin_widgets import copy_row, panel
 
 audit_logger = logging.getLogger("audit")
 
@@ -78,6 +80,9 @@ class EventPhotoInline(admin.TabularInline):
 
 class EventAdmin(BaseAdmin):
     inlines = [EventPhotoInline]
+
+    class Media:
+        js = ("js/admin_copy_code.js",)
 
     list_display = (
         'id',
@@ -220,6 +225,7 @@ class EventAdmin(BaseAdmin):
         readonly_fields = ()
         if obj is not None:
             readonly_fields += (
+                "event_control_panel",
                 "notification_panel",
                 "public_links",
                 "results_quality_overview",
@@ -263,6 +269,14 @@ class EventAdmin(BaseAdmin):
                     "canceled",
                 ),
             }),
+        )
+        if obj is not None:
+            fieldsets += (
+                (_("BMX Event Control"), {
+                    "fields": ("event_control_panel",),
+                }),
+            )
+        fieldsets += (
             (_("UCI / ČSC"), {
                 "fields": (
                     ("is_uci_race", "uec_link"),
@@ -311,6 +325,42 @@ class EventAdmin(BaseAdmin):
                 }),
             )
         return fieldsets
+
+    @admin.display(description=_("Kód závodu"))
+    def event_control_panel(self, obj):
+        """Kód závodu a připojovací údaje pro BMX Event Control (s kopírováním)."""
+        if not obj.pk:
+            return _("Kód závodu se vygeneruje po prvním uložení závodu.")
+
+        base_url = (getattr(settings, "YOUR_DOMAIN", "") or "").rstrip("/")
+        server_url = f"{base_url}/api/v1/event-control/"
+        entries_url = f"{base_url}{reverse('api:event-control-entries', args=[obj.event_code])}"
+
+        organizer = obj.organizer
+        if organizer is None:
+            note = _(
+                "Závod nemá vyplněného pořadatele — bez něj se přihlášky přes API "
+                "stáhnout nedají. Doplň pořadatele a vygeneruj mu přístupové údaje "
+                "v nastavení klubu."
+            )
+        elif organizer.event_control_enabled and organizer.event_control_username:
+            note = _("Username/password pro server zadává pořadatel %(club)s (nastavení klubu → BMX Event Control).") % {
+                "club": organizer.team_name,
+            }
+        else:
+            note = _(
+                "Pořadatel %(club)s ještě nemá přístupové údaje pro BMX Event Control — "
+                "vygeneruj je v nastavení klubu."
+            ) % {"club": organizer.team_name}
+
+        return panel(
+            [
+                copy_row(_("Kód závodu"), str(obj.event_code)),
+                copy_row(_("Server"), server_url),
+                copy_row(_("URL přihlášek"), entries_url),
+            ],
+            note=note,
+        )
 
     @admin.display(description=_("Rychlé odkazy"))
     def public_links(self, obj):
@@ -989,6 +1039,21 @@ class StripeFeeAdmin(BaseAdmin):
     list_display_links = ('date',)
 
 
+class EventControlSyncLogAdmin(BaseAdmin):
+    """Historie synchronizací s centrální databází Event Control Admin (jen ke čtení)."""
+
+    list_display = ('started', 'entity', 'direction', 'source', 'succeeded', 'received', 'matched', 'created', 'conflicts', 'skipped', 'dry_run')
+    list_filter = ('entity', 'direction', 'succeeded', 'dry_run')
+    date_hierarchy = 'started'
+    readonly_fields = tuple(field.name for field in EventControlSyncLog._meta.fields)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 class EventPropositionAdmin(BaseAdmin):
     list_display = ('event', 'is_published', 'updated', 'updated_by')
     list_display_links = ('event',)
@@ -1011,3 +1076,4 @@ admin.site.register(DebetTransaction, DebetTransactionAdmin)
 admin.site.register(StripeFee, StripeFeeAdmin)
 admin.site.register(EventProposition, EventPropositionAdmin)
 admin.site.register(EntryAuditLog, EntryAuditLogAdmin)
+admin.site.register(EventControlSyncLog, EventControlSyncLogAdmin)

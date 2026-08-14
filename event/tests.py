@@ -9,7 +9,9 @@ import zipfile
 from unittest.mock import patch
 
 import pikepdf
+import requests
 from django.conf import settings
+from django.core.management import call_command
 from django.contrib import admin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
@@ -55,6 +57,7 @@ from event.views.entry_helpers import (
 from accounts.models import Account
 from rider.models import Rider
 from rider.models import ForeignRider
+from event.services.event_control_sync import pull_from_event_control_admin, sync_clubs, sync_riders
 from rider.rider import RiderQualifyToCNThread, should_recount_cn_qualification_for_event
 
 
@@ -4677,3 +4680,153 @@ class EntryIntegrityCommandTests(TestCase):
         report = self._run()
 
         self.assertIn("Referenční integrita OK", report)
+
+
+class EventControlSyncTests(TestCase):
+    """Stahování centrálně založených jezdců a klubů z Event Control Admin.
+
+    Web je master dat: pull nikdy nepřepíše lokální hodnoty, jen doplní párovací
+    ID, zaloguje rozdíly a založí dosud neznámé záznamy.
+    """
+
+    def setUp(self):
+        self.club = Club.objects.create(team_name="BMX Praha", ico="12345678", city="Praha")
+        self.rider = Rider.objects.create(
+            uci_id=100000031,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            email="adam@example.com",
+            is_active=True,
+            is_approved=True,
+        )
+
+    def test_club_matched_by_ico_gets_external_id(self):
+        log = sync_clubs([{"id": "EC-10", "team_name": "BMX Praha jiný název", "ico": "12345678"}])
+
+        self.club.refresh_from_db()
+        self.assertEqual(self.club.event_control_id, "EC-10")
+        self.assertIsNotNone(self.club.event_control_synced)
+        self.assertEqual(log.matched, 1)
+        self.assertEqual(log.created, 0)
+        self.assertEqual(log.conflicts, 1)
+        self.assertIn("team_name", log.detail["conflicts"]["BMX Praha"])
+        self.assertEqual(self.club.team_name, "BMX Praha")  # lokální název se nepřepisuje
+
+    def test_unknown_club_is_created(self):
+        log = sync_clubs([{"id": "EC-99", "team_name": "BMX Ostrava", "ico": "87654321", "city": "Ostrava"}])
+
+        created = Club.objects.get(team_name="BMX Ostrava")
+        self.assertEqual(created.event_control_id, "EC-99")
+        self.assertEqual(created.ico, "87654321")
+        self.assertEqual(log.created, 1)
+
+    def test_club_without_name_is_skipped(self):
+        log = sync_clubs([{"id": "EC-100"}])
+
+        self.assertEqual(log.skipped, 1)
+        self.assertEqual(log.created, 0)
+
+    def test_rider_matched_by_uci_id_is_not_overwritten(self):
+        log = sync_riders([{
+            "id": "EC-R1",
+            "uci_id": "100 000 031",
+            "first_name": "Adamek",
+            "last_name": "Novák",
+            "sex": "m",
+            "date_of_birth": "2012-01-01",
+        }])
+
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.event_control_id, "EC-R1")
+        self.assertEqual(self.rider.first_name, "Adam")  # web je master
+        self.assertEqual(log.matched, 1)
+        self.assertEqual(log.conflicts, 1)
+        self.assertIn("first_name", log.detail["conflicts"]["100000031"])
+
+    def test_unknown_rider_is_created_as_unapproved(self):
+        log = sync_riders([{
+            "id": "EC-R2",
+            "uci_id": "100000032",
+            "first_name": "Eva",
+            "last_name": "Svobodová",
+            "sex": "f",
+            "date_of_birth": "2011-03-04",
+            "nationality": "CZE",
+            "club": "BMX Praha",
+        }])
+
+        created = Rider.objects.get(uci_id=100000032)
+        self.assertEqual(created.event_control_id, "EC-R2")
+        self.assertEqual(created.gender, "Žena")
+        self.assertEqual(created.club, self.club)
+        self.assertFalse(created.is_approved)
+        self.assertEqual(created.class_20, "Girls 15")  # doplní pre_save signál
+        self.assertEqual(log.created, 1)
+
+    def test_rider_with_incomplete_data_is_skipped(self):
+        log = sync_riders([{"id": "EC-R3", "uci_id": "100000033", "first_name": "Bez"}])
+
+        self.assertFalse(Rider.objects.filter(uci_id=100000033).exists())
+        self.assertEqual(log.skipped, 1)
+        self.assertEqual(log.detail["skipped"][0]["missing"], ["last_name", "date_of_birth", "gender"])
+
+    def test_dry_run_writes_nothing(self):
+        log = sync_riders(
+            [{"id": "EC-R4", "uci_id": "100000034", "first_name": "Dry", "last_name": "Run",
+              "sex": "m", "date_of_birth": "2010-01-01"}],
+            dry_run=True,
+        )
+
+        self.assertFalse(Rider.objects.filter(uci_id=100000034).exists())
+        self.assertEqual(log.created, 1)
+        self.assertTrue(log.dry_run)
+
+    def test_pull_is_skipped_without_configuration(self):
+        with override_settings(EVENT_CONTROL_ADMIN_URL=""):
+            self.assertEqual(pull_from_event_control_admin(), [])
+
+    @override_settings(EVENT_CONTROL_ADMIN_URL="https://ec-admin.example.com/api")
+    def test_pull_records_failed_run(self):
+        with patch(
+            "event.services.event_control_sync.requests.get",
+            side_effect=requests.RequestException("timeout"),
+        ):
+            logs = pull_from_event_control_admin(entities=("clubs",))
+
+        self.assertEqual(len(logs), 1)
+        self.assertFalse(logs[0].succeeded)
+        self.assertIn("timeout", logs[0].error)
+
+    @override_settings(EVENT_CONTROL_ADMIN_URL="https://ec-admin.example.com/api")
+    def test_pull_follows_pagination(self):
+        pages = [
+            SimpleNamespace(
+                raise_for_status=lambda: None,
+                json=lambda: {"results": [{"id": "EC-1", "team_name": "BMX Plzeň"}], "next_offset": 1},
+            ),
+            SimpleNamespace(
+                raise_for_status=lambda: None,
+                json=lambda: {"results": [{"id": "EC-2", "team_name": "BMX Zlín"}], "next_offset": None},
+            ),
+        ]
+        with patch("event.services.event_control_sync.requests.get", side_effect=pages) as mocked_get:
+            logs = pull_from_event_control_admin(entities=("clubs",))
+
+        self.assertEqual(mocked_get.call_count, 2)
+        self.assertEqual(logs[0].received, 2)
+        self.assertTrue(Club.objects.filter(team_name="BMX Zlín").exists())
+
+    def test_command_imports_from_file(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as handle:
+            json.dump([{"id": "EC-500", "team_name": "BMX Tábor"}], handle)
+            path = handle.name
+
+        try:
+            call_command("sync_event_control", "--entity", "clubs", "--file", path)
+        finally:
+            os.unlink(path)
+
+        self.assertTrue(Club.objects.filter(team_name="BMX Tábor", event_control_id="EC-500").exists())

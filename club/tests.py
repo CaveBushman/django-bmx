@@ -464,3 +464,73 @@ class McrClubTeamManagerTests(TestCase):
             set(edited_team.members.values_list("rider_id", "wheel")),
             {(self.riders[1].id, McrClubTeamMember.WHEEL_20)},
         )
+
+
+class ClubEventControlCredentialsTests(TestCase):
+    """Přístupové údaje organizace pro BMX Event Control (admin + model)."""
+
+    def setUp(self):
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.admin = User.objects.create_superuser(
+            first_name="Event",
+            last_name="Control",
+            username="ecadmin",
+            email="ecadmin@example.com",
+            password="StrongPass123!",
+        )
+        self.client.force_login(self.admin)
+        self.url = reverse("admin:club_club_event_control_credentials", args=[self.club.pk])
+
+    def test_clubs_without_credentials_keep_username_null(self):
+        other = Club.objects.create(team_name="BMX Brno")
+        self.assertIsNone(self.club.event_control_username)
+        self.assertIsNone(other.event_control_username)
+
+    def test_generate_credentials_sets_username_and_hashed_password(self):
+        response = self.client.post(self.url, {"action": "generate"})
+
+        self.assertEqual(response.status_code, 200)
+        self.club.refresh_from_db()
+        self.assertEqual(self.club.event_control_username, "ec-bmx-praha")
+        self.assertTrue(self.club.event_control_enabled)
+        raw_password = response.context["generated_password"]
+        self.assertTrue(raw_password)
+        self.assertNotEqual(self.club.event_control_password, raw_password)
+        self.assertTrue(self.club.check_event_control_password(raw_password))
+
+    def test_regenerate_keeps_username_and_invalidates_old_password(self):
+        first = self.club.generate_event_control_credentials()
+        username = self.club.event_control_username
+
+        second = self.client.post(self.url, {"action": "generate"}).context["generated_password"]
+
+        self.club.refresh_from_db()
+        self.assertEqual(self.club.event_control_username, username)
+        self.assertFalse(self.club.check_event_control_password(first))
+        self.assertTrue(self.club.check_event_control_password(second))
+
+    def test_revoke_disables_access(self):
+        raw_password = self.club.generate_event_control_credentials()
+
+        response = self.client.post(self.url, {"action": "revoke"})
+
+        self.assertEqual(response.status_code, 302)
+        self.club.refresh_from_db()
+        self.assertFalse(self.club.event_control_enabled)
+        self.assertFalse(self.club.check_event_control_password(raw_password))
+
+    def test_username_is_unique_across_clubs_with_same_name(self):
+        other = Club.objects.create(team_name="BMX Praha")
+        self.club.generate_event_control_credentials()
+        other.generate_event_control_credentials()
+
+        self.assertEqual(self.club.event_control_username, "ec-bmx-praha")
+        self.assertEqual(other.event_control_username, "ec-bmx-praha-2")
+
+    def test_credentials_page_lists_event_codes(self):
+        event = Event.objects.create(name="Český pohár Praha", date=date(2026, 5, 10), organizer=self.club)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(event.event_code))

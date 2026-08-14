@@ -179,6 +179,20 @@ class Rider(models.Model):
     valid_licence = models.BooleanField(default=True)
     fix_valid_licence = models.BooleanField(default=False)
 
+    # Párování s centrální databází jezdců v Event Control Admin (web zůstává master dat).
+    event_control_id = models.CharField(
+        "ID v Event Control Admin",
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+    )
+    event_control_synced = models.DateTimeField(
+        "Naposledy synchronizováno s Event Control Admin",
+        null=True,
+        blank=True,
+    )
+
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 

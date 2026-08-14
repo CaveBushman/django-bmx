@@ -293,11 +293,28 @@ CELERY_BEAT_SCHEDULE = {
     "prune-old-visits": {"task": "bmx.prune_old_visits", "schedule": _celery_crontab(minute=45, hour=3, day_of_month=1)},
     "optimize-sqlite": {"task": "bmx.optimize_sqlite", "schedule": _celery_crontab(minute=0, hour=5)},
     "check-entry-integrity": {"task": "bmx.check_entry_integrity", "schedule": _celery_crontab(minute=15, hour=5, day_of_week=0)},
+    "sync-event-control": {"task": "bmx.sync_event_control", "schedule": _celery_crontab(minute=30, hour=1)},
 }
 
 # DeepL překlad článků
 # Nastav DEEPL_API_KEY v .env — bez klíče se použije Google Translate záloha
 DEEPL_API_KEY = config("DEEPL_API_KEY", default="")
+
+# ---------------------------------------------------------------------------
+# BMX Event Control / Event Control Admin
+# ---------------------------------------------------------------------------
+# Příchozí směr: centrální Event Control Admin si přes API čte jezdce a kluby
+# (master data webu). Bez nastavených údajů jsou tyto endpointy nedostupné.
+EVENT_CONTROL_CENTRAL_USERNAME = config("EVENT_CONTROL_CENTRAL_USERNAME", default="")
+EVENT_CONTROL_CENTRAL_PASSWORD = config("EVENT_CONTROL_CENTRAL_PASSWORD", default="")
+
+# Odchozí směr: web si stahuje centrálně založené jezdce a kluby.
+# Bez EVENT_CONTROL_ADMIN_URL je synchronizace vypnutá (cron úloha jen zaloguje).
+EVENT_CONTROL_ADMIN_URL = config("EVENT_CONTROL_ADMIN_URL", default="")
+EVENT_CONTROL_ADMIN_USERNAME = config("EVENT_CONTROL_ADMIN_USERNAME", default="")
+EVENT_CONTROL_ADMIN_PASSWORD = config("EVENT_CONTROL_ADMIN_PASSWORD", default="")
+EVENT_CONTROL_ADMIN_TIMEOUT = config("EVENT_CONTROL_ADMIN_TIMEOUT", default=30, cast=int)
+EVENT_CONTROL_ADMIN_PAGE_SIZE = config("EVENT_CONTROL_ADMIN_PAGE_SIZE", default=500, cast=int)
 
 AUTH_USER_MODEL = "accounts.Account"
 
@@ -414,6 +431,8 @@ REST_FRAMEWORK = {
         "anon": "30/minute",
         "user": "300/minute",
         "login": "5/minute",
+        # BMX Event Control se během závodu dotazuje na startovní listinu opakovaně.
+        "event_control": "120/minute",
     },
 
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -776,6 +795,8 @@ CRONJOBS = [
     ("0 5 * * *", "bmx.cron.optimize_sqlite_scheduled"),
     # Kontrola osiřelých referencí Entry.rider / Result.rider každou neděli v 5:15
     ("15 5 * * 0", "bmx.cron.check_entry_integrity_scheduled"),
+    # Synchronizace jezdců a klubů s Event Control Admin každý den v 1:30
+    ("30 1 * * *", "bmx.cron.sync_event_control_scheduled"),
 ]
 
 # Když periodiku řídí Celery beat, vyprázdni CRONJOBS, ať úlohy neběží dvakrát.

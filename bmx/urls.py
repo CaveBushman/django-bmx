@@ -22,6 +22,9 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
     path('api/v1/', include('api.urls')),  # primární namespace "api" pro reverse("api:...")
+    # Obecný kontrakt Rider Registration API v1 pro Event Control. Vlastní
+    # strom, ne součást mobilního API — viz api/urls_registration.py.
+    path('api/registration/', include('api.urls_registration')),
     path('', include('news.urls')),
     path('accounts/', include('accounts.urls')),
     path('event/', include('event.urls')),

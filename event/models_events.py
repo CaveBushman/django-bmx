@@ -5,6 +5,7 @@ Hodnoty enumu jsou české texty uložené v databázi; aplikační logika proto
 vytvářet další ručně psané varianty těchto řetězců.
 """
 
+import uuid
 from datetime import date
 
 from django.core.exceptions import ValidationError
@@ -212,6 +213,13 @@ class Event(models.Model):
     )
 
     name = models.CharField(max_length=255, blank=False, help_text="Název závodu")
+    event_code = models.UUIDField(
+        _("Kód závodu"),
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text=_("Jedinečný kód závodu, který se zadává do BMX Event Control."),
+    )
     date = models.DateField(null=True, blank=True, db_index=True)
     double_race = models.BooleanField(default=False)
     organizer = models.ForeignKey(Club, related_name="club", null=True, on_delete=models.SET_NULL)

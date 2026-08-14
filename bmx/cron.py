@@ -321,3 +321,23 @@ def check_entry_integrity_scheduled():
             )
         except Exception:
             logger.exception("Entry integrity check: nepodařilo se odeslat e-mail")
+
+
+def sync_event_control_scheduled():
+    """Stáhne centrálně založené jezdce a kluby z Event Control Admin.
+
+    Přírůstkově od posledního úspěšného běhu. Bez nastaveného
+    ``EVENT_CONTROL_ADMIN_URL`` úloha jen zaloguje a skončí — integrace je vypnutá.
+    """
+    from event.services.event_control_sync import pull_from_event_control_admin
+
+    logs = pull_from_event_control_admin(source="cron")
+    for log in logs:
+        if log.succeeded:
+            logger.info(
+                "Event Control sync %s: přijato %s, spárováno %s, založeno %s, konflikty %s, přeskočeno %s",
+                log.entity, log.received, log.matched, log.created, log.conflicts, log.skipped,
+            )
+        else:
+            logger.error("Event Control sync %s selhala: %s", log.entity, log.error)
+    return len(logs)

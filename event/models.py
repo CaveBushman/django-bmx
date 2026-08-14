@@ -9,6 +9,7 @@ from event.models_entries import Entry, EntryAuditLog, EntryForeign
 from event.models_events import EntryClasses, Event, EventPhoto, EventProposition, EventType, SeasonSettings
 from event.models_finance import CreditTransaction, DebetTransaction, FinanceAuditLog, StripeFee
 from event.models_results import RaceRun, Result
+from event.models_sync import EventControlSyncLog
 from event.utils import normalize_uci_id
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "EntryForeign",
     "Event",
     "EventPhoto",
+    "EventControlSyncLog",
     "EventProposition",
     "EventType",
     "FinanceAuditLog",

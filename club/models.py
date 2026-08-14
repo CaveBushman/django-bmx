@@ -4,7 +4,12 @@
 Mazání nebo slučování klubů proto vyžaduje kontrolu všech těchto vazeb.
 """
 
+import secrets
+
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.utils import timezone
+from django.utils.text import slugify
 
 
 class Club(models.Model):
@@ -44,16 +49,126 @@ class Club(models.Model):
 
     riders_on_events = models.FileField(upload_to='riders_in_events/', null=True, blank=True)
 
+    # Přístupové údaje organizace pro BMX Event Control (server + username + password).
+    # Heslo je uložené jen jako hash, plaintext se zobrazí pouze jednou při vygenerování.
+    event_control_enabled = models.BooleanField(
+        "BMX Event Control – přístup povolen",
+        default=False,
+        help_text="Povoluje stahování přihlášených jezdců přes API pro závody tohoto pořadatele.",
+    )
+    event_control_username = models.CharField(
+        "BMX Event Control – username",
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    event_control_password = models.CharField(
+        "BMX Event Control – hash hesla",
+        max_length=128,
+        blank=True,
+        default="",
+        editable=False,
+    )
+    event_control_password_updated = models.DateTimeField(
+        "BMX Event Control – heslo změněno",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    event_control_last_access = models.DateTimeField(
+        "BMX Event Control – poslední přístup",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    # Párování s centrální databází klubů v Event Control Admin (web zůstává master dat).
+    event_control_id = models.CharField(
+        "ID v Event Control Admin",
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+    )
+    event_control_synced = models.DateTimeField(
+        "Naposledy synchronizováno s Event Control Admin",
+        null=True,
+        blank=True,
+    )
+
     created = models.DateTimeField(auto_now_add= True, blank=True, null=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.team_name
 
+    def save(self, *args, **kwargs):
+        # Prázdný username musí být NULL, jinak by druhý klub bez údajů porušil unique.
+        if not self.event_control_username:
+            self.event_control_username = None
+        super().save(*args, **kwargs)
 
     @staticmethod
     def active_club():
         return Club.objects.filter(is_active=True).count()
+
+    # -- BMX Event Control ---------------------------------------------------
+
+    def _build_event_control_username(self):
+        """Navrhne username ve tvaru ``ec-<klub>``, unikátní v rámci klubů."""
+        base = slugify(self.team_name or f"club-{self.pk}")[:40] or f"club-{self.pk}"
+        candidate = f"ec-{base}"
+        suffix = 2
+        while Club.objects.filter(event_control_username=candidate).exclude(pk=self.pk).exists():
+            candidate = f"ec-{base}-{suffix}"
+            suffix += 1
+        return candidate
+
+    def set_event_control_password(self, raw_password):
+        self.event_control_password = make_password(raw_password)
+        self.event_control_password_updated = timezone.now()
+
+    def check_event_control_password(self, raw_password) -> bool:
+        if not self.event_control_password or not raw_password:
+            return False
+        return check_password(raw_password, self.event_control_password)
+
+    def generate_event_control_credentials(self) -> str:
+        """Vygeneruje (a uloží) username i nové heslo. Vrací heslo v plaintextu.
+
+        Plaintext se nikde neukládá — zobrazí se jednou tomu, kdo údaje generuje,
+        a zadá se do nastavení organizace v BMX Event Control.
+        """
+        if not self.event_control_username:
+            self.event_control_username = self._build_event_control_username()
+        raw_password = secrets.token_urlsafe(24)
+        self.set_event_control_password(raw_password)
+        self.event_control_enabled = True
+        self.save(
+            update_fields=[
+                "event_control_username",
+                "event_control_password",
+                "event_control_password_updated",
+                "event_control_enabled",
+                "updated",
+            ]
+        )
+        return raw_password
+
+    def revoke_event_control_credentials(self):
+        """Zneplatní heslo a vypne přístup; username zůstává pro dohledatelnost."""
+        self.event_control_password = ""
+        self.event_control_password_updated = None
+        self.event_control_enabled = False
+        self.save(
+            update_fields=[
+                "event_control_password",
+                "event_control_password_updated",
+                "event_control_enabled",
+                "updated",
+            ]
+        )
 
     class Meta:
         verbose_name_plural = 'Kluby'

@@ -164,9 +164,9 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
     list_display_links = ('last_name',)
     ordering = ('last_name','first_name',)
     list_editable = ('is_20', 'is_24','is_elite','is_active','is_approved')
-    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate_text')
+    search_fields = ('last_name', 'first_name', 'uci_id', 'transponder_20', 'transponder_24', 'plate_text', 'event_control_id')
     list_filter = ('is_20', 'is_24','gender',  'is_approved', 'is_active', 'valid_licence', 'club', RiderDataIssueFilter)
-    readonly_fields = ('public_links', 'transponder_change_overview', 'data_quality_summary',)
+    readonly_fields = ('public_links', 'transponder_change_overview', 'data_quality_summary', 'event_control_synced',)
     list_select_related = ('club',)
     inlines = (RiderAccountLinkInline,)
     actions = ('approve_selected_riders', 'activate_selected_riders')
@@ -211,6 +211,11 @@ class RiderAdmin(PlateAwareSearchAdminMixin, DiacriticsInsensitiveSearchAdminMix
         }),
         ('Kontrola dat', {
             'fields': ('data_quality_summary',),
+        }),
+        ('Event Control Admin', {
+            'fields': (('event_control_id', 'event_control_synced'),),
+            'description': 'Párování s centrální databází jezdců. Master dat je web — synchronizace lokální hodnoty nepřepisuje.',
+            'classes': ('collapse',),
         }),
         ('Rychlé odkazy', {
             'fields': ('public_links',),

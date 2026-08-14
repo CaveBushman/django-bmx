@@ -59,6 +59,14 @@ urlpatterns = [
     path("events/<int:pk>/entry-info/", views.EventEntryInfoAPIView.as_view(), name="event-entry-info"),
     path("events/<int:pk>/enter/", views.EventEnterAPIView.as_view(), name="event-enter"),
 
+    # BMX Event Control — import přihlášených jezdců (Basic auth údaji organizace)
+    path("event-control/ping/", views.EventControlPingAPIView.as_view(), name="event-control-ping"),
+    path("event-control/events/<uuid:event_code>/", views.EventControlEventAPIView.as_view(), name="event-control-event"),
+    path("event-control/events/<uuid:event_code>/entries/", views.EventControlEntriesAPIView.as_view(), name="event-control-entries"),
+    # Master data pro centrální databázi Event Control Admin (centrální údaje ze settings)
+    path("event-control/riders/", views.EventControlRidersAPIView.as_view(), name="event-control-riders"),
+    path("event-control/clubs/", views.EventControlClubsAPIView.as_view(), name="event-control-clubs"),
+
     # News
     path("news/", views.NewsListAPIView.as_view(), name="news-list"),
 

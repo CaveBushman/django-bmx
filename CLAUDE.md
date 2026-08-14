@@ -135,6 +135,17 @@ finds orphaned references. `--fix` nulls orphaned **Entry** rows only — orphan
 rows are reported but never nulled, because `Result.rider` stores a `uci_id` that is
 meaningful for foreign/unregistered riders even with no `Rider` row.
 
+### BMX Event Control (import přihlášek přes API)
+
+`Event.event_code` (UUID, unique, needitovatelné) je párovací kód závodu, který se
+zadává v BMX Event Control do nastavení závodu; přístupové údaje organizace
+(`Club.event_control_username` + hash hesla) se generují v admin klubu a zadávají do
+nastavení organizace spolu se serverem `/api/v1/event-control/`. Endpointy jsou
+v `api/views/event_control.py` (HTTP Basic, throttle scope `event_control`), payload
+staví `event/services/event_control.py` (stejná data jako REM export přihlášek).
+`event_code` je vyloučený z `EventSerializer` — nepatří do veřejného výpisu závodů.
+Detaily: `docs/BMX_EVENT_CONTROL.md`.
+
 ### Custom user model
 
 `accounts.Account` extends `AbstractBaseUser`. Roles are boolean flags: `is_rider`, `is_commissar`, `is_trainer`, `is_club_manager`. `AUTH_USER_MODEL = "accounts.Account"`.

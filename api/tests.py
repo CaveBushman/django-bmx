@@ -1,3 +1,5 @@
+import base64
+import uuid
 from datetime import date, timedelta
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -12,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from club.models import Club
-from event.models import CreditTransaction, Event, Result, SeasonSettings
+from event.models import CreditTransaction, Entry, Event, Result, SeasonSettings
 from news.models import News
 from rider.models import MobileAppSubscription, PromoCode, PromoCodeUsage, Rider
 
@@ -910,3 +912,584 @@ class APIErrorFormatTests(TestCase):
         self.assertGreaterEqual(response.status_code, 400)
         self.assertIn("error", response.data)
         self.assertIsInstance(response.data["error"], str)
+
+
+class EventControlAPITests(TestCase):
+    """API pro import přihlášených jezdců do BMX Event Control.
+
+    Autentizace je HTTP Basic proti údajům organizace (Club.event_control_*),
+    závod se adresuje kódem závodu (Event.event_code).
+    """
+
+    def setUp(self):
+        cache.clear()  # reset throttle bucketu event_control
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.other_club = Club.objects.create(team_name="BMX Brno")
+        self.password = self.club.generate_event_control_credentials()
+        self.other_password = self.other_club.generate_event_control_credentials()
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 5, 10),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=100000011,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            plate_text="12",
+            transponder_20="1234",
+            transponder_24="5678",
+        )
+        self.entry = Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            is_24=True,
+            class_20="Boys 14",
+            class_24="Cruiser 13-14",
+            fee_20=300,
+            fee_24=200,
+            payment_complete=True,
+        )
+        self.unpaid_entry = Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 14",
+            fee_20=300,
+            payment_complete=False,
+        )
+        self.entries_url = f"/api/v1/event-control/events/{self.event.event_code}/entries/"
+
+    def _auth(self, username, password):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def test_event_gets_unique_code_on_create(self):
+        other_event = Event.objects.create(name="Volný závod", organizer=self.club)
+        self.assertIsNotNone(self.event.event_code)
+        self.assertNotEqual(self.event.event_code, other_event.event_code)
+
+    def test_entries_require_credentials(self):
+        response = self.client.get(self.entries_url)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Basic", response["WWW-Authenticate"])
+
+    def test_entries_reject_wrong_password(self):
+        self._auth(self.club.event_control_username, "spatne-heslo")
+        response = self.client.get(self.entries_url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_entries_reject_disabled_access(self):
+        self.club.revoke_event_control_credentials()
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.entries_url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_entries_reject_other_organizer(self):
+        self._auth(self.other_club.event_control_username, self.other_password)
+        response = self.client.get(self.entries_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_entries_reject_unknown_event_code(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(f"/api/v1/event-control/events/{uuid.uuid4()}/entries/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_entries_return_paid_starts(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.entries_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["event"]["code"], str(self.event.event_code))
+        self.assertEqual(response.data["count"], 1)
+        rider = response.data["riders"][0]
+        self.assertEqual(rider["uci_id"], "100000011")
+        self.assertEqual(rider["club"], "BMX Praha")
+        self.assertEqual(rider["sex"], "m")
+        self.assertEqual([start["wheel"] for start in rider["starts"]], ["20", "24"])
+        self.assertEqual(rider["starts"][0]["class"], "Boys 14")
+        self.assertEqual(rider["starts"][0]["plate"], "12")
+        self.assertEqual(rider["starts"][0]["transponder"], "1234")
+        self.assertEqual(rider["starts"][1]["transponder"], "5678")
+        self.assertEqual(rider["fee_total"], 500)
+
+    def test_entries_can_include_unpaid(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.entries_url, {"include_unpaid": "1"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+
+    def test_entries_skip_checked_out_entry(self):
+        # update() obchází validaci checkoutu (ta vyžaduje uživatele a refund kontext)
+        Entry.objects.filter(pk=self.entry.pk).update(checkout=True)
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.entries_url)
+        self.assertEqual(response.data["count"], 0)
+
+    def test_ping_returns_organization_and_event_codes(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get("/api/v1/event-control/ping/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["organization"], "BMX Praha")
+        self.assertEqual(response.data["events"][0]["code"], str(self.event.event_code))
+        self.club.refresh_from_db()
+        self.assertIsNotNone(self.club.event_control_last_access)
+
+    def test_event_detail_returns_metadata(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(f"/api/v1/event-control/events/{self.event.event_code}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["name"], "Český pohár Praha")
+        self.assertEqual(response.data["organizer"], "BMX Praha")
+
+    def test_event_code_is_not_exposed_in_public_event_list(self):
+        response = APIClient().get("/api/v1/events/")
+        self.assertEqual(response.status_code, 200)
+        results = response.data["results"] if isinstance(response.data, dict) else response.data
+        self.assertNotIn("event_code", results[0])
+
+    def test_generated_password_is_stored_only_as_hash(self):
+        self.club.refresh_from_db()
+        self.assertNotEqual(self.club.event_control_password, self.password)
+        self.assertTrue(self.club.check_event_control_password(self.password))
+        self.assertFalse(self.club.check_event_control_password("jine-heslo"))
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+)
+class EventControlMasterDataAPITests(TestCase):
+    """Výdej master dat (jezdci, kluby) pro centrální Event Control Admin."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha", ico="12345678", city="Praha")
+        self.inactive_club = Club.objects.create(team_name="BMX Zaniklý", is_active=False)
+        self.rider = Rider.objects.create(
+            uci_id=100000021,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            plate_text="12",
+            transponder_20="1234",
+        )
+        self.unapproved_rider = Rider.objects.create(
+            uci_id=100000022,
+            first_name="Eva",
+            last_name="Svobodová",
+            gender="Žena",
+            date_of_birth=date(2011, 1, 1),
+            is_active=True,
+            is_approved=False,
+        )
+
+    def _central_auth(self, username="event-control-admin", password="central-secret"):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def test_riders_require_central_credentials(self):
+        response = self.client.get("/api/v1/event-control/riders/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_riders_reject_organizer_credentials(self):
+        password = self.club.generate_event_control_credentials()
+        self._central_auth(self.club.event_control_username, password)
+        response = self.client.get("/api/v1/event-control/riders/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_riders_return_approved_active_riders(self):
+        self._central_auth()
+        response = self.client.get("/api/v1/event-control/riders/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        rider = response.data["results"][0]
+        self.assertEqual(rider["uci_id"], "100000021")
+        self.assertEqual(rider["club"], "BMX Praha")
+        self.assertEqual(rider["plate"], "12")
+        self.assertEqual(rider["transponder_20"], "1234")
+        self.assertEqual(rider["sex"], "m")
+
+    def test_riders_can_include_inactive_and_unapproved(self):
+        self._central_auth()
+        response = self.client.get("/api/v1/event-control/riders/", {"include_inactive": "1"})
+        self.assertEqual(response.data["count"], 2)
+
+    def test_riders_support_incremental_and_paging(self):
+        self._central_auth()
+        response = self.client.get("/api/v1/event-control/riders/", {"updated_since": "2099-01-01"})
+        self.assertEqual(response.data["count"], 0)
+
+        response = self.client.get("/api/v1/event-control/riders/", {"limit": "1", "include_inactive": "1"})
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["next_offset"], 1)
+
+    def test_riders_reject_invalid_updated_since(self):
+        self._central_auth()
+        response = self.client.get("/api/v1/event-control/riders/", {"updated_since": "vcera"})
+        self.assertEqual(response.status_code, 400)
+
+    def test_clubs_return_active_clubs(self):
+        self._central_auth()
+        response = self.client.get("/api/v1/event-control/clubs/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["team_name"], "BMX Praha")
+        self.assertEqual(response.data["results"][0]["ico"], "12345678")
+
+
+class RegistrationApiV1RegistrationsTests(TestCase):
+    """Obecný kontrakt v1 — přihlášky závodu (jedna registrace = jeden start)."""
+
+    def setUp(self):
+        cache.clear()  # reset throttle bucketu event_control
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.other_club = Club.objects.create(team_name="BMX Brno")
+        self.password = self.club.generate_event_control_credentials()
+        self.other_password = self.other_club.generate_event_control_credentials()
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 5, 10),
+            organizer=self.club,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=100000031,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            nationality="CZE",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            plate_text="12",
+            transponder_20="1234",
+            transponder_24="5678",
+        )
+        self.entry = Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            is_24=True,
+            class_20="Boys 14",
+            class_24="Cruiser 13-14",
+            fee_20=300,
+            fee_24=200,
+            payment_complete=True,
+        )
+        self.url = f"/api/registration/v1/events/{self.event.event_code}/registrations"
+
+    def _auth(self, username, password):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def test_requires_organization_credentials(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Basic", response["WWW-Authenticate"])
+
+    def test_rejects_other_organizer(self):
+        self._auth(self.other_club.event_control_username, self.other_password)
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_unknown_event_code_looks_the_same_as_forbidden(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(f"/api/registration/v1/events/{uuid.uuid4()}/registrations")
+        self.assertEqual(response.status_code, 403)
+
+    def test_malformed_event_code_does_not_raise(self):
+        """Překlep v „Kód závodu pro API“ nesmí skončit chybou 500."""
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get("/api/registration/v1/events/RACE-2026-001/registrations")
+        self.assertEqual(response.status_code, 403)
+
+    def test_one_registration_per_start(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["schema_version"], "1.0")
+        self.assertEqual(response.data["count"], 2)
+        self.assertIsNone(response.data["next_page"])
+
+        twenty, cruiser = response.data["registrations"]
+        self.assertEqual(twenty["category"], {"code": "Boys 14", "name": "Boys 14", "wheel_size": 20})
+        self.assertEqual(cruiser["category"]["wheel_size"], 24)
+        self.assertEqual(twenty["status"], "confirmed")
+        # Stejný jezdec, dva starty — uci_id je společné, registration_id ne.
+        self.assertEqual(twenty["rider"]["uci_id"], cruiser["rider"]["uci_id"])
+        self.assertNotEqual(twenty["registration_id"], cruiser["registration_id"])
+
+    def test_rider_fields_match_contract(self):
+        self._auth(self.club.event_control_username, self.password)
+        rider = self.client.get(self.url).data["registrations"][0]["rider"]
+
+        self.assertEqual(rider["uci_id"], "100000031")
+        self.assertEqual(rider["first_name"], "Adam")
+        self.assertEqual(rider["last_name"], "Novák")
+        self.assertEqual(rider["birth_date"], "2012-01-01")
+        self.assertEqual(rider["gender"], "M")
+        self.assertIs(rider["elite"], False)
+        self.assertEqual(rider["nationality"], "CZE")
+        self.assertEqual(rider["club"], "BMX Praha")
+        self.assertEqual(rider["bib"], 12)
+
+    def test_chip_belongs_to_the_wheel_of_its_start(self):
+        self._auth(self.club.event_control_username, self.password)
+        twenty, cruiser = self.client.get(self.url).data["registrations"]
+
+        self.assertEqual(twenty["rider"]["chip_id_20"], "1234")
+        self.assertEqual(twenty["rider"]["chip_id_24"], "")
+        self.assertEqual(cruiser["rider"]["chip_id_24"], "5678")
+        self.assertEqual(cruiser["rider"]["chip_id_20"], "")
+
+    def test_championship_plate_wins_and_stays_numeric(self):
+        """Championship tabulka má přednost, ale bez prefixu ``W``.
+
+        REM export píše ``W123``, protože ho čte člověk. Startovní číslo
+        v závodním software je celé číslo, takže do kontraktu jde 123.
+        """
+        self.rider.is_elite = True
+        self.rider.plate_champ_20 = 118
+        self.rider.save()
+
+        self._auth(self.club.event_control_username, self.password)
+        registrations = self.client.get(self.url).data["registrations"]
+
+        self.assertEqual(registrations[0]["rider"]["bib"], 118)
+        self.assertIs(registrations[0]["rider"]["elite"], True)
+        # 24" championship tabulku jezdec nemá — zůstává národní.
+        self.assertEqual(registrations[1]["rider"]["bib"], 12)
+
+    def test_letters_in_plate_do_not_become_a_number(self):
+        """Tabulka ``123A`` není číslo — nesmí se z ní stát 0 ani 123."""
+        self.rider.plate_text = "12A"
+        self.rider.save()
+
+        self._auth(self.club.event_control_username, self.password)
+        registrations = self.client.get(self.url).data["registrations"]
+        self.assertIsNone(registrations[0]["rider"]["bib"])
+
+    def test_unpaid_entries_are_left_out_unless_asked_for(self):
+        Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 14",
+            fee_20=300,
+            payment_complete=False,
+        )
+        self._auth(self.club.event_control_username, self.password)
+
+        self.assertEqual(self.client.get(self.url).data["count"], 2)
+
+        response = self.client.get(self.url, {"include_unpaid": "1"})
+        self.assertEqual(response.data["count"], 3)
+        # Dvě přihlášky téhož jezdce mají stejné řadicí jméno, takže se na
+        # jejich pořadí spolehnout nelze — kontroluje se počet stavů.
+        statuses = [row["status"] for row in response.data["registrations"]]
+        self.assertEqual(statuses.count("pending"), 1)
+        self.assertEqual(statuses.count("confirmed"), 2)
+
+    def test_paging_walks_forward_and_stops(self):
+        self._auth(self.club.event_control_username, self.password)
+
+        first = self.client.get(self.url, {"page": "1", "page_size": "1"})
+        self.assertEqual(first.data["count"], 2)
+        self.assertEqual(len(first.data["registrations"]), 1)
+        self.assertEqual(first.data["next_page"], 2)
+
+        second = self.client.get(self.url, {"page": "2", "page_size": "1"})
+        self.assertEqual(len(second.data["registrations"]), 1)
+        self.assertIsNone(second.data["next_page"])
+        self.assertNotEqual(
+            first.data["registrations"][0]["registration_id"],
+            second.data["registrations"][0]["registration_id"],
+        )
+
+    def test_registration_id_is_stable_across_imports(self):
+        self._auth(self.club.event_control_username, self.password)
+        first = self.client.get(self.url).data["registrations"]
+        second = self.client.get(self.url).data["registrations"]
+        self.assertEqual(
+            [row["registration_id"] for row in first],
+            [row["registration_id"] for row in second],
+        )
+
+    def test_trailing_slash_serves_the_same_payload(self):
+        self._auth(self.club.event_control_username, self.password)
+        response = self.client.get(self.url + "/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+)
+class RegistrationApiV1MasterDataTests(TestCase):
+    """Obecný kontrakt v1 — jezdci a kluby pro centrální registr."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.club = Club.objects.create(
+            team_name="Team Praha Racing",
+            club_name="BMX Klub Praha",
+            ico="12345678",
+            street="Sportovní 12",
+            city="Praha",
+            zip_code="16000",
+        )
+        self.inactive_club = Club.objects.create(team_name="BMX Zaniklý", is_active=False)
+        self.rider = Rider.objects.create(
+            uci_id=100000041,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            nationality="CZE",
+            date_of_birth=date(2012, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            is_elite=True,
+            plate_text="12",
+            plate_champ_20=118,
+            transponder_20="1234",
+            transponder_24="5678",
+        )
+        self.unapproved_rider = Rider.objects.create(
+            uci_id=100000042,
+            first_name="Eva",
+            last_name="Svobodová",
+            gender="Žena",
+            date_of_birth=date(2011, 1, 1),
+            is_active=True,
+            is_approved=False,
+        )
+
+    def _central_auth(self, username="event-control-admin", password="central-secret"):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def test_riders_require_central_credentials(self):
+        self.assertEqual(self.client.get("/api/registration/v1/riders").status_code, 401)
+
+    def test_riders_reject_organizer_credentials(self):
+        password = self.club.generate_event_control_credentials()
+        self._central_auth(self.club.event_control_username, password)
+        self.assertEqual(self.client.get("/api/registration/v1/riders").status_code, 401)
+
+    def test_rider_record_matches_contract(self):
+        self._central_auth()
+        response = self.client.get("/api/registration/v1/riders")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["schema_version"], "1.0")
+        self.assertEqual(response.data["count"], 1)
+
+        rider = response.data["results"][0]
+        self.assertEqual(rider["external_id"], str(self.rider.id))
+        self.assertEqual(rider["uci_id"], "100000041")
+        self.assertEqual(rider["birth_date"], "2012-01-01")
+        self.assertEqual(rider["gender"], "M")
+        self.assertEqual(rider["nationality"], "CZE")
+        self.assertIs(rider["elite"], True)
+        self.assertEqual(rider["bib"], 12)
+        self.assertEqual(rider["world_bib"], 118)
+        self.assertEqual(rider["chip_id_20"], "1234")
+        self.assertEqual(rider["chip_id_24"], "5678")
+        self.assertEqual(rider["club"], "Team Praha Racing")
+        self.assertEqual(rider["club_external_id"], str(self.club.id))
+        self.assertIsNotNone(rider["updated"])
+
+    def test_woman_is_reported_as_f(self):
+        self._central_auth()
+        response = self.client.get("/api/registration/v1/riders", {"include_inactive": "1"})
+        genders = {row["uci_id"]: row["gender"] for row in response.data["results"]}
+        self.assertEqual(genders["100000042"], "F")
+
+    def test_club_record_matches_contract(self):
+        self._central_auth()
+        response = self.client.get("/api/registration/v1/clubs")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        club = response.data["results"][0]
+        self.assertEqual(club["external_id"], str(self.club.id))
+        # `name` je jméno klubu, `team_name` jméno, pod kterým jezdí.
+        self.assertEqual(club["name"], "BMX Klub Praha")
+        self.assertEqual(club["team_name"], "Team Praha Racing")
+        self.assertEqual(club["street"], "Sportovní 12")
+        self.assertEqual(club["city"], "Praha")
+        self.assertEqual(club["postal_code"], "16000")
+        self.assertEqual(club["country"], "CZE")
+        self.assertEqual(club["company_id"], "12345678")
+
+    def test_club_without_official_name_falls_back_to_team_name(self):
+        self.club.club_name = ""
+        self.club.save()
+        self._central_auth()
+        club = self.client.get("/api/registration/v1/clubs").data["results"][0]
+        self.assertEqual(club["name"], "Team Praha Racing")
+
+    def test_inactive_records_are_left_out_unless_asked_for(self):
+        self._central_auth()
+        self.assertEqual(self.client.get("/api/registration/v1/riders").data["count"], 1)
+        self.assertEqual(self.client.get("/api/registration/v1/clubs").data["count"], 1)
+
+        riders = self.client.get("/api/registration/v1/riders", {"include_inactive": "1"})
+        clubs = self.client.get("/api/registration/v1/clubs", {"include_inactive": "1"})
+        self.assertEqual(riders.data["count"], 2)
+        self.assertEqual(clubs.data["count"], 2)
+
+    def test_incremental_and_offset_paging(self):
+        self._central_auth()
+        empty = self.client.get("/api/registration/v1/riders", {"updated_since": "2099-01-01"})
+        self.assertEqual(empty.data["count"], 0)
+        self.assertIsNone(empty.data["next_offset"])
+
+        page = self.client.get(
+            "/api/registration/v1/riders", {"limit": "1", "include_inactive": "1"}
+        )
+        self.assertEqual(len(page.data["results"]), 1)
+        self.assertEqual(page.data["next_offset"], 1)
+
+        last = self.client.get(
+            "/api/registration/v1/riders",
+            {"limit": "1", "offset": "1", "include_inactive": "1"},
+        )
+        self.assertIsNone(last.data["next_offset"])
+
+    def test_generated_at_is_the_watermark_for_the_next_run(self):
+        self._central_auth()
+        response = self.client.get("/api/registration/v1/riders")
+        self.assertIsNotNone(response.data["generated_at"])
+
+    def test_reject_invalid_updated_since(self):
+        self._central_auth()
+        response = self.client.get("/api/registration/v1/riders", {"updated_since": "vcera"})
+        self.assertEqual(response.status_code, 400)

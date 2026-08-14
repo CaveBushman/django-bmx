@@ -52,7 +52,8 @@ class EventPhotoSerializer(serializers.ModelSerializer):
 class EventSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = '__all__'
+        # event_code je párovací kód pro BMX Event Control — nepatří do veřejného výpisu závodů.
+        exclude = ('event_code',)
 
 
 class EventPublicSerializer(OrganizerCoordinatesMixin, serializers.ModelSerializer):

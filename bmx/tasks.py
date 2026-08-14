@@ -58,3 +58,8 @@ def check_entry_integrity_task():
 def run_ai_agent_task():
     from django.core.management import call_command
     return call_command("run_ai_agent")
+
+
+@shared_task(name="bmx.sync_event_control")
+def sync_event_control_task():
+    return cron.sync_event_control_scheduled()
