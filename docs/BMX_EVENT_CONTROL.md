@@ -40,13 +40,22 @@ Server pro nastavení organizace: `https://<domena>/api/v1/event-control/`
 | GET | `/api/v1/event-control/events/<event_code>/` | Metadata závodu |
 | GET | `/api/v1/event-control/events/<event_code>/entries/` | Přihlášení jezdci |
 
-Autentizace: **HTTP Basic** (username + password organizace). Přihlášený staff
-účet (session/JWT) projde také — kvůli ověření z prohlížeče. Neúspěch vrací 401
-s hlavičkou `WWW-Authenticate: Basic`.
+Autentizace: **HTTP Basic** (username + password organizace). Projdou také
+**centrální údaje** ze settings (`EVENT_CONTROL_CENTRAL_*`) a přihlášený staff
+účet (session/JWT) — kvůli ověření z prohlížeče. Neúspěch vrací 401 s hlavičkou
+`WWW-Authenticate: Basic`.
 
 Autorizace: organizace vidí jen závody, kde je uvedená jako **pořadatel**
 (`Event.organizer`). Cizí i neexistující kód vrací shodně 403, aby odpověď
-neprozradila existenci závodu.
+neprozradila existenci závodu. Centrální identita a staff pořadatelem omezené
+**nejsou** — vidí přihlášky ke každému závodu.
+
+Proč i centrální údaje (15. 8. 2026): Event Control se jimi synchronizuje registr
+jezdců a klubů, ale na přihlášky dostával 401, takže pořadatel musel do integrace
+vyplňovat **druhý pár údajů** jen kvůli nim — a s jedním párem jela vždy jen
+polovina věcí. Kdo zná centrální heslo, čte stejně celý registr federace;
+přihlášky jednoho závodu tím nejsou širší přístup. Údaje organizace fungují dál
+beze změny.
 
 Throttling: 120 požadavků/min na username (scope `event_control`).
 
@@ -119,7 +128,8 @@ zůstává web** (czechbmx.cz). Synchronizace je proto obousměrná a asymetrick
 Autentizace: HTTP Basic **centrálními** údaji ze settings
 (`EVENT_CONTROL_CENTRAL_USERNAME` / `EVENT_CONTROL_CENTRAL_PASSWORD`), případně
 přihlášený staff účet. Přístupové údaje jednotlivých organizací sem **nemají
-přístup** — jde o celofederační data, ne o jeden závod.
+přístup** — jde o celofederační data, ne o jeden závod. Opačně to neplatí:
+centrální údaje se dostanou i na přihlášky závodu (viz Endpointy výše).
 
 Odpověď: `{"count", "limit", "offset", "next_offset", "generated_at", "results": [...]}`.
 Výchozí filtr jezdců je `is_active=True, is_approved=True`, klubů `is_active=True`;

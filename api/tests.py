@@ -1493,3 +1493,138 @@ class RegistrationApiV1MasterDataTests(TestCase):
         self._central_auth()
         response = self.client.get("/api/registration/v1/riders", {"updated_since": "vcera"})
         self.assertEqual(response.status_code, 400)
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+)
+class EventControlCentralEntriesTests(TestCase):
+    """Centrální údaje platí i na přihlášky závodu.
+
+    Nahlášeno z provozu 15. 8. 2026: Event Control se centrálními údaji
+    synchronizuje registr jezdců a klubů (HTTP 200), ale na přihlášky dostal
+    401 „Neplatné přístupové údaje organizace." — pořadatel tak musel do
+    integrace vyplňovat druhý pár údajů jen kvůli přihláškám. Kdo zná centrální
+    heslo, čte stejně celý registr federace; přihlášky jednoho závodu tím nejsou
+    širší přístup.
+    """
+
+    def setUp(self):
+        cache.clear()  # reset throttle bucketu event_control
+        self.client = APIClient()
+        self.organizer = Club.objects.create(team_name="BMX Praha")
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 5, 10),
+            organizer=self.organizer,
+            type_for_ranking="Český pohár",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=100000051,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            nationality="CZE",
+            date_of_birth=date(2012, 1, 1),
+            club=self.organizer,
+            is_active=True,
+            is_approved=True,
+            plate_text="12",
+            transponder_20="1234",
+        )
+        Entry.objects.create(
+            event=self.event,
+            rider=self.rider,
+            is_20=True,
+            class_20="Boys 14",
+            fee_20=300,
+            payment_complete=True,
+        )
+        self.url = f"/api/registration/v1/events/{self.event.event_code}/registrations"
+
+    def _auth(self, username="event-control-admin", password="central-secret"):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def test_central_credentials_read_registrations(self):
+        self._auth()
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["schema_version"], "1.0")
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(
+            response.data["registrations"][0]["rider"]["uci_id"], "100000051"
+        )
+
+    def test_central_credentials_are_not_limited_to_one_organizer(self):
+        """Centrální identita není pořadatel — nesmí ji zastavit kontrola klubu."""
+        other = Club.objects.create(team_name="BMX Brno")
+        foreign_event = Event.objects.create(
+            name="Cizí závod",
+            date=date(2026, 6, 10),
+            organizer=other,
+            type_for_ranking="Český pohár",
+        )
+        self._auth()
+        response = self.client.get(
+            f"/api/registration/v1/events/{foreign_event.event_code}/registrations"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_central_credentials_work_on_the_legacy_entries_path(self):
+        self._auth()
+        response = self.client.get(
+            f"/api/v1/event-control/events/{self.event.event_code}/entries/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_wrong_central_password_is_still_rejected(self):
+        self._auth(password="spatne")
+        self.assertEqual(self.client.get(self.url).status_code, 401)
+
+    def test_unknown_event_code_stays_hidden(self):
+        """Ani centrální identita se nesmí dozvědět, že závod neexistuje."""
+        self._auth()
+        response = self.client.get(
+            f"/api/registration/v1/events/{uuid.uuid4()}/registrations"
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_ping_says_central_not_staff(self):
+        self._auth()
+        response = self.client.get("/api/v1/event-control/ping/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data["organization"])
+        self.assertIs(response.data["central"], True)
+        self.assertIs(response.data["staff"], False)
+
+
+class EventControlCentralDisabledTests(TestCase):
+    """Bez nastavených centrálních údajů se centrální cestou nedá projít."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.organizer = Club.objects.create(team_name="BMX Praha")
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 5, 10),
+            organizer=self.organizer,
+            type_for_ranking="Český pohár",
+        )
+
+    def test_empty_central_settings_do_not_authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(b":").decode()
+        )
+        response = self.client.get(
+            f"/api/registration/v1/events/{self.event.event_code}/registrations"
+        )
+        self.assertEqual(response.status_code, 401)

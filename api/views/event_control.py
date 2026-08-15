@@ -11,7 +11,14 @@ aby se integrace dala ověřit z prohlížeče):
 
 * **údaje organizace** — přihlášky ke *vlastním* závodům pořadatele,
 * **centrální údaje** ze settings (``EVENT_CONTROL_CENTRAL_*``) — celofederační
-  master data jezdců a klubů pro centrální Event Control Admin.
+  master data jezdců a klubů pro centrální Event Control Admin **a přihlášky
+  k libovolnému závodu**.
+
+Centrální údaje platí na přihlášky od 15. 8. 2026. Do té doby na ně platily jen
+údaje organizace, takže Event Control, který se centrálními údaji synchronizuje
+registr, dostal na přihlášky 401 a pořadatel musel vyplňovat druhý pár údajů jen
+kvůli nim. Kdo zná centrální heslo, čte stejně celý registr federace — přihlášky
+jednoho závodu tím nejsou širší přístup, jen konzistentní.
 
 Endpointy jsou ve dvou tvarech se stejnými daty i stejnou autentizací:
 
@@ -100,13 +107,25 @@ class EventControlBaseView(APIView):
         return WWW_AUTHENTICATE
 
     def resolve_club(self, request):
-        """Vrátí organizaci z Basic údajů, nebo ``None`` pro staff účet."""
+        """Vrátí organizaci z Basic údajů, nebo ``None`` pro centrální/staff přístup.
+
+        ``None`` znamená „bez omezení na pořadatele" — stejně jako u staff účtu.
+        """
         username, password = decode_basic_credentials(request)
         if username is None:
             user = getattr(request, "user", None)
             if user is not None and user.is_authenticated and user.is_staff:
                 return None
             raise AuthenticationFailed(_("Chybí přístupové údaje organizace."))
+
+        # Centrální údaje federace platí i na přihlášky. Do 15. 8. 2026 platily
+        # jen na master data, takže Event Control, který se jimi normálně
+        # synchronizuje, dostal na přihlášky 401 — a pořadatel musel vyplňovat
+        # druhý pár údajů jen kvůli nim. Kdo zná centrální heslo, vidí stejně
+        # celý registr federace; přihlášky jednoho závodu nejsou širší přístup.
+        if authenticate_central(username, password):
+            audit_logger.info("event_control_central_access username=%s", username)
+            return None
 
         club = authenticate_club(username, password)
         if club is None:
@@ -140,7 +159,16 @@ class EventControlPingAPIView(EventControlBaseView):
     def get(self, request):
         club = self.resolve_club(request)
         if club is None:
-            return Response({"status": "ok", "organization": None, "staff": True})
+            # Bez organizace se sem dá dostat dvěma cestami a test připojení
+            # nesmí tvrdit „staff", když volal centrální Event Control.
+            username, password = decode_basic_credentials(request)
+            central = username is not None and authenticate_central(username, password)
+            return Response({
+                "status": "ok",
+                "organization": None,
+                "central": central,
+                "staff": not central,
+            })
         touch_club_access(club)
         events = (
             Event.objects.filter(organizer=club)
