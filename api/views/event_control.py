@@ -28,6 +28,12 @@ Endpointy jsou ve dvou tvarech se stejnými daty i stejnou autentizací:
   je jeden start). Event Control umí tenhle a jen tenhle, takže si nemusí
   držet zvláštní dialekt pro každý registrační systém; popis kontraktu je
   v Event Control v ``docs/RIDER_REGISTRATION_API.md``.
+
+Všechno kromě jedné věci jen **vydává** data. Tou výjimkou je
+``PATCH v1/riders/{uci_id}`` (část 3 kontraktu): trvalá výměna čipu u rampy je
+oprava údaje, který vede web, a bez zápisu zpět by ji nejbližší synchronizace
+přepsala zpátky na starou hodnotu. Zapisovat smí jen centrální údaje federace —
+kdo odbavuje svůj závod, nemá tím právo měnit registr všem.
 """
 
 import base64
@@ -47,7 +53,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from event.models import Event
-from event.services import registration_api_v1
+from event.services import registration_api_v1, registration_api_writeback
 from event.services.event_control import (
     authenticate_club,
     build_entries_payload,
@@ -369,6 +375,47 @@ class ClubsV1APIView(EventControlMasterDataBaseView):
             len(payload["results"]),
         )
         return Response(payload)
+
+
+class RiderChipV1APIView(EventControlMasterDataBaseView):
+    """Zápis trvalé změny čipu od Event Control — kontrakt v1, část 3.
+
+    Jediný endpoint kontraktu, který data **mění**, a proto jediný za
+    centrálními údaji federace i pro zápis: čip jezdce je celofederační údaj,
+    ne majetek jednoho pořadatele. Údaje organizace sem schválně nepustíme —
+    kdo odbavuje svůj závod, nemá tím právo měnit registr všem.
+
+    Bez tohohle endpointu je oprava čipu u rampy jednorázová: Event Control ji
+    má ve svém registru, ale při nejbližší synchronizaci ji stažená hodnota
+    z webu přepíše zpátky na starou.
+    """
+
+    @extend_schema(
+        request=None,
+        responses={200: None},
+        description=(
+            "Trvalá změna čipu jezdce od BMX Event Control. Tělo obsahuje "
+            "`chip_id_20` nebo `chip_id_24`; prázdný řetězec čip odebere. "
+            "Idempotentní — stejný čip podruhé projde a nic nezmění."
+        ),
+    )
+    def patch(self, request, uci_id):
+        self.authorize_central(request)
+        payload = dict(request.data or {})
+        # UCI ID z cesty je závazné. Kdyby rozhodovalo tělo, dal by se jedním
+        # požadavkem změnit čip někomu jinému, než na koho míří adresa.
+        payload["uci_id"] = uci_id
+        try:
+            rider, changes = registration_api_writeback.apply_chip_change(payload)
+        except registration_api_writeback.ChipWritebackError as exc:
+            audit_logger.warning(
+                "event_control_chip_writeback_refused uci_id=%s status=%s reason=%s",
+                uci_id,
+                exc.status,
+                exc.message,
+            )
+            return Response({"detail": exc.message}, status=exc.status)
+        return Response(registration_api_writeback.response_payload(rider, changes))
 
 
 class EventControlRidersAPIView(EventControlMasterDataBaseView):

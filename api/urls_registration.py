@@ -19,6 +19,7 @@ from django.urls import path
 from api.views.event_control import (
     ClubsV1APIView,
     RegistrationsV1APIView,
+    RiderChipV1APIView,
     RidersV1APIView,
 )
 
@@ -32,6 +33,11 @@ urlpatterns = [
         RegistrationsV1APIView.as_view(),
         name="v1-registrations",
     ),
+    # Část 3 kontraktu — zápis trvalé změny čipu od Event Control. Kolize
+    # s výdejem seznamu nehrozí: `<str:uci_id>` neodpovídá prázdnému úseku,
+    # takže `v1/riders/` dopadne dál na `RidersV1APIView`.
+    path("v1/riders/<str:uci_id>", RiderChipV1APIView.as_view(), name="v1-rider-chip"),
+    path("v1/riders/<str:uci_id>/", RiderChipV1APIView.as_view(), name="v1-rider-chip-slash"),
     # Kontrakt cesty bez lomítka; klient, který ho přesto pošle, nemá dostat
     # přesměrování s Basic hlavičkou navíc, ale rovnou odpověď.
     path("v1/riders/", RidersV1APIView.as_view(), name="v1-riders-slash"),

@@ -16,7 +16,13 @@ from unittest.mock import patch
 from club.models import Club
 from event.models import CreditTransaction, Entry, Event, Result, SeasonSettings
 from news.models import News
-from rider.models import MobileAppSubscription, PromoCode, PromoCodeUsage, Rider
+from rider.models import (
+    MobileAppSubscription,
+    PromoCode,
+    PromoCodeUsage,
+    Rider,
+    RiderTransponderChange,
+)
 
 User = get_user_model()
 
@@ -1493,6 +1499,180 @@ class RegistrationApiV1MasterDataTests(TestCase):
         self._central_auth()
         response = self.client.get("/api/registration/v1/riders", {"updated_since": "vcera"})
         self.assertEqual(response.status_code, 400)
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+)
+class RegistrationApiV1ChipWritebackTests(TestCase):
+    """Trvalá změna čipu u rampy se zapíše zpátky do registru webu.
+
+    Bez toho je oprava u rampy jednorázová: Event Control ji má u sebe, ale
+    při nejbližší synchronizaci ji stažená hodnota z webu přepíše na starou
+    a jezdec začne příští závod zase se špatným čipem.
+    """
+
+    URL = "/api/registration/v1/riders/100000041"
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.rider = Rider.objects.create(
+            uci_id=100000041,
+            first_name="Adam",
+            last_name="Novák",
+            gender="Muž",
+            date_of_birth=date(2012, 1, 1),
+            is_active=True,
+            is_approved=True,
+            transponder_20="AA-10001",
+        )
+
+    def _central_auth(self, username="event-control-admin", password="central-secret"):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def _patch(self, body):
+        return self.client.patch(self.URL, body, format="json")
+
+    def test_write_requires_central_credentials(self):
+        self.assertEqual(self._patch({"chip_id_20": "BB-20002"}).status_code, 401)
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.transponder_20, "AA-10001")
+
+    def test_organizer_credentials_may_not_change_the_federation_registry(self):
+        club = Club.objects.create(team_name="BMX Klub Praha")
+        password = club.generate_event_control_credentials()
+        self._central_auth(club.event_control_username, password)
+
+        self.assertEqual(self._patch({"chip_id_20": "BB-20002"}).status_code, 401)
+
+    def test_permanent_change_lands_in_the_registry_and_in_the_history(self):
+        self._central_auth()
+
+        response = self._patch(
+            {
+                "schema_version": "1.0",
+                "chip_id_20": "BB-20002",
+                "source": "event-control",
+                "changed_by": "jana.novakova",
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["chip_id_20"], "BB-20002")
+        self.assertEqual(response.data["changed"], ["20"])
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.transponder_20, "BB-20002")
+
+        history = RiderTransponderChange.objects.get(rider=self.rider)
+        self.assertEqual(history.slot, "20")
+        self.assertEqual(history.old_transponder, "AA-10001")
+        self.assertEqual(history.new_transponder, "BB-20002")
+
+    def test_only_the_wheel_that_was_sent_is_touched(self):
+        self.rider.transponder_24 = "CC-24003"
+        self.rider.save()
+        self._central_auth()
+
+        self._patch({"chip_id_20": "BB-20002"})
+
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.transponder_24, "CC-24003")
+
+    def test_an_empty_chip_removes_it(self):
+        """„Jezdec už čip nemá" je zjištění obsluhy, ne neposlané pole."""
+        self._central_auth()
+
+        response = self._patch({"chip_id_20": ""})
+
+        self.assertEqual(response.status_code, 200)
+        self.rider.refresh_from_db()
+        self.assertIsNone(self.rider.transponder_20)
+
+    def test_repeating_the_same_chip_is_not_an_error(self):
+        """Event Control odesílá z fronty — pokus se po výpadku zopakuje."""
+        self._central_auth()
+
+        first = self._patch({"chip_id_20": "BB-20002"})
+        second = self._patch({"chip_id_20": "BB-20002"})
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.data["changed"], [])
+        self.assertEqual(RiderTransponderChange.objects.filter(rider=self.rider).count(), 1)
+
+    def test_unknown_rider_is_404(self):
+        self._central_auth()
+        response = self.client.patch(
+            "/api/registration/v1/riders/109999999", {"chip_id_20": "BB-20002"}, format="json"
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonsense_in_the_path_is_404_not_a_broken_body(self):
+        """Na 404 se kontrakt nepokouší znovu; na 422 by volající hádal, co v těle."""
+        self._central_auth()
+        response = self.client.patch(
+            "/api/registration/v1/riders/nesmysl", {"chip_id_20": "BB-20002"}, format="json"
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_a_chip_that_belongs_to_someone_else_is_refused(self):
+        """Dva jezdci na jednom kódu znamenají cizí průjezdy v časomíře."""
+        Rider.objects.create(
+            uci_id=100000042,
+            first_name="Eva",
+            last_name="Svobodová",
+            gender="Žena",
+            date_of_birth=date(2011, 1, 1),
+            is_active=True,
+            is_approved=True,
+            transponder_20="BB-20002",
+        )
+        self._central_auth()
+
+        response = self._patch({"chip_id_20": "BB-20002"})
+
+        self.assertEqual(response.status_code, 409)
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.transponder_20, "AA-10001")
+
+    def test_a_body_without_any_chip_is_refused(self):
+        self._central_auth()
+        self.assertEqual(self._patch({"first_name": "Petr"}).status_code, 422)
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.first_name, "Adam")
+
+    def test_a_chip_longer_than_the_column_is_refused_instead_of_truncated(self):
+        self._central_auth()
+
+        response = self._patch({"chip_id_20": "AA-10001-PRILIS-DLOUHY"})
+
+        self.assertEqual(response.status_code, 422)
+        self.rider.refresh_from_db()
+        self.assertEqual(self.rider.transponder_20, "AA-10001")
+
+    def test_the_uci_id_in_the_path_wins_over_the_body(self):
+        """Jinak by se jedním požadavkem dal změnit čip někomu jinému."""
+        other = Rider.objects.create(
+            uci_id=100000042,
+            first_name="Eva",
+            last_name="Svobodová",
+            gender="Žena",
+            date_of_birth=date(2011, 1, 1),
+            is_active=True,
+            is_approved=True,
+        )
+        self._central_auth()
+
+        self._patch({"uci_id": "100000042", "chip_id_20": "BB-20002"})
+
+        self.rider.refresh_from_db()
+        other.refresh_from_db()
+        self.assertEqual(self.rider.transponder_20, "BB-20002")
+        self.assertIsNone(other.transponder_20)
 
 
 @override_settings(
