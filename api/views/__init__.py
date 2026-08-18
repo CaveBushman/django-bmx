@@ -12,3 +12,4 @@ from api.views.event_control import *  # noqa: F401,F403
 from api.views.foreign_entries import *  # noqa: F401,F403
 from api.views.subscriptions import *  # noqa: F401,F403
 from api.views.search import *  # noqa: F401,F403
+from api.views.api_root import *  # noqa: F401,F403

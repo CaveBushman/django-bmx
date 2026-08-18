@@ -1808,3 +1808,65 @@ class EventControlCentralDisabledTests(TestCase):
             f"/api/registration/v1/events/{self.event.event_code}/registrations"
         )
         self.assertEqual(response.status_code, 401)
+
+
+class ApiRootDiscoveryTests(TestCase):
+    """Rozcestník na `/api` — jediná adresa, kterou obsluha vyplňuje.
+
+    Integrace jede napříč několika weby a databázemi, takže „co se má vyplnit"
+    musí být jedna věta pro všechny: `https://<server>/api`. Aby ta adresa
+    nebyla místem, které mlčí (a v prohlížeči vrací chybovou stránku webu),
+    vypisuje, kde je kontrakt a kde mobilní API — 18. 8. 2026 se v nastavení
+    Event Control objevilo `…/api/v1`, mobilní API, které na `riders` odpoví
+    200 a holým polem, takže zkouška spojení prošla a nestáhlo se nic.
+    """
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+
+    def test_the_api_root_answers_without_credentials(self):
+        response = self.client.get("/api/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["apis"]["rider_registration"]["root"],
+            "http://testserver/api/registration",
+        )
+
+    def test_the_root_names_the_contract_paths_the_client_will_build(self):
+        endpoints = self.client.get("/api/").json()["apis"]["rider_registration"]["endpoints"]
+
+        self.assertEqual(endpoints["riders"], "http://testserver/api/registration/v1/riders")
+        self.assertEqual(endpoints["clubs"], "http://testserver/api/registration/v1/clubs")
+        # Kód závodu je zástupný symbol, ne odkaz — přes reverse() by se
+        # složené závorky zakódovaly na %7B%7D a popis by nedával smysl.
+        self.assertEqual(
+            endpoints["registrations"],
+            "http://testserver/api/registration/v1/events/{race_code}/registrations",
+        )
+
+    def test_the_mobile_api_is_named_as_something_else(self):
+        """Právě záměna s mobilním API stála celý den hledání."""
+        mobile = self.client.get("/api/").json()["apis"]["mobile"]
+
+        self.assertEqual(mobile["root"], "http://testserver/api/v1/")
+        self.assertIn("mobilní", mobile["note"])
+
+    def test_the_contract_root_answers_for_itself(self):
+        response = self.client.get("/api/registration/")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["contract"], "rider-registration")
+        self.assertEqual(payload["schema_version"], "1.0")
+        self.assertEqual(
+            payload["endpoints"]["riders"], "http://testserver/api/registration/v1/riders"
+        )
+
+    def test_the_signpost_hands_out_no_data(self):
+        """Popis cest je veřejný, jezdci a kluby zůstávají za autentizací."""
+        text = self.client.get("/api/").content.decode()
+
+        self.assertNotIn("uci_id", text)
+        self.assertEqual(self.client.get("/api/registration/v1/riders").status_code, 401)

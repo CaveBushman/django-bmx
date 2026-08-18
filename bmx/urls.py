@@ -10,6 +10,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from accounts import views as account_views
 from bmx import views as bmx_views
+from api import views as api_views
 from api.views import FcmTokenAPIView
 
 app_name = "bmx"
@@ -25,6 +26,9 @@ urlpatterns = [
     # Obecný kontrakt Rider Registration API v1 pro Event Control. Vlastní
     # strom, ne součást mobilního API — viz api/urls_registration.py.
     path('api/registration/', include('api.urls_registration')),
+    # Rozcestník na `/api`. Do integrací se zadává jen tahle adresa a zbytek
+    # cesty si klient doplní; ať tedy odpoví, co tu je, místo chybové stránky.
+    path('api/', api_views.ApiRootAPIView.as_view(), name='api-root'),
     path('', include('news.urls')),
     path('accounts/', include('accounts.urls')),
     path('event/', include('event.urls')),

@@ -30,9 +30,38 @@ kódy posledních závodů daného pořadatele.
 a needitovatelný. Do veřejného API se **nepropisuje** (`EventSerializer` ho
 vylučuje) — funguje jako párovací kód, ne jako veřejné ID závodu.
 
+## Adresa pro Event Control
+
+Do nastavení integrace se zadává **jediná adresa — kořen API serveru**:
+
+```
+https://czechbmx.cz/api
+```
+
+Zbytek cesty (`/registration/v1/riders`, `/registration/v1/clubs`,
+`/registration/v1/events/<kód>/registrations`) si Event Control doplní sám a
+u každého poskytovatele stejně. Integrace jede napříč několika weby a
+databázemi, takže jedna věta pro všechny je jediné, co jde obsluze říct
+srozumitelně; skládat adresu z hlavy znamenalo hádat mezi `…/api`, `…/api/v1`
+a `…/api/registration`.
+
+Sama adresa odpovídá **rozcestníkem** — otevřít ji jde i v prohlížeči:
+
+| Metoda | Cesta | Popis |
+|---|---|---|
+| GET | `/api/` | Co je na serveru za API, kde je kontrakt a kde mobilní API |
+| GET | `/api/registration/` | Kořen kontraktu sám za sebe: verze schématu a jeho cesty |
+
+Obojí je veřejné a jen popisné — vypisuje cesty, ne data.
+
+**Pozor na `…/api/v1`.** To je API mobilní aplikace: na `riders/` odpoví 200
+a holým polem, takže vypadá jako funkční spojení, ale Event Control z něj
+nikdy nic nestáhne (nahlášeno 18. 8. 2026). Kontrakt má proto vlastní podstrom
+`/api/registration/`, ne jen jiné lomítko na téže cestě.
+
 ## Endpointy
 
-Server pro nastavení organizace: `https://<domena>/api/v1/event-control/`
+Starší tvar pro nastavení organizace: `https://<domena>/api/v1/event-control/`
 
 | Metoda | Cesta | Popis |
 |---|---|---|
