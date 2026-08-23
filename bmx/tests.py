@@ -904,13 +904,20 @@ class InternalPageSmokeTests(TestCase):
             "rem_results/results.txt",
         )
 
+        # Minimální, ale kompletní REM TSV — osekaný soubor view odmítne ještě
+        # před importem (viz event.tests.RemResultsUploadViewTests).
+        rem_tsv = (
+            "EVENT_NAME\tFIRST_NAME\tLAST_NAME\tCLASS\tUCIID\tCLASS_RANKING\r\n"
+            "Race\tCzech\tRider\tBoys 15-16\t10000000010\t1\r\n"
+        ).encode("utf-8")
+
         response = self.client.post(
             reverse("event:event-admin", kwargs={"pk": self.event.pk}),
             {
                 "btn-upload-txt": "1",
                 "result-file-txt": SimpleUploadedFile(
                     "results.txt",
-                    b"fake-rem-results",
+                    rem_tsv,
                     content_type="text/plain",
                 ),
             },

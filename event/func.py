@@ -718,6 +718,76 @@ def qualify_riders_to_cn(year, rider):
     return rider
 
 
+class RemResultsFileError(ValueError):
+    """Nahraný soubor není použitelný REM export výsledků."""
+
+
+def validate_rem_results_bytes(raw):
+    """Zkontroluje, že ``raw`` je celý REM TSV export výsledků.
+
+    Hlídá hlavně **nedokončený upload** — když se spojení přeruší, Django uloží
+    jen tu část těla requestu, která dorazila, soubor se zdánlivě nahraje a
+    import mlčky zapíše jen zlomek výsledků. Kompletní REM export má na každém
+    řádku stejný počet sloupců jako hlavička a končí koncem řádku, takže osekaný
+    poslední řádek je spolehlivý příznak.
+
+    Vrací dekódovaný text. Při problému vyhodí ``RemResultsFileError``
+    s hláškou pro uživatele.
+    """
+    if not raw:
+        raise RemResultsFileError("Nahraný soubor je prázdný.")
+
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise RemResultsFileError(
+            "Soubor není v kódování UTF-8 — vyexportuj výsledky z REM znovu."
+        )
+
+    lines = [line for line in text.splitlines() if line.strip()]
+    if not lines:
+        raise RemResultsFileError("Nahraný soubor neobsahuje žádná data.")
+
+    header = lines[0].split("\t")
+    missing = [column for column in ("CLASS", "CLASS_RANKING") if column not in header]
+    if missing:
+        raise RemResultsFileError(
+            "Soubor není REM export výsledků — v hlavičce chybí sloupce "
+            f"{', '.join(missing)}."
+        )
+
+    if len(lines) < 2:
+        raise RemResultsFileError("Soubor obsahuje jen hlavičku, žádné výsledky.")
+
+    incomplete = [
+        number
+        for number, line in enumerate(lines[1:], start=2)
+        if len(line.split("\t")) != len(header)
+    ]
+    if incomplete:
+        raise RemResultsFileError(
+            f"Soubor je nedokončený — řádek {incomplete[0]} má jiný počet sloupců "
+            f"než hlavička ({len(header)}). Pravděpodobně se přerušilo nahrávání; "
+            "nahraj soubor znovu."
+        )
+
+    if not text.endswith(("\n", "\r")):
+        raise RemResultsFileError(
+            "Soubor nekončí koncem řádku — nahrávání se pravděpodobně přerušilo. "
+            "Nahraj soubor znovu."
+        )
+
+    return text
+
+
+def validate_rem_results_upload(uploaded_file):
+    """Načte a zvaliduje nahraný REM soubor; vrací dekódovaný text."""
+    uploaded_file.seek(0)
+    raw = uploaded_file.read()
+    uploaded_file.seek(0)
+    return validate_rem_results_bytes(raw)
+
+
 class SetResults(threading.Thread):
     """Thread pro import výsledků z REM TSV souboru do databáze.
 
@@ -727,6 +797,7 @@ class SetResults(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self.stats = {"rows": 0, "imported": 0, "skipped": 0, "errors": 0}
 
     def setFile(self, file):
         """Nastaví cestu k souboru s výsledky (odstraní úvodní lomítko)."""
@@ -824,14 +895,22 @@ class SetResults(threading.Thread):
 
     @classmethod
     def import_file(cls, event_id, file_path):
-        """Importuje REM TSV soubor a vytvoří pouze Result."""
+        """Importuje REM TSV soubor a vytvoří pouze Result.
+
+        Vrací statistiku ``{"rows", "imported", "skipped", "errors"}``, aby
+        volající mohl uživateli ukázat, kolik výsledků se opravdu zapsalo.
+        """
         event = Event.objects.get(id=event_id)
         ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
 
-        with open(file_path, newline="", encoding="utf-8") as result_file:
+        with open(file_path, "rb") as result_file:
+            validate_rem_results_bytes(result_file.read())
+
+        with open(file_path, newline="", encoding="utf-8-sig") as result_file:
             rows = list(csv.DictReader(result_file, delimiter="\t"))
 
         logger.info(f"REM výsledků celkem: {len(rows)}")
+        stats = {"rows": len(rows), "imported": 0, "skipped": 0, "errors": 0}
 
         with transaction.atomic():
             for raw in rows:
@@ -841,6 +920,7 @@ class SetResults(threading.Thread):
                 # Přeskočit kategorie Příchozí (nebodují do rankingu) a neplatné řádky
                 if not category or not place:
                     logger.debug("Přeskočen REM řádek bez CLASS nebo CLASS_RANKING")
+                    stats["skipped"] += 1
                     continue
                 if "prichozi" in category.lower() or "příchozí" in category.lower():
                     logger.debug(
@@ -848,6 +928,7 @@ class SetResults(threading.Thread):
                         raw.get("FIRST_NAME"),
                         raw.get("LAST_NAME"),
                     )
+                    stats["skipped"] += 1
                     continue
 
                 try:
@@ -871,12 +952,20 @@ class SetResults(threading.Thread):
                         event.organizer.team_name,
                         event.type_for_ranking,
                     ).write_result()
+                    stats["imported"] += 1
                 except Exception as e:
+                    stats["errors"] += 1
                     logger.error(f"Chyba při zpracování řádku {raw}: {e}")
+
+        logger.info(
+            "REM import event_id=%s řádků=%s zapsáno=%s přeskočeno=%s chyb=%s",
+            event_id, stats["rows"], stats["imported"], stats["skipped"], stats["errors"],
+        )
+        return stats
 
     def run(self):
         file_path = os.path.join(settings.MEDIA_ROOT, "rem_results", self.file)
-        self.import_file(self.event, file_path)
+        self.stats = self.import_file(self.event, file_path)
 
         # Po importu výsledků spustit přepočet rankingu na pozadí
         schedule_ranking_recount()

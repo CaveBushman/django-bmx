@@ -57,7 +57,9 @@ from event.func import (
     excel_first_line, expire_licence, gender_resolve,
     gender_resolve_small_letter, team_name_resolve, resolve_event_classes,
     foreign_club_resolve,
+    RemResultsFileError,
     SetResults,
+    validate_rem_results_upload,
 )
 from event.entry import REMRiders
 from event.result import GetResult
@@ -725,22 +727,59 @@ def _handle_upload_txt(request, event, pk):
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
     result_file = request.FILES["result-file-txt"]
+
+    # Nejdřív ověřit, že dorazil celý soubor. Přerušený upload uloží jen část
+    # těla requestu a import by mlčky zapsal zlomek výsledků (a tím rozbil
+    # ranking), přičemž tlačítko Nahrát by se kvůli vyplněnému rem_results
+    # zamklo. Proto validujeme ještě před uložením na disk.
+    try:
+        validate_rem_results_upload(result_file)
+    except RemResultsFileError as exc:
+        messages.error(request, str(exc))
+        logger.warning(
+            "REM výsledky odmítnuty pro závod %s (%s bajtů): %s",
+            event.id, result_file.size, exc,
+        )
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+
     storage, filename, relative_path = _save_uploaded_file(result_file, "rem_results")
 
     results = SetResults()
     results.setEvent(pk)
     results.setFile(filename)
     results.run()
+    stats = results.stats
+
+    if not stats["imported"]:
+        storage.delete(filename)
+        messages.error(
+            request,
+            f"Ze souboru se nezapsal žádný výsledek (řádků: {stats['rows']}, "
+            f"přeskočeno: {stats['skipped']}, chyb: {stats['errors']}). "
+            "Zkontroluj, že jde o export výsledků z REM, ne startovní listinu.",
+        )
+        logger.error("REM import bez výsledků pro závod %s: %s", event.id, stats)
+        return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
     event.rem_results = relative_path
     event.save(update_fields=["rem_results"])
 
+    message = f"Nahráno {stats['imported']} výsledků z {stats['rows']} řádků souboru."
+    if stats["skipped"]:
+        message += f" Přeskočeno {stats['skipped']} (příchozí / bez pořadí)."
+    if stats["errors"]:
+        message += f" Chyba u {stats['errors']} řádků — zkontroluj log."
+        messages.warning(request, message)
+    else:
+        messages.success(request, message)
+
     logger.info(f"REM výsledky nahrány pro závod {event.id}")
     audit_logger.info(
-        "event_rem_results_uploaded admin_user_id=%s event_id=%s filename=%s",
+        "event_rem_results_uploaded admin_user_id=%s event_id=%s filename=%s imported=%s",
         request.user.id,
         event.id,
         filename,
+        stats["imported"],
     )
     return None  # Pokračuj na shrnutí
 

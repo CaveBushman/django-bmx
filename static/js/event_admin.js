@@ -156,6 +156,12 @@ function initEventAdmin(documentRef) {
       }
     });
 
+    section.querySelectorAll("[data-results-locked]").forEach(function (note) {
+      if (note.dataset[mode + "Locked"] !== undefined) {
+        note.hidden = note.dataset[mode + "Locked"] !== "true";
+      }
+    });
+
     section.querySelectorAll("[data-file-input]").forEach(function (input) {
       setDatasetValue(input, "name", mode);
       setDatasetValue(input, "accept", mode);

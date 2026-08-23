@@ -34,8 +34,8 @@ from club.models import Club, McrClubTeam, McrClubTeamMember
 from event.forms import EventPropositionForm
 from event.admin import CreditTransactionAdmin, DebetTransactionAdmin, EntryForeignAdmin
 from event.credit import recalculate_all_balances
-from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, EventPhoto, EventProposition, FinanceAuditLog, SeasonSettings, RaceRun, Result
-from event.func import SetResults
+from event.models import CreditTransaction, DebetTransaction, Entry, EntryAuditLog, EntryClasses, EntryForeign, Event, EventPhoto, EventProposition, EventType, FinanceAuditLog, SeasonSettings, RaceRun, Result
+from event.func import RemResultsFileError, SetResults, validate_rem_results_bytes
 from event.entry import REMRiders
 from event.services.race_run_import import RaceRunImportService, _extract_tables
 from event.services.rem_tsv_import import RemTsvRaceRunImportService
@@ -1235,13 +1235,14 @@ class PaymentServiceTests(TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("js/event_admin.js", template)
-        self.assertIn("js/event_admin.js' %}?v=4", template)
+        self.assertIn("js/event_admin.js' %}?v=5", template)
         self.assertNotIn("<script>", template)
         self.assertIn("data-event-admin-form", template)
         self.assertIn("data-file-input", template)
         self.assertIn("data-file-selection", template)
         self.assertIn("data-confirm-message", template)
         self.assertIn("data-reset-after-download", template)
+        self.assertIn("data-results-locked", template)
         self.assertNotIn("event.rem_entries_created", template)
         self.assertNotIn("event.rem_riders_created", template)
         self.assertNotIn("event.bem_entries_created", template)
@@ -3029,10 +3030,11 @@ class RemResultsImportTests(TestCase):
             handle.write(rem_tsv)
             handle.write("\n")
             handle.write(rem_row)
+            handle.write("\n")
             file_path = handle.name
 
         try:
-            SetResults.import_file(self.event.id, file_path)
+            stats = SetResults.import_file(self.event.id, file_path)
         finally:
             os.unlink(file_path)
 
@@ -3040,6 +3042,155 @@ class RemResultsImportTests(TestCase):
         self.assertEqual(result.place, 7)
         self.assertEqual(result.points, 75)
         self.assertFalse(RaceRun.objects.filter(result=result).exists())
+        self.assertEqual(stats["rows"], 1)
+        self.assertEqual(stats["imported"], 1)
+        self.assertEqual(stats["skipped"], 0)
+        self.assertEqual(stats["errors"], 0)
+
+
+class RemResultsValidationTests(TestCase):
+    """Nedokončený upload REM souboru se musí poznat, ne mlčky naimportovat."""
+
+    HEADER = "\t".join(["EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLASS", "UCIID", "CLASS_RANKING"])
+    ROW = "\t".join(["Race", "Simon", "Aksamit", "Boys 15-16", "10125224253", "7"])
+
+    def test_accepts_complete_file(self):
+        text = f"{self.HEADER}\r\n{self.ROW}\r\n"
+        self.assertEqual(validate_rem_results_bytes(text.encode("utf-8")), text)
+
+    def test_rejects_truncated_last_row(self):
+        # Přerušený upload končí uprostřed řádku — méně sloupců než hlavička.
+        raw = f"{self.HEADER}\r\n{self.ROW}\r\nRace\tSimon\tAks".encode("utf-8")
+        with self.assertRaises(RemResultsFileError) as ctx:
+            validate_rem_results_bytes(raw)
+        self.assertIn("nedokončený", str(ctx.exception))
+
+    def test_rejects_file_without_trailing_newline(self):
+        raw = f"{self.HEADER}\r\n{self.ROW}".encode("utf-8")
+        with self.assertRaises(RemResultsFileError) as ctx:
+            validate_rem_results_bytes(raw)
+        self.assertIn("koncem řádku", str(ctx.exception))
+
+    def test_rejects_empty_file(self):
+        with self.assertRaises(RemResultsFileError):
+            validate_rem_results_bytes(b"")
+
+    def test_rejects_header_only_file(self):
+        with self.assertRaises(RemResultsFileError) as ctx:
+            validate_rem_results_bytes(f"{self.HEADER}\r\n".encode("utf-8"))
+        self.assertIn("jen hlavičku", str(ctx.exception))
+
+    def test_rejects_file_without_result_columns(self):
+        header = "\t".join(["EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLASS"])
+        raw = f"{header}\r\nRace\tSimon\tAksamit\tBoys 15-16\r\n".encode("utf-8")
+        with self.assertRaises(RemResultsFileError) as ctx:
+            validate_rem_results_bytes(raw)
+        self.assertIn("CLASS_RANKING", str(ctx.exception))
+
+    def test_rejects_non_utf8_file(self):
+        raw = f"{self.HEADER}\r\n{self.ROW}\r\n".encode("cp1250").replace(b"Simon", b"Sim\xf3n")
+        with self.assertRaises(RemResultsFileError) as ctx:
+            validate_rem_results_bytes(raw)
+        self.assertIn("UTF-8", str(ctx.exception))
+
+    def test_accepts_utf8_bom(self):
+        text = f"{self.HEADER}\r\n{self.ROW}\r\n"
+        self.assertEqual(validate_rem_results_bytes(text.encode("utf-8-sig")), text)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class RemResultsUploadViewTests(TestCase):
+    """Nahrání TXT výsledků v administraci závodu."""
+
+    HEADER = "\t".join(
+        ["EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "UCIID", "CLASS_RANKING"]
+    )
+    ROW = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Boys 15-16", "10000000011", "3"])
+
+    def setUp(self):
+        self.staff_user = User.objects.create_user(
+            first_name="Admin",
+            last_name="Tester",
+            username="upload_tester",
+            email="upload_tester@example.com",
+            password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+        self.client.force_login(self.staff_user)
+
+        self.club = Club.objects.create(team_name="Upload Club")
+        self.event = Event.objects.create(
+            name="Upload Race",
+            date=date(2025, 5, 10),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking=EventType.CESKY_POHAR,
+        )
+        self.rider = Rider.objects.create(
+            uci_id=10000000011,
+            first_name="Czech",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            class_20="Boys 15",
+        )
+        self.url = reverse("event:event-admin", kwargs={"pk": self.event.pk})
+
+    def _post(self, content):
+        return self.client.post(
+            self.url,
+            {
+                "btn-upload-txt": "txt",
+                "result-file-txt": SimpleUploadedFile("results.txt", content, content_type="text/plain"),
+            },
+            follow=True,
+        )
+
+    @patch("event.views.views_admin.SetResults.import_file", wraps=SetResults.import_file)
+    def test_truncated_upload_is_rejected_before_import(self, import_file_mock):
+        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\nRace\tCzech\tRid".encode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        import_file_mock.assert_not_called()
+        self.event.refresh_from_db()
+        self.assertFalse(self.event.rem_results)
+        self.assertFalse(Result.objects.filter(event=self.event).exists())
+        self.assertTrue(
+            any("nedokončený" in str(m) for m in response.context["messages"]),
+            [str(m) for m in response.context["messages"]],
+        )
+
+    def test_complete_upload_imports_and_reports_counts(self):
+        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.event.refresh_from_db()
+        self.assertTrue(self.event.rem_results)
+        self.assertEqual(Result.objects.filter(event=self.event).count(), 1)
+        self.assertTrue(
+            any("Nahráno 1 výsledků" in str(m) for m in response.context["messages"]),
+            [str(m) for m in response.context["messages"]],
+        )
+
+    def test_upload_without_results_does_not_lock_the_button(self):
+        # Samá "Příchozí" kategorie — soubor je formálně v pořádku, ale nic nezapíše.
+        row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Příchozí", "10000000011", "3"])
+        response = self._post(f"{self.HEADER}\r\n{row}\r\n".encode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.event.refresh_from_db()
+        self.assertFalse(self.event.rem_results)
+        self.assertFalse(Result.objects.filter(event=self.event).exists())
+        self.assertTrue(
+            any("nezapsal žádný výsledek" in str(m) for m in response.context["messages"]),
+            [str(m) for m in response.context["messages"]],
+        )
 
 
 class UciExportTests(TestCase):

@@ -103,6 +103,16 @@ queues a recount after results are imported.
 
 Results are uploaded as REM TSV files via the admin. `SetResults` (thread in `event/func.py`) parses rows and calls `GetResult.write_result()` (`event/result.py`) to create/update `Result` and `RaceRun` records. After import, ranking and MČR qualification recounts are both triggered.
 
+Every upload is checked by `validate_rem_results_bytes()` (`event/func.py`) **before** anything
+is saved: a complete REM export is UTF-8, has `CLASS` + `CLASS_RANKING` in the header, every row
+has exactly as many tab-separated columns as the header, and the file ends with a newline. This
+catches an **interrupted upload** — Django keeps whatever part of the request body arrived, so an
+unvalidated truncated file imports a fraction of the results and silently corrupts the ranking.
+`import_file()` returns `{"rows", "imported", "skipped", "errors"}` and `_handle_upload_txt`
+reports those counts to the admin; `Event.rem_results` is only set when at least one result was
+written, so a rejected file never locks the "Nahrát" button (which is disabled whenever
+`rem_results` is filled).
+
 ### Rider categories
 
 `Rider.set_class_20()` / `set_class_24()` derive the competition class from age and `is_elite` flag. Elite male riders: Junior (≤18), Under 23 (19–22), Elite (23+). Non-elite riders use age-based youth classes (Boys/Girls 6–16). Cruiser (24") uses separate age brackets.

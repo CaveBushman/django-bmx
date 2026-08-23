@@ -3,7 +3,7 @@
 {% load static i18n %} 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard-panels.css' %}">
-<script src="{% static 'js/event_admin.js' %}?v=4" defer></script>
+<script src="{% static 'js/event_admin.js' %}?v=5" defer></script>
 {% endblock %}
 {% block content %}
 
@@ -483,10 +483,21 @@
             <p class="event-admin-file-status mt-2 text-xs text-slate-500" data-file-selection>
               Žádný soubor nevybrán
             </p>
+            <p
+              class="mt-2 text-xs font-medium text-amber-600 dark:text-amber-300"
+              data-results-locked
+              data-rem-locked="{% if event.rem_results %}true{% else %}false{% endif %}"
+              data-bem-locked="{% if event.xls_results %}true{% else %}false{% endif %}"
+              {% if not event.rem_results %}hidden{% endif %}
+            >
+              <i class="fas fa-lock" aria-hidden="true"></i>
+              Výsledky už jsou nahrané — tlačítko Nahrát je proto zamčené.
+              Nejdřív je smaž tlačítkem Smazat a pak nahraj soubor znovu.
+            </p>
           </div>
           <div class="flex flex-wrap justify-between gap-3 mt-4">
             <button
-              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem] disabled:opacity-50 disabled:cursor-not-allowed"
               name="btn-upload-txt"
               value="txt"
               data-rem-name="btn-upload-txt"
@@ -499,13 +510,14 @@
               data-timing-action="upload"
               data-rem-has-results="{% if event.rem_results %}true{% else %}false{% endif %}"
               data-bem-has-results="{% if event.xls_results %}true{% else %}false{% endif %}"
+              title="Výsledky už jsou nahrané. Nejdřív je smaž, pak nahraj soubor znovu."
               {% if event.rem_results %}disabled{% endif %}
             >
               <i class="fas fa-upload" aria-hidden="true"></i>
               <span>Nahrát</span>
             </button>
             <button
-              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem]"
+              class="event-admin-action-btn inline-flex items-center gap-2 py-3 px-6 rounded-[1rem] disabled:opacity-50 disabled:cursor-not-allowed"
               name="btn-txt-delete"
               value="delete-txt"
               data-rem-name="btn-txt-delete"
