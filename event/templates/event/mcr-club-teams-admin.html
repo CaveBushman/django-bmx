@@ -386,6 +386,7 @@
     .mcr-web-only { display: none !important; }
     .space-y-4 > * + * { margin-top: 0 !important; }}
   </style>
+<script defer src="{% static 'js/mcr_club_admin.js' %}?v=1"></script>
 {% endblock extra_head %}
 
 {% block content %}
@@ -470,7 +471,7 @@
               {% trans "Stáhnout přihlášené jezdce" %}
             </a>
             {% endif %}
-            <details class="mcr-score-table-picker relative">
+            <details class="mcr-score-table-picker relative" data-outside-close>
               <summary class="mcr-secondary-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold">
                 <i class="fas fa-table" aria-hidden="true"></i>
                 {% trans "Stáhnout bodovací tabulku" %}
