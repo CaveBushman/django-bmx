@@ -691,7 +691,14 @@ def _handle_bem_riders(request, event):
 
 
 def _handle_rem_entries(request, event):
-    """Vygeneruje REM soubor s online přihláškami (přihlášení jezdci)."""
+    """Vygeneruje REM soubor s online přihláškami (přihlášení jezdci).
+
+    Na MČR družstev se jezdci nepřihlašují přes Entry, ale přes soupisky
+    družstev — proto se použije generátor ze soupisek, jinak by soubor
+    zůstal prázdný.
+    """
+    if _is_mcr_club_teams_event(event):
+        return _handle_mcr_club_rem_entries(request, event)
     all_entries = REMRiders()
     all_entries.event = event
     all_entries.create_entries_list()

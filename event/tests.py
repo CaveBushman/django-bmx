@@ -5263,6 +5263,18 @@ class McrClubTeamsEndToEndTests(TestCase):
         categories = sorted(row[17] for row in entries)
         self.assertEqual(categories, ["Boys 16"] * 4 + ["Cruiser Boys 15-16"])
 
+        # 4b. Stejná startovka i z tlačítka "Registrovaní jezdci" na stránce
+        # závodu — na MČR družstev se nesmí sáhnout do prázdné tabulky Entry.
+        response = self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.pk}),
+            {"btn-rem-file": "1"},
+        )
+        self.assertEqual(response.status_code, 200)
+        sheet = load_workbook(BytesIO(b"".join(response.streaming_content))).active
+        button_entries = list(sheet.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(button_entries), 5)
+        self.assertEqual({row[5] for row in button_entries}, {"Alpha"})
+
         # 5. REM seznam jezdců — jen členové soupisky, dvojnásobný jezdec dvakrát.
         response = self.client.post(
             reverse("event:event-admin", kwargs={"pk": self.event.pk}),
