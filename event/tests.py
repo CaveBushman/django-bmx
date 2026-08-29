@@ -2204,6 +2204,103 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(sheet.cell(2, 19).value, self.rider.plate_display)
         self.assertEqual(sheet.cell(2, 20).value, "CHIP20")
 
+    def test_mcr_club_teams_rem_riders_list_contains_only_team_members_with_team_name(self):
+        """Na MČR družstev jde do REM seznamu jezdců jen soupiska, s názvem družstva v TEAM."""
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        outsider = Rider.objects.create(
+            uci_id=10000000099,
+            first_name="Not",
+            last_name="Member",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            club=self.club,
+            is_active=True,
+            is_approved=True,
+            valid_licence=True,
+            plate=99,
+            class_20="Boys 15",
+        )
+        ForeignRider.objects.create(
+            uci_id=10115844151,
+            first_name="Foreign",
+            last_name="Rider",
+            gender="Muž",
+            date_of_birth=date(2010, 1, 1),
+            state="SVK",
+            club="SK Bratislava",
+        )
+        self.rider.transponder_20 = "CHIP20"
+        self.rider.transponder_24 = "CHIP24"
+        self.rider.save(update_fields=["transponder_20", "transponder_24"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Alpha Team", manager_name="Manager A")
+        # Jezdec zapsaný na 20" i 24" jde do seznamu dvakrát, pokaždé pro jedno kolo.
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_24, position=2)
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                rem_riders = REMRiders()
+                rem_riders.event = self.event
+                rem_riders.create_all_riders_list()
+                workbook = load_workbook(Path(media_root) / "rem_riders" / f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx")
+
+        sheet = workbook.active
+        rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([row[9] for row in rows], [self.rider.uci_id, self.rider.uci_id])
+        self.assertEqual([row[4] for row in rows], [self.club.team_name, self.club.team_name])
+        self.assertEqual([row[5] for row in rows], ["Alpha Team", "Alpha Team"])
+        self.assertNotIn(outsider.uci_id, [row[9] for row in rows])
+
+        # Řádek pro 20" nese jen sloupce 20", řádek pro 24" jen cruiser sloupce.
+        row_20, row_24 = rows
+        self.assertEqual((row_20[18], row_20[19]), (self.rider.plate_display, "CHIP20"))
+        self.assertEqual((row_20[20], row_20[21]), (None, None))
+        self.assertEqual((row_24[20], row_24[21]), (self.rider.plate_display, "CHIP24"))
+        self.assertEqual((row_24[18], row_24[19]), (None, None))
+
+    def test_mcr_club_teams_rem_riders_list_skips_cruiser_row_for_elite_rider(self):
+        """Elite jezdec 24" jet nesmí — cruiser řádek se mu do REM nezapíše."""
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        self.rider.is_elite = True
+        self.rider.save(update_fields=["is_elite"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Elite Team", manager_name="Manager A")
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1)
+        McrClubTeamMember.objects.create(team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_24, position=2)
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                rem_riders = REMRiders()
+                rem_riders.event = self.event
+                with self.assertLogs("event.entry", level="WARNING"):
+                    rem_riders.create_all_riders_list()
+                workbook = load_workbook(Path(media_root) / "rem_riders" / f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx")
+
+        sheet = workbook.active
+        rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][10], "E")
+        self.assertEqual(rows[0][18], self.rider.plate_display)
+        self.assertIsNone(rows[0][20])
+
+    def test_rem_riders_list_keeps_team_column_empty_outside_mcr_club_teams(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                rem_riders = REMRiders()
+                rem_riders.event = self.event
+                rem_riders.create_all_riders_list()
+                workbook = load_workbook(Path(media_root) / "rem_riders" / f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx")
+
+        sheet = workbook.active
+        self.assertEqual(sheet.cell(2, 10).value, self.rider.uci_id)
+        self.assertIsNone(sheet.cell(2, 6).value)
+        self.assertEqual(sheet.cell(2, 19).value, self.rider.plate_display)
+        self.assertEqual(sheet.cell(2, 21).value, self.rider.plate_display)
+
     def test_bem_exports_create_missing_media_directories(self):
         from event.views.views_admin import _handle_bem_entries, _handle_bem_riders
 
@@ -4981,3 +5078,221 @@ class EventControlSyncTests(TestCase):
             os.unlink(path)
 
         self.assertTrue(Club.objects.filter(team_name="BMX Tábor", event_control_id="EC-500").exists())
+
+
+class McrClubTeamsEndToEndTests(TestCase):
+    """Průchod celým MČR družstev: registrace soupisky → REM soubory → výsledky."""
+
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="E2E Club", is_active=True)
+        self.manager = User.objects.create_user(
+            first_name="Club", last_name="Manager",
+            username="e2e_manager", email="e2e_manager@example.com", password="StrongPass123!",
+        )
+        self.manager.is_active = True
+        self.manager.is_club_manager = True
+        self.manager.club = self.club
+        self.manager.save(update_fields=["is_active", "is_club_manager", "club"])
+
+        self.staff_user = User.objects.create_user(
+            first_name="Race", last_name="Admin",
+            username="e2e_admin", email="e2e_admin@example.com", password="StrongPass123!",
+        )
+        self.staff_user.is_active = True
+        self.staff_user.is_staff = True
+        self.staff_user.save(update_fields=["is_active", "is_staff"])
+
+        self.classes = EntryClasses.objects.create(
+            event_name="MČR družstev 2026",
+            boys_16="Boys 16",
+            cr_boys_15_16="Cruiser Boys 15-16",
+        )
+        self.event = Event.objects.create(
+            name="MČR družstev 2026",
+            date=date(2026, 6, 1),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking=EventType.MCR_DRUZSTEV,
+            classes_and_fees_like=self.classes,
+        )
+        SeasonSettings.objects.create(year=2026, mcr_club_registration_open=True)
+
+        self.riders = [
+            Rider.objects.create(
+                uci_id=10200000000 + index,
+                first_name=f"Jezdec{index}",
+                last_name="Testovací",
+                gender="Muž",
+                date_of_birth=date(2010, 1, index),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+                plate=10 + index,
+                class_20="Boys 16",
+                class_24="Boys 15 and 16",
+                transponder_20=f"CHIP20-{index}",
+                transponder_24=f"CHIP24-{index}",
+            )
+            for index in range(1, 5)
+        ]
+
+    # ------------------------------------------------------------------ helpers
+
+    def _register_team(self, name="Alpha", rider_24=None):
+        payload = {
+            "name": name,
+            "manager_name": "Manager Alpha",
+            "action": "save",
+        }
+        for index, rider in enumerate(self.riders, start=1):
+            payload[f"rider_20_{index}"] = str(rider.id)
+        if rider_24 is not None:
+            payload["rider_24"] = str(rider_24.id)
+        return self.client.post(reverse("club:mcr-club-teams", kwargs={"year": 2026}), payload)
+
+    def _results_tsv(self):
+        headers = [
+            "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "TEAM", "SEX", "BIRTHDATE",
+            "UCIID", "PLATE", "TRANSPONDER", "CLASS_RANKING",
+            "MOTO1_GATE", "MOTO1_LANE", "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_TIME",
+            "MOTO2_GATE", "MOTO2_LANE", "MOTO2_PLACE", "MOTO2_RACE_POINTS", "MOTO2_MOTO_POINTS", "MOTO2_TIME",
+            "FINAL_GATE", "FINAL_LANE", "FINAL_PLACE", "FINAL_RACE_POINTS", "FINAL_MOTO_POINTS", "FINAL_TIME",
+        ]
+        lines = ["\t".join(headers)]
+        # 20" jízdy: 1.–4. místo v motu, ve finále 1.–4.
+        for index, rider in enumerate(self.riders, start=1):
+            lines.append("\t".join([
+                self.event.name, rider.first_name, rider.last_name, self.club.team_name,
+                "Boys 16", "Alpha", "M", "01-01-2010", str(rider.uci_id), str(rider.plate_display),
+                rider.transponder_20, str(index),
+                "10", str(index), f"{index}st", "", "", "31.5",
+                "10", str(index), f"{index}st", "", "", "31.6",
+                "10", str(index), f"{index}st", "", "", "31.7",
+            ]))
+        # Cruiser jízda prvního jezdce — jiná kategorie, samostatný záznam v družstvu.
+        cruiser = self.riders[0]
+        lines.append("\t".join([
+            self.event.name, cruiser.first_name, cruiser.last_name, self.club.team_name,
+            "Cruiser Boys 15-16", "Alpha", "M", "01-01-2010", str(cruiser.uci_id),
+            str(cruiser.plate_display), cruiser.transponder_24, "1",
+            "10", "2", "2st", "", "", "32.5",
+            "10", "2", "2st", "", "", "32.6",
+            "10", "2", "2st", "", "", "32.7",
+        ]))
+        return "\n".join(lines) + "\n"
+
+    # -------------------------------------------------------------------- test
+
+    def test_full_mcr_club_teams_flow(self):
+        # 1. Manažer klubu přihlásí družstvo — 4 jezdci na 20", první i na 24".
+        self.client.force_login(self.manager)
+        response = self._register_team(rider_24=self.riders[0])
+        self.assertEqual(response.status_code, 302)
+
+        team = McrClubTeam.objects.get(year=2026, club=self.club, name="Alpha")
+        self.assertEqual(team.members.count(), 5)
+        self.assertEqual(team.members.filter(wheel=McrClubTeamMember.WHEEL_24).count(), 1)
+
+        # 2. Elite jezdec se do 24" nedostane — soupiska zůstane beze změny.
+        elite = self.riders[1]
+        elite.is_elite = True
+        elite.save(update_fields=["is_elite"])
+        response = self._register_team(name="Beta", rider_24=elite)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Elite jezdec nesmí startovat v kategorii 24&quot;.')
+        self.assertFalse(McrClubTeam.objects.filter(year=2026, name="Beta").exists())
+        elite.is_elite = False
+        elite.save(update_fields=["is_elite"])
+
+        # 3. Pořadatel uzavře registraci.
+        self.client.force_login(self.staff_user)
+        response = self.client.post(
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.pk}),
+            {"action": "close_registration"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(SeasonSettings.objects.get(year=2026).mcr_club_registration_open)
+
+        # 4. REM startovka — řádek na každé členství, TEAM je název družstva.
+        response = self.client.get(reverse("event:mcr-club-teams-rem-entries", kwargs={"pk": self.event.pk}))
+        self.assertEqual(response.status_code, 200)
+        sheet = load_workbook(BytesIO(b"".join(response.streaming_content))).active
+        entries = list(sheet.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(entries), 5)
+        self.assertEqual({row[5] for row in entries}, {"Alpha"})
+        self.assertEqual({row[4] for row in entries}, {self.club.team_name})
+        categories = sorted(row[17] for row in entries)
+        self.assertEqual(categories, ["Boys 16"] * 4 + ["Cruiser Boys 15-16"])
+
+        # 5. REM seznam jezdců — jen členové soupisky, dvojnásobný jezdec dvakrát.
+        response = self.client.post(
+            reverse("event:event-admin", kwargs={"pk": self.event.pk}),
+            {"btn-rem-riders-list": "1"},
+        )
+        self.assertEqual(response.status_code, 200)
+        sheet = load_workbook(BytesIO(b"".join(response.streaming_content))).active
+        riders_rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(riders_rows), 5)
+        self.assertEqual({row[5] for row in riders_rows}, {"Alpha"})
+        doubled = [row for row in riders_rows if row[9] == self.riders[0].uci_id]
+        self.assertEqual(len(doubled), 2)
+        row_20 = next(row for row in doubled if row[19])
+        row_24 = next(row for row in doubled if row[21])
+        self.assertEqual(row_20[19], "CHIP20-1")
+        self.assertIsNone(row_20[21])
+        self.assertEqual(row_24[21], "CHIP24-1")
+        self.assertIsNone(row_24[19])
+
+        # 6. Pořadatel nahraje TSV výsledky z REM — vzniknou jízdy.
+        upload = SimpleUploadedFile(
+            "overall_results__race.txt", self._results_tsv().encode("utf-8"), content_type="text/plain"
+        )
+        response = self.client.post(
+            reverse("event:mcr-club-teams-admin", kwargs={"pk": self.event.pk}),
+            {"overall_results": upload},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(RaceRun.objects.filter(event=self.event).count(), 15)
+        self.assertEqual(RaceRun.objects.filter(event=self.event, is_20=False).count(), 3)
+
+        # 7. Vyhodnocení — body družstva se sečtou přes obě kola.
+        from event.views.views_admin import _get_latest_mcr_results_round, _get_mcr_club_results_rows
+
+        self.assertEqual(_get_latest_mcr_results_round(self.event), "FINAL")
+        rows = _get_mcr_club_results_rows(self.event, "FINAL")
+        self.assertEqual(len(rows), 1)
+        result_row = rows[0]
+        self.assertEqual(result_row["team"], team)
+        self.assertEqual(result_row["active_count"], 5)
+        # MOTO 8/7/6/5 za 1.–4. místo, FINAL 22/18/15/13 → 20" jezdci 38/32/27/23,
+        # cruiser (2. místo) 7 + 7 + 18 = 32.
+        self.assertEqual(result_row["individual_points"], [38, 32, 32, 27, 23])
+        self.assertEqual(result_row["points_total"], 152)
+        cruiser_result = next(
+            item for item in result_row["rider_results"] if item["category"] == "Cruiser Boys 15-16"
+        )
+        self.assertEqual(cruiser_result["points"], 32)
+
+        # 8. Tisk výsledků a bodovací tabulky projde.
+        response = self.client.get(reverse("event:mcr-club-teams-results-pdf", kwargs={"pk": self.event.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+        response = self.client.get(
+            reverse("event:mcr-club-teams-score-table", kwargs={"pk": self.event.pk}),
+            {"club_id": str(self.club.id)},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+        # 9. Soupis družstev pro pořadatele.
+        response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")

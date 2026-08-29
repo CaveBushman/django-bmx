@@ -45,6 +45,11 @@ class McrClubTeamForm(forms.Form):
         self.fields["rider_24"].widget.attrs["data-assigned-same-wheel"] = ",".join(
             str(rider_id) for rider_id in sorted(self.assigned_rider_ids_by_wheel[McrClubTeamMember.WHEEL_24])
         )
+        # Elite jezdec 24" jet nesmí — v nabídce cruiseru se jeho volba zamkne.
+        self.fields["rider_24"].widget.attrs["data-elite-riders"] = ",".join(
+            str(rider_id)
+            for rider_id in rider_queryset.filter(is_elite=True).values_list("id", flat=True)
+        )
 
         if team and not self.is_bound:
             self.initial.update({"name": team.name, "manager_name": team.manager_name})
@@ -116,6 +121,9 @@ class McrClubTeamForm(forms.Form):
         ]
         if len(duplicate_20_ids) != len(set(duplicate_20_ids)):
             raise ValidationError(_('Stejný jezdec nesmí být vybraný ve 20" pozicích vícekrát.'))
+
+        if rider_24 and rider_24.is_elite:
+            raise ValidationError(_('Elite jezdec nesmí startovat v kategorii 24".'))
 
         for rider, wheel, _position in entries:
             if rider.id in self.assigned_rider_ids_by_wheel[wheel]:

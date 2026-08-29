@@ -4,7 +4,7 @@ import os
 import event
 
 logger = logging.getLogger(__name__)
-from .models import Entry, Event, EntryForeign as EntryForeignModel
+from .models import Entry, Event, EntryForeign as EntryForeignModel, EventType
 from rider.models import Rider, ForeignRider
 from django.utils import timezone
 import stripe
@@ -246,19 +246,58 @@ class REMRiders:
         self.ws.cell(1, 22, "Transponder_1")  # cruiser
         self.ws.cell(1, 23, "Transponder_hire_flag")
 
+    def _mcr_club_team_riders(self):
+        """Jezdci ze soupisek družstev MČR — jeden řádek na jezdce a druh kola.
+
+        Jezdec zapsaný na 20" i 24" jde do seznamu dvakrát, pokaždé jen s
+        kolonkami svého kola. Stejné kolo v jednom roce se nezopakuje.
+        Elite jezdec 24" jet nesmí, cruiser řádek se mu proto nezakládá.
+        """
+        from club.models import McrClubTeam, McrClubTeamMember
+
+        teams = (
+            McrClubTeam.objects
+            .filter(year=self.event.date.year if self.event.date else timezone.now().year)
+            .select_related("club")
+            .prefetch_related("members__rider")
+            .order_by("club__team_name", "name")
+        )
+        seen = set()
+        for team in teams:
+            for member in team.members.all():
+                rider = member.rider
+                if rider is None or (rider.id, member.wheel) in seen:
+                    continue
+                if member.wheel == McrClubTeamMember.WHEEL_24 and rider.is_elite:
+                    logger.warning(
+                        "REM seznam jezdců: elite jezdec %s je na soupisce družstva %s na 24\" — cruiser řádek vynechán",
+                        rider.uci_id, team.name,
+                    )
+                    continue
+                seen.add((rider.id, member.wheel))
+                yield rider, team.name, member.wheel
+
     def create_all_riders_list(self):
         self.file_name = os.path.join(settings.MEDIA_ROOT, "rem_riders", f"REM_ALL_RIDERS_FOR_RACE_ID-{self.event.id}.xlsx")
         self.first_line()
 
         row: int = 2
 
-        for rider in self.riders:
+        # Na MČR družstev jedou jen členové soupisek a REM potřebuje u jezdce
+        # název družstva (klub zůstává klubem jezdce).
+        is_mcr_club_teams = bool(self.event) and self.event.type_for_ranking == EventType.MCR_DRUZSTEV
+        if is_mcr_club_teams:
+            riders = self._mcr_club_team_riders()
+        else:
+            riders = ((rider, None, None) for rider in self.riders)
+
+        for rider, team_name, wheel in riders:
             self.ws.cell(row, 1, )
             self.ws.cell(row, 2, rider.first_name)
             self.ws.cell(row, 3, rider.last_name)
             self.ws.cell(row, 4, rider.email)
             self.ws.cell(row, 5, event.func.team_name_resolve(rider.club))
-            self.ws.cell(row, 6, )
+            self.ws.cell(row, 6, team_name)
             self.ws.cell(row, 7, "CZE")
             self.ws.cell(row, 8, event.func.date_of_birth_resolve(rider))
             self.ws.cell(row, 9, event.func.gender_resolve(rider))
@@ -274,15 +313,18 @@ class REMRiders:
             self.ws.cell(row, 16, )
             self.ws.cell(row, 17, )
             self.ws.cell(row, 18, )
-            self.ws.cell(row, 19, rider.plate_display)
-            self.ws.cell(row, 20, rider.transponder_20)
-            self.ws.cell(row, 21, rider.plate_display)
-            self.ws.cell(row, 22, rider.transponder_24)
+            # Řádek ze soupisky družstva patří jednomu kolu — vyplní se jen jeho sloupce.
+            if wheel != "24":
+                self.ws.cell(row, 19, rider.plate_display)
+                self.ws.cell(row, 20, rider.transponder_20)
+            if wheel != "20":
+                self.ws.cell(row, 21, rider.plate_display)
+                self.ws.cell(row, 22, rider.transponder_24)
             self.ws.cell(row, 23, )
             row += 1
 
-        # Add foreign riders
-        for rider in self.foreign_riders:
+        # Add foreign riders — na MČR družstev startují jen členové soupisek
+        for rider in ([] if is_mcr_club_teams else self.foreign_riders):
             self.ws.cell(row, 1, )
             self.ws.cell(row, 2, rider.first_name)
             self.ws.cell(row, 3, rider.last_name)
@@ -452,6 +494,13 @@ class REMRiders:
             for member in team.members.all():
                 rider = member.rider
                 is_cruiser = member.wheel == McrClubTeamMember.WHEEL_24
+                # Elite jezdec 24" jet nesmí — do startovky se cruiser řádek nedostane.
+                if is_cruiser and rider.is_elite:
+                    logger.warning(
+                        "REM přihlášky MČR družstev: elite jezdec %s je na soupisce družstva %s na 24\" — vynechán",
+                        rider.uci_id, team.name,
+                    )
+                    continue
                 self.ws.cell(row, 1, self.event.name)
                 self.ws.cell(row, 2, rider.first_name)
                 self.ws.cell(row, 3, rider.last_name)

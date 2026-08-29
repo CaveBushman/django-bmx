@@ -243,13 +243,17 @@
       return selects20.map((select) => select.value).filter(Boolean);
     }
 
-    function assignedSameWheelValues(select) {
+    function idSetFromData(value) {
       return new Set(
-        (select.dataset.assignedSameWheel || "")
+        (value || "")
           .split(",")
-          .map((value) => value.trim())
+          .map((item) => item.trim())
           .filter(Boolean)
       );
+    }
+
+    function assignedSameWheelValues(select) {
+      return idSetFromData(select.dataset.assignedSameWheel);
     }
 
     function syncMcrTeamSelects() {
@@ -270,12 +274,17 @@
       });
 
       const assigned24 = assignedSameWheelValues(select24);
+      // Elite jezdec 24" jet nesmí.
+      const elite = idSetFromData(select24.dataset.eliteRiders);
       Array.from(select24.options).forEach((option) => {
         if (!option.value) {
           option.disabled = false;
           return;
         }
-        option.disabled = assigned24.has(option.value) || (teamHasFour20Riders && !unique20.has(option.value));
+        option.disabled =
+          assigned24.has(option.value) ||
+          elite.has(option.value) ||
+          (teamHasFour20Riders && !unique20.has(option.value));
       });
 
       if (select24.value && select24.options[select24.selectedIndex].disabled) {

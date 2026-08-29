@@ -282,6 +282,43 @@ class McrClubTeamManagerTests(TestCase):
             {McrClubTeamMember.WHEEL_20, McrClubTeamMember.WHEEL_24},
         )
 
+    def test_team_rejects_elite_rider_on_24(self):
+        """Elite jezdec 24" jet nesmí — do cruiser slotu ho registrace nepustí."""
+        elite = self.riders[0]
+        elite.is_elite = True
+        elite.save(update_fields=["is_elite"])
+        self.client.force_login(self.manager)
+
+        response = self.client.post(
+            reverse("club:mcr-club-teams", kwargs={"year": 2026}),
+            {
+                "name": "Elite Team",
+                "manager_name": "Manager",
+                "rider_20_1": str(elite.id),
+                "rider_24": str(elite.id),
+                "action": "save",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Elite jezdec nesmí startovat v kategorii 24")
+        self.assertFalse(McrClubTeam.objects.filter(name="Elite Team").exists())
+
+    def test_elite_rider_is_locked_in_24_select(self):
+        elite = self.riders[0]
+        elite.is_elite = True
+        elite.save(update_fields=["is_elite"])
+        self.client.force_login(self.manager)
+
+        response = self.client.get(reverse("club:mcr-club-teams", kwargs={"year": 2026}), {"new": "1"})
+
+        form = response.context["form"]
+        # Volba zůstává ve výběru, ale je označená jako elite — JS ji zamkne
+        # a validace ji odmítne srozumitelnou hláškou.
+        self.assertIn(elite, form.fields["rider_24"].queryset)
+        self.assertEqual(form.fields["rider_24"].widget.attrs["data-elite-riders"], str(elite.id))
+        self.assertEqual(form.fields["rider_20_1"].widget.attrs.get("data-elite-riders"), None)
+
     def test_team_rejects_more_than_four_unique_riders(self):
         self.client.force_login(self.manager)
 
