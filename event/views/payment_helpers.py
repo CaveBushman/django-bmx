@@ -170,6 +170,31 @@ def finalize_credit_transaction_by_session_id(session_id, *, user=None):
         )
 
 
+#: Značky, kterými se v metadatech pozná checkout session **Event Controlu**
+#: (bikody.com). Stripe účet je sdílený s tímhle webem, takže Stripe posílá
+#: každou událost do obou cílů — platba z bikody.com tady není závada, ale
+#: běžný provoz.
+#:
+#: Rozlišuje se podle metadat Event Controlu, ne podle vlastních: tenhle web
+#: u svých session žádná metadata nezakládá, takže „nemá naše" by neřeklo nic.
+#: Zdroj: `payments/views.py::NASE_ZNACKY` v Event Controlu.
+EVENT_CONTROL_ZNACKY = frozenset({
+    "credit_checkout_session_id",
+    "wallet_topup_session_id",
+    "plan_subscription_checkout_id",
+})
+
+
+def _je_session_event_controlu(session):
+    """Patří tahle session druhé aplikaci na sdíleném Stripe účtu?
+
+    `metadata` může přijít i jako `null`, proto `or {}` — bez toho by
+    z chybějících metadat byla výjimka.
+    """
+    metadata = session.get("metadata") or {}
+    return bool(EVENT_CONTROL_ZNACKY & set(metadata))
+
+
 def handle_credit_webhook(payload, sig_header):
     """
     Hlavní vstupní bod pro Stripe Webhook.
@@ -189,6 +214,18 @@ def handle_credit_webhook(payload, sig_header):
 
     session = stripe_event["data"]["object"]
     session_id = session["id"]
+
+    # Platba Event Controlu (bikody.com) na sdíleném účtu. Vrátit 200 hned:
+    # jinak by se zbytečně třikrát sáhlo do databáze pro záznam, který tu
+    # z principu být nemůže — a v logu by po ní nezůstala stopa, takže by
+    # ztracená VLASTNÍ platba vypadala úplně stejně jako tahle.
+    if _je_session_event_controlu(session):
+        logger.info(
+            "[Webhook] Session %s patří Event Controlu (sdílený Stripe účet), ignoruji.",
+            session_id,
+        )
+        return HttpResponse(status=200)
+
     payment_intent = session.get("payment_intent")
     payment_status = session.get("payment_status")
     customer_details = session.get("customer_details") or {}

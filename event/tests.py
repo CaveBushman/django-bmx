@@ -1538,6 +1538,38 @@ class ForeignEntryHelperTests(TestCase):
         self.assertEqual(foreign_rider.first_name, "Péter")
 
     @patch("event.views.payment_helpers._construct_stripe_event")
+    def test_webhook_ignoruje_platbu_event_controlu_na_sdilenem_uctu(self, construct_event_mock):
+        """Stripe účet sdílíme s bikody.com, takže sem chodí i jejich platby.
+
+        Poznají se podle metadat, která Event Control u každé své session
+        zakládá; tenhle web u svých žádná nemá. Bez rozlišení by se pro cizí
+        platbu zbytečně třikrát sáhlo do databáze a v logu by po ní nezůstala
+        stopa — ztracená vlastní platba by pak vypadala úplně stejně.
+        """
+        construct_event_mock.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_live_z_event_controlu",
+                    "payment_status": "paid",
+                    "metadata": {"wallet_topup_session_id": "0f0f0f0f-0000-0000-0000-000000000000"},
+                }
+            },
+        }
+
+        with patch("event.views.payment_helpers.CreditTransaction.objects") as credit_mock:
+            response = self.client.post(
+                reverse("event:stripe-credit-webhook"),
+                data="{}",
+                content_type="application/json",
+                HTTP_STRIPE_SIGNATURE="sig_test",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        # Do našich tabulek se vůbec nesáhlo — není proč.
+        credit_mock.select_for_update.assert_not_called()
+
+    @patch("event.views.payment_helpers._construct_stripe_event")
     def test_webhook_marks_foreign_entries_paid_and_syncs_foreign_rider(self, construct_event_mock):
         foreign_entry = EntryForeign.objects.create(
             event=self.event,
