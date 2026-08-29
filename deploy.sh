@@ -156,9 +156,11 @@ curl_local() {
   fi
 }
 
+# Když se curl nepřipojí, vypíše 000 sám — druhé `echo 000` dělalo z výpisu
+# nesrozumitelné "000000".
 http_status() {
   if have curl; then
-    curl_local -s -o /dev/null -w '%{http_code}' --max-time 15 "$1" || echo "000"
+    curl_local -s -o /dev/null -w '%{http_code}' --max-time 15 "$1" 2>/dev/null || true
   else
     "$PY" - "$1" <<'PY' || echo "000"
 import sys, urllib.request
@@ -168,6 +170,28 @@ try:
 except Exception:
     print("000")
 PY
+  fi
+}
+
+# Kód 000 znamená "vůbec se nepřipojil" — příčinu (chybí socket, nemám na něj
+# práva, nikdo neposlouchá) zná jen curl, tak ji necháme vypsat. Bez toho se
+# hledá rozbitá aplikace tam, kde je rozbitý jen dotaz na ni.
+health_explain() {
+  if [ -n "$HEALTH_SOCKET" ]; then
+    if [ ! -S "$HEALTH_SOCKET" ]; then
+      warn "socket $HEALTH_SOCKET neexistuje — ptal jsem se přes TCP na $HEALTH_URL"
+      warn "→ zjisti, kde gunicorn poslouchá: $SUDO systemctl show -p ExecStart gunicorn.service"
+    else
+      warn "socket: $(ls -l "$HEALTH_SOCKET" 2>&1)"
+      warn "běžím jako: $(id -un) ($(id -Gn 2>/dev/null))"
+      if have curl; then
+        warn "curl: $(curl -sS -o /dev/null --max-time 15 --unix-socket "$HEALTH_SOCKET" \
+          -H 'X-Forwarded-Proto: https' "$HEALTH_URL" 2>&1 | head -1)"
+      fi
+      warn "→ na socket musíš mít práva; jinak spusť deploy přes $SUDO, nebo se přidej"
+      warn "  do skupiny, která socket vlastní, nebo obejdi gunicorn přes nginx:"
+      warn "  HEALTH_SOCKET= HEALTH_URL=https://czechbmx.cz/healthz ./deploy.sh"
+    fi
   fi
 }
 
@@ -387,6 +411,7 @@ else
   done
   if [ "$OK" != "1" ]; then
     warn "Aplikace neodpovídá 200 na $HEALTH_URL"
+    health_explain
     warn "logy: $SUDO journalctl -u gunicorn.service -n 50 --no-pager"
     die "Health check neprošel — web pravděpodobně neběží."
   fi
