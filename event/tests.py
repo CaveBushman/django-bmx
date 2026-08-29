@@ -4517,6 +4517,86 @@ class RemTsvRaceRunImportTests(TestCase):
         self.assertFalse(f4.qualified_to_next_round)
 
 
+class McrClubUnfinishedRunPointsTests(TestCase):
+    """Bodování jízd, které jezdec nedojel — DNF, DNS a REL."""
+
+    HEADERS = [
+        "EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLUB", "CLASS", "UCIID", "PLATE",
+        "MOTO1_GATE", "MOTO1_LANE", "MOTO1_PLACE", "MOTO1_RACE_POINTS", "MOTO1_MOTO_POINTS", "MOTO1_TIME",
+    ]
+
+    def setUp(self):
+        self.temp_media_dir = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media_dir.name)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(self.temp_media_dir.cleanup)
+
+        self.club = Club.objects.create(team_name="DNF Club")
+        self.event = Event.objects.create(
+            name="DNF Race",
+            date=date(2026, 8, 30),
+            organizer=self.club,
+            reg_open=False,
+            type_for_ranking="Mistrovství ČR družstev",
+        )
+        # Pět jezdců na jedné brance; jeden z nich nenastoupí.
+        self.places = ["1st", "2nd", "DNF", "REL+2", "DNS"]
+        self.riders = [
+            Rider.objects.create(
+                uci_id=10000000020 + index,
+                first_name=f"Rider{index}",
+                last_name="Heat",
+                gender="Muž",
+                date_of_birth=date(2010, 1, 1),
+                club=self.club,
+                is_active=True,
+                is_approved=True,
+                valid_licence=True,
+                class_20="Boys 15",
+                plate_text=str(100 + index),
+            )
+            for index in range(len(self.places))
+        ]
+
+    def _tsv(self):
+        rows = []
+        for index, (rider, place) in enumerate(zip(self.riders, self.places)):
+            rows.append("\t".join([
+                self.event.name, rider.first_name, rider.last_name, self.club.team_name,
+                "Boys 15", str(rider.uci_id), rider.plate_text,
+                "48", str(index + 1), place, "", "", "",
+            ]))
+        return "\t".join(self.HEADERS) + "\n" + "\n".join(rows) + "\n"
+
+    def _import(self):
+        path = os.path.join(settings.MEDIA_ROOT, "event_stats", str(self.event.pk), "overall_results__race.txt")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(self._tsv())
+        RemTsvRaceRunImportService().import_file(self.event, path)
+        return {
+            run.rider_id: run
+            for run in RaceRun.objects.filter(event=self.event, round_type="MOTO")
+        }
+
+    def test_dnf_scores_the_last_place_in_its_heat(self):
+        runs = self._import()
+        # Na brance stálo pět jezdců, jeden nenastoupil — jelo se ve čtyřech,
+        # takže poslední místo je čtvrté a za něj je pět bodů.
+        self.assertEqual(runs[self.riders[2].id].race_points, 5)
+
+    def test_dns_and_rel_score_nothing(self):
+        runs = self._import()
+        self.assertEqual(runs[self.riders[3].id].race_points, 0)
+        self.assertEqual(runs[self.riders[4].id].race_points, 0)
+
+    def test_finished_places_keep_their_points(self):
+        runs = self._import()
+        self.assertEqual(runs[self.riders[0].id].race_points, 8)
+        self.assertEqual(runs[self.riders[1].id].race_points, 7)
+
+
 class ImportStatsViewTests(TestCase):
     """Tests for the import_event_stats view (upload, delete, phase warnings)."""
 

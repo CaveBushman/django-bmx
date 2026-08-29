@@ -1197,6 +1197,24 @@ def _mcr_member_category(event, member):
     return ""
 
 
+def _draw_mcr_unfinished_runs_note(pdf, x, y):
+    """Vypíše, jak se bodují jízdy, které jezdec nedojel.
+
+    Patří to na papír vedle bodovacího klíče: rozhodčí u stolku počítá body
+    ručně a bez tohoto pravidla nemá kde zjistit, že DNF není nula.
+    """
+    pdf.setFont("DejaVuSans-Bold", 9)
+    pdf.drawString(x, y, "NEDOKONČENÉ JÍZDY:")
+    pdf.setFont("DejaVuSans", 9)
+    for line in (
+        "DNF — body za poslední místo v jízdě",
+        "(při sedmi jezdcích za sedmé, při pěti za páté).",
+        "DNS, REL a DSQ — bez bodu.",
+    ):
+        y -= 7 * mm
+        pdf.drawString(x, y, line)
+
+
 def _draw_mcr_score_table_page(pdf, event, team):
     width, height = landscape(A4)
     margin_x = 12 * mm
@@ -1280,6 +1298,9 @@ def _draw_mcr_score_table_page(pdf, event, team):
         ("1/2", "1-0, 2-0, 3-0, 4-0, 5-8, 6-6, 7-4, 8-2"),
         ("FINÁLE:", "1-22, 2-18, 3-15, 4-13, 5-12, 6-11, 7-10, 8-9"),
     ]
+    # Nedokončené jízdy jdou do druhého sloupce vedle bodovacího klíče: pod ním
+    # už na A4 na šířku místo není, když má družstvo plných pět jezdců.
+    _draw_mcr_unfinished_runs_note(pdf, margin_x + 150 * mm, y)
     for label, value in key_rows:
         pdf.setFont("DejaVuSans-Bold", 9)
         pdf.drawString(margin_x, y, label)
