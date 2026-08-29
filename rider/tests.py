@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from django.test import RequestFactory, TestCase
@@ -608,6 +609,11 @@ class RiderAdminSearchTests(TestCase):
 
 class RiderPremiumSubscriptionTests(TestCase):
     def setUp(self):
+        # Kontext prémiových statistik se cachuje pod klíčem složeným z UCI ID
+        # jezdce a parametrů dotazu. Ten je napříč testy stejný a LocMemCache
+        # se mezi nimi nezahazuje, takže první test v procesu určil, co uvidí
+        # všechny další — a padal pokaždé jiný.
+        cache.clear()
         self.user = User.objects.create_user(
             first_name="Premium",
             last_name="User",
