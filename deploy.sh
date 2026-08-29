@@ -37,6 +37,8 @@
 #   CLEAR_STATIC=1         collectstatic --clear (smaže staré hashované soubory)
 #   DEPLOY_NGINX=0         přeskočí restart nginx (spravuje ho někdo jiný)
 #   HEALTH_URL=…           default http://127.0.0.1:8000/healthz; prázdné = vypnuto
+#   HEALTH_SOCKET=…        unix socket gunicornu (default /run/gunicorn.sock);
+#                          prázdné = mluvit přes TCP na HEALTH_URL
 #
 # Poznámka k CSS: theme/static/css/dist/styles.css je verzovaný, takže se
 # Tailwind normálně buildí lokálně (`make css`) a commituje — server nepotřebuje
@@ -67,6 +69,10 @@ DEPLOY_I18N="${DEPLOY_I18N:-1}"
 DEPLOY_CRON="${DEPLOY_CRON:-1}"
 CLEAR_STATIC="${CLEAR_STATIC:-0}"
 HEALTH_URL="${HEALTH_URL-http://127.0.0.1:8000/healthz}"
+# Gunicorn poslouchá na unix socketu, ne na TCP portu — curl se musí ptát
+# přes něj, jinak health check vrací 000 i u běžící aplikace. Hostname
+# z HEALTH_URL slouží jen jako hlavička Host.
+HEALTH_SOCKET="${HEALTH_SOCKET-/run/gunicorn.sock}"
 
 DB_PATH="${DB_PATH:-$PROJECT_DIR/db.sqlite3}"
 BACKUP_DIR="${BACKUP_DIR:-$PROJECT_DIR/backups/db}"
@@ -141,9 +147,18 @@ restart_nginx() {
   restart_unit nginx.service
 }
 
+# Bez X-Forwarded-Proto: https vrátí SECURE_SSL_REDIRECT na produkci 301 místo 200.
+curl_local() {
+  if [ -n "$HEALTH_SOCKET" ] && [ -S "$HEALTH_SOCKET" ]; then
+    curl --unix-socket "$HEALTH_SOCKET" -H 'X-Forwarded-Proto: https' "$@"
+  else
+    curl "$@"
+  fi
+}
+
 http_status() {
   if have curl; then
-    curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$1" || echo "000"
+    curl_local -s -o /dev/null -w '%{http_code}' --max-time 15 "$1" || echo "000"
   else
     "$PY" - "$1" <<'PY' || echo "000"
 import sys, urllib.request
@@ -158,7 +173,7 @@ PY
 
 http_body() {
   if have curl; then
-    curl -s --max-time 15 "$1" || true
+    curl_local -sL --max-redirs 5 --max-time 15 "$1" || true
   else
     "$PY" - "$1" <<'PY' || true
 import sys, urllib.request
