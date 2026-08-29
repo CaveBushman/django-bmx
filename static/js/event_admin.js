@@ -152,13 +152,28 @@ function initEventAdmin(documentRef) {
       }
       if (element.dataset[mode + "HasResults"] !== undefined) {
         var hasResults = element.dataset[mode + "HasResults"] === "true";
-        element.disabled = element.dataset.timingAction === "upload" ? hasResults : !hasResults;
+        if (element.dataset.timingAction === "upload") {
+          // Nahrané výsledky zamykají Nahrát jen tam, kde import neumí nahradit
+          // předchozí sadu. U REM se nahrává opakovaně, nový soubor ten starý
+          // přepíše.
+          element.disabled = element.dataset[mode + "UploadLocked"] === "true" && hasResults;
+        } else {
+          element.disabled = !hasResults;
+        }
       }
     });
 
     section.querySelectorAll("[data-results-locked]").forEach(function (note) {
       if (note.dataset[mode + "Locked"] !== undefined) {
         note.hidden = note.dataset[mode + "Locked"] !== "true";
+      }
+      var text = note.querySelector("[data-results-locked-text]");
+      if (text && note.dataset[mode + "Note"] !== undefined) {
+        text.textContent = note.dataset[mode + "Note"];
+      }
+      var icon = note.querySelector("[data-results-locked-icon]");
+      if (icon && note.dataset[mode + "NoteIcon"] !== undefined) {
+        icon.className = note.dataset[mode + "NoteIcon"];
       }
     });
 

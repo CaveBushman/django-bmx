@@ -488,11 +488,14 @@
               data-results-locked
               data-rem-locked="{% if event.rem_results %}true{% else %}false{% endif %}"
               data-bem-locked="{% if event.xls_results %}true{% else %}false{% endif %}"
+              data-rem-note-icon="fas fa-rotate"
+              data-bem-note-icon="fas fa-lock"
+              data-rem-note="Výsledky už jsou nahrané. Nové nahrání je nahradí — původní soubor i zapsané výsledky se smažou."
+              data-bem-note="Výsledky už jsou nahrané — tlačítko Nahrát je proto zamčené. Nejdřív je smaž tlačítkem Smazat a pak nahraj soubor znovu."
               {% if not event.rem_results %}hidden{% endif %}
             >
-              <i class="fas fa-lock" aria-hidden="true"></i>
-              Výsledky už jsou nahrané — tlačítko Nahrát je proto zamčené.
-              Nejdřív je smaž tlačítkem Smazat a pak nahraj soubor znovu.
+              <i class="fas fa-rotate" aria-hidden="true" data-results-locked-icon></i>
+              <span data-results-locked-text>Výsledky už jsou nahrané. Nové nahrání je nahradí — původní soubor i zapsané výsledky se smažou.</span>
             </p>
           </div>
           <div class="flex flex-wrap justify-between gap-3 mt-4">
@@ -510,8 +513,8 @@
               data-timing-action="upload"
               data-rem-has-results="{% if event.rem_results %}true{% else %}false{% endif %}"
               data-bem-has-results="{% if event.xls_results %}true{% else %}false{% endif %}"
-              title="Výsledky už jsou nahrané. Nejdřív je smaž, pak nahraj soubor znovu."
-              {% if event.rem_results %}disabled{% endif %}
+              data-rem-upload-locked="false"
+              data-bem-upload-locked="true"
             >
               <i class="fas fa-upload" aria-hidden="true"></i>
               <span>Nahrát</span>

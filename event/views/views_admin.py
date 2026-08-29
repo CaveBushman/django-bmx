@@ -42,6 +42,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Count, Q
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -221,9 +222,16 @@ def _build_media_storage(*parts):
     ), relative_dir
 
 
-def _save_uploaded_file(uploaded_file, *storage_parts):
+def _save_uploaded_file(uploaded_file, *storage_parts, replace=True):
+    """Uloží nahraný soubor; ``replace=False`` nechá stejnojmenný soubor na místě.
+
+    Přepis podle jména je v pořádku tam, kde uložení je poslední krok. Když po
+    něm ještě něco běží (import, který může selhat), musí nový soubor dostat
+    vlastní jméno — jinak zmizí předchozí data dřív, než se ukáže, že náhrada
+    za nic nestojí.
+    """
     storage, relative_dir = _build_media_storage(*storage_parts)
-    if storage.exists(uploaded_file.name):
+    if replace and storage.exists(uploaded_file.name):
         storage.delete(uploaded_file.name)
     filename = storage.save(uploaded_file.name, uploaded_file)
     return storage, filename, os.path.join(relative_dir, filename)
@@ -727,6 +735,23 @@ def _handle_rem_riders(request, event):
     return event.rem_riders_list.path if event.rem_riders_list else None
 
 
+def _rem_results_path(event):
+    """Cesta k dosud nahranému REM souboru, nebo None, když žádný není."""
+    try:
+        return event.rem_results.path if event.rem_results else None
+    except (ValueError, NotImplementedError):
+        return None
+
+
+def _remove_previous_rem_results_file(path):
+    if not path:
+        return
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        logger.warning("REM soubor nenalezen při nahrazení: %s", path)
+
+
 def _handle_upload_txt(request, event, pk):
     """Nahraje TSV výsledky z REM a zapíše pouze Result."""
     if "result-file-txt" not in request.FILES:
@@ -749,13 +774,22 @@ def _handle_upload_txt(request, event, pk):
         )
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
 
-    storage, filename, relative_path = _save_uploaded_file(result_file, "rem_results")
+    previous_path = _rem_results_path(event)
+    storage, filename, relative_path = _save_uploaded_file(result_file, "rem_results", replace=False)
 
-    results = SetResults()
-    results.setEvent(pk)
-    results.setFile(filename)
-    results.run()
-    stats = results.stats
+    # Nahrání se smí opakovat a nový soubor nahradí ten původní. Import sám
+    # výsledky nemaže, jen přidává, takže se stará sada musí smazat předem —
+    # jinak by se závod zdvojil a rozbil ranking. Obojí drží jedna transakce:
+    # když nový soubor nezapíše nic, původní výsledky zůstanou na místě.
+    with transaction.atomic():
+        Result.objects.filter(event=pk).delete()
+        results = SetResults()
+        results.setEvent(pk)
+        results.setFile(filename)
+        results.run()
+        stats = results.stats
+        if not stats["imported"]:
+            transaction.set_rollback(True)
 
     if not stats["imported"]:
         storage.delete(filename)
@@ -763,10 +797,20 @@ def _handle_upload_txt(request, event, pk):
             request,
             f"Ze souboru se nezapsal žádný výsledek (řádků: {stats['rows']}, "
             f"přeskočeno: {stats['skipped']}, chyb: {stats['errors']}). "
-            "Zkontroluj, že jde o export výsledků z REM, ne startovní listinu.",
+            "Zkontroluj, že jde o export výsledků z REM, ne startovní listinu. "
+            "Původní výsledky zůstaly nedotčené.",
         )
         logger.error("REM import bez výsledků pro závod %s: %s", event.id, stats)
         return HttpResponseRedirect(reverse("event:event-admin", kwargs={"pk": pk}))
+
+    # Až teď, kdy je nová sada zapsaná, zmizí i starý soubor z disku. Export
+    # pro ČSC je proti novým výsledkům neplatný, takže se odemkne k novému
+    # vygenerování.
+    _remove_previous_rem_results_file(previous_path)
+    if event.ccf_uploaded or event.ccf_created:
+        event.ccf_uploaded = False
+        event.ccf_created = None
+        event.save(update_fields=["ccf_uploaded", "ccf_created"])
 
     event.rem_results = relative_path
     event.save(update_fields=["rem_results"])

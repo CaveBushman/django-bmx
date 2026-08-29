@@ -3307,6 +3307,41 @@ class RemResultsUploadViewTests(TestCase):
             [str(m) for m in response.context["messages"]],
         )
 
+    def test_repeated_upload_replaces_previous_results_and_file(self):
+        """Nahrání jde opakovat a nová sada tu původní nahradí, ne zdvojí."""
+        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+        self.event.refresh_from_db()
+        first_path = self.event.rem_results.path
+        first_result = Result.objects.get(event=self.event)
+
+        second_row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Boys 15-16", "10000000011", "1"])
+        response = self._post(f"{self.HEADER}\r\n{second_row}\r\n".encode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.event.refresh_from_db()
+        results = Result.objects.filter(event=self.event)
+        self.assertEqual(results.count(), 1)
+        self.assertNotEqual(results.first().pk, first_result.pk)
+        self.assertNotEqual(self.event.rem_results.path, first_path)
+        self.assertFalse(os.path.exists(first_path))
+        self.assertTrue(os.path.exists(self.event.rem_results.path))
+
+    def test_failed_second_upload_keeps_the_original_results(self):
+        """Když druhý soubor nic nezapíše, původní výsledky zůstanou."""
+        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+        self.event.refresh_from_db()
+        original_path = self.event.rem_results.path
+        original_pk = Result.objects.get(event=self.event).pk
+
+        empty_row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Příchozí", "10000000011", "3"])
+        response = self._post(f"{self.HEADER}\r\n{empty_row}\r\n".encode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.event.refresh_from_db()
+        self.assertEqual(Result.objects.get(event=self.event).pk, original_pk)
+        self.assertEqual(self.event.rem_results.path, original_path)
+        self.assertTrue(os.path.exists(original_path))
+
     def test_upload_without_results_does_not_lock_the_button(self):
         # Samá "Příchozí" kategorie — soubor je formálně v pořádku, ale nic nezapíše.
         row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Příchozí", "10000000011", "3"])
