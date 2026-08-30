@@ -2176,6 +2176,77 @@ class EventAdminViewTests(TestCase):
         self.assertEqual(len(rows[0]["rider_results"]), 4)
         self.assertEqual(rows[0]["points_total"], 10)
 
+    def test_points_follow_the_wheel_the_rider_actually_raced(self):
+        """Špatně zapsané kolo v soupisce nesmí družstvo připravit o body."""
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Cruiser Team", manager_name="Manager A")
+        # V soupisce 20", jenže REM ho pustil do cruiseru.
+        McrClubTeamMember.objects.create(
+            team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1
+        )
+        RaceRun.objects.create(
+            event=self.event,
+            rider=self.rider,
+            round_type="MOTO",
+            round_number=1,
+            category="Cruiser TOP",
+            plate=str(self.rider.plate_display),
+            is_20=False,
+            race_points=7,
+        )
+
+        from event.views.views_admin import _get_mcr_club_results_rows
+        rows = _get_mcr_club_results_rows(self.event, "MOTO")
+
+        self.assertEqual(rows[0]["points_total"], 7)
+        self.assertEqual(rows[0]["active_count"], 1)
+
+    def test_rider_entered_on_both_wheels_does_not_score_the_same_runs_twice(self):
+        """Jezdec zapsaný na 20" i 24" bere v každém družstvu jen své jízdy."""
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team_20 = McrClubTeam.objects.create(year=2026, club=self.club, name="Team 20", manager_name="Manager A")
+        team_24 = McrClubTeam.objects.create(year=2026, club=self.club, name="Team 24", manager_name="Manager B")
+        McrClubTeamMember.objects.create(
+            team=team_20, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1
+        )
+        McrClubTeamMember.objects.create(
+            team=team_24, rider=self.rider, wheel=McrClubTeamMember.WHEEL_24, position=1
+        )
+        RaceRun.objects.create(
+            event=self.event, rider=self.rider, round_type="MOTO", round_number=1,
+            category="Boys 15-16", plate=str(self.rider.plate_display), is_20=True, race_points=8,
+        )
+        RaceRun.objects.create(
+            event=self.event, rider=self.rider, round_type="MOTO", round_number=1,
+            category="Cruiser TOP", plate=str(self.rider.plate_display), is_20=False, race_points=3,
+        )
+
+        from event.views.views_admin import _get_mcr_club_results_rows
+        points = {row["team"].name: row["points_total"] for row in _get_mcr_club_results_rows(self.event, "MOTO")}
+
+        self.assertEqual(points["Team 20"], 8)
+        self.assertEqual(points["Team 24"], 3)
+
+    def test_member_without_any_runs_stays_at_zero(self):
+        """Kdo v závodě nejel, nedostane body z cizího kola ani omylem."""
+        self.event.type_for_ranking = "Mistrovství ČR družstev"
+        self.event.date = date(2026, 6, 1)
+        self.event.save(update_fields=["type_for_ranking", "date"])
+        team = McrClubTeam.objects.create(year=2026, club=self.club, name="Empty", manager_name="Manager A")
+        McrClubTeamMember.objects.create(
+            team=team, rider=self.rider, wheel=McrClubTeamMember.WHEEL_20, position=1
+        )
+
+        from event.views.views_admin import _get_mcr_club_results_rows
+        rows = _get_mcr_club_results_rows(self.event, "MOTO")
+
+        self.assertEqual(rows[0]["points_total"], 0)
+        self.assertEqual(rows[0]["active_count"], 0)
+
     def test_rem_exports_create_missing_media_directories(self):
         Entry.objects.create(
             event=self.event,

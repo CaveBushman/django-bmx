@@ -1231,14 +1231,36 @@ def _register_pdf_fonts():
         pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", PDF_FONT_BOLD_PATH))
 
 
-def _mcr_member_category(event, member):
+def _mcr_member_category(event, member, is_20=None):
+    """Kategorie člena družstva; ``is_20`` přebije kolo ze soupisky.
+
+    Ve výsledcích se kategorie musí řídit tím, co jezdec opravdu jel — jinak
+    by u něj stálo 20", zatímco body vedle pocházejí z cruiseru.
+    """
     if event.classes_and_fees_like_id:
-        return resolve_event_classes(
-            event,
-            member.rider,
-            is_20=member.wheel != McrClubTeamMember.WHEEL_24,
-        ) or ""
+        if is_20 is None:
+            is_20 = member.wheel != McrClubTeamMember.WHEEL_24
+        return resolve_event_classes(event, member.rider, is_20=is_20) or ""
     return ""
+
+
+def _mcr_member_runs_key(member, runs_by_rider, wheels_by_rider):
+    """Klíč do jízd pro jednoho člena soupisky.
+
+    Kolo v soupisce je administrativní údaj, body ale patří k tomu, co jezdec
+    skutečně jel. Když je zapsaný na 20", REM ho pustil do cruiseru a nikdo to
+    v soupisce neopravil, na klíč (jezdec, kolo) se nenajde nic a družstvo
+    přijde o jeho body.
+
+    U jezdce zapsaného na obě kola se sahá jen na jeho vlastní kolo: tam by
+    volnější párování přiřadilo jedny jízdy dvěma členstvím a body by se
+    zdvojily.
+    """
+    key = (member.rider_id, member.wheel == McrClubTeamMember.WHEEL_20)
+    if runs_by_rider.get(key) or len(wheels_by_rider.get(member.rider_id, ())) > 1:
+        return key
+    other_wheel_key = (member.rider_id, not key[1])
+    return other_wheel_key if runs_by_rider.get(other_wheel_key) else key
 
 
 def _draw_mcr_unfinished_runs_note(pdf, x, y):
@@ -1490,8 +1512,14 @@ def _get_mcr_club_results_rows(event, round_type):
             if run.round_type == round_type:
                 latest_run_map[key] = run
 
+    teams = list(_get_mcr_club_teams_for_event(event).prefetch_related("members__rider"))
+    wheels_by_rider = {}
+    for team in teams:
+        for member in team.members.all():
+            wheels_by_rider.setdefault(member.rider_id, set()).add(member.wheel)
+
     rows = []
-    for team in _get_mcr_club_teams_for_event(event).prefetch_related("members__rider"):
+    for team in teams:
         rider_results = []
         points_total = 0
         individual_points = []
@@ -1499,7 +1527,7 @@ def _get_mcr_club_results_rows(event, round_type):
         active_count = 0
         for member in team.members.all():
             rider = member.rider
-            key = (rider.id, member.wheel == McrClubTeamMember.WHEEL_20)
+            key = _mcr_member_runs_key(member, runs_by_rider, wheels_by_rider)
             rider_runs = runs_by_rider.get(key, [])
             run = latest_run_map.get(key)
             if rider_runs:
@@ -1515,7 +1543,7 @@ def _get_mcr_club_results_rows(event, round_type):
                 {
                     "rider": f"{rider.first_name} {rider.last_name}",
                     "plate": rider.plate_display,
-                    "category": _mcr_member_category(event, member),
+                    "category": _mcr_member_category(event, member, is_20=key[1]),
                     "runs": _mcr_runs_breakdown(rider_runs),
                     "points": rider_points,
                     "result": _format_mcr_run_result(run, round_type),
