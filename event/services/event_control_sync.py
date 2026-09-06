@@ -59,6 +59,14 @@ def rider_payload(rider) -> dict:
         "nationality": rider.nationality or "",
         "email": rider.email or "",
         "club": rider.club.team_name if rider.club_id else "",
+        # `club_external_id` je **klíč, po kterém si Event Control jezdce
+        # s klubem sváže** (`docs/RIDER_REGISTRATION_API.md`: „preferred over
+        # `club`, which is a fallback for providers that only send a name").
+        # Chyběl, takže centrální registr musel párovat podle jména týmu —
+        # a to selže na každém přejmenování i na jiném zápisu („z. s."
+        # navíc, jiná mezera). Hodnota musí být **táž**, jakou u klubu
+        # posílá `club_payload` jako `id`, jinak se nepotká.
+        "club_external_id": str(rider.club_id) if rider.club_id else "",
         "club_id": rider.club_id,
         "club_event_control_id": rider.club.event_control_id if rider.club_id else "",
         "is_elite": rider.is_elite,

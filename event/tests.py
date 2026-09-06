@@ -57,7 +57,13 @@ from event.views.entry_helpers import (
 from accounts.models import Account
 from rider.models import Rider
 from rider.models import ForeignRider
-from event.services.event_control_sync import pull_from_event_control_admin, sync_clubs, sync_riders
+from event.services.event_control_sync import (
+    club_payload,
+    pull_from_event_control_admin,
+    rider_payload,
+    sync_clubs,
+    sync_riders,
+)
 from rider.rider import RiderQualifyToCNThread, should_recount_cn_qualification_for_event
 
 
@@ -5168,6 +5174,28 @@ class EventControlSyncTests(TestCase):
             is_active=True,
             is_approved=True,
         )
+
+    def test_vydany_jezdec_nese_klic_klubu(self):
+        """`club_external_id` je klíč, po kterém si Event Control jezdce s klubem sváže.
+
+        Do 6. 9. 2026 se neposílal (jen `club_id`), takže centrální registr
+        musel párovat podle **jména týmu** — a to selže na každém
+        přejmenování i na jiném zápisu („z. s." navíc, jiná mezera).
+        Projevilo se to tím, že jezdec v registru klub neměl.
+        """
+        payload = rider_payload(self.rider)
+
+        self.assertEqual(payload["club_external_id"], str(self.club.id))
+        # A musí to být **táž** hodnota, jakou u klubu posíláme jako `id` —
+        # jinak se obě strany nepotkají.
+        self.assertEqual(payload["club_external_id"], str(club_payload(self.club)["id"]))
+
+    def test_jezdec_bez_klubu_posila_prazdny_klic(self):
+        """Prázdno znamená „bez klubu", ne „None" — kontrakt čte řetězce."""
+        self.rider.club = None
+        self.rider.save(update_fields=["club"])
+
+        self.assertEqual(rider_payload(self.rider)["club_external_id"], "")
 
     def test_club_matched_by_ico_gets_external_id(self):
         log = sync_clubs([{"id": "EC-10", "team_name": "BMX Praha jiný název", "ico": "12345678"}])
