@@ -1368,6 +1368,7 @@ class RegistrationApiV1MasterDataTests(TestCase):
             street="Sportovní 12",
             city="Praha",
             zip_code="16000",
+            region="Středočeský kraj",
         )
         self.inactive_club = Club.objects.create(team_name="BMX Zaniklý", is_active=False)
         self.rider = Rider.objects.create(
@@ -1454,6 +1455,7 @@ class RegistrationApiV1MasterDataTests(TestCase):
         self.assertEqual(club["postal_code"], "16000")
         self.assertEqual(club["country"], "CZE")
         self.assertEqual(club["company_id"], "12345678")
+        self.assertEqual(club["region"], "Středočeský kraj")
 
     def test_club_without_official_name_falls_back_to_team_name(self):
         self.club.club_name = ""

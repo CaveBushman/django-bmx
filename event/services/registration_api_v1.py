@@ -152,6 +152,8 @@ def _club_record(club) -> dict:
         "postal_code": club.zip_code or "",
         "country": CLUB_COUNTRY,
         "company_id": club.ico or "",
+        # Kraj sídla klubu (BIKODY ho od 2. 10. 2026 drží v centrálním registru).
+        "region": club.region or "",
         "updated": club.updated.isoformat() if club.updated else None,
     }
 
