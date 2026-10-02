@@ -571,3 +571,21 @@ class ClubEventControlCredentialsTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, str(event.event_code))
+
+
+class ClubRegionTests(TestCase):
+    """Kraj klubu (2. 10. 2026): výchozí prázdný, nabídka má i Karlovarský kraj."""
+
+    def test_new_club_has_no_region_by_default(self):
+        club = Club.objects.create(team_name="BMX Bez kraje")
+        self.assertEqual(club.region, "")
+
+    def test_karlovarsky_kraj_is_offered(self):
+        self.assertIn("Karlovarský kraj", dict(Club.REGION))
+        self.assertEqual(len(Club.REGION), 14)
+
+    def test_club_list_does_not_count_empty_region(self):
+        Club.objects.create(team_name="BMX Sokolov", is_active=True, region="Karlovarský kraj")
+        Club.objects.create(team_name="BMX Bez kraje", is_active=True)
+        response = self.client.get(reverse("club:clubs-list"))
+        self.assertEqual(response.context["regions_count"], 1)

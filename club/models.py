@@ -15,7 +15,7 @@ from django.utils.text import slugify
 class Club(models.Model):
     """Organizace sdružující jezdce a pořádající závody."""
 
-    REGION = (('hlavní město Praha', 'hlavní město Praha'), ('Středočeský kraj', 'Středočeský kraj'), ('Jihočeský kraj', 'Jihočeský kraj'), ('Plzeňský kraj', 'Plzeňský kraj'), ('Ústecký kraj', 'Ústecký kraj'), ('Liberecký kraj', 'Liberecký kraj'),
+    REGION = (('hlavní město Praha', 'hlavní město Praha'), ('Středočeský kraj', 'Středočeský kraj'), ('Jihočeský kraj', 'Jihočeský kraj'), ('Plzeňský kraj', 'Plzeňský kraj'), ('Karlovarský kraj', 'Karlovarský kraj'), ('Ústecký kraj', 'Ústecký kraj'), ('Liberecký kraj', 'Liberecký kraj'),
               ('Královéhradecký kraj', 'Královéhradecký kraj'), ('Pardubický kraj', 'Pardubický kraj'), ('Kraj Vysočina', 'Kraj Vysočina'), ('Jihomoravský kraj', 'Jihomoravský kraj'), ('Olomoucký kraj', 'Olomoucký kraj'), ('Zlínský kraj', 'Zlínský kraj'), ('Moravskoslezský kraj', 'Moravskoslezský kraj'))
 
     team_name = models.CharField(max_length=255, blank=False, default="")
@@ -25,8 +25,11 @@ class Club(models.Model):
     street = models.CharField(max_length=100, blank=True)
     city = models.CharField(max_length=100, blank=True)
     zip_code = models.CharField(max_length=10, blank=True)
+    # Výchozí je prázdný (2. 10. 2026): dřív „hlavní město Praha", takže
+    # klub, který kraj nikdy nevyplnil, se tvářil jako pražský — i v API
+    # registru pro BIKODY (`/v1/clubs`).
     region = models.CharField(
-        max_length=50, choices=REGION, default='hlavní město Praha')
+        max_length=50, choices=REGION, blank=True, default='')
 
     web = models.URLField(max_length=255, blank=True)
     facebook = models.URLField(max_length=255, blank=True)

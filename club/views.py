@@ -64,7 +64,7 @@ def clubs_list_view(request):
     data = {
         "clubs": cleaned_clubs,
         "clubs_count": base_clubs.count(),
-        "regions_count": base_clubs.values("region").distinct().count(),
+        "regions_count": base_clubs.exclude(region="").values("region").distinct().count(),
         "contact_clubs_count": base_clubs.filter(
             (Q(contact_person__gt="") & ~Q(contact_person="nan"))
             | (Q(contact_email__gt="") & ~Q(contact_email="nan"))
