@@ -26,6 +26,7 @@ from api.views.api_root import RegistrationApiRootAPIView
 from api.views.event_control import (
     ClubsV1APIView,
     RegistrationsV1APIView,
+    ResultsDocumentV1APIView,
     ResultsV1APIView,
     RiderChipV1APIView,
     RidersV1APIView,
@@ -54,6 +55,17 @@ urlpatterns = [
         "v1/events/<str:race_code>/results/",
         ResultsV1APIView.as_view(),
         name="v1-results-slash",
+    ),
+    # Oficiální listina v PDF (obecná část kontraktu, 4. 10. 2026).
+    path(
+        "v1/events/<str:race_code>/results/document",
+        ResultsDocumentV1APIView.as_view(),
+        name="v1-results-document",
+    ),
+    path(
+        "v1/events/<str:race_code>/results/document/",
+        ResultsDocumentV1APIView.as_view(),
+        name="v1-results-document-slash",
     ),
     # Část 3 kontraktu — zápis trvalé změny čipu od Event Control. Kolize
     # s výdejem seznamu nehrozí: `<str:uci_id>` neodpovídá prázdnému úseku,

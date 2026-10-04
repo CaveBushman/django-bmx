@@ -2173,3 +2173,75 @@ class DbResultsLinkTests(TestCase):
         self.assertContains(self.client.get(reverse("event:events")), url)
         self.assertContains(self.client.get(reverse("event:event-detail", args=[self.event.id])), url)
         self.assertContains(self.client.get(url), "Adam")
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+    MEDIA_ROOT="/tmp/czechbmx-api-test-media",
+)
+class ResultsDocumentV1APITests(TestCase):
+    """Oficiální listina v PDF od časomíry — obecná část kontraktu (4. 10. 2026)."""
+
+    PDF = b"%PDF-1.4\n%test\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.other_club = Club.objects.create(team_name="BMX Brno")
+        self.password = self.club.generate_event_control_credentials()
+        self.other_password = self.other_club.generate_event_control_credentials()
+        self.event = Event.objects.create(name="Velká cena", date=date(2026, 10, 3), organizer=self.club)
+        self.url = f"/api/registration/v1/events/{self.event.event_code}/results/document"
+
+    def _auth(self, username, password):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def _put(self, body, **extra):
+        return self.client.generic("PUT", self.url, body, content_type="application/pdf", **extra)
+
+    def test_pdf_becomes_event_results_file(self):
+        self._auth("event-control-admin", "central-secret")
+        response = self._put(self.PDF, HTTP_CONTENT_DISPOSITION='attachment; filename="oficialni-vysledky.pdf"')
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.event.refresh_from_db()
+        self.assertTrue(self.event.full_results.name.endswith(".pdf"))
+        self.assertIn("oficialni-vysledky", self.event.full_results.name)
+        with self.event.full_results.open("rb") as soubor:
+            self.assertEqual(soubor.read(), self.PDF)
+
+    def test_resend_replaces_file(self):
+        self._auth(self.club.event_control_username, self.password)
+        self._put(self.PDF, HTTP_CONTENT_DISPOSITION='attachment; filename="prvni.pdf"')
+        self.event.refresh_from_db()
+        prvni = self.event.full_results.name
+        self._put(self.PDF + b"%", HTTP_CONTENT_DISPOSITION='attachment; filename="druhy.pdf"')
+        self.event.refresh_from_db()
+        self.assertIn("druhy", self.event.full_results.name)
+        from django.core.files.storage import default_storage
+
+        self.assertFalse(default_storage.exists(prvni), "starý soubor nemá na disku zůstat")
+
+    def test_non_pdf_is_422(self):
+        self._auth("event-control-admin", "central-secret")
+        self.assertEqual(self._put(b"<html></html>").status_code, 422)
+        self.event.refresh_from_db()
+        self.assertFalse(self.event.full_results)
+
+    def test_other_organizer_is_refused(self):
+        self._auth(self.other_club.event_control_username, self.other_password)
+        self.assertEqual(self._put(self.PDF).status_code, 403)
+
+    def test_calendar_shows_new_file(self):
+        from django.urls import reverse
+
+        Event.objects.filter(pk=self.event.pk).update(date=date.today())
+        self.client.get(reverse("event:events"))  # naplní cache kalendáře
+        self._auth("event-control-admin", "central-secret")
+        self._put(self.PDF, HTTP_CONTENT_DISPOSITION='attachment; filename="listina.pdf"')
+        self.client.credentials()
+        self.assertContains(self.client.get(reverse("event:events")), "listina")

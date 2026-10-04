@@ -293,6 +293,10 @@ def _event_list_structured_data_json(events, past_events, hero_description, cano
     return html_safe_json({"@context": "https://schema.org", "@graph": graph})
 
 
+#: Zvedá se, když se závodu změní soubor výsledků mimo admin (příjem z API).
+EVENTS_LIST_FILES_VERSION_KEY = "events_list_files_version"
+
+
 def events_list_view(request):
     """Seznam závodů aktuálního roku — nadcházející a proběhlé."""
     year = date.today().year
@@ -311,7 +315,10 @@ def events_list_view(request):
         f"{event_version['count']}:"
         f"{event_version['latest_id'] or 'none'}:"
         f"{latest_updated.isoformat() if latest_updated else 'none'}:"
-        f"r{results_version or 0}"
+        f"r{results_version or 0}:"
+        # Verze souborů výsledků — zvedá ji příjem PDF listiny z API
+        # (`api.views.event_control.ResultsDocumentV1APIView`).
+        f"s{cache.get(EVENTS_LIST_FILES_VERSION_KEY, 0)}"
     )
     use_cache = not django_settings.DEBUG
     data = cache.get(cache_key) if use_cache else None

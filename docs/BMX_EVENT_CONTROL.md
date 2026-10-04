@@ -170,6 +170,13 @@ gzipem má ~80 kB. Nekomprimované tělo projde také. Strop 25 MB platí pro t�
 i pro rozbalený dokument (ochrana proti „gzip bombě“), mimo `DATA_UPLOAD_MAX_MEMORY_SIZE`.
 Přijatý dokument se ukládá do `MEDIA_ROOT/api_results/<event_id>/`.
 
+**Oficiální listina v PDF:** `PUT /api/registration/v1/events/<event_code>/results/document`
+(`application/pdf`, název v `Content-Disposition`) — obecná část kontraktu,
+BIKODY ji posílá hned po přijatých výsledcích. Uloží se jako `Event.full_results`
+(tentýž soubor, který jinak pořadatel nahrává ručně; „Výsledky závodu“ v kalendáři
+pak vede na něj), opakované odeslání ho nahradí a starý soubor smaže. Tělo musí
+začínat `%PDF-`, jinak 422.
+
 ## Synchronizace jezdců a klubů s Event Control Admin
 
 Jezdci a kluby se v Event Control Admin zakládají centrálně, ale **master dat
