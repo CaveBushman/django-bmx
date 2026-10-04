@@ -2152,3 +2152,24 @@ class ResultsV1APITests(TestCase):
             _results_document(), content_type="application/xml",
         )
         self.assertEqual(response.status_code, 403)
+
+
+class DbResultsLinkTests(TestCase):
+    """Závod s výsledky jen z API (bez nahraného souboru) má odkaz na výsledky."""
+
+    def setUp(self):
+        cache.clear()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.event = Event.objects.create(
+            name="Velká cena", date=date.today(), organizer=self.club, type_for_ranking="Volný závod",
+        )
+
+    def test_calendar_and_detail_link_db_results(self):
+        from django.urls import reverse
+
+        url = reverse("event:results", args=[self.event.id])
+        self.assertNotContains(self.client.get(reverse("event:events")), url)
+        Result.objects.create(event=self.event, category="Boys 14", place=1, first_name="Adam")
+        self.assertContains(self.client.get(reverse("event:events")), url)
+        self.assertContains(self.client.get(reverse("event:event-detail", args=[self.event.id])), url)
+        self.assertContains(self.client.get(url), "Adam")

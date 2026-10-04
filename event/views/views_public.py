@@ -15,7 +15,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 from django.core.cache import cache
 from django.conf import settings as django_settings
-from django.db.models import Count, Max
+from django.db.models import Count, Exists, Max, OuterRef
 from event.models import Event, Result, Entry, EntryForeign, EntryClasses
 from event.constants import EVENT_TYPE_STYLES, DEFAULT_EVENT_TYPE_STYLE
 from event.views.views_proposition import can_manage_event_proposition, _get_structured_proposition
@@ -188,6 +188,9 @@ def _event_structured_data_json(event, *, url=None, proposition=None):
 def _events_for_year(year):
     return (
         Event.objects.filter(date__year=year)
+        # Výsledky jen v databázi (příjem z BIKODY, 4. 10. 2026) — bez
+        # nahraného souboru by kalendář odkaz na výsledky neukázal.
+        .annotate(has_db_results=Exists(Result.objects.filter(event=OuterRef("pk"))))
         .select_related(*EVENT_LIST_RELATED)
         .only(
             "id",
@@ -300,11 +303,15 @@ def events_list_view(request):
         latest_id=Max("id"),
     )
     latest_updated = event_version["latest_updated"]
+    # `Event.updated` je jen datum — výsledky zapsané týž den by klíč
+    # nezměnily. Nová sada výsledků má vždy nová id.
+    results_version = Result.objects.filter(event__date__year=year).aggregate(m=Max("id"))["m"]
     cache_key = (
         f"events_list_{year}_{today}:"
         f"{event_version['count']}:"
         f"{event_version['latest_id'] or 'none'}:"
-        f"{latest_updated.isoformat() if latest_updated else 'none'}"
+        f"{latest_updated.isoformat() if latest_updated else 'none'}:"
+        f"r{results_version or 0}"
     )
     use_cache = not django_settings.DEBUG
     data = cache.get(cache_key) if use_cache else None
@@ -403,6 +410,7 @@ def event_detail_views(request, pk):
     reg_open = is_registration_open(event)
     event.reg_cancel_deadline = get_unregistration_deadline(event)
     proposition = _get_structured_proposition(event)
+    has_db_results = Result.objects.filter(event=pk).exists()
     riders_sum = Entry.objects.filter(event=pk, payment_complete=True, checkout=False).count()
     riders_sum += EntryForeign.objects.filter(event=pk, payment_complete=True, checkout=False).count()
     data = {
@@ -410,6 +418,7 @@ def event_detail_views(request, pk):
         "alert": False,
         "select_category": "",
         "riders_sum": riders_sum,
+        "has_db_results": has_db_results,
         "reg_open": reg_open,
         "has_public_proposition": bool(proposition and proposition.is_published),
         "public_proposition": proposition if proposition and proposition.is_published else None,

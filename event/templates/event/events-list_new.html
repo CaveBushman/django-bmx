@@ -139,6 +139,8 @@
                   <a href="{{ event.html_results_url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
                   {% elif event.full_results %}
                   <a href="{{ event.full_results_url }}" target="_blank" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
+                  {% elif event.has_db_results %}
+                  <a href="{% url 'event:results' event.id %}" class="events-chip events-chip-orange">{% trans "Výsledky závodu" %}</a>
                   {% endif %}
                   {% if event.youtube_link %}
                   <a href="{{ event.youtube_link }}" target="_blank" rel="noopener noreferrer" class="events-chip events-chip-red">{% trans "YouTube" %}</a>
