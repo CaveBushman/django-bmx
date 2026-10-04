@@ -42,6 +42,10 @@ import logging
 import secrets
 import uuid
 
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.utils import timezone
+
 from django.conf import settings
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.translation import gettext_lazy as _
@@ -53,7 +57,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from event.models import Event
-from event.services import registration_api_v1, registration_api_writeback
+from event.services import registration_api_v1, registration_api_writeback, results_api_import
 from event.services.event_control import (
     authenticate_club,
     build_entries_payload,
@@ -333,6 +337,97 @@ class RegistrationsV1APIView(EventControlBaseView):
             return uuid.UUID(str(race_code))
         except (AttributeError, TypeError, ValueError):
             raise PermissionDenied(_("Závod s tímto kódem neexistuje nebo k němu nemáte přístup."))
+
+
+class ResultsV1APIView(EventControlBaseView):
+    """Příjem výsledků závodu od BIKODY — kontrakt v1, výsledky (4. 10. 2026).
+
+    Tělo je NewsML-G2 se SportsML 3.1 (``Content-Type: application/xml``).
+    Zapíše konečné výsledky (``Result`` → body a ranking) i jednotlivé jízdy
+    (``RaceRun`` → prémiové statistiky) stejně jako ruční nahrání souborů
+    z REM; opakované odeslání předchozí sadu nahradí
+    (``event.services.results_api_import``).
+
+    Smí centrální údaje i údaje **pořadatele závodu** (jen vlastní závody) —
+    stejně jako přihlášky. Výsledky závodu jsou pořadatelova věc; registr
+    jezdců se tím nemění.
+    """
+
+    #: Strop těla. Dokument závodu s pěti sty jezdci má kolem 2,5 MB; výchozí
+    #: `DATA_UPLOAD_MAX_MEMORY_SIZE` (2,5 MB) by ho odmítl.
+    MAX_BODY_BYTES = 25 * 1024 * 1024
+
+    @extend_schema(
+        request=None,
+        responses={200: None},
+        description=(
+            "Výsledky závodu od BIKODY (NewsML-G2/SportsML 3.1, application/xml). "
+            "Nahradí konečné výsledky i jízdy závodu; ranking se přepočítá."
+        ),
+    )
+    def post(self, request, race_code):
+        event = self.get_event(request, RegistrationsV1APIView._as_event_code(race_code))
+        body = self._read_body(request)
+        if body is None:
+            return Response({"detail": _("Dokument je příliš velký.")}, status=413)
+        try:
+            outcome = results_api_import.import_document(event, body)
+        except results_api_import.ResultsDocumentError as exc:
+            audit_logger.warning(
+                "results_api_v1_refused event_id=%s size=%s reason=%s", event.id, len(body), exc,
+            )
+            return Response({"detail": str(exc)}, status=422)
+
+        self._keep_document(event, body)
+        if event.ccf_uploaded or event.ccf_created:
+            # Export pro ČSC je proti novým výsledkům neplatný (jako u REM).
+            event.ccf_uploaded = False
+            event.ccf_created = None
+            event.save(update_fields=["ccf_uploaded", "ccf_created"])
+
+        from event.func import after_results_import
+
+        after_results_import(event.id)
+        audit_logger.info(
+            "results_api_v1_imported event_id=%s version=%s results=%s runs=%s unmatched=%s",
+            event.id,
+            outcome["version"],
+            outcome["results"]["imported"],
+            outcome["runs"]["created"],
+            len(outcome["runs"]["unmatched"]),
+        )
+        return Response({
+            "status": "ok",
+            "event_code": str(event.event_code),
+            "results": outcome["results"],
+            "runs": {
+                "created": outcome["runs"]["created"],
+                "counts_by_round": outcome["runs"]["counts_by_round"],
+                "unmatched": len(outcome["runs"]["unmatched"]),
+            },
+        })
+
+    def _read_body(self, request):
+        """Tělo bez stropu `DATA_UPLOAD_MAX_MEMORY_SIZE`, ale se svým."""
+        try:
+            declared = int(request.META.get("CONTENT_LENGTH") or 0)
+        except ValueError:
+            declared = 0
+        if declared > self.MAX_BODY_BYTES:
+            return None
+        raw = request._request
+        # Tělo už mohl přečíst middleware — pak je v `_body` a proud je prázdný.
+        body = raw._body if hasattr(raw, "_body") else raw.read(self.MAX_BODY_BYTES + 1)
+        return None if len(body) > self.MAX_BODY_BYTES else body
+
+    @staticmethod
+    def _keep_document(event, body):
+        """Přijatý dokument zůstane na disku — dohledatelnost, co přesně přišlo."""
+        name = f"api_results/{event.id}/{timezone.now():%Y%m%d-%H%M%S}.xml"
+        try:
+            default_storage.save(name, ContentFile(body))
+        except Exception:  # noqa: BLE001 — archiv nesmí shodit už zapsané výsledky
+            logger.exception("Dokument výsledků z API se nepodařilo uložit (event_id=%s)", event.id)
 
 
 class RidersV1APIView(EventControlMasterDataBaseView):

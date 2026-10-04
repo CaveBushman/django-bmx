@@ -1872,3 +1872,252 @@ class ApiRootDiscoveryTests(TestCase):
 
         self.assertNotIn("uci_id", text)
         self.assertEqual(self.client.get("/api/registration/v1/riders").status_code, 401)
+
+
+RESULTS_NS = "http://iptc.org/std/SportsML/2008-04-01/"
+
+
+def _results_document(*, split=True, include_beginner=False):
+    """Zmenšený dokument tak, jak ho posílá BIKODY (NewsML-G2 + SportsML 3.1)."""
+    split_block = ""
+    if split:
+        beginner = ""
+        if include_beginner:
+            beginner = """
+        <standing>
+          <standing-metadata standing-key="c9-split" standing-name="Příchozí 8">
+            <sports-property formal-name="classification" value="split"/>
+          </standing-metadata>
+          <team><team-metadata team-key="r9" name="Malý Kluk">
+            <sports-property formal-name="first-name" value="Malý"/>
+            <sports-property formal-name="last-name" value="Kluk"/>
+          </team-metadata><team-stats rank="1"/></team>
+        </standing>"""
+        split_block = """
+        <standing>
+          <standing-metadata standing-key="c1-split" standing-name="Boys 14">
+            <sports-property formal-name="classification" value="split"/>
+            <sports-property formal-name="wheel-size" value="20"/>
+          </standing-metadata>
+          <team>
+            <team-metadata team-key="r1" name="Adam Novák" uniform-number="12">
+              <sports-property formal-name="first-name" value="Adam"/>
+              <sports-property formal-name="last-name" value="Novák"/>
+              <sports-property formal-name="uci-id" value="100000011"/>
+              <sports-property formal-name="club" value="BMX Praha"/>
+            </team-metadata>
+            <team-stats rank="1"/>
+          </team>
+          <team>
+            <team-metadata team-key="r2" name="Petr Dvořák" uniform-number="7">
+              <sports-property formal-name="first-name" value="Petr"/>
+              <sports-property formal-name="last-name" value="Dvořák"/>
+              <sports-property formal-name="uci-id" value="100000012"/>
+              <sports-property formal-name="club" value="BMX Brno"/>
+            </team-metadata>
+            <team-stats rank="2"/>
+          </team>
+        </standing>""" + beginner
+
+    def participant(key, first, last, uci, plate, lane, score, hill, finish, irm="", points=None):
+        props = f'<sports-property formal-name="starting-position" value="{lane}"/>'
+        if hill is not None:
+            props += f'<sports-property formal-name="hill-seconds" value="{hill}"/>'
+        if finish is not None:
+            props += f'<sports-property formal-name="finish-seconds" value="{finish}"/>'
+        if irm:
+            props += f'<sports-property formal-name="irm" value="{irm}"/>'
+        if points is not None:
+            props += f'<sports-property formal-name="points" value="{points}"/>'
+        return f"""
+            <participant>
+              <participant-metadata participant-key="{key}" uniform-number="{plate}">
+                <name first="{first}" last="{last}">{first} {last}</name>
+                <sports-property formal-name="uci-id" value="{uci}"/>
+                <sports-property formal-name="home-category" value="Boys 14"/>
+              </participant-metadata>
+              <participant-stats score="{score}">{props}</participant-stats>
+            </participant>"""
+
+    def heat(stage, round_no, race_number, riders):
+        return f"""
+        <sports-event>
+          <event-metadata event-key="c1-{stage}-{round_no}-1">
+            <sports-property formal-name="category" value="Boys 14"/>
+            <sports-property formal-name="stage" value="{stage}"/>
+            <sports-property formal-name="round" value="{round_no}"/>
+            <sports-property formal-name="heat" value="1"/>
+            <sports-property formal-name="race-number" value="{race_number}"/>
+          </event-metadata>
+          <team><team-metadata team-key="c1" name="Boys 14"/>{riders}</team>
+        </sports-event>"""
+
+    heats = (
+        heat("moto", 1, 5,
+             participant("r1", "Adam", "Novák", "100000011", 12, 3, 1, 1.912, 33.1, points=1)
+             + participant("r2", "Petr", "Dvořák", "100000012", 7, 5, 2, 1.987, 34.2, points=2))
+        + heat("final", "", 40,
+               participant("r1", "Adam", "Novák", "100000011", 12, 4, 1, 1.901, 32.8)
+               + participant("r2", "Petr", "Dvořák", "100000012", 7, 2, 2, None, None, irm="DNF"))
+    )
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<newsItem xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:ns0="{RESULTS_NS}" guid="urn:x" version="2">
+  <contentSet><inlineXML contenttype="application/xml">
+    <ns0:sports-content xmlns="{RESULTS_NS}" xmlns:ns0="{RESULTS_NS}">
+      <sports-content-wrapper/>
+      <tournament>
+        <tournament-division>
+          <tournament-division-metadata division-key="c1" division-name="Boys 14">
+            <sports-property formal-name="wheel-size" value="20"/>
+          </tournament-division-metadata>
+        </tournament-division>
+      </tournament>
+      <standing>
+        <standing-metadata standing-key="c1" standing-name="Boys 14"/>
+        <team><team-metadata team-key="r1" name="Novák Adam"/><team-stats rank="1"/></team>
+        <team><team-metadata team-key="r2" name="Dvořák Petr"/><team-stats rank="2"/></team>
+      </standing>{split_block}{heats}
+    </ns0:sports-content>
+  </inlineXML></contentSet>
+</newsItem>""".encode("utf-8")
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+    MEDIA_ROOT="/tmp/czechbmx-api-test-media",
+)
+@patch("event.func.after_results_import")
+class ResultsV1APITests(TestCase):
+    """Příjem výsledků od BIKODY — konečné pořadí (ranking) i jízdy (prémiové statistiky)."""
+
+    def setUp(self):
+        from event.models import EventType
+
+        cache.clear()
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.other_club = Club.objects.create(team_name="BMX Brno")
+        self.password = self.club.generate_event_control_credentials()
+        self.other_password = self.other_club.generate_event_control_credentials()
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 10, 4),
+            organizer=self.club,
+            type_for_ranking=EventType.CESKY_POHAR,
+        )
+        self.adam = Rider.objects.create(
+            uci_id=100000011, first_name="Adam", last_name="Novák", gender="Muž",
+            date_of_birth=date(2012, 1, 1), club=self.club, is_active=True, is_approved=True,
+        )
+        self.petr = Rider.objects.create(
+            uci_id=100000012, first_name="Petr", last_name="Dvořák", gender="Muž",
+            date_of_birth=date(2012, 1, 1), club=self.other_club, is_active=True, is_approved=True,
+        )
+        self.url = f"/api/registration/v1/events/{self.event.event_code}/results"
+
+    def _auth(self, username, password):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def _post(self, body):
+        return self.client.generic("POST", self.url, body, content_type="application/xml; charset=utf-8")
+
+    def test_requires_credentials(self, after):
+        self.assertEqual(self._post(_results_document()).status_code, 401)
+        after.assert_not_called()
+
+    def test_other_organizer_is_refused(self, after):
+        self._auth(self.other_club.event_control_username, self.other_password)
+        self.assertEqual(self._post(_results_document()).status_code, 403)
+        self.assertFalse(Result.objects.exists())
+
+    def test_central_writes_results_with_points(self, after):
+        self._auth("event-control-admin", "central-secret")
+        response = self._post(_results_document())
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["results"]["imported"], 2)
+        vitez = Result.objects.get(event=self.event, rider_id=100000011)
+        self.assertEqual(vitez.place, 1)
+        self.assertEqual(vitez.category, "Boys 14")
+        self.assertGreater(vitez.points, 0, "Český pohár boduje do rankingu")
+        self.assertTrue(vitez.is_20)
+        after.assert_called_once_with(self.event.id)
+
+    def test_organizer_may_send_own_event(self, after):
+        self._auth(self.club.event_control_username, self.password)
+        self.assertEqual(self._post(_results_document()).status_code, 200)
+
+    def test_runs_feed_premium_statistics(self, after):
+        from event.models import RaceRun
+
+        self._auth("event-control-admin", "central-secret")
+        response = self._post(_results_document())
+        self.assertEqual(response.json()["runs"]["created"], 4)
+
+        moto = RaceRun.objects.get(event=self.event, rider=self.adam, round_type="MOTO")
+        self.assertEqual(moto.round_number, 1)
+        self.assertEqual(moto.heat_code, "5")
+        self.assertEqual(moto.gate, 5)
+        self.assertEqual(moto.lane, 3)
+        self.assertEqual(moto.place, "1st")
+        self.assertEqual(moto.hill_time, 1.912)
+        self.assertEqual(moto.finish_time, 33.1)
+        self.assertEqual(moto.moto_points, 1)
+        self.assertTrue(moto.qualified_to_next_round)
+        self.assertTrue(moto.is_20)
+        self.assertFalse(moto.is_beginner)
+        self.assertEqual(moto.result, Result.objects.get(event=self.event, rider_id=100000011))
+
+        finale = RaceRun.objects.get(event=self.event, rider=self.petr, round_type="FINAL")
+        self.assertIsNone(finale.round_number)
+        self.assertEqual(finale.place, "DNF")
+        self.assertIsNone(finale.finish_time)
+        self.assertFalse(finale.qualified_to_next_round)
+        self.assertEqual(finale.race_points, 18, "DNF boduje MČR družstev za poslední místo jízdy")
+
+    def test_resend_replaces_previous_data(self, after):
+        from event.models import RaceRun
+
+        self._auth("event-control-admin", "central-secret")
+        self._post(_results_document())
+        self._post(_results_document())
+        self.assertEqual(Result.objects.filter(event=self.event).count(), 2)
+        self.assertEqual(RaceRun.objects.filter(event=self.event).count(), 4)
+
+    def test_beginners_are_skipped(self, after):
+        self._auth("event-control-admin", "central-secret")
+        response = self._post(_results_document(include_beginner=True))
+        self.assertEqual(response.json()["results"]["skipped"], 1)
+        self.assertFalse(Result.objects.filter(category__icontains="Příchozí").exists())
+
+    def test_older_document_without_split_uses_heats_for_uci_id(self, after):
+        self._auth("event-control-admin", "central-secret")
+        response = self._post(_results_document(split=False))
+        self.assertEqual(response.status_code, 200, response.content)
+        vitez = Result.objects.get(event=self.event, place="1")
+        self.assertEqual(vitez.rider_id, 100000011)
+        self.assertEqual(vitez.first_name, "Adam")
+
+    def test_invalid_xml_is_422_and_keeps_results(self, after):
+        Result.objects.create(event=self.event, category="Boys 14", place="1")
+        self._auth("event-control-admin", "central-secret")
+        response = self._post(b"<not-xml")
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(Result.objects.filter(event=self.event).count(), 1)
+        after.assert_not_called()
+
+    def test_entities_are_refused(self, after):
+        self._auth("event-control-admin", "central-secret")
+        body = b'<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaa">]><x>&a;</x>'
+        self.assertEqual(self._post(body).status_code, 422)
+
+    def test_unknown_event_code(self, after):
+        self._auth("event-control-admin", "central-secret")
+        response = self.client.generic(
+            "POST", f"/api/registration/v1/events/{uuid.uuid4()}/results",
+            _results_document(), content_type="application/xml",
+        )
+        self.assertEqual(response.status_code, 403)

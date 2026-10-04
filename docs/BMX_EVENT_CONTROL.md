@@ -137,6 +137,37 @@ Poznámky k datům (shodné s REM exportem `event.entry.REMRiders`):
 * `plate` — championship plate má prefix `W` (např. `W3`), jinak číslo/text tabulky jezdce.
 * `rider_type` — `E` pro elite licenci, jinak `C`.
 
+## Příjem výsledků od BIKODY
+
+`POST /api/registration/v1/events/<event_code>/results` (od 4. 10. 2026)
+
+BIKODY po závodě (Krok 7 → „Odeslat výsledky poskytovateli“) pošle celý závod
+jako NewsML-G2 se SportsML 3.1 (`Content-Type: application/xml`). Autentizace
+stejná jako u přihlášek: centrální údaje, nebo údaje **pořadatele** (jen vlastní
+závody); cizí/neexistující kód → 403.
+
+Co se zapíše (`event/services/results_api_import.py`), vždy jako **úplná náhrada**
+dat závodu v jedné transakci — opakované odeslání předchozí sadu přepíše:
+
+* **`Result`** — z bloků `standing` s `classification = split` (pořadí po
+  původních kategoriích, UCI ID), přes `GetResult` jako u REM TSV: body podle
+  typu závodu, 20"/24", příchozí se přeskakují. Potom `after_results_import`
+  (`event/func.py`): přepočet rankingu, kvalifikace MČR, cache, AI shrnutí.
+  Export pro ČSC se odemkne k novému vygenerování.
+* **`RaceRun`** — každá jízda pro prémiové statistiky: `round_type`
+  (`MOTO`/`F32`…`F2`/`FINAL`), `round_number` u rozjížděk, `heat_code` a `gate`
+  = číslo jízdy v programu, `lane` = startovní pozice, `place` (`1st`…, nebo
+  `DNF`/`DNS`/`DSQ`/`REL`), `hill_time`, `finish_time`, `moto_points`,
+  `qualified_to_next_round`, `race_points` (body MČR družstev jako u REM),
+  `is_20`, `is_beginner` a odkaz na `Result`. Jezdec se páruje podle UCI ID;
+  jezdec bez UCI ID na webu jízdu nemá (počet je v odpovědi `unmatched`).
+
+Odpověď 200: `{"status": "ok", "results": {...}, "runs": {"created", "counts_by_round", "unmatched"}}`.
+Neplatné XML nebo dokument bez výsledků → 422 a data závodu zůstanou beze změny.
+Strop těla 25 MB (vlastní, mimo `DATA_UPLOAD_MAX_MEMORY_SIZE`); **nginx musí mít
+`client_max_body_size` aspoň tolik, kolik má dokument** (velký závod ~1–3 MB).
+Přijatý dokument se ukládá do `MEDIA_ROOT/api_results/<event_id>/`.
+
 ## Synchronizace jezdců a klubů s Event Control Admin
 
 Jezdci a kluby se v Event Control Admin zakládají centrálně, ale **master dat

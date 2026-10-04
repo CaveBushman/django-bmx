@@ -966,51 +966,60 @@ class SetResults(threading.Thread):
     def run(self):
         file_path = os.path.join(settings.MEDIA_ROOT, "rem_results", self.file)
         self.stats = self.import_file(self.event, file_path)
+        after_results_import(self.event)
 
-        # Po importu výsledků spustit přepočet rankingu na pozadí
-        schedule_ranking_recount()
-        from rider.rider import trigger_cn_qualification_recount_if_needed
 
-        event_obj = Event.objects.get(id=self.event)
-        trigger_cn_qualification_recount_if_needed(event_obj)
+def after_results_import(event_id):
+    """Kroky po zapsání výsledků závodu — REM TSV i příjem z API (BIKODY).
 
-        # Invalidovat cache pro výsledky, žebříček a seznam závodů
+    Přepočet rankingu na pozadí, přepočet kvalifikace na MČR, smazání cache
+    výsledků a žebříčku a naplánování AI shrnutí závodu.
+    """
+
+    # Po importu výsledků spustit přepočet rankingu na pozadí
+    schedule_ranking_recount()
+    from rider.rider import trigger_cn_qualification_recount_if_needed
+
+    event_obj = Event.objects.get(id=event_id)
+    trigger_cn_qualification_recount_if_needed(event_obj)
+
+    # Invalidovat cache pro výsledky, žebříček a seznam závodů
+    try:
+        from django.core.cache import cache
+        today = date.today()
+        ranking_keys = [
+            f"ranking_{cat}" for cat in (
+                "Men Under 23", "Men Elite", "Men Junior",
+                "Women Elite", "Women Junior",
+                "Boys 9", "Boys 10", "Boys 11", "Boys 12",
+                "Boys 13", "Boys 14", "Boys 15", "Boys 16",
+                "Girls 9", "Girls 10", "Girls 11", "Girls 12",
+                "Girls 13", "Girls 14", "Girls 15", "Girls 16",
+            )
+        ]
+        cache.delete(f"results_{event_id}")
+        cache.delete(f"events_list_{today.year}_{today}")
+        cache.delete_many(ranking_keys)
+        logger.info("Cache invalidována po importu výsledků event_id=%s", event_id)
+    except Exception as exc:
+        logger.warning("Nepodařilo se invalidovat cache: %s", exc)
+
+    from django.conf import settings as _settings
+    if getattr(_settings, "AI_AGENT_ENABLED", False):
         try:
-            from django.core.cache import cache
-            today = date.today()
-            ranking_keys = [
-                f"ranking_{cat}" for cat in (
-                    "Men Under 23", "Men Elite", "Men Junior",
-                    "Women Elite", "Women Junior",
-                    "Boys 9", "Boys 10", "Boys 11", "Boys 12",
-                    "Boys 13", "Boys 14", "Boys 15", "Boys 16",
-                    "Girls 9", "Girls 10", "Girls 11", "Girls 12",
-                    "Girls 13", "Girls 14", "Girls 15", "Girls 16",
-                )
-            ]
-            cache.delete(f"results_{self.event}")
-            cache.delete(f"events_list_{today.year}_{today}")
-            cache.delete_many(ranking_keys)
-            logger.info("Cache invalidována po importu výsledků event_id=%s", self.event)
-        except Exception as exc:
-            logger.warning("Nepodařilo se invalidovat cache: %s", exc)
-
-        from django.conf import settings as _settings
-        if getattr(_settings, "AI_AGENT_ENABLED", False):
-            try:
-                from ai_agent.models import AgentTask
-                already_exists = AgentTask.objects.filter(
+            from ai_agent.models import AgentTask
+            already_exists = AgentTask.objects.filter(
+                task_type=AgentTask.TaskType.RACE_SUMMARY,
+                payload__event_id=event_id,
+                status__in=[AgentTask.Status.PENDING, AgentTask.Status.RUNNING],
+            ).exists()
+            if already_exists:
+                logger.info("AI: shrnutí závodu event_id=%s už čeká, nový task nevytvářím", event_id)
+            else:
+                AgentTask.objects.create(
                     task_type=AgentTask.TaskType.RACE_SUMMARY,
-                    payload__event_id=self.event,
-                    status__in=[AgentTask.Status.PENDING, AgentTask.Status.RUNNING],
-                ).exists()
-                if already_exists:
-                    logger.info("AI: shrnutí závodu event_id=%s už čeká, nový task nevytvářím", self.event)
-                else:
-                    AgentTask.objects.create(
-                        task_type=AgentTask.TaskType.RACE_SUMMARY,
-                        payload={"event_id": self.event},
-                    )
-                    logger.info("AI: naplánováno shrnutí závodu event_id=%s", self.event)
-            except Exception as exc:
-                logger.error("AI: nepodařilo se vytvořit AgentTask pro event_id=%s: %s", self.event, exc)
+                    payload={"event_id": event_id},
+                )
+                logger.info("AI: naplánováno shrnutí závodu event_id=%s", event_id)
+        except Exception as exc:
+            logger.error("AI: nepodařilo se vytvořit AgentTask pro event_id=%s: %s", event_id, exc)

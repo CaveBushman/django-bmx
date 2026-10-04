@@ -38,6 +38,7 @@ def _contract_endpoints(request) -> tuple[str, dict]:
         "riders": f"{root}/v1/riders",
         "clubs": f"{root}/v1/clubs",
         "registrations": f"{root}/v1/events/{{race_code}}/registrations",
+        "results": f"{root}/v1/events/{{race_code}}/results",
     }
 
 
