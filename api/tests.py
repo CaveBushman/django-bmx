@@ -2114,6 +2114,37 @@ class ResultsV1APITests(TestCase):
         body = b'<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaa">]><x>&a;</x>'
         self.assertEqual(self._post(body).status_code, 422)
 
+    def test_gzip_body_is_accepted(self, after):
+        import gzip
+
+        self._auth("event-control-admin", "central-secret")
+        response = self.client.generic(
+            "POST", self.url, gzip.compress(_results_document()),
+            content_type="application/xml; charset=utf-8", HTTP_CONTENT_ENCODING="gzip",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["results"]["imported"], 2)
+
+    def test_broken_gzip_is_422(self, after):
+        self._auth("event-control-admin", "central-secret")
+        response = self.client.generic(
+            "POST", self.url, b"neni-gzip", content_type="application/xml", HTTP_CONTENT_ENCODING="gzip",
+        )
+        self.assertEqual(response.status_code, 422)
+
+    def test_gzip_bomb_is_413(self, after):
+        import gzip
+
+        from api.views.event_control import ResultsV1APIView
+
+        self._auth("event-control-admin", "central-secret")
+        with patch.object(ResultsV1APIView, "MAX_BODY_BYTES", 1000):
+            response = self.client.generic(
+                "POST", self.url, gzip.compress(b" " * 100000),
+                content_type="application/xml", HTTP_CONTENT_ENCODING="gzip",
+            )
+        self.assertEqual(response.status_code, 413)
+
     def test_unknown_event_code(self, after):
         self._auth("event-control-admin", "central-secret")
         response = self.client.generic(

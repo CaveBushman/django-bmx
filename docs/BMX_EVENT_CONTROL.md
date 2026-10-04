@@ -164,8 +164,10 @@ dat závodu v jedné transakci — opakované odeslání předchozí sadu přep�
 
 Odpověď 200: `{"status": "ok", "results": {...}, "runs": {"created", "counts_by_round", "unmatched"}}`.
 Neplatné XML nebo dokument bez výsledků → 422 a data závodu zůstanou beze změny.
-Strop těla 25 MB (vlastní, mimo `DATA_UPLOAD_MAX_MEMORY_SIZE`); **nginx musí mít
-`client_max_body_size` aspoň tolik, kolik má dokument** (velký závod ~1–3 MB).
+BIKODY tělo posílá **komprimované** (`Content-Encoding: gzip`): závod s 233 jezdci
+má 1,07 MB XML a nginx s výchozím `client_max_body_size` 1 MB ho odmítl (413);
+gzipem má ~80 kB. Nekomprimované tělo projde také. Strop 25 MB platí pro tělo
+i pro rozbalený dokument (ochrana proti „gzip bombě“), mimo `DATA_UPLOAD_MAX_MEMORY_SIZE`.
 Přijatý dokument se ukládá do `MEDIA_ROOT/api_results/<event_id>/`.
 
 ## Synchronizace jezdců a klubů s Event Control Admin

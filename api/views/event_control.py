@@ -41,6 +41,7 @@ import binascii
 import logging
 import secrets
 import uuid
+import zlib
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -367,15 +368,13 @@ class ResultsV1APIView(EventControlBaseView):
     )
     def post(self, request, race_code):
         event = self.get_event(request, RegistrationsV1APIView._as_event_code(race_code))
-        body = self._read_body(request)
-        if body is None:
-            return Response({"detail": _("Dokument je příliš velký.")}, status=413)
         try:
+            body = self._read_body(request)
+            if body is None:
+                return Response({"detail": _("Dokument je příliš velký.")}, status=413)
             outcome = results_api_import.import_document(event, body)
         except results_api_import.ResultsDocumentError as exc:
-            audit_logger.warning(
-                "results_api_v1_refused event_id=%s size=%s reason=%s", event.id, len(body), exc,
-            )
+            audit_logger.warning("results_api_v1_refused event_id=%s reason=%s", event.id, exc)
             return Response({"detail": str(exc)}, status=422)
 
         self._keep_document(event, body)
@@ -418,7 +417,26 @@ class ResultsV1APIView(EventControlBaseView):
         raw = request._request
         # Tělo už mohl přečíst middleware — pak je v `_body` a proud je prázdný.
         body = raw._body if hasattr(raw, "_body") else raw.read(self.MAX_BODY_BYTES + 1)
-        return None if len(body) > self.MAX_BODY_BYTES else body
+        if len(body) > self.MAX_BODY_BYTES:
+            return None
+        if (request.META.get("HTTP_CONTENT_ENCODING") or "").strip().lower() == "gzip":
+            return self._gunzip(body)
+        return body
+
+    def _gunzip(self, body):
+        """BIKODY posílá dokument komprimovaný (1 MB XML → ~80 kB).
+
+        Rozbaluje se se stropem: 80 kB gzipu se dá nafouknout na gigabajty
+        a tělo přichází zvenčí. Poškozený gzip je chyba dokumentu (422).
+        """
+        rozbalovac = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        try:
+            data = rozbalovac.decompress(body, self.MAX_BODY_BYTES + 1)
+        except zlib.error as exc:
+            raise results_api_import.ResultsDocumentError(f"Tělo není platný gzip: {exc}") from exc
+        if len(data) > self.MAX_BODY_BYTES or rozbalovac.unconsumed_tail:
+            return None
+        return data
 
     @staticmethod
     def _keep_document(event, body):
