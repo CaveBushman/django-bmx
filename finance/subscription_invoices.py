@@ -26,6 +26,7 @@ from finance.invoices import (
     SUPPLIER_STREET,
     draw_pdf_footer,
     _money,
+    _next_document_number,
     _register_fonts,
 )
 from finance.models import SubscriptionInvoice
@@ -55,16 +56,7 @@ class SubscriptionInvoiceService:
 
     def _build_invoice_number(self):
         year = timezone.localdate().year
-        prefix = f"{COST_CENTER_CODE}SUB{year}"
-        used_indexes = set()
-        for number in SubscriptionInvoice.objects.filter(number__startswith=prefix).values_list("number", flat=True):
-            suffix = str(number)[len(prefix):]
-            if suffix.isdigit():
-                used_indexes.add(int(suffix))
-        next_index = 1
-        while next_index in used_indexes:
-            next_index += 1
-        return f"{prefix}{next_index:04d}"
+        return _next_document_number(SubscriptionInvoice, f"{COST_CENTER_CODE}SUB{year}")
 
     def _customer_lines(self, invoice):
         lines = [invoice.customer_name]

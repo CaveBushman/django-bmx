@@ -24,6 +24,7 @@ from finance.invoices import (
     SUPPLIER_NAME,
     SUPPLIER_STREET,
     _money,
+    _next_document_number,
     _register_fonts,
 )
 from finance.models import EventCashReceipt
@@ -35,16 +36,7 @@ class EventCashReceiptService:
 
     def _build_receipt_number(self):
         year = timezone.localdate().year
-        prefix = f"{COST_CENTER_CODE}P{year}"
-        used_indexes = set()
-        for number in EventCashReceipt.objects.filter(number__startswith=prefix).values_list("number", flat=True):
-            suffix = str(number)[len(prefix):]
-            if suffix.isdigit():
-                used_indexes.add(int(suffix))
-        next_index = 1
-        while next_index in used_indexes:
-            next_index += 1
-        return f"{prefix}{next_index:04d}"
+        return _next_document_number(EventCashReceipt, f"{COST_CENTER_CODE}P{year}")
 
     def _receipt_filename_base(self, receipt):
         event_slug = slugify(receipt.event.name) or f"event-{receipt.event_id}"
