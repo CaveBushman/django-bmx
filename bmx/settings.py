@@ -230,7 +230,9 @@ WSGI_APPLICATION = "bmx.wsgi.application"
 # Lokálně: LocMemCache (výchozí).
 # Na serveru nastav REDIS_URL=redis://127.0.0.1:6379/1 v .env
 # ---------------------------------------------------------------------------
-REDIS_URL = config("REDIS_URL", default="")
+# Testy Redis nepoužívají: paralelní workery by sdílely klíče cache (např. počítadla
+# pokusů přihlášení) a zapisovaly by do cache vývojového serveru. Stejně jako v CI.
+REDIS_URL = "" if RUNNING_TESTS else config("REDIS_URL", default="")
 
 if REDIS_URL:
     CACHES = {
