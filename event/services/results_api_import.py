@@ -368,7 +368,8 @@ def write_runs(event: Event, doc: ResultsDocument) -> dict:
     RaceRun.objects.filter(event=event).delete()
 
     uci_ids = {int(row.uci_id) for row in doc.heats if row.uci_id}
-    riders = {r.uci_id: r for r in Rider.objects.filter(uci_id__in=uci_ids)}
+    # Jen klíče — jízda potřebuje vazbu na jezdce, ne jeho profil (~1 200 řádků).
+    riders = {r.uci_id: r for r in Rider.objects.filter(uci_id__in=uci_ids).only("id", "uci_id")}
     results = {
         (r.rider_id, r.category): r
         for r in Result.objects.filter(event=event).only("id", "rider_id", "category")
