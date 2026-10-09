@@ -2,10 +2,9 @@ import os
 from django.conf import settings
 from django.utils import timezone
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
 from rider.models import Rider
 from event.models import Entry
+from bmx.excel_utils import set_column_widths, write_styled_header
 
 
 def riders_on_events(club_pk):
@@ -16,33 +15,10 @@ def riders_on_events(club_pk):
     ws = wb.active
     ws.title = "ÚČAST NA ZÁVODECH"
 
-    # Styl záhlaví
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F46E5")  # indigo
-    center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    border = Border(
-        left=Side(style="thin"),
-        right=Side(style="thin"),
-        top=Side(style="thin"),
-        bottom=Side(style="thin"),
-    )
-
     headers = ["Příjmení", "Jméno", "Rok narození", "Startovní číslo", "UCI ID", "Kategorie 20","Kategorie 24", year, year-1]
-    ws.append(headers)
+    write_styled_header(ws, headers)
 
-    # Styluj záhlaví
-    for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col_num)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = center_align
-        cell.border = border
-
-    # Nastav šířky sloupců
-    column_widths = [18, 18, 14, 14, 14, 30,30,10, 10]
-    for i, width in enumerate(column_widths, start=1):
-        col_letter = get_column_letter(i)
-        ws.column_dimensions[col_letter].width = width
+    set_column_widths(ws, [18, 18, 14, 14, 14, 30, 30, 10, 10])
 
     i=2
 
