@@ -52,9 +52,9 @@ class Command(BaseCommand):
         verb = "Bylo by překlopeno" if dry_run else "Překlopeno"
         self.stdout.write(
             self.style.SUCCESS(
-                (
+                
                     f"{verb}: Rider {rider_copied}, přeskočeno {rider_skipped}; "
                     f"ForeignRider {foreign_copied}, přeskočeno {foreign_skipped}."
-                )
+                
             )
         )

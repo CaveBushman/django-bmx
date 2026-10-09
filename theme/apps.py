@@ -36,11 +36,11 @@ class ThemeConfig(AppConfig):
                     """.format(link=link, disabled="disabled" if link == "#" else "")
 
                 if current_page:
-                    html_str += """
+                    html_str += f"""
                     <li class="page-item active">
-                        <a class="page-link" href="javascript:void(0);" data-dt-idx="3" tabindex="0">{num}</a>
+                        <a class="page-link" href="javascript:void(0);" data-dt-idx="3" tabindex="0">{i}</a>
                     </li>
-                    """.format(num=i)
+                    """
                 elif spacer:
                     html_str += """
                     <li class="page-item">
@@ -50,11 +50,11 @@ class ThemeConfig(AppConfig):
                 else:
                     query_string = change_list.get_query_string({PAGE_VAR: i})
                     end_class = "end" if is_end else ""
-                    html_str += """
+                    html_str += f"""
                         <li class="page-item">
-                        <a href="{query_string}" class="page-link {end}" data-dt-idx="3" tabindex="0">{num}</a>
+                        <a href="{query_string}" class="page-link {end_class}" data-dt-idx="3" tabindex="0">{i}</a>
                         </li>
-                    """.format(num=i, query_string=query_string, end=end_class)
+                    """
 
                 if is_end:
                     link = (

@@ -11,14 +11,14 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
-from event.models import Entry, Event, CreditTransaction, DebetTransaction
+from event.models import Entry, Event, CreditTransaction
 from event.func import get_unregistration_deadline, is_unregistration_open, update_cart
-from event.credit import calculate_user_balance, recalculate_all_balances
+from event.credit import recalculate_all_balances
 from event.services.payments import (
     clear_checkout_session,
     enrich_cart_entries,

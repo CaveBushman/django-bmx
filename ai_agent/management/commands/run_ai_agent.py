@@ -160,4 +160,4 @@ class Command(BaseCommand):
         if errors:
             self.stdout.write(self.style.WARNING(f"Dokončeno. {errors} úkol(ů) selhalo."))
         else:
-            self.stdout.write(self.style.SUCCESS(f"Všechny úkoly úspěšně zpracovány."))
+            self.stdout.write(self.style.SUCCESS("Všechny úkoly úspěšně zpracovány."))
