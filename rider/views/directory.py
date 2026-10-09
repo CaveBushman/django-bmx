@@ -37,6 +37,7 @@ from rider.mobile_subscriptions import (
 from rider.plates import display_plate, generate_available_plate_values, legacy_plate_int, normalize_plate_value
 
 
+from event.utils import is_valid_uci_id
 from rider.views._common import *  # noqa: F401,F403
 from rider.views._common import (  # podtržítkové helpery (import * je nepřenáší)
     _get_premium_access_context,
@@ -190,7 +191,7 @@ def rider_licence_lookup_view(request):
         )
 
     uci_id = (request.GET.get("uci_id") or "").strip()
-    if not uci_id.isdigit() or len(uci_id) != 11:
+    if not is_valid_uci_id(uci_id):
         return JsonResponse(
             {"ok": False, "message": _("UCI ID musí obsahovat přesně 11 číslic.")},
             status=400,

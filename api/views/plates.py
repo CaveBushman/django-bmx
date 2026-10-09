@@ -12,6 +12,7 @@ from club.models import Club
 from rider.serializers import RiderSerializer
 
 
+from event.utils import is_valid_uci_id
 from api.views._common import *  # noqa: F401,F403
 
 
@@ -65,7 +66,7 @@ class PlateRequestLookupAPIView(APIView):
     )
     def get(self, request):
         uci_id = (request.GET.get("uci_id") or "").strip()
-        if not uci_id.isdigit() or len(uci_id) != 11:
+        if not is_valid_uci_id(uci_id):
             return Response(
                 {"error": "UCI ID musí obsahovat přesně 11 číslic."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -159,7 +160,7 @@ class PlateRequestAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not uci_id.isdigit() or len(uci_id) != 11:
+        if not is_valid_uci_id(uci_id):
             return Response({"error": "UCI ID musí obsahovat přesně 11 číslic."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not (is_20 or is_24):

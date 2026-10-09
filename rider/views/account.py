@@ -33,6 +33,7 @@ from finance.subscription_invoices import SubscriptionInvoiceService
 from rider.plates import legacy_plate_int, normalize_plate_value
 
 
+from event.utils import is_valid_uci_id
 from rider.views._common import *  # noqa: F401,F403
 from rider.views._common import (  # podtržítkové helpery (import * je nepřenáší)
     _validate_avatar_upload,
@@ -234,7 +235,7 @@ def rider_new_view(request):
             return _render_rider_request(request, context)
 
         uci_id = request.POST["uci_id"].strip()
-        if not uci_id.isdigit() or len(uci_id) != 11:
+        if not is_valid_uci_id(uci_id):
             messages.error(request, _("UCI ID musí obsahovat přesně 11 číslic."))
             return _render_rider_request(request, context)
 
