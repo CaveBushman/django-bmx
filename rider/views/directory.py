@@ -239,7 +239,32 @@ def free_plates_view(request):
 
 
 
+#: Veřejné ověření licence: limit dotazů na IP (u přihlášených na uživatele).
+LICENCE_LOOKUP_WINDOW_SECONDS = 600
+LICENCE_LOOKUP_MAX_ATTEMPTS = 30
+
+
 def rider_licence_lookup_view(request):
+    """Ověří UCI ID proti ČSC pro veřejnou žádost o startovní číslo.
+
+    Vrací jen údaje nutné k potvrzení „to jsem já“ (jméno, rok narození,
+    pohlaví) — úplné datum narození neopouští server. Žádost si ho při
+    odeslání znovu načte z ČSC (``rider_new_view``).
+    """
+    from bmx.rate_limit import get_rate_limit_subject, is_rate_limited
+
+    limited, _attempts = is_rate_limited(
+        "rider_licence_lookup",
+        get_rate_limit_subject(request, scope_to_user=True),
+        window_seconds=LICENCE_LOOKUP_WINDOW_SECONDS,
+        max_attempts=LICENCE_LOOKUP_MAX_ATTEMPTS,
+    )
+    if limited:
+        return JsonResponse(
+            {"ok": False, "message": _("Příliš mnoho pokusů o ověření licence. Zkus to prosím za několik minut.")},
+            status=429,
+        )
+
     uci_id = (request.GET.get("uci_id") or "").strip()
     if not uci_id.isdigit() or len(uci_id) != 11:
         return JsonResponse(
@@ -280,12 +305,16 @@ def rider_licence_lookup_view(request):
             status=502,
         )
 
+    date_of_birth = identity.get("date_of_birth") or ""
     return JsonResponse(
         {
             "ok": True,
             "rider": {
                 "uci_id": uci_id,
-                **identity,
+                "first_name": identity.get("first_name", ""),
+                "last_name": identity.get("last_name", ""),
+                "birth_year": date_of_birth[:4],
+                "gender": identity.get("gender", ""),
             },
         }
     )

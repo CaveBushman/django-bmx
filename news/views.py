@@ -174,15 +174,21 @@ def news_detail_view(request, slug):
     if slug.isdigit():
         query |= Q(pk=int(slug))
 
-    news = News.objects.filter(query).first()
+    # Nezveřejněné články vidí jen redakce (náhled před publikací).
+    is_preview_allowed = request.user.is_authenticated and request.user.is_staff
+    articles = News.objects.filter(query)
+    if not is_preview_allowed:
+        articles = articles.filter(published=True)
+    news = articles.first()
     if not news:
         raise Http404("Článek nebyl nalezen.")
 
     if news.slug and news.slug != slug:
         return redirect(news.get_absolute_url(), permanent=True)
 
-    # Přičti zhlédnutí
-    news.increment_views()
+    # Přičti zhlédnutí (náhledy redakce se nepočítají)
+    if news.published:
+        news.increment_views()
     news = _sanitize_news_for_render(news)
 
     # Jazykový obsah — detekujeme aktivní jazyk z LocaleMiddleware

@@ -338,19 +338,35 @@ def pay_orders_from_credit(*, user, orders):
     """
     Provede úhradu objednávek (entries) z uživatelského kreditu.
     Celá operace je atomická - buď se zaplatí vše, nebo nic.
+
+    Zůstatek i stav přihlášek se ověřují až uvnitř transakce: dvojí odeslání
+    formuláře nebo souběžný požadavek z mobilní aplikace tak nemůže zaplatit
+    stejnou přihlášku dvakrát ani poslat kredit do mínusu. Přihláška, která už
+    má platný debet, se znovu nestrhává.
     """
-    price = sum(get_entry_amount(order) for order in orders)
-    if price > user.credit:
-        return False
+    order_ids = [order.pk for order in orders]
 
     with transaction.atomic():
-        for order in orders:
-            amount = get_entry_amount(order)
-            DebetTransaction(user_id=user.id, amount=amount, entry=order).save()
+        Account.objects.select_for_update().filter(pk=user.pk).first()
+        already_charged = DebetTransaction.objects.filter(
+            entry_id__in=order_ids, payment_valid=True
+        ).values_list("entry_id", flat=True)
+        unpaid = list(
+            Entry.objects.select_for_update()
+            .filter(pk__in=order_ids, user_id=user.id, payment_complete=False)
+            .exclude(pk__in=already_charged)
+        )
+        price = sum(get_entry_amount(order) for order in unpaid)
+        if price > calculate_user_balance(user.id):
+            return False
+
+        for order in unpaid:
+            DebetTransaction.objects.create(user_id=user.id, amount=get_entry_amount(order), entry=order)
             order.payment_complete = True
             order.save(update_fields=["payment_complete"])
-        user.credit = calculate_user_balance(user.id)
-        user.save(update_fields=["credit"])
+        balance = calculate_user_balance(user.id)
+        Account.objects.filter(pk=user.pk).update(credit=balance)
+        user.credit = balance
     return True
 
 

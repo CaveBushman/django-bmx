@@ -449,20 +449,7 @@ class EventEnterAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Zkontroluj duplicitu
         category_flags = {"is_20": is_20, "is_24": is_24, "is_beginner": is_beginner}
-        duplicate = EventEntry.objects.filter(
-            event=event,
-            rider=rider,
-            payment_complete=True,
-            checkout=False,
-            **category_flags,
-        ).exists()
-        if duplicate:
-            return Response(
-                {"error": "Jezdec je na tento závod a kategorii již přihlášen."},
-                status=status.HTTP_409_CONFLICT,
-            )
 
         # Spočítej poplatek
         fee_20 = d["fee_20"] if is_20 else 0
@@ -471,17 +458,34 @@ class EventEnterAPIView(APIView):
         total_fee = fee_20 + fee_24 + fee_beginner
 
         user = request.user
-        if user.credit < total_fee:
-            return Response(
-                {
-                    "error": f"Nedostatek kreditu. Potřeba: {total_fee} Kč, zůstatek: {user.credit} Kč.",
-                    "required": total_fee,
-                    "balance": user.credit,
-                },
-                status=status.HTTP_402_PAYMENT_REQUIRED,
-            )
-
         with db_tx.atomic():
+            # Duplicitu i zůstatek ověřujeme až v transakci (se zámkem účtu),
+            # aby souběžné požadavky nemohly přihlásit/strhnout dvakrát.
+            user.__class__.objects.select_for_update().filter(pk=user.pk).first()
+            duplicate = EventEntry.objects.filter(
+                event=event,
+                rider=rider,
+                payment_complete=True,
+                checkout=False,
+                **category_flags,
+            ).exists()
+            if duplicate:
+                return Response(
+                    {"error": "Jezdec je na tento závod a kategorii již přihlášen."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            balance = calculate_user_balance(user.id)
+            if balance < total_fee:
+                return Response(
+                    {
+                        "error": f"Nedostatek kreditu. Potřeba: {total_fee} Kč, zůstatek: {balance} Kč.",
+                        "required": total_fee,
+                        "balance": balance,
+                    },
+                    status=status.HTTP_402_PAYMENT_REQUIRED,
+                )
+
             # Smaž případnou starou nezaplacenou rezervaci pro stejnou kategorii
             EventEntry.objects.filter(
                 event=event, rider=rider, payment_complete=False, **category_flags
@@ -547,30 +551,13 @@ class EntryCancelAPIView(APIView):
 
     @extend_schema(request=None, responses={200: BalanceSerializer, 400: ErrorSerializer})
     def post(self, request, pk):
-        from event.models import Entry as EventEntry, DebetTransaction
-        from event.func import is_unregistration_open
-        from event.credit import calculate_user_balance
-
-        entry = get_object_or_404(
-            EventEntry.objects.select_related("event", "rider"),
-            pk=pk,
-            user=request.user,
-            payment_complete=True,
-            checkout=False,
-        )
-
-        if not is_unregistration_open(entry.event):
-            return Response(
-                {"error": "Lhůta pro odhlášení již vypršela."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        from event.services.unregistration import UnregistrationError, cancel_paid_entry
 
         user = request.user
-        with db_tx.atomic():
-            DebetTransaction.objects.filter(user=user, entry=entry).delete()
-            entry.delete()
-            user.credit = calculate_user_balance(user.id)
-            user.save(update_fields=["credit"])
+        try:
+            cancel_paid_entry(entry_id=pk, user=user, source="api_unregistration")
+        except UnregistrationError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             {"ok": True, "new_balance": user.credit},

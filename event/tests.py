@@ -5554,3 +5554,130 @@ class McrClubTeamsEndToEndTests(TestCase):
         response = self.client.get(reverse("event:mcr-club-teams-roster", kwargs={"pk": self.event.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
+
+
+class CreditEntrySafetyTests(TestCase):
+    """Storno přihlášky a platba z kreditu — serverová pravidla a auditní stopa."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="Safe", last_name="Payer", username="safe_payer",
+            email="safe_payer@example.com", password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save()
+        self.club = Club.objects.create(team_name="Safety Club")
+        self.event = Event.objects.create(
+            name="Safety race",
+            date=date.today() + timedelta(days=30),
+            organizer=self.club,
+            reg_open=True,
+            reg_open_from=timezone.now() - timedelta(days=1),
+            reg_open_to=timezone.now() + timedelta(days=1),
+            type_for_ranking="Volný závod",
+        )
+        self.rider = Rider.objects.create(
+            uci_id=12345678111, first_name="Safe", last_name="Rider", gender="Muž",
+            date_of_birth=date(2015, 1, 1), club=self.club, is_active=True, is_approved=True,
+        )
+        CreditTransaction.objects.create(
+            user=self.user, amount=1000, kind=CreditTransaction.Kind.TOPUP, payment_complete=True,
+        )
+
+    def paid_entry(self, *, event=None, user=None):
+        entry = Entry.objects.create(
+            user=user or self.user, event=event or self.event, rider=self.rider,
+            is_20=True, class_20="Boys 6", fee_20=400, payment_complete=True,
+        )
+        debet = DebetTransaction.objects.create(user=user or self.user, entry=entry, amount=400)
+        return entry, debet
+
+    def test_web_unregistration_keeps_debet_as_invalid_record_and_refunds(self):
+        entry, debet = self.paid_entry()
+        self.client.force_login(self.user)
+
+        self.client.post(reverse("event:checkout"), {"btn-change": entry.pk})
+
+        self.assertFalse(Entry.objects.filter(pk=entry.pk).exists())
+        debet.refresh_from_db()
+        self.assertFalse(debet.payment_valid)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.credit, 1000)
+        self.assertTrue(
+            FinanceAuditLog.objects.filter(target_model="DebetTransaction", target_object_id=debet.pk).exists()
+        )
+
+    def test_web_unregistration_rejected_after_deadline(self):
+        closed = Event.objects.create(
+            name="Closed race", date=date.today() + timedelta(days=3), organizer=self.club,
+            reg_open=True, reg_open_from=timezone.now() - timedelta(days=10),
+            reg_open_to=timezone.now() - timedelta(days=1), type_for_ranking="Volný závod",
+        )
+        entry, debet = self.paid_entry(event=closed)
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("event:checkout"), {"btn-change": entry.pk}, follow=True)
+
+        self.assertTrue(Entry.objects.filter(pk=entry.pk).exists())
+        debet.refresh_from_db()
+        self.assertTrue(debet.payment_valid)
+        self.assertContains(response, "Lhůta pro odhlášení již vypršela.")
+
+    def test_web_unregistration_ignores_other_users_entry(self):
+        other = User.objects.create_user(
+            first_name="Other", last_name="Owner", username="other_owner",
+            email="other_owner@example.com", password="StrongPass123!",
+        )
+        entry, debet = self.paid_entry(user=other)
+        self.client.force_login(self.user)
+
+        self.client.post(reverse("event:checkout"), {"btn-change": entry.pk})
+
+        self.assertTrue(Entry.objects.filter(pk=entry.pk).exists())
+        debet.refresh_from_db()
+        self.assertTrue(debet.payment_valid)
+
+    def test_api_unregistration_rejected_after_deadline(self):
+        closed = Event.objects.create(
+            name="Closed API race", date=date.today() + timedelta(days=3), organizer=self.club,
+            reg_open=True, reg_open_from=timezone.now() - timedelta(days=10),
+            reg_open_to=timezone.now() - timedelta(days=1), type_for_ranking="Volný závod",
+        )
+        entry, _debet = self.paid_entry(event=closed)
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse("api:entry-cancel", args=[entry.pk]))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(Entry.objects.filter(pk=entry.pk).exists())
+
+    def test_pay_orders_from_credit_never_charges_entry_twice(self):
+        from event.views.payment_helpers import pay_orders_from_credit
+
+        entry = Entry.objects.create(
+            user=self.user, event=self.event, rider=self.rider,
+            is_20=True, class_20="Boys 6", fee_20=400,
+        )
+        stale_orders = [Entry.objects.get(pk=entry.pk)]
+
+        self.assertTrue(pay_orders_from_credit(user=self.user, orders=stale_orders))
+        # Druhé odeslání se zastaralým seznamem objednávek už nic nestrhne.
+        self.assertTrue(pay_orders_from_credit(user=self.user, orders=stale_orders))
+
+        self.assertEqual(DebetTransaction.objects.filter(entry=entry, payment_valid=True).count(), 1)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.credit, 600)
+
+    def test_pay_orders_from_credit_uses_fresh_balance(self):
+        from event.views.payment_helpers import pay_orders_from_credit
+
+        entry = Entry.objects.create(
+            user=self.user, event=self.event, rider=self.rider,
+            is_20=True, class_20="Boys 6", fee_20=900,
+        )
+        DebetTransaction.objects.create(user=self.user, amount=500)
+        self.user.credit = 1000  # zastaralá hodnota v objektu požadavku
+
+        self.assertFalse(pay_orders_from_credit(user=self.user, orders=[entry]))
+        entry.refresh_from_db()
+        self.assertFalse(entry.payment_complete)

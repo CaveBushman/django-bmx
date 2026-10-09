@@ -322,7 +322,10 @@ AUTH_USER_MODEL = "accounts.Account"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-SQLITE_OPTIONS = {"timeout": 20}
+# IMMEDIATE: transakce si zamkne zápis hned při BEGIN. Na SQLite je
+# select_for_update() no-op, takže bez toho by dvě souběžné finanční operace
+# (platba z kreditu, storno) mohly číst stejný zůstatek a obě zapsat.
+SQLITE_OPTIONS = {"timeout": 20, "transaction_mode": "IMMEDIATE"}
 if not RUNNING_TESTS:
     SQLITE_OPTIONS["init_command"] = (
         "PRAGMA journal_mode=WAL; "
@@ -434,6 +437,8 @@ REST_FRAMEWORK = {
         "login": "5/minute",
         # BMX Event Control se během závodu dotazuje na startovní listinu opakovaně.
         "event_control": "120/minute",
+        # Ověření licence vrací osobní údaje z ČSC — brání hromadnému stahování.
+        "licence_lookup": "20/hour",
     },
 
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",

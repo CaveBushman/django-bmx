@@ -278,3 +278,32 @@ class DownloadsFileDownloadTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "<script>alert(1)</script>", html=False)
         self.assertNotContains(response, "javascript:alert(1)", html=False)
+
+
+class UnpublishedNewsVisibilityTests(TestCase):
+    def setUp(self):
+        self.draft = News.objects.create(title="Rozpracovany clanek", content="Tajne", published=False)
+
+    def test_unpublished_article_is_hidden_from_public(self):
+        response = self.client.get(reverse("news:news-detail", kwargs={"slug": self.draft.slug or str(self.draft.pk)}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_unpublished_article_is_hidden_when_accessed_by_id(self):
+        response = self.client.get(reverse("news:news-detail", kwargs={"slug": str(self.draft.pk)}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_staff_can_preview_unpublished_article_without_counting_view(self):
+        staff = Account.objects.create_user(
+            first_name="Red", last_name="Aktor", username="redaktor",
+            email="redaktor@example.com", password="test12345",
+        )
+        staff.is_staff = True
+        staff.is_active = True
+        staff.save()
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse("news:news-detail", kwargs={"slug": self.draft.slug or str(self.draft.pk)}))
+
+        self.assertEqual(response.status_code, 200)
+        self.draft.refresh_from_db()
+        self.assertEqual(self.draft.view_count, 0)

@@ -83,8 +83,14 @@ class PlateRequestFreePlatesAPIView(APIView):
 
 
 class PlateRequestLookupAPIView(APIView):
-    """Looks up a UCI ID against the Czech cycling federation and returns rider data."""
-    permission_classes = [AllowAny]
+    """Looks up a UCI ID against the Czech cycling federation and returns rider data.
+
+    Vrací osobní údaje z ČSC (vč. data narození), proto jen pro přihlášené
+    (stejně jako samotné odeslání žádosti) a s omezeným počtem dotazů.
+    """
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [rest_throttling.ScopedRateThrottle]
+    throttle_scope = "licence_lookup"
 
     @extend_schema(
         parameters=[

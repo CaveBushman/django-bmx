@@ -252,22 +252,14 @@ def checkout_view(request):
             visible_count += 1
 
     if "btn-change" in request.POST:
-        # Storno přihlášky — smaž Entry a příslušné debetní transakce
-        with transaction.atomic():
-            entry = Entry.objects.select_for_update().filter(
-                id=request.POST["btn-change"], user=user
-            ).first()
-            if entry:
-                audit_logger.info(
-                    "confirmed_entry_deleted user_id=%s entry_id=%s event_id=%s",
-                    user.id,
-                    entry.id,
-                    entry.event_id,
-                )
-                DebetTransaction.objects.filter(user=user, entry=entry).delete()
-                entry.delete()
-            user.credit = calculate_user_balance(user.id)
-            user.save()
+        from event.services.unregistration import UnregistrationError, cancel_paid_entry
+
+        try:
+            refunded = cancel_paid_entry(entry_id=request.POST["btn-change"], user=user, source="web_unregistration")
+        except UnregistrationError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, f"Přihláška byla stornována, do kreditu jsme vrátili {refunded} Kč.")
         return redirect("event:checkout")
 
     data = {

@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("uci_id").value = rider.uci_id || "";
     document.getElementById("first_name").value = rider.first_name || "";
     document.getElementById("last_name").value = rider.last_name || "";
-    document.getElementById("date_of_birth").value = rider.date_of_birth || "";
+    document.getElementById("date_of_birth").value = rider.birth_year || "";
     document.getElementById("gender").value = rider.gender || "";
     lookupInput.value = rider.uci_id || "";
   }

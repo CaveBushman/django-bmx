@@ -182,8 +182,28 @@ class RiderLicenceLookupTests(TestCase):
         rider = response.json()["rider"]
         self.assertEqual(rider["first_name"], "Jana")
         self.assertEqual(rider["last_name"], "Nováková")
-        self.assertEqual(rider["date_of_birth"], "2012-04-03")
+        self.assertEqual(rider["birth_year"], "2012")
+        self.assertNotIn("date_of_birth", rider)
         self.assertEqual(rider["gender"], "Žena")
+
+    @patch("rider.views.directory.get_rider_data", return_value=(None, "Licence nebyla nalezena"))
+    def test_lookup_is_rate_limited(self, _get_rider_data):
+        from django.core.cache import cache
+
+        cache.clear()
+        statuses = [
+            self.client.get(reverse("rider:new-licence-lookup"), {"uci_id": "10046761357"}).status_code
+            for _ in range(31)
+        ]
+
+        self.assertEqual(statuses[0], 404)
+        self.assertEqual(statuses[-1], 429)
+        cache.clear()
+
+    def test_api_lookup_requires_login(self):
+        response = self.client.get(reverse("api:plate-request-lookup"), {"uci_id": "10046761357"})
+
+        self.assertIn(response.status_code, {401, 403})
 
     @patch("rider.views.directory.get_rider_data", return_value=(None, "ČSC chyba záznamu (500)"))
     def test_lookup_reports_record_error_directs_to_admin(self, _get_rider_data):

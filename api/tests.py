@@ -44,7 +44,9 @@ def make_user(**kwargs):
 
 class PlateRequestLookupAPITests(TestCase):
     def setUp(self):
+        cache.clear()  # reset throttle scope licence_lookup
         self.client = APIClient()
+        self.client.force_authenticate(make_user())
         self.url = "/api/v1/riders/plate-request/lookup/"
 
     @patch("api.views.plates.get_rider_data", return_value=(None, "Nastala chyba: 500"))
