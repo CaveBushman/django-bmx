@@ -48,7 +48,7 @@ def _construct_stripe_event(payload, sig_header):
     for secret in webhook_secrets:
         try:
             return stripe.Webhook.construct_event(payload, sig_header, secret)
-        except stripe.error.SignatureVerificationError as error:
+        except stripe.SignatureVerificationError as error:
             last_error = error
 
     if last_error:
@@ -205,7 +205,7 @@ def handle_credit_webhook(payload, sig_header):
     except ValueError as error:
         logger.error(f"Invalid payload: {error}")
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as error:
+    except stripe.SignatureVerificationError as error:
         logger.error(f"Invalid signature: {error}")
         return HttpResponse(status=400)
 
@@ -431,7 +431,7 @@ def finalize_pending_credit_transactions(user, *, session_id=""):
             return finalize_credit_transaction_by_session_id(session_id, user=user)
         except CreditTransaction.DoesNotExist:
             return False
-        except stripe.error.StripeError as error:
+        except stripe.StripeError as error:
             logger.error(f"Stripe error v success_credit_view: {error}")
             return False
         except DatabaseError:
@@ -459,7 +459,7 @@ def finalize_pending_credit_transactions(user, *, session_id=""):
                     )
         except CreditTransaction.DoesNotExist:
             continue
-        except stripe.error.StripeError as error:
+        except stripe.StripeError as error:
             logger.error(f"Stripe error v success_credit_view: {error}")
         except DatabaseError:
             logger.exception("Databázová chyba v success_credit_view pro transaction_id=%s", ct.transaction_id)

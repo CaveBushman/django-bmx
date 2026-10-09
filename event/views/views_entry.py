@@ -202,7 +202,7 @@ def confirm_view(request):
                 checkout_session.id,
             )
             return JsonResponse({"id": checkout_session.id})
-        except (stripe.error.StripeError, DatabaseError) as error:
+        except (stripe.StripeError, DatabaseError) as error:
             audit_logger.exception(
                 "event_checkout_failed user_id=%s event_id=%s beginner=%s class20=%s class24=%s",
                 request.user.id if request.user.is_authenticated else None,
@@ -327,7 +327,7 @@ def entry_foreign_pay_view(request, pk):
         response = HttpResponse(status=303)
         response["Location"] = checkout_session.url
         return response
-    except (stripe.error.StripeError, DatabaseError) as error:
+    except (stripe.StripeError, DatabaseError) as error:
         audit_logger.exception(
             "foreign_entry_checkout_failed event_id=%s rows=%s customer_email=%s",
             event.id,
@@ -353,7 +353,7 @@ def entry_foreign_success_view(request, pk):
             )
             sync_paid_foreign_riders(event, session_id)
             request.session.pop(foreign_summary_session_key(event.pk), None)
-        except (stripe.error.StripeError, DatabaseError) as error:
+        except (stripe.StripeError, DatabaseError) as error:
             logger.exception("Chyba při potvrzení foreign Stripe platby %s: %s", session_id, error)
 
     return render(

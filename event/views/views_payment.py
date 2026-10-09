@@ -63,7 +63,7 @@ def success_view(request, pk):
     if session_id:
         try:
             finalize_entry_checkout_session(session_id, event_id=pk)
-        except (stripe.error.StripeError, DatabaseError) as error:
+        except (stripe.StripeError, DatabaseError) as error:
             logger.exception("Chyba při zpracování transakce %s: %s", session_id, error)
     else:
         transactions = get_recent_pending_entries(event_id=pk)
@@ -72,7 +72,7 @@ def success_view(request, pk):
             try:
                 confirm = stripe.checkout.Session.retrieve(t.transaction_id)
                 mark_entry_paid(t, confirm)
-            except stripe.error.StripeError as error:
+            except stripe.StripeError as error:
                 logger.exception("Stripe chyba při zpracování transakce %s: %s", t.transaction_id, error)
             except DatabaseError as error:
                 logger.exception("Databázová chyba při zpracování transakce %s: %s", t.transaction_id, error)
@@ -218,7 +218,7 @@ def check_order_payments(request):
     if session_id:
         try:
             finalize_entry_checkout_session(session_id)
-        except (stripe.error.StripeError, Exception) as e:
+        except (stripe.StripeError, Exception) as e:
             logger.error(f"Chyba při ověřování transakce: {e}")
     else:
         transactions = get_recent_pending_entries()
@@ -227,7 +227,7 @@ def check_order_payments(request):
             try:
                 confirm = stripe.checkout.Session.retrieve(t.transaction_id)
                 mark_entry_paid(t, confirm)
-            except (stripe.error.StripeError, Exception) as e:
+            except (stripe.StripeError, Exception) as e:
                 logger.error(f"Chyba při ověřování transakce: {e}")
 
     update_cart(request)
@@ -332,7 +332,7 @@ def credit_view(request):
             response = HttpResponse(status=303)
             response["Location"] = checkout_session.url
             return response
-        except stripe.error.StripeError as error:
+        except stripe.StripeError as error:
             audit_logger.exception(
                 "credit_checkout_failed user_id=%s amount=%s",
                 user_id,
@@ -361,7 +361,7 @@ def success_credit_view(request):
                 request.user.id,
                 session_id,
             )
-        except (stripe.error.StripeError, DatabaseError) as error:
+        except (stripe.StripeError, DatabaseError) as error:
             logger.exception("Chyba při potvrzení kreditní platby %s: %s", session_id, error)
             audit_logger.exception(
                 "credit_checkout_finalize_failed user_id=%s session_id=%s",

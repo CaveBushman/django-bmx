@@ -310,7 +310,7 @@ class CreditTopUpAPIView(APIView):
                 },
                 status=status.HTTP_201_CREATED,
             )
-        except stripe.error.StripeError as error:
+        except stripe.StripeError as error:
             audit_logger.exception(
                 "api_credit_checkout_failed user_id=%s amount=%s",
                 request.user.id,

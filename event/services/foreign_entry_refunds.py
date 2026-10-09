@@ -38,7 +38,7 @@ def issue_foreign_entry_stripe_refund(entry) -> str:
     - transaction_id není prázdný (platba proběhla přes Stripe)
 
     Vrátí Stripe Refund ID (re_xxx).
-    Vyhodí ValueError nebo stripe.error.StripeError při chybě.
+    Vyhodí ValueError nebo stripe.StripeError při chybě.
     """
     amount_czk = get_foreign_entry_refund_amount(entry)
 
@@ -133,7 +133,7 @@ def sync_foreign_entry_stripe_refund(entry):
             entry.pk,
             exc,
         )
-    except stripe.error.StripeError as exc:
+    except stripe.StripeError as exc:
         logger.error(
             "foreign_entry_stripe_refund_failed entry_id=%s stripe_error=%s",
             entry.pk,
