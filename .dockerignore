@@ -1,0 +1,37 @@
+# Do image patří jen kód. Tajemství, data a zálohy se připojují za běhu
+# (env_file, volumes v docker-compose.yml).
+
+# Tajemství
+.env
+*.env
+bmx/.env
+auth.json
+
+# Databáze a zálohy (SQLite běží z volume, viz SQLITE_PATH v docker-compose.yml)
+db
+db.sqlite3
+db.sqlite3-*
+db.sqlite3.*
+*.sqlite3
+docker-data/
+backups/
+
+# Uživatelská data a generované soubory (připojují se jako volume)
+media/
+logs/
+staticfiles/
+
+# Vývoj
+.git
+.github
+.idea
+.vscode
+.codex
+.DS_Store
+**/__pycache__
+**/*.py[cod]
+node_modules
+theme/static_src/node_modules
+.pytest_cache
+htmlcov
+.coverage

@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from io import BytesIO
+from io import BytesIO, StringIO
 import json
 import os
 from pathlib import Path
@@ -5681,3 +5681,50 @@ class CreditEntrySafetyTests(TestCase):
         self.assertFalse(pay_orders_from_credit(user=self.user, orders=[entry]))
         entry.refresh_from_db()
         self.assertFalse(entry.payment_complete)
+
+    @patch("event.views.payment_helpers._construct_stripe_event")
+    def test_webhook_returns_500_on_database_error_so_stripe_retries(self, construct_event_mock):
+        from django.db import DatabaseError
+
+        construct_event_mock.return_value = {
+            "type": "checkout.session.completed",
+            "data": {"object": {"id": "cs_db_error", "payment_status": "paid", "metadata": {}}},
+        }
+        with patch("event.views.payment_helpers.Entry.objects.select_for_update", side_effect=DatabaseError("locked")):
+            response = self.client.post(
+                reverse("event:stripe-credit-webhook"), data="{}",
+                content_type="application/json", HTTP_STRIPE_SIGNATURE="sig_test",
+            )
+
+        self.assertEqual(response.status_code, 500)
+
+    @override_settings(STRIPE_ENDPOINT_SECRETS=["whsec_test"])
+    def test_webhook_rejects_invalid_signature_with_400(self):
+        import stripe
+
+        with patch(
+            "event.views.payment_helpers.stripe.Webhook.construct_event",
+            side_effect=stripe.SignatureVerificationError("bad signature", "sig_test"),
+        ):
+            response = self.client.post(
+                reverse("event:stripe-credit-webhook"), data="{}",
+                content_type="application/json", HTTP_STRIPE_SIGNATURE="sig_test",
+            )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_report_duplicate_debets_lists_overcharged_entry(self):
+        entry, _debet = self.paid_entry()
+        DebetTransaction.objects.create(user=self.user, entry=entry, amount=400)
+        clean_entry, _ = self.paid_entry(event=Event.objects.create(
+            name="Clean race", date=date.today() + timedelta(days=20), organizer=self.club,
+            type_for_ranking="Volný závod",
+        ))
+        out = StringIO()
+
+        call_command("report_duplicate_debets", stdout=out)
+
+        output = out.getvalue()
+        self.assertIn(f"Přihláška #{entry.pk}", output)
+        self.assertIn("přeplatek 400 Kč", output)
+        self.assertNotIn(f"Přihláška #{clean_entry.pk}", output)

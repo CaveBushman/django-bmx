@@ -1,4 +1,5 @@
 import logging
+from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 from django.utils.timezone import now, timedelta, localdate
 from django.db.models import Count
@@ -15,6 +16,12 @@ _DEVICE_LABELS = {
 }
 
 
+
+def _can_view_stats(user):
+    return user.is_authenticated and user.is_active and (user.is_staff or getattr(user, "is_admin", False))
+
+
+@user_passes_test(_can_view_stats, login_url="/login/")
 def visit_stats(request):
     last_days = 7
     time_threshold = now() - timedelta(days=last_days)

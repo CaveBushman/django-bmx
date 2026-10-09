@@ -337,7 +337,8 @@ if not RUNNING_TESTS:
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        # V Dockeru míří SQLITE_PATH do sdíleného volume (viz docker-compose.yml).
+        "NAME": config("SQLITE_PATH", default=str(BASE_DIR / "db.sqlite3")),
         "CONN_MAX_AGE": 0,  # SQLite: musí být 0 (nepodporuje sdílené persistent connections). Při migraci na Postgres nastavit 300.
         "OPTIONS": SQLITE_OPTIONS,
     }

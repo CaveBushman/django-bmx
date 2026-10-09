@@ -283,7 +283,9 @@ def handle_credit_webhook(payload, sig_header):
                     )
                     return HttpResponse(status=200)
     except DatabaseError:
+        # 500 → Stripe doručení zopakuje; s 200 by se zaplacená přihláška ztratila.
         logger.exception("[Webhook] Databázová chyba při zpracování přihlášek.")
+        return HttpResponse(status=500)
 
     # 3. Pokus o zpracování jako Zahraniční přihláška (EntryForeign)
     try:
@@ -304,7 +306,21 @@ def handle_credit_webhook(payload, sig_header):
                     return HttpResponse(status=200)
     except DatabaseError:
         logger.exception("[Webhook] Databázová chyba při zpracování zahraničních přihlášek.")
+        return HttpResponse(status=500)
 
+    already_processed = (
+        Entry.objects.filter(transaction_id=session_id).exists()
+        or EntryForeign.objects.filter(transaction_id=session_id).exists()
+    )
+    if already_processed:
+        # Běžné: návrat ze Stripe (success stránka) přihlášky potvrdil dřív než webhook.
+        logger.info("[Webhook] Session %s už byla zpracována.", session_id)
+    else:
+        logger.warning(
+            "[Webhook] Session %s (payment_status=%s) neodpovídá žádné kreditní transakci ani přihlášce.",
+            session_id,
+            payment_status,
+        )
     return HttpResponse(status=200)
 
 

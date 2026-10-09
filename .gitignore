@@ -182,3 +182,4 @@ logs/
 
 # macOS Finder metadata
 .DS_Store
+docker-data/

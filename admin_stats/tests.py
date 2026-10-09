@@ -4,6 +4,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.models import Account
 from admin_stats.middleware import VisitMiddleware
 from admin_stats.models import Visit
 
@@ -35,7 +36,23 @@ class VisitStatsViewTests(TestCase):
         Visit.objects.filter(pk__in=[first.pk, second.pk]).update(timestamp=recent_time)
         Visit.objects.filter(pk=old.pk).update(timestamp=older_time)
 
+    def login_staff(self):
+        staff = Account.objects.create_user(
+            first_name="Stat", last_name="Admin", username="stat_admin",
+            email="stat_admin@example.com", password="StrongPass123!",
+        )
+        staff.is_staff = True
+        staff.is_active = True
+        staff.save()
+        self.client.force_login(staff)
+
+    def test_visit_stats_requires_staff(self):
+        response = self.client.get(reverse("admin_stats:visit_stats"))
+
+        self.assertEqual(response.status_code, 302)
+
     def test_visit_stats_exposes_locations_and_devices_for_template(self):
+        self.login_staff()
         response = self.client.get(reverse("admin_stats:visit_stats"))
 
         self.assertEqual(response.status_code, 200)
