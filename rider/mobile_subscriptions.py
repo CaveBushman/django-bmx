@@ -11,17 +11,11 @@ from django.utils import timezone
 
 from accounts.models import Account
 from event.credit import calculate_user_balance
-from event.models import SeasonSettings
 from rider.models import MobileAppCharge, MobileAppSubscription, PromoCode, PromoCodeUsage
-from rider.subscriptions import cancel_subscription, resume_subscription
+from rider.subscriptions import cancel_subscription, get_current_season_settings, resume_subscription
 
 
 SUBSCRIPTION_PERIOD = timedelta(days=365)
-
-
-def get_current_season_settings(at_time=None):
-    current_time = at_time or timezone.now()
-    return SeasonSettings.objects.filter(year=current_time.year).first()
 
 
 def get_active_mobile_app_subscription(user, at_time=None):

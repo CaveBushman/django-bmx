@@ -7,13 +7,10 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+from bmx.pdf_fonts import register_pdf_fonts as _register_fonts
 
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 SUPPLIER_NAME = "Asociace klubů BMX, z.s."
 SUPPLIER_STREET = "Korunní 972/75, Vinohrady"
 SUPPLIER_CITY = "130 00 Praha 3"
@@ -33,11 +30,6 @@ def _asset_path(*parts):
 
 
 LOGO_PATH = _asset_path("images", "logo.png")
-
-
-def _register_fonts():
-    pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 class NumberedCanvas(canvas.Canvas):

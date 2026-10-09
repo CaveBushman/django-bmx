@@ -16,8 +16,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 try:
@@ -28,10 +26,9 @@ except ImportError:
 from event.models import Entry, Event
 from bmx.observability import set_tag, start_span
 from finance.models import EventInvoice, EventInvoiceOverride
+from bmx.pdf_fonts import register_pdf_fonts as _register_fonts
 
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 ISDOC_SEAL_PATH = os.path.join(settings.BASE_DIR, "static/images/ISDOC.jpeg")
 SUPPLIER_NAME = "Asociace klubů BMX, z.s."
@@ -46,11 +43,6 @@ SCHEMA_INSTANCE_NS = "http://www.w3.org/2001/XMLSchema-instance"
 
 ET.register_namespace("", ISDOC_NS)
 ET.register_namespace("xsi", SCHEMA_INSTANCE_NS)
-
-
-def _register_fonts():
-    pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 def _money(value):

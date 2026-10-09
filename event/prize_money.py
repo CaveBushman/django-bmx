@@ -11,14 +11,11 @@ from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from event.models import EventType, Result
+from bmx.pdf_fonts import register_pdf_fonts as _register_fonts
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 
 
@@ -77,13 +74,6 @@ PRIZE_MONEY_SCHEMES = {
         allow_amount_toggle=False,
     ),
 }
-
-
-def _register_fonts():
-    if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    if "DejaVuSans-Bold" not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
 
 
 def _normalize_category(value):
@@ -227,20 +217,6 @@ class PrizeMoneyPdfService:
         grouped = defaultdict(list)
         for result in results:
             grouped[_normalize_category(result.category)].append(result)
-        return grouped
-
-    def _results_by_rider_class_20(self, event):
-        results = (
-            Result.objects.filter(event=event, is_20=True)
-            .select_related("rider")
-            .order_by("place")
-        )
-        grouped = defaultdict(list)
-        for result in results:
-            rider_class_20 = _resolve_rider_class_20_for_event(result.rider, event.date or date.today())
-            if not rider_class_20:
-                continue
-            grouped[_normalize_category(rider_class_20)].append(result)
         return grouped
 
     def _aliases_to_category_map(self, scheme):
