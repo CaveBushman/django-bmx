@@ -323,12 +323,14 @@ def write_results(event: Event, doc: ResultsDocument) -> dict:
     ranking_code = GetResult.ranking_code_resolve(type=event.type_for_ranking)
     stats = {"rows": len(doc.standings), "imported": 0, "skipped": 0, "errors": 0}
     Result.objects.filter(event=event).delete()
+    organizer = event.organizer.team_name if event.organizer_id else ""
+    rows = []
     for row in doc.standings:
         if _is_beginner(row.category):
             stats["skipped"] += 1
             continue
         try:
-            GetResult(
+            rows.append(GetResult(
                 event.date,
                 event.id,
                 event.name,
@@ -339,13 +341,25 @@ def write_results(event: Event, doc: ResultsDocument) -> dict:
                 row.first_name,
                 row.last_name,
                 row.club,
-                event.organizer.team_name if event.organizer_id else "",
+                organizer,
                 event.type_for_ranking,
-            ).write_result()
-            stats["imported"] += 1
+            ).build_result())
         except Exception as exc:  # noqa: BLE001 — jeden řádek nesmí shodit celý závod
             stats["errors"] += 1
             logger.error("Výsledek z API se nezapsal (event_id=%s, řádek %s): %s", event.id, row, exc)
+
+    # Hromadně: po řádku to bylo ~3 dotazy na výsledek (create + save + signál).
+    # `bulk_create` signál `post_save` nespouští, proto příznak 20"/24" u jezdců
+    # (`event.signals.sync_rider_categories_from_result`) doplníme dvěma dotazy.
+    Result.objects.bulk_create(rows, batch_size=500)
+    stats["imported"] = len(rows)
+    ranked = [r for r in rows if r.rider_id and not r.is_beginner]
+    uci_20 = {r.rider_id for r in ranked if r.is_20}
+    uci_24 = {r.rider_id for r in ranked if not r.is_20}
+    if uci_20:
+        Rider.objects.filter(uci_id__in=uci_20, is_20=False).update(is_20=True)
+    if uci_24:
+        Rider.objects.filter(uci_id__in=uci_24, is_24=False).update(is_24=True)
     return stats
 
 

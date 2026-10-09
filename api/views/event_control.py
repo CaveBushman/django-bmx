@@ -43,6 +43,7 @@ import re
 import secrets
 import uuid
 import zlib
+from datetime import datetime, time
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -252,6 +253,12 @@ def _query_updated_since(request):
     parsed = parse_datetime(raw) or parse_date(raw)
     if parsed is None:
         raise ValidationError({"updated_since": _("Očekávaný formát je ISO 8601 (2026-05-01 nebo 2026-05-01T10:00:00).")})
+    # `updated` je DateTimeField s časovou zónou: samotné datum je místní
+    # půlnoc, čas bez zóny je místní čas (jinak varování a posun o hodiny).
+    if not isinstance(parsed, datetime):
+        parsed = datetime.combine(parsed, time.min)
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed)
     return parsed
 
 

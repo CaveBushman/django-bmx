@@ -192,7 +192,14 @@ class GetResult:
         return 0
 
     def write_result(self):
-        
+        logger.debug(f"Ukládám výsledek pro {self.first_name} {self.last_name}, místo: {self.place}")
+        result = self.build_result()
+        result.save()
+        logger.info(f"Výsledek uložen: {self.first_name} {self.last_name}, místo: {self.place}")
+        return result
+
+    def build_result(self):
+        """Neuložený ``Result`` — pro hromadný zápis (``bulk_create``) i ``write_result``."""
         self.point = self.get_ranking_points()
         self.is_20 = self.cruiser_resolve()
         self.is_beginner  = self.is_beginner_category()
@@ -200,9 +207,8 @@ class GetResult:
         if self.is_beginner:
             self.is_20=False
 
-        logger.debug(f"Ukládám výsledek pro {self.first_name} {self.last_name}, místo: {self.place}")
-        result = Result.objects.create()
-        
+        result = Result()
+
         try:
             result.rider_id = int(self.uci_id)
         except (ValueError, TypeError):
@@ -227,9 +233,6 @@ class GetResult:
 
         result.is_20 = self.is_20
         result.is_beginner = self.is_beginner
-
-        result.save()
-        logger.info(f"Výsledek uložen: {self.first_name} {self.last_name}, místo: {self.place}")
         return result
 
     @staticmethod

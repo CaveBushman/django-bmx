@@ -2247,3 +2247,211 @@ class ResultsDocumentV1APITests(TestCase):
         self._put(self.PDF, HTTP_CONTENT_DISPOSITION='attachment; filename="listina.pdf"')
         self.client.credentials()
         self.assertContains(self.client.get(reverse("event:events")), "listina")
+
+
+def _large_results_document(categories):
+    """Dokument se zadanými kategoriemi ``{název: [(uci_id, místo), …]}`` a jednou rozjížďkou na kategorii."""
+    standings, heats = [], []
+    for ci, (category, riders) in enumerate(categories.items()):
+        teams = "".join(
+            f'<team><team-metadata team-key="r{uci}" name="J {uci}">'
+            f'<sports-property formal-name="first-name" value="J"/>'
+            f'<sports-property formal-name="last-name" value="{uci}"/>'
+            f'<sports-property formal-name="uci-id" value="{uci}"/>'
+            f'</team-metadata><team-stats rank="{place}"/></team>'
+            for uci, place in riders
+        )
+        standings.append(
+            f'<standing><standing-metadata standing-key="c{ci}-split" standing-name="{category}">'
+            f'<sports-property formal-name="classification" value="split"/></standing-metadata>{teams}</standing>'
+        )
+        participants = "".join(
+            f'<participant><participant-metadata participant-key="r{uci}" uniform-number="{place}">'
+            f'<sports-property formal-name="uci-id" value="{uci}"/>'
+            f'<sports-property formal-name="home-category" value="{category}"/></participant-metadata>'
+            f'<participant-stats score="{place}"><sports-property formal-name="finish-seconds" value="33.{place}"/>'
+            f'</participant-stats></participant>'
+            for uci, place in riders
+        )
+        heats.append(
+            f'<sports-event><event-metadata event-key="e{ci}">'
+            f'<sports-property formal-name="category" value="{category}"/>'
+            f'<sports-property formal-name="stage" value="moto"/>'
+            f'<sports-property formal-name="round" value="1"/>'
+            f'<sports-property formal-name="race-number" value="{ci + 1}"/></event-metadata>'
+            f'<team><team-metadata team-key="c{ci}" name="{category}"/>{participants}</team></sports-event>'
+        )
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?><newsItem xmlns="http://iptc.org/std/nar/2006-10-01/" version="1">'
+        '<contentSet><inlineXML><sports-content xmlns="http://iptc.org/std/SportsML/2008-04-01/">'
+        + "".join(heats) + "".join(standings)
+        + "</sports-content></inlineXML></contentSet></newsItem>"
+    ).encode()
+
+
+@override_settings(
+    EVENT_CONTROL_CENTRAL_USERNAME="event-control-admin",
+    EVENT_CONTROL_CENTRAL_PASSWORD="central-secret",
+    MEDIA_ROOT="/tmp/czechbmx-api-test-media",
+)
+class EventControlPerformanceTests(TestCase):
+    """Výkon endpointů, které volá BIKODY — hlídá, aby se nevrátilo N+1 a drahé ověření hesla."""
+
+    def setUp(self):
+        from event.models import EventType
+
+        cache.clear()
+        self.client = APIClient()
+        self.club = Club.objects.create(team_name="BMX Praha")
+        self.password = self.club.generate_event_control_credentials()
+        self.event = Event.objects.create(
+            name="Český pohár Praha",
+            date=date(2026, 10, 4),
+            organizer=self.club,
+            type_for_ranking=EventType.CESKY_POHAR,
+        )
+
+    def _auth(self, username, password):
+        self.client.credentials(
+            HTTP_AUTHORIZATION="Basic " + base64.b64encode(f"{username}:{password}".encode()).decode()
+        )
+
+    def _ping(self):
+        return self.client.get("/api/v1/event-control/ping/")
+
+    def _warm_up(self):
+        """První požadavek z IP zapíše návštěvu (``VisitMiddleware``) — do měření nepatří."""
+        self.client.get("/api/registration/v1/clubs")
+
+    # --- ověření údajů organizace ------------------------------------------------
+
+    def test_org_password_is_hashed_once_then_cached(self):
+        self._auth(self.club.event_control_username, self.password)
+        with patch("club.models.check_password", wraps=__import__("club.models", fromlist=["x"]).check_password) as checked:
+            for _ in range(3):
+                self.assertEqual(self._ping().status_code, 200)
+        self.assertEqual(checked.call_count, 1, "PBKDF2 (~250 ms) se má počítat jen při prvním požadavku")
+
+    def test_wrong_password_is_never_cached(self):
+        self._auth(self.club.event_control_username, "spatne-heslo")
+        with patch("club.models.check_password", return_value=False) as checked:
+            for _ in range(2):
+                self.assertEqual(self._ping().status_code, 401)
+        self.assertEqual(checked.call_count, 2)
+
+    def test_new_password_invalidates_cached_login(self):
+        self._auth(self.club.event_control_username, self.password)
+        self.assertEqual(self._ping().status_code, 200)
+        new_password = self.club.generate_event_control_credentials()
+        self.assertEqual(self._ping().status_code, 401, "staré heslo nesmí projít ani z cache")
+        self._auth(self.club.event_control_username, new_password)
+        self.assertEqual(self._ping().status_code, 200)
+
+    def test_revoked_access_applies_immediately(self):
+        self._auth(self.club.event_control_username, self.password)
+        self.assertEqual(self._ping().status_code, 200)
+        self.club.revoke_event_control_credentials()
+        self.assertEqual(self._ping().status_code, 401)
+
+    def test_disabled_access_applies_immediately(self):
+        self._auth(self.club.event_control_username, self.password)
+        self.assertEqual(self._ping().status_code, 200)
+        Club.objects.filter(pk=self.club.pk).update(event_control_enabled=False)
+        self.assertEqual(self._ping().status_code, 401)
+
+    # --- přihlášky --------------------------------------------------------------
+
+    def _make_entries(self, count, start=0):
+        for i in range(start, start + count):
+            rider = Rider.objects.create(
+                uci_id=100100000 + i, first_name="J", last_name=f"N{i:04d}", gender="Muž",
+                date_of_birth=date(2012, 1, 1), club=self.club, is_active=True, is_approved=True,
+            )
+            Entry.objects.create(event=self.event, rider=rider, is_20=True, class_20="Boys 14",
+                                 fee_20=500, payment_complete=True)
+
+    def _registrations_queries(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        url = f"/api/registration/v1/events/{self.event.event_code}/registrations?page_size=500"
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        return len(ctx.captured_queries), response.json()["count"]
+
+    def test_registrations_query_count_does_not_grow_with_entries(self):
+        self._auth("event-control-admin", "central-secret")
+        self._warm_up()
+        self._make_entries(3)
+        small, count_small = self._registrations_queries()
+        self._make_entries(40, start=3)
+        large, count_large = self._registrations_queries()
+        self.assertEqual((count_small, count_large), (3, 43))
+        self.assertEqual(small, large, "N+1 dotazy u přihlášek")
+
+    # --- master data ------------------------------------------------------------
+
+    def test_riders_query_count_does_not_grow_with_riders(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        self._auth("event-control-admin", "central-secret")
+        self._warm_up()
+        self._make_entries(50)
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get("/api/registration/v1/riders?limit=2000")
+        self.assertEqual(response.json()["count"], 50)
+        self.assertLessEqual(len(ctx.captured_queries), 2)
+
+    def test_updated_since_date_is_local_midnight_without_warning(self):
+        import warnings
+
+        self._auth("event-control-admin", "central-secret")
+        self._make_entries(1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            response = self.client.get(f"/api/registration/v1/riders?updated_since={timezone.localdate().isoformat()}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 1)
+
+    # --- výsledky ---------------------------------------------------------------
+
+    def _post_results(self, body):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        url = f"/api/registration/v1/events/{self.event.event_code}/results"
+        with patch("event.func.after_results_import"), CaptureQueriesContext(connection) as ctx:
+            response = self.client.generic("POST", url, body, content_type="application/xml")
+        self.assertEqual(response.status_code, 200, response.content)
+        return len(ctx.captured_queries), response.json()
+
+    def test_results_import_query_count_does_not_grow_with_results(self):
+        self._auth("event-control-admin", "central-secret")
+        self._make_entries(120)
+        small_doc = _large_results_document({"Boys 14": [(100100000, 1), (100100001, 2)]})
+        large_doc = _large_results_document({
+            "Boys 14": [(100100000 + i, i + 1) for i in range(60)],
+            "Cruiser Masters 30-44": [(100100060 + i, i + 1) for i in range(60)],
+        })
+        small, _ = self._post_results(small_doc)
+        large, payload = self._post_results(large_doc)
+        self.assertEqual(payload["results"]["imported"], 120)
+        self.assertEqual(payload["runs"]["created"], 120)
+        self.assertLessEqual(large - small, 2, f"import výsledků dělá dotazy po řádcích ({small} → {large})")
+
+    def test_bulk_import_marks_rider_wheel_flags(self):
+        self._auth("event-control-admin", "central-secret")
+        self._make_entries(2)
+        Rider.objects.update(is_20=False, is_24=False)
+        self._post_results(_large_results_document({
+            "Boys 14": [(100100000, 1)],
+            "Cruiser Masters 30-44": [(100100001, 1)],
+        }))
+        boy = Rider.objects.get(uci_id=100100000)
+        cruiser = Rider.objects.get(uci_id=100100001)
+        self.assertEqual((boy.is_20, boy.is_24), (True, False))
+        self.assertEqual((cruiser.is_20, cruiser.is_24), (False, True))
+        vysledek = Result.objects.get(event=self.event, rider_id=100100000)
+        self.assertEqual((vysledek.place, vysledek.points, vysledek.is_20), (1, 150, True))

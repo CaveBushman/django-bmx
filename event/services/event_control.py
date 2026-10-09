@@ -10,6 +10,11 @@ Jedna přihláška může obsahovat víc startů (začátečníci / 20" / 24"), 
 každý jezdec seznam ``starts``; race software potřebuje jeden start = jedna třída.
 """
 
+import hashlib
+import hmac
+
+from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 
 from club.models import Club
@@ -240,13 +245,43 @@ def build_entries_payload(event, include_unpaid: bool = False) -> dict:
     }
 
 
+#: Jak dlouho platí jednou ověřené údaje organizace (sekundy).
+AUTH_CACHE_TIMEOUT = 300
+
+
+def _auth_cache_key(club, password: str) -> str:
+    """Klíč úspěšného ověření — HMAC uloženého hashe a zadaného hesla.
+
+    Uložený hash je v klíči, takže nové heslo staré ověření zneplatní samo.
+    V cache neleží nic, z čeho by se heslo dalo zpětně získat.
+    """
+    digest = hmac.new(
+        settings.SECRET_KEY.encode(),
+        f"{club.pk}:{club.event_control_password}:{password}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"event_control_auth:{digest}"
+
+
 def authenticate_club(username: str, password: str):
-    """Ověří přístupové údaje organizace. Vrací ``Club`` nebo ``None``."""
+    """Ověří přístupové údaje organizace. Vrací ``Club`` nebo ``None``.
+
+    ``check_password`` (PBKDF2) stojí ~250 ms a BIKODY se ptá často — při
+    stránkování přihlášek na každou stránku. Úspěšné ověření si proto
+    pamatujeme na ``AUTH_CACHE_TIMEOUT``. Klub se načítá pokaždé z DB, takže
+    vypnutí přístupu nebo odebrání hesla platí okamžitě; neúspěch se necachuje.
+    """
     if not username or not password:
         return None
     club = Club.objects.filter(event_control_username=username, event_control_enabled=True).first()
-    if club is None or not club.check_event_control_password(password):
+    if club is None or not club.event_control_password:
         return None
+    key = _auth_cache_key(club, password)
+    if cache.get(key):
+        return club
+    if not club.check_event_control_password(password):
+        return None
+    cache.set(key, True, AUTH_CACHE_TIMEOUT)
     return club
 
 
