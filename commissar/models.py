@@ -41,10 +41,7 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
             old_name = getattr(old_photo, "name", "") or str(old_photo)
             new_name = getattr(new_photo, "name", "") or ""
             if old_name == "static/images/users/blank-avatar-200x200.jpg":
-                instance.photo = new_photo
                 return
             if old_photo and old_name != new_name:
                 old_photo.delete(save=False)
 
-
-pre_save.connect(delete_file_on_change_extension, sender=Commissar)

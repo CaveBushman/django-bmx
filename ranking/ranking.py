@@ -36,19 +36,6 @@ def get_ranking_recount_status():
         "last_rider_count": status.get("last_rider_count"),
     }
 
-def sort_20(self, classes):
-    CLASS_ORDER20 = {
-    'Boys 6', 'Boys 7', 'Boys 8', 'Boys 9', 'Boys 10', 'Boys 11', 'Boys 12', 'Boys 13', 'Boys 14', 'Boys 15', 'Boys 16', 'Men 17-24', 'Men 25-29', 'Men 30-34', 'Men 35 and over', 'Girls 7', 'Girls 8', 'Girls 9', 'Girls 10', 'Girls 11', 'Girls 12',
-    'Girls 12', 'Girls 13', 'Girls 14', 'Girls 15', 'Girls 16', 'Women 17-24', 'Women 25 and over', 'Men Junior', 'Men Under 23', 'Men Elite', 'Women Junior'
-    'Women Under 23', 'Women Elite'}
-    pass
-
-
-def sort_24(self, classes):
-    CLASS_ORDER_24 = {'Boys 12 and under', 'Boys 13 and 14', 'Boys 15 and 16', 'Men 17-24', 'Men 25-39', 'Men 30-34', 'Men 35-39', 'Men 40-44', 'Men 45-49', 'Men 50 and over', 'Girls 12 and under', 'Girls 13-16', 'Women 17-29', 'Women 30-99', 'Women 40 and over'}
-    pass
-
-
 def _ranking_recount_once():
     """Jeden průchod přepočtu rankingu se status updaty v cache.
     Sdílí ho daemon vlákno (SetRanking) i Celery task (recount_ranking_task)."""

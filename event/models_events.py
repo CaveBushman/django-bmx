@@ -6,7 +6,6 @@ vytvářet další ručně psané varianty těchto řetězců.
 """
 
 import uuid
-from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -352,10 +351,6 @@ class Event(models.Model):
     @property
     def flexibee_export_url(self):
         return self._file_url(self.flexibee_export)
-
-    def events_in_year(self, year):
-        year = date.today().year
-        return Event.objects.filter(date__year=year).count()
 
     def is_beginners_event(self):
         if self.type_for_ranking in {
