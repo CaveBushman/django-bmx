@@ -5,6 +5,8 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 
+from bmx.bikody_transition import is_after_switch
+
 from accounts.models import Account
 from event.credit import calculate_user_balance
 from event.models import SeasonSettings
@@ -147,6 +149,8 @@ def _charge_trainer_subscription(user, club, season, subscription, product, amou
 
 def purchase_rider_stats_subscription(user, rider, *, at_time=None):
     current_time = at_time or timezone.now()
+    if is_after_switch(current_time):
+        raise ValueError("Prémiové statistiky se nově předplácí na BIKODY.COM.")
     _ensure_rider_is_subscribable(rider)
     season, price = _get_price_for_current_season(at_time=current_time)
 
@@ -246,7 +250,9 @@ def renew_due_rider_stats_subscriptions(*, at_time=None):
             if subscription.status == RiderStatsSubscription.STATUS_CANCELED:
                 continue
 
-            if not subscription.rider.is_active or not subscription.rider.is_approved:
+            # Po přechodu na BIKODY.COM se předplatné neobnovuje — zaplacené
+            # období doběhne a pak předplatné vyprší.
+            if is_after_switch(current_time) or not subscription.rider.is_active or not subscription.rider.is_approved:
                 subscription.status = RiderStatsSubscription.STATUS_EXPIRED
                 subscription.auto_renew = False
                 subscription.save(update_fields=["status", "auto_renew", "updated"])

@@ -260,6 +260,10 @@ class CreditTopUpAPIView(APIView):
         },
     )
     def post(self, request):
+        from bmx.bikody_transition import CREDIT_TOPUP_CLOSED_MESSAGE, is_credit_topup_open
+
+        if not is_credit_topup_open():
+            return Response({"detail": CREDIT_TOPUP_CLOSED_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
         try:
             amount = int(request.data.get("amount", 0))
         except (TypeError, ValueError):

@@ -1,5 +1,7 @@
 from django.utils import timezone
 
+from bmx.bikody_transition import is_event_registered_on_bikody
+
 
 def get_registration_deadline(event):
     return getattr(event, "reg_open_to", None)
@@ -15,6 +17,9 @@ def _is_event_registration_enabled(event):
 
 def can_register(event) -> bool:
     if not _is_event_registration_enabled(event):
+        return False
+    # Závody od data přechodu se přihlašují jen na bikody.com.
+    if is_event_registered_on_bikody(event):
         return False
 
     now = timezone.now()

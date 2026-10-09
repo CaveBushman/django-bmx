@@ -297,6 +297,13 @@ CELERY_BEAT_SCHEDULE = {
     "resolve-eshop-payments": {"task": "bmx.resolve_eshop_payments", "schedule": _celery_crontab(minute="*/15")},
 }
 
+# Přechod na BIKODY.COM (viz bmx/bikody_transition.py): od tohoto dne se na
+# závody přihlašuje a prémiové statistiky předplácí na bikody.com.
+WEB_REGISTRATION_END_DATE = config("WEB_REGISTRATION_END_DATE", default="2027-01-01")
+BIKODY_URL = config("BIKODY_URL", default="https://bikody.com")
+# Poslední den, kdy lze dobít kredit (kredity se ruší, zůstatky se vrací).
+CREDIT_TOPUP_LAST_DATE = config("CREDIT_TOPUP_LAST_DATE", default="2026-10-30")
+
 # DeepL překlad článků
 # Nastav DEEPL_API_KEY v .env — bez klíče se použije Google Translate záloha
 DEEPL_API_KEY = config("DEEPL_API_KEY", default="")

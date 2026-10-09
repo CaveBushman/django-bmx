@@ -5728,3 +5728,87 @@ class CreditEntrySafetyTests(TestCase):
         self.assertIn(f"Přihláška #{entry.pk}", output)
         self.assertIn("přeplatek 400 Kč", output)
         self.assertNotIn(f"Přihláška #{clean_entry.pk}", output)
+
+
+class BikodyRegistrationSwitchTests(TestCase):
+    """Závody od data přechodu se přihlašují jen na BIKODY.COM."""
+
+    def setUp(self):
+        self.club = Club.objects.create(team_name="Switch Race Club")
+        self.event = Event.objects.create(
+            name="Race after switch", date=date.today() + timedelta(days=30), organizer=self.club,
+            reg_open=True, reg_open_from=timezone.now() - timedelta(days=1),
+            reg_open_to=timezone.now() + timedelta(days=10), type_for_ranking="Volný závod",
+        )
+
+    def test_registration_closes_for_events_on_or_after_switch(self):
+        from event.services.registration_status import can_register
+
+        with override_settings(WEB_REGISTRATION_END_DATE=self.event.date.isoformat()):
+            self.assertFalse(can_register(self.event))
+        with override_settings(WEB_REGISTRATION_END_DATE=(self.event.date + timedelta(days=1)).isoformat()):
+            self.assertTrue(can_register(self.event))
+
+    @override_settings(BIKODY_URL="https://bikody.test")
+    def test_event_detail_links_to_bikody(self):
+        with override_settings(WEB_REGISTRATION_END_DATE=(date.today() + timedelta(days=10)).isoformat()):
+            response = self.client.get(reverse("event:event-detail", args=[self.event.pk]))
+
+        self.assertContains(response, "Registrace na BIKODY.COM")
+        self.assertContains(response, 'href="https://bikody.test"', html=False)
+        self.assertNotContains(response, reverse("event:entry", args=[self.event.pk]))
+
+    def test_api_entry_is_refused_after_switch(self):
+        user = User.objects.create_user(
+            first_name="Api", last_name="Switch", username="api_switch",
+            email="api_switch@example.com", password="StrongPass123!",
+        )
+        user.is_active = True
+        user.save()
+        self.client.force_login(user)
+
+        with override_settings(WEB_REGISTRATION_END_DATE=(date.today() + timedelta(days=10)).isoformat()):
+            response = self.client.post(reverse("api:event-enter", args=[self.event.pk]), {"rider_uci_id": 1})
+
+        self.assertEqual(response.status_code, 400)
+
+
+class CreditTopUpEndTests(TestCase):
+    """Po CREDIT_TOPUP_LAST_DATE už kredit dobít nejde (web ani API)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="Top", last_name="Up", username="topup_user",
+            email="topup@example.com", password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save()
+        self.client.force_login(self.user)
+        self.yesterday = (date.today() - timedelta(days=1)).isoformat()
+        self.today = date.today().isoformat()
+
+    def test_web_topup_is_refused_after_last_date(self):
+        with override_settings(CREDIT_TOPUP_LAST_DATE=self.yesterday), \
+                patch("event.views.views_payment.stripe.checkout.Session.create") as create_session:
+            response = self.client.post(reverse("event:credit"), {"price": "500"}, follow=True)
+
+        create_session.assert_not_called()
+        self.assertFalse(CreditTransaction.objects.filter(user=self.user).exists())
+        self.assertContains(response, "Dobíjení kreditu bylo ukončeno.")
+        self.assertNotContains(response, 'name="price"', html=False)
+
+    def test_web_topup_form_is_offered_on_last_day_with_notice(self):
+        with override_settings(CREDIT_TOPUP_LAST_DATE=self.today):
+            response = self.client.get(reverse("event:credit"))
+
+        self.assertContains(response, 'name="price"', html=False)
+        self.assertContains(response, "Kredit lze dobít naposledy")
+
+    def test_api_topup_is_refused_after_last_date(self):
+        with override_settings(CREDIT_TOPUP_LAST_DATE=self.yesterday), \
+                patch("api.views.auth.stripe.checkout.Session.create") as create_session:
+            response = self.client.post(reverse("api:credit-topup"), {"amount": 500})
+
+        create_session.assert_not_called()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Dobíjení kreditu bylo ukončeno", response.json()["detail"])

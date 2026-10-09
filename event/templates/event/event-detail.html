@@ -266,6 +266,8 @@
                     <div class="flex flex-wrap items-center gap-3">
                         {% if event.canceled %}
                         <span class="event-status-badge is-cancelled">{% trans "Závod zrušen" %}</span>
+                        {% elif registration_on_bikody %}
+                        <span class="event-status-badge is-open">{% trans "Registrace na BIKODY.COM" %}</span>
                         {% elif reg_open %}
                         <span class="event-status-badge is-open">{% trans "Registrace otevřená" %}</span>
                         {% else %}
@@ -281,6 +283,8 @@
                     <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
                         {% if event.canceled %}
                         {% trans "Závod je označený jako zrušený. Sleduj propozice a oficiální komunikaci pořadatele kvůli náhradnímu termínu nebo dalším pokynům." %}
+                        {% elif registration_on_bikody %}
+                        {% trans "Od roku 2027 se na závody přihlašuje přes BIKODY.COM. Přihlášku na tento závod podáš tam." %}
                         {% elif reg_open %}
                         {% trans "Registrace právě běží. Zkontroluj termíny, podmínky v propozicích a potom dokonči přihlášení jezdce." %}
                         {% else %}
@@ -294,6 +298,8 @@
                             <p class="mt-2 text-xl font-black text-slate-900 dark:text-white">
                                 {% if event.canceled %}
                                 {% trans "Závod se nejede" %}
+                                {% elif registration_on_bikody %}
+                                {% trans "Přihláška na BIKODY.COM" %}
                                 {% elif reg_open %}
                                 {% trans "Lze se přihlásit" %}
                                 {% else %}
@@ -405,6 +411,17 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                             </svg>
                             {% trans "Registrace na UEC" %}
+                        </a>
+                    </div>
+                    {% elif registration_on_bikody %}
+                    <div class="w-full sm:w-auto">
+                        <a href="{{ bikody_url }}" target="_blank" rel="noopener noreferrer"
+                            class="event-detail-action-chip event-detail-action-primary w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            {% trans "Registrace na BIKODY.COM" %}
                         </a>
                     </div>
                     {% elif reg_open %}

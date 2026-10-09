@@ -19,6 +19,7 @@ from django.db.models import Count, Exists, Max, OuterRef
 from event.models import Event, Result, Entry, EntryForeign, EntryClasses
 from event.constants import EVENT_TYPE_STYLES, DEFAULT_EVENT_TYPE_STYLE
 from event.views.views_proposition import can_manage_event_proposition, _get_structured_proposition
+from bmx.bikody_transition import bikody_url, is_event_registered_on_bikody
 from event.func import get_unregistration_deadline, is_registration_open
 
 _CACHE_LONG   = getattr(django_settings, "CACHE_TTL_LONG",   30 * 60)
@@ -415,6 +416,7 @@ def event_detail_views(request, pk):
         pk=pk,
     )
     reg_open = is_registration_open(event)
+    registration_on_bikody = not event.canceled and is_event_registered_on_bikody(event)
     event.reg_cancel_deadline = get_unregistration_deadline(event)
     proposition = _get_structured_proposition(event)
     has_db_results = Result.objects.filter(event=pk).exists()
@@ -427,6 +429,8 @@ def event_detail_views(request, pk):
         "riders_sum": riders_sum,
         "has_db_results": has_db_results,
         "reg_open": reg_open,
+        "registration_on_bikody": registration_on_bikody,
+        "bikody_url": bikody_url(),
         "has_public_proposition": bool(proposition and proposition.is_published),
         "public_proposition": proposition if proposition and proposition.is_published else None,
         "can_edit_proposition": can_manage_event_proposition(request.user, event),

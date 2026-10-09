@@ -1598,3 +1598,62 @@ class InactiveRiderActionsTests(TestCase):
         self.assertIn("data-release-form", template)
         self.assertIn("data-release-trigger", template)
         self.assertNotIn("<script>", template)
+
+
+class BikodyTransitionSubscriptionTests(TestCase):
+    """Od přechodu na BIKODY.COM se prémiové statistiky nekupují ani neobnovují."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            first_name="Switch", last_name="User", username="switch_user",
+            email="switch@example.com", password="StrongPass123!",
+        )
+        self.user.is_active = True
+        self.user.save()
+        CreditTransaction.objects.create(user=self.user, amount=500, transaction_id="credit-switch", payment_complete=True)
+        SeasonSettings.objects.create(year=timezone.now().year, rider_stats_monthly_price=50)
+        self.rider = Rider.objects.create(
+            uci_id=12345670099, first_name="Switch", last_name="Rider", gender="Muž",
+            date_of_birth=date(2010, 5, 1), club=Club.objects.create(team_name="Switch Club"),
+            is_active=True, is_approved=True, valid_licence=True,
+        )
+
+    def switch(self, day):
+        from django.test import override_settings
+
+        return override_settings(WEB_REGISTRATION_END_DATE=day.isoformat())
+
+    def test_purchase_is_blocked_after_switch(self):
+        from rider.subscriptions import purchase_rider_stats_subscription
+
+        with self.switch(timezone.localdate()):
+            with self.assertRaisesMessage(ValueError, "BIKODY.COM"):
+                purchase_rider_stats_subscription(self.user, self.rider)
+        self.assertFalse(RiderStatsSubscription.objects.exists())
+
+    def test_running_subscription_expires_after_switch_without_new_charge(self):
+        from rider.subscriptions import purchase_rider_stats_subscription, renew_due_rider_stats_subscriptions
+
+        subscription, _ = purchase_rider_stats_subscription(self.user, self.rider)
+        RiderStatsSubscription.objects.filter(pk=subscription.pk).update(expires_at=timezone.now() - timedelta(hours=1))
+
+        with self.switch(timezone.localdate()):
+            result = renew_due_rider_stats_subscriptions()
+
+        subscription.refresh_from_db()
+        self.assertEqual(result["expired"], 1)
+        self.assertEqual(subscription.status, RiderStatsSubscription.STATUS_EXPIRED)
+        self.assertFalse(subscription.auto_renew)
+        self.assertEqual(RiderStatsCharge.objects.filter(subscription=subscription).count(), 1)
+
+    def test_subscription_still_renews_before_switch(self):
+        from rider.subscriptions import purchase_rider_stats_subscription, renew_due_rider_stats_subscriptions
+
+        subscription, _ = purchase_rider_stats_subscription(self.user, self.rider)
+        RiderStatsSubscription.objects.filter(pk=subscription.pk).update(expires_at=timezone.now() - timedelta(hours=1))
+
+        with self.switch(timezone.localdate() + timedelta(days=60)):
+            result = renew_due_rider_stats_subscriptions()
+
+        self.assertEqual(result["renewed"], 1)
+        self.assertEqual(RiderStatsCharge.objects.filter(subscription=subscription).count(), 2)

@@ -41,6 +41,12 @@ from event.views.payment_helpers import (
 )
 import stripe
 
+from bmx.bikody_transition import (
+    CREDIT_TOPUP_CLOSED_MESSAGE,
+    credit_topup_last_date,
+    is_credit_topup_open,
+)
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("audit")
@@ -280,6 +286,11 @@ def credit_view(request):
     """
     user_id = request.user.id
     user = request.user
+    topup_open = is_credit_topup_open()
+
+    if request.POST and not topup_open:
+        messages.error(request, CREDIT_TOPUP_CLOSED_MESSAGE)
+        return redirect("event:credit")
 
     if request.POST:
         try:
@@ -334,7 +345,12 @@ def credit_view(request):
 
     credits, debets = get_credit_history(user_id)
 
-    return render(request, "event/credit.html", {"credits": credits, "debets": debets})
+    return render(request, "event/credit.html", {
+        "credits": credits,
+        "debets": debets,
+        "topup_open": topup_open,
+        "topup_last_date": credit_topup_last_date(),
+    })
 
 
 @login_required(login_url="/login")

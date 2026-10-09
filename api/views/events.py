@@ -287,6 +287,7 @@ class EventEntryInfoAPIView(APIView):
             is_unregistration_open,
             get_unregistration_deadline,
         )
+        from bmx.bikody_transition import bikody_url, is_event_registered_on_bikody
         from event.views.entry_helpers import (
             _resolve_rider_event_data,
             resolve_event_beginner_support,
@@ -318,6 +319,8 @@ class EventEntryInfoAPIView(APIView):
             "event_name": event.name,
             "event_date": event.date,
             "registration_open": is_registration_open(event),
+            # Závody od 1. 1. 2027 se přihlašují na BIKODY.COM — klient má poslat uživatele tam.
+            "registration_url": bikody_url() if is_event_registered_on_bikody(event) else None,
             "unregistration_open": is_unregistration_open(event),
             "unregistration_deadline": deadline,
             "rider_uci_id": rider.uci_id,
