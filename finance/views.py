@@ -21,6 +21,13 @@ from django.utils.translation import gettext as _
 from django.core.cache import cache
 
 from .func import calculate_stripe_fee, calculate_system_balance_total
+from .credit_report import (
+    FILTER_CHOICES,
+    FILTER_NONZERO,
+    SORT_CHOICES,
+    SORT_NAME,
+    build_credit_balance_report,
+)
 from event.models import CreditTransaction, DebetTransaction, FinanceAuditLog
 from event.credit import get_system_balance_components, _build_balance_components
 from accounts.models import Account
@@ -378,3 +385,77 @@ def finance_user_credit_detail(request):
         "not_found": bool(query and not target_user),
     }
     return render(request, "finance/user-credit.html", context)
+
+
+def _parse_report_date(value):
+    try:
+        return date.fromisoformat(value) if value else None
+    except ValueError:
+        return None
+
+
+@login_required(login_url="/login/")
+@user_passes_test(_is_finance_admin, login_url="/login/")
+def credit_balances_report(request):
+    """Tisková sestava zůstatků uživatelských kreditů (HTML pro tisk nebo CSV)."""
+    balance_filter = request.GET.get("filter", FILTER_NONZERO)
+    if balance_filter not in dict(FILTER_CHOICES):
+        balance_filter = FILTER_NONZERO
+    sort = request.GET.get("sort", SORT_NAME)
+    if sort not in dict(SORT_CHOICES):
+        sort = SORT_NAME
+
+    report = build_credit_balance_report(
+        as_of=_parse_report_date(request.GET.get("as_of")),
+        balance_filter=balance_filter,
+        sort=sort,
+    )
+    audit_logger.info(
+        "finance_credit_balances_report admin_user_id=%s as_of=%s filter=%s format=%s rows=%s",
+        request.user.id,
+        report.as_of.isoformat(),
+        balance_filter,
+        request.GET.get("format", "html"),
+        len(report.rows),
+    )
+
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="zustatky-kreditu-{report.as_of.isoformat()}.csv"'
+        )
+        response.write("\ufeff")
+        writer = csv.writer(response, delimiter=";")
+        writer.writerow(["ID", "Uživatel", "E-mail", "Aktivní", "Kredity (Kč)", "Čerpáno (Kč)", "Zůstatek (Kč)"])
+        for row in report.rows:
+            writer.writerow([
+                row.user_id,
+                _csv_cell(row.name),
+                _csv_cell(row.email),
+                "ano" if row.is_active else "ne",
+                row.credited,
+                row.spent,
+                row.balance,
+            ])
+        writer.writerow([])
+        writer.writerow(["", "Celkem", "", "", "", "", report.total_balance])
+        return response
+
+    return render(request, "finance/credit-balances-report.html", {
+        "report": report,
+        "balance_filter": balance_filter,
+        "sort": sort,
+        "filter_choices": FILTER_CHOICES,
+        "sort_choices": SORT_CHOICES,
+        "filter_label": dict(FILTER_CHOICES)[balance_filter],
+        "generated_at": timezone.localtime(),
+        "today": timezone.localdate(),
+    })
+
+
+def _csv_cell(value):
+    """Zabrání tomu, aby tabulkový procesor interpretoval buňku jako vzorec."""
+    text = value or ""
+    if text and text[0] in {"=", "+", "-", "@", "\t", "\r"}:
+        return f"'{text}"
+    return text

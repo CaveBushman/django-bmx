@@ -541,3 +541,103 @@ class EventInvoiceGenerationTests(TestCase):
 
         self.assertIsNone(updated_invoice)
         self.assertFalse(EventInvoice.objects.filter(event=self.event, club=self.customer_club).exists())
+
+
+class CreditBalancesReportTests(TestCase):
+    def setUp(self):
+        self.url = reverse("finance:credit_balances_report")
+        self.admin_user = User.objects.create_user(
+            first_name="Report", last_name="Admin", username="report_admin",
+            email="report_admin@example.com", password="StrongPass123!",
+        )
+        self.admin_user.is_active = True
+        self.admin_user.is_admin = True
+        self.admin_user.save(update_fields=["is_active", "is_admin"])
+
+        self.alice = User.objects.create_user(
+            first_name="Alice", last_name="Adamová", username="alice",
+            email="alice@example.com", password="StrongPass123!",
+        )
+        self.bob = User.objects.create_user(
+            first_name="Bob", last_name="Bureš", username="bob",
+            email="=bob@example.com", password="StrongPass123!",
+        )
+        self.zero = User.objects.create_user(
+            first_name="Zero", last_name="Zelený", username="zero",
+            email="zero@example.com", password="StrongPass123!",
+        )
+        CreditTransaction.objects.create(user=self.alice, amount=1000, kind=CreditTransaction.Kind.TOPUP, payment_complete=True)
+        CreditTransaction.objects.create(user=self.alice, amount=500, kind=CreditTransaction.Kind.TOPUP, payment_complete=False)
+        DebetTransaction.objects.create(user=self.alice, amount=300, payment_valid=True)
+        DebetTransaction.objects.create(user=self.alice, amount=999, payment_valid=False)
+        DebetTransaction.objects.create(user=self.bob, amount=200, payment_valid=True)
+        CreditTransaction.objects.create(user=self.zero, amount=100, kind=CreditTransaction.Kind.TOPUP, payment_complete=True)
+        DebetTransaction.objects.create(user=self.zero, amount=100, payment_valid=True)
+        # Platba starší než sestava „ke dni“.
+        old = CreditTransaction.objects.create(user=self.bob, amount=50, kind=CreditTransaction.Kind.TOPUP, payment_complete=True)
+        CreditTransaction.objects.filter(pk=old.pk).update(transaction_date=timezone.now() - timedelta(days=10))
+
+    def test_requires_finance_admin(self):
+        self.client.force_login(self.alice)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_report_lists_nonzero_ledger_balances_with_totals(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(self.url)
+
+        report = response.context["report"]
+        balances = {row.user_id: row.balance for row in report.rows}
+        self.assertEqual(balances, {self.alice.pk: 700, self.bob.pk: -150})
+        self.assertEqual(report.total_balance, 550)
+        self.assertEqual(report.total_positive, 700)
+        self.assertEqual(report.total_negative, -150)
+        self.assertEqual([row.name for row in report.rows], ["Adamová Alice", "Bureš Bob"])
+        self.assertContains(response, "Zůstatky kreditů uživatelů")
+        self.assertContains(response, "Tisknout")
+        self.assertNotContains(response, "Zelený Zero")
+
+    def test_report_as_of_past_date_ignores_later_transactions(self):
+        self.client.force_login(self.admin_user)
+        as_of = (timezone.localdate() - timedelta(days=5)).isoformat()
+
+        response = self.client.get(self.url, {"as_of": as_of})
+
+        report = response.context["report"]
+        self.assertFalse(report.is_current)
+        self.assertEqual({row.user_id: row.balance for row in report.rows}, {self.bob.pk: 50})
+
+    def test_report_filters_and_sorting(self):
+        self.client.force_login(self.admin_user)
+
+        positive = self.client.get(self.url, {"filter": "positive"}).context["report"]
+        negative = self.client.get(self.url, {"filter": "negative"}).context["report"]
+        everyone = self.client.get(self.url, {"filter": "all", "sort": "balance"}).context["report"]
+
+        self.assertEqual([row.user_id for row in positive.rows], [self.alice.pk])
+        self.assertEqual([row.user_id for row in negative.rows], [self.bob.pk])
+        self.assertIn(self.zero.pk, [row.user_id for row in everyone.rows])
+        self.assertIn(self.admin_user.pk, [row.user_id for row in everyone.rows])
+        self.assertEqual(everyone.rows[0].user_id, self.alice.pk)
+        self.assertEqual(everyone.rows[-1].user_id, self.bob.pk)
+
+    def test_report_flags_stored_balance_mismatch(self):
+        User.objects.filter(pk=self.alice.pk).update(credit=12345)
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["report"].mismatch_count, 1)
+        self.assertContains(response, "uloženo 12345 Kč")
+
+    def test_csv_export_contains_rows_total_and_escapes_formulas(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(self.url, {"format": "csv"})
+
+        self.assertEqual(response["Content-Type"], "text/csv; charset=utf-8")
+        content = response.content.decode("utf-8-sig")
+        self.assertIn("Adamová Alice;alice@example.com;ne;1000;300;700", content)
+        self.assertIn("'=bob@example.com", content)
+        self.assertIn(";Celkem;;;;;550", content)

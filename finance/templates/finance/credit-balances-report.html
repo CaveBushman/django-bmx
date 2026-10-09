@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Zůstatky kreditů k {{ report.as_of|date:"j. n. Y" }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cbr-page { background: #f8fafc; padding: 2rem 1rem 3rem; min-height: calc(100vh - 4rem); }
+  .cbr-sheet {
+    max-width: 60rem; margin: 0 auto; background: #fff; color: #0f172a;
+    border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 2rem;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+  }
+  .cbr-toolbar {
+    max-width: 60rem; margin: 0 auto 1rem; display: flex; flex-wrap: wrap; gap: .75rem;
+    align-items: end; justify-content: space-between;
+  }
+  .cbr-toolbar form { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+  .cbr-toolbar label { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #64748b; margin-bottom: .25rem; }
+  .cbr-toolbar input, .cbr-toolbar select {
+    border: 1px solid #cbd5e1; border-radius: .75rem; padding: .5rem .75rem; font-size: .875rem; background: #fff; color: #0f172a;
+  }
+  .cbr-btn {
+    display: inline-flex; align-items: center; border-radius: .75rem; padding: .55rem 1rem; font-size: .875rem; font-weight: 600;
+    border: 1px solid #cbd5e1; background: #fff; color: #334155; text-decoration: none; cursor: pointer;
+  }
+  .cbr-btn-primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+  .cbr-btn:hover { filter: brightness(0.96); }
+  .cbr-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; }
+  .cbr-kicker { font-size: .7rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #4f46e5; }
+  .cbr-title { font-size: 1.75rem; font-weight: 900; margin: .25rem 0 0; letter-spacing: -.01em; }
+  .cbr-meta { font-size: .8rem; color: #475569; margin-top: .35rem; line-height: 1.5; }
+  .cbr-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1.5rem; font-size: .8rem; align-content: start; }
+  .cbr-summary dt { color: #64748b; }
+  .cbr-summary dd { margin: 0; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  .cbr-warning { margin-top: 1rem; border: 1px solid #fcd34d; background: #fffbeb; color: #92400e; border-radius: .75rem; padding: .75rem 1rem; font-size: .8rem; }
+  .cbr-table-wrap { overflow-x: auto; margin-top: 1.25rem; }
+  .cbr-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .cbr-table th { text-align: left; font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: #475569; border-bottom: 1px solid #0f172a; padding: .45rem .5rem; white-space: nowrap; }
+  .cbr-table td { border-bottom: 1px solid #e2e8f0; padding: .4rem .5rem; vertical-align: top; }
+  .cbr-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cbr-table .muted { color: #64748b; }
+  .cbr-table .neg { color: #b91c1c; font-weight: 700; }
+  .cbr-table .flag { color: #b45309; font-size: .7rem; display: block; }
+  .cbr-table tfoot td { border-top: 2px solid #0f172a; border-bottom: none; font-weight: 900; padding-top: .6rem; }
+  .cbr-empty { text-align: center; color: #64748b; padding: 2rem 0; }
+  .cbr-sign { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem; margin-top: 3rem; font-size: .75rem; color: #475569; }
+  .cbr-sign div { border-top: 1px solid #94a3b8; padding-top: .4rem; }
+  .cbr-foot { margin-top: 1.5rem; font-size: .7rem; color: #94a3b8; }
+
+  html.dark .cbr-page { background: #020617; }
+  html.dark .cbr-sheet { background: #0f172a; color: #e2e8f0; border-color: #1e293b; }
+  html.dark .cbr-head { border-color: #e2e8f0; }
+  html.dark .cbr-meta, html.dark .cbr-summary dt, html.dark .cbr-table th, html.dark .cbr-table .muted { color: #94a3b8; }
+  html.dark .cbr-table th, html.dark .cbr-table tfoot td { border-color: #e2e8f0; }
+  html.dark .cbr-table td { border-color: #1e293b; }
+  html.dark .cbr-table .neg { color: #f87171; }
+  html.dark .cbr-toolbar input, html.dark .cbr-toolbar select, html.dark .cbr-btn { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+  html.dark .cbr-btn-primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+
+  @media (max-width: 640px) {
+    .cbr-sheet { padding: 1.25rem 1rem; }
+    .cbr-hide-sm { display: none; }
+  }
+
+  @media print {
+    @page { size: A4 portrait; margin: 14mm 12mm 16mm; }
+    header, nav, footer, .no-print, #flash-messages { display: none !important; }
+    html, body, .cbr-page { background: #fff !important; }
+    .cbr-page { padding: 0 !important; min-height: 0; }
+    .cbr-sheet { border: none !important; box-shadow: none !important; padding: 0 !important; max-width: none; color: #000 !important; background: #fff !important; }
+    .cbr-table-wrap { overflow: visible; }
+    .cbr-table { font-size: 9pt; }
+    .cbr-table thead { display: table-header-group; }
+    .cbr-table tfoot { display: table-row-group; }
+    .cbr-table tr { break-inside: avoid; }
+    .cbr-hide-sm { display: table-cell !important; }
+    .cbr-sign { break-inside: avoid; }
+    html.dark .cbr-sheet, html.dark .cbr-table td, html.dark .cbr-meta, html.dark .cbr-table th { color: #000 !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cbr-page">
+  <div class="cbr-toolbar no-print">
+    <form method="get">
+      <div>
+        <label for="cbr-as-of">Ke dni</label>
+        <input id="cbr-as-of" type="date" name="as_of" value="{{ report.as_of|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+      </div>
+      <div>
+        <label for="cbr-filter">Uživatelé</label>
+        <select id="cbr-filter" name="filter">
+          {% for value, label in filter_choices %}
+            <option value="{{ value }}"{% if value == balance_filter %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="cbr-sort">Řazení</label>
+        <select id="cbr-sort" name="sort">
+          {% for value, label in sort_choices %}
+            <option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="cbr-btn">Zobrazit</button>
+    </form>
+    <div style="display:flex; gap:.5rem;">
+      <a class="cbr-btn" href="{% url 'finance:finance' %}">Zpět na finance</a>
+      <a class="cbr-btn" href="?as_of={{ report.as_of|date:'Y-m-d' }}&filter={{ balance_filter }}&sort={{ sort }}&format=csv">Export CSV</a>
+      <button type="button" class="cbr-btn cbr-btn-primary" onclick="window.print()">Tisknout</button>
+    </div>
+  </div>
+
+  <article class="cbr-sheet">
+    <div class="cbr-head">
+      <div>
+        <p class="cbr-kicker">Tisková sestava · Finance</p>
+        <h1 class="cbr-title">Zůstatky kreditů uživatelů</h1>
+        <p class="cbr-meta">
+          Stav ke dni <strong>{{ report.as_of|date:"j. n. Y" }}</strong> (včetně) · {{ filter_label }}<br>
+          Vygenerováno {{ generated_at|date:"j. n. Y H:i" }} · {{ request.user.get_full_name|default:request.user.email }}
+        </p>
+      </div>
+      <dl class="cbr-summary">
+        <dt>Počet uživatelů</dt><dd>{{ report.rows|length }}</dd>
+        <dt>Kladné zůstatky</dt><dd>{{ report.total_positive }} Kč</dd>
+        <dt>Záporné zůstatky</dt><dd>{{ report.total_negative }} Kč</dd>
+        <dt>Celkem</dt><dd>{{ report.total_balance }} Kč</dd>
+      </dl>
+    </div>
+
+    {% if report.mismatch_count %}
+      <p class="cbr-warning no-print">
+        U {{ report.mismatch_count }} uživatelů nesedí uložený zůstatek na účtu s účetní knihou transakcí (označeno „uloženo“).
+        Sestava vychází z transakcí; uložené hodnoty srovná akce <a href="{% url 'event:recalculate_balances_view' %}">Kontrola kreditu</a>.
+      </p>
+    {% endif %}
+
+    <div class="cbr-table-wrap">
+      <table class="cbr-table">
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th>Uživatel</th>
+            <th class="cbr-hide-sm">E-mail</th>
+            <th class="num cbr-hide-sm">Kredity</th>
+            <th class="num cbr-hide-sm">Čerpáno</th>
+            <th class="num">Zůstatek</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report.rows %}
+            <tr>
+              <td class="num muted">{{ forloop.counter }}</td>
+              <td>
+                {{ row.name }}{% if not row.is_active %} <span class="muted">(neaktivní)</span>{% endif %}
+                {% if report.is_current and row.mismatch %}<span class="flag no-print">uloženo {{ row.stored_balance }} Kč</span>{% endif %}
+              </td>
+              <td class="muted cbr-hide-sm">{{ row.email }}</td>
+              <td class="num cbr-hide-sm">{{ row.credited }}</td>
+              <td class="num cbr-hide-sm">{{ row.spent }}</td>
+              <td class="num{% if row.balance < 0 %} neg{% endif %}">{{ row.balance }} Kč</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="cbr-empty">Žádný uživatel neodpovídá zvolenému filtru.</td></tr>
+          {% endfor %}
+        </tbody>
+        {% if report.rows %}
+        <tfoot>
+          <tr>
+            <td></td>
+            <td>Celkem ({{ report.rows|length }})</td>
+            <td class="cbr-hide-sm"></td>
+            <td class="cbr-hide-sm"></td>
+            <td class="cbr-hide-sm"></td>
+            <td class="num">{{ report.total_balance }} Kč</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+    {% if report.unassigned_balance %}
+      <p class="cbr-foot">Transakce bez přiřazeného uživatele (nejsou v součtu): {{ report.unassigned_balance }} Kč.</p>
+    {% endif %}
+
+    <div class="cbr-sign">
+      <div>Sestavil(a), datum a podpis</div>
+      <div>Schválil(a), datum a podpis</div>
+    </div>
+    <p class="cbr-foot">Zůstatek = připsané kredity (dobití, vratky) − čerpání (startovné, předplatné). Zdroj: účetní kniha transakcí.</p>
+  </article>
+</div>
+{% endblock %}
