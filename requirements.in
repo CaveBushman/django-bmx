@@ -71,3 +71,6 @@ django-recurrence
 django-analytical
 django-js-asset
 edge-tts
+
+# Testy (paralelní běh: přenos tracebacků z workerů)
+tblib
