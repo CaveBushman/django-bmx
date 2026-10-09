@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from io import BytesIO
 from types import SimpleNamespace
 import gzip
 import sqlite3
@@ -938,9 +937,9 @@ class InternalPageSmokeTests(TestCase):
         # Minimální, ale kompletní REM TSV — osekaný soubor view odmítne ještě
         # před importem (viz event.tests.RemResultsUploadViewTests).
         rem_tsv = (
-            "EVENT_NAME\tFIRST_NAME\tLAST_NAME\tCLASS\tUCIID\tCLASS_RANKING\r\n"
-            "Race\tCzech\tRider\tBoys 15-16\t10000000010\t1\r\n"
-        ).encode("utf-8")
+            b"EVENT_NAME\tFIRST_NAME\tLAST_NAME\tCLASS\tUCIID\tCLASS_RANKING\r\n"
+            b"Race\tCzech\tRider\tBoys 15-16\t10000000010\t1\r\n"
+        )
 
         response = self.client.post(
             reverse("event:event-admin", kwargs={"pk": self.event.pk}),

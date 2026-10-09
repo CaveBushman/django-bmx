@@ -44,7 +44,6 @@ from rider.subscriptions import (
     cancel_rider_stats_subscription,
     get_active_rider_stats_subscription,
     get_active_trainer_club_subscription,
-    get_current_season_settings,
     has_active_trainer_club_extended_access,
     has_active_trainer_club_stats_access,
     purchase_rider_stats_subscription,
@@ -960,8 +959,6 @@ def _build_track_stats(rider, selected_track, all_results, all_runs, wheel=None,
     split_times = _m["split_times"]
     lane_hill_times = _m["lane_hill_times"]
     lane_result_places = _m["lane_result_places"]
-    moto_finish_times = _m["moto_finish_times"]
-    final_finish_times = _m["final_finish_times"]
     moto_places = _m["moto_places"]
     final_places = _m["final_places"]
     bad_status_count = _m["bad_status_count"]

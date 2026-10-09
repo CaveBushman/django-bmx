@@ -183,3 +183,6 @@ logs/
 # macOS Finder metadata
 .DS_Store
 docker-data/
+
+# Lint cache
+.ruff_cache/

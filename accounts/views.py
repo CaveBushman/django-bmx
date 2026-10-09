@@ -378,7 +378,7 @@ def sign_out(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @staff_member_required
 def ops_dashboard(request):
-    from event.models import CreditTransaction, Entry, EntryForeign, Event, EventType, FinanceAuditLog, Result
+    from event.models import CreditTransaction, Entry, Event, EventType, FinanceAuditLog, Result
     from ranking.ranking import get_ranking_recount_status
     from rider.models import Rider
 

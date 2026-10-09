@@ -18,7 +18,7 @@ from io import BytesIO
 from PIL import Image
 
 from accounts.admin import AccountAdmin, AvatarChangeRequestAdmin, PendingActivationAccountAdmin
-from accounts.models import Account, AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount
+from accounts.models import AccountActivationAuditLog, AccountRiderLink, AvatarChangeRequest, PendingActivationAccount
 from bmx.form_protection import build_flow_token
 from club.models import Club
 from event.models import Entry, Event
@@ -711,7 +711,7 @@ class AvatarChangeRequestTests(TestCase):
         request.user = self.user
         SessionMiddleware(lambda req: None).process_request(request)
         request.session.save()
-        setattr(request, "_messages", FallbackStorage(request))
+        request._messages = FallbackStorage(request)
 
         admin_instance = AvatarChangeRequestAdmin(AvatarChangeRequest, admin.site)
         admin_instance.approve_selected(request, AvatarChangeRequest.objects.filter(pk=invalid_request.pk))

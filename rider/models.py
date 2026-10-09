@@ -654,15 +654,11 @@ def update_user_balance_for_trainer_charge(sender, instance, **kwargs):
 # nastavení kategorie jezdce při ukládání
 @receiver(pre_save, sender=Rider)
 def set_class(sender, instance, **kwargs):
-    age = instance.get_age(instance)
-    is_elite = instance.is_elite
     instance.class_beginner = instance.set_class_beginner(instance)
     instance.class_20 = instance.set_class_20(instance)
     instance.class_24 = instance.set_class_24(instance)
     instance.plate_color_20 = instance.plate_color(instance.class_20)
 
-
-pre_save.connect(set_class, sender=Rider)
 
 # vymazání staré fotky jezdce při její změně
 @receiver(pre_save, sender=Rider)
@@ -688,8 +684,6 @@ def delete_file_on_change_extension(sender, instance, **kwargs):
                     "Nepodařilo se smazat starou fotku jezdce pk=%s", instance.pk
                 )
 
-
-pre_save.connect(delete_file_on_change_extension, sender=Rider)
 
 
 @receiver(post_save, sender=Rider)
@@ -1144,5 +1138,3 @@ class PromoCodeUsage(models.Model):
     def __str__(self):
         return f"{self.user} – {self.promo_code.code} ({self.used_at:%Y-%m-%d})"
 
-
-pre_save.connect(set_class_foreign, sender=ForeignRider)

@@ -11,12 +11,12 @@ Obsah:
 """
 
 import logging
-from datetime import date, datetime
+from datetime import date
 from club.models import Club
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-from event.models import EntryClasses, Event, EventType, Entry, SeasonSettings
+from event.models import EntryClasses, Event, EventType, Entry
 from accounts.models import Account
 from ranking.ranking import schedule_ranking_recount
 from .entry import EntryClass
@@ -44,12 +44,6 @@ def expire_licence() -> str:
     """Vrátí datum expirace licence ve formátu YYYY/MM/DD (používá BEM export)."""
     year = date.today().year
     return f"{year}/12/31"
-
-
-def rem_expire_licence() -> str:
-    """Vrátí datum expirace licence ve formátu DD-MM-YYYY (používá REM export)."""
-    year = date.today().year
-    return f"31-12-{year}"
 
 
 def team_name_resolve(club) -> str:
@@ -165,73 +159,6 @@ def excel_first_line(ws):
     ws.cell(1, 50, "POA Suspension")
     ws.cell(1, 51, "Suspension End Date")
     ws.cell(1, 52, "AdvancedRider")
-    return ws
-
-
-def excel_rem_first_line(ws):
-    """Záhlaví pro REM (Race Entry Manager) export jezdců."""
-    ws.cell(1, 1, "CLUB_DESCRIPTION")
-    ws.cell(1, 2, "TEAM_DESCRIPTION")
-    ws.cell(1, 3, "RIDER_FIRST")
-    ws.cell(1, 4, "RIDER_LAST")
-    ws.cell(1, 5, "RIDER_SEX")
-    ws.cell(1, 6, "RIDER_BIRTHDATE")
-    ws.cell(1, 7, "RIDER_MAIL")
-    ws.cell(1, 8, "RIDER_TYPE")
-    ws.cell(1, 9, "RIDER_LICENCE_TYPE")
-    ws.cell(1, 10, "RIDER_UCIID")
-    ws.cell(1, 11, "RIDER_UCIID_EXP_DATE")
-    ws.cell(1, 12, "RIDER_PLATE1")
-    ws.cell(1, 13, "RIDER_CHAMP_PLATE1")
-    ws.cell(1, 14, "RIDER_TRANSPONDER1")
-    ws.cell(1, 15, "RIDER_PLATE2")
-    ws.cell(1, 16, "RIDER_CHAMP_PLATE2")
-    ws.cell(1, 17, "RIDER_TRANSPONDER2")
-    ws.cell(1, 18, "RIDER_PLATE3")
-    ws.cell(1, 19, "RIDER_CHAMP_PLATE3")
-    ws.cell(1, 20, "RIDER_TRANSPONDER3")
-    ws.cell(1, 21, "RIDER_IDENT")
-    ws.cell(1, 22, "RIDER_ACTIVE")
-    ws.cell(1, 23, "RIDER_LOCKED")
-    return ws
-
-
-def insurance_first_line(ws):
-    """Záhlaví pro export pojistného seznamu."""
-    ws.cell(1, 1, "Kategorie")
-    ws.cell(1, 2, "Křestní jméno")
-    ws.cell(1, 3, "Příjmení")
-    ws.cell(1, 4, "Datum narození")
-    ws.cell(1, 5, "Adresa")
-    return ws
-
-
-def excel_rem_first_line_online(ws):
-    """Záhlaví pro REM online přihlášky (export z online přihlašovacího systému)."""
-    ws.cell(1, 1, "uci_id")
-    ws.cell(1, 2, "uci_code")
-    ws.cell(1, 3, "first_name")
-    ws.cell(1, 4, "last_name")
-    ws.cell(1, 5, "email")
-    ws.cell(1, 6, "club")
-    ws.cell(1, 7, "country")
-    ws.cell(1, 8, "date_of_birth")
-    ws.cell(1, 9, "sex")
-    ws.cell(1, 10, "event")
-    ws.cell(1, 11, "event_date")
-    ws.cell(1, 12, "paid")
-    ws.cell(1, 13, "event_price")
-    ws.cell(1, 14, "admin_fee")
-    ws.cell(1, 15, "transponder_hire_price")
-    ws.cell(1, 16, "team_sponsor")
-    ws.cell(1, 17, "class_0")
-    ws.cell(1, 18, "transponder_0")
-    ws.cell(1, 19, "transponderhire_0")
-    ws.cell(1, 20, "plate_0")
-    ws.cell(1, 21, "class_1")
-    ws.cell(1, 22, "transponder_1")
-    ws.cell(1, 23, "transponderhire_1")
-    ws.cell(1, 24, "plate_1")
     return ws
 
 
@@ -429,51 +356,6 @@ def resolve_event_fee(event, rider, is_20, is_beginner=False):
         return mapping.get(rider.class_24, event_classes.cr_women_40_and_over_fee)
 
 
-def clean_classes_on_event(event):
-    """Vrátí seznam unikátních tříd, které jsou skutečně použity na závodě.
-
-    Načítá třídy z EntryClasses propojeného se závodem a odstraňuje duplicity.
-    Používá se v šabloně pro zobrazení startovní listiny.
-    """
-    classes = []
-    if event.is_beginners_event():
-        classes += [
-            event.classes_and_fees_like.beginners_1,
-            event.classes_and_fees_like.beginners_2,
-            event.classes_and_fees_like.beginners_3,
-            event.classes_and_fees_like.beginners_4,
-        ]
-    classes += [
-        event.classes_and_fees_like.boys_6, event.classes_and_fees_like.boys_7,
-        event.classes_and_fees_like.girls_7, event.classes_and_fees_like.boys_8,
-        event.classes_and_fees_like.girls_8, event.classes_and_fees_like.boys_9,
-        event.classes_and_fees_like.girls_9, event.classes_and_fees_like.boys_10,
-        event.classes_and_fees_like.girls_10, event.classes_and_fees_like.cr_boys_12_and_under,
-        event.classes_and_fees_like.cr_girls_12_and_under, event.classes_and_fees_like.cr_boys_13_14,
-        event.classes_and_fees_like.cr_girls_13_16, event.classes_and_fees_like.cr_boys_15_16,
-        event.classes_and_fees_like.cr_men_17_24, event.classes_and_fees_like.cr_women_17_29,
-        event.classes_and_fees_like.cr_men_25_29, event.classes_and_fees_like.cr_men_30_34,
-        event.classes_and_fees_like.cr_women_30_39, event.classes_and_fees_like.cr_men_35_39,
-        event.classes_and_fees_like.cr_men_40_44, event.classes_and_fees_like.cr_men_45_49,
-        event.classes_and_fees_like.cr_women_40_and_over, event.classes_and_fees_like.cr_men_50_and_over,
-        event.classes_and_fees_like.boys_11, event.classes_and_fees_like.girls_11,
-        event.classes_and_fees_like.boys_12, event.classes_and_fees_like.girls_12,
-        event.classes_and_fees_like.boys_13, event.classes_and_fees_like.girls_13,
-        event.classes_and_fees_like.boys_14, event.classes_and_fees_like.girls_14,
-        event.classes_and_fees_like.boys_15, event.classes_and_fees_like.girls_15,
-        event.classes_and_fees_like.boys_16, event.classes_and_fees_like.girls_16,
-        event.classes_and_fees_like.men_17_24, event.classes_and_fees_like.women_17_24,
-        event.classes_and_fees_like.men_25_29, event.classes_and_fees_like.women_25_over,
-        event.classes_and_fees_like.men_30_34, event.classes_and_fees_like.men_35_over,
-        event.classes_and_fees_like.men_junior, event.classes_and_fees_like.women_junior,
-        event.classes_and_fees_like.men_u23, event.classes_and_fees_like.women_u23,
-        event.classes_and_fees_like.men_elite, event.classes_and_fees_like.women_elite,
-    ]
-    # dict.fromkeys zachová pořadí a odstraní duplicity
-    classes = list(dict.fromkeys(classes))
-    return classes
-
-
 # ===========================================================================
 # 4. STRIPE PLATEBNÍ INTEGRACE
 # generate_stripe_line vytvoří jeden řádek pro Stripe Checkout session.
@@ -550,7 +432,7 @@ def generate_stripe_line(event, rider, is_20, is_beginner=False):
 # Cart = dočasná přihláška (před zaplacením), Entry = zaplacená přihláška.
 # ===========================================================================
 
-class Cart():
+class Cart:
     """Dočasná přihláška v košíku — vytvoří Entry záznam s payment_complete=False.
 
     Po úspěšné platbě se payment_complete nastaví na True (viz webhook).
@@ -680,42 +562,6 @@ def invalid_licence_in_event(event):
 
     # set() odstraní duplicitu jezdce, který startuje na 20" i 24"
     return set(invalid_licences)
-
-
-def qualify_riders_to_cn(year, rider):
-    """Vypočítá, zda jezdec splnil podmínky kvalifikace na Mistrovství ČR.
-
-    Podmínka: min. počet startů na Českém poháru (dle SeasonSettings.qualify_to_cn).
-    Vrátí jezdce s nastavenými atributy is_qualify_20 / is_qualify_24.
-    """
-    settings = SeasonSettings.objects.filter(year=datetime.today().year).first()
-    qualify_threshold = settings.qualify_to_cn if settings else 2
-
-    qualify_20 = Entry.objects.filter(
-        event__type_for_ranking=EventType.CESKY_POHAR,
-        event__date__year=year,
-        checkout=False,
-        is_20=True,
-        is_beginner=False,
-        payment_complete=True,
-        rider__nationality="CZE",
-        rider=rider,
-    ).count()
-
-    qualify_24 = Entry.objects.filter(
-        event__type_for_ranking=EventType.CESKY_POHAR,
-        event__date__year=year,
-        checkout=False,
-        is_24=True,
-        payment_complete=True,
-        rider__nationality="CZE",
-        rider=rider,
-    ).count()
-
-    rider.is_qualify_20 = qualify_20 >= qualify_threshold
-    rider.is_qualify_24 = qualify_24 >= qualify_threshold
-
-    return rider
 
 
 class RemResultsFileError(ValueError):
@@ -938,7 +784,7 @@ class SetResults(threading.Thread):
                         raw.get("LAST_NAME"),
                         place,
                     )
-                    result = GetResult(
+                    GetResult(
                         event.date,
                         event.id,
                         event.name,

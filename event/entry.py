@@ -4,11 +4,9 @@ import os
 import event
 
 logger = logging.getLogger(__name__)
-from .models import Entry, Event, EntryForeign as EntryForeignModel, EventType
+from .models import Entry, EntryForeign as EntryForeignModel, EventType
 from rider.models import Rider, ForeignRider
 from django.utils import timezone
-import stripe
-import json
 from openpyxl import Workbook
 
 
@@ -97,109 +95,6 @@ class EntryForeign:
         )
         new_foreign_entry.save()
         
-
-class SendConfirmEmail:
-    """ Class for sending e-mail about registration """
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-
-    def __init__(self, transaction_id):
-        self.transaction_id = transaction_id
-
-    def get_customers_email(self):
-        """ Method for getting customer e-mail from stripe transaction """
-        transaction_detail = stripe.checkout.Session.retrieve(self.transaction_id, )
-        transaction_json = json.loads(str(transaction_detail))
-        return transaction_json['customer_details']['email']
-
-    def get_event_id(self):
-        """ Method for getting event ID from Entry database table"""
-        transaction = Entry.objects.filter(transaction_id=self.transaction_id)
-        first_entry = transaction.first()
-        return first_entry.event if first_entry else None
-
-    def get_message_body(self):
-        """ Method for setting e-mail MESSAGE_BODY """
-        entries_beginner = Entry.objects.filter(transaction_id=self.transaction_id, is_beginner=True)
-        entries_20 = Entry.objects.filter(transaction_id=self.transaction_id, is_20=True)
-        entries_24 = Entry.objects.filter(transaction_id=self.transaction_id, is_24=True)
-
-        riders_beginner = Rider.objects.filter(id__in=entries_beginner.values_list('rider_id', flat=True))
-        riders_20 = Rider.objects.filter(id__in=entries_20.values_list('rider_id', flat=True))
-        riders_24 = Rider.objects.filter(id__in=entries_24.values_list('rider_id', flat=True))
-
-        message_body = ""
-
-        if riders_beginner:
-            message_body += " \r\n"
-            message_body += " \r\n"
-            message_body += "- do kategorie Příchozích byly přihlášeni tito jezdci: "
-            for rider_beginner in riders_beginner:
-                message_body += f"{rider_beginner.last_name.upper()} {rider_beginner.first_name}, UCI ID: {rider_beginner.uci_id}, v kategorii {rider_beginner.class_beginner}, "
-        del entries_beginner
-
-        if riders_20:
-            message_body += " \r\n"
-            message_body += " \r\n"
-            message_body += "- do kategorie Challenge, Junior, Under a Elite byly přihlášeni tito jezdci: "
-            for rider_20 in riders_20:
-                message_body += f"{rider_20.last_name.upper()} {rider_20.first_name}, UCI ID: {rider_20.uci_id}, v kategorii {rider_20.class_20}, "
-        del entries_20
-
-        if riders_24:
-            message_body += " \r\n"
-            message_body += " \r\n"
-            message_body += "- do kategorie Cruiser byly přihlášeni tito jezdci: "
-            for rider_24 in riders_24:
-                message_body += f"{rider_24.last_name.upper()} {rider_24.first_name}, UCI ID: {rider_24.uci_id}, v kategorii {rider_24.class_24}, "
-        del entries_24
-        return message_body
-
-    def send_email(self):
-        """ Method for sending e-mail with confirm registration - transaction ID required at creating instance """
-        recipient = self.get_customers_email()
-        message = self.get_message_body()
-        event_id = self.get_event_id()
-        event = Event.objects.filter(id=event_id).first()
-        if not event:
-            return
-        MESSAGE_SUBJECT = f"TEST!!! Potvrzení o registraci jezdců na závod BMX race - {event.name}"
-        MESSAGE_BODY = f"Do závodu -- {event.name} -- konaného dne {event.date} byly registrováni: " + message + "\r\n \r\n Komise BMX Českého svazu cyklistiky "
-
-        # TODO: Dodělat pdf potvrzení přílohou
-        # TODO: Dodělat MESSAGE_BODY v HTML
-
-        # send an email
-        # send_mail (
-        #      subject = MESSAGE_SUBJECT,
-        #      message = MESSAGE_BODY,
-        #      from_email = "bmx@ceskysvazcyklistiky.cz",
-        #      recipient_list = [recipient],)
-        del event
-
-
-class NumberInEvent:
-    """ Class for number on-line registration riders in event """
-
-    def __init__(self):
-        self.riders_in_category = 0
-        self.event = 0
-        self.category_name = ""
-
-    def count_beginners(self):
-        """ function for count riders in class Beginners """
-        self.riders_in_category = Entry.objects.filter(event=self.event, class_beginner=self.category_name,
-                                                       is_beginner=True, payment_complete=True, checkout=False).count()
-
-    def count_riders_20(self):
-        """ function for count riders in class Challenge and Championschip """
-        self.riders_in_category = Entry.objects.filter(event=self.event, class_20=self.category_name, is_20=True,
-                                                       payment_complete=True, checkout=False, is_beginner=False).count()
-
-    def count_riders_24(self):
-        """ function for count riders in class Cruiser """
-        self.riders_in_category = Entry.objects.filter(event=self.event, class_24=self.category_name, is_24=True,
-                                                       payment_complete=True, checkout=False).count()
-
 
 class REMRiders:
     """ Class for create riders lists in xlsx file for REM """

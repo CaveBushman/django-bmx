@@ -16,9 +16,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 
 try:
     import pikepdf
@@ -28,10 +25,10 @@ except ImportError:
 from event.models import Entry, Event
 from bmx.observability import set_tag, start_span
 from finance.models import EventInvoice, EventInvoiceOverride
+from bmx.pdf_fonts import register_pdf_fonts as _register_fonts
+from bmx.pdf_layout import NumberedCanvas, draw_pdf_footer
 
 
-FONT_REGULAR_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans.ttf")
-FONT_BOLD_PATH = os.path.join(settings.BASE_DIR, "static/fonts/DejaVuSans-Bold.ttf")
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static/images/logo.png")
 ISDOC_SEAL_PATH = os.path.join(settings.BASE_DIR, "static/images/ISDOC.jpeg")
 SUPPLIER_NAME = "Asociace klubů BMX, z.s."
@@ -48,13 +45,21 @@ ET.register_namespace("", ISDOC_NS)
 ET.register_namespace("xsi", SCHEMA_INSTANCE_NS)
 
 
-def _register_fonts():
-    pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_REGULAR_PATH))
-    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", FONT_BOLD_PATH))
-
-
 def _money(value):
     return Decimal(value).quantize(Decimal("0.01"))
+
+
+def _next_document_number(model, prefix):
+    """Nejnižší volné číslo dokladu ``{prefix}NNNN`` pro daný model (vyplňuje i mezery)."""
+    used_indexes = set()
+    for number in model.objects.filter(number__startswith=prefix).values_list("number", flat=True):
+        suffix = str(number)[len(prefix):]
+        if suffix.isdigit():
+            used_indexes.add(int(suffix))
+    next_index = 1
+    while next_index in used_indexes:
+        next_index += 1
+    return f"{prefix}{next_index:04d}"
 
 
 @dataclass
@@ -68,59 +73,12 @@ class InvoiceLine:
         return _money(self.quantity * self.unit_price)
 
 
-class NumberedCanvas(canvas.Canvas):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._saved_page_states = []
-
-    def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        self._startPage()
-
-    def save(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        page_count = len(self._saved_page_states)
-        for page_number, state in enumerate(self._saved_page_states, start=1):
-            self.__dict__.update(state)
-            self._draw_page_number(page_number, page_count)
-            super().showPage()
-        super().save()
-
-    def _draw_page_number(self, page_number, page_count):
-        width, _ = A4
-        self.setFont("DejaVuSans", 9)
-        self.drawRightString(width - 20 * mm, 12 * mm, f"Stránka {page_number} z {page_count}")
-
-
-def draw_pdf_footer(pdf, *, left_text="", right_text=""):
-    width, _ = A4
-    footer_y = 16 * mm
-    pdf.setStrokeColor(colors.HexColor("#CBD5E1"))
-    pdf.line(20 * mm, footer_y + 4 * mm, width - 20 * mm, footer_y + 4 * mm)
-    pdf.setFillColor(colors.HexColor("#64748B"))
-    pdf.setFont("DejaVuSans", 8)
-    if left_text:
-        pdf.drawString(20 * mm, footer_y, left_text)
-    if right_text:
-        pdf.drawRightString(width - 20 * mm, footer_y, right_text)
-
-
 class EventInvoiceService:
     def __init__(self):
         _register_fonts()
 
     def _build_invoice_number(self):
-        year = timezone.localdate().year
-        prefix = f"{COST_CENTER_CODE}{year}"
-        used_indexes = set()
-        for number in EventInvoice.objects.filter(number__startswith=prefix).values_list("number", flat=True):
-            suffix = str(number)[len(prefix):]
-            if suffix.isdigit():
-                used_indexes.add(int(suffix))
-        next_index = 1
-        while next_index in used_indexes:
-            next_index += 1
-        return f"{prefix}{next_index:04d}"
+        return _next_document_number(EventInvoice, f"{COST_CENTER_CODE}{timezone.localdate().year}")
 
     def _entry_description(self, entry):
         category = (

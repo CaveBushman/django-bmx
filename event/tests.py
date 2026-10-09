@@ -3283,13 +3283,13 @@ class RemResultsValidationTests(TestCase):
 
     def test_rejects_truncated_last_row(self):
         # Přerušený upload končí uprostřed řádku — méně sloupců než hlavička.
-        raw = f"{self.HEADER}\r\n{self.ROW}\r\nRace\tSimon\tAks".encode("utf-8")
+        raw = f"{self.HEADER}\r\n{self.ROW}\r\nRace\tSimon\tAks".encode()
         with self.assertRaises(RemResultsFileError) as ctx:
             validate_rem_results_bytes(raw)
         self.assertIn("nedokončený", str(ctx.exception))
 
     def test_rejects_file_without_trailing_newline(self):
-        raw = f"{self.HEADER}\r\n{self.ROW}".encode("utf-8")
+        raw = f"{self.HEADER}\r\n{self.ROW}".encode()
         with self.assertRaises(RemResultsFileError) as ctx:
             validate_rem_results_bytes(raw)
         self.assertIn("koncem řádku", str(ctx.exception))
@@ -3300,12 +3300,12 @@ class RemResultsValidationTests(TestCase):
 
     def test_rejects_header_only_file(self):
         with self.assertRaises(RemResultsFileError) as ctx:
-            validate_rem_results_bytes(f"{self.HEADER}\r\n".encode("utf-8"))
+            validate_rem_results_bytes(f"{self.HEADER}\r\n".encode())
         self.assertIn("jen hlavičku", str(ctx.exception))
 
     def test_rejects_file_without_result_columns(self):
         header = "\t".join(["EVENT_NAME", "FIRST_NAME", "LAST_NAME", "CLASS"])
-        raw = f"{header}\r\nRace\tSimon\tAksamit\tBoys 15-16\r\n".encode("utf-8")
+        raw = f"{header}\r\nRace\tSimon\tAksamit\tBoys 15-16\r\n".encode()
         with self.assertRaises(RemResultsFileError) as ctx:
             validate_rem_results_bytes(raw)
         self.assertIn("CLASS_RANKING", str(ctx.exception))
@@ -3377,7 +3377,7 @@ class RemResultsUploadViewTests(TestCase):
 
     @patch("event.views.views_admin.SetResults.import_file", wraps=SetResults.import_file)
     def test_truncated_upload_is_rejected_before_import(self, import_file_mock):
-        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\nRace\tCzech\tRid".encode("utf-8"))
+        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\nRace\tCzech\tRid".encode())
 
         self.assertEqual(response.status_code, 200)
         import_file_mock.assert_not_called()
@@ -3390,7 +3390,7 @@ class RemResultsUploadViewTests(TestCase):
         )
 
     def test_complete_upload_imports_and_reports_counts(self):
-        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+        response = self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode())
 
         self.assertEqual(response.status_code, 200)
         self.event.refresh_from_db()
@@ -3403,13 +3403,13 @@ class RemResultsUploadViewTests(TestCase):
 
     def test_repeated_upload_replaces_previous_results_and_file(self):
         """Nahrání jde opakovat a nová sada tu původní nahradí, ne zdvojí."""
-        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode())
         self.event.refresh_from_db()
         first_path = self.event.rem_results.path
         first_result = Result.objects.get(event=self.event)
 
         second_row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Boys 15-16", "10000000011", "1"])
-        response = self._post(f"{self.HEADER}\r\n{second_row}\r\n".encode("utf-8"))
+        response = self._post(f"{self.HEADER}\r\n{second_row}\r\n".encode())
 
         self.assertEqual(response.status_code, 200)
         self.event.refresh_from_db()
@@ -3422,13 +3422,13 @@ class RemResultsUploadViewTests(TestCase):
 
     def test_failed_second_upload_keeps_the_original_results(self):
         """Když druhý soubor nic nezapíše, původní výsledky zůstanou."""
-        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode("utf-8"))
+        self._post(f"{self.HEADER}\r\n{self.ROW}\r\n".encode())
         self.event.refresh_from_db()
         original_path = self.event.rem_results.path
         original_pk = Result.objects.get(event=self.event).pk
 
         empty_row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Příchozí", "10000000011", "3"])
-        response = self._post(f"{self.HEADER}\r\n{empty_row}\r\n".encode("utf-8"))
+        response = self._post(f"{self.HEADER}\r\n{empty_row}\r\n".encode())
 
         self.assertEqual(response.status_code, 200)
         self.event.refresh_from_db()
@@ -3439,7 +3439,7 @@ class RemResultsUploadViewTests(TestCase):
     def test_upload_without_results_does_not_lock_the_button(self):
         # Samá "Příchozí" kategorie — soubor je formálně v pořádku, ale nic nezapíše.
         row = "\t".join(["Race", "Czech", "Rider", "Upload Club", "Příchozí", "10000000011", "3"])
-        response = self._post(f"{self.HEADER}\r\n{row}\r\n".encode("utf-8"))
+        response = self._post(f"{self.HEADER}\r\n{row}\r\n".encode())
 
         self.assertEqual(response.status_code, 200)
         self.event.refresh_from_db()

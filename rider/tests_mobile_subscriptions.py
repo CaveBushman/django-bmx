@@ -13,7 +13,7 @@ Pokrývá:
 - API POST /api/promo-codes/validate/
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -21,7 +21,6 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from club.models import Club
 from event.credit import calculate_user_balance
 from event.models import CreditTransaction, SeasonSettings
 from rider.mobile_subscriptions import (

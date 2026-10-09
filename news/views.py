@@ -39,10 +39,6 @@ def _sanitize_download_for_render(document):
     document.description = sanitize_rich_html(document.description)
     return document
 
-def get_image_dimensions(image_field):
-    image = Image.open(BytesIO(image_field.read()))
-    return image.width, image.height
-
 
 def homepage_view(request):
     this_year = date.today().year

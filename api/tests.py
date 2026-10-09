@@ -1981,7 +1981,7 @@ def _results_document(*, split=True, include_beginner=False):
       </standing>{split_block}{heats}
     </ns0:sports-content>
   </inlineXML></contentSet>
-</newsItem>""".encode("utf-8")
+</newsItem>""".encode()
 
 
 @override_settings(

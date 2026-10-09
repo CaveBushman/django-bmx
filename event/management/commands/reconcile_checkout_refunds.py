@@ -43,9 +43,7 @@ class Command(BaseCommand):
             )
 
             mismatch = False
-            if should_have_refund and refund is None:
-                mismatch = True
-            elif not should_have_refund and refund is not None:
+            if should_have_refund and refund is None or not should_have_refund and refund is not None:
                 mismatch = True
             elif should_have_refund and refund is not None:
                 mismatch = any(

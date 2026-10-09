@@ -15,7 +15,6 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
 from bmx.observability import set_tag, start_span
-from event.models import Event
 from finance.invoices import (
     COST_CENTER_CODE,
     LOGO_PATH,
@@ -25,6 +24,7 @@ from finance.invoices import (
     SUPPLIER_NAME,
     SUPPLIER_STREET,
     _money,
+    _next_document_number,
     _register_fonts,
 )
 from finance.models import EventCashReceipt
@@ -36,16 +36,7 @@ class EventCashReceiptService:
 
     def _build_receipt_number(self):
         year = timezone.localdate().year
-        prefix = f"{COST_CENTER_CODE}P{year}"
-        used_indexes = set()
-        for number in EventCashReceipt.objects.filter(number__startswith=prefix).values_list("number", flat=True):
-            suffix = str(number)[len(prefix):]
-            if suffix.isdigit():
-                used_indexes.add(int(suffix))
-        next_index = 1
-        while next_index in used_indexes:
-            next_index += 1
-        return f"{prefix}{next_index:04d}"
+        return _next_document_number(EventCashReceipt, f"{COST_CENTER_CODE}P{year}")
 
     def _receipt_filename_base(self, receipt):
         event_slug = slugify(receipt.event.name) or f"event-{receipt.event_id}"
@@ -61,14 +52,6 @@ class EventCashReceiptService:
         if event.date:
             return f"Startovné na závod {event.name} konaný dne {event.date:%d.%m.%Y}"
         return f"Startovné na závod {event.name}"
-
-    def _item_detail_text(self, receipt):
-        details = [f"Rider: {receipt.rider_name}"]
-        if receipt.uci_id:
-            details.append(f"UCI ID: {receipt.uci_id}")
-        if receipt.category:
-            details.append(f"Class: {receipt.category}")
-        return " | ".join(details)
 
     def _generate_pdf(self, receipt, language="en"):
         with start_span(
@@ -337,30 +320,3 @@ def parse_receipt_amount(raw_value):
     return amount
 
 
-def create_event_cash_receipt(
-    event_id,
-    rider_name,
-    amount,
-    customer_name="",
-    customer_street="",
-    customer_city="",
-    customer_zip_code="",
-    customer_country="",
-    uci_id="",
-    category="",
-    note="",
-):
-    event = Event.objects.select_related("organizer").get(pk=event_id)
-    return EventCashReceiptService().create_receipt(
-        event,
-        rider_name=rider_name,
-        amount=amount,
-        customer_name=customer_name,
-        customer_street=customer_street,
-        customer_city=customer_city,
-        customer_zip_code=customer_zip_code,
-        customer_country=customer_country,
-        uci_id=uci_id,
-        category=category,
-        note=note,
-    )

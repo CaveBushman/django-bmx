@@ -499,7 +499,7 @@ class RiderAdminAvatarModerationTests(TestCase):
         self.assertContains(response, reverse("accounts:avatar-moderation"))
 
 
-class RiderAdminSearchTests(TestCase):
+class RiderAdminAvatarSearchTests(TestCase):
     def setUp(self):
         self.staff_user = User.objects.create_user(
             first_name="Admin",
@@ -1351,7 +1351,7 @@ class TrainerClubSubscriptionTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.content.startswith("\ufeff".encode("utf-8")))
-        self.assertIn("Žaneta".encode("utf-8"), response.content)
+        self.assertIn("Žaneta".encode(), response.content)
 
     def test_trainer_extended_can_export_rider_premium_stats_pdf(self):
         purchase_trainer_club_subscription(

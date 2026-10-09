@@ -11,8 +11,8 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.urls import NoReverseMatch
-from django.utils.safestring import mark_safe
 from django.shortcuts import redirect
+from django.http import HttpResponseRedirect
 from .models import Event, EventControlSyncLog, EventType, Result, EntryClasses, Entry, EntryForeign, EntryAuditLog, FinanceAuditLog, SeasonSettings, CreditTransaction, DebetTransaction, StripeFee, EventProposition, normalize_uci_id
 from .models_events import EventPhoto
 from rider.models import ForeignRider
@@ -208,9 +208,9 @@ class EventAdmin(BaseAdmin):
             return "-"
         diff = (obj.date - now().date()).days
         if diff < 0:
-            return mark_safe('<span style="color: #94a3b8;">{}</span>'.format(diff))
+            return mark_safe(f'<span style="color: #94a3b8;">{diff}</span>')
         if diff <= 7:
-            return mark_safe('<span style="color: #dc2626; font-weight: bold;">{} d.</span>'.format(diff))
+            return mark_safe(f'<span style="color: #dc2626; font-weight: bold;">{diff} d.</span>')
         return f"{diff} d."
 
     @admin.display(description=_("Výsledky"))
@@ -376,7 +376,7 @@ class EventAdmin(BaseAdmin):
         return mark_safe(
             '<div style="display:flex; gap:12px; flex-wrap:wrap;">{}</div>'.format(
                 "".join(
-                    '<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;">{}</span>'.format(link)
+                    f'<span style="display:inline-flex; padding:6px 10px; border:1px solid #cbd5e1; border-radius:999px;">{link}</span>'
                     for link in links
                 )
             ),
@@ -678,7 +678,7 @@ class EntryAdmin(BaseAdmin):
             url = reverse("admin:event_credittransaction_change", args=[refund.pk])
         except NoReverseMatch:
             return refund.payment_intent or "Vratka"
-        return mark_safe('<a href="{}">{} Kč</a>'.format(url, refund.amount))
+        return mark_safe(f'<a href="{url}">{refund.amount} Kč</a>')
 
     @admin.display(description=_("Souhrn refundu"))
     def checkout_refund_summary(self, obj):
@@ -688,7 +688,7 @@ class EntryAdmin(BaseAdmin):
 
         try:
             refund_url = reverse("admin:event_credittransaction_change", args=[refund.pk])
-            refund_link = mark_safe('<a href="{}">#{}</a>'.format(refund_url, refund.pk))
+            refund_link = mark_safe(f'<a href="{refund_url}">#{refund.pk}</a>')
         except NoReverseMatch:
             refund_link = f"#{refund.pk}"
 
@@ -906,7 +906,7 @@ class EntryForeignAdmin(BaseAdmin):
             url = reverse('admin:rider_foreignrider_change', args=[foreign_rider.pk])
         except NoReverseMatch:
             return "Detail nedostupný"
-        return mark_safe('<a href="{}">Otevřít jezdce</a>'.format(url))
+        return mark_safe(f'<a href="{url}">Otevřít jezdce</a>')
 
 
 class CreditTransactionAdmin(BaseAdmin):

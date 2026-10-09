@@ -421,22 +421,13 @@ class Participation:
             line += 1
 
     def count(self):
-        self.first_line()
         self.calculate()
         self.save()
 
 
 class Cruiser:
     def __init__(self):
-        self.__NUMBER_OF_CUPS = 0
-        self.__NUMBER_OF_PCS = 0
         self.year = now
-
-    def set_number_of_cups(self, number):
-        self.__NUMBER_OF_CUPS = number
-
-    def set_number_of_peaces(self, number):
-        self.__NUMBER_OF_PCS = number
 
     def calculate_median(self):
         cup_events = Event.objects.filter(
