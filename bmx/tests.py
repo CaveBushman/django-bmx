@@ -94,6 +94,37 @@ class RobotsTxtEndpointTests(TestCase):
         self.assertIn(f"Sitemap: http://testserver{reverse('sitemap')}", content)
 
 
+class ClientIpTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_uses_last_forwarded_hop_behind_proxy(self):
+        from bmx.rate_limit import get_client_ip
+
+        request = self.factory.get(
+            "/",
+            REMOTE_ADDR="127.0.0.1",
+            HTTP_X_FORWARDED_FOR="10.0.0.1, 203.0.113.20",
+        )
+        self.assertEqual(get_client_ip(request), "203.0.113.20")
+
+    def test_falls_back_to_remote_addr(self):
+        from bmx.rate_limit import get_client_ip
+
+        request = self.factory.get("/", REMOTE_ADDR="203.0.113.21")
+        self.assertEqual(get_client_ip(request), "203.0.113.21")
+
+    def test_form_protection_attempts_are_per_client_behind_proxy(self):
+        from bmx.form_protection import get_flow_attempts, increment_flow_attempts
+
+        first = self.factory.post("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR="203.0.113.30")
+        second = self.factory.post("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR="203.0.113.31")
+        increment_flow_attempts("signin", first)
+
+        self.assertEqual(get_flow_attempts("signin", first), 1)
+        self.assertEqual(get_flow_attempts("signin", second), 0)
+
+
 class SecurityEndpointTests(TestCase):
     @override_settings(CSP_REPORT_RATE_LIMIT_MAX_ATTEMPTS=1, CSP_REPORT_RATE_LIMIT_WINDOW_SECONDS=60)
     @patch("bmx.views.logger.info")

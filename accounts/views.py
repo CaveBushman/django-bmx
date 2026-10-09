@@ -24,6 +24,7 @@ from django.utils.translation import gettext as _
 
 from .models import Account, AccountActivationAuditLog, AvatarChangeRequest, normalize_account_email
 from club.models import Club
+from bmx.rate_limit import get_client_ip
 from bmx.form_protection import (
     build_security_context,
     clear_flow_attempts,
@@ -57,7 +58,7 @@ def _apply_flow_security_or_render(request, flow, *, extra_context=None):
         "%s_rejected_%s ip=%s",
         flow,
         result["reason"],
-        request.META.get("REMOTE_ADDR", ""),
+        get_client_ip(request),
     )
     messages.error(request, result["message"])
     return _render_flow_template(request, flow, status=result["status"], extra_context=extra_context)
@@ -128,7 +129,7 @@ def sign_up(request):
                 audit_logger.warning(
                     "signup_rejected_duplicate_email email=%s ip=%s",
                     email,
-                    request.META.get("REMOTE_ADDR", ""),
+                    get_client_ip(request),
                 )
                 if not existing_user.is_active:
                     request.session["pending_activation_email"] = existing_user.email
@@ -143,7 +144,7 @@ def sign_up(request):
                 audit_logger.warning(
                     "signup_rejected_duplicate_username username=%s ip=%s",
                     username,
-                    request.META.get("REMOTE_ADDR", ""),
+                    get_client_ip(request),
                 )
                 messages.error(request, _("Uživatel s tímto uživatelským jménem již existuje."))
                 return _render_flow_template(request, "signup")
@@ -169,7 +170,7 @@ def sign_up(request):
                 user.id,
                 user.username,
                 user.email,
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             return redirect('accounts:activation_sent')
         else:
@@ -177,7 +178,7 @@ def sign_up(request):
                 "signup_rejected_password_mismatch username=%s email=%s ip=%s",
                 username,
                 email,
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             messages.error(request, _("Heslo není shodné s heslem pro kontrolu. Zadejte registrační údaje znovu"))
             return _render_flow_template(request, "signup")
@@ -200,7 +201,7 @@ def sign_in(request):
                 "signin_rejected_ambiguous_email email=%s matches=%s ip=%s",
                 username,
                 len(matched_users),
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             messages.error(request, _("Pro tento e-mail existuje více historických účtů. Kontaktujte administrátora."))
             return _render_flow_template(request, "signin")
@@ -212,7 +213,7 @@ def sign_in(request):
             audit_logger.warning(
                 "signin_rejected_inactive_account user_id=%s ip=%s",
                 matched_user.id,
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             messages.error(
                 request,
@@ -237,7 +238,7 @@ def sign_in(request):
                 user.id,
                 user.username,
                 bool(remember_me),
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             return redirect('news:homepage')  # Přesměrování po úspěšném přihlášení
         else:
@@ -245,7 +246,7 @@ def sign_in(request):
             audit_logger.warning(
                 "signin_failed username=%s ip=%s",
                 auth_identity,
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             messages.error(request, _("Neplatné uživatelské jméno nebo heslo."))
 
@@ -286,7 +287,7 @@ def activate_account(request, uidb64, token):
         "account_activated user_id=%s email=%s ip=%s",
         user.id,
         user.email,
-        request.META.get("REMOTE_ADDR", ""),
+        get_client_ip(request),
     )
     request.session.pop("pending_activation_email", None)
     messages.success(request, _("Účet byl úspěšně aktivován. Teď se můžete přihlásit svým e-mailem a heslem."))
@@ -312,7 +313,7 @@ def password_reset_request(request):
             audit_logger.info(
                 "password_reset_requested email=%s ip=%s",
                 request.POST.get("email", "").strip().lower(),
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
             return redirect("accounts:password_reset_done")
 
@@ -349,7 +350,7 @@ def resend_activation_email(request):
                 "activation_resent user_id=%s email=%s ip=%s",
                 user.id,
                 user.email,
-                request.META.get("REMOTE_ADDR", ""),
+                get_client_ip(request),
             )
 
         clear_flow_attempts("activation_resend", request)
@@ -368,7 +369,7 @@ def sign_out(request):
             "signout user_id=%s username=%s ip=%s",
             request.user.id,
             request.user.username,
-            request.META.get("REMOTE_ADDR", ""),
+            get_client_ip(request),
         )
     logout(request)
     return redirect('news:homepage')

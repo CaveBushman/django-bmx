@@ -6,6 +6,8 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from bmx.rate_limit import get_client_ip
+
 
 DEFAULT_FORM_PROTECTION = {
     "signup": {
@@ -62,7 +64,7 @@ def build_flow_token(flow, created_at=None):
 
 
 def _attempts_key(flow, request):
-    return f"form-protection:{flow}:{request.META.get('REMOTE_ADDR', 'unknown')}"
+    return f"form-protection:{flow}:{get_client_ip(request)}"
 
 
 def increment_flow_attempts(flow, request):
