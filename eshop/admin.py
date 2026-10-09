@@ -118,17 +118,21 @@ class OrderItemInline(admin.TabularInline):
     subtotal_display.short_description = "Mezisoučet"
 
 
-@admin.action(description="Odečíst kredity a potvrdit objednávku")
-def charge_credits_action(modeladmin, request, queryset):
+@admin.action(description="Stornovat a vrátit platbu na kartu")
+def cancel_and_refund_action(modeladmin, request, queryset):
+    from .payments import cancel_order
+    from .views import _save_credit_note
+
     for order in queryset:
+        was_paid = order.is_paid
         try:
-            order.charge_credits(actor=request.user)
-            messages.success(
-                request,
-                f"Objednávka #{order.pk} potvrzena — odečteno {order.credits_charged} kreditů zákazníkovi {order.email}.",
-            )
+            cancel_order(order, actor=request.user)
         except ValueError as e:
             messages.error(request, f"Objednávka #{order.pk}: {e}")
+            continue
+        if was_paid:
+            _save_credit_note(order, actor=request.user)
+        messages.success(request, f"Objednávka #{order.pk} stornována{' a platba vrácena' if was_paid else ''}.")
 
 
 @admin.action(description="Označit jako odesláno")
@@ -174,13 +178,22 @@ def mark_delivered_action(modeladmin, request, queryset):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ("id", "invoice_number_display", "full_name", "email", "event", "status_badge", "paid_badge", "total_display", "delivered_at", "created")
-    list_filter = ("status", "event", "created", "delivered_at")
-    search_fields = ("first_name", "last_name", "email", "phone")
-    readonly_fields = ("created", "updated", "total_display", "user", "credits_charged", "user_credit_display", "invoice_number", "credit_note_number", "delivered_at", "delivered_by")
-    actions = [charge_credits_action, mark_shipped_action, mark_delivered_action]
+    list_filter = ("status", "payment_method", "event", "created", "delivered_at")
+    search_fields = ("first_name", "last_name", "email", "phone", "invoice_number", "stripe_payment_intent")
+    readonly_fields = (
+        "created", "updated", "total_display", "user", "payment_method", "credits_charged",
+        "amount_paid", "paid_at", "refunded_at", "payment_expires_at", "stripe_session_id",
+        "stripe_payment_intent", "stripe_refund_id", "stock_deducted",
+        "invoice_number", "credit_note_number", "delivered_at", "delivered_by",
+    )
+    actions = [mark_shipped_action, mark_delivered_action, cancel_and_refund_action]
     inlines = [OrderItemInline]
     fieldsets = (
-        ("Stav a platba", {"fields": ("status", "user", "user_credit_display", "credits_charged", "invoice_number", "credit_note_number")}),
+        ("Stav a platba", {"fields": (
+            "status", "user", "payment_method", "amount_paid", "paid_at", "refunded_at",
+            "payment_expires_at", "credits_charged", "invoice_number", "credit_note_number",
+        )}),
+        ("Stripe", {"fields": ("stripe_session_id", "stripe_payment_intent", "stripe_refund_id", "stock_deducted"), "classes": ("collapse",)}),
         ("Zákazník", {"fields": ("first_name", "last_name", "email", "phone")}),
         ("Doručení", {"fields": ("event", "delivered_at", "delivered_by")}),
         ("Poznámky", {"fields": ("note", "internal_note")}),
@@ -214,27 +227,18 @@ class OrderAdmin(admin.ModelAdmin):
     def paid_badge(self, obj):
         if obj.is_paid:
             return format_html(
-                '<span style="color:#16a34a;font-weight:700">✓ {} kr.</span>',
-                obj.credits_charged,
+                '<span style="color:#16a34a;font-weight:700">✓ {} Kč{}</span>',
+                f"{obj.paid_amount:.0f}",
+                " (kredity)" if obj.credits_charged is not None else "",
             )
+        if obj.refunded_at:
+            return mark_safe('<span style="color:#64748b">Vráceno</span>')
         return mark_safe('<span style="color:#94a3b8">Nezaplaceno</span>')
     paid_badge.short_description = "Platba"
 
     def total_display(self, obj):
         return f"{obj.total:,.0f} Kč".replace(",", "\u00a0")
     total_display.short_description = "Celkem"
-
-    def user_credit_display(self, obj):
-        if obj.user_id:
-            credit = obj.user.credit
-            color = "#16a34a" if credit >= int(obj.total or 0) else "#dc2626"
-            return format_html(
-                '<span style="color:{};font-weight:700">{} kreditů</span>',
-                color,
-                credit,
-            )
-        return "—"
-    user_credit_display.short_description = "Kredity zákazníka"
 
 
 @admin.action(description="Smazat vybrané expirované rezervace")

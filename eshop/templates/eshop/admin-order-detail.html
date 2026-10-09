@@ -28,8 +28,8 @@
               <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ order.total|floatformat:0 }}&nbsp;<span class="text-lg font-semibold">Kč</span></p>
             </div>
             <div class="page-stat-card">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Kredit" %}</p>
-              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{% if order.credits_charged %}{{ order.credits_charged|floatformat:0 }}&nbsp;Kč{% else %}—{% endif %}</p>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Zaplaceno" %}</p>
+              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{% if order.paid_amount is not None %}{{ order.paid_amount|floatformat:0 }}&nbsp;Kč{% else %}—{% endif %}</p>
             </div>
           </div>
         </div>
@@ -131,10 +131,13 @@
                 <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ order.created|date:"j. n. Y H:i" }}</p>
               </div>
               <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Uhrazeno kredity" %}</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{{ order.get_payment_method_display }}</p>
                 <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-                  {% if order.credits_charged %}{{ order.credits_charged|floatformat:0 }} Kč{% else %}{% trans "Bez aktivní úhrady" %}{% endif %}
+                  {% if order.is_paid %}{{ order.paid_amount|floatformat:0 }} Kč{% if order.paid_at %} · {{ order.paid_at|date:"j. n. Y H:i" }}{% endif %}{% elif order.refunded_at %}{% trans "Vráceno na kartu" %} · {{ order.refunded_at|date:"j. n. Y H:i" }}{% else %}{% trans "Bez aktivní úhrady" %}{% endif %}
                 </p>
+                {% if order.stripe_payment_intent %}
+                <p class="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">{{ order.stripe_payment_intent }}{% if order.stripe_refund_id %} · {{ order.stripe_refund_id }}{% endif %}</p>
+                {% endif %}
               </div>
               <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/50">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">{% trans "Předání" %}</p>
@@ -150,6 +153,7 @@
             </div>
           </section>
 
+          {% if credit_transactions %}
           <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Kreditní transakce" %}</p>
             <div class="mt-4 space-y-3">
@@ -168,6 +172,7 @@
               {% endfor %}
             </div>
           </section>
+          {% endif %}
 
           <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40">
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300">{% trans "Historie objednávky" %}</p>

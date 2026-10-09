@@ -16,7 +16,7 @@
             <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "E-shop checkout" %}</p>
             <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">{% trans "Dokončení objednávky" %}</h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-              {% trans "Jeden čistý krok: doplnit údaje, zvolit předání na závodě a potvrdit objednávku. Úhrada proběhne kredity z účtu." %}
+              {% trans "Jeden čistý krok: doplnit údaje, zvolit předání na závodě a zaplatit kartou přes zabezpečenou platební bránu Stripe." %}
             </p>
           </div>
           <div class="page-stats-grid">
@@ -30,7 +30,7 @@
             </div>
             <div class="page-stat-card">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Platba" %}</p>
-              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{% trans "Kredity" %}</p>
+              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{% trans "Kartou" %}</p>
             </div>
           </div>
         </div>
@@ -147,8 +147,8 @@
             <div class="eshop-summary-band px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
               <div class="flex items-start justify-between gap-4">
                 <div>
-                  <p class="font-semibold text-slate-900 dark:text-white">{% trans "Úhrada kredity" %}</p>
-                  <p class="mt-1 text-xs leading-5">{% trans "Objednávka se po potvrzení uhradí z kreditu účtu." %}</p>
+                  <p class="font-semibold text-slate-900 dark:text-white">{% trans "Platba kartou" %}</p>
+                  <p class="mt-1 text-xs leading-5">{% trans "Po potvrzení tě přesměrujeme na platební bránu Stripe. Zboží ti podržíme 30 minut, než platbu dokončíš." %}</p>
                   {% if reservation_expires_at %}
                   <p
                     class="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400"
@@ -160,18 +160,15 @@
                   </p>
                   {% endif %}
                 </div>
-                {% if user.is_authenticated %}
-                <p class="text-xl font-black text-slate-900 dark:text-white">{{ user.credit|floatformat:0 }} Kč</p>
-                {% endif %}
               </div>
             </div>
           </div>
 
-          {% if checkout_credit_warning %}
+          {% if checkout_login_warning %}
           <div class="border-b border-slate-200 px-6 py-5 dark:border-slate-800">
             <div class="eshop-warning-box px-4 py-4 text-sm">
-              <p class="font-semibold">{% trans "Nedostatečný kredit" %}</p>
-              <p class="mt-1 leading-6">{{ checkout_credit_warning }}</p>
+              <p class="font-semibold">{% trans "Přihlášení" %}</p>
+              <p class="mt-1 leading-6">{{ checkout_login_warning }}</p>
             </div>
           </div>
           {% endif %}
@@ -266,7 +263,7 @@
             </div>
             <div class="flex items-center justify-between py-2">
               <dt class="text-slate-600 dark:text-slate-400">{% trans "Úhrada" %}</dt>
-              <dd class="font-semibold text-slate-900 dark:text-white">{% trans "Kredity z účtu" %}</dd>
+              <dd class="font-semibold text-slate-900 dark:text-white">{% trans "Platební karta" %}</dd>
             </div>
             <div class="mt-3 flex items-center justify-between border-t border-slate-200 pt-5 text-base dark:border-slate-800">
               <dt class="font-bold text-slate-900 dark:text-white">{% trans "Celkem" %}</dt>
@@ -281,7 +278,7 @@
               class="w-full rounded-2xl px-5 py-3.5 text-sm font-semibold shadow-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-400 {% if can_submit_order %}bg-indigo-600 text-white shadow-indigo-900/20 hover:bg-indigo-700{% else %}eshop-submit-disabled cursor-not-allowed{% endif %}"
               {% if not can_submit_order %}disabled aria-disabled="true"{% endif %}
             >
-              {% trans "Potvrdit objednávku" %}
+              {% trans "Pokračovat k platbě" %}
             </button>
             <a
               href="{% url 'eshop:shop' %}"
@@ -290,7 +287,7 @@
               {% trans "Zpět do e-shopu" %}
             </a>
             <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
-              {% trans "Objednávku můžeš dokončit jen tehdy, když je na účtu dostatek kreditu pro celou částku." %}
+              {% trans "Objednávka je závazná až po zaplacení. Nezaplacená objednávka se po 30 minutách automaticky zruší." %}
             </p>
           </div>
         </section>

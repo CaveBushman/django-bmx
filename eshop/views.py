@@ -1,7 +1,8 @@
 """Webový e-shop: katalog, košík, checkout a interní správa objednávek.
 
 View vrstva koordinuje formuláře a doménové modely. Před vytvořením objednávky
-musí znovu ověřit cenu, rezervovat sklad a odečíst kredit v jedné transakci.
+musí znovu ověřit cenu a v jedné transakci odečíst sklad; platba kartou pak
+probíhá přes Stripe Checkout (viz ``eshop.payments``).
 """
 
 import csv
@@ -29,6 +30,7 @@ from bmx.rate_limit import get_rate_limit_subject, is_rate_limited
 from .cart import Cart
 from .forms import CheckoutForm, StockAlertRequestForm
 from .invoice import generate_credit_note, generate_invoice
+from . import payments
 from .models import (
     Category,
     EshopSettings,
@@ -172,18 +174,20 @@ def admin_dashboard(request):
         return redirect("eshop:admin-dashboard")
 
     orders = Order.objects.all()
-    revenue_paid = orders.filter(
+    revenue_card = orders.filter(
+        paid_at__isnull=False, refunded_at__isnull=True,
+    ).aggregate(total=Sum("amount_paid"))["total"] or 0
+    revenue_credits = orders.filter(
         credits_charged__isnull=False
     ).aggregate(total=Sum("credits_charged"))["total"] or 0
+    revenue_paid = int(revenue_card) + int(revenue_credits)
 
     status_rows = [
         {"label": s.label, "count": orders.filter(status=s).count()}
         for s in Order.Status
     ]
-    pending_count = sum(
-        r["count"] for r in status_rows
-        if r["label"] in (Order.Status.PENDING.label, Order.Status.CONFIRMED.label)
-    )
+    # K vyřízení jsou jen zaplacené objednávky; nezaplacené čekají na zákazníka.
+    pending_count = orders.filter(status=Order.Status.CONFIRMED).count()
 
     top_products = (
         OrderItem.objects
@@ -291,8 +295,10 @@ def export_accounting_orders_csv(request):
             "Stav objednavky",
             "Polozky",
             "Castka dokladu (Kc)",
-            "Odecet kreditu (Kc)",
-            "Vratka kreditu (Kc)",
+            "Forma uhrady",
+            "Uhrazeno (Kc)",
+            "Vraceno (Kc)",
+            "Stripe PaymentIntent",
         ]
     )
     for order in orders:
@@ -303,6 +309,7 @@ def export_accounting_orders_csv(request):
         )
         charged = int(order.total) if order.status != Order.Status.CANCELED else 0
         refunded = int(order.total) if order.credit_note_number else 0
+        payment_label = order.get_payment_method_display()
         writer.writerow(
             [_csv_safe(value) for value in [
                 "Faktura",
@@ -314,8 +321,10 @@ def export_accounting_orders_csv(request):
                 order.get_status_display(),
                 items_text,
                 int(order.total),
+                payment_label,
                 charged,
                 0,
+                order.stripe_payment_intent,
             ]]
         )
         if order.credit_note_number:
@@ -330,8 +339,10 @@ def export_accounting_orders_csv(request):
                     order.get_status_display(),
                     items_text,
                     -int(order.total),
+                    payment_label,
                     0,
                     refunded,
+                    order.stripe_refund_id or order.stripe_payment_intent,
                 ]]
             )
     return response
@@ -870,17 +881,10 @@ def checkout(request):
     for warning in stock_warnings:
         messages.warning(request, warning)
 
-    total_int = int(total)
     can_submit_order = bool(request.user.is_authenticated)
-    checkout_credit_warning = ""
+    checkout_login_warning = ""
     if not request.user.is_authenticated:
-        checkout_credit_warning = "Pro dokončení objednávky se nejdřív přihlas ke svému účtu s kreditem."
-    elif request.user.credit < total_int:
-        can_submit_order = False
-        checkout_credit_warning = (
-            f"Na účtu nemáš dostatek kreditu. K dispozici je {request.user.credit} Kč, "
-            f"ale objednávka stojí {total_int} Kč."
-        )
+        checkout_login_warning = "Pro dokončení objednávky se nejdřív přihlas ke svému účtu."
     pickup_events = CheckoutForm().fields["event"].queryset
     pickup_unavailable_warning = ""
     if not pickup_events.exists():
@@ -929,19 +933,26 @@ def checkout(request):
                             quantity=item["quantity"],
                             unit_price=item["variant"].price,
                         )
-                    order.charge_credits(actor=request.user)
-                    order.ensure_invoice_number(actor=request.user)
+                    order.deduct_stock(actor=request.user)
             except ValueError as exc:
                 cache.delete(submit_lock_key)
                 messages.error(request, str(exc))
             else:
+                try:
+                    stripe_session = payments.create_checkout_session(order)
+                except payments.PaymentError as exc:
+                    # Bez platební brány objednávku nedržíme — vrátíme zboží na sklad.
+                    order.cancel_by_user(actor=request.user, note="Platební bránu se nepodařilo otevřít.")
+                    cache.delete(submit_lock_key)
+                    messages.error(request, str(exc))
+                    return redirect("eshop:checkout")
                 _release_stock_reservations(request)
                 cart_obj.clear()
                 request.session.pop("eshop_checkout_token", None)
                 request.session["last_order_id"] = order.pk
-                return redirect("eshop:order-confirmation", order_id=order.pk)
+                return redirect(stripe_session["url"])
         if form.is_valid() and not can_submit_order:
-            messages.error(request, checkout_credit_warning or pickup_unavailable_warning)
+            messages.error(request, checkout_login_warning or pickup_unavailable_warning)
     else:
         form = CheckoutForm(initial=initial)
 
@@ -959,7 +970,7 @@ def checkout(request):
             "items": items,
             "total": total,
             "can_submit_order": can_submit_order,
-            "checkout_credit_warning": checkout_credit_warning,
+            "checkout_login_warning": checkout_login_warning,
             "pickup_unavailable_warning": pickup_unavailable_warning,
             "selected_pickup_event": selected_pickup_event,
             "reservation_expires_at": reservation_expires_at,
@@ -973,32 +984,47 @@ def order_confirmation(request, order_id):
         Order.objects.select_related("user").prefetch_related("items__variant__product"),
         pk=order_id,
     )
-    if order.is_paid and not order.invoice_number:
-        order.ensure_invoice_number(actor=request.user if request.user.is_authenticated else None)
-
     # Allow access to session owner or the linked user
     is_session_owner = request.session.get("last_order_id") == order_id
     is_order_user = request.user.is_authenticated and order.user_id == request.user.pk
     if not is_session_owner and not is_order_user:
         raise Http404
 
-    can_pay_credits = (
-        request.user.is_authenticated
-        and order.user_id == request.user.pk
-        and not order.is_paid
-        and request.user.credit >= int(order.total)
-    )
+    actor = request.user if request.user.is_authenticated else None
+    session_id = request.GET.get("session_id")
+    if session_id and order.is_awaiting_payment:
+        payments.finalize_checkout_session(order, session_id, actor=actor)
+        order.refresh_from_db()
+    if order.is_paid and not order.invoice_number:
+        order.ensure_invoice_number(actor=actor)
+
+    payment_canceled = request.GET.get("payment") == "canceled" and order.is_awaiting_payment
+    # Návrat ze Stripe předbíhá webhook — zaplaceno ještě nemusí být zapsané.
+    payment_processing = bool(session_id) and order.is_awaiting_payment
 
     return render(request, "eshop/order_confirmation.html", {
         "order": order,
-        "can_pay_credits": can_pay_credits,
+        "can_pay": is_order_user and order.is_awaiting_payment,
+        "payment_canceled": payment_canceled,
+        "payment_processing": payment_processing,
     })
 
 
 @require_POST
 @login_required
-def pay_with_credits(request, order_id):
+def pay_order(request, order_id):
+    """Vrátí zákazníka do rozpracované platby kartou."""
     order = get_object_or_404(Order, pk=order_id, user=request.user)
+    checkout_url = payments.get_open_checkout_url(order)
+    if checkout_url:
+        return redirect(checkout_url)
+    order.refresh_from_db()
+    if order.is_paid:
+        messages.success(request, "Objednávka je zaplacená.")
+    elif order.status == Order.Status.CANCELED:
+        messages.warning(request, "Čas na zaplacení vypršel, objednávka byla zrušena a zboží vráceno na sklad.")
+    else:
+        messages.error(request, "Platební bránu se teď nepodařilo otevřít. Zkus to prosím za chvíli znovu.")
     return redirect("eshop:order-confirmation", order_id=order_id)
 
 
@@ -1009,6 +1035,8 @@ def download_invoice(request, order_id):
         pk=order_id,
         user=request.user,
     )
+    if not order.invoice_number and not order.is_paid:
+        raise Http404
     # Always regenerate to keep the PDF aligned with the current invoice template.
     _save_invoice(order, actor=request.user)
     order.refresh_from_db(fields=["invoice_pdf"])
@@ -1026,7 +1054,7 @@ def download_credit_note(request, order_id):
         pk=order_id,
         user=request.user,
     )
-    if order.status != Order.Status.CANCELED:
+    if order.status != Order.Status.CANCELED or not order.invoice_number:
         raise Http404
     _save_credit_note(order, actor=request.user)
     order.refresh_from_db(fields=["credit_note_pdf", "credit_note_number"])
@@ -1056,7 +1084,7 @@ def my_orders(request):
         {
             "orders": orders,
             "order_count": len(orders),
-            "paid_count": sum(1 for order in orders if order.credits_charged and order.status != Order.Status.CANCELED),
+            "paid_count": sum(1 for order in orders if order.is_paid and order.status != Order.Status.CANCELED),
             "pending_count": sum(1 for order in orders if order.status == Order.Status.PENDING),
             "cancelable_count": cancelable_count,
         },
@@ -1067,16 +1095,22 @@ def my_orders(request):
 @login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(Order.objects.prefetch_related("items__variant"), pk=order_id, user=request.user)
+    was_paid = order.is_paid
+    paid_by_credits = order.credits_charged is not None
     try:
-        order.cancel_by_user(actor=request.user)
-        _save_credit_note(order, actor=request.user)
+        payments.cancel_order(order, actor=request.user)
     except ValueError as exc:
         messages.error(request, str(exc))
     else:
-        messages.success(
-            request,
-            f"Objednávka č. {order.invoice_number or order.pk} byla stornována. Kredit jsme vrátili zpět na účet a kusy vrátili na sklad.",
-        )
+        if not was_paid:
+            messages.success(request, f"Objednávka č. {order.pk} byla zrušena.")
+        else:
+            _save_credit_note(order, actor=request.user)
+            refund_text = "Kredit jsme vrátili zpět na účet" if paid_by_credits else "Platbu jsme vrátili na kartu (připsání trvá obvykle 5–10 dní)"
+            messages.success(
+                request,
+                f"Objednávka č. {order.invoice_number or order.pk} byla stornována. {refund_text} a kusy vrátili na sklad.",
+            )
     return redirect("eshop:my-orders")
 
 

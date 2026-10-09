@@ -41,6 +41,13 @@ def renew_mobile_app_subscriptions_scheduled():
     return renew_due_mobile_app_subscriptions()
 
 
+def resolve_eshop_payments_scheduled():
+    """Pojistka za Stripe webhook: dořeší propadlé platby e-shopových objednávek."""
+    from eshop.payments import resolve_stale_orders
+
+    return resolve_stale_orders()
+
+
 def backup_database_scheduled():
     """Spustí zálohu podle aktuálně nakonfigurovaného DB enginu (SQLite nebo PostgreSQL)."""
     engine = settings.DATABASES["default"]["ENGINE"]

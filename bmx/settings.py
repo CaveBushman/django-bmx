@@ -294,6 +294,7 @@ CELERY_BEAT_SCHEDULE = {
     "optimize-sqlite": {"task": "bmx.optimize_sqlite", "schedule": _celery_crontab(minute=0, hour=5)},
     "check-entry-integrity": {"task": "bmx.check_entry_integrity", "schedule": _celery_crontab(minute=15, hour=5, day_of_week=0)},
     "sync-event-control": {"task": "bmx.sync_event_control", "schedule": _celery_crontab(minute=30, hour=1)},
+    "resolve-eshop-payments": {"task": "bmx.resolve_eshop_payments", "schedule": _celery_crontab(minute="*/15")},
 }
 
 # DeepL překlad článků
@@ -797,6 +798,8 @@ CRONJOBS = [
     ("15 5 * * 0", "bmx.cron.check_entry_integrity_scheduled"),
     # Synchronizace jezdců a klubů s Event Control Admin každý den v 1:30
     ("30 1 * * *", "bmx.cron.sync_event_control_scheduled"),
+    # E-shop: dořešení propadlých plateb kartou (pojistka za webhook) každých 15 minut
+    ("*/15 * * * *", "bmx.cron.resolve_eshop_payments_scheduled"),
 ]
 
 # Když periodiku řídí Celery beat, vyprázdni CRONJOBS, ať úlohy neběží dvakrát.

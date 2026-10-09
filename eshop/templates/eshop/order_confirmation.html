@@ -66,11 +66,15 @@
           <div>
             <p class="text-sm font-semibold uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-300">{% trans "E-shop checkout" %}</p>
             <h1 class="mt-2 text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
-              {% if order.is_paid %}{% trans "Objednávka potvrzena" %}{% else %}{% trans "Objednávka přijata" %}{% endif %}
+              {% if order.is_paid %}{% trans "Objednávka potvrzena" %}{% elif order.status == 'canceled' %}{% trans "Objednávka zrušena" %}{% else %}{% trans "Objednávka čeká na zaplacení" %}{% endif %}
             </h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-              {% if order.is_paid %}
-                {% blocktrans with num=order.invoice_number|default:order.pk %}Objednávka č. {{ num }} byla rovnou uhrazena kredity z účtu a předána ke zpracování.{% endblocktrans %}
+              {% if order.is_paid and order.credits_charged %}
+                {% blocktrans with num=order.invoice_number|default:order.pk %}Objednávka č. {{ num }} byla uhrazena kredity z účtu a předána ke zpracování.{% endblocktrans %}
+              {% elif order.is_paid %}
+                {% blocktrans with num=order.invoice_number|default:order.pk %}Objednávka č. {{ num }} je zaplacená kartou a předaná ke zpracování.{% endblocktrans %}
+              {% elif order.status == 'canceled' %}
+                {% blocktrans with num=order.pk %}Objednávka č. {{ num }} byla zrušena.{% endblocktrans %}
               {% else %}
                 {% blocktrans with num=order.invoice_number|default:order.pk %}Objednávka č. {{ num }} byla přijata a čeká na dokončení úhrady.{% endblocktrans %}
               {% endif %}
@@ -79,7 +83,7 @@
           <div class="page-stats-grid">
             <div class="page-stat-card">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Faktura" %}</p>
-              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ order.invoice_number }}</p>
+              <p class="mt-2 text-lg font-black text-slate-900 dark:text-white">{{ order.invoice_number|default:"—" }}</p>
             </div>
             <div class="page-stat-card">
               <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">{% trans "Celkem" %}</p>
@@ -155,13 +159,46 @@
         <aside class="space-y-6">
           <article class="eshop-order-card p-6">
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500">{% trans "Úhrada" %}</p>
-            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{% trans "Platba kredity" %}</h2>
+            <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ order.get_payment_method_display }}</h2>
+            {% if order.is_paid %}
             <div class="eshop-order-payment-box mt-5 p-4">
-              <p class="text-sm font-bold text-emerald-800 dark:text-emerald-200">{% trans "Kredit odečten automaticky" %}</p>
+              <p class="text-sm font-bold text-emerald-800 dark:text-emerald-200">{% trans "Zaplaceno" %}</p>
               <p class="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
-                {% blocktrans with amount=order.credits_charged|default:order.total|floatformat:0 %}Z účtu bylo odečteno {{ amount }} Kč a objednávka je potvrzená.{% endblocktrans %}
+                {% blocktrans with amount=order.paid_amount|floatformat:0 %}Přijali jsme platbu {{ amount }} Kč a objednávka je potvrzená.{% endblocktrans %}
               </p>
             </div>
+            {% elif payment_processing %}
+            <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900/70">
+              <p class="font-bold text-slate-900 dark:text-white">{% trans "Ověřujeme platbu" %}</p>
+              <p class="mt-1 text-slate-600 dark:text-slate-300">{% trans "Platba se zpracovává. Obnov stránku za chvíli, potvrzení ti přijde i do přehledu objednávek." %}</p>
+            </div>
+            {% elif order.status == 'canceled' %}
+            <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900/70">
+              <p class="font-bold text-slate-900 dark:text-white">{% trans "Objednávka zrušena" %}</p>
+              <p class="mt-1 text-slate-600 dark:text-slate-300">{% trans "Objednávka nebyla zaplacena nebo byla stornována. Zboží se vrátilo na sklad." %}</p>
+            </div>
+            {% else %}
+            <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900/60 dark:bg-amber-950/40">
+              <p class="font-bold text-amber-800 dark:text-amber-200">
+                {% if payment_canceled %}{% trans "Platba nebyla dokončena" %}{% else %}{% trans "Čeká na zaplacení" %}{% endif %}
+              </p>
+              <p class="mt-1 text-amber-700 dark:text-amber-300">
+                {% if order.payment_expires_at %}
+                  {% blocktrans with until=order.payment_expires_at|date:"H:i" %}Zboží ti držíme do {{ until }}. Pak se nezaplacená objednávka automaticky zruší.{% endblocktrans %}
+                {% else %}
+                  {% trans "Nezaplacená objednávka se automaticky zruší." %}
+                {% endif %}
+              </p>
+              {% if can_pay %}
+              <form method="post" action="{% url 'eshop:pay-order' order.pk %}" class="mt-4">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700">
+                  {% blocktrans with amount=order.total|floatformat:0 %}Zaplatit kartou {{ amount }} Kč{% endblocktrans %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+            {% endif %}
           </article>
 
           <article class="eshop-order-card p-6">
@@ -199,7 +236,7 @@
           </article>
 
           <div class="flex flex-col gap-3">
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and order.invoice_number %}
               <a href="{% url 'eshop:download-invoice' order.pk %}"
                  class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

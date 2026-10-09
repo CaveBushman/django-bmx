@@ -142,16 +142,24 @@ class StockReservation(models.Model):
 class Order(models.Model):
     """Neměnný zákaznický snapshot a životní cyklus jedné objednávky.
 
-    Položky ukládají cenu platnou při nákupu. ``credits_charged`` musí být
-    vráceno právě jednou při stornu; skladové změny eviduje ``StockMovement``.
+    Položky ukládají cenu platnou při nákupu. Nové objednávky se platí kartou
+    přes Stripe Checkout: sklad se odečte už při vytvoření objednávky (aby ho
+    během platby nikdo nevykoupil) a vrátí se, když platba vyprší nebo je
+    objednávka stornována. ``credits_charged`` zůstává jen pro historické
+    objednávky placené kredity — ty se při stornu dál vrací na kredit.
+    Skladové změny eviduje ``StockMovement``.
     """
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Čeká na zpracování"
+        PENDING = "pending", "Čeká na zaplacení"
         CONFIRMED = "confirmed", "Potvrzena"
         SHIPPED = "shipped", "Odesláno"
         DELIVERED = "delivered", "Doručeno"
         CANCELED = "canceled", "Zrušena"
+
+    class PaymentMethod(models.TextChoices):
+        STRIPE = "stripe", "Platební karta (Stripe)"
+        CREDITS = "credits", "Kredity z účtu"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -185,9 +193,23 @@ class Order(models.Model):
     note = models.TextField("Poznámka", blank=True)
     internal_note = models.TextField("Interní poznámka", blank=True)
     credits_charged = models.PositiveIntegerField("Odečtené kredity", null=True, blank=True)
-    invoice_number = models.CharField("Číslo faktury", max_length=16, blank=True, unique=True)
+    payment_method = models.CharField(
+        "Forma úhrady",
+        max_length=16,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.STRIPE,
+    )
+    stripe_session_id = models.CharField("Stripe Checkout session", max_length=255, blank=True, db_index=True)
+    stripe_payment_intent = models.CharField("Stripe PaymentIntent", max_length=255, blank=True)
+    stripe_refund_id = models.CharField("Stripe refund", max_length=255, blank=True)
+    amount_paid = models.DecimalField("Zaplaceno kartou (Kč)", max_digits=10, decimal_places=2, null=True, blank=True)
+    paid_at = models.DateTimeField("Zaplaceno dne", null=True, blank=True)
+    refunded_at = models.DateTimeField("Vráceno dne", null=True, blank=True)
+    payment_expires_at = models.DateTimeField("Platbu dokončit do", null=True, blank=True)
+    stock_deducted = models.BooleanField("Sklad odečten", default=False)
+    invoice_number = models.CharField("Číslo faktury", max_length=16, blank=True, null=True, unique=True)
     invoice_pdf = models.FileField("Faktura PDF", upload_to="eshop/invoices/", blank=True)
-    credit_note_number = models.CharField("Číslo dobropisu", max_length=20, blank=True, unique=True)
+    credit_note_number = models.CharField("Číslo dobropisu", max_length=20, blank=True, null=True, unique=True)
     credit_note_pdf = models.FileField("Dobropis PDF", upload_to="eshop/credit-notes/", blank=True)
     delivered_at = models.DateTimeField("Předáno dne", null=True, blank=True)
     delivered_by = models.ForeignKey(
@@ -211,7 +233,26 @@ class Order(models.Model):
 
     @property
     def is_paid(self):
-        return self.credits_charged is not None
+        if self.credits_charged is not None:
+            return True
+        return self.paid_at is not None and self.refunded_at is None
+
+    @property
+    def is_awaiting_payment(self):
+        return (
+            self.status == self.Status.PENDING
+            and self.payment_method == self.PaymentMethod.STRIPE
+            and self.paid_at is None
+        )
+
+    @property
+    def paid_amount(self):
+        """Částka skutečně uhrazená (kartou nebo historicky kredity)."""
+        if self.amount_paid is not None:
+            return self.amount_paid
+        if self.credits_charged is not None:
+            return self.credits_charged
+        return None
 
     @property
     def is_cancelable(self):
@@ -279,34 +320,28 @@ class Order(models.Model):
             )
             return locked.credit_note_number
 
-    def charge_credits(self, *, actor=None):
-        from django.db import transaction as db_tx
-        from event.models import CreditTransaction
+    def _lock_items_and_variants(self, locked_order):
+        items = list(locked_order.items.select_related("variant__product").all())
+        variant_ids = [item.variant_id for item in items if item.variant_id]
+        locked_variants = {
+            variant.pk: variant
+            for variant in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)
+        }
+        return items, locked_variants
 
-        if not self.user_id:
-            raise ValueError("Objednávka nemá přiřazeného zákazníka.")
+    def deduct_stock(self, *, actor=None):
+        """Odečte zboží ze skladu pro novou objednávku (před platbou).
 
-        with db_tx.atomic():
+        Sklad se drží po dobu platby; pokud platba vyprší nebo je objednávka
+        stornována, ``cancel_by_user`` ho vrátí. Volat uvnitř transakce.
+        """
+        with transaction.atomic():
             locked_order = Order.objects.select_for_update().get(pk=self.pk)
-            if locked_order.is_paid:
-                raise ValueError("Objednávka již byla zaplacena.")
-            if not locked_order.user_id:
-                raise ValueError("Objednávka nemá přiřazeného zákazníka.")
-
-            user_model = locked_order.user.__class__
-            user = user_model.objects.select_for_update().get(pk=locked_order.user_id)
-            needed = int(locked_order.total)
-            if user.credit < needed:
-                raise ValueError(
-                    f"Nedostatek kreditů — zákazník má {user.credit} Kč, objednávka stojí {needed} Kč."
-                )
-
-            items = list(locked_order.items.select_related("variant__product").all())
-            variant_ids = [item.variant_id for item in items if item.variant_id]
-            locked_variants = {
-                variant.pk: variant
-                for variant in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)
-            }
+            if locked_order.stock_deducted:
+                return
+            items, locked_variants = self._lock_items_and_variants(locked_order)
+            if not items:
+                raise ValueError("Objednávka neobsahuje žádné položky.")
 
             for item in items:
                 variant = locked_variants.get(item.variant_id)
@@ -331,22 +366,51 @@ class Order(models.Model):
                     note=f"Objednávka #{locked_order.pk}",
                 )
 
-            locked_order.credits_charged = needed
+            locked_order.stock_deducted = True
+            locked_order.save(update_fields=["stock_deducted", "updated"])
+            self.stock_deducted = True
+
+    def mark_paid(self, *, session_id, payment_intent="", amount_paid=None, actor=None):
+        """Potvrdí platbu kartou. Idempotentní — vrací True jen při první změně.
+
+        Volá se z návratu ze Stripe Checkoutu, z webhooku i z cron dohledání,
+        proto se objednávka zamyká a druhé zpracování nic nezmění.
+        """
+        with transaction.atomic():
+            locked_order = Order.objects.select_for_update().get(pk=self.pk)
+            if locked_order.paid_at is not None:
+                return False
+            if locked_order.stripe_session_id and locked_order.stripe_session_id != session_id:
+                raise ValueError("Platba nepatří k této objednávce.")
+            if locked_order.status == Order.Status.CANCELED:
+                # Platba přišla po stornu (např. zákazník měl otevřenou platební
+                # bránu). Zapíšeme ji, aby šla dohledat a vrátit.
+                locked_order.paid_at = timezone.now()
+                locked_order.amount_paid = amount_paid
+                locked_order.stripe_payment_intent = payment_intent or ""
+                locked_order.save(update_fields=["paid_at", "amount_paid", "stripe_payment_intent", "updated"])
+                OrderHistory.record(
+                    order=locked_order,
+                    action=OrderHistory.Action.NOTE,
+                    actor=actor,
+                    note="Platba kartou přijata až po stornu objednávky — je nutné ji vrátit.",
+                )
+                self.paid_at = locked_order.paid_at
+                return False
+
+            locked_order.paid_at = timezone.now()
+            locked_order.amount_paid = amount_paid if amount_paid is not None else locked_order.total
+            locked_order.stripe_payment_intent = payment_intent or ""
             locked_order.status = Order.Status.CONFIRMED
-            locked_order.save(update_fields=["credits_charged", "status", "updated"])
-            CreditTransaction.objects.create(
-                user=user,
-                amount=-needed,
-                kind=CreditTransaction.Kind.ESHOP_PURCHASE,
-                payment_complete=True,
-                transaction_id=f"eshop-order-{locked_order.pk}",
-                payment_intent=f"Nákup v e-shopu č. {locked_order.pk}",
-            )
+            locked_order.payment_expires_at = None
+            locked_order.save(update_fields=[
+                "paid_at", "amount_paid", "stripe_payment_intent", "status", "payment_expires_at", "updated",
+            ])
             OrderHistory.record(
                 order=locked_order,
-                action=OrderHistory.Action.CREDIT_CHARGED,
+                action=OrderHistory.Action.PAID,
                 actor=actor,
-                note=f"Odečteno {needed} kreditů.",
+                note=f"Zaplaceno kartou {locked_order.amount_paid:.0f} Kč.",
             )
             OrderHistory.record(
                 order=locked_order,
@@ -354,30 +418,37 @@ class Order(models.Model):
                 actor=actor,
                 note="Objednávka potvrzena.",
             )
-            self.credits_charged = locked_order.credits_charged
-            self.status = locked_order.status
+            for field in ("paid_at", "amount_paid", "stripe_payment_intent", "status", "payment_expires_at"):
+                setattr(self, field, getattr(locked_order, field))
 
-    def cancel_by_user(self, *, actor=None):
-        from django.db import transaction as db_tx
+        self.ensure_invoice_number(actor=actor)
+        return True
+
+    def cancel_by_user(self, *, actor=None, stripe_refund_id="", note="Objednávka stornována."):
+        """Stornuje objednávku a vrátí zboží na sklad.
+
+        Kartou zaplacenou objednávku smí stornovat jen volající, který už
+        provedl refundaci ve Stripe a předá ``stripe_refund_id`` (viz
+        ``eshop.payments.cancel_order``). Historické objednávky placené
+        kredity vrací kredit na účet.
+        """
         from event.models import CreditTransaction
 
-        with db_tx.atomic():
+        with transaction.atomic():
             locked_order = Order.objects.select_for_update().get(pk=self.pk)
             if not locked_order.is_cancelable:
                 raise ValueError("Tuto objednávku už nelze stornovat, protože byla předána nebo už je zrušená.")
 
-            refund_amount = int(locked_order.credits_charged or 0)
-            items = list(locked_order.items.select_related("variant").all())
-            variant_ids = [item.variant_id for item in items if item.variant_id]
-            locked_variants = {
-                variant.pk: variant
-                for variant in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)
-            }
+            paid_by_card = locked_order.paid_at is not None and locked_order.refunded_at is None
+            if paid_by_card and not stripe_refund_id:
+                raise ValueError("Zaplacenou objednávku lze stornovat jen s vrácením platby na kartu.")
 
-            if refund_amount > 0:
-                if not locked_order.user_id:
-                    raise ValueError("Objednávka nemá navázaný uživatelský účet pro vrácení kreditu.")
+            credit_refund = int(locked_order.credits_charged or 0)
+            if credit_refund > 0 and not locked_order.user_id:
+                raise ValueError("Objednávka nemá navázaný uživatelský účet pro vrácení kreditu.")
 
+            if locked_order.stock_deducted or locked_order.credits_charged is not None:
+                items, locked_variants = self._lock_items_and_variants(locked_order)
                 for item in items:
                     if item.variant_id in locked_variants:
                         ProductVariant.objects.filter(pk=item.variant_id).update(stock=F("stock") + item.quantity)
@@ -393,9 +464,10 @@ class Order(models.Model):
                             note=f"Storno objednávky #{locked_order.pk}",
                         )
 
+            if credit_refund > 0:
                 CreditTransaction.objects.create(
                     user=locked_order.user,
-                    amount=refund_amount,
+                    amount=credit_refund,
                     kind=CreditTransaction.Kind.ESHOP_REFUND,
                     payment_complete=True,
                     payment_intent=f"Storno objednávky č. {locked_order.pk}",
@@ -405,21 +477,39 @@ class Order(models.Model):
                     order=locked_order,
                     action=OrderHistory.Action.CREDIT_REFUNDED,
                     actor=actor,
-                    note=f"Vráceno {refund_amount} kreditů.",
+                    note=f"Vráceno {credit_refund} kreditů.",
+                )
+
+            if paid_by_card:
+                locked_order.refunded_at = timezone.now()
+                locked_order.stripe_refund_id = stripe_refund_id
+                OrderHistory.record(
+                    order=locked_order,
+                    action=OrderHistory.Action.REFUNDED,
+                    actor=actor,
+                    note=f"Vráceno {locked_order.amount_paid:.0f} Kč na kartu ({stripe_refund_id}).",
                 )
 
             locked_order.credits_charged = None
+            locked_order.stock_deducted = False
+            locked_order.payment_expires_at = None
             locked_order.status = self.Status.CANCELED
-            locked_order.save(update_fields=["credits_charged", "status", "updated"])
+            locked_order.save(update_fields=[
+                "credits_charged", "stock_deducted", "payment_expires_at", "status",
+                "refunded_at", "stripe_refund_id", "updated",
+            ])
             OrderHistory.record(
                 order=locked_order,
                 action=OrderHistory.Action.CANCELED,
                 actor=actor,
-                note="Objednávka stornována.",
+                note=note,
             )
 
-            self.credits_charged = locked_order.credits_charged
-            self.status = locked_order.status
+            for field in (
+                "credits_charged", "stock_deducted", "payment_expires_at", "status",
+                "refunded_at", "stripe_refund_id",
+            ):
+                setattr(self, field, getattr(locked_order, field))
 
 
 class OrderItem(models.Model):
@@ -556,6 +646,9 @@ class OrderHistory(models.Model):
     class Action(models.TextChoices):
         CREATED = "created", "Vytvořeno"
         CREDIT_CHARGED = "credit_charged", "Kredit odečten"
+        PAYMENT_STARTED = "payment_started", "Platba zahájena"
+        PAID = "paid", "Zaplaceno kartou"
+        REFUNDED = "refunded", "Platba vrácena na kartu"
         CONFIRMED = "confirmed", "Potvrzeno"
         INVOICE_ISSUED = "invoice_issued", "Faktura vystavena"
         SHIPPED = "shipped", "Odesláno"

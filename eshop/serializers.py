@@ -71,18 +71,21 @@ class OrderSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     is_paid = serializers.BooleanField(read_only=True)
     is_cancelable = serializers.BooleanField(read_only=True)
+    is_awaiting_payment = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Order
         fields = [
             "id", "status", "status_display", "first_name", "last_name", "email",
             "phone", "street", "city", "zip_code", "note",
-            "credits_charged", "invoice_number", "is_paid", "is_cancelable",
+            "credits_charged", "payment_method", "amount_paid", "paid_at", "refunded_at",
+            "payment_expires_at", "invoice_number", "is_paid", "is_cancelable", "is_awaiting_payment",
             "created", "updated", "items", "total",
         ]
         read_only_fields = [
-            "id", "status", "credits_charged", "invoice_number",
-            "is_paid", "is_cancelable", "created", "updated",
+            "id", "status", "credits_charged", "payment_method", "amount_paid", "paid_at",
+            "refunded_at", "payment_expires_at", "invoice_number",
+            "is_paid", "is_cancelable", "is_awaiting_payment", "created", "updated",
         ]
 
     def get_total(self, obj) -> str:

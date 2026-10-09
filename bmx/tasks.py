@@ -63,3 +63,8 @@ def run_ai_agent_task():
 @shared_task(name="bmx.sync_event_control")
 def sync_event_control_task():
     return cron.sync_event_control_scheduled()
+
+
+@shared_task(name="bmx.resolve_eshop_payments")
+def resolve_eshop_payments_task():
+    return cron.resolve_eshop_payments_scheduled()

@@ -24,6 +24,7 @@ from event.models import CreditTransaction, DebetTransaction, Entry, EntryForeig
 from rider.models import RiderStatsCharge, TrainerClubCharge
 from event.services.payments import get_entry_amount
 from event.views.entry_helpers import sync_paid_foreign_riders
+from eshop.payments import handle_stripe_event as handle_eshop_stripe_event
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -208,6 +209,18 @@ def handle_credit_webhook(payload, sig_header):
     except stripe.SignatureVerificationError as error:
         logger.error(f"Invalid signature: {error}")
         return HttpResponse(status=400)
+
+    if not stripe_event["type"].startswith("checkout.session."):
+        return HttpResponse(status=200)
+
+    # Objednávky e-shopu (placené kartou) — poznají se podle vlastních metadat
+    # a zpracovávají i vypršení session (vrácení zboží na sklad).
+    try:
+        if handle_eshop_stripe_event(stripe_event):
+            return HttpResponse(status=200)
+    except DatabaseError:
+        logger.exception("[Webhook] Databázová chyba při zpracování e-shop objednávky.")
+        return HttpResponse(status=500)
 
     if stripe_event["type"] != "checkout.session.completed":
         return HttpResponse(status=200)

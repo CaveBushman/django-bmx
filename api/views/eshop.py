@@ -1,7 +1,8 @@
 """Mobilní API katalogu, košíku a e-shop checkoutu.
 
 Klientské ceny a dostupnost jsou pouze informativní; při vytvoření objednávky se
-vždy znovu ověřují a sklad/kredit se mění atomicky na serveru.
+vždy znovu ověřují a sklad se mění atomicky na serveru. Platí se kartou přes
+Stripe Checkout — checkout vrací ``checkout_url``, kterou klient otevře.
 """
 
 import logging
@@ -55,6 +56,7 @@ from eshop.serializers import (
     OrderSerializer,
 )
 from eshop.cart import Cart
+from eshop import payments as eshop_payments
 from event.views.payment_helpers import build_credit_checkout_line_item
 from ranking.ranking import Categories
 
@@ -348,16 +350,20 @@ class EshopCheckoutAPIView(APIView):
                         quantity=item["quantity"],
                         unit_price=item["variant"].price,
                     )
-                order.charge_credits(actor=request.user)
-                order.ensure_invoice_number(actor=request.user)
+                order.deduct_stock(actor=request.user)
         except ValueError as exc:
             return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            stripe_session = eshop_payments.create_checkout_session(order)
+        except eshop_payments.PaymentError as exc:
+            order.cancel_by_user(actor=request.user, note="Platební bránu se nepodařilo otevřít.")
+            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
         cart.clear()
-        return Response(
-            OrderSerializer(order, context={"request": request}).data,
-            status=status.HTTP_201_CREATED,
-        )
+        data = OrderSerializer(order, context={"request": request}).data
+        data["checkout_url"] = stripe_session["url"]
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class EshopOrderListAPIView(generics.ListAPIView):
@@ -395,7 +401,7 @@ class EshopOrderCancelAPIView(APIView):
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk, user=request.user)
         try:
-            order.cancel_by_user(actor=request.user)
+            eshop_payments.cancel_order(order, actor=request.user)
         except ValueError as exc:
             return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(OrderSerializer(order, context={"request": request}).data)

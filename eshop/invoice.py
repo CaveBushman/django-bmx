@@ -174,7 +174,7 @@ def _draw_invoice_page_header(pdf, order, include_parties=True, *, is_credit_not
     pdf.drawString(
         header_x,
         header_y - 18 * mm,
-        f"{'Datum storna' if is_credit_note else 'Datum úhrady'}: {order.updated:%d.%m.%Y}",
+        f"{'Datum storna' if is_credit_note else 'Datum úhrady'}: {(order.updated if is_credit_note else (order.paid_at or order.updated)):%d.%m.%Y}",
     )
     pdf.drawString(header_x, header_y - 24 * mm, f"Variabilní symbol: {order.pk}")
 
@@ -223,11 +223,14 @@ def _draw_invoice_summary(pdf, order, current_y, *, is_credit_note=False):
     pdf.setFillColor(colors.black)
     current_y -= 6 * mm
     pdf.setFont("DejaVuSans-Bold", 10)
-    pdf.drawString(
-        20 * mm,
-        current_y,
-        "DOBROPIS VYSTAVEN, KREDIT VRÁCEN NA ÚČET" if is_credit_note else "NEPLAŤTE, UHRAZENO KREDITY Z ÚČTU",
-    )
+    paid_by_credits = order.credits_charged is not None or order.payment_method == order.PaymentMethod.CREDITS
+    if is_credit_note:
+        headline = "DOBROPIS VYSTAVEN, KREDIT VRÁCEN NA ÚČET" if paid_by_credits else "DOBROPIS VYSTAVEN, ČÁSTKA VRÁCENA NA PLATEBNÍ KARTU"
+        paid_label = "Vráceno kredity" if paid_by_credits else "Vráceno na kartu"
+    else:
+        headline = "NEPLAŤTE, UHRAZENO KREDITY Z ÚČTU" if paid_by_credits else "NEPLAŤTE, UHRAZENO PLATEBNÍ KARTOU"
+        paid_label = "Odečteno kredity" if paid_by_credits else "Uhrazeno kartou"
+    pdf.drawString(20 * mm, current_y, headline)
     current_y -= 4 * mm
     pdf.line(120 * mm, current_y, 190 * mm, current_y)
     current_y -= 7 * mm
@@ -235,8 +238,8 @@ def _draw_invoice_summary(pdf, order, current_y, *, is_credit_note=False):
     pdf.drawRightString(152 * mm, current_y, "Dobropisovaná částka" if is_credit_note else "Celková částka")
     pdf.drawRightString(187 * mm, current_y, f"{order.total:.2f} Kč")
     current_y -= 7 * mm
-    pdf.drawRightString(152 * mm, current_y, "Vráceno kredity" if is_credit_note else "Odečteno kredity")
-    amount = int(order.total) if is_credit_note else (order.credits_charged or int(order.total))
+    pdf.drawRightString(152 * mm, current_y, paid_label)
+    amount = order.total if is_credit_note else (order.paid_amount if order.paid_amount is not None else order.total)
     pdf.drawRightString(187 * mm, current_y, f"{amount:.2f} Kč")
     current_y -= 7 * mm
     pdf.drawRightString(152 * mm, current_y, "K úhradě" if not is_credit_note else "K doplacení")

@@ -1,5 +1,9 @@
 from datetime import date, timedelta
+from decimal import Decimal
 from io import StringIO
+from unittest import mock
+
+import stripe
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -25,6 +29,23 @@ from eshop.models import (
     StockMovement,
     StockReservation,
 )
+
+
+def _fake_session(order_id, *, session_id=None, status="open", payment_status="unpaid", amount_total=None):
+    session_id = session_id or f"cs_test_{order_id}"
+    return {
+        "id": session_id,
+        "url": f"https://checkout.stripe.test/{session_id}",
+        "status": status,
+        "payment_status": payment_status,
+        "payment_intent": "pi_test" if payment_status == "paid" else None,
+        "amount_total": amount_total,
+        "metadata": {"eshop_order_id": str(order_id)},
+    }
+
+
+def _fake_create_session(**kwargs):
+    return _fake_session(kwargs["metadata"]["eshop_order_id"])
 
 
 class EshopCheckoutTemplateTests(TestCase):
@@ -72,17 +93,41 @@ class EshopCheckoutTemplateTests(TestCase):
         self.client.get(reverse("eshop:checkout"))
         return self.client.session["eshop_checkout_token"]
 
-    def test_checkout_warns_when_credit_is_insufficient(self):
+    def make_buyer(self, username="buyer"):
         user = self.user_model.objects.create_user(
-            first_name="Low",
-            last_name="Credit",
-            username="credit-low",
-            email="credit-low@example.com",
+            username=username,
+            email=f"{username}@example.com",
             password="StrongPass123!",
+            first_name="Ready",
+            last_name="Buyer",
         )
-        user.credit = 100
         user.is_active = True
-        user.save(update_fields=["credit", "is_active"])
+        user.save(update_fields=["is_active"])
+        return user
+
+    def checkout_payload(self, user):
+        return {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": "+420123456789",
+            "event": self.event.pk,
+            "note": "Predani na zavode",
+            "checkout_token": self.checkout_token(),
+        }
+
+    def test_checkout_requires_login_to_submit(self):
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
+        session.save()
+
+        response = self.client.get(reverse("eshop:checkout"))
+
+        self.assertContains(response, "Pro dokončení objednávky se nejdřív přihlas ke svému účtu.")
+        self.assertContains(response, 'disabled aria-disabled="true"', html=False)
+
+    def test_checkout_ignores_credit_balance(self):
+        user = self.make_buyer("no-credit")
         self.client.force_login(user)
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
@@ -90,133 +135,76 @@ class EshopCheckoutTemplateTests(TestCase):
 
         response = self.client.get(reverse("eshop:checkout"))
 
-        self.assertContains(response, "Nedostatečný kredit")
-        self.assertContains(response, "Zpět do e-shopu")
-        self.assertContains(response, 'disabled aria-disabled="true"', html=False)
+        self.assertNotContains(response, "Nedostatečný kredit")
+        self.assertNotContains(response, 'disabled aria-disabled="true"', html=False)
 
-    def test_checkout_does_not_create_order_when_credit_is_insufficient(self):
-        user = self.user_model.objects.create_user(
-            username="credit-low-post",
-            email="credit-low-post@example.com",
-            password="StrongPass123!",
-            first_name="Low",
-            last_name="Credit",
-        )
-        user.credit = 100
-        user.is_active = True
-        user.save(update_fields=["credit", "is_active"])
-        self.client.force_login(user)
-        session = self.client.session
-        session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
-        session.save()
-
-        response = self.client.post(
-            reverse("eshop:checkout"),
-            {
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "phone": "+420123456789",
-                "event": self.event.pk,
-                "note": "",
-                "checkout_token": self.checkout_token(),
-            },
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Order.objects.count(), 0)
-        self.assertContains(response, "Nedostatečný kredit")
-
-    def test_checkout_creates_paid_order_and_deducts_credit_immediately(self):
-        user = self.user_model.objects.create_user(
-            username="credit-ok-post",
-            email="credit-ok@example.com",
-            password="StrongPass123!",
-            first_name="Ready",
-            last_name="Buyer",
-        )
-        user.is_active = True
-        user.save(update_fields=["is_active"])
+    @mock.patch("eshop.payments.stripe.checkout.Session.create", side_effect=_fake_create_session)
+    def test_checkout_creates_pending_order_and_redirects_to_stripe(self, create_session):
+        user = self.make_buyer("card-buyer")
         CreditTransaction.objects.create(
-            user=user,
-            amount=3000,
-            kind=CreditTransaction.Kind.TOPUP,
-            payment_complete=True,
+            user=user, amount=3000, kind=CreditTransaction.Kind.TOPUP, payment_complete=True,
         )
         self.client.force_login(user)
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
         session.save()
 
-        response = self.client.post(
-            reverse("eshop:checkout"),
-            {
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "phone": "+420123456789",
-                "event": self.event.pk,
-                "note": "Predani na zavode",
-                "checkout_token": self.checkout_token(),
-            },
-        )
+        response = self.client.post(reverse("eshop:checkout"), self.checkout_payload(user))
 
         order = Order.objects.get()
-        self.assertRedirects(response, reverse("eshop:order-confirmation", args=[order.pk]))
-        order.refresh_from_db()
         user.refresh_from_db()
-        self.assertTrue(order.is_paid)
-        self.assertEqual(order.status, Order.Status.CONFIRMED)
-        self.assertEqual(order.credits_charged, 2380)
-        self.assertEqual(user.credit, 620)
-        self.assertTrue(
-            CreditTransaction.objects.filter(
-                user=user,
-                amount=-2380,
-                kind=CreditTransaction.Kind.ESHOP_PURCHASE,
-                payment_complete=True,
-            ).exists()
-        )
+        self.assertRedirects(response, f"https://checkout.stripe.test/cs_test_{order.pk}", fetch_redirect_response=False)
+        self.assertEqual(order.status, Order.Status.PENDING)
+        self.assertEqual(order.payment_method, Order.PaymentMethod.STRIPE)
+        self.assertEqual(order.stripe_session_id, f"cs_test_{order.pk}")
+        self.assertIsNotNone(order.payment_expires_at)
+        self.assertFalse(order.is_paid)
+        self.assertTrue(order.stock_deducted)
+        self.assertFalse(order.invoice_number)
+        # Kredit zůstává nedotčený.
+        self.assertEqual(user.credit, 3000)
+        self.assertFalse(CreditTransaction.objects.filter(kind=CreditTransaction.Kind.ESHOP_PURCHASE).exists())
+        kwargs = create_session.call_args.kwargs
+        self.assertEqual(kwargs["metadata"], {"eshop_order_id": str(order.pk)})
+        self.assertEqual(kwargs["line_items"][0]["price_data"]["unit_amount"], 119000)
+        self.assertEqual(kwargs["line_items"][0]["quantity"], 2)
+        self.assertEqual(kwargs["customer_email"], user.email)
         self.assertTrue(order.history.filter(action=OrderHistory.Action.CREATED).exists())
-        self.assertTrue(order.history.filter(action=OrderHistory.Action.CREDIT_CHARGED).exists())
-        self.assertTrue(order.history.filter(action=OrderHistory.Action.CONFIRMED).exists())
-        self.assertTrue(order.history.filter(action=OrderHistory.Action.INVOICE_ISSUED).exists())
+        self.assertTrue(order.history.filter(action=OrderHistory.Action.PAYMENT_STARTED).exists())
         movement = StockMovement.objects.get(order=order)
-        self.assertEqual(movement.variant, self.variant)
         self.assertEqual(movement.movement_type, StockMovement.MovementType.ORDER_DECREMENT)
         self.assertEqual(movement.quantity_delta, -2)
         self.assertEqual(movement.stock_after, 3)
 
-    def test_checkout_rejects_stale_submit_token_after_success(self):
-        user = self.user_model.objects.create_user(
-            username="double-submit-user",
-            email="double-submit@example.com",
-            password="StrongPass123!",
-            first_name="Double",
-            last_name="Submit",
-        )
-        user.is_active = True
-        user.save(update_fields=["is_active"])
-        CreditTransaction.objects.create(
-            user=user,
-            amount=5000,
-            kind=CreditTransaction.Kind.TOPUP,
-            payment_complete=True,
-        )
+    @mock.patch(
+        "eshop.payments.stripe.checkout.Session.create",
+        side_effect=stripe.APIConnectionError("down"),
+    )
+    def test_checkout_returns_stock_when_stripe_is_unavailable(self, _create_session):
+        user = self.make_buyer("stripe-down")
+        self.client.force_login(user)
+        session = self.client.session
+        session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
+        session.save()
+
+        response = self.client.post(reverse("eshop:checkout"), self.checkout_payload(user))
+
+        self.assertRedirects(response, reverse("eshop:checkout"), fetch_redirect_response=False)
+        order = Order.objects.get()
+        self.variant.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.CANCELED)
+        self.assertEqual(self.variant.stock, 5)
+        # Košík zůstává, aby šlo objednávku zopakovat.
+        self.assertEqual(self.client.session[CART_SESSION_KEY], {str(self.variant.pk): 2})
+
+    @mock.patch("eshop.payments.stripe.checkout.Session.create", side_effect=_fake_create_session)
+    def test_checkout_rejects_stale_submit_token_after_success(self, _create_session):
+        user = self.make_buyer("double-submit")
         self.client.force_login(user)
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 1}
         session.save()
-        token = self.checkout_token()
-        payload = {
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "phone": "+420123456789",
-            "event": self.event.pk,
-            "note": "",
-            "checkout_token": token,
-        }
+        payload = self.checkout_payload(user)
 
         first = self.client.post(reverse("eshop:checkout"), payload)
         session = self.client.session
@@ -225,65 +213,241 @@ class EshopCheckoutTemplateTests(TestCase):
         second = self.client.post(reverse("eshop:checkout"), payload)
 
         order = Order.objects.get()
-        self.assertRedirects(first, reverse("eshop:order-confirmation", args=[order.pk]))
+        self.assertRedirects(first, f"https://checkout.stripe.test/cs_test_{order.pk}", fetch_redirect_response=False)
         self.assertRedirects(second, reverse("eshop:checkout"))
         self.assertEqual(Order.objects.count(), 1)
-        self.assertEqual(CreditTransaction.objects.filter(kind=CreditTransaction.Kind.ESHOP_PURCHASE).count(), 1)
 
-    def test_charge_credits_is_idempotent_after_successful_charge(self):
-        user = self.user_model.objects.create_user(
-            username="charge-once-user",
-            email="charge-once@example.com",
-            password="StrongPass123!",
-            first_name="Charge",
-            last_name="Once",
-        )
-        user.is_active = True
-        user.save(update_fields=["is_active"])
-        CreditTransaction.objects.create(
-            user=user,
-            amount=3000,
-            kind=CreditTransaction.Kind.TOPUP,
-            payment_complete=True,
-        )
+    def make_pending_order(self, user, quantity=2):
         order = Order.objects.create(
             user=user,
             first_name=user.first_name,
             last_name=user.last_name,
             email=user.email,
             event=self.event,
+            stripe_session_id="cs_test_pending",
+            payment_expires_at=timezone.now() + timedelta(minutes=30),
         )
-        order.items.create(variant=self.variant, quantity=1, unit_price=self.variant.price)
+        order.items.create(variant=self.variant, quantity=quantity, unit_price=self.variant.price)
+        order.deduct_stock(actor=user)
+        return order
 
-        order.charge_credits(actor=user)
-        with self.assertRaisesMessage(ValueError, "Objednávka již byla zaplacena."):
-            order.charge_credits(actor=user)
+    def test_mark_paid_is_idempotent(self):
+        user = self.make_buyer("paid-once")
+        order = self.make_pending_order(user, quantity=1)
 
-        self.variant.refresh_from_db()
-        user.refresh_from_db()
+        self.assertTrue(order.mark_paid(session_id="cs_test_pending", payment_intent="pi_1", amount_paid=Decimal("1190")))
+        self.assertFalse(order.mark_paid(session_id="cs_test_pending", payment_intent="pi_1", amount_paid=Decimal("1190")))
+
         order.refresh_from_db()
-        self.assertEqual(order.credits_charged, 1190)
+        self.variant.refresh_from_db()
+        self.assertTrue(order.is_paid)
+        self.assertEqual(order.status, Order.Status.CONFIRMED)
+        self.assertEqual(order.amount_paid, Decimal("1190"))
+        self.assertEqual(order.stripe_payment_intent, "pi_1")
+        self.assertTrue(order.invoice_number)
         self.assertEqual(self.variant.stock, 4)
-        self.assertEqual(user.credit, 1810)
-        self.assertEqual(CreditTransaction.objects.filter(kind=CreditTransaction.Kind.ESHOP_PURCHASE).count(), 1)
+        self.assertEqual(order.history.filter(action=OrderHistory.Action.PAID).count(), 1)
 
-    def test_order_confirmation_is_final_confirmation_without_credit_payment_cta(self):
-        user = self.user_model.objects.create_user(
-            username="confirmation-user",
-            email="confirmation@example.com",
-            password="StrongPass123!",
-            first_name="Final",
-            last_name="Buyer",
-        )
-        user.is_active = True
-        user.save(update_fields=["is_active"])
-        CreditTransaction.objects.create(
-            user=user,
-            amount=5000,
-            kind=CreditTransaction.Kind.TOPUP,
-            payment_complete=True,
-        )
+    def test_mark_paid_rejects_foreign_session(self):
+        user = self.make_buyer("foreign-session")
+        order = self.make_pending_order(user)
 
+        with self.assertRaisesMessage(ValueError, "Platba nepatří k této objednávce."):
+            order.mark_paid(session_id="cs_other", payment_intent="pi_x")
+
+    def test_order_confirmation_finalizes_paid_stripe_session(self):
+        user = self.make_buyer("return-from-stripe")
+        order = self.make_pending_order(user)
+        self.client.force_login(user)
+
+        paid = _fake_session(order.pk, session_id="cs_test_pending", status="complete", payment_status="paid", amount_total=238000)
+        with mock.patch("eshop.payments.stripe.checkout.Session.retrieve", return_value=paid):
+            response = self.client.get(
+                reverse("eshop:order-confirmation", args=[order.pk]) + "?session_id=cs_test_pending"
+            )
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.CONFIRMED)
+        self.assertEqual(order.amount_paid, Decimal("2380.00"))
+        self.assertContains(response, "Objednávka potvrzena")
+        self.assertContains(response, "Zaplaceno")
+        self.assertNotContains(response, "Zaplatit kartou")
+
+    def test_order_confirmation_offers_payment_for_unpaid_order(self):
+        user = self.make_buyer("unpaid-confirmation")
+        order = self.make_pending_order(user)
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("eshop:order-confirmation", args=[order.pk]) + "?payment=canceled")
+
+        self.assertContains(response, "Platba nebyla dokončena")
+        self.assertContains(response, "Zaplatit kartou 2380 Kč")
+        self.assertContains(response, reverse("eshop:pay-order", args=[order.pk]))
+        self.assertNotContains(response, reverse("eshop:download-invoice", args=[order.pk]))
+
+    def test_pay_order_redirects_to_open_stripe_session(self):
+        user = self.make_buyer("resume-payment")
+        order = self.make_pending_order(user)
+        self.client.force_login(user)
+
+        open_session = _fake_session(order.pk, session_id="cs_test_pending")
+        with mock.patch("eshop.payments.stripe.checkout.Session.retrieve", return_value=open_session):
+            response = self.client.post(reverse("eshop:pay-order", args=[order.pk]))
+
+        self.assertRedirects(response, "https://checkout.stripe.test/cs_test_pending", fetch_redirect_response=False)
+
+    def test_webhook_marks_order_paid(self):
+        from event.views.payment_helpers import handle_credit_webhook
+
+        user = self.make_buyer("webhook-paid")
+        order = self.make_pending_order(user)
+        event = {
+            "type": "checkout.session.completed",
+            "data": {"object": _fake_session(
+                order.pk, session_id="cs_test_pending", status="complete", payment_status="paid", amount_total=238000,
+            )},
+        }
+        with mock.patch("event.views.payment_helpers._construct_stripe_event", return_value=event):
+            response = handle_credit_webhook(b"{}", "sig")
+
+        order.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, Order.Status.CONFIRMED)
+        self.assertTrue(order.is_paid)
+        self.assertEqual(order.stripe_payment_intent, "pi_test")
+
+    def test_webhook_expired_session_cancels_order_and_returns_stock(self):
+        from event.views.payment_helpers import handle_credit_webhook
+
+        user = self.make_buyer("webhook-expired")
+        order = self.make_pending_order(user)
+        self.variant.refresh_from_db()
+        self.assertEqual(self.variant.stock, 3)
+        event = {
+            "type": "checkout.session.expired",
+            "data": {"object": _fake_session(order.pk, session_id="cs_test_pending", status="expired")},
+        }
+        with mock.patch("event.views.payment_helpers._construct_stripe_event", return_value=event):
+            response = handle_credit_webhook(b"{}", "sig")
+
+        order.refresh_from_db()
+        self.variant.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, Order.Status.CANCELED)
+        self.assertFalse(order.stock_deducted)
+        self.assertEqual(self.variant.stock, 5)
+
+    def test_user_can_cancel_paid_stripe_order_with_refund(self):
+        user = self.make_buyer("cancel-card")
+        order = self.make_pending_order(user)
+        order.mark_paid(session_id="cs_test_pending", payment_intent="pi_paid", amount_paid=Decimal("2380"))
+        self.client.force_login(user)
+
+        with mock.patch("eshop.payments.stripe.Refund.create", return_value={"id": "re_1"}) as refund:
+            response = self.client.post(reverse("eshop:cancel-order", args=[order.pk]), follow=True)
+
+        order.refresh_from_db()
+        self.variant.refresh_from_db()
+        refund.assert_called_once_with(payment_intent="pi_paid", idempotency_key=f"eshop-refund-{order.pk}")
+        self.assertEqual(order.status, Order.Status.CANCELED)
+        self.assertEqual(order.stripe_refund_id, "re_1")
+        self.assertIsNotNone(order.refunded_at)
+        self.assertFalse(order.is_paid)
+        self.assertEqual(self.variant.stock, 5)
+        self.assertEqual(order.credit_note_number, f"{order.invoice_number}-D")
+        self.assertContains(response, "Platbu jsme vrátili na kartu")
+
+    def test_failed_refund_keeps_order_active(self):
+        user = self.make_buyer("refund-fails")
+        order = self.make_pending_order(user)
+        order.mark_paid(session_id="cs_test_pending", payment_intent="pi_paid", amount_paid=Decimal("2380"))
+        self.client.force_login(user)
+
+        with mock.patch("eshop.payments.stripe.Refund.create", side_effect=stripe.APIConnectionError("down")):
+            self.client.post(reverse("eshop:cancel-order", args=[order.pk]))
+
+        order.refresh_from_db()
+        self.variant.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.CONFIRMED)
+        self.assertTrue(order.is_paid)
+        self.assertEqual(self.variant.stock, 3)
+
+    def test_cancel_paid_order_without_refund_is_rejected(self):
+        user = self.make_buyer("no-refund")
+        order = self.make_pending_order(user)
+        order.mark_paid(session_id="cs_test_pending", payment_intent="pi_paid", amount_paid=Decimal("2380"))
+
+        with self.assertRaisesMessage(ValueError, "vrácením platby"):
+            order.cancel_by_user(actor=user)
+
+    def test_user_can_cancel_unpaid_order_and_payment_page_is_closed(self):
+        user = self.make_buyer("cancel-unpaid")
+        order = self.make_pending_order(user)
+        self.client.force_login(user)
+
+        with mock.patch("eshop.payments.stripe.checkout.Session.expire") as expire, \
+                mock.patch("eshop.payments.stripe.Refund.create") as refund:
+            self.client.post(reverse("eshop:cancel-order", args=[order.pk]))
+
+        order.refresh_from_db()
+        self.variant.refresh_from_db()
+        expire.assert_called_once_with("cs_test_pending")
+        refund.assert_not_called()
+        self.assertEqual(order.status, Order.Status.CANCELED)
+        self.assertEqual(self.variant.stock, 5)
+        self.assertFalse(order.credit_note_number)
+
+    def test_resolve_stale_orders_cancels_expired_and_confirms_paid(self):
+        from eshop.payments import resolve_stale_orders
+
+        user = self.make_buyer("stale")
+        expired_order = self.make_pending_order(user, quantity=1)
+        paid_order = self.make_pending_order(user, quantity=1)
+        Order.objects.filter(pk=paid_order.pk).update(stripe_session_id="cs_test_paid")
+        Order.objects.filter(pk__in=[expired_order.pk, paid_order.pk]).update(
+            payment_expires_at=timezone.now() - timedelta(hours=1)
+        )
+        sessions = {
+            "cs_test_pending": _fake_session(expired_order.pk, session_id="cs_test_pending", status="expired"),
+            "cs_test_paid": _fake_session(
+                paid_order.pk, session_id="cs_test_paid", status="complete", payment_status="paid", amount_total=119000,
+            ),
+        }
+        with mock.patch("eshop.payments.stripe.checkout.Session.retrieve", side_effect=lambda sid: sessions[sid]):
+            result = resolve_stale_orders()
+
+        expired_order.refresh_from_db()
+        paid_order.refresh_from_db()
+        self.variant.refresh_from_db()
+        self.assertEqual(result, {"paid": 1, "canceled": 1, "errors": 0})
+        self.assertEqual(expired_order.status, Order.Status.CANCELED)
+        self.assertEqual(paid_order.status, Order.Status.CONFIRMED)
+        self.assertEqual(self.variant.stock, 4)
+
+    def test_late_payment_after_cancel_is_refunded_automatically(self):
+        from eshop.payments import handle_stripe_event
+
+        user = self.make_buyer("late-payment")
+        order = self.make_pending_order(user)
+        order.cancel_by_user(actor=user)
+        event = {
+            "type": "checkout.session.completed",
+            "data": {"object": _fake_session(
+                order.pk, session_id="cs_test_pending", status="complete", payment_status="paid", amount_total=238000,
+            )},
+        }
+
+        with mock.patch("eshop.payments.stripe.Refund.create", return_value={"id": "re_late"}) as refund:
+            handle_stripe_event(event)
+
+        order.refresh_from_db()
+        refund.assert_called_once()
+        self.assertEqual(order.status, Order.Status.CANCELED)
+        self.assertEqual(order.stripe_refund_id, "re_late")
+        self.assertFalse(order.is_paid)
+
+    def test_order_confirmation_shows_legacy_credit_payment(self):
+        user = self.make_buyer("legacy-confirmation")
         order = Order.objects.create(
             user=user,
             first_name="Final",
@@ -291,21 +455,17 @@ class EshopCheckoutTemplateTests(TestCase):
             email=user.email,
             event=self.event,
             credits_charged=1190,
+            payment_method=Order.PaymentMethod.CREDITS,
             status=Order.Status.CONFIRMED,
         )
         order.items.create(variant=self.variant, quantity=1, unit_price=self.variant.price)
-
-        session = self.client.session
-        session["last_order_id"] = order.pk
-        session.save()
         self.client.force_login(user)
 
         response = self.client.get(reverse("eshop:order-confirmation", args=[order.pk]))
 
         self.assertContains(response, "Objednávka potvrzena")
-        self.assertContains(response, "Kredit odečten automaticky")
-        self.assertNotContains(response, "Zaplatit kredity")
-        self.assertNotContains(response, "Zaplatit 1190 Kč")
+        self.assertContains(response, "uhrazena kredity z účtu")
+        self.assertNotContains(response, "Zaplatit kartou")
 
     def test_eshop_invoice_uses_pdf_generator_successfully(self):
         user = self.user_model.objects.create_user(
@@ -387,7 +547,7 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertTrue(pdf_buffer.getvalue().startswith(b"%PDF"))
         self.assertEqual(order.credit_note_number, "003202604001-D")
 
-    def test_checkout_uses_credit_checkout_layout(self):
+    def test_checkout_uses_card_checkout_layout(self):
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
         session.save()
@@ -396,8 +556,9 @@ class EshopCheckoutTemplateTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Dokončení objednávky")
-        self.assertContains(response, "Úhrada kredity")
-        self.assertContains(response, "Kredity z účtu")
+        self.assertContains(response, "Platba kartou")
+        self.assertContains(response, "Platební karta")
+        self.assertNotContains(response, "Úhrada kredity")
         self.assertContains(response, "Souhrn objednávky")
         self.assertNotContains(response, "Číslo karty")
         self.assertNotContains(response, "PayPal")
@@ -737,7 +898,8 @@ class EshopCheckoutTemplateTests(TestCase):
         self.assertEqual(self.client.session[CART_SESSION_KEY][str(self.variant.pk)], 1)
         self.assertContains(response, "upraven na aktuálně dostupné množství po započtení rezervací")
 
-    def test_checkout_deducts_product_stock_after_successful_order(self):
+    @mock.patch("eshop.payments.stripe.checkout.Session.create", side_effect=_fake_create_session)
+    def test_checkout_deducts_product_stock_after_successful_order(self, _create_session):
         user = self.user_model.objects.create_user(
             username="stock-ok-post",
             email="stock-ok@example.com",
@@ -747,12 +909,6 @@ class EshopCheckoutTemplateTests(TestCase):
         )
         user.is_active = True
         user.save(update_fields=["is_active"])
-        CreditTransaction.objects.create(
-            user=user,
-            amount=3000,
-            kind=CreditTransaction.Kind.TOPUP,
-            payment_complete=True,
-        )
         session = self.client.session
         session[CART_SESSION_KEY] = {str(self.variant.pk): 2}
         session.save()
@@ -772,7 +928,7 @@ class EshopCheckoutTemplateTests(TestCase):
         )
 
         order = Order.objects.get()
-        self.assertRedirects(response, reverse("eshop:order-confirmation", args=[order.pk]))
+        self.assertRedirects(response, f"https://checkout.stripe.test/cs_test_{order.pk}", fetch_redirect_response=False)
         self.variant.refresh_from_db()
         self.assertEqual(self.variant.stock, 3)
         self.assertTrue(
