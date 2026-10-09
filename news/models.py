@@ -106,7 +106,10 @@ def _delete_all_audio(article_id: int):
                 try:
                     f.delete(save=False)
                 except Exception:
-                    pass
+                    logger.warning(
+                        "[TTS] Nepodařilo se smazat audio soubor pole %s u Article %s",
+                        field_name, article_id, exc_info=True,
+                    )
                 setattr(article, field_name, None)
                 cleared.append(field_name)
         if cleared:
@@ -396,7 +399,10 @@ def _generate_audio(article_id: int, lang: str = "cs"):
             try:
                 old_audio.delete(save=False)
             except Exception:
-                pass
+                logger.warning(
+                    "[TTS] Nepodařilo se smazat starý audio soubor pole %s u Article %s",
+                    field_name, article_id, exc_info=True,
+                )
 
         out.seek(0)
         filename = f"article_{article.pk}_{lang}.mp3"

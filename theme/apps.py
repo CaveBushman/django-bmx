@@ -1,4 +1,8 @@
+import logging
+
 from django.apps import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class ThemeConfig(AppConfig):
@@ -67,5 +71,11 @@ class ThemeConfig(AppConfig):
                 return mark_safe(html_str)
 
             jazzmin_tags.jazzmin_paginator_number = safe_jazzmin_paginator_number
+        except ImportError:
+            logger.debug("Jazzmin není nainstalován — paginator patch přeskočen.")
         except Exception:
-            pass
+            logger.warning(
+                "Nepodařilo se aplikovat opravu jazzmin paginátoru — "
+                "stránkování v adminu může selhat.",
+                exc_info=True,
+            )
