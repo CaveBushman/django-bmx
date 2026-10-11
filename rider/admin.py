@@ -611,6 +611,7 @@ class RiderTransponderChangeAdmin(admin.ModelAdmin):
     list_filter = ('slot', 'changed_at')
     search_fields = ('rider__last_name', 'rider__first_name', 'rider__uci_id', 'old_transponder', 'new_transponder')
     readonly_fields = ('rider', 'slot', 'old_transponder', 'new_transponder', 'changed_at', 'battery_expected_until', 'changed_by')
+    list_select_related = ('rider', 'changed_by')
 
     def has_add_permission(self, request):
         return False

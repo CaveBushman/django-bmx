@@ -6,6 +6,7 @@ které mění sklad, musí být atomické.
 """
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
@@ -714,6 +715,9 @@ class FlexiExportSettings(models.Model):
         return obj
 
 
+ESHOP_PUBLIC_CACHE_KEY = "eshop:is_public"
+
+
 class EshopSettings(models.Model):
     """Singleton s globálním nastavením e-shopu."""
     is_public = models.BooleanField(
@@ -735,6 +739,15 @@ class EshopSettings(models.Model):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.delete(ESHOP_PUBLIC_CACHE_KEY)
+
     @classmethod
     def shop_is_public(cls):
-        return cls.get_solo().is_public
+        # Volá se z context processoru při každém renderu stránky.
+        is_public = cache.get(ESHOP_PUBLIC_CACHE_KEY)
+        if is_public is None:
+            is_public = cls.get_solo().is_public
+            cache.set(ESHOP_PUBLIC_CACHE_KEY, is_public, 300)
+        return is_public

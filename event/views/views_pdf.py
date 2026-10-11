@@ -273,46 +273,6 @@ def generate_manual_entry_form_pdf(request, pk):
     return response
 
 
-def invoice_view(request, pk):
-    """Generování faktury ve formátu PDF.
-
-    Zatím používá pevná testovací data — TODO: napojit na skutečná data z DB.
-    """
-    # TODO: nahradit testovací data skutečnými daty z DB podle pk
-    invoice_data = {
-        "number": "20240001",
-        "issue_date": "02.01.2024",
-        "due_date": "09.01.2024",
-        "payment_method": "Převodem",
-        "vs": "20240001",
-        "iban": "CZ32 0300 0000 0000 5051 1001",
-        "supplier": [
-            "Adventure Land s.r.o.", "Křenova 438/7", "162 00 Praha",
-            "IČ: 25747908", "DIČ: CZ25747908",
-        ],
-        "customer": [
-            "PROMAFIX s.r.o.", "Semčice 96", "294 46 Semčice",
-            "IČ: 08554625", "DIČ: CZ08554625",
-        ],
-        "items": [
-            {"description": "Rallye test - pronájem okruhu, zabezpečení TK, Com",
-             "qty": 5, "unit_price": 3990.00, "vat": 21, "total": 24139.50},
-            {"description": "Zaokrouhlení",
-             "qty": 1, "unit_price": 0.50, "vat": 0, "total": 0.50},
-        ],
-        "summary": {"base": 19950.00, "vat": 4189.50, "total": 24140.00},
-    }
-
-    # TODO: implementovat generate_invoice_pdf v event/credit.py
-    raise NotImplementedError("generate_invoice_pdf není ještě implementováno")
-    pdf_buffer = None
-    return HttpResponse(
-        pdf_buffer,
-        content_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="faktura_{invoice_data["number"]}.pdf"'},
-    )
-
-
 @login_required(login_url="/login")
 @staff_member_required
 def invalid_licences_pdf(request, pk):

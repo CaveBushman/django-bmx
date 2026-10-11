@@ -146,7 +146,12 @@ class AccountAdmin(DiacriticsInsensitiveSearchAdminMixin, UserAdmin):
 
 
 admin.site.register(Account, AccountAdmin)
-admin.site.register(AccountRiderLink)
+
+
+@admin.register(AccountRiderLink)
+class AccountRiderLinkAdmin(admin.ModelAdmin):
+    list_select_related = ("account", "rider")
+    autocomplete_fields = ("account", "rider")
 
 
 class PendingActivationAccountChangeList(ChangeList):
@@ -172,6 +177,7 @@ class AccountActivationAuditLogAdmin(admin.ModelAdmin):
     list_filter = ("action", "source", "created_at")
     search_fields = ("email_snapshot", "account__email", "actor__email", "note")
     readonly_fields = ("created_at",)
+    list_select_related = ("account", "actor")
 
 
 @admin.register(AvatarChangeRequest)
@@ -186,6 +192,7 @@ class AvatarChangeRequestAdmin(admin.ModelAdmin):
         "image_preview",
     )
     list_filter = ("status", "created", "reviewed_at")
+    list_select_related = ("uploaded_by", "reviewed_by", "target_account", "target_rider")
     search_fields = (
         "uploaded_by__email",
         "uploaded_by__first_name",

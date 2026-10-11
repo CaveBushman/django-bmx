@@ -5054,6 +5054,8 @@ class EventStructuredDataTests(TestCase):
 
 class EventFeedTests(TestCase):
     def setUp(self):
+        # Feed je za cache_page — každý test musí vidět čerstvě vygenerovaný kalendář.
+        cache.clear()
         self.club = Club.objects.create(
             team_name="BMX Klub Praha",
             street="Dráhová 1",

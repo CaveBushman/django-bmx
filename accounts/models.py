@@ -379,10 +379,6 @@ class AvatarChangeRequest(models.Model):
             stale_request.expire()
         return len(stale_requests)
 
-    @property
-    def is_stale(self):
-        return self.status == self.STATUS_PENDING and self.created < self.pending_cutoff()
-
     def _build_normalized_avatar(self):
         try:
             with self.image.open("rb") as image_file:

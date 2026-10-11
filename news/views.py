@@ -5,7 +5,6 @@ from django.conf import settings
 from django.utils.translation import get_language
 from event.models import Event, SeasonSettings
 from event.func import update_cart
-from rider.rider import update_plate_notify
 from rider.models import Rider
 from news.models import News, Downloads, _AUDIO_LANGS
 from news.cache import homepage_data_cache_key
@@ -63,12 +62,12 @@ def homepage_view(request):
                 valid_from__lte=today,
             ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=today))
         )
-        championship_men_leader = Rider.objects.filter(
+        championship_men_leader = Rider.objects.select_related("club").filter(
             is_active=True,
             is_approved=True,
             class_20__in=["Men Junior", "Men Under 23", "Men Elite"],
         ).order_by("-points_20", "last_name", "first_name").first()
-        championship_women_leader = Rider.objects.filter(
+        championship_women_leader = Rider.objects.select_related("club").filter(
             is_active=True,
             is_approved=True,
             class_20__in=["Women Junior", "Women Under 23", "Women Elite"],
@@ -89,11 +88,11 @@ def homepage_view(request):
     if lang not in _SUPPORTED_CONTENT_LANGS:
         lang = "cs"
     for article in content.get("homepage_news", []):
-        article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
-        article.display_perex = article.get_localized("perex", lang) # Přidáno pro konzistenci
+        article.display_title = article.get_localized("title", lang)
+        article.display_perex = article.get_localized("perex", lang)
 
-    update_cart(request)
-    update_plate_notify(request)
+    if request.user.is_authenticated:
+        update_cart(request)
     return render(request, "homepage.html", content)
 
 
@@ -118,49 +117,68 @@ def rules_view(request):
 def news_list_view(request):
     ARTICLES_PER_PAGE = 10
     PAGINATION_WINDOW = 10
+    cache_ttl = getattr(settings, "CACHE_TTL_LONG", 30 * 60)
 
     lang = (get_language() or "cs").split("-")[0].lower()
     if lang not in _SUPPORTED_CONTENT_LANGS:
         lang = "cs"
 
-    page_number = request.GET.get('page', 1)
-    cache_key = f"news_list_page_{page_number}_{lang}"
-    data = cache.get(cache_key)
+    # Výpis potřebuje jen titulek a perex v aktivním jazyce — obsah a překlady
+    # ostatních jazyků se nenačítají (jinak by se do cache tahaly megabajty textu).
+    unused_fields = ["content", *(f"content_{code}" for code in _AUDIO_LANGS)]
+    unused_fields += [
+        f"{field}_{code}" for field in ("title", "perex") for code in _AUDIO_LANGS if code != lang
+    ]
+    qs = (
+        News.objects.filter(published=True)
+        .select_related("created")
+        .prefetch_related("tags")
+        .defer(*unused_fields)
+        .order_by("-publish_date", "-id")
+    )
 
-    if data is None:
-        # Stránkujeme v DB, sanitizujeme jen aktuální stránku (ne celý seznam)
-        qs = News.objects.filter(published=True).order_by('-publish_date', '-id')
-        
-        query = request.GET.get('q')
-        if query:
-            qs = qs.filter(Q(title__icontains=query) | Q(perex__icontains=query))
-            
-        paginator = Paginator(qs, ARTICLES_PER_PAGE)
-        news_page = paginator.get_page(page_number)
-        news_page.object_list = [_sanitize_news_for_render(a) for a in news_page.object_list]
+    query = (request.GET.get("q") or "").strip()
+    if query:
+        qs = qs.filter(Q(title__icontains=query) | Q(perex__icontains=query))
+        total = qs.count()
+        sum_of_news = News.sum_of_news()
+    else:
+        total = cache.get("news_list_count")
+        if total is None:
+            total = News.sum_of_news()
+            cache.set("news_list_count", total, cache_ttl)
+        sum_of_news = total
 
-        # Jazykové zpracování titulků a prefixů pro články na stránce
-        for article in news_page.object_list: # Přidáno pro konzistenci
-            article.display_title = article.get_localized("title", lang) # Přidáno pro konzistenci
-            article.display_perex = article.get_localized("perex", lang) # Přidáno pro konzistenci
-        total_pages = news_page.paginator.num_pages
-        start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
-        end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
-        if (end_page - start_page + 1) < PAGINATION_WINDOW:
-            start_page = max(1, end_page - PAGINATION_WINDOW + 1)
+    # Počet známe předem, takže get_page() nevolá COUNT a stránka je jen líný řez querysetu.
+    paginator = Paginator(qs, ARTICLES_PER_PAGE)
+    paginator.count = total
+    news_page = paginator.get_page(request.GET.get("page", 1))
 
-        data = {
-            'news': news_page,
-            'sum_of_news': News.sum_of_news(),
-            'page_numbers': range(start_page, end_page + 1),
-        }
-        cache.set(cache_key, data, getattr(settings, "CACHE_TTL_LONG", 30 * 60))
+    # Cachujeme jen seznam článků aktuální stránky (ne Page/Paginator s querysetem),
+    # klíč je normalizované číslo stránky a výsledky hledání se necachují.
+    cache_key = None if query else f"news_list:{lang}:{news_page.number}"
+    articles = cache.get(cache_key) if cache_key else None
+    if articles is None:
+        articles = list(news_page.object_list)
+        for article in articles:
+            article.display_title = article.get_localized("title", lang)
+            article.display_perex = sanitize_rich_html(article.get_localized("perex", lang))
+        if cache_key:
+            cache.set(cache_key, articles, cache_ttl)
+    news_page.object_list = articles
 
-    # Pokud jde o HTMX požadavek, vrátíme jen fragment seznamu
-    if request.headers.get('HX-Request'):
-        return render(request, 'news/partials/news_list_loop.html', data)
+    total_pages = paginator.num_pages
+    start_page = max(1, news_page.number - (PAGINATION_WINDOW // 2))
+    end_page = min(total_pages, start_page + PAGINATION_WINDOW - 1)
+    if (end_page - start_page + 1) < PAGINATION_WINDOW:
+        start_page = max(1, end_page - PAGINATION_WINDOW + 1)
 
-    return render(request, 'news/news-list.html', data)
+    data = {
+        "news": news_page,
+        "sum_of_news": sum_of_news,
+        "page_numbers": range(start_page, end_page + 1),
+    }
+    return render(request, "news/news-list.html", data)
 
 
 def news_detail_view(request, slug):
@@ -211,7 +229,7 @@ def news_detail_view(request, slug):
 
 
 def downloads_view(request):
-    documents = [_sanitize_download_for_render(document) for document in Downloads.objects.filter(published=True)]
+    documents = [_sanitize_download_for_render(document) for document in Downloads.objects.filter(published=True).prefetch_related("tags")]
     categories = ['Pro jezdce', 'Pro kluby', 'Pro rozhodčí']
     data = {'documents': documents, 'categories': categories}
     return render(request, 'downloads.html', data )

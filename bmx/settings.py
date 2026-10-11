@@ -181,6 +181,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # Statické soubory se obslouží hned, bez session/CSRF/auth middlewaru.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "bmx.middleware.RequestIDMiddleware",
     "bmx.middleware.XRobotsTagMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
@@ -191,7 +193,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "admin_stats.middleware.VisitMiddleware",
 ]
 
@@ -249,6 +250,8 @@ if REDIS_URL:
             "KEY_PREFIX": "bmx",
         }
     }
+    # Session se čte z Redisu, DB zůstává zálohou (stávající přihlášení platí dál).
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 else:
     CACHES = {
         "default": {
@@ -297,6 +300,7 @@ CELERY_BEAT_SCHEDULE = {
     "check-entry-integrity": {"task": "bmx.check_entry_integrity", "schedule": _celery_crontab(minute=15, hour=5, day_of_week=0)},
     "sync-event-control": {"task": "bmx.sync_event_control", "schedule": _celery_crontab(minute=30, hour=1)},
     "resolve-eshop-payments": {"task": "bmx.resolve_eshop_payments", "schedule": _celery_crontab(minute="*/15")},
+    "clear-sessions": {"task": "bmx.clear_sessions", "schedule": _celery_crontab(minute=50, hour=3)},
 }
 
 # Přechod na BIKODY.COM (viz bmx/bikody_transition.py): od tohoto dne se na
@@ -340,7 +344,8 @@ if not RUNNING_TESTS:
         "PRAGMA journal_mode=WAL; "
         "PRAGMA synchronous=NORMAL; "
         "PRAGMA cache_size=-64000; "
-        "PRAGMA temp_store=MEMORY;"
+        "PRAGMA temp_store=MEMORY; "
+        "PRAGMA mmap_size=268435456;"
     )
 
 DATABASES = {
@@ -400,7 +405,8 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-WHITENOISE_AUTOREFRESH = True
+# Autorefresh skenuje soubory při každém požadavku — jen pro vývoj.
+WHITENOISE_AUTOREFRESH = DEBUG
 
 STORAGES = {
     "default": {
@@ -815,6 +821,8 @@ CRONJOBS = [
     ("30 1 * * *", "bmx.cron.sync_event_control_scheduled"),
     # E-shop: dořešení propadlých plateb kartou (pojistka za webhook) každých 15 minut
     ("*/15 * * * *", "bmx.cron.resolve_eshop_payments_scheduled"),
+    # Smazání expirovaných session každý den ve 3:50
+    ("50 3 * * *", "django.core.management.call_command", ["clearsessions"]),
 ]
 
 # Když periodiku řídí Celery beat, vyprázdni CRONJOBS, ať úlohy neběží dvakrát.

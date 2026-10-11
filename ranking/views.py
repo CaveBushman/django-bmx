@@ -13,7 +13,12 @@ _CACHE_MEDIUM = getattr(django_settings, "CACHE_TTL_MEDIUM", 5 * 60)
 
 
 def ranking_view(request):
-    categories = Categories.get_categories()
+    use_cache = not django_settings.DEBUG
+    categories = cache.get("ranking:categories") if use_cache else None
+    if categories is None:
+        categories = list(Categories.get_categories())
+        if use_cache:
+            cache.set("ranking:categories", categories, _CACHE_MEDIUM)
     default_category = "Men Under 23"
     category_input = request.GET.get("category", "").strip()
     category_value = category_input if category_input in categories else default_category
@@ -68,38 +73,27 @@ def ranking_view(request):
         )
         cruiser = 0
 
-    data = {
-        "categories": categories,
-        "results": results,
-        "category": category_value.upper(),
-        "selected_category": category_value,
-        "cruiser": cruiser,
-        "invalid_category": invalid_category,
-    }
-
-    leaderboard_size = results.count()
-    if leaderboard_size:
-        leader = results[0]
-        leader_points = leader.points_24 if cruiser else leader.points_20
-    else:
-        leader_points = 0
-
-    data.update({
-        'leaderboard_size': leaderboard_size,
-        'leader_points': leader_points,
-        'categories_count': len(categories),
-    })
-
     category_cache_key = hashlib.sha256(category_value.encode("utf-8")).hexdigest()[:16]
     cache_key = f"ranking:{category_cache_key}:{int(invalid_category)}"
-    use_cache = not django_settings.DEBUG
-    cached = cache.get(cache_key) if use_cache else None
-    if cached is None:
-        # Materializujeme queryset před uložením do cache
-        data['results'] = list(data['results'])
+    data = cache.get(cache_key) if use_cache else None
+    if data is None:
+        results = list(results)
+        if results:
+            leader_points = results[0].points_24 if cruiser else results[0].points_20
+        else:
+            leader_points = 0
+        data = {
+            "categories": categories,
+            "results": results,
+            "category": category_value.upper(),
+            "selected_category": category_value,
+            "cruiser": cruiser,
+            "invalid_category": invalid_category,
+            "leaderboard_size": len(results),
+            "leader_points": leader_points,
+            "categories_count": len(categories),
+        }
         if use_cache:
             cache.set(cache_key, data, _CACHE_MEDIUM)
-    else:
-        data = cached
 
     return render(request, 'ranking/ranking.html', data)

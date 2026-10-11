@@ -7,8 +7,7 @@ Obsah:
     - ec_by_club_xls         — export přihlášek EP po klubech
     - summary_riders_in_event — počty jezdců v kategoriích
     - export_event_results   — odeslání výsledků do API ČSC
-    - send_invoices          — TODO
-    - price_money_pdf        — TODO
+    - price_money_pdf        — PDF potvrzení převzetí prize money
 
   Privátní helpery pro event_admin_view (prefix _handle_):
     - _handle_ec_event       — Evropský pohár / Mistrovství Evropy
@@ -676,7 +675,7 @@ def _handle_bem_riders(request, event):
     ws = excel_first_line(ws)
 
     x = 2
-    for rider in Rider.objects.filter(is_active=True, is_approved=True):
+    for rider in Rider.objects.filter(is_active=True, is_approved=True).select_related("club"):
         # Jezdec může jezdit 20" i 24" — zapíše se do obou sloupců
         if rider.is_20:
             _write_bem_rider_row(ws, x, rider, event, is_20=True)
@@ -2341,41 +2340,6 @@ def unpaid_moto_riders_report_pdf(request, pk):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{service.build_filename(event)}"'
     return response
-
-
-@login_required(login_url="/login/")
-@staff_member_required
-def send_invoices(request, pk):
-    """Rozesílání faktur klubům pro daný závod."""
-    generated = generate_event_invoices(pk)
-    result = send_event_invoices(pk)
-    audit_logger.info(
-        "event_invoices_generated admin_user_id=%s event_id=%s sent_count=%s",
-        request.user.id,
-        pk,
-        len(result["sent"]),
-    )
-    return render(request, "event/results_sent.html", {
-        "event": get_object_or_404(Event, pk=pk),
-        "sent_count": len(result["sent"]),
-        "export_summary": {
-            "total_results": len(generated["generated"]),
-            "sent_count": len(result["sent"]),
-            "skipped_count": len(result["skipped"]),
-            "sent_ratio": round((len(result["sent"]) / len(generated["generated"])) * 100) if generated["generated"] else 0,
-            "women_count": 0,
-            "men_count": 0,
-            "czech_count": 0,
-            "foreign_count": 0,
-            "bike20_count": 0,
-            "cruiser_count": 0,
-            "beginner_count": 0,
-            "unique_teams_count": 0,
-            "unique_categories_count": 0,
-            "coverage_metrics": [],
-            "top_categories": [],
-        },
-    })
 
 
 @login_required(login_url="/login/")

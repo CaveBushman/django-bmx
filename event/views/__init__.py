@@ -73,7 +73,6 @@ from event.views.views_admin import (
     unpaid_moto_riders_report_pdf,
     export_event_results,
     export_uci_results,
-    send_invoices,
     price_money_pdf,
     import_event_stats,
 )
@@ -82,6 +81,5 @@ from event.views.views_pdf import (
     generate_pdf,
     generate_manual_entry_form_pdf,
     generate_invoice_preparation_pdf,
-    invoice_view,
     invalid_licences_pdf,
 )

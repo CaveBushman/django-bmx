@@ -162,7 +162,6 @@ def ranking_count_views(request):
 
 @staff_member_required
 def recalculate_riders_classes(request):
-    # set_all_riders_classes()
     RiderSetClassesThread().start()
     data = {
         "status_eyebrow": _("Správa jezdců"),

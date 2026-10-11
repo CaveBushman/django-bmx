@@ -9,7 +9,12 @@ from django.utils import timezone
 
 from club.models import Club
 from event.models import Event, Result, SeasonSettings
-from ranking.ranking import RankingCount, RANKING_RECOUNT_STATUS_KEY, get_ranking_recount_status
+from ranking.ranking import (
+    RANKING_RECOUNT_STATUS_KEY,
+    RankingCount,
+    RankPositionCount,
+    get_ranking_recount_status,
+)
 from rider.models import Rider
 
 User = get_user_model()
@@ -188,6 +193,43 @@ class RankingCountTests(TestCase):
         self.assertTrue(counted_result.marked_20)
         self.assertEqual(self.rider.points_20, 55)
 
+
+
+class RankPositionCountTests(TestCase):
+    def make_rider(self, uci_id, points_20, ranking_20=None):
+        rider = Rider.objects.create(
+            uci_id=uci_id,
+            first_name="Jezdec",
+            last_name=str(uci_id),
+            gender="Muž",
+            date_of_birth=date(1995, 1, 1),
+            is_active=True,
+            is_approved=True,
+            is_20=True,
+        )
+        # Body, kategorie a staré pořadí nastavujeme mimo pre_save signál (ten přepočítá třídu).
+        Rider.objects.filter(pk=rider.pk).update(
+            class_20="Men Elite", points_20=points_20, ranking_20=ranking_20
+        )
+        return rider
+
+    def test_ties_share_range_and_zero_point_riders_lose_stale_position(self):
+        first = self.make_rider(10000000001, 100)
+        tied_a = self.make_rider(10000000002, 50)
+        tied_b = self.make_rider(10000000003, 50)
+        last = self.make_rider(10000000004, 20)
+        # Jezdec bez bodů se starým pořadím, které se shoduje s pozicí shody —
+        # nesmí rozšířit rozsah shody a sám má pořadí ztratit.
+        stale = self.make_rider(10000000005, 0, ranking_20="2")
+
+        RankPositionCount().count_ranking_position()
+
+        rankings = dict(Rider.objects.values_list("pk", "ranking_20"))
+        self.assertEqual(rankings[first.pk], "1")
+        self.assertEqual(rankings[tied_a.pk], "2 - 3")
+        self.assertEqual(rankings[tied_b.pk], "2 - 3")
+        self.assertEqual(rankings[last.pk], "4")
+        self.assertIsNone(rankings[stale.pk])
 
 class RankingRecountViewTests(TestCase):
     def setUp(self):
