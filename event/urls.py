@@ -5,13 +5,15 @@ před obecné detailové routy.
 """
 
 from django.urls import path
+from django.views.decorators.cache import cache_page
 from . import views
 from .feeds import EventFeed
 
 app_name = 'event'
 
 urlpatterns = [
-    path('feed.ics', EventFeed(), name='feed'),
+    # Kalendářové klienty feed stahují často, přitom se mění jen výjimečně.
+    path('feed.ics', cache_page(30 * 60)(EventFeed()), name='feed'),
     path('', views.events_list_view, name='events'),
     path('<int:pk>', views.event_detail_views, name='event-detail'),
     path('proposition/<int:pk>', views.proposition_detail_view, name='proposition-detail'),
@@ -61,7 +63,6 @@ urlpatterns = [
     path('generate_pdf/<int:pk>', views.generate_pdf, name='generate_pdf'),
     path('manual-entry-form-pdf/<int:pk>', views.generate_manual_entry_form_pdf, name='manual-entry-form-pdf'),
     path('generate_invoice_preparation_pdf/<int:pk>', views.generate_invoice_preparation_pdf, name='generate_invoice_preparation_pdf'),
-    path('generate_invoices_pdf/<int:pk>', views.invoice_view, name='generate_invoices_pdf'),
     path('invalid-licences-pdf/<int:pk>', views.invalid_licences_pdf, name='invalid-licences-pdf'),
     path('price-money/<int:pk>', views.price_money_pdf, name='price-money-pdf'),
     path('recalculate_balances_view', views.recalculate_balances_view, name='recalculate_balances_view'),

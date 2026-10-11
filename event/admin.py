@@ -55,6 +55,7 @@ class BaseAdmin(admin.ModelAdmin):
 class ResultAdmin(BaseAdmin):
     list_display = ('event', 'rider','last_name',)
     list_display_links = ('event', 'rider',)
+    list_select_related = ('event', 'rider')
     search_fields = ('event__name', 'rider__uci_id', 'rider__first_name', 'rider__last_name', 'last_name')
     list_filter = ('event__name',)
 
@@ -81,6 +82,7 @@ class EventPhotoInline(admin.TabularInline):
 
 class EventAdmin(BaseAdmin):
     inlines = [EventPhotoInline]
+    list_select_related = ('organizer',)
 
     class Media:
         js = ("js/admin_copy_code.js",)
@@ -915,6 +917,7 @@ class CreditTransactionAdmin(BaseAdmin):
     search_fields = ('user__last_name', 'transaction_date', 'payment_intent', 'source_entry__event__name', 'source_entry__rider__last_name')
     list_filter = ('transaction_date', 'kind', 'payment_complete')
     autocomplete_fields = ('user', 'source_entry')
+    list_select_related = ('user', 'source_entry__event', 'source_entry__rider')
 
     def _is_automatic_checkout_refund(self, obj):
         return bool(
@@ -983,6 +986,9 @@ class EntryAuditLogAdmin(BaseAdmin):
     list_display_links = ("created_at",)
     search_fields = ("event_name_snapshot", "rider_name_snapshot", "note", "source")
     list_filter = ("action", "source", "new_checkout", "old_checkout")
+    list_select_related = ("actor",)
+    # <select> se všemi ~35k přihláškami by renderoval desítky tisíc dotazů.
+    raw_id_fields = ("entry", "actor")
 
 
 class FinanceAuditLogAdmin(BaseAdmin):
@@ -990,6 +996,7 @@ class FinanceAuditLogAdmin(BaseAdmin):
     list_display_links = ("created_at",)
     search_fields = ("target_model", "note", "transaction_kind_snapshot")
     list_filter = ("action", "target_model", "source")
+    list_select_related = ("actor",)
 
 
 
@@ -998,6 +1005,8 @@ class DebetTransactionAdmin(BaseAdmin):
     list_display_links = ('user',)
     search_fields = ('user__last_name', 'transaction_date')
     list_filter = ('transaction_date',)
+    list_select_related = ('user', 'entry__event', 'entry__rider')
+    raw_id_fields = ('entry',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "entry":

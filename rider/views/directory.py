@@ -90,19 +90,19 @@ def riders_list_view(request):
     paginator = Paginator(riders, 100)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    metrics_queryset = Rider.objects.filter(is_active=True, is_approved=True)
-    qualified_metrics_queryset = metrics_queryset.filter(
-        Q(is_qualify_to_cn_20=True) | Q(is_qualify_to_cn_24=True)
+    qualified = Q(is_qualify_to_cn_20=True) | Q(is_qualify_to_cn_24=True)
+    metrics = Rider.objects.filter(is_active=True, is_approved=True).aggregate(
+        total_riders=Count("id"),
+        valid_licence_riders=Count("id", filter=Q(valid_licence=True)),
+        clubs_count=Count("club", distinct=True),
+        qualified_to_mcr_total=Count("id", filter=qualified),
+        qualified_to_mcr_20=Count("id", filter=Q(is_qualify_to_cn_20=True)),
+        qualified_to_mcr_24=Count("id", filter=Q(is_qualify_to_cn_24=True)),
     )
     data = {
         "riders": page_obj.object_list,
         "page_obj": page_obj,
-        "total_riders": metrics_queryset.count(),
-        "valid_licence_riders": metrics_queryset.filter(valid_licence=True).count(),
-        "clubs_count": metrics_queryset.exclude(club__isnull=True).values("club").distinct().count(),
-        "qualified_to_mcr_total": qualified_metrics_queryset.count(),
-        "qualified_to_mcr_20": metrics_queryset.filter(is_qualify_to_cn_20=True).count(),
-        "qualified_to_mcr_24": metrics_queryset.filter(is_qualify_to_cn_24=True).count(),
+        **metrics,
         "last_name_query": last_name_query,
         "club_query": club_query,
         "plate_query": plate_query,
@@ -114,7 +114,7 @@ def riders_list_view(request):
 
 
 def rider_detail_view(request, pk):
-    rider = get_object_or_404(Rider, uci_id=pk)
+    rider = get_object_or_404(Rider.objects.select_related("club"), uci_id=pk)
     results = list(
         Result.objects.select_related("event")
         .filter(

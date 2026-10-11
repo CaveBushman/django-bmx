@@ -68,3 +68,9 @@ def sync_event_control_task():
 @shared_task(name="bmx.resolve_eshop_payments")
 def resolve_eshop_payments_task():
     return cron.resolve_eshop_payments_scheduled()
+
+
+@shared_task(name="bmx.clear_sessions")
+def clear_sessions_task():
+    from django.core.management import call_command
+    return call_command("clearsessions")

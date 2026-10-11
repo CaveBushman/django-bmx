@@ -186,3 +186,10 @@ docker-data/
 
 # Lint cache
 .ruff_cache/
+
+# Vygenerované výstupy patří do media/, ne do static/
+static/riders-list/
+static/bem-files/
+static/full_results/
+static/xml_results/
+static/classes/

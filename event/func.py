@@ -6,7 +6,7 @@ Obsah:
   2. Záhlaví Excel exportů (BEM, REM, REM online, pojištění)
   3. Registrační logika (je registrace otevřena, rozlišení třídy a poplatku)
   4. Stripe platební integrace (generování řádků košíku)
-  5. Správa košíku a přihlášek (Cart, save_entries, check_entry_duplicity)
+  5. Správa košíku a přihlášek (Cart, save_entries)
   6. Validace a admin operace (neplatné licence, kvalifikace, výsledky z REM)
 """
 
@@ -497,20 +497,6 @@ def save_entries(order, transaction_id):
     entry.save()
 
 
-def check_entry_duplicity(event, rider, is_beginner=False, is_20=False, is_24=False) -> bool:
-    """Zkontroluje, zda jezdec již má zaplacenou přihlášku na daný závod v dané kategorii.
-
-    Slouží k zamezení duplicitních přihlášek (jezdec se přihlásí dvakrát).
-    """
-    if is_beginner:
-        return Entry.objects.filter(event=event, rider=rider, is_beginner=True, payment_complete=True).exists()
-    if is_20:
-        return Entry.objects.filter(event=event, rider=rider, is_20=True, payment_complete=True).exists()
-    if is_24:
-        return Entry.objects.filter(event=event, rider=rider, is_24=True, payment_complete=True).exists()
-    return False
-
-
 def is_beginner(rider) -> bool:
     """Vrátí True pokud jezdec splňuje podmínky pro start v kategorii začátečníků.
 
@@ -680,66 +666,6 @@ class SetResults(threading.Thread):
             return None
 
     @classmethod
-    def _parse_phase_float(cls, raw, keys):
-        for key in keys:
-            parsed = cls._parse_float(raw.get(key))
-            if parsed is not None:
-                return parsed
-        return None
-
-    @classmethod
-    def _phase_hill_time(cls, raw, phase, index=None):
-        if phase == "MOTO" and index is not None:
-            return cls._parse_phase_float(
-                raw,
-                [
-                    f"MOTO{index}_HILL_TIME",
-                    f"MOTO{index}_HILLTIME",
-                    f"MOTO{index}_START_HILL_TIME",
-                    f"MOTO{index}_START_TIME",
-                ],
-            )
-        return cls._parse_phase_float(
-            raw,
-            [
-                f"{phase}_HILL_TIME",
-                f"{phase}_HILLTIME",
-                f"{phase}_START_HILL_TIME",
-                f"{phase}_START_TIME",
-            ],
-        )
-
-    @classmethod
-    def _phase_inter2_time(cls, raw, phase, index=None):
-        if phase == "MOTO" and index is not None:
-            return cls._parse_phase_float(
-                raw,
-                [
-                    f"MOTO{index}_INTER2_TIME",
-                    f"MOTO{index}_INTER2",
-                    f"MOTO{index}_FIRST_TURN_TIME",
-                    f"MOTO{index}_FIRST_TURN",
-                    f"MOTO{index}_SPLIT1_TIME",
-                    f"MOTO{index}_SPLIT1",
-                    f"MOTO{index}_SPLIT_1_TIME",
-                    f"MOTO{index}_SPLIT_1",
-                ],
-            )
-        return cls._parse_phase_float(
-            raw,
-            [
-                f"{phase}_INTER2_TIME",
-                f"{phase}_INTER2",
-                f"{phase}_FIRST_TURN_TIME",
-                f"{phase}_FIRST_TURN",
-                f"{phase}_SPLIT1_TIME",
-                f"{phase}_SPLIT1",
-                f"{phase}_SPLIT_1_TIME",
-                f"{phase}_SPLIT_1",
-            ],
-        )
-
-    @classmethod
     def import_file(cls, event_id, file_path):
         """Importuje REM TSV soubor a vytvoří pouze Result.
 
@@ -829,23 +755,11 @@ def after_results_import(event_id):
     event_obj = Event.objects.get(id=event_id)
     trigger_cn_qualification_recount_if_needed(event_obj)
 
-    # Invalidovat cache pro výsledky, žebříček a seznam závodů
+    # Invalidovat cache výsledků závodu. Seznam závodů má klíč verzovaný podle
+    # nejvyššího id výsledku a žebříček se obnoví po přepočtu (krátké TTL).
     try:
         from django.core.cache import cache
-        today = date.today()
-        ranking_keys = [
-            f"ranking_{cat}" for cat in (
-                "Men Under 23", "Men Elite", "Men Junior",
-                "Women Elite", "Women Junior",
-                "Boys 9", "Boys 10", "Boys 11", "Boys 12",
-                "Boys 13", "Boys 14", "Boys 15", "Boys 16",
-                "Girls 9", "Girls 10", "Girls 11", "Girls 12",
-                "Girls 13", "Girls 14", "Girls 15", "Girls 16",
-            )
-        ]
-        cache.delete(f"results_{event_id}")
-        cache.delete(f"events_list_{today.year}_{today}")
-        cache.delete_many(ranking_keys)
+        cache.delete(f"results_v2_{event_id}")
         logger.info("Cache invalidována po importu výsledků event_id=%s", event_id)
     except Exception as exc:
         logger.warning("Nepodařilo se invalidovat cache: %s", exc)

@@ -144,216 +144,152 @@ def schedule_ranking_recount():
 
     transaction.on_commit(_start)
 
-class RankingCount:
-    """ Class for rankings count"""
+# Bodované skupiny závodů: (typy závodů, atribut se započítaným počtem závodů).
+# MČR jednotlivců se počítá vždy jen jedno.
+RANKING_BUCKETS = (
+    ((EventType.MCR_JEDNOTLIVCU,), None),
+    ((EventType.CESKY_POHAR,), "best_cup"),
+    ((EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD), "best_league"),
+)
+_ID_CHUNK = 500
 
-    def __init__(self, uci_id):
-        self.uci_id = uci_id
-        self.points_20:int = 0
-        self.points_24:int = 0
-        self.rider = None
+
+def _ranked_riders():
+    return Rider.objects.filter(is_active=True, is_approved=True)
+
+
+def _update_in_chunks(ids, **values):
+    ids = list(ids)
+    for start in range(0, len(ids), _ID_CHUNK):
+        Result.objects.filter(id__in=ids[start:start + _ID_CHUNK]).update(**values)
+
+
+class RankingCount:
+    """Výpočet rankingových bodů a označení započítaných výsledků (marked_20/24)."""
+
+    @staticmethod
+    def _bucket_limits():
         year = datetime.date.today().year
         season = SeasonSettings.objects.filter(year=year).first()
         if season is None:
             logger.warning("Chybí SeasonSettings pro rok %s, ranking použije 0 započítaných závodů.", year)
-            self.CZECH_CUP = 0
-            self.LIGA = 0
-        else:
-            self.CZECH_CUP = season.best_cup
-            self.LIGA = season.best_league
-
-    def resolve_category(self):
-        self.rider = Rider.objects.select_related('club').get(uci_id=self.uci_id)
-
-    def set_points(self, event_types, max_races, is_20):
-        """ General method for setting points based on event type """
-        all_results = Result.objects.filter(
-            event_type__in=event_types,
-            is_20=is_20,
-            date__gte=timezone.localdate() - timedelta(days=365),
-            rider_id=self.uci_id,
-        )
-        results = (
-            all_results.filter(points__gt=0)
-            .order_by('-points', '-date')
-        )
-
-        # Reset previous markings
-        all_results.update(marked_20=False) if is_20 else all_results.update(marked_24=False)
-
-        # Get top races
-        num_race = min(results.count(), max_races)
-        selected_results = results[:num_race]
-
-        # Update selected results
-        if is_20:
-            self.points_20 += sum(result.points for result in selected_results)
-            results.filter(id__in=[r.id for r in selected_results]).update(marked_20=True)
-        else:
-            self.points_24 += sum(result.points for result in selected_results)
-            results.filter(id__in=[r.id for r in selected_results]).update(marked_24=True)
-
-    def count_points(self):
-        self.resolve_category()
-        if self.rider.is_20:
-            Result.objects.filter(rider_id=self.uci_id).update(marked_20=False)
-            self.set_points([EventType.MCR_JEDNOTLIVCU], 1, is_20=1)
-            self.set_points([EventType.CESKY_POHAR], self.CZECH_CUP, is_20=1)
-            self.set_points([EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD], self.LIGA, is_20=1)
-
-        if self.rider.is_24:
-            Result.objects.filter(rider_id=self.uci_id).update(marked_24=False)
-            self.set_points([EventType.MCR_JEDNOTLIVCU], 1, is_20=0)
-            self.set_points([EventType.CESKY_POHAR], self.CZECH_CUP, is_20=0)
-            self.set_points([EventType.CESKA_LIGA, EventType.MORAVSKA_LIGA, EventType.VOLNY_ZAVOD], self.LIGA, is_20=0)
+        return [
+            (event_types, 1 if attr is None else (getattr(season, attr) if season else 0))
+            for event_types, attr in RANKING_BUCKETS
+        ]
 
     @staticmethod
     def set_ranking_points():
-        """ Methods for setting ranking points for all riders """
-        rider_count = 0
-        for rider in Rider.objects.filter(is_active=True, is_approved=True).iterator():
-            ranking = RankingCount(rider.uci_id)
-            ranking.count_points()
-            Rider.objects.filter(uci_id=rider.uci_id).update(
-                points_20=ranking.points_20,
-                points_24=ranking.points_24
-            )
-            rider_count += 1
-        return rider_count
+        """Přepočte body všech aktivních schválených jezdců.
+
+        Jezdec dostane za každou skupinu závodů součet nejlepších N výsledků
+        (podle bodů, při shodě novější) za posledních 365 dní, zvlášť pro 20"
+        a 24". Vše se načte jedním dotazem a zapíše hromadně v jedné transakci,
+        takže čtenáři nikdy nevidí napůl vynulované body.
+        """
+        limits = RankingCount._bucket_limits()
+        bucket_of = {
+            event_type: index
+            for index, (event_types, _limit) in enumerate(limits)
+            for event_type in event_types
+        }
+
+        riders = list(_ranked_riders().only("id", "uci_id", "is_20", "is_24"))
+        allowed = {
+            True: {r.uci_id for r in riders if r.is_20},
+            False: {r.uci_id for r in riders if r.is_24},
+        }
+
+        candidates = {}
+        rows = Result.objects.filter(
+            rider_id__in=_ranked_riders().values("uci_id"),
+            event_type__in=list(bucket_of),
+            points__gt=0,
+            date__gte=timezone.localdate() - timedelta(days=365),
+        ).values_list("id", "rider_id", "event_type", "is_20", "points", "date")
+        for result_id, uci_id, event_type, is_20, points, date in rows:
+            if uci_id in allowed[is_20]:
+                key = (uci_id, is_20, bucket_of[event_type])
+                candidates.setdefault(key, []).append((points, date, result_id))
+
+        points = {True: {}, False: {}}
+        marked = {True: [], False: []}
+        for (uci_id, is_20, bucket), results in candidates.items():
+            results.sort(key=lambda r: (-r[0], -r[1].toordinal(), r[2]))
+            selected = results[:limits[bucket][1]]
+            points[is_20][uci_id] = points[is_20].get(uci_id, 0) + sum(r[0] for r in selected)
+            marked[is_20].extend(r[2] for r in selected)
+
+        for rider in riders:
+            rider.points_20 = points[True].get(rider.uci_id, 0)
+            rider.points_24 = points[False].get(rider.uci_id, 0)
+
+        with transaction.atomic():
+            # Značky se nulují jen jezdcům, kterým se daná kategorie počítá.
+            Result.objects.filter(
+                marked_20=True, rider_id__in=_ranked_riders().filter(is_20=True).values("uci_id")
+            ).update(marked_20=False)
+            Result.objects.filter(
+                marked_24=True, rider_id__in=_ranked_riders().filter(is_24=True).values("uci_id")
+            ).update(marked_24=False)
+            _update_in_chunks(marked[True], marked_20=True)
+            _update_in_chunks(marked[False], marked_24=True)
+            Rider.objects.bulk_update(riders, ["points_20", "points_24"], batch_size=_ID_CHUNK)
+        return len(riders)
+
 
 class RankPositionCount:
-    """ Class for counting ranking positions of riders"""
+    """Pořadí jezdců v rankingu v rámci jejich kategorie."""
 
-    def get_categories(self, is_20):
-        """ Method for getting all real classes returned as list
-        Arguments: is_20 = True - the 20" challenge, junior and elite classes
-                   is_20 = False - the Cruiser classes
-        """
-        if is_20:
-            categories = list(
-                Rider.objects.filter(is_active=True, is_approved=True, is_20=True)
-                .exclude(points_20=0)
-                .order_by('class_20')
-                .values_list('class_20', flat=True)
-                .distinct()
-            )
-        else:
-            categories = list(
-                Rider.objects.filter(is_active=True, is_approved=True, is_24=True)
-                .exclude(points_24=0)
-                .order_by('class_24')
-                .values_list('class_24', flat=True)
-                .distinct()
-            )
-        categories.sort()
-        return categories
-
-    def get_riders_by_class(self, category: str, is_20: bool):
-
-        """ Method for getting riders by class returned as queryset sorted by points
-        Arguments:  category, is_20 = True - the 20" bike, is_20 = False - the Cruiser classes
-        """
-        if is_20:
-            riders = Rider.objects.filter(is_active=True, is_approved=True, is_20=True, class_20=category).order_by(
-                '-points_20').exclude(points_20=0)
-        else:
-            riders = Rider.objects.filter(is_active=True, is_approved=True, is_24=True, class_24=category).order_by(
-                '-points_24').exclude(points_24=0)
-        return riders
-
-    def write_ranking(self, rider, is_20, ranking):
-        if is_20:
-            Rider.objects.filter(id=rider).update(ranking_20=ranking)
-        else:
-            Rider.objects.filter(id=rider).update(ranking_24=ranking)
-
-    def mark_same_position(self):
-        categories_20 = self.get_categories(is_20=True)
-        categories_24 = self.get_categories(is_20=False)
-
-        all_positions = []
-        duplicates = []
-        for category_20 in categories_20:
-            riders = list(Rider.objects.filter(
-                class_20=category_20, is_active=True, is_approved=True, is_20=True
-            ).exclude(points_20=0).values_list('ranking_20', flat=True))
-
-            for ranking_val in riders:
-                if ranking_val not in all_positions:
-                    all_positions.append(ranking_val)
-                else:
-                    duplicates.append(ranking_val)
-
-            if duplicates:
-                for position in duplicates:
-                    qs = Rider.objects.filter(
-                        ranking_20=position, is_20=True, is_active=True,
-                        class_20=category_20, is_approved=True
-                    )
-                    count = qs.count()
-                    text_ranking = f"{position} - {int(position) + count - 1}"
-                    qs.update(ranking_20=text_ranking)
-            duplicates = []
-            all_positions = []
-
-        for category_24 in categories_24:
-            riders = list(Rider.objects.filter(
-                class_24=category_24, is_active=True, is_approved=True, is_24=True
-            ).exclude(points_24=0).values_list('ranking_24', flat=True))
-
-            for ranking_val in riders:
-                if ranking_val not in all_positions:
-                    all_positions.append(ranking_val)
-                else:
-                    duplicates.append(ranking_val)
-
-            if duplicates:
-                for position in duplicates:
-                    qs = Rider.objects.filter(
-                        ranking_24=position, is_24=True, is_active=True,
-                        class_24=category_24, is_approved=True
-                    )
-                    count = qs.count()
-                    text_ranking = f"{position} - {int(position) + count - 1}"
-                    qs.update(ranking_24=text_ranking)
-            duplicates = []
-            all_positions = []
+    @staticmethod
+    def _positions(riders, points_attr):
+        """Vrátí [(jezdec, pořadí)]; jezdci se shodnými body sdílí rozsah, např. "5 - 7"."""
+        ordered = sorted(riders, key=lambda r: -getattr(r, points_attr))
+        positions = []
+        start = 0
+        while start < len(ordered):
+            end = start
+            while end + 1 < len(ordered) and getattr(ordered[end + 1], points_attr) == getattr(ordered[start], points_attr):
+                end += 1
+            label = str(start + 1) if end == start else f"{start + 1} - {end + 1}"
+            positions.extend((rider, label) for rider in ordered[start:end + 1])
+            start = end + 1
+        return positions
 
     def count_ranking_position(self):
-        """ Method for counting ranking position for all riders. Without arguments """
-        # RANKING POSITION FOR 20"
-        categories_20 = self.get_categories(is_20=True)
-        for category_20 in categories_20:
-            riders_20 = list(self.get_riders_by_class(category=category_20, is_20=True))
+        """Přepočte pořadí 20" i 24" pro všechny kategorie a zapíše jen změny."""
+        riders = list(
+            _ranked_riders().only(
+                "id", "is_20", "is_24", "class_20", "class_24",
+                "points_20", "points_24", "ranking_20", "ranking_24",
+            )
+        )
+        changed = {}
+        for is_20_flag, class_attr, points_attr, ranking_attr in (
+            ("is_20", "class_20", "points_20", "ranking_20"),
+            ("is_24", "class_24", "points_24", "ranking_24"),
+        ):
+            by_category = {}
+            for rider in riders:
+                if getattr(rider, is_20_flag) and getattr(rider, points_attr) != 0:
+                    by_category.setdefault(getattr(rider, class_attr), []).append(rider)
+            labels = {}
+            for category_riders in by_category.values():
+                labels.update(
+                    (rider.id, label) for rider, label in self._positions(category_riders, points_attr)
+                )
+            # Jezdec bez bodů v rankingu není — nesmí mu zůstat staré pořadí.
+            for rider in riders:
+                label = labels.get(rider.id)
+                if getattr(rider, ranking_attr) != label:
+                    setattr(rider, ranking_attr, label)
+                    changed[rider.id] = rider
 
-            for i, rider in enumerate(riders_20):
-                if i > 0:
-                    if riders_20[i - 1].points_20 == rider.points_20:
-                        ranking = riders_20[i - 1].ranking_20
-                    else:
-                        ranking = i + 1
-                else:
-                    ranking = 1
-                self.write_ranking(rider=rider.id, is_20=True, ranking=ranking)
-                rider.ranking_20 = ranking  # aktualizujeme in-memory pro další iteraci
-
-        # RANKING POSITION FOR 24" (CRUISER)
-        categories_24 = self.get_categories(is_20=False)
-        for category_24 in categories_24:
-            riders_24 = list(self.get_riders_by_class(category=category_24, is_20=False))
-
-            for i, rider in enumerate(riders_24):
-                if i > 0:
-                    if riders_24[i - 1].points_24 == rider.points_24:
-                        ranking = riders_24[i - 1].ranking_24
-                    else:
-                        ranking = i + 1
-                else:
-                    ranking = 1
-                self.write_ranking(rider=rider.id, is_20=False, ranking=ranking)
-                rider.ranking_24 = ranking  # aktualizujeme in-memory pro další iteraci
-
-        self.mark_same_position()
+        if changed:
+            with transaction.atomic():
+                Rider.objects.bulk_update(
+                    list(changed.values()), ["ranking_20", "ranking_24"], batch_size=_ID_CHUNK
+                )
         logger.info("Ranking všech jezdců přepočítán")
 
 

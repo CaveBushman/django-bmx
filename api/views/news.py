@@ -10,7 +10,11 @@ from api.views._common import *  # noqa: F401,F403
 
 
 class NewsListAPIView(generics.ListAPIView):
-    queryset = News.objects.filter(published=True, publish_in_app=True).order_by("-publish_date", "-id")
+    queryset = (
+        News.objects.filter(published=True, publish_in_app=True)
+        .prefetch_related("tags")
+        .order_by("-publish_date", "-id")
+    )
     serializer_class = NewsSerializer
     permission_classes = [AllowAny]
     pagination_class = None

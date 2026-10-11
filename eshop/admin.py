@@ -111,6 +111,12 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ("subtotal_display",)
     fields = ("variant", "quantity", "unit_price", "subtotal_display")
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Popisek varianty sahá na produkt — bez joinu jeden dotaz na každou volbu.
+        if db_field.name == "variant":
+            kwargs["queryset"] = ProductVariant.objects.select_related("product")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def subtotal_display(self, obj):
         if obj.pk:
             return f"{obj.subtotal:,.0f} Kč".replace(",", "\u00a0")

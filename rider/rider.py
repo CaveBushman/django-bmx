@@ -25,14 +25,15 @@ from bmx.excel_utils import CENTER_ALIGNMENT, THIN_BORDER, set_column_widths, wr
 from rider.models import Rider
 from event.models import Result, Event, EventType, Entry, SeasonSettings
 import threading
-from django.db.models import Q, Exists, OuterRef
+from django.core.cache import cache
+from django.db import transaction
+from django.db.models import Count, Q, Exists, OuterRef
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from concurrent.futures import ThreadPoolExecutor
 from openpyxl import Workbook
 
 
-now = datetime.today().year
 API_CONNECT_TIMEOUT_SECONDS = 5
 API_READ_TIMEOUT_SECONDS = 20
 API_TIMEOUT = (API_CONNECT_TIMEOUT_SECONDS, API_READ_TIMEOUT_SECONDS)
@@ -254,8 +255,11 @@ def valid_licence(rider, token=None):
         data = response.json()
         is_valid = data.get("valid", False)
 
-        rider.valid_licence = is_valid
-        rider.save(update_fields=["valid_licence", "updated"])
+        # Zapisujeme jen změnu — kontrola běží každých 6 h pro všechny jezdce
+        # a `updated` je kurzor delta synchronizace BMX Event Control.
+        if rider.valid_licence != is_valid:
+            rider.valid_licence = is_valid
+            rider.save(update_fields=["valid_licence", "updated"])
 
         if is_valid:
             logger.info(f"{rider.uci_id} – {rider.first_name} {rider.last_name}: licence je platná.")
@@ -340,7 +344,7 @@ def two_years_inactive():
 
     # Filtrovat aktivní jezdce s přiděleným číslem a profilem starším než 2 roky.
     # Do doby, než se všechna ostrá data překlopí do plate_text, držíme fallback i na legacy plate.
-    riders = Rider.objects.filter(
+    riders = Rider.objects.select_related("club").filter(
         is_active=True,
         is_approved=True,
     ).filter(
@@ -394,19 +398,25 @@ class Participation:
     def calculate(self):
         self.first_line()
         line = 2
-        riders = Rider.objects.filter(is_active=True)
+        riders = Rider.objects.filter(is_active=True).select_related("club")
+        participation = {
+            row["rider_id"]: row
+            for row in Result.objects.filter(date__year=datetime.today().year)
+            .values("rider_id")
+            .annotate(
+                mcr=Count("id", filter=Q(event_type=EventType.MCR_JEDNOTLIVCU)),
+                cp=Count("id", filter=Q(event_type=EventType.CESKY_POHAR)),
+                total=Count("id"),
+            )
+        }
         for rider in riders:
-            mcr: int = 0
-            cp: int = 0
-            others: int = 0
-            participation = Result.objects.filter(rider_id=rider.uci_id, date__year=now)
-            for part in participation:
-                if part.event_type == EventType.MCR_JEDNOTLIVCU:
-                    mcr = 1
-                elif part.event_type == EventType.CESKY_POHAR:
-                    cp += 1
-                else:
-                    others += 1
+            counts = participation.get(rider.uci_id)
+            if counts:
+                mcr = 1 if counts["mcr"] else 0
+                cp = counts["cp"]
+                others = counts["total"] - counts["mcr"] - counts["cp"]
+            else:
+                mcr = cp = others = 0
             self.ws.cell(line, 1, rider.last_name)
             self.ws.cell(line, 2, rider.first_name)
             self.ws.cell(line, 3, rider.uci_id)
@@ -426,7 +436,7 @@ class Participation:
 
 class Cruiser:
     def __init__(self):
-        self.year = now
+        self.year = datetime.today().year
 
     def calculate_median(self):
         cup_events = Event.objects.filter(
@@ -550,31 +560,45 @@ def perform_cn_qualification_recount(year=None):
         logger.warning(f"Chybí SeasonSettings pro rok {year}, kvalifikace na MČR nebyla přepočítána.")
         return
 
-    riders = Rider.objects.filter(is_active=True, is_approved=True)
     logger.info(f"Přepočítávám kvalifikaci na MČR pro rok {year}")
 
-    for rider in riders:
-        # Kvalifikace je podmíněna účastí (počtem startů), nikoliv bodováním —
-        # marked_20/marked_24 odráží jen bodované výsledky (umístění do 32.
-        # místa), takže by jezdce z přeplněných kategorií nikdy nekvalifikovalo.
-        results_20 = Result.objects.filter(
+    # Kvalifikace je podmíněna účastí (počtem startů), nikoliv bodováním —
+    # marked_20/marked_24 odráží jen bodované výsledky (umístění do 32.
+    # místa), takže by jezdce z přeplněných kategorií nikdy nekvalifikovalo.
+    starts = {
+        row["rider_id"]: row
+        for row in Result.objects.filter(
             event__type_for_ranking=EventType.CESKY_POHAR,
             event__date__year=year,
-            rider=rider,
-            is_20=True,
             is_beginner=False,
-        ).count()
-        results_24 = Result.objects.filter(
-            event__type_for_ranking=EventType.CESKY_POHAR,
-            event__date__year=year,
-            rider=rider,
-            is_20=False,
-            is_beginner=False,
-        ).count()
+        )
+        .values("rider_id")
+        .annotate(
+            starts_20=Count("id", filter=Q(is_20=True)),
+            starts_24=Count("id", filter=Q(is_20=False)),
+        )
+    }
 
-        rider.is_qualify_to_cn_20 = results_20 >= settings.qualify_to_cn
-        rider.is_qualify_to_cn_24 = results_24 >= settings.qualify_to_cn
-        rider.save(update_fields=["is_qualify_to_cn_20", "is_qualify_to_cn_24"])
+    changed = []
+    riders = Rider.objects.filter(is_active=True, is_approved=True).only(
+        "id", "uci_id", "is_qualify_to_cn_20", "is_qualify_to_cn_24"
+    )
+    for rider in riders:
+        rider_starts = starts.get(rider.uci_id, {})
+        qualify_20 = rider_starts.get("starts_20", 0) >= settings.qualify_to_cn
+        qualify_24 = rider_starts.get("starts_24", 0) >= settings.qualify_to_cn
+        if (rider.is_qualify_to_cn_20, rider.is_qualify_to_cn_24) != (qualify_20, qualify_24):
+            rider.is_qualify_to_cn_20 = qualify_20
+            rider.is_qualify_to_cn_24 = qualify_24
+            changed.append(rider)
+
+    if changed:
+        with transaction.atomic():
+            Rider.objects.bulk_update(
+                changed, ["is_qualify_to_cn_20", "is_qualify_to_cn_24"], batch_size=500
+            )
+        # bulk_update neposílá post_save — cache aktivních jezdců smažeme ručně.
+        cache.delete("active_riders")
 
 
 class RiderQualifyToCNThread(threading.Thread):
@@ -726,50 +750,6 @@ def generate_insurance_file(event):
 
     return file_path
    
-
-# ---------------------------------------------------------------------------
-# SPRÁVA TRANSPONDÉRŮ A TŘÍD (hromadné utility)
-# ---------------------------------------------------------------------------
-
-def set_all_riders_classes():
-    """Nastaví třídy všem aktivním jezdcům (hromadná varianta, nepoužívá threading).
-    Upozornění: pro produkci použij raději RiderSetClassesThread, který provede
-    bulk_update v jednom dotazu místo jednotlivých save().
-    """
-    riders = list(Rider.objects.filter(is_active=True))
-    for rider in riders:
-        rider.class_beginner = rider.set_class_beginner(rider)
-        rider.class_20 = rider.set_class_20(rider)
-        rider.class_24 = rider.set_class_24(rider)
-    Rider.objects.bulk_update(riders, ['class_beginner', 'class_20', 'class_24'])
-
-
-def clear_transponders():
-    """Vyčistí pole transpondérů od hodnoty 'nan' (artefakt po importu z Excelu).
-    Spouštět ručně pouze po importu dat.
-    """
-    riders = Rider.objects.filter(is_active=True)
-    to_update = []
-    for rider in riders:
-        changed = False
-        if rider.transponder_20 == "nan":
-            rider.transponder_20 = ""
-            changed = True
-        if rider.transponder_24 == "nan":
-            rider.transponder_24 = ""
-            changed = True
-        if changed:
-            to_update.append(rider)
-    if to_update:
-        Rider.objects.bulk_update(to_update, ['transponder_20', 'transponder_24'])
-
-
-def update_plate_notify(request):
-    """Uloží do session příznak, zda existují jezdci čekající na schválení.
-    Používá se v homepage_view pro zobrazení notifikace adminu.
-    """
-    request.session['plate'] = Rider.objects.filter(is_approved=False).exists()
-
 
 # ---------------------------------------------------------------------------
 # ROZPOZNÁNÍ KATEGORIE PRO EXTERNÍM API

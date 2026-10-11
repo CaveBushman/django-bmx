@@ -201,12 +201,15 @@ def _events_for_year(year):
             "reg_open",
             "reg_open_from",
             "reg_open_to",
+            "reg_cancel_to",
             "canceled",
             "double_race",
             "uec_link",
             "youtube_link",
             "proposition",
             "html_results",
+            "full_results",
+            "xls_results",
             "series",
             "structured_proposition__venue_name",
             "structured_proposition__venue_address",
@@ -312,7 +315,7 @@ def events_list_view(request):
     # nezměnily. Nová sada výsledků má vždy nová id.
     results_version = Result.objects.filter(event__date__year=year).aggregate(m=Max("id"))["m"]
     cache_key = (
-        f"events_list_{year}_{today}:"
+        f"events_list_v2_{year}_{today}:"
         f"{event_version['count']}:"
         f"{event_version['latest_id'] or 'none'}:"
         f"{latest_updated.isoformat() if latest_updated else 'none'}:"
@@ -445,7 +448,7 @@ def event_detail_views(request, pk):
 
 def results_view(request, pk):
     """Výsledky závodu — tabulka s pořadím jezdců."""
-    cache_key = f"results_{pk}"
+    cache_key = f"results_v2_{pk}"
     data = cache.get(cache_key)
     if data is None:
         event = get_object_or_404(
@@ -455,7 +458,7 @@ def results_view(request, pk):
         results = list(
             Result.objects
             .filter(event=pk)
-            .select_related("event")
+            .only("id", "category", "place", "first_name", "last_name", "club", "rider")
             .order_by("category", "place")
         )
         data = {"results": results, "event": event}

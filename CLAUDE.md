@@ -132,7 +132,8 @@ Periodic jobs run via **either** django-crontab (default) **or** Celery beat, ne
 when `USE_CELERY_BEAT=True`, settings empties `CRONJOBS` and `CELERY_BEAT_SCHEDULE`
 (thin wrappers in `bmx/tasks.py` around `bmx/cron.py`) owns the schedule. Jobs: licence
 check (6 h), subscription renewals (02:00–02:30), AI agent (03:00), DB backup (04:00),
-SQLite integrity (Sun 04:30), visit prune (monthly), SQLite optimize (05:00), and
+SQLite integrity (Sun 04:30), visit prune (monthly), expired session cleanup (03:50),
+SQLite optimize (05:00), and
 Entry/Result integrity check (Sun 05:15, see below).
 
 `docker-compose.yml` provides `redis`, `celery-worker`, and `celery-beat` services.
